@@ -18,8 +18,6 @@
 #include "flex.h"
 #include "broad_group_sqset.h"
 
-#include "ptin_globaldefs.h"
-
 /* Super QSet Definitions */
 /* Only qualifiers that were explicitly requested can be used in rule
  * definitions. Therefore, we define super qsets to encompass as many

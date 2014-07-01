@@ -38,9 +38,7 @@
 #include "snooping_querier.h"
 
 /* PTin added: IGMP Snooping */
-#if 1
 #include "ptin_globaldefs.h"
-#endif
 
 #include <pthread.h>
 

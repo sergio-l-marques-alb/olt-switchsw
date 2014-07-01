@@ -30,7 +30,7 @@
 #include "platform_cpu.h"
 
 #include "logger.h"
-
+#include "ptin_globaldefs.h"
 
 /**************************** MAC ADDRESS OFFSETS *******************/
 #if L7_FEAT_UNIQUE_L3_ROUTER_MAC == 1

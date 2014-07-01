@@ -18,11 +18,6 @@
 *
 **********************************************************************/
 
-/* PTin added: includes */
-#if 1
-#include "ptin_globaldefs.h"
-#endif
-
 #include "broad_group_xgs3.h"
 #include "bcm/field.h"
 #include "bcm/policer.h"    /* PTin added: policer */

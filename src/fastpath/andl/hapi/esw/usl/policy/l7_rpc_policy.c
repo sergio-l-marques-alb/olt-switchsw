@@ -37,8 +37,6 @@
 #include "ibde.h"
 #include "zlib.h"
 
-#include "ptin_globaldefs.h"  /* PTin added: SDK 6.3.0 */
-
 #define L7_RPC_POLICY_HANDLER HPC_RPC_FUNCTION_ID(L7_DRIVER_COMPONENT_ID,99)
 
 static BROAD_POLICY_CUSTOM_DATA_t *rpc_policy_data;

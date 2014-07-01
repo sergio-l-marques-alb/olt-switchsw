@@ -45,7 +45,6 @@
 #include "bcmx/bcmx_int.h"
 
 /* PTin added: logger */
-#include "ptin_globaldefs.h"
 #include "logger.h"
 
 static cpudb_ref_t system_cpudb = L7_NULLPTR;

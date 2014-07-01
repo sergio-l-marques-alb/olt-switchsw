@@ -51,9 +51,9 @@
 #include "log_api.h"
 #include "dim.h"
 /* PTin added */
-#include "ptin_globaldefs.h"
 #include "logger.h"
 #include "addrmap.h"
+#include "ptin_globaldefs.h"
 /* PTin end */
 
 #ifdef L7_CLI_PACKAGE
@@ -376,6 +376,8 @@ int fp_main(int argc, char *argv[])
     printf("Dual Image Manager Initialization failed. \n\n");
   }
 
+  LOG_NOTICE(LOG_CTX_STARTUP,"FASTPATH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
+
   /* PTin added: CPLD and FPGA mapping */
   rc = hapi_ptin_fpga_map();
   if (rc != L7_SUCCESS)
@@ -392,7 +394,6 @@ int fp_main(int argc, char *argv[])
   ** If it does not exist then we will stay in the current.
   */
   printf("\n");
-
 
   rc = 10;
   L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_BSP_COMPONENT_ID,

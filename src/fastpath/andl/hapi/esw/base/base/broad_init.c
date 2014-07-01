@@ -127,10 +127,7 @@ extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *filePtr);
 #endif
 
 /* PTin added: packet trap */
-#if 1
-#include "ptin_globaldefs.h"
 #include "logger.h"
-#endif
 
 /* Max time to wait for a unit to be discovered by lower stacking layer */
 #define BROAD_UNIT_DISCOVER_TIMEOUT   (7000) /* 5 sec */

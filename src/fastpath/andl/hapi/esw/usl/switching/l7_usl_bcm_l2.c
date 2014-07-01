@@ -38,8 +38,6 @@
 #include "bcm_int/common/multicast.h" /* PTin modified: new SDK  (esw->common) */
 #include "broad_mmu.h"
 
-#include "ptin_globaldefs.h"
-
 /* Check whether device supports enhanced DOS controls */
 L7_BOOL usl_bcm_enhanced_doscontrol_get(void)
 { 

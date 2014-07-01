@@ -3,10 +3,6 @@
 
 #include "l7_platformspecs.h"
 
-/* SDK version */
-#define SDK_VERSION_IS      ( ((SDK_MAJOR_VERSION)<<24) | ((SDK_MINOR_VERSION)<<16) | ((SDK_REVISION_ID)<<8) | ((SDK_PATCH_ID)) )
-#define SDK_VERSION(major,minor,revis,patch)   ( (((major) & 0xff)<<24) | (((minor) & 0xff)<<16) | (((revis) & 0xff)<<8) | (((patch) & 0xff)) )
-
 /* ************************** */
 /* Global Features Activation */
 

@@ -31,8 +31,6 @@
 #include "l7_rpc_l2_mcast.h"
 #include "l7_usl_bcm_port.h"
 
-#include "ptin_globaldefs.h"
-
 #define RV_REPLACE(_trv, _rv)                   \
         BCMX_RV_REPLACE_OK(_trv, _rv, BCM_E_UNAVAIL)
 

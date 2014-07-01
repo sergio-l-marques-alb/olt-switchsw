@@ -30,8 +30,6 @@
 #include "bcm/l2.h"
 #include "bcm/link.h"
 
-#include "ptin_globaldefs.h"
-
 extern int l7_rpc_server_mcast_port_update_groups(int unit, bcm_port_t port, 
                                            int setget, uint32 *args);
 

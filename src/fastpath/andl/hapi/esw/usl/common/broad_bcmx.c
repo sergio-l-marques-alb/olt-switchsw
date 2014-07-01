@@ -31,8 +31,6 @@
 #include "l7_rpc_ipmcast.h"
 #endif
 
-#include "ptin_globaldefs.h"  /* PTin added: SDK 6.3.0 */
-
 /*********************************************************************
 *
 * @purpose Dispatch function to handle custom BCMX port requests.

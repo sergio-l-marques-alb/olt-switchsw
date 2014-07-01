@@ -33,7 +33,6 @@
 #include "l7_usl_l3_db.h"
 
 /* PTin added: SDK 6.3.0 */
-#include "ptin_globaldefs.h"
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 #include "logger.h"
 #endif

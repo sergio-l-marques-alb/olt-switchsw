@@ -20,7 +20,6 @@
 **********************************************************************/
 
 #include "l7_common.h"
-#include "ptin_globaldefs.h"
 
 #ifdef L7_MCAST_PACKAGE
 

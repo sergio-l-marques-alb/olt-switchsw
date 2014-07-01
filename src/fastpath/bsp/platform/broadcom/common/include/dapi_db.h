@@ -29,8 +29,6 @@
 #include "dapi.h"
 #include "sysapi_hpc.h"
 
-#include "ptin_globaldefs.h"  /* PTin added */
-
 /*******************************************************************************
 *
 * @structures HAPI_CARD_SLOT_MAP_t

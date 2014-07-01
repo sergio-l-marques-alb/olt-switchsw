@@ -55,7 +55,6 @@
 #include "bcmx/l2.h"
 #include "bcmx/l3.h"
 /* PTin removed: SDK 6.3.0 */
-#include "ptin_globaldefs.h"
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */
 #else

@@ -28,10 +28,7 @@
 #include "l7_usl_common.h"
 
 /* PTin added: includes */
-#if 1
 #include "logger.h"
-#include "ptin_globaldefs.h"
-#endif
 
 /* Policy Group Map Table Definitions */
 

@@ -25,10 +25,7 @@
 #include "l7_usl_policy_db.h"
 
 /* PTin added: includes */
-#if 1
 #include "logger.h"
-#include "ptin_globaldefs.h"
-#endif
 
 /* Group Definitions */
 

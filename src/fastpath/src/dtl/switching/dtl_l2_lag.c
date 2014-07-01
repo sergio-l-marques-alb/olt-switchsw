@@ -34,8 +34,6 @@
 #include "dtlinclude.h"
 #include "dot3ad_exports.h"
 
-#include "ptin_globaldefs.h"
-
 #if DTLCTRL_COMPONENT_L2_LAG
 
 

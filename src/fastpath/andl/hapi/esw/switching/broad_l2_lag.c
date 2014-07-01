@@ -72,7 +72,6 @@
 #endif
 
 #include "logger.h"   /* PTin added: trunks */
-#include "ptin_globaldefs.h"
 
 extern DAPI_t *dapi_g;
 

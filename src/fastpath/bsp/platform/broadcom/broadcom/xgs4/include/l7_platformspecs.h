@@ -59,6 +59,10 @@
 
 #include "ptin_platform.h"                            /* PTin added: defines PLAT_BCM_CHIP and PTIN_BOARD */
 
+/* SDK version */
+#define SDK_VERSION_IS    ( ((SDK_MAJOR_VERSION)<<24) | ((SDK_MINOR_VERSION)<<16) | ((SDK_REVISION_ID)<<8) | ((SDK_PATCH_ID)) )
+#define SDK_VERSION(major,minor,revis,patch)  ( (((major) & 0xff)<<24) | (((minor) & 0xff)<<16) | (((revis) & 0xff)<<8) | (((patch) & 0xff)) )
+
 #ifndef PTIN_BOARD
 #error "PTIN: PTIN_BOARD is not defined!!!"
 #endif
