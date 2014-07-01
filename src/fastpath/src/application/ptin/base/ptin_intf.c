@@ -26,7 +26,7 @@
 #include "ptin_fpga_api.h"
 
 /* Uplink protection */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
 static L7_uint64 forcelinked_ports_bmp        = 0;
 static L7_uint64 uplink_protection_ports_bmp  = 0;
 static L7_uint64 uplink_protection_ports_active_bmp = 0;
@@ -254,7 +254,7 @@ L7_RC_t ptin_intf_init(void)
     }
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Clear structures */
   forcelinked_ports_bmp = 0;
   uplink_protection_ports_bmp = 0;
@@ -572,7 +572,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   /* PortEnable */
   if ( (phyConf->Mask & PTIN_PHYCONF_MASK_PORTEN) )     /* Enable mask bit */
   {
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD_IS_MATRIX)
     /* Port should not have force link scheme applied */
     if ( (forcelinked_ports_bmp >> port) & 1 )
     {
@@ -1928,7 +1928,7 @@ L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo)
  */
 L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port)
 {
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD_IS_MATRIX)
   return (((uplink_protection_ports_bmp >> ptin_port) & 1) == 1);
   #else
   return L7_FALSE;
@@ -1946,7 +1946,7 @@ L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port)
  */
 L7_BOOL ptin_intf_is_uplinkProtectionActive(L7_uint32 ptin_port)
 {
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD_IS_MATRIX)
   return (((uplink_protection_ports_active_bmp >> ptin_port) & 1) == 1); 
   #else
   return L7_FALSE;
@@ -2007,7 +2007,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   }
 
   /* Uplink protection */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* For Uplink ports, only disable linkscan and force link */
   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
   {
@@ -2682,7 +2682,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   }
 
   /* Uplink protection */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
   L7_uint   port;
 
   /* For Uplink ports, only disable linkscan and force link */
@@ -2875,7 +2875,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Protection lag */
   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
   {
@@ -4314,7 +4314,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Track force link state for each port */
   if (link && enable)
   {
@@ -4451,7 +4451,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -4978,7 +4978,7 @@ L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
  */
 L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 {
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD_IS_MATRIX)
   L7_uint lag_idx;
   L7_uint32 ptin_port, intIfNum, lag_intIfNum;
 
@@ -5062,7 +5062,7 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
  */
 L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
 {
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  #if (PTIN_BOARD_IS_MATRIX)
   L7_uint32 ptin_port, intIfNum;
   L7_RC_t rc;
 
@@ -5107,6 +5107,8 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
       LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port);
     }
     #endif
+  #else
+    rc = L7_SUCCESS; /* avoid warning */
   #endif
   }
   /* Innactivate command: remove port */
@@ -5164,7 +5166,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
  */
 L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_uint slot_new, L7_uint port_new)
 {
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
   L7_uint32 ptin_port_old, ptin_port_new;
   L7_uint32 intIfNum_old, intIfNum_new;
   L7_RC_t rc;
@@ -5243,6 +5245,8 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
     LOG_TRACE(LOG_CTX_PTIN_API, "Linkscan enabled for port %u", ptin_port_new);
   }
   #endif
+#else
+  rc = L7_SUCCESS; /* avoid warning */
 #endif
 #endif
 
