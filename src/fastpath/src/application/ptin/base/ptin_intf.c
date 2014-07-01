@@ -1187,10 +1187,32 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
 
   /* Only CXO160G have frontal ports */
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (slot <= 1)
+  /* Local port format */
+  if (slot == 0)
   {
-    /* Use port reference */
+    if (port >= PTIN_SYSTEM_N_LOCAL_PORTS)
+    {
+      return L7_FAILURE;
+    }
     ptin_port = port;
+  }
+  /* Slot/port format */
+  else if (slot == PTIN_SYS_MX1_SLOT)
+  {
+    if (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2)
+    {
+      return L7_FAILURE;
+    }
+    ptin_port = port;
+  }
+  /* Slot/port format */
+  else if (slot == PTIN_SYS_MX2_SLOT)
+  {
+    if (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2)
+    {
+      return L7_FAILURE;
+    }
+    ptin_port = PTIN_SYSTEM_N_LOCAL_PORTS/2 + port;
   }
   else
   #endif
