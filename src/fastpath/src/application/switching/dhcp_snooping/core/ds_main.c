@@ -5008,9 +5008,9 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     {
       //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
             /* No inner tag? */
-      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
-          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
-          *((L7_uint16 *) &frame[16]) != 0x9100)
+      if (osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x8100 &&
+          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x88A8 &&
+          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x9100)
       {
         memmove(&frame[20],&frame[16],frameLen);
         frame[16] = 0x81;

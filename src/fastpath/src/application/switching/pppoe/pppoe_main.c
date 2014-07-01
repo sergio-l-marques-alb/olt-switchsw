@@ -517,15 +517,15 @@ L7_RC_t pppoeAddVendorIdTlv(L7_uchar8 *framePtr, L7_uint32 intIfNum, L7_ushort16
    tlv_length       = sizeof(L7_uint32) + 2*(sizeof(L7_uint8)+sizeof(L7_uint8)) + circuitid_length + remoteid_length;
 
    /* TLV Tag Type */
-   *((L7_uint16 *)framePtr) = tlv_tag_type;
+   *((L7_uint16 *)framePtr) = osapiHtons(tlv_tag_type);
    framePtr += sizeof(L7_uint16);
 
    /* TLV Length */
-   *((L7_uint16 *)framePtr) = tlv_length;
+   *((L7_uint16 *)framePtr) = osapiHtons(tlv_length);
    framePtr += sizeof(L7_uint16);
 
    /* Vendor ID */
-   *((L7_uint32 *)framePtr) = vendor_id;
+   *((L7_uint32 *)framePtr) = osapiHtonl(vendor_id);
    framePtr += sizeof(L7_uint32);
 
    /* Circuit ID Code */
@@ -756,9 +756,9 @@ L7_RC_t pppoeClientFrameSend(L7_uint32 intIfNum, L7_uchar8* frame, L7_ushort16 v
     {
       //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
             /* No inner tag? */
-      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
-          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
-          *((L7_uint16 *) &frame[16]) != 0x9100)
+      if (osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x8100 &&
+          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x88A8 &&
+          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x9100)
       {
         memmove(&frame[20],&frame[16],frame_len);
         frame[16] = 0x81;
@@ -864,9 +864,9 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
     if (/*is_vlan_stacked &&*/ extIVlan!=0)
     {
       /* No inner tag? */
-      if (*((L7_uint16 *) &frame[16]) != 0x8100 &&
-          *((L7_uint16 *) &frame[16]) != 0x88A8 &&
-          *((L7_uint16 *) &frame[16]) != 0x9100)
+      if (osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x8100 &&
+          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x88A8 &&
+          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x9100)
       {
         memmove(&frame[20],&frame[16],frame_len);
         frame[16] = 0x81;

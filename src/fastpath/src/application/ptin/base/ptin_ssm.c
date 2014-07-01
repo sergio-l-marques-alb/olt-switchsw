@@ -299,6 +299,8 @@ L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   offset = 0;
   /* Outer vlan? */
   memcpy(&etherType, &data[SSM_ETHTYPE_OFFSET+offset], sizeof(L7_uint16));
+  etherType = osapiNtohs(etherType);
+
   if (etherType==0x8100 || etherType==0x88a8 || etherType==0x9100)
   {
     offset += 4;
@@ -321,6 +323,8 @@ L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
   /*check to see if the PDU carries the slow protocols type field of 0x8809*/
   memcpy(&etherType, &data[SSM_ETHTYPE_OFFSET + offset], sizeof(L7_uint16));
+  etherType = osapiNtohs(etherType);
+
   if (etherType != SSM_SLOW_PROTOCOL_TYPE)
   {
     ssm_stats[intIfNum].UnknownRx++;
@@ -595,13 +599,13 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
     LOG_TRACE(LOG_CTX_PTIN_SSM,"Packet received on interface %u:",intf);
     LOG_TRACE(LOG_CTX_PTIN_SSM," DMAC=%02x:%02x:%02x:%02x:%02x:%02x",pdu->dmac[0],pdu->dmac[1],pdu->dmac[2],pdu->dmac[3],pdu->dmac[4],pdu->dmac[5]);
     LOG_TRACE(LOG_CTX_PTIN_SSM," SMAC=%02x:%02x:%02x:%02x:%02x:%02x",pdu->smac[0],pdu->smac[1],pdu->smac[2],pdu->smac[3],pdu->smac[4],pdu->smac[5]);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," EtherType     = 0x%04x",pdu->etherType);
+    LOG_TRACE(LOG_CTX_PTIN_SSM," EtherType     = 0x%04x",osapiNtohs(pdu->etherType));
     LOG_TRACE(LOG_CTX_PTIN_SSM," SubType       = 0x%02x",pdu->subType);
     LOG_TRACE(LOG_CTX_PTIN_SSM," ITU-OUI       = 0x%02x%02x%02x",pdu->itu_oui[0],pdu->itu_oui[1],pdu->itu_oui[2]);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," ITU-T Subtype = 0x%04x",pdu->itut_subtype);
+    LOG_TRACE(LOG_CTX_PTIN_SSM," ITU-T Subtype = 0x%04x",osapiNtohs(pdu->itut_subtype));
     LOG_TRACE(LOG_CTX_PTIN_SSM," Version       = 0x%02x",pdu->version);
     LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Type      = 0x%02x",pdu->ssm_type);
-    LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Length    = 0x%04x",pdu->ssm_length);
+    LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Length    = 0x%04x",osapiNtohs(pdu->ssm_length));
     LOG_TRACE(LOG_CTX_PTIN_SSM," SSM Code      = 0x%02x",pdu->ssm_code);
     LOG_TRACE(LOG_CTX_PTIN_SSM,"End of Packet processing");
   }
@@ -609,6 +613,8 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
   /* Validar restantes campos do campo */
   /* ITU-OUI */
   itu_oui = ((L7_uint32) pdu->itu_oui[0]<<16) | ((L7_uint32) pdu->itu_oui[1]<<8) | ((L7_uint32) pdu->itu_oui[2]);
+  itu_oui = osapiNtohl(itu_oui);
+
   if (itu_oui != SSM_ITU_OUI)
   {
     LOG_ERR(LOG_CTX_PTIN_SSM,"ITU-T field is not valid: received=0x%x, expected=0x%x",itu_oui,SSM_ITU_OUI);
@@ -630,9 +636,9 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
     return L7_FAILURE;
   }
   /* SSM length must be one, or greater */
-  if (pdu->ssm_length < SSM_L4_LENGTH)
+  if (osapiNtohs(pdu->ssm_length) < SSM_L4_LENGTH)
   {
-    LOG_ERR(LOG_CTX_PTIN_SSM,"SSM length is less than %u bytes (%u)",SSM_L4_LENGTH,pdu->ssm_length);
+    LOG_ERR(LOG_CTX_PTIN_SSM,"SSM length is less than %u bytes (%u)",SSM_L4_LENGTH, osapiNtohs(pdu->ssm_length));
     bufferPoolFree(ssmBufferPoolId,  buffer);
     return L7_FAILURE;
   }
@@ -701,6 +707,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   ssm_pdu_t *pdu;
   L7_uchar8 *data;
   L7_uint16 slot, intf;
+  L7_uint32 itu_oui;
 
   /* Convert port to slot/intf */
   if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR)!=L7_SUCCESS)
@@ -740,18 +747,19 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   //simGetSystemMac(pdu->smac);
 
   /* Ethertype */
-  pdu->etherType = SSM_SLOW_PROTOCOL_TYPE;
+  pdu->etherType = osapiHtons(SSM_SLOW_PROTOCOL_TYPE);
 
   /* Subtype */
   pdu->subType = SSM_PROTOCOL_SUBTYPE;
 
   /* ITU-OUI */
+  itu_oui = osapiHtonl(SSM_ITU_OUI);
   pdu->itu_oui[0] = (SSM_ITU_OUI>>16) & 0xff;
   pdu->itu_oui[1] = (SSM_ITU_OUI>>8 ) & 0xff;
   pdu->itu_oui[2] = (SSM_ITU_OUI    ) & 0xff;
 
   /* ITU-T Subtype */
-  pdu->itut_subtype = SSM_ITU_SUBTYPE;
+  pdu->itut_subtype = osapiHtons(SSM_ITU_SUBTYPE);
 
   /* Version */
   pdu->version = SSM_VERSION;
@@ -760,7 +768,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   pdu->ssm_type = SSM_L4_TYPE;
 
   /* SSM length */
-  pdu->ssm_length = SSM_L4_LENGTH;
+  pdu->ssm_length = osapiHtons(SSM_L4_LENGTH);
 
   /* SSM code */
   pdu->ssm_code = pfw_shm->intf[slot][intf].ssm_tx & 0x0f; // 0x0f;

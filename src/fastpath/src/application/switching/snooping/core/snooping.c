@@ -505,13 +505,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_inet_addr_t srcAddr, grpAddr;
 
-  L7_BOOL        isLittleEndian;
-
-  //Check if the CPU is Little Endian
-  if (snoopGetEndianess() == SNOOP_LITTLE_ENDIAN)
-  {
-    isLittleEndian = L7_TRUE;    
-  } 
   memset(&srcAddr, 0x00, sizeof(srcAddr));
   memset(&srcAddr, 0x00, sizeof(grpAddr));
 
@@ -540,10 +533,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     srcAddr.addr.ipv4.s_addr = *((L7_uint32 *) &buffPtr[12]);
 
     //Check if the CPU is Little Endian
-    if(isLittleEndian == L7_TRUE)
-    {
-      srcAddr.addr.ipv4.s_addr = osapiHtonl(srcAddr.addr.ipv4.s_addr);  
-    }
+    srcAddr.addr.ipv4.s_addr = osapiHtonl(srcAddr.addr.ipv4.s_addr);  
 
     ipHdrLen = (buffPtr[0] & 0x0f)*4;
     if ( ipHdrLen < L7_IP_HDR_LEN)
@@ -577,23 +567,17 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[4]);
       
       //Check if the CPU is Little Endian
-      if(isLittleEndian == L7_TRUE)
-      {
-        grpAddr.addr.ipv4.s_addr = osapiHtonl(grpAddr.addr.ipv4.s_addr);
-      }      
+      grpAddr.addr.ipv4.s_addr = osapiHtonl(grpAddr.addr.ipv4.s_addr);
     }
     else if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
     {
-      if (*((L7_uint16 *) &igmpPtr[6]) > 0)
+      if (osapiNtohs(*((L7_uint16 *) &igmpPtr[6])) > 0)
       {
         grpAddr.family = L7_AF_INET;        
         grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[12]);
 
         //Check if the CPU is Little Endian
-        if(isLittleEndian == L7_TRUE)
-        {
-          grpAddr.addr.ipv4.s_addr = osapiHtonl(grpAddr.addr.ipv4.s_addr);
-        }     
+        grpAddr.addr.ipv4.s_addr = osapiHtonl(grpAddr.addr.ipv4.s_addr);
       }
     }
 
