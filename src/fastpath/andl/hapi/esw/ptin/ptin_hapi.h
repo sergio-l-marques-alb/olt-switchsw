@@ -306,5 +306,7 @@ extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort);
  */
 extern L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uchar8 *packet_data );
 
+extern L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uint8 only_drops );
+
 #endif /*_PTIN_HAPI_H */
 
