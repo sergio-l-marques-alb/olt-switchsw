@@ -1526,14 +1526,14 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       {
         /* Assuming that All mgmt traffic will be untagged */
         /* All IP/IPV6/ARP will be tagged.*/ 
-        if ( (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] != 0x8100) &&
-             (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] != 0x88a8) &&
-             (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] != 0x9100)  /* PTin added: ethertypes */
+        if ( (osapiNtohs(*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12]) != 0x8100) &&
+             (osapiNtohs(*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12]) != 0x88a8) &&
+             (osapiNtohs(*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12]) != 0x9100)  /* PTin added: ethertypes */
            )
         {
-          if ( (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] == 0x0800) ||
-               (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] == 0x0806) ||
-               (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12] == 0x86dd)
+          if ( (osapiNtohs(*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12]) == 0x0800) ||
+               (osapiNtohs(*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12]) == 0x0806) ||
+               (osapiNtohs(*(L7_ushort16 *)&bcm_pkt.pkt_data->data[4+12]) == 0x86dd)
              )
 
           {
@@ -1549,8 +1549,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
      if (isMgmtPkt == L7_TRUE)
      {
         memcpy(&bcm_pkt.pkt_data->data[0], &bcm_pkt.pkt_data->data[4], 12);
-        *(L7_ushort16 *)&bcm_pkt.pkt_data->data[12] = hapiBroadDvlanEthertype;
-        *(L7_ushort16 *)&bcm_pkt.pkt_data->data[14] = BCM_VLAN_CTRL(0, 0, hapiSystemPtr->mgmtVlanId);
+        *(L7_ushort16 *)&bcm_pkt.pkt_data->data[12] = osapiHtons(hapiBroadDvlanEthertype);
+        *(L7_ushort16 *)&bcm_pkt.pkt_data->data[14] = osapiHtons(BCM_VLAN_CTRL(0, 0, hapiSystemPtr->mgmtVlanId));
         pkt_start_idx = 0;
         frameLength+=4;
         /* Placing the mgmtVlan info here to mimic the Mgmt traffic */
@@ -2225,12 +2225,14 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
            bcm_pkt->rx_port,bcm_pkt->src_port,bcm_pkt->vlan);
 
     printf("rx_timestamp %d, rx_timestamp_upper %d, timestamp_flags %d\n\r", bcm_pkt->rx_timestamp, bcm_pkt->rx_timestamp_upper, bcm_pkt->timestamp_flags);
+    fflush(stdout);
   }
 
   /* PTIN added: PTP Timestamp BCM_PKT_F_xxx flags. */
   else if ((cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL2) && (bcm_pkt->pkt_data->data[0x26]==0x01 && bcm_pkt->pkt_data->data[0x27]==0x3f))
   {
     printf("rx_timestamp %d\n\r", bcm_pkt->rx_timestamp); 
+    fflush(stdout);
   }
 
   // PTin
@@ -2253,6 +2255,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
       printf(" %02x",bcm_pkt->pkt_data->data[i]);
     }
     printf("\r\n");
+    fflush(stdout);
   }
 
   /* Check if packet needs to be printed out */
@@ -2287,6 +2290,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     printf ("Rx: OuterVlan -%u-%d-%d\r\n", bcm_pkt->vlan,bcm_pkt->vlan_pri,bcm_pkt->vlan_cfi);
     printf ("Rx: InnerVlan -%u-%d-%d\r\n", bcm_pkt->inner_vlan,bcm_pkt->inner_vlan_pri,
                                               bcm_pkt->inner_vlan_cfi);
+    fflush(stdout);
   }
 
   if (voiceVlanAuthDebug)
@@ -2360,7 +2364,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
           /* Currently All the double tagged frames comes with
              inner inner TPID as 0x8100.*/
      {
-       outerVlanId = (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
+       outerVlanId = osapiNtohs(*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
 
        if (dapi_g->system->dvlanEnable)
        {
@@ -2377,10 +2381,10 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
          ether_type = osapiNtohs(ether_type);
          if(hapiPortPtr->locked == L7_FALSE)
          {
-           outerVlanId = (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
+           outerVlanId = osapiNtohs(*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
            if (ether_type == FD_DVLANTAG_802_1Q_ETHERTYPE) /* DT frame */
            {
-             innerVlanId = (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[18]) & 0xFFF;
+             innerVlanId = osapiNtohs(*(L7_ushort16 *)&bcm_pkt->pkt_data->data[18]) & 0xFFF;
            }
            hapiBroadInnerTagRemove(bcm_pkt->pkt_data->data, &frameLength);
          }
@@ -2389,9 +2393,9 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
            outerVlanId = bcm_pkt->vlan;
            if (ether_type == FD_DVLANTAG_802_1Q_ETHERTYPE) /* DT frame */
            {
-             innerVlanId = (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
+             innerVlanId = osapiNtohs(*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
            }
-           (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) = bcm_pkt->vlan;
+           *(L7_ushort16 *)&bcm_pkt->pkt_data->data[14] = osapiHtons(bcm_pkt->vlan);
          }
        }
        /* These conditions from the below conditions needes to be removed */
@@ -2421,10 +2425,10 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
   if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
   {
-    outerVlanId = (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
+    outerVlanId = osapiNtohs((*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF);
     if (dapi_g->system->dvlanEnable)
     {
-      innerVlanId = (*(L7_ushort16 *)&bcm_pkt->pkt_data->data[18]) & 0xFFF;
+      innerVlanId = osapiNtohs((*(L7_ushort16 *)&bcm_pkt->pkt_data->data[18]) & 0xFFF);
     }
     if ( (outerVlanId > L7_MAX_VLAN_ID) ||
          (innerVlanId > L7_MAX_VLAN_ID)
@@ -2555,7 +2559,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
                 (hapiBroadDot1xIsAuthorizedClient(&tempUsp, &bcm_pkt->pkt_data->data[6], dapi_g) == L7_FALSE))
             {
                  macAddressInfo.cmdData.unsolIntfMacUnknownAddr.getOrSet = DAPI_CMD_SET;
-                 macAddressInfo.cmdData.unsolIntfMacUnknownAddr.vlanID   = (*(L7_ushort16 *)(&bcm_pkt->pkt_data->data[14])) & 0x0fff;
+                 macAddressInfo.cmdData.unsolIntfMacUnknownAddr.vlanID   = osapiNtohs((*(L7_ushort16 *)(&bcm_pkt->pkt_data->data[14])) & 0x0fff);
                  memcpy( macAddressInfo.cmdData.unsolIntfMacUnknownAddr.macAddr.addr,
                          &bcm_pkt->pkt_data->data[6],
                          6 );
@@ -2642,7 +2646,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
      */
     if (dapiPortPtr->modeparm.physical.routerIntfEnabled != L7_TRUE)
     {
-      vlanId = osapiNtohs((*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14])) & 0xFFF;
+      vlanId = osapiNtohs(*(L7_ushort16 *)&bcm_pkt->pkt_data->data[14]) & 0xFFF;
 
       if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
       {
@@ -3135,6 +3139,7 @@ void txStats()
   for (i = 0; i < DAPI_NUM_OF_FRAME_TYPES; i++) {
           printf(" FrameType %d Dropped %10u\n", i, hapiTxDebugCounters[i]);
   }
+  fflush(stdout);
 }
 
 void rxStats(int clear)
@@ -3167,7 +3172,7 @@ void rxStats(int clear)
     }
     hapiLportToUportConvertErrors = 0;
   }
-
+  fflush(stdout);
 }
 
 

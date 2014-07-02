@@ -167,6 +167,8 @@ void ptin_debug(void)
   printf("\r\n");
   printf("  mgmd.cli                                                  - Show MGMD help\r\n");
   printf("\r\n");
+
+  fflush(stdout);
 }
 
 void ptin_help(void)

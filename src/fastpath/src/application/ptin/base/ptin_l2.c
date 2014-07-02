@@ -115,7 +115,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
     }
 
     // Extract vlan and validate it
-    vlan = (L7_uint16) *((L7_uint16 *) &fdbEntry.dot1dTpFdbAddress[0]);
+    vlan = osapiNtohs((L7_uint16) *((L7_uint16 *) &fdbEntry.dot1dTpFdbAddress[0]));
     if (vlan>4095) {
       LOG_ERR(LOG_CTX_PTIN_L2, "Invalid vlanid (%u) on index %u",vlan,index);
       rc = L7_FAILURE;
