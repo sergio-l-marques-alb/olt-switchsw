@@ -154,6 +154,7 @@ void help_oltBuga(void)
         "testit msg[????h] byte1[??[h]] byte2[??[h]] ... - Build your own message!!!\n\r"
         "\n\r"
         );
+        fflush(stdout);
 }
 
 
@@ -6727,9 +6728,6 @@ int main (int argc, char *argv[])
         comando.info[i-3]= valued;
     }
 
-
-
-
     canal_buga=open_ipc(PORTO_TX_MSG_BUGA,IP_LOCALHOST,NULL,20);
     if ( canal_buga<0 )
     {
@@ -6744,8 +6742,6 @@ int main (int argc, char *argv[])
       exit(0);
     }
 
-
-
     printf("RESPOSTA: msg=%4.4x\tflags=%2.2u\tinfoDim=%u\n\r", resposta.msgId, resposta.flags, resposta.infoDim);
     for (i=0; i<resposta.infoDim; i++) printf("\t%2.2x", resposta.info[i]);
     if (resposta.infoDim) printf("\n\r"); 
@@ -6755,6 +6751,8 @@ int main (int argc, char *argv[])
     help_oltBuga();
     exit(0);
   }
+
+  fflush(stdout);
   return 0;
 }
 

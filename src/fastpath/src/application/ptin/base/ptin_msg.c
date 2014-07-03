@@ -82,6 +82,7 @@ L7_RC_t ptin_msg_ShellCommand_run(L7_char8 *str)
   L7_char8 *tty, *type, *cmd;
   L7_uint i   = 0;
   L7_uint len = strlen(str);
+  L7_RC_t rc;
 
   if (len > CMD_MAX_LEN)
     len = CMD_MAX_LEN;
@@ -118,7 +119,11 @@ L7_RC_t ptin_msg_ShellCommand_run(L7_char8 *str)
   if (*cmd == '\0' || i >= len)
     return L7_FAILURE;
 
-  return ptin_shell_command_run(tty,type,cmd);
+  rc = ptin_shell_command_run(tty,type,cmd);
+
+  fflush(stdout);
+
+  return rc;
 }
 
 /**
