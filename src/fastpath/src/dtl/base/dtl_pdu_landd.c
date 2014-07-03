@@ -286,7 +286,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 #endif
 
   //Ignore if the port has link down (only consider valid interfaces)
-  if ( (nimCheckIfNumber(intIfNum) == L7_SUCCESS) &&
+  if ( (nimCheckIfNumber(dtlCmdInfo->intfNum) == L7_SUCCESS) &&
        ((nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE)) )
   {
     if (ptin_debug_dtl)
