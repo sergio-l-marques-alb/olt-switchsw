@@ -531,7 +531,7 @@ typedef struct {
 #define CCMSG_ROUTING_INTF_TYPE_LOOPBACK      2
 typedef struct
 {
-   L7_uint16            slotId;
+   L7_uint8             slotId;
    L7_uint8             type;
    msg_HwEthInterface_t routingIntf;
    msg_HwEthInterface_t physicalIntf;
@@ -544,7 +544,7 @@ typedef struct
 // Message CCMSG_ROUTING_INTF_MODIFY
 typedef struct
 {
-   L7_uint16            slotId;
+   L7_uint8             slotId;
    msg_HwEthInterface_t routingIntf;
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
@@ -553,7 +553,7 @@ typedef struct
 // Message CCMSG_ROUTING_INTF_REMOVE
 typedef struct
 {
-   L7_uint16            slotId;
+   L7_uint8             slotId;
    msg_HwEthInterface_t routingIntf;
 } __attribute__((packed)) msg_RoutingIntfRemove;
 
@@ -564,7 +564,7 @@ typedef struct
 #define CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY  4
 typedef struct
 {
-   L7_uint16            slotId;
+   L7_uint8             slotId;
    msg_HwEthInterface_t intf;
    L7_uint32            lastIndex;
 } __attribute__((packed)) msg_RoutingArpTableRequest;
@@ -581,7 +581,7 @@ typedef struct
 // Message CCMSG_ROUTING_ARPENTRY_PURGE
 typedef struct
 {
-   L7_uint16            slotId;
+   L7_uint8             slotId;
    msg_HwEthInterface_t intf;
    L7_int32             ipAddr;
 } __attribute__((packed)) msg_RoutingArpEntryPurge;
@@ -593,7 +593,7 @@ typedef struct
 #define CCMSG_ROUTING_ROUTETABLE_PROTOCOL_RIP     16
 typedef struct
 {
-   L7_uint16            slotId;
+   L7_uint8             slotId;
    msg_HwEthInterface_t intf;
    L7_uint32            lastIndex;
 } __attribute__((packed)) msg_RoutingRouteTableRequest;
@@ -618,7 +618,7 @@ typedef struct
 //CCMSG_ROUTING_STATICROUTE_ADD / CCMSG_ROUTING_STATICROUTE_DELETE
 typedef struct
 {
-  L7_uint16 slotId;
+  L7_uint8  slotId;
   L7_uint32 dstIpAddr; 
   L7_uint32 subnetMask;
   L7_uint32 nextHopRtr;
@@ -629,7 +629,7 @@ typedef struct
 // Message CCMSG_ROUTING_PINGSESSION_CREATE
 typedef struct
 {
-   L7_uint16 slotId;
+   L7_uint8  slotId;
    L7_uint16 sessionIdx;
    L7_uint32 dstIpAddr; 
    L7_uint16 probeCount; 
@@ -640,7 +640,7 @@ typedef struct
 // Message CCMSG_ROUTING_PINGSESSION_QUERY
 typedef struct
 {
-   L7_uint16 slotId;
+   L7_uint8  slotId;
    L7_uint16 sessionIdx;
    L7_uint8  isRunning;
    L7_uint16 probeSent;
@@ -654,14 +654,14 @@ typedef struct
 // Message CCMSG_ROUTING_PINGSESSION_FREE
 typedef struct
 {
-   L7_uint16 slotId;
+   L7_uint8  slotId;
    L7_uint16 sessionIdx;
 } __attribute__((packed)) msg_RoutingPingSessionFree;
 
 //CCMSG_ROUTING_TRACERTSESSION_CREATE
 typedef struct
 {
-  L7_uint16 slotId;
+  L7_uint8  slotId;
   L7_uint16 sessionIdx;
   L7_uint32 dstIpAddr; 
   L7_uint16 probePerHop; 
@@ -677,7 +677,7 @@ typedef struct
 //CCMSG_ROUTING_TRACERTSESSION_QUERY
 typedef struct
 {
-  L7_uint16 slotId;
+  L7_uint8  slotId;
   L7_uint16 sessionIdx;
   L7_uint8  isRunning;
   L7_uint16 currTtl;
@@ -690,7 +690,7 @@ typedef struct
 //CCMSG_ROUTING_TRACERTSESSION_GETHOPS
 typedef struct
 {
-  L7_uint16 slotId;
+  L7_uint8  slotId;
   L7_uint16 sessionIdx;
   L7_uint16 lastIndex;
 } __attribute__((packed)) msg_RoutingTracertSessionHopsRequest;
@@ -709,7 +709,7 @@ typedef struct
 //CCMSG_ROUTING_TRACERTSESSION_FREE
 typedef struct
 {
-  L7_uint16 slotId;
+  L7_uint8  slotId;
   L7_uint16 sessionIdx;
 } __attribute__((packed)) msg_RoutingTracertSessionFree;
 
