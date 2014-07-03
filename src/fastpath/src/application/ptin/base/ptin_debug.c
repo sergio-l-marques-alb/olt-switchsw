@@ -110,7 +110,8 @@ void ptin_debug(void)
   printf("  ptin_evc_client_remove <id> <intf_type> <intf_id> <cvlan> - Remove a client of an EVC (internal id)\r\n");
   printf("\r\n");
   printf("  ptin_debug_trap_packets <port> <OVid> <IVid> <only_drops> - Redirect packets from <port>, with <ovid> and <ivid>, to CPU\r\n");
-  printf("  ptin_debug_trap_packets_egress <port> <OVid> <IVid> <drop>- Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");
+  printf("  ptin_debug_trap_packets_egress <port> <OVid> <IVid> <drp> - Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");
+  printf("  ptin_debug_trap_packets_mirror <dst> <port> <OVid> <IVid> - Redirect packets egressing from <port>, with <ovid> and <ivid>, to <dst> port\r\n");
   printf("  ptin_debug_trap_packets_cancel                            - Cancel redirection packets rule to CPU\r\n");
   printf("  ptin_debug_trap_packets_state                             - Show if some redirection packet rule to CPU is defined\r\n");
   printf("  ptin_debug_trap_packets_dump <enable>                     - Print packets content\r\n");

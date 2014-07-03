@@ -446,7 +446,7 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
     },
     /* REDIRECT */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -458,7 +458,7 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
     },
     /* TRAP_TO_CPU */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -3251,6 +3251,8 @@ static int _policy_group_add_actions(int                   unit,
         {
           if (BCMX_LPORT_INVALID == actPtr->u.ifp_parms.modid)
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) Skipped action %u\n",__FUNCTION__,__LINE__,action);
             /* Skip this action for now. 
                This policy will be updated later when a member is added to the LAG. */
             continue;
@@ -3284,22 +3286,39 @@ static int _policy_group_add_actions(int                   unit,
 
         if (PROFILE_ACTION_INVALID == bcm_action)
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
           return BCM_E_CONFIG;
         }
         else if (bcmFieldActionGpDropPrecedence == bcm_action)
         {
           /* conforming color in sysparam0 */
           rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param0], 0);
+          if (BCM_E_NONE != rv)
+          {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+          }
         }
         else if (bcmFieldActionYpDropPrecedence == bcm_action)
         {
           /* conforming color in sysparam1 */
           rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param1], 0);
+          if (BCM_E_NONE != rv)
+          {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+          }
         }
         else if (bcmFieldActionRpDropPrecedence == bcm_action)
         {
           /* conforming color in sysparam2 */
           rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param2], 0);
+          if (BCM_E_NONE != rv)
+          {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+          }
         }
         else if (PROFILE_ACTION_NONE != bcm_action)
         {
@@ -3307,6 +3326,9 @@ static int _policy_group_add_actions(int                   unit,
           rv = bcm_field_action_add(unit, eid, bcm_action, param0, param1);
           if (BCM_E_NONE != rv)
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+
             return rv;
           }
         }
@@ -3324,6 +3346,9 @@ static int _policy_group_add_actions(int                   unit,
                                            (char *)&val, (char *)&mask);
           if (BCM_E_NONE != rv)
           {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+
             /* If error is BCM_E_NOT_FOUND, it means that the sqset for the group does not contain
                lookup status. This could happen only with a system policy.
                In this case, clear the error and return.
@@ -4303,8 +4328,13 @@ int policy_group_add_rule(int                        unit,
       /* Add all the actions */
       actionPtr = &rulePtr->actionInfo;
       rv = _policy_group_add_actions(unit, policyStage, eid, actionPtr);
+
       if (BCM_E_NONE != rv)
-          return rv;
+      {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+        return rv;
+      }
   
       /* add meters or counters, if any, but not both */
       if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
@@ -4319,7 +4349,11 @@ int policy_group_add_rule(int                        unit,
           rv = _policy_group_add_meter(unit, policyStage, eid, rulePtr);
           #endif
           if (BCM_E_NONE != rv)
-              return rv;
+          {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+            return rv;
+          }
       }
       else if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
       {
@@ -4333,7 +4367,11 @@ int policy_group_add_rule(int                        unit,
         rv = _policy_group_add_counter(unit, eid, rulePtr);
         #endif
         if (BCM_E_NONE != rv)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
           return rv;
+        }
       }
 
       /* Ptin added: SDK 6.3.0 */
@@ -4353,7 +4391,10 @@ int policy_group_add_rule(int                        unit,
       /* PTin added: SDK 6.3.0 */
       #if 1
       if ( rv != BCM_E_NONE)
-      { 
+      {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+
         /* Destroy rule */
         (void) policy_group_delete_rule(unit, policyStage, gid,
                                         eid, rulePtr->meterSrcEntry,  /* PTin added: Policer/Counter */
@@ -4367,6 +4408,9 @@ int policy_group_add_rule(int                        unit,
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
       #endif
     }
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
     return rv;
 }

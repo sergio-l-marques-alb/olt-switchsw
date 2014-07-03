@@ -4008,7 +4008,7 @@ L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 
   BROAD_POLICY_RULE_t ruleId = BROAD_POLICY_RULE_INVALID;
   BROAD_METER_ENTRY_t meterInfo;
   bcm_port_t          bcm_port;
-  L7_uint16           mask = 0xffff;
+  L7_uint32           mask = 0xffffffff;
   L7_uint8            drop = 1;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -4061,7 +4061,7 @@ L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 
   trap_only_drops = 0;
 
   /* Create policy */
-  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
   if (rc != L7_SUCCESS)
   {
     printf("Cannot create trap policy\r\n");
@@ -4086,16 +4086,225 @@ L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 
     return L7_FAILURE;
   }
 
-  printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
-  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&mask);
+  /* Add source port qualifier */
+  if (port>=0)
+  {
+    printf("Adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("Error adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    trap_port = port;
+    printf("Port qualifier (port=%u, bcm_port=%d) added\r\n",port,bcm_port);
+  }
+  /* Add outer vlan qualifier */
+  if (ovlan>0 && ovlan<4096)
+  {
+    printf("Adding outer vlan qualifier (ovlan=%u)",ovlan);
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&ovlan, (L7_uchar8 *)&mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("Error adding outer vlan qualifier (ovlan=%u/0x%03x)\r\n",ovlan,mask);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    trap_ovlan = ovlan;
+    printf("Outer vlan qualifier added (ovlan=%u/0x%03x)\r\n",ovlan,mask);
+  }
+  /* Add inner vlan qualifier */
+  if (ivlan>0 && ivlan<4096)
+  {
+    printf("Adding inner vlan qualifier (ivlan=%u)\r\n",ivlan);
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uchar8 *)&ivlan, (L7_uchar8 *)&mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("Error adding inner vlan qualifier (ivlan=%u/0x%03x)\r\n",ivlan,mask);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    trap_ivlan = ivlan;
+    printf("Inner vlan qualifier added (ivlan=%u/0x%03x)\r\n",ivlan,mask);
+  }
+
+  /* Add drop qualifer */
+  if ( only_drops )
+  {
+    printf("Adding Drop qualifier (drop=%u)\r\n",drop);
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uchar8 *)&drop, (L7_uchar8 *)&mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("Error adding drop qualifier (drop=%u/0x%02x)\r\n",drop,mask);
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+    trap_only_drops = drop;
+    printf("Drop qualifier added (drop=%u/0x%02x)\r\n",drop,mask);
+  }
+
+  #if 0
+  /* Ingress priority */
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_LOWEST_PRIORITY_COS, 0, 0);
   if (rc != L7_SUCCESS)
   {
-    printf("Error adding port qualifier (port=%u, bcm_port=%d)\r\n",port,bcm_port);
+    printf("Error adding action\r\n");
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
-  trap_port = port;
-  printf("Port qualifier (port=%u, bcm_port=%d) added\r\n",port,bcm_port);
+  printf("Ingress priority action added\r\n");
+  #endif
+
+  /* Trap to cpu action */
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding trap_to_cpu action\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("trap_to_cpu action added\r\n");
+
+  #if 0
+  /* Drop all packets */
+  rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding hard_drop action\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("hard_drop action added\r\n");
+  #endif
+
+  /* Define meter action, to rate limit packets */
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding rate limit\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("Rate limit added\r\n");
+
+  printf("Commiting trap policy\r\n");
+  if ((rc=hapiBroadPolicyCommit(&policyId)) != L7_SUCCESS)
+  {
+    printf("Error commiting trap policy\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("Trap policy commited successfully (policyId=%u)\r\n",policyId);
+
+  /* Save policy id */
+  policyId_trap = policyId;
+
+  fflush(stdout);
+
+  return L7_SUCCESS;
+}
+
+L7_RC_t ptin_debug_trap_packets_mirror(L7_int dst_port, L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uint8 only_drops)
+{
+  BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t ruleId = BROAD_POLICY_RULE_INVALID;
+  bcm_port_t          bcm_port;
+  DAPI_USP_t          ddUsp;
+  L7_uint16           mask = 0xffff;
+  L7_uint8            drop = 1;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (port<0 &&
+      (ovlan==0 || ovlan>=4096) &&
+      (ivlan==0 || ivlan>=4096) &&
+      !only_drops)
+  {
+    printf("No rule provided!\r\n");
+    return L7_SUCCESS;
+  }
+
+  /* Destination port */
+  if (dst_port >= 0)
+  {
+    printf("Dst Port %d was given\r\n",dst_port);
+
+    if (dst_port >= ptin_sys_number_of_ports)
+    {
+      printf("Invalid port\r\n");
+      return L7_FAILURE;
+    }
+    ddUsp.unit = 1;
+    ddUsp.slot = 0;
+    ddUsp.port = dst_port;
+
+    printf("ddUsp = {%d,%d,%d}\r\n",ddUsp.unit,ddUsp.slot,ddUsp.port);
+  }
+  else
+  {
+    printf("No destination port provided\r\n");
+    return L7_FAILURE;
+  }
+
+  /* Source port */
+  if (port>=0)
+  {
+    printf("Port %d was given\r\n",port);
+
+    /* Validate port */
+    if (hapi_ptin_bcmPort_get(port, &bcm_port)!=L7_SUCCESS)
+    {
+      printf("Error getting bcm_port of port %d\r\n",port);
+      return L7_FAILURE;
+    }
+
+    printf("bcm_port = %d\r\n",bcm_port);
+  }
+  else
+  {
+    port = -1;
+    printf("No port provided\r\n");
+  }
+
+  /* Remove current policy */
+  if (ptin_debug_trap_packets_cancel()!=L7_SUCCESS)
+  {
+    printf("Error removing current trap policy\r\n");
+    return L7_FAILURE;
+  }
+
+  /* Clear saved paremeters */
+  trap_port  = -1;
+  trap_ovlan =  0;
+  trap_ivlan =  0;
+  trap_only_drops = 0;
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Cannot create trap policy\r\n");
+    return L7_FAILURE;
+  }
+  printf("tRAP Policy created\r\n");
+
+  /* Egress stage */
+  if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
+  {
+    printf("Error creating a egress policy\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Create rule */
+  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGHEST);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding rule\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
 
   /* Add source port qualifier */
   if (port>=0)
@@ -4158,7 +4367,7 @@ L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 
   }
 
   /* Trap to cpu action */
-  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, ddUsp.unit, ddUsp.slot, ddUsp.port);
   if (rc != L7_SUCCESS)
   {
     printf("Error adding trap_to_cpu action\r\n");
@@ -4168,26 +4377,16 @@ L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 
   printf("trap_to_cpu action added\r\n");
 
   #if 0
-  /* Drop all packets */
-  rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  /* Trap to cpu action */
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   if (rc != L7_SUCCESS)
   {
-    printf("Error adding hard_drop action\r\n");
+    printf("Error adding trap_to_cpu action\r\n");
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
-  printf("hard_drop action added\r\n");
+  printf("trap_to_cpu action added\r\n");
   #endif
-
-  /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-  if (rc != L7_SUCCESS)
-  {
-    printf("Error adding rate limit\r\n");
-    hapiBroadPolicyCreateCancel();
-    return L7_FAILURE;
-  }
-  printf("Rate limit added\r\n");
 
   printf("Commiting trap policy\r\n");
   if ((rc=hapiBroadPolicyCommit(&policyId)) != L7_SUCCESS)
