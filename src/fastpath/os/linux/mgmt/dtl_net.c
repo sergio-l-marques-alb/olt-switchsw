@@ -997,7 +997,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    /* PTin added: Is this a 802.1Q packet? */
    if (memcmp(&data[12], etype_8021q, 2) == 0)
    {
-      dtl0Vid = ((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
+      dtl0Vid = osapiNtohs((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
 
       isTaggedPacket = L7_TRUE;
 
