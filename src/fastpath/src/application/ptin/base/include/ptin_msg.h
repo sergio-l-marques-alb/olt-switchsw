@@ -1251,12 +1251,11 @@ L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntfRemove* data);
  * 
  * @param inBuffer
  * @param outBuffer
- * @param maxEntries
  * @param readEntries
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_RoutingArpTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries);
+L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_RoutingArpTableResponse* outBuffer, L7_uint32* readEntries);
 
 /**
  * Delete ARP entry.

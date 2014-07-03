@@ -9063,15 +9063,15 @@ L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntfRemove* data)
  * 
  * @param inBuffer
  * @param outBuffer
- * @param maxEntries
  * @param readEntries
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_RoutingArpTableResponse* outBuffer, L7_uint32 maxEntries, L7_uint32* readEntries)
+L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_RoutingArpTableResponse* outBuffer, L7_uint32* readEntries)
 {
   ptin_intf_t intf;
   L7_uint32   intfNum;
+  L7_uint32   maxEntries;
 
   if( (inBuffer == L7_NULLPTR) || (outBuffer == L7_NULLPTR) || (readEntries == L7_NULLPTR) )
   {
@@ -9081,24 +9081,40 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Getting ARP table:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %08X",  inBuffer->mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u",    maxEntries);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  maxEntries = %u",    inBuffer->maxEntries);
 
-  intf.intf_type = inBuffer->intf.intf_type;
-  intf.intf_id   = inBuffer->intf.intf_id;
-
-  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+  if(inBuffer->mask & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
-    return L7_FAILURE;
+    intf.intf_type = inBuffer->intf.intf_type;
+    intf.intf_id   = inBuffer->intf.intf_id;
+    if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    intfNum = (L7_uint32)-1;
+  }
+
+  if(inBuffer->maxEntries & CCMSG_ROUTING_ARPTABLE_GET_MASK_MAXENTRIES)
+  {
+    maxEntries = min(IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingArpTableResponse), inBuffer->maxEntries);
+  }
+  else
+  {
+    maxEntries = IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingArpTableResponse);
   }
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
    However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
   */
-  if(L7_SUCCESS != ptin_routing_arptable_get(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
+  if(L7_SUCCESS != ptin_routing_arptable_getnext(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to get the ARP table");
     return L7_FAILURE;
@@ -9122,16 +9138,23 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Removing ARP entry:");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %08X",  data->mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Intf       = %u/%u", data->intf.intf_type, data->intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Address = %08X",  data->ipAddr);
 
-  intf.intf_type = data->intf.intf_type;
-  intf.intf_id   = data->intf.intf_id;
-
-  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+  if(data->mask & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
-    return L7_FAILURE;
+    intf.intf_type = data->intf.intf_type;
+    intf.intf_id   = data->intf.intf_id;
+    if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&intf, &intfNum))
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert intf %u/%u to intfNum", intf.intf_type, intf.intf_id);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    intfNum = (L7_uint32)-1;
   }
 
   if(L7_SUCCESS != ptin_routing_arpentry_purge(intfNum, data->ipAddr))

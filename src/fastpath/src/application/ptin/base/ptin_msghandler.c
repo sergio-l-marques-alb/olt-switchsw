@@ -3529,7 +3529,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       msg_RoutingArpTableRequest  *inputPtr;
       msg_RoutingArpTableResponse *outputPtr;
-      L7_uint32                   maxEntries;
       L7_uint32                   readEntries;
 
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_ROUTING_ARPTABLE_GET (0x%04X)", inbuffer->msgId);
@@ -3538,11 +3537,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       inputPtr   = (msg_RoutingArpTableRequest *)  inbuffer->info;
       outputPtr  = (msg_RoutingArpTableResponse *) outbuffer->info;
-      maxEntries = IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingArpTableResponse); //IPC buffer size / struct size
 
       /* Execute command */
-      rc = ptin_msg_routing_arptable_get(inputPtr, outputPtr, maxEntries, &readEntries);
-
+      rc = ptin_msg_routing_arptable_get(inputPtr, outputPtr, &readEntries);
       if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
