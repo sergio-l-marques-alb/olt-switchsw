@@ -64,7 +64,7 @@ L7_uint8 ptin_fgpa_mx_is_matrix_in_workingslot(void)
  */
 L7_uint8 ptin_fgpa_lc_is_matrixactive_in_workingslot(void)
 {
-  return ((cpld_map->reg.slot_matrix >> 4) & 1);
+  return ((cpld_map->reg.slot_matrix & 0x0f) != 0);
 }
 #endif // (PTIN_BOARD_IS_LINECARD)
 
@@ -78,13 +78,23 @@ L7_uint8 ptin_fgpa_lc_is_matrixactive_in_workingslot(void)
 L7_uint8 ptin_fgpa_matrixActive_slot(void)
 {
   L7_uint8 slot = 0;
-  L7_uint8 working_slot    = PTIN_SYS_MX1_SLOT;
-  L7_uint8 protection_slot = PTIN_SYS_MX2_SLOT;
+  L7_uint8 working_slot, protection_slot;
 
  #if (PTIN_BOARD_IS_LINECARD)
+  L7_BOOL  olt1t1_backplane;
+
+  /* Condition for OLT1T1 backplane */
+  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
+
+  working_slot    = PTIN_SYS_MX1_SLOT;
+  protection_slot = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
+
   slot = ((cpld_map->reg.slot_matrix & 0x0f) == 0) ? protection_slot : working_slot;
 
  #elif (PTIN_BOARD_IS_MATRIX)
+  working_slot    = PTIN_SYS_MX1_SLOT;
+  protection_slot = PTIN_SYS_MX2_SLOT;
+
   /* Working slot */
   if (cpld_map->reg.slot_id == 0)
   {
@@ -109,22 +119,34 @@ L7_uint8 ptin_fgpa_matrixActive_slot(void)
 L7_uint8 ptin_fgpa_matrixInactive_slot(void)
 {
   L7_uint8 slot = 0;
+  L7_uint8 working_slot, protection_slot;
 
-  L7_uint8 working_slot    = PTIN_SYS_MX1_SLOT;
-  L7_uint8 protection_slot = PTIN_SYS_MX2_SLOT;
+ #if (PTIN_BOARD_IS_LINECARD)
+  L7_BOOL  olt1t1_backplane;
 
-  /* Get slot of active matrix */
-  slot = ptin_fgpa_matrixActive_slot();
+  /* Condition for OLT1T1 backplane */
+  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
 
-  /* Invert it */
-  if (slot == working_slot)
+  working_slot    = PTIN_SYS_MX1_SLOT;
+  protection_slot = (olt1t1_backplane) ? PTIN_SYS_OLT1T1_SLOTS_MAX : PTIN_SYS_OLT1T3_SLOTS_MAX;
+
+  slot = ((cpld_map->reg.slot_matrix & 0x0f) == 0) ? working_slot : protection_slot;
+
+ #elif (PTIN_BOARD_IS_MATRIX)
+  working_slot    = PTIN_SYS_MX1_SLOT;
+  protection_slot = PTIN_SYS_MX2_SLOT;
+
+  /* Working slot */
+  if (cpld_map->reg.slot_id == 0)
   {
-    slot = protection_slot;
+    slot = (cpld_map->reg.mx_is_active == 0) ? working_slot : protection_slot;
   }
+  /* Protection slot */
   else
   {
-    slot = working_slot;
+    slot = (cpld_map->reg.mx_is_active == 0) ? protection_slot : working_slot;
   }
+ #endif
 
   return slot;
 }
@@ -140,8 +162,13 @@ L7_uint8 ptin_fgpa_board_slot(void)
   L7_uint8 slot = 0;
 
  #if (PTIN_BOARD_IS_LINECARD)
+  L7_BOOL  olt1t1_backplane;
+
+  /* Condition for OLT1T1 backplane */
+  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
+
   /* If high and low nibbles are equal, we are at a OLT1T3 system */
-  if (((cpld_map->reg.slot_matrix >> 4) & 0x0f) == (cpld_map->reg.slot_matrix & 0x0f) )
+  if (!olt1t1_backplane)
   {
     slot = cpld_map->reg.slot_id + 2;
   }

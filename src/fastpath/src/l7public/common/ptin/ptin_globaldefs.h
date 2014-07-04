@@ -14,6 +14,8 @@
 
 /* ************************** */
 
+#define PTIN_SYS_OLT1T3_SLOTS_MAX   20
+#define PTIN_SYS_OLT1T1_SLOTS_MAX   5
 
 #if L7_FEAT_LAG_PRECREATE != 0
 #error L7_FEAT_LAG_PRECREATE must be set to 0! (feature.h)

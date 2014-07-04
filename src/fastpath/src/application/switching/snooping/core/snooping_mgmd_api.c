@@ -141,18 +141,13 @@ L7_RC_t __matrix_ipaddr_get(L7_uint8 matrixType, L7_uint32 *ipAddr)
     return L7_FAILURE;
   }
 
-  if(matrixSlotId == (PTIN_SYS_LC_SLOT_MIN-1))
+  if(matrixSlotId == PTIN_SYS_MX1_SLOT)
   {
     *ipAddr = IPC_MX_IPADDR_WORKING;
   }
-  else if(matrixSlotId == (PTIN_SYS_LC_SLOT_MAX+1))
-  {
-    *ipAddr = IPC_MX_IPADDR_PROTECTION;
-  }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid matrix slot id [matrixSlotId:%u]", ipAddr);
-    return L7_FAILURE;
+    *ipAddr = IPC_MX_IPADDR_PROTECTION;
   }
 
   return L7_SUCCESS;

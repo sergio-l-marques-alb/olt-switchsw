@@ -2575,6 +2575,8 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
 
   hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
+  LOG_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");
+
   /* If we already have an old MAC address for the network interface
   ** then remove it.
   */
@@ -2612,6 +2614,8 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     if (hapiBroadPolicyCommit(&mgmtId) == L7_SUCCESS)
       hapiSystemPtr->mgmtPolicy = mgmtId;
   }
+
+  LOG_INFO(LOG_CTX_MISC,"Inband Trap rule configured for VLAN %u", new_vlan_id);
 }
 
 #ifdef L7_DOT1AG_PACKAGE
