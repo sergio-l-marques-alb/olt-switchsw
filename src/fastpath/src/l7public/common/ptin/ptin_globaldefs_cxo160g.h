@@ -24,8 +24,8 @@
 #define PTIN_SYS_LC_SLOT_MAX        4
 #define PTIN_SYS_SLOTS_MAX          5
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 4
-#define PTIN_SYS_MX1_SLOT           1
-#define PTIN_SYS_MX2_SLOT           PTIN_SYS_SLOTS_MAX
+#define PTIN_SYS_MX1_SLOT           (PTIN_SYS_LC_SLOT_MIN-1)
+#define PTIN_SYS_MX2_SLOT           (PTIN_SYS_LC_SLOT_MAX+1)
 
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
@@ -219,7 +219,11 @@ extern int ptin_sys_intf_to_port_map[PTIN_SYSTEM_N_PORTS];
 // MX IP address
 # define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */
 # define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
+#ifdef MAP_CPLD
+# define IPC_MX_IPADDR              ((cpld_map->reg.slot_id == 0) ? IPC_MX_IPADDR_WORKING : IPC_MX_IPADDR_PROTECTION)
+#else
 # define IPC_MX_IPADDR              IPC_MX_IPADDR_WORKING  /* Default ip address */
+#endif
 
 #endif /* _PTIN_GLOBALDEFS_CXO160G_H */
 

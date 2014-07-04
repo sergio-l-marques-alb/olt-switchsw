@@ -24,14 +24,14 @@
 #include "l7_platformspecs.h"
 #include "ptin_globaldefs.h"
 
-#if PTIN_BOARD_IS_MATRIX
-
 #ifdef MAP_CPLD
 
+#if (PTIN_BOARD_IS_MATRIX)
 /**************************************************************************
 *
 * @purpose  Verify if this Matrix is Currently in Active State. 
-*
+*           (Only for Matrix board)
+* 
 * @param    void
 *
 * @returns  TRUE or FALSE
@@ -41,10 +41,53 @@
 * @end
 *
 *************************************************************************/
-L7_uint8 ptin_fgpa_mx_is_active(void);
+L7_uint8 ptin_fgpa_mx_is_matrixactive(void);
+
+/**
+ * Check if current Matrix is the Working one (slot 1) 
+ * (Only for Matrix board)
+ * 
+ * @return L7_uint8 : L7_TRUE / L7_FALSE
+ */
+L7_uint8 ptin_fgpa_mx_is_matrix_in_workingslot(void);
+#endif
+
+#if (PTIN_BOARD_IS_LINECARD)
+/**
+ * Check if Active Matrix is in Working slot 
+ * (Only for linecards)
+ * 
+ * @return L7_uint8 : L7_TRUE / L7_FALSE
+ */
+L7_uint8 ptin_fgpa_lc_is_matrixactive_in_workingslot(void);
+#endif
+
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+/**
+ * Get slot position of Active Matrix 
+ * (For all cards) 
+ * 
+ * @return L7_uint8 : L7_TRUE / L7_FALSE
+ */
+L7_uint8 ptin_fgpa_matrixActive_slot(void);
+
+/**
+ * Get slot position of Inactive Matrix 
+ * (For all cards) 
+ * 
+ * @return L7_uint8 : L7_TRUE / L7_FALSE
+ */
+L7_uint8 ptin_fgpa_matrixInactive_slot(void);
+
+/**
+ * Get slot id 
+ * (For all cards)
+ * 
+ * @return L7_uint8 : slot id
+ */
+L7_uint8 ptin_fgpa_board_slot(void);
+#endif
 
 #endif//MAP_CPLD
-
-#endif//PTIN_BOARD_IS_MATRIX
 
 #endif //_PTIN_FPGA_API_H
