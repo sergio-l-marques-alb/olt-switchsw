@@ -1003,10 +1003,11 @@ L7_RC_t ssmTimersUpdate(void)
         pfw_shm->intf[slot][intf].link  = (linkState==L7_UP);
 
         /* Update activity status (only for SF local ports -> slot 0) */
-        if (((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1) && slot == 0)
+        if ((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1)
         {
           pfw_shm->intf[slot][intf].link |= 
-            ((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1;
+            (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
+            (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
         }
       }
       else
