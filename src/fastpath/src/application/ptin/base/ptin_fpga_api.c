@@ -150,6 +150,9 @@ L7_uint8 ptin_fgpa_matrixInactive_slot(void)
 
   return slot;
 }
+#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+
+#endif//MAP_CPLD
 
 /**
  * Get slot id 
@@ -161,6 +164,7 @@ L7_uint8 ptin_fgpa_board_slot(void)
 {
   L7_uint8 slot = 0;
 
+#ifdef MAP_CPLD
  #if (PTIN_BOARD_IS_LINECARD)
   L7_BOOL  olt1t1_backplane;
 
@@ -183,10 +187,8 @@ L7_uint8 ptin_fgpa_board_slot(void)
  #elif (PTIN_BOARD_IS_MATRIX)
   slot = (cpld_map->reg.slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
  #endif
+#endif
 
   return slot;
 }
-#endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
-
-#endif//MAP_CPLD
 

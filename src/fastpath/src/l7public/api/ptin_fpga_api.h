@@ -78,6 +78,9 @@ L7_uint8 ptin_fgpa_matrixActive_slot(void);
  * @return L7_uint8 : L7_TRUE / L7_FALSE
  */
 L7_uint8 ptin_fgpa_matrixInactive_slot(void);
+#endif
+
+#endif//MAP_CPLD
 
 /**
  * Get slot id 
@@ -86,8 +89,5 @@ L7_uint8 ptin_fgpa_matrixInactive_slot(void);
  * @return L7_uint8 : slot id
  */
 L7_uint8 ptin_fgpa_board_slot(void);
-#endif
-
-#endif//MAP_CPLD
 
 #endif //_PTIN_FPGA_API_H
