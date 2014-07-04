@@ -1449,7 +1449,7 @@ uint32 ip, len, i;
     memcpy(stat.actorSys.addr, dot3adSystem.actorSys.addr, sizeof(dot3adSystem.actorSys));
     memcpy(&stat.pdu, pdu, sizeof(stat.pdu));
 
-    ip=     (ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
+    ip=     (ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING;
 
     i=      0;
     len=    sizeof(dot3ad_matrix_sync2_t);
