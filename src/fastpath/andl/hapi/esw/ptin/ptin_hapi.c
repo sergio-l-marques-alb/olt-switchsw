@@ -202,6 +202,28 @@ L7_RC_t ptin_hapi_phy_init(void)
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+ #ifndef PTIN_LINKSCAN_CONTROL
+  /* Run all ports */
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  {
+    /* Get bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+    /* Activate hw linkscan */
+    if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_HW) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing HW linkscan mode to port %u (bcm_port %u)", i, bcm_port);
+      return L7_FAILURE;
+    }
+  }
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "All ports working with HW linkscan");
+ #endif
+#endif
+
   /* Set linkscan interval to 10 ms */
   if (bcm_linkscan_enable_set(0, 10000) != BCM_E_NONE)
   {
