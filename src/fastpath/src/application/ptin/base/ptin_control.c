@@ -899,12 +899,12 @@ void ptin_control_switchover_monitor(void)
   memset(interfaces_active, 0x00, sizeof(interfaces_active));
   memset(&ports_info, 0x00, sizeof(msg_HwIntfInfo_t));
 
-  ports_info.slot_id    = (ptin_board_slotId <= 1) ? 20 : 1;
+  ports_info.slot_id    = (ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
   ports_info.generic_id = 0;
   ports_info.generic_id = ptin_sys_number_of_ports;
 
   if (send_ipc_message(IPC_HW_FASTPATH_PORT,
-                       ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
+                       ((ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
                        CCMSG_HW_INTF_INFO_GET,
                        (char *) &ports_info,
                        (char *) &ports_info,
@@ -1449,7 +1449,7 @@ uint32 ip, len, i;
     memcpy(stat.actorSys.addr, dot3adSystem.actorSys.addr, sizeof(dot3adSystem.actorSys));
     memcpy(&stat.pdu, pdu, sizeof(stat.pdu));
 
-    ip=     ((ptin_board_slotId <= 1) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
+    ip=     (ptin_fgpa_board_slot() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING);
 
     i=      0;
     len=    sizeof(dot3ad_matrix_sync2_t);

@@ -137,7 +137,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
 {
   memset(msgFPInfo, 0x00, sizeof(msg_FWFastpathInfo));
 
-  msgFPInfo->SlotIndex    = ptin_board_slotId;
+  msgFPInfo->SlotIndex    = ptin_fgpa_board_slot();
   msgFPInfo->BoardPresent = (ptin_state == PTIN_LOADED);
 
   osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "FASTPATH 6.3.0.2", 20);
