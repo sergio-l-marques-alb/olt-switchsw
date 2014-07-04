@@ -1065,21 +1065,13 @@ int send_trap_ETH_OAM(void *param, int param_size)
  */
 static void ipc_server_ipaddr_init(void)
 {
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 #ifdef MAP_CPLD
-  #if (PTIN_BOARD_IS_MATRIX)
-  if (cpld_map->reg.slot_id==0)
+  if (ptin_intf_slot_get(&ptin_board_slotId) != L7_SUCCESS)
   {
-    /* Slot id */
-    ptin_board_slotId = 1;
+    LOG_CRITICAL(LOG_CTX_IPC, "Could not acquire slot position");
   }
-  else
-  {
-    /* Slot id */
-    ptin_board_slotId = 20;
-  }
-  #elif (PTIN_BOARD_IS_LINECARD)
-  ptin_board_slotId = cpld_map->reg.slot_id + 2;
-  #endif
+#endif
 #endif
 }
 

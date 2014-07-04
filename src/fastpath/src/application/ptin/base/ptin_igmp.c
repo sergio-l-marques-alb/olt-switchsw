@@ -11220,7 +11220,7 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
    * PortId is a slot in the matrix context. We need to convert it first, but only if this is the active matrix.
    * The backup matrix only receives sync requests from the active matrix. Hence, the ports are already converted.
    */
-  if(ptin_fgpa_mx_is_active() == 1)
+  if(ptin_fgpa_mx_is_matrixactive() == 1)
   {
     slotId = portId;
     if(L7_SUCCESS != ptin_intf_slot2lagIdx(slotId, &lagId))

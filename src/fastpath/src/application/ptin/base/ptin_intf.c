@@ -1433,7 +1433,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
   return ptin_intf_port2SlotPort(ptin_intf->intf_id, slot_ret, port_ret, board_type);
 }
 
-
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get current slot_id for this board
  * 
@@ -1443,43 +1443,15 @@ L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L
  */
 L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 {
-  /* Is CPLD mapped? */
-#ifdef MAP_CPLD
-  if (cpld_map==L7_NULLPTR || cpld_map==(void *)-1)
-#endif
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"CPLD 0x%04x is not mapped in memory",CPLD_ID);
-    return L7_FAILURE;
-  }
-
-#ifdef MAP_CPLD
-  L7_uint8 raw_slot;
-
-  /* Is CPLD id the expected one? */
-  if (cpld_map->reg.id == 0x0000 || cpld_map->reg.id == 0xffff)
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"CPLD id 0x%04x is not valid",cpld_map->reg.id);
-    return L7_FAILURE;
-  }
-  /* Get raw slot id */
-  raw_slot = cpld_map->reg.slot_id;
-
-  /* Validate range */
-  if (raw_slot>=PTIN_SYSTEM_MAX_N_FULLSLOTS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid raw slot (%u)",raw_slot);
-    return L7_FAILURE;
-  }
-
   /* Return management slot */
   if (slot_id!=L7_NULLPTR)
   {
-    *slot_id = raw_slot+2;
+    *slot_id = ptin_fgpa_board_slot();
   }
-#endif
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Converts PTin port mapping (including LAGs) to the FP interface#
@@ -2056,7 +2028,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         #ifdef PTIN_LINKSCAN_CONTROL
           #ifdef MAP_CPLD
           /* Only active matrix will manage linkscan and force links */
-          if (ptin_fgpa_mx_is_active())
+          if (ptin_fgpa_mx_is_matrixactive())
           {
             /* Enable linkscan */
             ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
@@ -2123,7 +2095,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     #ifdef PTIN_LINKSCAN_CONTROL
       #ifdef MAP_CPLD
       /* Only active matrix will manage linkscan and force links */
-      if (ptin_fgpa_mx_is_active())
+      if (ptin_fgpa_mx_is_matrixactive())
       {
         /* Guarantee linkscan is enabled */
         if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
@@ -2727,7 +2699,7 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     #ifdef PTIN_LINKSCAN_CONTROL
       #ifdef MAP_CPLD
       /* Only active matrix will manage linkscan and force links */
-      if (ptin_fgpa_mx_is_active())
+      if (ptin_fgpa_mx_is_matrixactive())
       {
         /* Enable linkscan */
         if (ptin_intf_linkscan_set(intIfNum, L7_ENABLE) != L7_SUCCESS)
@@ -4111,7 +4083,7 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
     if (enable) 
     {
       /* For uplink ports, enable linkscan (only for active matrix) */
-      if (ptin_fgpa_mx_is_active() && PTIN_BOARD_IS_UPLINK(board_id))
+      if (ptin_fgpa_mx_is_matrixactive() && PTIN_BOARD_IS_UPLINK(board_id))
       {
         /* Disable force link-up */
         if ((rc=ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE)) != L7_SUCCESS)
@@ -4635,7 +4607,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 
   #ifdef MAP_CPLD
   /* Only active matrix will manage linkscan and force links */
-  if (!ptin_fgpa_mx_is_active())
+  if (!ptin_fgpa_mx_is_matrixactive())
   {
     osapiSemaGive(ptin_boardaction_sem);
     LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
@@ -4773,7 +4745,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
 
   #ifdef MAP_CPLD
   /* Only active matrix will manage linkscan and force links */
-  if (!ptin_fgpa_mx_is_active())
+  if (!ptin_fgpa_mx_is_matrixactive())
   {
     osapiSemaGive(ptin_boardaction_sem);
     LOG_ERR(LOG_CTX_PTIN_MSG, "I am not active matrix");
@@ -5118,7 +5090,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   #ifdef PTIN_LINKSCAN_CONTROL
     #ifdef MAP_CPLD
     /* Only active matrix will manage linkscan and force links */
-    if (ptin_fgpa_mx_is_active())
+    if (ptin_fgpa_mx_is_matrixactive())
     {
       /* Enable linkscan for newly active port */
       rc = ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
@@ -5149,7 +5121,7 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   #ifdef PTIN_LINKSCAN_CONTROL
     #ifdef MAP_CPLD
     /* Only active matrix will manage linkscan and force links */
-    if (ptin_fgpa_mx_is_active())
+    if (ptin_fgpa_mx_is_matrixactive())
     {
       /* Deactivate linkscan, and force link up for newly inactive port */
       rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE);
@@ -5239,7 +5211,7 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
 #ifdef PTIN_LINKSCAN_CONTROL
   #ifdef MAP_CPLD
   /* Only active matrix will manage linkscan and force links */
-  if (ptin_fgpa_mx_is_active())
+  if (ptin_fgpa_mx_is_matrixactive())
   {
     /* Deactivate linkscan, and force link up for newly inactive port */
     rc = ptin_intf_linkscan_set(intIfNum_old, L7_DISABLE);

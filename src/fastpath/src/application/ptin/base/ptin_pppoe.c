@@ -3850,11 +3850,8 @@ static L7_RC_t ptin_pppoe_strings_def_get(ptin_intf_t *ptin_intf, L7_uchar8 *mac
   /* Circuit id */
   if (circuitId!=L7_NULLPTR)
   {
-  #ifdef MAP_CPLD
-    slot = cpld_map->reg.slot_id + 2;
-  #else
-    slot = 2;
-  #endif
+    slot = ptin_fgpa_board_slot();
+
     if (slot>99)  slot = 99;
 
     if (ptin_intf!=L7_NULLPTR)

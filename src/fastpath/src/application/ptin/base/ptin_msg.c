@@ -1108,7 +1108,7 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
   intf_info->number_of_ports = ptin_sys_number_of_ports;
 
   #ifdef MAP_CPLD
-  if (!ptin_fgpa_mx_is_active())
+  if (!ptin_fgpa_mx_is_matrixactive())
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "I am inactive matrix");
     return L7_FAILURE;
@@ -6499,20 +6499,14 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
   snoopSyncRequest.serviceId    = snoopSyncReply[numberOfSnoopEntries-1].serviceId;
 
 #if PTIN_BOARD_IS_MATRIX    
-  if(ptin_fgpa_mx_is_active())//If I'm a Working Matrix
+  if(ptin_fgpa_mx_is_matrixactive())//If I'm a Working Matrix
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Working Matrix on slotId:%u",cpld_map->reg.slot_id);
+    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending Another Snoop Sync Request Message to Sync the Remaining Snoop Entries. I'm a Working Matrix on slotId:%u",ptin_fgpa_board_slot());
     return SUCCESS;
   }
 
-  if(cpld_map->reg.slot_id==0)
-  {
-    ipAddr = IPC_MX_IPADDR_PROTECTION;
-  }
-  else
-  {
-    ipAddr = IPC_MX_IPADDR_WORKING;
-  }
+  /* MX board IP address */
+  ipAddr = IPC_MX_IPADDR;
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending Snoop Sync Request Message [groupAddr:%08X | serviceId:%u] to ipAddr:%08X to Sync the Remaining Snoop Entries", snoopSyncRequest.groupAddr, snoopSyncRequest.serviceId, ipAddr);         
 #else
@@ -9529,19 +9523,13 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
 
   { /*Trigger the Sync of the Snooping Table*/   
   #if PTIN_BOARD_IS_MATRIX    
-    if(!ptin_fgpa_mx_is_active())//If I'm a Protection Matrix
+    if(!ptin_fgpa_mx_is_matrixactive())//If I'm a Protection Matrix
     {
       msg_SnoopSyncRequest_t   snoopSyncRequest = {0};
       L7_uint32                ipAddr; 
     
-      if(cpld_map->reg.slot_id==0)
-      {
-        ipAddr = IPC_MX_IPADDR_PROTECTION;
-      }
-      else
-      {
-        ipAddr = IPC_MX_IPADDR_WORKING;
-      }   
+      /* MX board IP address */
+      ipAddr = IPC_MX_IPADDR;
 
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X", ipAddr);
 

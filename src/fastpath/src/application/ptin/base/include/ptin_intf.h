@@ -188,6 +188,7 @@ extern L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id);
  * Port, LAGs and Interfaces convertion functions
  */ 
 
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 /**
  * Get current slot_id for this board
  * 
@@ -196,6 +197,7 @@ extern L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id);
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id);
+#endif
 
 /**
  * Get slot and port location in the system, from the ptin_port

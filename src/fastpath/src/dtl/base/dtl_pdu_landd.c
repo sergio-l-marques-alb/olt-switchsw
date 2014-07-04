@@ -276,7 +276,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 
 #if PTIN_BOARD_IS_MATRIX  
   /* Do nothing for slave matrix */
-  if (!ptin_fgpa_mx_is_active())
+  if (!ptin_fgpa_mx_is_matrixactive())
   {
     if (ptin_debug_dtl)
       LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission [intfNum:%u]. I'm a Slave Matrix",dtlCmdInfo->intfNum);

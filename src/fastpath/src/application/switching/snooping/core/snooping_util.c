@@ -1228,7 +1228,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
 
 #if PTIN_BOARD_IS_MATRIX  
   /* Do nothing for slave matrix */
-  if (!ptin_fgpa_mx_is_active())
+  if (!ptin_fgpa_mx_is_matrixactive())
   {
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [intIfNum=%u vlanId=%u]",intIfNum, vlanId );
