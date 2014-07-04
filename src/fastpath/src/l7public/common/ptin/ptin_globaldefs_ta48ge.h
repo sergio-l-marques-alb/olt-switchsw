@@ -13,6 +13,8 @@
 #define PTIN_SYS_LC_SLOT_MAX        19
 #define PTIN_SYS_SLOTS_MAX          20
 #define PTIN_SYS_INTFS_PER_SLOT_MAX 2
+#define PTIN_SYS_MX1_SLOT           (PTIN_SYS_LC_SLOT_MIN-1)
+#define PTIN_SYS_MX2_SLOT           (PTIN_SYS_LC_SLOT_MAX+1)
 
 # define PTIN_SYSTEM_N_PORTS           52
 # define PTIN_SYSTEM_N_PONS            0
