@@ -1,6 +1,6 @@
 ##############################################
 #                                            #
-# FastPath Makefile for the CXO640G card     #
+# FastPath Makefile for the CXO160G card     #
 #                                            #
 #	Daniel Figueira, 2013                #
 #	daniel-f-figueira@ext.ptinovacao.pt  #
