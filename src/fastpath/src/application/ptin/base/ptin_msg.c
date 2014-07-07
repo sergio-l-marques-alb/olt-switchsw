@@ -6649,8 +6649,10 @@ L7_RC_t ptin_msg_IGMP_channel_remove_all(msg_MCStaticChannel_t *channel, L7_uint
  */
 L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
 {
-  L7_int i, i2rem, i2add;
   L7_RC_t rc = L7_SUCCESS;
+
+#ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
+  L7_int i, i2rem, i2add;
 
   i2add = i2rem = -1;
 
@@ -6708,6 +6710,10 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Successfull protection switch!"); 
   }
+#else
+  LOG_ERR(LOG_CTX_PTIN_MSG, "Uplink protection not supported for this board!");
+  rc = L7_NOT_SUPPORTED;
+#endif
 
   return rc;
 }
