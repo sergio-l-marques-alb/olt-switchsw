@@ -286,7 +286,10 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     return L7_SUCCESS;
   }
 #endif
+
+#ifdef PTIN_ENABLE_ERPS
     //if (OAM_ETH_TYPE==ETHtype    &&    dont_txrx_oam_criterion(3, port, -1, vid, NULL)) return 4;
+#endif
 
     ptin_intf_port2intIfNum(port, &intIfNum);
 
@@ -690,7 +693,14 @@ L7_RC_t ptin_oam_eth_init(void)
 
 
 
-
+#ifndef PTIN_ENABLE_ERPS
+int dont_txrx_oam_criterion(unsigned char init0_setbmp1_clrbmp2_rd3, unsigned short prt, unsigned short iMEP,
+                            unsigned short vid,      //just on read
+                            unsigned char *vid_bmp   //always but on read
+                               ) {
+ return 0;
+}
+#else
 /************************************************************************************************************* 
   Cisco needs CCMs belonging to OLT-BNG control plane MEPs not to pass over ERPs' RPLs.
   This is the fix
@@ -791,6 +801,7 @@ dont_txrx_oam_criterion_t *p;
 #endif
  return 0;
 }//dont_txrx_oam_criterion_DB
+#endif //ifndef PTIN_ENABLE_ERPS
 #else
 void ethsrv_oam_register_mismerge(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid) {}
 void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, L7_uint16 mep_id, L7_uint16 mep_indx, L7_uint16 porta, L7_uint64 vid, L7_uint8 level) {}

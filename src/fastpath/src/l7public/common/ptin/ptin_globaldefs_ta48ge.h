@@ -4,6 +4,8 @@
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
+#define __Y1731_802_1ag_OAM_ETH_
+
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 /* Querier will be active for Multicast services */
 #define IGMP_QUERIER_IN_UC_EVC
