@@ -92,7 +92,14 @@ void ptin_debug_ssm_enable(L7_BOOL enable)
   ssm_debug_enable = enable & 1;
 }
 
+#if (!PTIN_BOARD_IS_STANDALONE)
+ #define SHMEM(slot,intf)   pfw_shm->intf[slot][intf]
+#else
+ #define SHMEM(slot,intf)   pfw_shm->intf[intf]
 #endif
+
+#endif
+
 
 /**************************************************************************
 *
@@ -108,7 +115,7 @@ void ptin_debug_ssm_enable(L7_BOOL enable)
 *************************************************************************/
 L7_RC_t ssm_init(void)
 {
-  #ifdef SYNC_SSM_IS_SUPPORTED
+#ifdef SYNC_SSM_IS_SUPPORTED
   /* Initialize statistics */
   memset(ssm_stats,0x00,sizeof(ssm_stats));
 
@@ -174,17 +181,18 @@ L7_RC_t ssm_init(void)
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "SSM TX task launch OK");
 
+#if ( PTIN_BOARD_IS_MATRIX )
   /* Open shared memory zone */
   if (fw_shm_open()!=0)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing shared memory");
     return L7_FAILURE;
   }
+#endif
 
   /* Initialize shared memory and internal structures */
   ssmCodesInit();
-
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -203,7 +211,7 @@ L7_RC_t ssm_init(void)
 *************************************************************************/
 L7_RC_t ssm_fini(void)
 {
-  #ifdef SYNC_SSM_IS_SUPPORTED
+#ifdef SYNC_SSM_IS_SUPPORTED
 
   /* Close shared memory zone */
   fw_shm_close();
@@ -250,7 +258,7 @@ L7_RC_t ssm_fini(void)
     bufferPoolDelete(ssmBufferPoolId);
     ssmBufferPoolId = L7_NULL;
   }
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -271,7 +279,7 @@ L7_RC_t ssm_fini(void)
 *********************************************************************/
 L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 {
-  #ifdef SYNC_SSM_IS_SUPPORTED
+#ifdef SYNC_SSM_IS_SUPPORTED
 
   L7_uchar8  *data;
   L7_uint16   etherType;
@@ -407,9 +415,9 @@ L7_RC_t ssmPDUReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   }
 
   return L7_SUCCESS;
-  #else
+#else
   return L7_FAILURE;
-  #endif
+#endif
 }
 
 /*********************************************************************
@@ -663,6 +671,7 @@ void ssmPDUSend(void)
 {
   L7_uint32 intIfNum;
   L7_uint16 slot, intf;
+  L7_RC_t   rc;
 
   //LOG_INFO(LOG_CTX_PTIN_SSM,"This is the place where i will transmit SSM messages!");
 
@@ -671,11 +680,13 @@ void ssmPDUSend(void)
     for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
       /* Check if tranmission is allowed for this slot/intf */
-      if ( !((pfw_shm->intf[slot][intf].ssm_tx >> 16) & 1) )
+      if ( !((SHMEM(slot,intf).ssm_tx >> 16) & 1) )
         continue;
 
       /* Find the respective intIfNum, and proceed to tranmission */
-      if (ptin_intf_slotPort2IntIfNum(slot+1,intf,&intIfNum)==L7_SUCCESS)
+      rc = ptin_intf_slotPort2IntIfNum(slot+1, intf, &intIfNum);
+
+      if (rc == L7_SUCCESS)
       {
         ssmPDUTransmit(intIfNum);
       }
@@ -708,12 +719,21 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   L7_uchar8 *data;
   L7_uint16 slot, intf;
   L7_uint32 itu_oui;
+  L7_RC_t   rc;
 
   /* Convert port to slot/intf */
-  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR)!=L7_SUCCESS)
+  rc = ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR);
+
+  if (rc != L7_SUCCESS)
   {
     //if (ssm_debug_enable)
     //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
+    return L7_FAILURE;
+  }
+
+  if (slot >= SSM_N_SLOTS || intf >= SSM_N_INTFS_IN_USE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_SSM,"Invalid slot/intf %u/%u", slot, intf);
     return L7_FAILURE;
   }
 
@@ -771,7 +791,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   pdu->ssm_length = osapiHtons(SSM_L4_LENGTH);
 
   /* SSM code */
-  pdu->ssm_code = pfw_shm->intf[slot][intf].ssm_tx & 0x0f; // 0x0f;
+  pdu->ssm_code = SHMEM(slot,intf).ssm_tx & 0x0f; // 0x0f;
 
   /*FCS calculation*/
   /*done by lower layers*/
@@ -783,7 +803,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   }
 
   if (ssm_debug_enable)
-    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x",intIfNum,slot,intf,pfw_shm->intf[slot][intf].ssm_tx);
+    LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM transmitted to intIfNum %u (slot=%u/intf=%u) with SSM_code=%x",intIfNum,slot,intf,SHMEM(slot,intf).ssm_tx);
 
   return L7_SUCCESS;
 }
@@ -935,27 +955,11 @@ L7_RC_t ssmPduHeaderTagRemove(L7_netBufHandle bufHandle)
  */
 L7_RC_t ssmCodesInit(void)
 {
-  #if 0
-  L7_uint16 slot, intf;
-  #endif
-
   /* Initialize shared memory */
   if (pfw_shm!=L7_NULLPTR)
   {
     /* Initialize data structure */
     memset(pfw_shm,0x00,sizeof(t_fw_shm));
-
-    #if 0
-    /* Initialize reception zone */
-    for (slot=0; slot<SSM_N_SLOTS; slot++)
-    {
-      for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
-      {
-        pfw_shm->intf[slot][intf].ssm_rx = 0x00000000UL;
-        pfw_shm->intf[slot][intf].ssm_tx = 0x00000000UL;
-      }
-    }
-    #endif
   }
 
   /* Initialize timers */
@@ -979,8 +983,10 @@ L7_RC_t ssmCodesInit(void)
 L7_RC_t ssmTimersUpdate(void)
 {
   L7_uint16 slot, intf;
+#if (!PTIN_BOARD_IS_STANDALONE)
   L7_uint32 intIfNum, ptin_port;
   L7_uint32 linkState;
+#endif
 
   osapiSemaTake(ssmTimersSyncSema, L7_WAIT_FOREVER);
 
@@ -995,30 +1001,32 @@ L7_RC_t ssmTimersUpdate(void)
         ssm_timer[slot][intf]++;
       }
 
-      /* Update link status */
+      /* Update link status (only for SLOT systems... standalone are dealt at ptin_control.c) */
+    #if (!PTIN_BOARD_IS_STANDALONE)
       if (ptin_intf_slotPort2port(slot+1, intf, &ptin_port) == L7_SUCCESS &&
           ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS &&
           nimGetIntfLinkState(intIfNum, &linkState) == L7_SUCCESS)
       {
-        pfw_shm->intf[slot][intf].link  = (linkState==L7_UP);
+        SHMEM(slot,intf).link  = (linkState==L7_UP);
 
         /* Update activity status (only for SF local ports -> slot 0) */
         if ((PTIN_SYSTEM_ETH_PORTS_MASK >> ptin_port) & 1)
         {
-          pfw_shm->intf[slot][intf].link |= 
-            (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
-            (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
+          SHMEM(slot,intf).link |=
+               (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
+               (((ptin_control_port_activity[ptin_port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
         }
       }
       else
       {
-        pfw_shm->intf[slot][intf].link = L7_FALSE;
+        SHMEM(slot,intf).link = L7_FALSE;
       }
+    #endif
 
       /* If the 5 seconds mark was reached, write 0x0f for the shared memory */
       if (ssm_timer[slot][intf]>5)
       {
-        pfw_shm->intf[slot][intf].ssm_rx = 0x0f;
+        SHMEM(slot,intf).ssm_rx = 0x0f;
 
         if (ssm_debug_enable)
         {
@@ -1048,9 +1056,12 @@ L7_RC_t ssmTimersUpdate(void)
 L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
 {
   L7_uint16 slot, intf;
+  L7_RC_t   rc;
 
   /* Convert port to slot/intf */
-  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR)!=L7_SUCCESS)
+  rc = ptin_intf_intIfNum2SlotPort(intIfNum, &slot, &intf, L7_NULLPTR);
+
+  if (rc != L7_SUCCESS)
   {
     //if (ssm_debug_enable)
     //  LOG_ERR(LOG_CTX_PTIN_SSM,"Cannot convert intIfNum %u to slot/intf",intIfNum);
@@ -1066,7 +1077,7 @@ L7_RC_t ssmCodeUpdate(L7_uint32 intIfNum, L7_uint16 ssm_code)
   osapiSemaGive(ssmTimersSyncSema);
 
   /* Update ssm code (only for LSbits) */
-  pfw_shm->intf[slot][intf].ssm_rx = ssm_code & 0x000f;
+  SHMEM(slot,intf).ssm_rx = ssm_code & 0x000f;
 
   if (ssm_debug_enable)
     LOG_TRACE(LOG_CTX_PTIN_SSM,"SSM code (0x%02x) updated for slot=%u, intf=%u (intIfNum=%u)",ssm_code,slot,intf,intIfNum);
@@ -1092,9 +1103,9 @@ void ssm_debug_dump(void)
     for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
       printf("rx=0x%05x/tx=0x%05x/lnk=%u ",
-             pfw_shm->intf[slot][intf].ssm_rx & 0xfffff,
-             pfw_shm->intf[slot][intf].ssm_tx & 0xfffff,
-             pfw_shm->intf[slot][intf].link);
+             SHMEM(slot,intf).ssm_rx & 0xfffff,
+             SHMEM(slot,intf).ssm_tx & 0xfffff,
+             SHMEM(slot,intf).link);
     }
     printf("}\r\n");
   }
@@ -1117,9 +1128,9 @@ void ssm_debug_write(L7_uint16 slot, L7_uint16 intf, L7_uint32 ssm_rx, L7_uint32
     return;
   }
 
-  pfw_shm->intf[slot][intf].ssm_tx = ssm_tx;
-  pfw_shm->intf[slot][intf].ssm_rx = ssm_rx;
-  pfw_shm->intf[slot][intf].link   = link;
+  SHMEM(slot,intf).ssm_tx = ssm_tx;
+  SHMEM(slot,intf).ssm_rx = ssm_rx;
+  SHMEM(slot,intf).link   = link;
 
   printf("Done!\r\n");
 }

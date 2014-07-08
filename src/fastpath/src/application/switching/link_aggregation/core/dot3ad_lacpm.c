@@ -142,13 +142,13 @@ L7_RC_t dot3adPduReceive(L7_netBufHandle bufHandle,sysnet_pdu_info_t *pduInfo )
   L7_uchar8 * buffer = L7_NULLPTR;
   L7_uint32 dataLength = 0;
 
-  #if 1
+#if 1
   /* PTin added: SSM packet processing */
   if (ssmPDUReceive(bufHandle,pduInfo)==L7_SUCCESS)
   {
     return L7_SUCCESS;
   }
-  #endif
+#endif
 
   intIfNum = pduInfo->intIfNum;
   rc = nimGetIntfType(intIfNum, &sysIntfType);

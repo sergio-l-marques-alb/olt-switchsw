@@ -16,6 +16,10 @@
 
 #define FW_SHM_KEY      9889
 
+#define SSM_N_SLOTS         1
+#define SSM_N_INTFS         18
+#define SSM_N_INTFS_IN_USE  PTIN_SYSTEM_N_PORTS
+
 /* Counter state bits
 Bit 8: Rx Dropped packets
 Bit 7: Rx Undersized packets 
@@ -29,12 +33,20 @@ Bit 0: Rx activity
 */
 typedef struct {
   L7_uint32     admin;          // Estado administrativo: 0=Down , 1=Up
-  L7_uint32     link;		//
+  L7_uint32     link;		    //
   L7_uint32     counter_state;  // Uso futuro (exemplo: indicacao de actividade/trafego)
+
+ #ifdef SYNC_SSM_IS_SUPPORTED
+  L7_uint32     ssm_rx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
+  L7_uint32     ssm_tx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
+ #endif
 } t_eth_status;
 
 typedef struct {
-  t_eth_status  intf[18];
+  t_eth_status  intf[SSM_N_INTFS];
+ #ifdef SYNC_SSM_IS_SUPPORTED
+  L7_uchar8     SyncE_Recovery_clock[2];
+ #endif
 } t_fw_shm;
 
 #elif (defined(SYNC_SSM_IS_SUPPORTED) && PTIN_BOARD_IS_MATRIX)
@@ -48,8 +60,8 @@ typedef struct {
 typedef struct {
   struct
   {
-    L7_uint32   ssm_rx;
-    L7_uint32   ssm_tx;
+    L7_uint32   ssm_rx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
+    L7_uint32   ssm_tx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
     L7_uint32   link;
   } intf[SSM_N_SLOTS][SSM_N_INTFS];
 } t_fw_shm;

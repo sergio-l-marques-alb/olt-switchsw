@@ -1,6 +1,9 @@
 #ifndef _PTIN_GLOBALDEFS_OLT1T0_H
 #define _PTIN_GLOBALDEFS_OLT1T0_H
 
+/* If SSM is not supported, comment this line */
+//#define SYNC_SSM_IS_SUPPORTED
+
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC

@@ -440,9 +440,15 @@ static void monitor_alarms(void)
       link = L7_FALSE;
     }
 
-    #if ( PTIN_BOARD_IS_STANDALONE )
-    if (port<PTIN_SYSTEM_N_PORTS)  pfw_shm->intf[port].link = link;
-    #endif
+  #if ( PTIN_BOARD_IS_STANDALONE )
+    if (port<PTIN_SYSTEM_N_PORTS)
+    {
+      pfw_shm->intf[port].link  = link;
+      pfw_shm->intf[port].link |= 
+        (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
+        (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
+    }
+  #endif
 
     if (linkStatus[port] != link)
     {
@@ -465,9 +471,9 @@ static void monitor_alarms(void)
       linkStatus[port]=link;
     }
 
-    #if ( PTIN_BOARD_IS_STANDALONE )
+  #if ( PTIN_BOARD_IS_STANDALONE )
     if (port<PTIN_SYSTEM_N_PORTS)  pfw_shm->intf[port].counter_state = 0; //counters_state.status_value[port];
-    #endif
+  #endif
 
     // Only send lag active member traps, if interface is physical
     if (port<PTIN_SYSTEM_N_PORTS)

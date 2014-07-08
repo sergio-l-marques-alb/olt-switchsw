@@ -34,9 +34,7 @@
 #endif
 
 /* PTin added: includes */
-#if 1
 #include "logger.h"
-#endif
 
 /* used for the Higig B0 workaround */
 #include <soc/drv.h>

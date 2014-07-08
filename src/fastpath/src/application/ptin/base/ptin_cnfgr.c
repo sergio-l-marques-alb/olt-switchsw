@@ -354,7 +354,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Initialize Type-B Protection data structures */
   ptin_prottypeb_init();
 
-  #if ( PTIN_BOARD_IS_STANDALONE )
+#if ( PTIN_BOARD_IS_STANDALONE )
   /* Open shared memory to communicate with the GPON application */
   if (fw_shm_open() != 0)
   {
@@ -366,7 +366,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     memset(pfw_shm, 0x00, sizeof(t_fw_shm));
     LOG_INFO(LOG_CTX_PTIN_CNFGR, "Shared memory OK");
   }
-  #endif
+#endif
 
   /* Create a new TxQueue to handle responses from MGMD */
   ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);
