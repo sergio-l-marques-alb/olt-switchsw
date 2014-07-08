@@ -347,6 +347,8 @@ L7_RC_t ptin_intf_portExt_init(void)
 L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
   L7_uint32 intIfNum;
+  L7_uint16 defVid;
+  L7_uint32 unit = 0;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || mefExt==L7_NULLPTR)
@@ -377,7 +379,7 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
@@ -385,12 +387,39 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   /* Apply configuration */
   if (dtlPtinL2PortExtSet(intIfNum, mefExt)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error SETTING MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error SETTING MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
+  /* Apply Default VID configuration */
+  if (ptin_xlate_ingress_get(intIfNum, mefExt->defVid, PTIN_XLATE_NOT_DEFINED, &defVid) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting VID %u", mefExt->defVid);
+    return L7_FAILURE;
+  }
 
+  if (usmDbQportsPVIDSet(unit, intIfNum, defVid) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", defVid);
+    return L7_FAILURE;
+  }
+
+  /* Apply Default Priority configuration */
+  if (usmDbDot1dPortDefaultUserPrioritySet(unit, intIfNum, mefExt->defPrio) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Priority %u", mefExt->defPrio);
+    return L7_FAILURE;
+  }
+
+  /* Configure how to handle tagged/untagged frames: L7_DOT1Q_ADMIT_ALL / L7_DOT1Q_ADMIN_ONLY_VLAN_TAGGED / L7_DOT1Q_ADMIN_ONLY_VLAN_UNTAGGED */
+  //rc = usmDbQportsEnableIngressFilteringSet(unit, intIfNum, L7_ENABLE);
+  if (usmDbQportsAcceptFrameTypeSet(unit, intIfNum, mefExt->defPrio) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering");
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   return L7_SUCCESS;
 }
 
