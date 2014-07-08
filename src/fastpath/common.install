@@ -3,9 +3,10 @@
 BASE=../builds
 APPS_FOLDER=$BASE/apps
 
-BIN_FILE=switchdrvr
-DEVSHSYM_FILE=devshell_symbols.gz
-OTHER_BIN_FILES="fp.cli fp.shell"
+BIN_FILES="switchdrvr devshell_symbols.gz fp.cli fp.shell mgmd.cli"
+KO_FILES="linux-kernel-bde.ko linux-user-bde.ko"
+LIB_FILES="libmgmd.so"
+BACKUP_FILES="switchdrvr.unstripped"
 
 # Base folder, where install scripts are, should exist
 if [ ! -e $BASE ]; then
@@ -18,14 +19,21 @@ mkdir -p $APPS_FOLDER/backup
 rm -rf $APPS_FOLDER/backup/$PLATFORM_FOLDER
 mkdir -p $APPS_FOLDER/backup/$PLATFORM_FOLDER
 
+rm -rf $APPS_FOLDER/image/$PLATFORM_FOLDER
 mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
 mkdir -p $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/lib
 
 echo "Copying $PLATFORM binaries"
-for file in $OTHER_BIN_FILES; do
+for file in $BIN_FILES; do
  cp -v $BIN_PATH/$file $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
 done
-cp -v $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $BIN_PATH/mgmd.cli $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
-cp -v $BIN_PATH/libmgmd.so $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/lib
-cp -v $BIN_PATH/$BIN_FILE.unstripped $APPS_FOLDER/backup/$PLATFORM_FOLDER
+for file in $LIB_FILES; do
+ cp -v $BIN_PATH/$file $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/lib
+done
+for file in $KO_FILES; do
+ cp -v $KO_PATH/$file $APPS_FOLDER/image/$PLATFORM_FOLDER/$FILESYSTEM/usr/local/ptin/sbin
+done
+for file in $BACKUP_FILES; do
+ cp -v $BIN_PATH/$file $APPS_FOLDER/backup/$PLATFORM_FOLDER
+done
 echo "Done!"
