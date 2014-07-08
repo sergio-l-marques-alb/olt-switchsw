@@ -853,6 +853,9 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
   if (FALSE == savePbm)
   {
     _policy_group_set_default_pbm(unit, policyData->policyType, policyData->policyStage, policyPtr);
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("Default Port bitmap: 0x%08x %08x %08x\n",
+                   policyPtr->pbm.pbits[2], policyPtr->pbm.pbits[1], policyPtr->pbm.pbits[0]);
   }
   else
   {
@@ -1125,6 +1128,9 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
         else if ( !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORTS) & 1) )
         {
           rv = policy_group_set_pbm(unit, policyPtr->policyStage, group, entry, policyPtr->pbm);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("Port bitmap to be applied: 0x%08x %08x %08x\n",
+                         policyPtr->pbm.pbits[2], policyPtr->pbm.pbits[1], policyPtr->pbm.pbits[0]);
         }
         else
         {

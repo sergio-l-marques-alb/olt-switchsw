@@ -4467,6 +4467,10 @@ int policy_group_set_pbm(int                  unit,
     if (BCM_E_NONE != rv)
         return rv;
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("- Applied new pbm: 0x%08x %08x %08x / 0x%08x %08x %08x (entry=%d)\n",
+                   pbm.pbits[2], pbm.pbits[1], pbm.pbits[0], maskPbm.pbits[2], maskPbm.pbits[1], maskPbm.pbits[0], eid);
+
     return rv;
 }
 

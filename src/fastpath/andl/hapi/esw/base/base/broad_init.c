@@ -525,12 +525,10 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 
   /* PTin added: packet trap */
   #if 1
-  L7_uint16 lacp_vlanId    = 1;
-  uint16    lacp_etherType = 0x8809;
+  L7_ushort16 lacp_vlanId    = 1;
+  L7_ushort16 lacp_etherType = 0x8809;
   bcm_mac_t lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
   #endif
-
-  LOG_INFO(LOG_CTX_STARTUP,"Starting default rules initialization...");
 
   if ((hapiBroadRaptorCheck() == L7_TRUE) ||
       (hapiBroadRoboCheck()== L7_TRUE) || (hapiBroadHawkeyeCheck() == L7_TRUE) )
@@ -541,6 +539,14 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadGetSystemBoardFamily(&board_family);
 
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
+
+  /* PTin added: OLT1T0 requires this rule to be configured first, or else, LACP rule is improperly create... :-S */
+#if 1
+  /* Install IP Source Guard default policy */
+  result = hapiBroadIpsgDefaultPolicyInstall(dapi_g);
+  if (L7_SUCCESS != result)
+    return result;
+#endif
 
   /* Install the L2 system policies that trap PDUs to the CPU first. We need these to have
      higher priority than the dot1x violation policy so that the link layer protocols
@@ -615,10 +621,13 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if (L7_SUCCESS != result)
     return result;
 
+  /* PTin removed: OLT1T0 requires this rule to be configured first, or else, LACP rule is improperly create... :-S */
+  #if 0
   /* Install IP Source Guard default policy */
   result = hapiBroadIpsgDefaultPolicyInstall(dapi_g);
   if (L7_SUCCESS != result)
     return result;
+  #endif
 
   /* PTin removed: Packets priority not modified */
   #if PTIN_BROAD_INIT_TRAP_TO_CPU

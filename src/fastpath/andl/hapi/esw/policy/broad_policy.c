@@ -34,7 +34,7 @@
 #include "bcmx/port.h"
 #include "feature.h"
 #include "bcmx/switch.h"
-
+#include "bcmx/field.h"
 
 
 extern DAPI_t *dapi_g;
@@ -523,6 +523,20 @@ L7_RC_t hapiBroadPolicyInit()
       LOG_ERROR(0);
       return L7_FAILURE;
     }
+
+    /* PTin added: Field processor */
+    #if 1
+    if (bcmx_field_init() != BCM_E_NONE)
+    {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("Error initializing FFP!\n");
+    }
+    else
+    {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("FFP initialized!\n");
+    }
+    #endif
 
     return L7_SUCCESS;
 }
