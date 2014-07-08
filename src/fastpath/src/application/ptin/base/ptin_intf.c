@@ -347,8 +347,10 @@ L7_RC_t ptin_intf_portExt_init(void)
 L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
   L7_uint32 intIfNum;
+  #if 0
   L7_uint16 defVid;
   L7_uint32 unit = 0;
+  #endif
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || mefExt==L7_NULLPTR)
@@ -391,6 +393,7 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
     return L7_FAILURE;
   }
 
+  #if 0
   /* Apply Default VID configuration */
   if (ptin_xlate_ingress_get(intIfNum, mefExt->defVid, PTIN_XLATE_NOT_DEFINED, &defVid) != L7_SUCCESS)
   {
@@ -418,6 +421,7 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
     LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering");
     return L7_FAILURE;
   }
+  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   return L7_SUCCESS;
