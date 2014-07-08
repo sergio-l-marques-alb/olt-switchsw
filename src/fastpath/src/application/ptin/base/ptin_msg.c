@@ -634,6 +634,7 @@ L7_RC_t ptin_msg_PhyConfig_set(msg_HWEthPhyConf_t *msgPhyConf)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Loopback      = %u", msgPhyConf->LoopBack );
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " MACLearn Prio = %u", msgPhyConf->MacLearning );
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " MaxFrame      = %u", msgPhyConf->MaxFrame );
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Mask          = 0x%04X", msgPhyConf->Mask );
 
   /* Copy the message data to a new structure (*/
@@ -4939,7 +4940,7 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
     if (ptin_evc_intRootVlan_get(msgIpsgStaticEntry->id, &vlanId)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting internal root vlan for eEVCId=%u", msgIpsgStaticEntry->id);
-      return L7_FAILURE;
+      return L7_NOT_EXIST;
     }
     LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",msgIpsgStaticEntry->id,vlanId);
   }
@@ -4951,12 +4952,12 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
       if ((vlanId = (0x0000FFFF & msgIpsgStaticEntry->id)) != msgIpsgStaticEntry->id)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid root vlan given:%u", msgIpsgStaticEntry->id);
-        return L7_FAILURE;
+        return L7_NOT_EXIST;
       }
       if (ptin_evc_get_evcIdfromIntVlan(vlanId, &eEVCId) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid root VLAN:%u", vlanId);
-        return L7_FAILURE;
+        return L7_NOT_EXIST;
       }
       LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",eEVCId, vlanId);
     }
