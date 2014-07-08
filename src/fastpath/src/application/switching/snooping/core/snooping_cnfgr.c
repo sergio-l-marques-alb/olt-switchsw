@@ -73,6 +73,7 @@ static snoop_eb_t  snoopEB;   /* Snoop execution block holder */
 static snoop_cb_t *snoopCB;   /* Snoop Control blocks holder */
 
 //PTin Added: MGMD
+#include "ptin_igmp.h"
 #include "snooping_mgmd_api.h"
 
 extern ptin_mgmd_externalapi_t mgmd_external_api;

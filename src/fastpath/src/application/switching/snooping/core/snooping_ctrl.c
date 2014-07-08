@@ -48,6 +48,7 @@
 #endif
 
 #include "ptin_evc.h"
+#include "ptin_igmp.h"
 
 /*****************************************************************************
   Local Functions

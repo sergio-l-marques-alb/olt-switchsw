@@ -16,6 +16,7 @@
 #include "l3_addrdefs.h"
 #include "comm_mask.h"
 #include "ptin_evc.h"
+#include "ptin_igmp.h"
 #include "ptin_prot_typeb.h"
 #include "snooping_util.h"
 #include "snooping_proto.h"

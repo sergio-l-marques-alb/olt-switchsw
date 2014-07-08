@@ -13,7 +13,6 @@
 #define _PTIN_CNFGR_H
 
 #include "ptin_include.h"
-#include "ptin_mgmd_eventqueue.h"
 
 typedef enum {
   PTIN_PHASE_INIT_0 = 0,

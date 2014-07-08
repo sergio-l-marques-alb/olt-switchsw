@@ -12,7 +12,6 @@
 #define _PTIN_EVC_H
 
 #include "ptin_include.h"
-#include "ptin_igmp.h"
 
 /**
  * Initializes EVCs data structures
