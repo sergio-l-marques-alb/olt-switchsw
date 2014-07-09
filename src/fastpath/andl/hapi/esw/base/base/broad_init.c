@@ -541,7 +541,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
   /* PTin added: OLT1T0 requires this rule to be configured first, or else, LACP rule is improperly create... :-S */
-#if 1
+#if 0
   /* Install IP Source Guard default policy */
   result = hapiBroadIpsgDefaultPolicyInstall(dapi_g);
   if (L7_SUCCESS != result)
@@ -622,7 +622,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     return result;
 
   /* PTin removed: OLT1T0 requires this rule to be configured first, or else, LACP rule is improperly create... :-S */
-  #if 0
+  #if 1
   /* Install IP Source Guard default policy */
   result = hapiBroadIpsgDefaultPolicyInstall(dapi_g);
   if (L7_SUCCESS != result)
