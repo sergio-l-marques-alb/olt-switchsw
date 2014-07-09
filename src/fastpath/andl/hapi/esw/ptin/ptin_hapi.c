@@ -1242,9 +1242,10 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
   }
   #endif
 
-  #if 1
   /* Update storm control applied ports */
-  #if (PTIN_BOARD_IS_MATRIX)
+#if 1
+  /* MATRIX board */
+#if (PTIN_BOARD_IS_MATRIX)
   if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
   {
     if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
@@ -1263,8 +1264,8 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
   }
-  //#elif (PTIN_BOARD_IS_LINECARD)
-  #else
+  /* LINECARD board */
+#elif (PTIN_BOARD_IS_LINECARD)
   if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
   {
     if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
@@ -1283,8 +1284,29 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
                 dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
   }
-  #endif
-  #endif
+  /* STANDALONE board */
+#else
+  if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS ||
+      port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+  {
+    if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  }
+  else
+  {
+    if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    else
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
+                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  }
+#endif
+#endif
   
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
             port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
