@@ -5389,7 +5389,7 @@ void ptin_ta48ge_led_control(L7_uint32 port, L7_uint8 color, L7_uint8 blink)
 void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state)
 {
   #ifdef MAP_FPGA
-  uint16 base_addr, offset_addr;
+  L7_uint16 base_addr, offset_addr;
 
   if (port >= PTIN_SYSTEM_N_ETH || port >= 48)
     return;
@@ -5397,7 +5397,7 @@ void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state)
   base_addr  = port / 8;
   offset_addr= port % 8;
 
-  fpga_map->reg.sfp_txdisable[base_addr] = ~((uint8) 1 << offset_addr);
+  fpga_map->reg.sfp_txdisable[base_addr] = ~((L7_uint8) 1 << offset_addr);
   #endif
 }
 #endif
