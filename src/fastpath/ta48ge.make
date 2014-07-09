@@ -15,8 +15,7 @@ TAR   = tar
 INSTALL_DIR     = ../../../PR1003/builds_olt360/apps/TA48GE
 BACKUP_DIR      = ../../../PR1003/builds_olt360/apps_backup/TA48GE
 
-NUM_CPUS	= 2
-#$(shell grep -c 'model name' /proc/cpuinfo)
+NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
 FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))

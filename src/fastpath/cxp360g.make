@@ -15,8 +15,7 @@ TAR   = tar
 INSTALL_DIR	= /home/olt/fastpath_builds/builds_olt360/apps/CXP360G
 BACKUP_DIR	= /home/olt/fastpath_builds/builds_olt360/apps_backup/CXP360G
 
-NUM_CPUS	= 2
-#$(shell grep -c 'model name' /proc/cpuinfo)
+NUM_CPUS	= $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
 FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
