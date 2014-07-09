@@ -71,6 +71,7 @@
 #include "broad_llpf.h"
 #endif
 
+#include "ptin_globaldefs.h"
 #include "logger.h"   /* PTin added: trunks */
 
 extern DAPI_t *dapi_g;
