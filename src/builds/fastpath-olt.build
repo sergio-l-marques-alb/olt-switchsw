@@ -11,8 +11,16 @@ export APPLICATION=fp
 
 echo "Compiling fastpath..."
 make -C ../fastpath all
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
 echo "Copying binaries to apps..."
 make -C ../fastpath install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
 echo "Done... Going to prepare tarball."
 echo
 

@@ -10,8 +10,16 @@ export APPLICATION=fp
 
 echo "Compiling fastpath for OLT1T3..."
 make -C ../fastpath -f olt640.make all
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
 echo "Copying binaries to apps..."
 make -C ../fastpath -f olt640.make install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
 echo "Done... Going to prepare tarball."
 echo
 
