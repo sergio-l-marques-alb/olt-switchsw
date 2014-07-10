@@ -540,14 +540,6 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
-  /* PTin added: OLT1T0 requires this rule to be configured first, or else, LACP rule is improperly create... :-S */
-#if 0
-  /* Install IP Source Guard default policy */
-  result = hapiBroadIpsgDefaultPolicyInstall(dapi_g);
-  if (L7_SUCCESS != result)
-    return result;
-#endif
-
   /* Install the L2 system policies that trap PDUs to the CPU first. We need these to have
      higher priority than the dot1x violation policy so that the link layer protocols
      function correctly even if a port is unauthorized. */
@@ -621,13 +613,10 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if (L7_SUCCESS != result)
     return result;
 
-  /* PTin removed: OLT1T0 requires this rule to be configured first, or else, LACP rule is improperly create... :-S */
-  #if 1
   /* Install IP Source Guard default policy */
   result = hapiBroadIpsgDefaultPolicyInstall(dapi_g);
   if (L7_SUCCESS != result)
     return result;
-  #endif
 
   /* PTin removed: Packets priority not modified */
   #if PTIN_BROAD_INIT_TRAP_TO_CPU
@@ -2622,6 +2611,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
 
     /* PTin added: inband */
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
     /* PTin end */
 
