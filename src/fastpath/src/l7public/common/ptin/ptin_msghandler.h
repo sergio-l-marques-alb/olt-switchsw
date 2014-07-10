@@ -186,9 +186,9 @@
 #define CCMSG_FLUSH_RMEP                    0x9148
 
 /* Routing */
-#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIntfCreate
-#define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIntfModify
-#define CCMSG_ROUTING_INTF_REMOVE             0x9153  // msg_RoutingIntfRemove
+#define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIpv4Intf
+#define CCMSG_ROUTING_INTF_MODIFY             0x9152  // msg_RoutingIpv4Intf
+#define CCMSG_ROUTING_INTF_REMOVE             0x9153  // msg_RoutingIpv4Intf
 #define CCMSG_ROUTING_ARPTABLE_GET            0x9154  // msg_RoutingArpTableRequest / msg_RoutingArpTableResponse
 #define CCMSG_ROUTING_ARPENTRY_PURGE          0x9155  // msg_RoutingArpEntryPurge
 #define CCMSG_ROUTING_ROUTETABLE_GET          0x9156  // msg_RoutingRouteTableRequest / msg_RoutingRouteTableResponse
@@ -1466,44 +1466,28 @@ typedef struct
  * Routing messages
  ****************************************************/
 
-// Message CCMSG_ROUTING_INTF_CREATE
-#define CCMSG_ROUTING_INTF_TYPE_UPLINK        1
-#define CCMSG_ROUTING_INTF_TYPE_LOOPBACK      2
+// Message CCMSG_ROUTING_INTF_CREATE / CCMSG_ROUTING_INTF_MODIFY / CCMSG_ROUTING_INTF_REMOVE
+#define CCMSG_ROUTING_INTF_GET_MASK_INTF            0x000000001
+#define CCMSG_ROUTING_INTF_GET_MASK_EVCID           0x000000001
+#define CCMSG_ROUTING_INTF_GET_MASK_IPADDR          0x000000001
+#define CCMSG_ROUTING_INTF_GET_MASK_SUBNETMAK       0x000000001
 typedef struct
 {
    L7_uint8             slotId;
-   L7_uint8             type;
+   L7_uint32            mask;
    msg_HwEthInterface_t routingIntf;
-   msg_HwEthInterface_t physicalIntf;
-   L7_uint16            routingVlanId;
    L7_uint32            evcId;
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
-} __attribute__((packed)) msg_RoutingIntfCreate;
-
-// Message CCMSG_ROUTING_INTF_MODIFY
-typedef struct
-{
-   L7_uint8             slotId;
-   msg_HwEthInterface_t routingIntf;
-   L7_uint32            ipAddress;
-   L7_uint32            subnetMask;
-} __attribute__((packed)) msg_RoutingIntfModify;
-
-// Message CCMSG_ROUTING_INTF_REMOVE
-typedef struct
-{
-   L7_uint8             slotId;
-   msg_HwEthInterface_t routingIntf;
-} __attribute__((packed)) msg_RoutingIntfRemove;
+} __attribute__((packed)) msg_RoutingIpv4Intf;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET
 #define CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF        0x000000001
 #define CCMSG_ROUTING_ARPTABLE_GET_MASK_MAXENTRIES  0x000000002
-#define CCMSG_ROUTING_ARPTABLE_TYPE_STATIC   1
-#define CCMSG_ROUTING_ARPTABLE_TYPE_DYNAMIC  2
-#define CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL    3
-#define CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY  4
+#define CCMSG_ROUTING_ARPTABLE_TYPE_STATIC          1
+#define CCMSG_ROUTING_ARPTABLE_TYPE_DYNAMIC         2
+#define CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL           3
+#define CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY         4
 typedef struct
 {
    L7_uint8             slotId;
@@ -1555,8 +1539,9 @@ typedef struct
       L7_uint32 minutes;
       L7_uint32 seconds;
    }                    updateTime;
-   L7_uint32            ipAddr;
+   L7_uint32            networkIpAddr;
    L7_uint32            subnetMask;
+   L7_uint32            gwIpAddr;
    L7_uint32            preference;
    L7_uint32            metric;
 } __attribute__((packed)) msg_RoutingRouteTableResponse;

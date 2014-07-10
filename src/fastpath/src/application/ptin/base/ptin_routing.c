@@ -73,8 +73,9 @@ typedef struct ptin_routing_routetable_s
   L7_uint16         intfNum;
   L7_uint8          protocol;
   L7_timespec       updateTime;
-  L7_inet_addr_t    ipAddr;
+  L7_inet_addr_t    networkIpAddr;
   L7_uint32         subnetMask;
+  L7_inet_addr_t    gwIpAddr;
   L7_uint32         preference;
   L7_uint32         metric;
 } ptin_routing_routetable_t;
@@ -401,13 +402,18 @@ L7_RC_t ptin_routing_init(void)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, ptin_intf_t* physicalIntf, L7_uint16 routingVlanId, L7_uint16 internalVlanId)
+L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVlanId)
 {
-  L7_uint32 routingIntfNum;
+  L7_uint32            routingIntfNum;
+  ptin_HwEthMef10Evc_t evc;
+  L7_uint32            i;
+  L7_uint8             intfType = PTIN_ROUTING_INTF_TYPE_UNKNOWN;
+  L7_uint16            routingVlanId;
+  ptin_intf_t          physicalIntf; //Only used for UPLINK routing interfaces 
 
-  if( (routingIntf == L7_NULLPTR) || (physicalIntf == L7_NULLPTR) )
+  if( (routingIntf == L7_NULLPTR) )
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p physicalIntf:%p]", routingIntf, physicalIntf);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
     return L7_ERROR;
   }
 
@@ -417,10 +423,28 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, pt
     return L7_FAILURE;
   }
 
-  if( (intfType!=PTIN_ROUTING_INTF_TYPE_UPLINK) && (intfType!=PTIN_ROUTING_INTF_TYPE_LOOPBACK) )
+  /* Determine routing interface type, based on the intf mef_type of this evcId */
+  if(L7_SUCCESS != ptin_evc_get_fromIntVlan(internalVlanId, &evc))
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Invalid routing interface type [intfType:%u]", intfType);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert internalVlanId %u to an EVC", internalVlanId);
     return L7_FAILURE;
+  }
+  for(i=0; i<evc.n_intf; ++i)
+  {
+     /* If we find at least one ROOT interface, then this is an uplink routing interface. Otherwise, it is considered a loopback routing interface */
+     if(evc.intf[i].mef_type == 0)
+     {
+        intfType               = PTIN_ROUTING_INTF_TYPE_UPLINK;
+        routingVlanId          = evc.intf[i].vid;
+        physicalIntf.intf_type = evc.intf[i].intf_type;
+        physicalIntf.intf_id   = evc.intf[i].intf_id;
+        break;
+     }
+  }
+  if(intfType == PTIN_ROUTING_INTF_TYPE_UNKNOWN) //If we enter here it's because there are no ROOT interfaces in this EVC
+  {
+     intfType = PTIN_ROUTING_INTF_TYPE_LOOPBACK;
+     routingVlanId = evc.intf[0].vid; //There are only leaf interfaces, and they all MUST have the same external VID
   }
 
   if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
@@ -494,15 +518,15 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, pt
     L7_enetMacAddr_t macAddr;
     L7_uint32        physicalIntfNum;
 
-    if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(physicalIntf, &physicalIntfNum))
+    if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(&physicalIntf, &physicalIntfNum))
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert physicalIntf %u/%u to intfNum", physicalIntf.intf_type, physicalIntf.intf_id);
       return L7_FAILURE;
     }
 
     if (nimGetIntfAddress(physicalIntfNum, L7_NULL, &macAddr.addr[0]) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get physical interface MAC address [physicalIntf:%u/%u]", physicalIntf->intf_type, physicalIntf->intf_id);
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to get physical interface MAC address [physicalIntf:%u/%u]", physicalIntf.intf_type, physicalIntf.intf_id);
       return L7_FAILURE;
     }
 
@@ -831,13 +855,14 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
     if(currentIndex >= firstIdx)
     {
       LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Copying local entry [idx:%u]" , currentIndex);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  intfNum:    %u"             , snapshotIterator->intfNum);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  protocol:   %u"             , snapshotIterator->protocol);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  updateTime: %ud %uh %um %us", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ipAddr:     %s"             , inetAddrPrint(&snapshotIterator->ipAddr, ipAddrStr));
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  subnetMask: %u"             , snapshotIterator->subnetMask);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  preference: %u"             , snapshotIterator->preference);
-      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  metric:     %u"             , snapshotIterator->metric);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  intfNum:       %u"             , snapshotIterator->intfNum);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  protocol:      %u"             , snapshotIterator->protocol);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  updateTime:    %ud %uh %um %us", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  networkIpAddr: %s"             , inetAddrPrint(&snapshotIterator->networkIpAddr, ipAddrStr));
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  subnetMask:    %u"             , snapshotIterator->subnetMask);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  gwIpAddr:      %s"             , inetAddrPrint(&snapshotIterator->gwIpAddr, ipAddrStr));
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  preference:    %u"             , snapshotIterator->preference);
+      LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  metric:        %u"             , snapshotIterator->metric);
 
       if(L7_SUCCESS != ptin_intf_intIfNum2ptintf(snapshotIterator->intfNum, &intf))
       {
@@ -851,8 +876,9 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
       buffer->updateTime.hours   = snapshotIterator->updateTime.hours;
       buffer->updateTime.minutes = snapshotIterator->updateTime.minutes;
       buffer->updateTime.seconds = snapshotIterator->updateTime.seconds;
-      buffer->ipAddr             = snapshotIterator->ipAddr.addr.ipv4.s_addr;
+      buffer->networkIpAddr      = snapshotIterator->networkIpAddr.addr.ipv4.s_addr;
       buffer->subnetMask         = snapshotIterator->subnetMask;
+      buffer->gwIpAddr           = snapshotIterator->gwIpAddr.addr.ipv4.s_addr;
       buffer->preference         = snapshotIterator->preference;
       buffer->metric             = snapshotIterator->metric;
       ++buffer;
@@ -1773,8 +1799,9 @@ static void __routetable_snapshot_refresh(L7_uint32 intfNum)
     localSnapshotEntry->intfNum    = routeTablepEntry.ecmpRoutes.equalCostPath[0].arpEntry.intIfNum;
     localSnapshotEntry->protocol   = routeTablepEntry.protocol;
     osapiConvertRawUpTime(currentTime-routeTablepEntry.updateTime, &localSnapshotEntry->updateTime);
-    inetAddressSet(L7_AF_INET, &routeTablepEntry.ipAddr, &localSnapshotEntry->ipAddr);
+    inetAddressSet(L7_AF_INET, &routeTablepEntry.ipAddr, &localSnapshotEntry->networkIpAddr);
     localSnapshotEntry->subnetMask = inetMaskLengthGet(routeTablepEntry.subnetMask);
+    inetAddressSet(L7_AF_INET, &routeTablepEntry.ecmpRoutes.equalCostPath[0], &localSnapshotEntry->gwIpAddr);
     localSnapshotEntry->preference = routeTablepEntry.pref;
     localSnapshotEntry->metric     = routeTablepEntry.metric;
 
@@ -1955,6 +1982,7 @@ void ptin_routing_intf_dump(void)
       printf("Interface [id:%u]\n",     i);
       printf("  type:            %u\n", __routing_interfaces[i].type);
       printf("  routingVlanId:   %u\n", __routing_interfaces[i].routingVlanId);
+      printf("  internalVlanId:  %u\n", __routing_interfaces[i].internalVlanId);
       printf("  physicalIntfNum: %u\n", __routing_interfaces[i].physicalIntfNum);
     }
   }
@@ -2027,13 +2055,14 @@ void ptin_routing_routetablesnapshot_dump(void)
   while(snapshotIterator != NULL)
   {
     printf("Copying local entry [idx:%u]\n" , currentIndex);
-    printf("  intfNum:    %u\n"             , snapshotIterator->intfNum);
-    printf("  protocol:   %u\n"             , snapshotIterator->protocol);
-    printf("  updateTime: %ud %uh %um %us\n", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
-    printf("  ipAddr:     %s\n"             , inetAddrPrint(&snapshotIterator->ipAddr, ipAddrStr));
-    printf("  subnetMask: %u\n"             , snapshotIterator->subnetMask);
-    printf("  preference: %u\n"             , snapshotIterator->preference);
-    printf("  metric:     %u\n"             , snapshotIterator->metric);
+    printf("  intfNum:       %u\n"             , snapshotIterator->intfNum);
+    printf("  protocol:      %u\n"             , snapshotIterator->protocol);
+    printf("  updateTime:    %ud %uh %um %us\n", snapshotIterator->updateTime.days, snapshotIterator->updateTime.hours, snapshotIterator->updateTime.minutes, snapshotIterator->updateTime.seconds);
+    printf("  networkIpAddr: %s\n"             , inetAddrPrint(&snapshotIterator->networkIpAddr, ipAddrStr));
+    printf("  subnetMask:    %u\n"             , snapshotIterator->subnetMask);
+    printf("  gwIpAddr:      %s\n"             , inetAddrPrint(&snapshotIterator->gwIpAddr, ipAddrStr));
+    printf("  preference:    %u\n"             , snapshotIterator->preference);
+    printf("  metric:        %u\n"             , snapshotIterator->metric);
 
     /* Get next entry */
     snapshotIterator = (ptin_routing_routetable_t*) dl_queue_get_next(&__routetable_snapshot, (dl_queue_elem_t*)snapshotIterator);

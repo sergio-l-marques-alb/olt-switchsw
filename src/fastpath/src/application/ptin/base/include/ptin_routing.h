@@ -23,8 +23,9 @@
 #define PTIN_ROUTING_ARPTABLE_TYPE_LOCAL    CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL  
 #define PTIN_ROUTING_ARPTABLE_TYPE_GATEWAY  CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY
 
-#define PTIN_ROUTING_INTF_TYPE_UPLINK       CCMSG_ROUTING_INTF_TYPE_UPLINK
-#define PTIN_ROUTING_INTF_TYPE_LOOPBACK     CCMSG_ROUTING_INTF_TYPE_LOOPBACK
+#define PTIN_ROUTING_INTF_TYPE_UNKNOWN      0
+#define PTIN_ROUTING_INTF_TYPE_UPLINK       1
+#define PTIN_ROUTING_INTF_TYPE_LOOPBACK     2
 
 /***********************************************************
  * Typedefs
@@ -52,7 +53,7 @@ L7_RC_t ptin_routing_init(void);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint8 intfType, ptin_intf_t* physicalIntf, L7_uint16 routingVlanId, L7_uint16 internalVlanId);
+L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVlanId);
 
 /**
  * Remove an existing routing interface.

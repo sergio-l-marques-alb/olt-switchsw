@@ -1438,12 +1438,12 @@ traceRouteHopGetNext( L7_ushort16 handle, L7_ushort16 *hopIndex,
     }
 
     /* Allow query only if state is DONE */
-    if ( entry->state < TRACEROUTE_STATE_DONE )
-    {
-        L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SIM_COMPONENT_ID, "Invalid TraceRoute session." );
-        osapiReadLockGive( traceRouteLock_g );
-        return L7_FAILURE;
-    }
+//  if ( entry->state < TRACEROUTE_STATE_DONE )
+//  {
+//      L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SIM_COMPONENT_ID, "Invalid TraceRoute session." );
+//      osapiReadLockGive( traceRouteLock_g );
+//      return L7_FAILURE;
+//  }
 
     /* Find the first index to check. traceRouteHopGetFirst also uses same
      * API and passes hop as -1. Pass first valid entry for GET */
