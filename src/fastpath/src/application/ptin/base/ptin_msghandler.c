@@ -67,7 +67,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 
 /* Macro to check infoDim consistency (including modulo match) */
 #define CHECK_INFO_SIZE_MOD(msg_st) {             \
-  if ((inbuffer->infoDim != sizeof(msg_st)) && ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
+  if ( ((inbuffer->infoDim % sizeof(msg_st)) != 0)) {  \
     LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting multiple of %u bytes; Received %u bytes", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
