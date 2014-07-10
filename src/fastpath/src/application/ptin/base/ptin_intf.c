@@ -4393,7 +4393,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
 L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD_IS_MATRIX)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -4502,7 +4502,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
 L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7_uint8 enable)
 {
   /* Only applied to CXO640G boards */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -4613,7 +4613,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   L7_RC_t   rc_global = L7_SUCCESS;
 
 /* Only applied to CXO640G boards */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -4756,7 +4756,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
   L7_RC_t   rc_global = L7_SUCCESS;
 
 /* Only applied to CXO640G boards */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD_IS_MATRIX)
 
   L7_int    port_idx, ptin_port = -1;
   L7_uint32 intIfNum = L7_ALL_INTERFACES;
@@ -5319,7 +5319,7 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
    {
      return L7_TRUE;
    }
-#elif ( PTIN_BOARD == PTIN_BOARD_CXO640G )
+#elif ( PTIN_BOARD_IS_MATRIX )
    nimUSP_t usp;
    L7_uint32 intIfNum;
 
