@@ -134,7 +134,7 @@ void help_oltBuga(void)
         "m 1700 type[0-Phy;1-Lag]/intf# enable[0/1] - Enable/Disable IP Source Guard on Ptin Port\n\r"
         "m 1701 idType[1-eEVCId; 2-rootVLAN] iD[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] addOrRemove[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
         "--- Routing --------------------------------------------------------------------------------------------------------------------------\n\r"
-        "m 1810 type[0-uplink,1-loopback] routingIntf[2-Rtr]/[intf#] physicalIntf[2-Rtr]/[intf#] routingVID[1-4095] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
+        "m 1810 routingIntf[2-Rtr]/[intf#] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
         "m 1811 intf[2-Rtr]/[intf#] - Remove routing interface\r\n"
         "m 1820 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
         "m 1821 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
@@ -2992,93 +2992,18 @@ int main (int argc, char *argv[])
 
       case 1810:
         {
-          msg_RoutingIntfCreate *ptr;
+          msg_RoutingIpv4Intf *ptr;
           int type, intf;
 
           // Validate number of arguments
-          if (argc<3+7)  {
+          if (argc<3+4)  {
             help_oltBuga();
             exit(0);
           }
 
           // Pointer to data array
-          ptr = (msg_RoutingIntfCreate *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_RoutingIntfCreate));
-
-          ptr->slotId = (uint8)-1;
-
-          // Type
-          if (StrToLongLong(argv[3+0],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->type = (uint8) valued;
-
-          // Routing port
-          if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
-          {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->routingIntf.intf_type = (uint8) type;
-          ptr->routingIntf.intf_id   = (uint8) intf;
-
-          // Physical port
-          if (sscanf(argv[3+2],"%d/%d",&type,&intf)!=2)
-          {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->physicalIntf.intf_type = (uint8) type;
-          ptr->physicalIntf.intf_id   = (uint8) intf;
-
-          // Routing vlan
-          if (StrToLongLong(argv[3+3],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->routingVlanId = (uint16) valued;
-
-          // EVC ID
-          if (StrToLongLong(argv[3+4],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->evcId = (uint16) valued;
-
-          // IP address
-          if (convert_ipaddr2uint64(argv[3+5],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->ipAddress = valued;
-
-          // Subnet Mask
-          if (convert_ipaddr2uint64(argv[3+6],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->subnetMask = valued;
-
-          comando.msgId = CCMSG_ROUTING_INTF_CREATE;
-          comando.infoDim = sizeof(msg_RoutingIntfCreate);
-        }
-        break;
-
-      case 1811:
-        {
-          msg_RoutingIntfRemove *ptr;
-          int type, intf;
-
-          // Validate number of arguments
-          if (argc<3+1)  {
-            help_oltBuga();
-            exit(0);
-          }
-
-          // Pointer to data array
-          ptr = (msg_RoutingIntfRemove *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_RoutingIntfRemove));
+          ptr = (msg_RoutingIpv4Intf *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIpv4Intf));
 
           ptr->slotId = (uint8)-1;
 
@@ -3091,8 +3016,64 @@ int main (int argc, char *argv[])
           ptr->routingIntf.intf_type = (uint8) type;
           ptr->routingIntf.intf_id   = (uint8) intf;
 
+          // EVC ID
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->evcId = (uint16) valued;
+
+          // IP address
+          if (convert_ipaddr2uint64(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->ipAddress = valued;
+
+          // Subnet Mask
+          if (convert_ipaddr2uint64(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->subnetMask = valued;
+
+          ptr->mask = CCMSG_ROUTING_INTF_MASK_INTF | CCMSG_ROUTING_INTF_MASK_EVCID | CCMSG_ROUTING_INTF_MASK_IPADDR | CCMSG_ROUTING_INTF_MASK_SUBNETMASK;
+
+          comando.msgId = CCMSG_ROUTING_INTF_CREATE;
+          comando.infoDim = sizeof(msg_RoutingIpv4Intf);
+        }
+        break;
+
+      case 1811:
+        {
+          msg_RoutingIpv4Intf *ptr;
+          int type, intf;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_RoutingIpv4Intf *) &(comando.info[0]);
+          memset(ptr,0x00,sizeof(msg_RoutingIpv4Intf));
+
+          ptr->slotId = (uint8)-1;
+
+          // Routing port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->routingIntf.intf_type = (uint8) type;
+          ptr->routingIntf.intf_id   = (uint8) intf;
+
+          ptr->mask = CCMSG_ROUTING_INTF_MASK_INTF;
+
           comando.msgId = CCMSG_ROUTING_INTF_REMOVE;
-          comando.infoDim = sizeof(msg_RoutingIntfRemove);
+          comando.infoDim = sizeof(msg_RoutingIpv4Intf);
         }
         break;
 
@@ -6168,14 +6149,15 @@ int main (int argc, char *argv[])
           for (i=0; i<entries; ++i) {
             ptr = &((msg_RoutingRouteTableResponse *) &resposta.info[0])[i];
             printf("------------------------\r\n");
-            printf("  Index       = %u\r\n",           ptr->index);
-            printf("  Intf        = %u/%u\r\n",        ptr->intf.intf_type, ptr->intf.intf_id);
-            printf("  Protocol    = %u\r\n",           ptr->protocol);
-            printf("  Update Time = %udays %uh%um%us\r\n", (unsigned int)ptr->updateTime.days, (unsigned int)ptr->updateTime.hours, (unsigned int)ptr->updateTime.minutes, (unsigned int)ptr->updateTime.seconds);
-            printf("  Ip Address  = 0x%08X\r\n",       (unsigned int)ptr->ipAddr);
-            printf("  Subnet Mask = %u\r\n",           (unsigned int)ptr->subnetMask);
-            printf("  Preference  = %u\r\n",           (unsigned int)ptr->preference);
-            printf("  Metric      = %u\r\n",           (unsigned int)ptr->metric);
+            printf("  Index               = %u\r\n",           ptr->index);
+            printf("  Intf                = %u/%u\r\n",        ptr->intf.intf_type, ptr->intf.intf_id);
+            printf("  Protocol            = %u\r\n",           ptr->protocol);
+            printf("  Update Time         = %udays %uh%um%us\r\n", (unsigned int)ptr->updateTime.days, (unsigned int)ptr->updateTime.hours, (unsigned int)ptr->updateTime.minutes, (unsigned int)ptr->updateTime.seconds);
+            printf("  Network Ip Address  = 0x%08X\r\n",       (unsigned int)ptr->networkIpAddr);
+            printf("  Subnet Mask         = %u\r\n",           (unsigned int)ptr->subnetMask);
+            printf("  Gw Ip Address       = 0x%08X\r\n",       (unsigned int)ptr->gwIpAddr);
+            printf("  Preference          = %u\r\n",           (unsigned int)ptr->preference);
+            printf("  Metric              = %u\r\n",           (unsigned int)ptr->metric);
           }
         }
         else
