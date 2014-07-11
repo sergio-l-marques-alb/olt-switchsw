@@ -1099,7 +1099,7 @@ void ssm_debug_dump(void)
   printf("Dumping SSM shared memory:\r\n");
   for (slot=0; slot<SSM_N_SLOTS; slot++)
   {
-    printf("slot=%02u: { ",slot);
+    printf("slot=%02u: { ",slot+1);
     for (intf=0; intf<SSM_N_INTFS_IN_USE; intf++)
     {
       printf("rx=0x%05x/tx=0x%05x/lnk=%u ",

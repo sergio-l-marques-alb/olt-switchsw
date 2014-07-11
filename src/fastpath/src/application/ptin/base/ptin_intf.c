@@ -1222,13 +1222,6 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
   /* Calculate slot and port */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
-  /* Validate slot and port */
-  if (slot<PTIN_SYS_LC_SLOT_MIN || slot>PTIN_SYS_LC_SLOT_MAX || port>=PTIN_SYS_INTFS_PER_SLOT_MAX)
-  {
-    //LOG_ERR(LOG_CTX_PTIN_INTF,"slot %u / port %u is out of range",slot,port);
-    return L7_FAILURE;
-  }
-
   /* Only CXO160G have frontal ports */
  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Local port format */
