@@ -765,12 +765,12 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
         osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
                       "(%s) Packet ignored, because of ip source (0x%08x)",
-                      __FUNCTION__, ipHeader->iph_src);
+                      __FUNCTION__, osapiNtohl(ipHeader->iph_src));
         dsTraceWrite(traceMsg);
       }
 
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored, because of ip source (0x%08x)", ipHeader->iph_src);
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored, because of ip source (0x%08x)", osapiNtohl(ipHeader->iph_src));
 
       return SYSNET_PDU_RC_IGNORED;
     }
@@ -932,11 +932,11 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
         osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
                       "(%s) Packet is neither server nor client (%u)",
-                      __FUNCTION__, udpHeader->destPort);
+                      __FUNCTION__, osapiNtohs(udpHeader->destPort));
         dsTraceWrite(traceMsg);
       }
       if (ptin_debug_dhcp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet is neither server nor client (%u)", udpHeader->destPort);
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet is neither server nor client (%u)", osapiNtohs(udpHeader->destPort));
     }
   }
   else
@@ -1401,7 +1401,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
     osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
                   "(%s) Packet frameLen = %d, initial UDP length = %d ",__FUNCTION__, frameLen,
-                  udp_header->length );
+                  osapiNtohs(udp_header->length) );
     dsTraceWrite(traceMsg);
   }
 
