@@ -46,17 +46,18 @@ static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, L7_uint8 matrixType, L7_ui
 
 /* Initialization of the external API struct */
 ptin_mgmd_externalapi_t mgmd_external_api = {
-  .igmp_admin_set            = &snooping_igmp_admin_set,
-  .mld_admin_set             = &snooping_mld_admin_set,
-  .cos_set                   = &snooping_cos_set,
-  .portList_get              = &snooping_portList_get,
-  .portType_get              = &snooping_portType_get,
-  .clientList_get            = &snooping_clientList_get,
-  .client_resources_allocate = &snooping_client_resources_allocate,
-  .client_resources_free     = &snooping_client_resources_free,
-  .port_open                 = &snooping_port_open,
-  .port_close                = &snooping_port_close,
-  .tx_packet                 = &snooping_tx_packet,
+  .igmp_admin_set              = &snooping_igmp_admin_set,
+  .mld_admin_set               = &snooping_mld_admin_set,
+  .cos_set                     = &snooping_cos_set,
+  .portList_get                = &snooping_portList_get,
+  .portType_get                = &snooping_portType_get,
+  .clientList_get              = &snooping_clientList_get,
+  .client_resources_available  = &snooping_client_resources_available,
+  .client_resources_allocate   = &snooping_client_resources_allocate,
+  .client_resources_free       = &snooping_client_resources_free,
+  .port_open                   = &snooping_port_open,
+  .port_close                  = &snooping_port_close,
+  .tx_packet                   = &snooping_tx_packet,
 };
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
@@ -405,6 +406,11 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 #endif
 
   return SUCCESS;
+}
+
+unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
+{
+  return L7_TRUE;
 }
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
