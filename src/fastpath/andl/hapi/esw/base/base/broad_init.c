@@ -2564,8 +2564,18 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
   /* PTin modified: inband -> Only consider bytes identifying PTIn related packets */
   L7_uchar8       exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                    FIELD_MASK_ALL,  FIELD_MASK_ALL,  FIELD_MASK_ALL };
-
   hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
+
+  /* PTin added: inband */
+  BROAD_METER_ENTRY_t meterInfo;
+  meterInfo.cir       = RATE_LIMIT_INBAND;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = RATE_LIMIT_INBAND;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+  /* PTin end */
+
+  LOG_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");
 
   /* If we already have an old MAC address for the network interface
   ** then remove it.
@@ -2595,6 +2605,8 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
 
     /* PTin added: inband */
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
     /* PTin end */
 
 #ifdef L7_STACKING_PACKAGE
