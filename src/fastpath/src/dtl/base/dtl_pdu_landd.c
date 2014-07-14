@@ -285,8 +285,9 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   }
 #endif
 
-  //Ignore if the port has link down
-  if ( (nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
+  //Ignore if the port has link down (only consider valid interfaces)
+  if ( (nimCheckIfNumber(dtlCmdInfo->intfNum) == L7_SUCCESS) &&
+       ((nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE)) )
   {
     if (ptin_debug_dtl)
       LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",dtlCmdInfo->intfNum);    

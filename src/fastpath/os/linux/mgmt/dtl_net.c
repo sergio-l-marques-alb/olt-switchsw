@@ -61,7 +61,7 @@
 
 /* PTin added: inband */
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-#define __ENABLE_DTL0INBANDVID_REMOVAL__      1
+#define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #define __SUPPORT_FP_ROUTING__                0
 #define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
 #else
@@ -127,11 +127,11 @@ int dtl_net_fd;
 
 /* PTin added: inband */
 typedef enum  {
-  DTLNET_PTINDEBUG_LEVEL0 = 0,
-  DTLNET_PTINDEBUG_LEVEL1 = 1,
-  DTLNET_PTINDEBUG_LEVEL2 = 2,
-  DTLNET_PTINDEBUG_LEVEL3 = 3,
-  DTLNET_PTINDEBUG_LEVEL4 = 4
+  DTLNET_PTINDEBUG_LEVEL0 = 0x00,
+  DTLNET_PTINDEBUG_LEVEL1 = 0x01,
+  DTLNET_PTINDEBUG_LEVEL2 = 0x02,
+  DTLNET_PTINDEBUG_LEVEL3 = 0x04,
+  DTLNET_PTINDEBUG_LEVEL4 = 0x08
 } dtlNetPtinDebug_enum_t;
 
 dtlNetPtinDebug_enum_t dtlNetPtinDebug = DTLNET_PTINDEBUG_LEVEL0;
@@ -1056,7 +1056,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    {
       int i;
 
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Received: \n\r");
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Tx: \n\r");
       for (i=0; i<data_length; i++)
       {
          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%.2x ", data[i]);
@@ -1078,13 +1078,14 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
       if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
       {
-         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): This is a multicast or broadcast address\n\r");
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): This is a multicast or broadcast address (vid=%d)\n\r", vid);
       }
 
       info->dtlCmdInfo.intfNum = 0;
       info->dtlCmdInfo.priority = 0;
       info->dtlCmdInfo.typeToSend = DTL_VLAN_MULTICAST;
       info->dtlCmdInfo.cmdType.L2.domainId = vid;       /* This is the internal VID */
+      info->dtlCmdInfo.cmdType.L2.flags = 0;
       info->dtlCmd = DTL_CMD_TX_L2;
 
       /*

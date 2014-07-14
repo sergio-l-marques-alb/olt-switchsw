@@ -44,6 +44,7 @@
 
 #include <bcmx/tx.h>
 #include <bcmx/lport.h>
+#include <bcmx/port.h>    /* PTin added: link up status */
 
 #include "bcm_int/esw/mbcm.h"
 #include "dapi_trace.h"
@@ -1807,7 +1808,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     /*
      * Get port bitmap for this vlan from BCM
      */
-    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID,&mcastLplist,dapi_g);
+    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastLplist, L7_TRUE, dapi_g);
     hapiBroadPruneTxDiscardingPorts(cmdInfo->cmdData.send.vlanID, &mcastLplist, dapi_g);
 
     /* if this is not eapol, only send on authorized ports */
@@ -1884,7 +1885,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     /*
      * Get port bitmap for this vlan from BCM
      */
-    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastLplist, dapi_g);
+    hapiBroadGetSameVlanPbmpTx(cmdInfo->cmdData.send.vlanID, &mcastLplist, L7_TRUE, dapi_g);
 
     /* if this is not eapol, only send on authorized ports */
     if (etype_eapol == L7_FALSE)
@@ -4805,11 +4806,12 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
 * @end
 *
 *********************************************************************/
-void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, DAPI_t *dapi_g)
+void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, L7_BOOL filter_linkup, DAPI_t *dapi_g)   /* PTin modified: filter_linkup */
 {
   DAPI_USP_t             searchUsp;
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiPortPtr;
+  int                    link_status;     /* PTin modified: link status */
 
   for (searchUsp.unit=0;searchUsp.unit < dapi_g->system->totalNumOfUnits;searchUsp.unit++)
   {
@@ -4836,7 +4838,12 @@ void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *lplist, DAPI_
             */
             if (BROAD_IS_HW_VLAN_MEMBER(&searchUsp,vlanID,dapi_g))
             {
-              BCMX_LPLIST_ADD(lplist,hapiPortPtr->bcmx_lport);
+              /* PTin modified: filter considering link status */
+              if (!filter_linkup ||
+                  (bcmx_port_link_status_get(hapiPortPtr->bcmx_lport, &link_status) == BCM_E_NONE && link_status == BCM_PORT_LINK_STATUS_UP))
+              {
+                BCMX_LPLIST_ADD(lplist,hapiPortPtr->bcmx_lport);
+              }
             }
           }
         }

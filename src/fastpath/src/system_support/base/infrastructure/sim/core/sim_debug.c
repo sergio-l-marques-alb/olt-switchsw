@@ -390,7 +390,7 @@ void simAddrConflictStatsShow()
     memset(ipAddrStr, 0, sizeof(ipAddrStr));
     osapiSnprintf(ifname, sizeof(ifname), "%s0", L7_DTL_PORT_IF);
     sysapiPrintf("Interface - Network Port (%s)\n", ifname);
-    osapiInetNtoa(simOperInfo->servPortIpAddress, ipAddrStr);
+    osapiInetNtoa(simOperInfo->systemIpAddress, ipAddrStr);
     sysapiPrintf("    Address               -   %s\n", ipAddrStr);
     sysapiPrintf("    Number of conflicts   -   %d\n\n",
                  simOperInfo->networkPortConflictStats.numOfConflictsDetected);

@@ -144,7 +144,7 @@ void hapiBroadGetSameVlanPbmp(L7_ushort16 vlanID, DAPI_USP_t *usp, bcmx_lplist_t
 * @end
 *
 *********************************************************************/
-void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *taggedLplist, DAPI_t *dapi_g);
+void hapiBroadGetSameVlanPbmpTx(L7_ushort16 vlanID, bcmx_lplist_t *taggedLplist, L7_BOOL filter_linkup, DAPI_t *dapi_g);    /* PTin modified: filter_linkup */
 
 /*********************************************************************
 *
