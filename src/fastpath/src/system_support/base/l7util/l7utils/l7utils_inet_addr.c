@@ -1097,14 +1097,14 @@ L7_int32 inetChecksum(void *header,  L7_int32 len)
 
     len /= 2;
     while (--len >= 0)
-        sum += *sp++;
+        sum += osapiNtohs(*sp++);
     if (odd)
     {
         L7_uchar8 pad[2];
     pad[0] = *(L7_uchar8 *)sp;
     pad[1] = 0;
     sp = (L7_ushort16 *)pad;
-    sum += *sp;
+    sum += osapiNtohs(*sp);
     }
     while (sum > 0xffff)
     sum = (sum & 0xffff) + (sum >> 16);
