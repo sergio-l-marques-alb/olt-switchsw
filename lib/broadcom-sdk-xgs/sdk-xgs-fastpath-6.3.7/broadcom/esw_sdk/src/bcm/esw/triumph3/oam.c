@@ -4794,6 +4794,10 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
                      unit, hash_data->ep_id, bcm_errmsg(rv)));
             return (rv);
         }
+// PTIN added, according to patch given by BCMvvv
+        /* clear FP group ID to indicate that group was deleted */
+        oc->fp_glp_group = -1;
+// PTIN added, according to patch given by BCM^^^
     }
 
     return (rv);
