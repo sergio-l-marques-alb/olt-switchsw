@@ -175,6 +175,17 @@ extern L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 
 extern L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_uint8 enable);
 
 /**
+ * Configure main and backup recovery clocks
+ * 
+ * @param main_port 
+ * @param bckp_port 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t *dapi_g);
+
+/**
  * Get Egress port type definition
  * 
  * @param dapiPort  : Physical interface

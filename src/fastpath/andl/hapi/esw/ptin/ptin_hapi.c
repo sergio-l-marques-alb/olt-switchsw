@@ -82,6 +82,8 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port);
 L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port);
 
+L7_RC_t ptin_hapi_phy_init_olt1t0(void);
+
 L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
 
 /**
@@ -341,8 +343,39 @@ L7_RC_t ptin_hapi_phy_init(void)
 
   /* OLT1T0 */
   #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  bcm_port_t bcm_port;
+  if (ptin_hapi_phy_init_olt1t0() == L7_SUCCESS)
+  {
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Success initializing OLT1T0");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing OLT1T0");
+  }
+  #endif
 
+  /* Egress port configuration, only for PON boards */
+  if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS,PTIN_SYSTEM_N_ETH)) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error initializing egress ports!");
+    rc = L7_FAILURE;
+  }
+
+  return rc;
+
+}
+
+/**
+ * Initialize PHYs for OLT1T0
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_phy_init_olt1t0(void)
+{
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  bcm_port_t bcm_port;
+  L7_uint32  rval;
+
+  /* Inicialize polarity invertions (ge48 port) */
   if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)
   {
     if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_RX_POLARITY, 1) != BCM_E_NONE)
@@ -358,18 +391,31 @@ L7_RC_t ptin_hapi_phy_init(void)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port value for port %d", ptin_sys_number_of_ports-1);
   }
-  #endif
 
-  /* Egress port configuration, only for PON boards */
-  if (hapi_ptin_egress_ports(max(PTIN_SYSTEM_N_PONS,PTIN_SYSTEM_N_ETH)) != L7_SUCCESS)
+  /* Initialize clocks */
+  READ_TOP_MISC_CONTROL_1r(0, &rval);
+  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_FREQ_SELf, 0x1);      /* Select 25MHz (1G) and 31.25MHz (10G) */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_BKUP_FREQ_SELf, 0x1); /* Select 25MHz (1G) and 31.25MHz (10G) */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_CLK_RSTNf, 0x1);      /* Output clock out of reset */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_1r, &rval, L1_RCVD_CLK_BKUP_RSTNf, 0x1); /* Output clock out of reset */
+  WRITE_TOP_MISC_CONTROL_1r(0, rval);
+
+  /* Init default references */
+  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, 53) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error initializing egress ports!");
-    rc = L7_FAILURE;
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting recovery clock from bcm_port=53");
+  }
+  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, 52) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting backup recovery clock from bcm_port=52");
   }
 
-  return rc;
-
+  return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
+
 
 /**
  * Execute a linkscan procedure
@@ -1025,6 +1071,71 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   return L7_SUCCESS;
 }
 
+/**
+ * Configure main and backup recovery clocks
+ * 
+ * @param main_port 
+ * @param backup_port 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t *dapi_g)
+{
+  bcm_port_t   bcm_port=-1;
+
+  /* Main clock */
+  if (main_port >= 0)
+  {
+    /* Validate port */
+    if (main_port >= ptin_sys_number_of_ports)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid port: main_port=%d", main_port);
+      return L7_FAILURE;
+    }
+
+    /* Get bcm_port reference */
+    if (hapi_ptin_bcmPort_get(main_port, &bcm_port) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid port: main_port=%d", main_port);
+      return L7_FAILURE;
+    }
+
+    /* Configure main clock */
+    if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting main recovery clock from bcm_port=%d", bcm_port);
+      return L7_FAILURE;
+    }
+  }
+
+  /* Backup clock */
+  if (bckp_port >= 0)
+  {
+    /* Validate port */
+    if (bckp_port >= ptin_sys_number_of_ports)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid port: backup_port=%d", bckp_port);
+      return L7_FAILURE;
+    }
+
+    /* Get bcm_port reference */
+    if (hapi_ptin_bcmPort_get(bckp_port, &bcm_port) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid port: backup_port=%d", bckp_port);
+      return L7_FAILURE;
+    }
+
+    /* Configure backup clock */
+    if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, bcm_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting backup recovery clock from bcm_port=%d", bcm_port);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Get Egress port type definition

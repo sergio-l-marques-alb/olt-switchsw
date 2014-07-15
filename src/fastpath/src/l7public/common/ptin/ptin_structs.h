@@ -50,14 +50,15 @@ typedef struct
 /* Hardware procedure */
 #define PTIN_HWPROC_NONE        0
 #define PTIN_HWPROC_LINKSCAN    1
-#define PTIN_HWPROC_FORCE_LINK 2
+#define PTIN_HWPROC_FORCE_LINK  2
+#define PTIN_HWPROC_CLK_RECVR   3
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;
   L7_uint8  procedure;
   L7_uint8  mask;
-  L7_uint8  param1;
-  L7_uint8  param2;
+  L7_int32  param1;
+  L7_int32  param2;
 } ptin_hwproc_t;
 
 

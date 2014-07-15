@@ -4264,7 +4264,7 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
   {
     if (enable != L7_NULLPTR)
     {
-      *enable = hw_proc.param1;
+      *enable = (L7_uint8) hw_proc.param1;
     }
     LOG_TRACE(LOG_CTX_PTIN_API,"HW linkscan get from intIfNum=%u (%u)", intIfNum, hw_proc.param1);
   }
@@ -4297,7 +4297,7 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
   hw_proc.operation = DAPI_CMD_SET;
   hw_proc.procedure = PTIN_HWPROC_LINKSCAN;
   hw_proc.mask = 0xff;
-  hw_proc.param1 = enable;
+  hw_proc.param1 = (L7_int32) enable;
   hw_proc.param2 = 0;
 
   /* Apply procedure */
@@ -4348,7 +4348,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   hw_proc.operation = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   hw_proc.procedure = PTIN_HWPROC_FORCE_LINK;
   hw_proc.mask = 0xff;
-  hw_proc.param1 = link;
+  hw_proc.param1 = (L7_int32) link;
   hw_proc.param2 = 0;
 
   /* Apply procedure */
@@ -5304,6 +5304,55 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
 
   return L7_SUCCESS;
 }
+
+
+/**
+ * Configure clock recovery references
+ * 
+ * @param ptin_port_main : main port
+ * @param ptin_port_bckp : backup port
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp)
+{
+  ptin_hwproc_t hw_proc;
+  L7_RC_t       rc = L7_SUCCESS;
+
+  /* Validate ports */
+  if (ptin_port_main < 0 || ptin_port_main >= ptin_sys_number_of_ports)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port_main);
+    ptin_port_main = -1;
+  }
+  if (ptin_port_bckp < 0 || ptin_port_bckp >= ptin_sys_number_of_ports)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_API,"Invalid ptin_port %d", ptin_port_bckp);
+    ptin_port_bckp = -1;
+  }
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_CLK_RECVR;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = ptin_port_main;
+  hw_proc.param2 = ptin_port_bckp;
+
+  /* Apply procedure */
+  rc = dtlPtinHwProc(L7_ALL_INTERFACES, &hw_proc);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error configuring recover clocks (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
+    return rc;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_API,"Recover clocks configured (main port %d and backup port %d)", ptin_port_main, ptin_port_bckp);
+
+  return rc;
+}
+
 
 
 int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {

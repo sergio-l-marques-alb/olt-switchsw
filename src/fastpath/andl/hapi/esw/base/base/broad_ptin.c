@@ -80,8 +80,9 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
 {
   ptin_hwproc_t *hwproc = (ptin_hwproc_t *) data;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint8 enable, link;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: procedure=%u, param1=%u, param2=%u", hwproc->procedure, hwproc->param1, hwproc->param2);
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: procedure=%u, param1=%d, param2=%d", hwproc->procedure, hwproc->param1, hwproc->param2);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
 
   /* Validate interface */
@@ -109,32 +110,49 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
   case PTIN_HWPROC_LINKSCAN:
     if (hwproc->operation == DAPI_CMD_GET)
     {
-      rc = ptin_hapi_linkscan_get(usp, dapi_g, &hwproc->param1); 
+      rc = ptin_hapi_linkscan_get(usp, dapi_g, &enable); 
       if (rc != L7_SUCCESS)
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_get");
+      hwproc->param1 = (L7_int32) enable;
     }
     else if (hwproc->operation == DAPI_CMD_SET)
     {
-      rc = ptin_hapi_linkscan_set(usp, dapi_g, hwproc->param1);
+      enable = (L7_uint8) hwproc->param1;
+      rc = ptin_hapi_linkscan_set(usp, dapi_g, enable);
       if (rc != L7_SUCCESS)
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set (%u)", hwproc->param1);
     }
     break;
 
   case PTIN_HWPROC_FORCE_LINK:
+    link = (L7_uint8) hwproc->param1;
     if (hwproc->operation == DAPI_CMD_SET)
     {
-      rc = ptin_hapi_link_force(usp, dapi_g, hwproc->param1, L7_ENABLE);
+      rc = ptin_hapi_link_force(usp, dapi_g, link, L7_ENABLE);
       if (rc != L7_SUCCESS)
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=1)", hwproc->param1);
     }
     else if (hwproc->operation == DAPI_CMD_CLEAR)
     {
-      rc = ptin_hapi_link_force(usp, dapi_g, hwproc->param1, L7_DISABLE);
+      rc = ptin_hapi_link_force(usp, dapi_g, link, L7_DISABLE);
       if (rc != L7_SUCCESS)
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=0)", hwproc->param1);
     }
     break; 
+
+  case PTIN_HWPROC_CLK_RECVR:
+    if (hwproc->operation == DAPI_CMD_SET)
+    {
+      L7_int main_port, bckp_port;
+
+      main_port = hwproc->param1;
+      bckp_port = hwproc->param2;
+
+      rc = ptin_hapi_clock_recovery_set(main_port, bckp_port, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_clock_recovery_set (main_port=%d, backup_port=%d)", main_port, bckp_port);
+    }
+    break;
 
   default:
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid procedure: %u", hwproc->procedure);

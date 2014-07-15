@@ -60,6 +60,8 @@ void ptin_control_switchover_monitor(void);
 #endif
 #endif
 
+static void ptin_control_syncE(void);
+
 /* 10ms task */
 void _10msTask(void);
 
@@ -217,6 +219,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
     /* Monitor alarms */
     monitor_alarms();
+
+    /* Synchronize recovery clocks */
+    ptin_control_syncE();
   }
 }
 
@@ -1238,11 +1243,101 @@ void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
   nimStartupEventDone(L7_PTIN_COMPONENT_ID);
 }
 
+/**
+ * Routine to be executed periodically, to synchronize recovery 
+ * clocks 
+ */
+static void ptin_control_syncE(void)
+{
+#if defined (SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_STANDALONE)
+  static int recovery_clock_h[2] = { -1, -1 };
 
+  L7_int ptin_port_main = -1;
+  L7_int ptin_port_bckp = -1;
 
+  /* If shared memory is not defined, do nothing */
+  if (pfw_shm == L7_NULLPTR || pfw_shm == &fw_shm)
+    return;
 
+  /* Check if values changed, and if they are valid */
+  if (pfw_shm->SyncE_Recovery_clock[0] != recovery_clock_h[0] &&
+      pfw_shm->SyncE_Recovery_clock[0] < ptin_sys_number_of_ports)
+  {
+    ptin_port_main = pfw_shm->SyncE_Recovery_clock[0];
 
+    recovery_clock_h[0] = pfw_shm->SyncE_Recovery_clock[0];   /* Save new value */
+  }
+  if (pfw_shm->SyncE_Recovery_clock[1] != recovery_clock_h[1] &&
+      pfw_shm->SyncE_Recovery_clock[1] < ptin_sys_number_of_ports)
+  {
+    ptin_port_bckp = pfw_shm->SyncE_Recovery_clock[1];
 
+    recovery_clock_h[1] = pfw_shm->SyncE_Recovery_clock[1];   /* Save new value */
+  }
+
+  /* If some of the recovery ports are defined, apply configuration */
+  if (ptin_port_main >= 0 || ptin_port_bckp >= 0)
+  {
+    if (ptin_intf_clock_recover_set(ptin_port_main, ptin_port_bckp) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_CONTROL, "Error applying new recovery clocks: main port=%d, backup port=%d", ptin_port_main, ptin_port_bckp);
+    }
+  }
+#endif
+}
+
+/**
+ * Dump recovery clock references
+ */
+void ptin_reclk_dump(void)
+{
+#if defined (SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_STANDALONE)
+  /* If shared memory is not defined, do nothing */
+  if (pfw_shm == L7_NULLPTR || pfw_shm == &fw_shm)
+  {
+    printf("Shared memory not defined!\r\n");
+  }
+  else
+  {
+    printf("Sync-E reference clocks:\r\n");
+    printf(" Primary port = %u\r\n", pfw_shm->SyncE_Recovery_clock[0]);
+    printf(" Backup  port = %u\r\n", pfw_shm->SyncE_Recovery_clock[1]);
+  }
+#else
+  printf("Platform does not support sync-E!\r\n");
+#endif
+  fflush(stdout);
+}
+
+/**
+ * Set recovery clock references
+ */
+void ptin_reclk_write(L7_int primary, L7_int backup)
+{
+#if defined (SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_STANDALONE)
+  /* If shared memory is not defined, do nothing */
+  if (pfw_shm == L7_NULLPTR || pfw_shm == &fw_shm)
+  {
+    printf("Shared memory not defined!\r\n");
+  }
+  else
+  {
+    if (primary >= 0 && primary < ptin_sys_number_of_ports)
+    {
+      pfw_shm->SyncE_Recovery_clock[0] = primary;
+      printf("Updated primary recovery clock\r\n");
+    }
+    if (backup >= 0 && backup < ptin_sys_number_of_ports)
+    {
+      pfw_shm->SyncE_Recovery_clock[1] = backup;
+      printf("Updated backup recovery clock\r\n");
+    }
+  }
+#else
+  printf("Platform does not support sync-E!\r\n");
+#endif
+  fflush(stdout);
+}
 
 
 

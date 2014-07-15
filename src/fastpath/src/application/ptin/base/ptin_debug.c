@@ -126,6 +126,9 @@ void ptin_debug(void)
   printf("  hapiBroadDebugPolicyEnable <level>                        - Enable policy management debug messages (minimum level should be 3)\r\n");
   printf("\r\n");                                                    
   printf("  ssm_debug_dump                                            - prints info about SSM operation\r\n");
+  printf("  ssm_debug_write <slot> <intf> <ssm_rx> <ssm_tx> <link>    - modifies shared memory contents about SSM\r\n");
+  printf("  ptin_reclk_dump                                           - prints info about sync-E recovery clocks\r\n");
+  printf("  ptin_reclk_write <primary_port> <backup_port>             - modifies shared memory contents about sync-E recovery clocks\r\n");
   printf("  ptin_dhcp_dump                                            - prints info about DHCP instances\r\n");
   printf("  ptin_igmp_dump                                            - prints info about IGMP instances\r\n");
   printf("  ptin_igmp_assoc_dump                                      - prints info about MC service associations\r\n");

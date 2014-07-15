@@ -549,6 +549,16 @@ extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable);
 extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
 
 /**
+ * Configure clock recovery references
+ * 
+ * @param ptin_port_main : main port
+ * @param ptin_port_bckp : backup port
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp);
+
+/**
  * Enable or disable linkscan control for a particular port
  * 
  * @param port 
