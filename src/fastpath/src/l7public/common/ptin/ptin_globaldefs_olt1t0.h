@@ -4,6 +4,8 @@
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
+#define __Y1731_802_1ag_OAM_ETH__
+
 /** Service association AVL Tree */
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 #define IGMP_QUERIER_IN_UC_EVC
