@@ -542,6 +542,8 @@ typedef struct
 } __attribute__((packed)) msg_RoutingIpv4Intf;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET
+#define CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF        0x000000001
+#define CCMSG_ROUTING_ARPTABLE_GET_MASK_MAXENTRIES  0x000000002
 #define CCMSG_ROUTING_ARPTABLE_TYPE_STATIC   1
 #define CCMSG_ROUTING_ARPTABLE_TYPE_DYNAMIC  2
 #define CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL    3
@@ -549,8 +551,10 @@ typedef struct
 typedef struct
 {
    L7_uint8             slotId;
+   L7_uint32            mask;
    msg_HwEthInterface_t intf;
    L7_uint32            lastIndex;
+   L7_uint32            maxEntries;
 } __attribute__((packed)) msg_RoutingArpTableRequest;
 typedef struct
 {

@@ -3103,7 +3103,8 @@ int main (int argc, char *argv[])
           ptr->intf.intf_type = (uint8) type;
           ptr->intf.intf_id   = (uint8) intf;
 
-          ptr->lastIndex = (L7_uint32)-1;
+          ptr->lastIndex  = (L7_uint32)-1;
+          ptr->mask       = 0x00;
 
           comando.msgId = CCMSG_ROUTING_ARPTABLE_GET;
           comando.infoDim = sizeof(msg_RoutingArpTableRequest);
