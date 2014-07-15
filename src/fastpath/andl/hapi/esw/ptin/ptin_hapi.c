@@ -3735,7 +3735,6 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
     return L7_FAILURE;
   }
-  #endif
 
   /* Set 10G speed */
   rc = bcm_port_speed_set(0, bcm_port, 10000);
@@ -3753,12 +3752,14 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
+  /* Port is in auto-neg */
   rc = bcm_port_autoneg_set(0, bcm_port, 0);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
     return L7_FAILURE;
   }
+  #endif
 
   rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XAUI);
   if (L7_BCMX_OK(rc) != L7_TRUE)
