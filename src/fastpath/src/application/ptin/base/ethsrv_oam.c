@@ -19,6 +19,11 @@
 //EXTERNAL TYPES/VARIABLES/ROUTINES/OBJECTS / #includeS ********************************
 #include <string.h>
 #include <stdio.h>
+
+extern unsigned short htons(unsigned short host_value); //Endianess compatibility
+extern unsigned short ntohs(unsigned short netw_value);
+//these functions return argument as is in BIG, inverted in LITTLE ENDIAN machines
+
 //OWN TYPES/VARIABLES/OBJECTS***********************************************************
 #include <ethsrv_oam.h>
 #include <logger.h>
@@ -798,7 +803,7 @@ ETH_SRV_OAM_CCM_DATAGRM ccm, *p_ccm;
  p_ccm->TLV_offset=             70; // (offsetof(ETH_SRV_OAM_CCM_DATAGRM,end_TLV) - (offsetof(ETH_SRV_OAM_CCM_DATAGRM,TLV_offset) + sizeof(p_ccm->TLV_offset)));
  p_ccm->meg_id=                 p_mep->meg_id;
  p_ccm->SeqNumb=                0;
- p_ccm->mep_id=                 p_mep->mep_id;
+ p_ccm->mep_id=                 htons(p_mep->mep_id);
  p_ccm->TxFCf=  p_ccm->TxFCb=   p_ccm->RxFCb=0;
  p_ccm->reserved=               0;
  p_ccm->end_TLV=                0;
@@ -872,7 +877,7 @@ T_MEP           *p_mep_db;
 T_MEP_CSF       *p_mep_csf_db;
 T_LOOKUP_MEP    *p_mep_lut;
 
- if (*((u16 *) pkt_ethtype)    !=  OAM_ETH_TYPE)   return 1;
+ if (ntohs(*((u16 *) pkt_ethtype))    !=  OAM_ETH_TYPE)   return 1;
 
  if (oam_prt>=N_OAM_PRTS) return 2;
 
@@ -917,11 +922,13 @@ T_MEP   *_p_mep;
 u32 i_look_r, i_mep, i_rmep;
 int i;
 u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+u16 ccm_mep_id;
 
 
  p_ccm= (ETH_SRV_OAM_CCM_DATAGRM *) &pkt_ethtype[2];
+ ccm_mep_id= ntohs(p_ccm->mep_id);
 
- i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ccm->MAlevel_and_version), 1, p_ccm->mep_id, -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ccm->MAlevel_and_version), 1, ccm_mep_id, -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
 
  i_mep= MEP_INDEX_TO_iMEP(i_look_r);
  i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
@@ -930,7 +937,7 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
      i_mep= MEP_INDEX_TO_iMEP(alrm_index);
      i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
      
-     if (!valid_mep_index(i_mep)) {ethsrv_oam_register_mismerge(&p_ccm->meg_id, p_ccm->mep_id, 0xffff, oam_prt, vid);   return 1;}
+     if (!valid_mep_index(i_mep)) {ethsrv_oam_register_mismerge(&p_ccm->meg_id, ccm_mep_id, 0xffff, oam_prt, vid);   return 1;}
  }
 
  _p_mep=    &p_mep_db[i_mep];
@@ -939,7 +946,7 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
  if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
      //REGISTER "UNEXPECTED MEG LEVEL"
      if (!UNXP_LVL(_p_mep->unxp_lvl_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout]))  {
-         ethsrv_oam_register_LVL(&p_ccm->meg_id, p_ccm->mep_id, i_mep, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ccm->MAlevel_and_version));
+         ethsrv_oam_register_LVL(&p_ccm->meg_id, ccm_mep_id, i_mep, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ccm->MAlevel_and_version));
      }
      _p_mep->unxp_lvl_timer=0;
      return 2;
@@ -953,23 +960,23 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
  if (1==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||  0!=memcmp(&_p_mep->meg_id, &p_ccm->meg_id, sizeof(_p_mep->meg_id))) {
      //REGISTER "MISMERGE"
      if (!MISMERGE(_p_mep->mismerge_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout]))  {
-         ethsrv_oam_register_mismerge(&p_ccm->meg_id, p_ccm->mep_id, i_mep, oam_prt, vid);
+         ethsrv_oam_register_mismerge(&p_ccm->meg_id, ccm_mep_id, i_mep, oam_prt, vid);
      }
      _p_mep->mismerge_timer=0;
      //printf("REGISTER MISMERGE"NLS);
      return 4;
  }
 
- if (2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 /*|| _p_mep->mep_id!=p_ccm->mep_id*/) {
+ if (2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 /*|| _p_mep->mep_id!=ccm_mep_id*/) {
      if (!UNXP_MEP(_p_mep->unxp_MEP_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout]))  {
-         ethsrv_oam_register_unexpected_MEP_id(&p_ccm->meg_id, p_ccm->mep_id, i_mep, oam_prt, vid);
+         ethsrv_oam_register_unexpected_MEP_id(&p_ccm->meg_id, ccm_mep_id, i_mep, oam_prt, vid);
      }
      _p_mep->unxp_MEP_timer=0;
      return 5;
  }
 
  if (3==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) {
-     ethsrv_oam_register_unexpected_MEP_potential_loop(&p_ccm->meg_id, p_ccm->mep_id, i_mep, oam_prt, vid);
+     ethsrv_oam_register_unexpected_MEP_potential_loop(&p_ccm->meg_id, ccm_mep_id, i_mep, oam_prt, vid);
      _p_mep->unxp_MEP_timer=0;
      return 5;
  }
@@ -984,7 +991,7 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
  if (_p_mep->tmout != flags_TO_TMOUT(p_ccm->flags) || 4==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) {
      //REGISTER "UNEXPECTED PERIOD"
      if (!UNXP_LVL(_p_mep->unxp_T_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout]))  {
-         ethsrv_oam_register_T(&p_ccm->meg_id, p_ccm->mep_id, i_mep, oam_prt, vid, flags_TO_TMOUT(p_ccm->flags));
+         ethsrv_oam_register_T(&p_ccm->meg_id, ccm_mep_id, i_mep, oam_prt, vid, flags_TO_TMOUT(p_ccm->flags));
      }
      _p_mep->unxp_T_timer=0;
      return 6;
@@ -999,24 +1006,24 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
  //Finally, we update our state variables
  if (_p_mep->ME[i_rmep].LOC_timer==0L-1) {
      if (flags_TO_RDI(p_ccm->flags)) {
-         ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-         LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
+         ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
+         LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
      }
      else {
-         ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-         LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u restored"NLS, _p_mep->mep_id, p_ccm->mep_id);
+         ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
+         LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u restored"NLS, _p_mep->mep_id, ccm_mep_id);
      }
  }
  else
  if (!_p_mep->ME[i_rmep].RDI && flags_TO_RDI(p_ccm->flags)) {
-     ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-     LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
+     ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
+     LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
  }
  else
  if (_p_mep->ME[i_rmep].RDI && !flags_TO_RDI(p_ccm->flags)) {
-     ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-     ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, p_ccm->mep_id, oam_prt, _p_mep->vid);
-     LOG_TRACE(LOG_CTX_OAM,"MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, p_ccm->mep_id);
+     ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
+     ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
+     LOG_TRACE(LOG_CTX_OAM,"MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
  }
 
  _p_mep->ME[i_rmep].LOC_timer=0;
