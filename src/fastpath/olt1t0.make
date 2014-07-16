@@ -161,7 +161,7 @@ clean cleanall: welcome setsdk cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
-clean-andl clean-os clean-emweb: setsdk
+clean-andl clean-os clean-emweb clean-switching clean-ptin: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 

@@ -3513,9 +3513,9 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr       = dapiCardPtr->slotMap;
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
-  #endif
+#endif
 
 /* Not necessary for CXO640G: sysbrds.c is already inverting slots for the protection matrix */
 #if (PTIN_BOARD == PTIN_BOARD_CXP360G)
@@ -3540,17 +3540,20 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   /* Initialize USP map */
   memset(usp_map, 0xff, sizeof(usp_map));   /* -1 for all values */
 
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Initialize slot/lane map */
   memset(ptin_sys_slotport_to_intf_map, 0xff, sizeof(ptin_sys_slotport_to_intf_map));   /* -1 for all values */
   memset(ptin_sys_intf_to_slot_map, 0xff, sizeof(ptin_sys_intf_to_slot_map));
   memset(ptin_sys_intf_to_port_map, 0xff, sizeof(ptin_sys_intf_to_port_map));
   ptin_sys_number_of_ports = dapiCardPtr->numOfPortMapEntries;
-  #endif
+#endif
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Port mapping:");
   for (i = 0; i < ptin_sys_number_of_ports; i++)
   {
+    /* Initialize port name */
+    sprintf(hapiSlotMapPtr[i].portName, "%.10s", SOC_PORT_NAME(0, hapiSlotMapPtr[i].bcm_port));
+
     /* It is assumed that: i = hapiSlotMapPtr[i].portNum
      * (check dapiBroadBaseCardSlotMap_CARD_BROAD_24_GIG_4_TENGIG_56689_REV_1 */
 
@@ -3558,7 +3561,7 @@ static L7_RC_t hapi_ptin_portMap_init(void)
     usp_map[i].unit = hapiSlotMapPtr[i].bcm_cpuunit;
     usp_map[i].port = hapiSlotMapPtr[i].bcm_port;
 
-    #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
     /* Only 10/140/100Gbps ports */
     if ( hapiWCMapPtr[i].slotNum >= 0 &&
          hapiWCMapPtr[i].wcLane >= 0 &&
@@ -3575,9 +3578,9 @@ static L7_RC_t hapi_ptin_portMap_init(void)
         ptin_sys_intf_to_port_map[i] = lane;
       }
     }
-    #endif
+  #endif
 
-    LOG_INFO(LOG_CTX_PTIN_HAPI, " Port# %2u => Remapped# bcm_port=%2u", i, usp_map[i].port);
+    LOG_INFO(LOG_CTX_PTIN_HAPI, " Port# %2u => Remapped# bcm_port=%2u (%s)", i, usp_map[i].port, hapiSlotMapPtr[i].portName);
   }
 
   #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)

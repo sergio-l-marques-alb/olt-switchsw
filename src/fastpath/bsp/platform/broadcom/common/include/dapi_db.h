@@ -44,7 +44,7 @@ typedef struct
   L7_ulong32 portNum;
   L7_int32   bcm_cpuunit;
   L7_int32   bcm_port;
-
+  char       portName[11];
 } HAPI_CARD_SLOT_MAP_t ;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
