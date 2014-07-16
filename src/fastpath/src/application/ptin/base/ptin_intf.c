@@ -294,7 +294,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.Mask                         = 0xffff;
   mefExt.defVid                       = 1;
   mefExt.defPrio                      = 0;
-  mefExt.acceptable_frame_types       = 0;
+  mefExt.acceptable_frame_types       = L7_DOT1Q_ADMIT_ALL;
   mefExt.ingress_filter               = L7_FALSE;
   mefExt.restricted_vlan_reg          = 0;
   mefExt.vlan_aware                   = L7_FALSE;
@@ -353,10 +353,7 @@ L7_RC_t ptin_intf_portExt_init(void)
 L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
   L7_uint32 intIfNum;
-  #if 0
-  L7_uint16 defVid;
   L7_uint32 unit = 0;
-  #endif
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR || mefExt==L7_NULLPTR)
@@ -376,8 +373,8 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   LOG_TRACE(LOG_CTX_PTIN_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
   LOG_TRACE(LOG_CTX_PTIN_INTF," type       = %u"                  , mefExt->type);
   LOG_TRACE(LOG_CTX_PTIN_INTF," doubletag  = %u"                  , mefExt->doubletag);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," outer_tpid = %u"                  , mefExt->outer_tpid);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," inner_tpid = %u"                  , mefExt->inner_tpid);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," outer_tpid = 0x%04X"              , mefExt->outer_tpid);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," inner_tpid = 0x%04X"              , mefExt->inner_tpid);
   LOG_TRACE(LOG_CTX_PTIN_INTF," egress_type = %u"                 , mefExt->egress_type);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable  = %u", mefExt->macLearn_stationMove_enable);
@@ -399,35 +396,50 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
     return L7_FAILURE;
   }
 
-  #if 0
-  /* Apply Default VID configuration */
-  if (ptin_xlate_ingress_get(intIfNum, mefExt->defVid, PTIN_XLATE_NOT_DEFINED, &defVid) != L7_SUCCESS)
+  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DEFVID)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting VID %u", mefExt->defVid);
-    return L7_FAILURE;
+    if ((usmDbQportsPVIDSet(unit, intIfNum, mefExt->defVid) != L7_SUCCESS))
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", mefExt->defVid);
+      return L7_FAILURE;
+    }
   }
 
-  if (usmDbQportsPVIDSet(unit, intIfNum, defVid) != L7_SUCCESS)
+  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DEFPRIO)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", defVid);
-    return L7_FAILURE;
+    /* Priority verification */
+    if (mefExt->defPrio > 7)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid Priority %u", mefExt->defPrio);
+      return L7_FAILURE;
+    }
+
+    /* Apply Default Priority configuration */
+    if (usmDbDot1dPortDefaultUserPrioritySet(unit, intIfNum, mefExt->defPrio) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Priority %u", mefExt->defPrio);
+      return L7_FAILURE;
+    }
   }
 
-  /* Apply Default Priority configuration */
-  if (usmDbDot1dPortDefaultUserPrioritySet(unit, intIfNum, mefExt->defPrio) != L7_SUCCESS)
+  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Priority %u", mefExt->defPrio);
-    return L7_FAILURE;
-  }
+    //rc = usmDbQportsEnableIngressFilteringSet(unit, intIfNum, L7_ENABLE);
+    if ( (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIT_ALL)               && 
+         (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIN_ONLY_VLAN_TAGGED)  && 
+         (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIN_ONLY_VLAN_UNTAGGED)  )
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid Acceptable Frame Type %d", mefExt->acceptable_frame_types);
+      return L7_FAILURE;
+    }
 
-  /* Configure how to handle tagged/untagged frames: L7_DOT1Q_ADMIT_ALL / L7_DOT1Q_ADMIN_ONLY_VLAN_TAGGED / L7_DOT1Q_ADMIN_ONLY_VLAN_UNTAGGED */
-  //rc = usmDbQportsEnableIngressFilteringSet(unit, intIfNum, L7_ENABLE);
-  if (usmDbQportsAcceptFrameTypeSet(unit, intIfNum, mefExt->defPrio) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering");
-    return L7_FAILURE;
+    /* Configure how to handle tagged/untagged frames */
+    if (usmDbQportsAcceptFrameTypeSet(unit, intIfNum, mefExt->acceptable_frame_types) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering %d, mefExt->acceptable_frame_types");
+      return L7_FAILURE;
+    }
   }
-  #endif
 
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   return L7_SUCCESS;
