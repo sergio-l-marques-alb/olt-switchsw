@@ -135,16 +135,15 @@ cli_clean:
 shell_clean:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-ta48ge.make clean
 
-clean-ptin clean-switching clean-andl: setsdk
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
-	$(RM) -f $(TMP_FILE)
-
 clean cleanall: welcome setsdk cli_clean shell_clean
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 
 clean-platform: setsdk
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-base clean-plat_bsp clean-cpu_bsp
-	#$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-ptin clean-os clean-nls clean-cli clean-snmp
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
+	$(RM) -f $(TMP_FILE)
+
+clean-ptin clean-switching clean-routing clean-base clean-andl: setsdk
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 

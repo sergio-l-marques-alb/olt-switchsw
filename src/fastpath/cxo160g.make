@@ -186,11 +186,7 @@ clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
 	$(RM) -f $(TMP_FILE)
 
-clean-andl clean-base clean-ptin clean-snmp: setsdk
+clean-ptin clean-switching clean-routing clean-base clean-andl: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
-	$(RM) -f $(TMP_FILE)
-
-clean-notandl: setsdk
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-base clean-emweb clean-ip_mcast clean-os clean-ptin clean-routing clean-security clean-snmp clean-switching clean-plat_bsp clean-cpu_bsp clean-ipstack clean-binds clean-qos clean-cli clean-nls clean-ipl
 	$(RM) -f $(TMP_FILE)
 
