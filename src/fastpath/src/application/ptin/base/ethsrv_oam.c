@@ -20,10 +20,12 @@
 #include <string.h>
 #include <stdio.h>
 
-extern unsigned short htons(unsigned short host_value); //Endianess compatibility
-extern unsigned short ntohs(unsigned short netw_value);
-extern unsigned long htonl(unsigned long host_value);
-extern unsigned long ntohl(unsigned long netw_value);
+
+#include <arpa/inet.h>
+//extern unsigned short htons(unsigned short host_value); //Endianess compatibility
+//extern unsigned short ntohs(unsigned short netw_value);
+//extern unsigned long htonl(unsigned long host_value);
+//extern unsigned long ntohl(unsigned long netw_value);
 //these functions return argument as is in BIG, inverted in LITTLE ENDIAN machines
 
 //OWN TYPES/VARIABLES/OBJECTS***********************************************************
