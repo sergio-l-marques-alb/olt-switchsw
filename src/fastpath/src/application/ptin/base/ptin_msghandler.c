@@ -18,6 +18,7 @@
 #include "ptin_mgmd_api.h"
 #include "ptin_debug.h"//Added by MMelo to use ptin_timer routines
 #include "ipc.h"
+#include <ptin_prot_oam_eth.h>
 
 /* Message processing time measuring */
 
@@ -4084,6 +4085,94 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
+      break;
+
+    case CCMSG_WR_MEP_LM:
+    case CCMSG_RM_MEP_LM:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               CCMSG_WR_MEP_LM==inbuffer->msgId? "Message received: CCMSG_WR_MEP_LM (0x%04X)":
+                                                 "Message received: CCMSG_RM_MEP_LM (0x%04X)", inbuffer->msgId);
+    
+      CHECK_INFO_SIZE(msg_bd_mep_lm_t);
+    
+      if (CCMSG_RM_MEP_LM==inbuffer->msgId) {
+          rc = del_mep_lm(((msg_bd_mep_lm_t*)inbuffer->info)->index, &oam)? L7_FAILURE: L7_SUCCESS;
+      }
+      else {
+       msg_bd_mep_lm_t *p;
+       
+       p = (msg_bd_mep_lm_t*)inbuffer->info;
+
+       if (0==p->bd.CCMs0_LMMR1) rc = L7_NOT_SUPPORTED;
+       else {
+        T_MEP_LM mep_lm;
+    
+        switch (wr_mep_lm(p->index, &mep_lm, &oam)) {
+        case 0: rc = L7_SUCCESS; break;
+        case 1: rc = L7_NOT_EXIST; break;
+        default: rc = L7_ERROR; break;
+        }//switch
+       }
+      }
+    
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;
+
+    case CCMSG_RD_MEP_LM:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_RD_MEP_LM (0x%04X)", inbuffer->msgId);
+  
+      CHECK_INFO_SIZE(msg_generic_prefix_t);
+  
+      {
+        msg_generic_prefix_t *pi;
+        msg_frame_loss_t *po;
+        u16 i_mep;
+        u8  instance;
+  
+        pi = (msg_generic_prefix_t*)inbuffer->info;
+        i_mep = pi->index;
+        instance = pi->index>>16;
+
+        po = (msg_frame_loss_t*)outbuffer->info;
+        outbuffer->infoDim = sizeof(msg_frame_loss_t);
+        po->err_code = 0;
+
+        if (i_mep>=N_MEPs) rc = L7_NOT_EXIST;
+        else
+        switch (instance) {
+        case 0:
+            LM_medium(&oam.db[i_mep].lm, &po->NEnumerator, &po->NEdenominator, &po->FEnumerator, &po->FEdenominator);
+            rc = L7_SUCCESS;
+            break;
+        case 1:
+            LM_last_period(&oam.db[i_mep].lm, &po->NEnumerator, &po->NEdenominator, &po->FEnumerator, &po->FEdenominator);
+            rc = L7_SUCCESS;
+            break;
+        default: rc = L7_ERROR; break;
+        }//switch
+      }
+  
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+  
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+  
       break;
 #endif //__Y1731_802_1ag_OAM_ETH__
 

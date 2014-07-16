@@ -10,6 +10,13 @@ typedef unsigned long long u64;
     #define NLS "\n\r"
 #endif
 
+#include <logger.h>
+#define ETHSRV_OAM_LOG( args... )   LOG_TRACE(LOG_CTX_OAM, ##args )
+
+#ifndef offsetof
+    #define offsetof(struct_datatype,field) ((size_t)&((struct_datatype *)0)->field)
+#endif
+
 
 #ifndef N_OAM_PRTS
 #include <ptin_globaldefs.h>
@@ -46,6 +53,10 @@ typedef unsigned long long u64;
     //#warning (Minimum period/max frequency at which each MEP is processed in function "proc_ethsrv_oam")
 #endif
 
+
+#ifndef ETHSRV_OAM_LOG
+    #define ETHSRV_OAM_LOG  printf
+#endif
 
 
 
@@ -162,7 +173,7 @@ typedef struct {
 typedef struct {
     _T_MEP_HDR
 
-    T_ME ME[N_MAX_MEs_PER_MEP];   //For now we'll keep this in an array; if "N_MAX_MEs_PER_MEP" becomes too big, we'll change to a linked list
+    T_ME ME[N_MAX_MEs_PER_MEP];
 } __attribute__ ((packed)) T_MEP;
 #define EMPTY_T_MEP(mep)    (!valid_mep_id((mep).mep_id))
 #define SET_T_MEP_EMPTY(mep)    {(mep).mep_id= INVALID_MEP;}
@@ -270,11 +281,86 @@ typedef struct {
 
 
 
+typedef struct {
+    //proactive loss measurement [...] CCM frames with the following information elements:
+    //  • TxFCf: Value of the local counter TxFCl at the time of transmission of the CCM frame
+    //  • RxFCb: Value of the local counter RxFCl at the time of reception of the last CCM frame
+    //  from the peer MEP
+    //  • TxFCb: Value of TxFCf in the last received CCM frame from the peer MEP
+    //  FarEnd  Frame Loss= delta(TxFCb)-delta(RxFCb)
+    //  NearEnd Frame Loss= delta(TxFCf)-delta(RxFCl)
+
+    u64 tx,         //CCMs: TxFCb; LMM/Rs:  TxFCf
+        rx_peer,    //      RxFCb;          RxFCf
+        tx_peer,    //      TxFCf;          TxFCb
+        rx;         //BOTH:     RxFCl
+
+    //LMR frame contains the following values:
+    //    • TxFCf: Value of TxFCf copied from the LMM frame
+    //    • RxFCf: Value of local counter RxFCl at the time of LMM frame reception
+    //    • TxFCb: Value of local counter TxFCl at the time of LMR frame transmission
+    //  FarEnd  Frame Loss= delta(TxFCf)-delta(RxFCf)
+    //  NearEnd Frame Loss= delta(TxFCb)-delta(RxFCl)
+} __attribute__ ((packed)) T_LM;
+
+
+
+
+typedef struct {
+#define invalid_T_MEP_LM(p_mep_lm)  ((p_mep_lm)->CCMs0_LMMR1>1)
+#define T_LM_VIRGIN_PATTERN 0xff
+#define VIRGIN_LM_COUNTER   0xffffffffffffffffULL
+//#define virgin_LM_counter(counter)  (0==(counter)+1)
+#define virgin_LM_counter(counter)  (VIRGIN_LM_COUNTER==(counter))
+#define invalid_LM_counter  virgin_LM_counter
+#define diff_LM_counters(m,s)   (invalid_LM_counter(m) || invalid_LM_counter(s)?    VIRGIN_LM_COUNTER:  (m)-(s))
+//#define virgin_LM_counter(counter)  (0==(counter)+1)
+#define invalidate_T_MEP_LM(p_mep_lm) {memset(p_mep_lm, T_LM_VIRGIN_PATTERN, sizeof(T_MEP_LM));}
+    u8  CCMs0_LMMR1;    //other values disable LM
+    u8  period;         //valid just for 1==CCMs0_LMMR1 (LMM/LMRs instead of CCMs)
+
+    u8  tog_iLM;        //toggle 0-1 or increment, to know which of T_LM lm[] is the last sample
+
+    u32 LMM_timer;          // RO    (ms)        TX; used to decide when to send a CSF packet
+
+#define iLMlast(tog_iLM)    ((tog_iLM)&1)
+#define iLMpenu(tog_iLM)    ((tog_iLM)&1? 0:1)
+#define iLM0    2
+#define iLM1st  iLM0
+#define N_iLMs  3
+    T_LM
+        lm[N_iLMs];
+} __attribute__ ((packed)) T_MEP_LM;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+typedef struct {
+    T_MEP          mep;             //MEP data base
+    T_MEP_CSF      mep_csf;         //MEP CSF data base
+    T_MEP_LM       lm;              //MEP LM data base
+} T_MEP_DB;
+
 //THIS STRUCTURE AGGREGATES ALL - DECLARE ONE INSTANCE OF THIS TYPE*********************
 typedef struct {
  u16            proc_i_mep;                 //index to mep being processed by
- T_MEP          mep_db[N_MEPs];             //MEP data base (linked list)
- T_MEP_CSF      mep_csf_db[N_MEPs];         //MEP CSF data base
+ T_MEP_DB       db[N_MEPs];
  T_LOOKUP_MEP   mep_lut[N_MAX_LOOKUP_MEPs]; //MEP look up table
 } T_ETH_SRV_OAM;    //__attribute__ ((packed)) T_ETH_SRV_OAM;
 
@@ -318,12 +404,14 @@ typedef struct {
  u8  opcode;
 //Common with IEEE802.1
 #define CCM_OPCODE  0x01
-//#define LBR_OPCODE  0x02
-//#define LBM_OPCODE  0x03
-//#define LTR_OPCODE  0x04
-//#define LTM_OPCODE  0x05
+#define LBR_OPCODE  0x02
+#define LBM_OPCODE  0x03
+#define LTR_OPCODE  0x04
+#define LTM_OPCODE  0x05
 //Specific to Y.1731
 #define AIS_OPCODE  33
+#define LMR_OPCODE  42
+#define LMM_OPCODE  43
 #define CSF_OPCODE  52
 
  u8  flags;
@@ -365,15 +453,190 @@ typedef struct {
 #define MAX_LEN_CCM 128
 
 
+
+
 #define AIS_flags_TO_AIS_TMOUT(AIS_flags)   flags_TO_TMOUT(CSF_flags)
 #define ASSEMBLE_AIS_flags(TMOUT)           ((TMOUT) & 0x07)
 typedef ETH_SRV_OAM_DATAGRM ETH_SRV_OAM_AIS_DATAGRM;
+
+
+
 
 typedef ETH_SRV_OAM_DATAGRM ETH_SRV_OAM_CSF_DATAGRM;
 
 
 
 
+typedef struct {
+ u8  MAlevel_and_version;
+
+ u8  opcode;
+
+ u8  flags;
+ u8  TLV_offset;    //Set to 12
+ u32 TxFCf,
+     RxFCf, TxFCb;  //LMMs don't use these (dummies); just LMRs
+ u8	 end_TLV;       // Set to all ZEROes
+} __attribute__ ((packed)) ETH_LMM_OAM_DATAGRM;
+
+typedef ETH_LMM_OAM_DATAGRM ETH_LMR_OAM_DATAGRM;
+
+
+
+
+//TLV TYPES: common (Y.1731, Table 9-2)
+#define END_TLV_TYPE        0
+#define DATA_TLV_TYPE       3
+#define REPLY_IN_TLV_TYPE   5
+#define REPLY_EG_TLV_TYPE   6
+#define LTM_EG_ID_TLV_TYPE  7
+#define LTR_EG_ID_TLV_TYPE  8
+//TLV TYPES: Y.1731 specific
+#define TST_TLV_TYPE        32
+#define TST_ID_TLV_TYPE     36
+
+#define TLV_LENGTH(tlv_struct_datatype) (sizeof(tlv_struct_datatype)-3)
+//3=sizeof(type)+sizeof(len)
+
+typedef struct {
+ u8 type;
+ u16 len;
+ union {
+     u8  nxt_TLV[1];
+     u8	 end_TLV;        // Set to all ZEROes
+ } __attribute__ ((packed)) tlvs;
+} __attribute__ ((packed)) T_GEN_TLV;
+
+#define __DATA_TLV_STRUCTURE_(pattern_length) \
+struct {\
+ u8 type;\
+ u16 len;\
+ u8 pattern[pattern_length];\
+} __attribute__ ((packed))  
+
+#define __TST_TLV_STRUCTURE_(pattern_length) \
+struct {\
+ u8 type;\
+ u16 len;\
+ u8 pattern_type;\
+ u8 pattern[pattern_length];\
+} __attribute__ ((packed))  
+
+#define __TST_TLV_STRUCTURE_wCRC_(pattern_length) \
+struct {\
+ u8 type;\
+ u16 len;\
+ u8 pattern_type;\
+ u8 pattern[pattern_length];\
+ u32 crc32;\
+} __attribute__ ((packed))  
+
+typedef struct {
+ u8  MAlevel_and_version;
+
+ u8  opcode;
+
+ u8  flags;
+ u8  TLV_offset;
+ u32 transID_seqnr;
+
+ union {     //We may have a DATA TLV or a TST TLV before the END TLV (or just the END TLV)
+     u8  nxt_TLV[1];
+     u8	 end_TLV;        // Set to all ZEROes
+ } __attribute__ ((packed)) tlvs;
+} __attribute__ ((packed)) ETH_LBM_OAM_DATAGRM;
+
+typedef ETH_LBM_OAM_DATAGRM ETH_LBR_OAM_DATAGRM;
+
+
+
+
+typedef struct {
+ u8 type;   //LTM_EG_ID_TLV_TYPE
+ u16 len;
+ struct {
+      u8 zero[2];
+      u8 mac[6];
+ } __attribute__ ((packed)) v;
+} __attribute__ ((packed)) T_LTM_EG_ID_TLV;
+
+typedef struct {
+ u8  MAlevel_and_version;
+
+ u8  opcode;
+
+ u8  flags;
+#define LTM_flags_TO_HWonly(LTM_flags)      ((LTM_flags) & 0x80)
+#define ASSEMBLE_LTM_flags(HWonly)          ((HWonly)?0x80:0)
+ u8  TLV_offset;
+ u32 transID;
+ u8  TTL,
+     orig_mac[6],
+     targ_mac[6];
+
+ union {     //T_LTM_EG_ID_TLV before the END TLV in v2008, just the END TLV in v2006
+     u8  nxt_TLV[1];
+     u8	 end_TLV;        // Set to all ZEROes
+ } __attribute__ ((packed)) tlvs;
+} __attribute__ ((packed)) ETH_LTM_OAM_DATAGRM;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+typedef struct {
+ u8 type;   //LTR_EG_ID_TLV_TYPE
+ u16 len;
+ struct {
+      u8 zero[2];
+      u8 mac[6];
+ } __attribute__ ((packed)) last, next;
+} __attribute__ ((packed)) T_LTR_EG_ID_TLV;
+
+typedef struct {
+ u8 type;   //REPLY_IN_TLV_TYPE / REPLY_EG_TLV_TYPE
+ u16 len;
+ u8 action;
+ struct {
+      u8 mac[6];
+ } __attribute__ ((packed)) v;
+} __attribute__ ((packed)) T_RPL_IN_ID_TLV;
+
+typedef T_RPL_IN_ID_TLV T_RPL_EG_ID_TLV;
+
+typedef struct {
+ u8  MAlevel_and_version;
+
+ u8  opcode;
+
+ u8  flags;
+#define LTR_flags_TO_HWonly(LTM_flags)      LTM_flags_TO_HWonly
+#define LTR_flags_TO_FwdYes(LTM_flags)      ((LTM_flags) & 0x40)
+#define LTR_flags_TO_TerminalMEP(LTM_flags) ((LTM_flags) & 0x20)
+#define ASSEMBLE_LTR_flags(HWonly, FwdYes, TMEP)    ( ((HWonly)?0x80:0) | ((FwdYes)?0x40:0) | ((TMEP)?0x20:0) )
+ u8  TLV_offset;
+ u32 transID;
+ u8  TTL,
+     rel_act;
+#define RlyHit  1
+#define RlyFDB  2
+#define RlyMPDB 3
+//IEEE 802.1ag 21.9.5, table 21-28: respectively reached target MEP, FDB, MEP DB
+
+ union {     //We may have a DATA TLV or a TST TLV before the END TLV (or just the END TLV)
+     u8  nxt_TLV[1];
+     u8	 end_TLV;        // Set to all ZEROes
+ } __attribute__ ((packed)) tlvs;
+} __attribute__ ((packed)) ETH_LTR_OAM_DATAGRM;
 
 
 
@@ -407,9 +670,11 @@ typedef ETH_SRV_OAM_DATAGRM ETH_SRV_OAM_CSF_DATAGRM;
 
 
 
-extern void init_mep_db(T_MEP *p_mep_db);
+
+
+
+extern void init_mep_db(T_MEP_DB *p_mep_db);
 extern void init_mep_lookup_table(T_LOOKUP_MEP *p_mep_lut);
-extern void init_mep_csf_db(T_MEP_CSF *p_mep_csf_db);
 //returns indexes for MEP table (and its RMEP table) according to format iMEP_iRMEP_TO_MEP_INDEX(,)
 u32 finger_lut_index(u8 find0_add1_del2,                                                                                    //operation
                      u16 prt, u64 vid, u8 level, u8 mep0_rmep1, u32 mep_id, u32 i_mep, u32 i_rmep, T_LOOKUP_MEP *p_mep_lut, //input     (i_mep, i_rmep used only when ADDING)
@@ -448,8 +713,15 @@ extern int wr_rmep(u32 i_mep, u32 i_rmep, T_RMEP *p_rmep, const T_MEP_HDR *p_mep
 //1 - Invalid index
 extern int del_rmep(u32 i_mep, u32 i_rmep, T_ETH_SRV_OAM *p_oam);
 
+
+
+//PROCESS - to be called periodically
 extern void proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms);
-extern int rx_oam_pckt(u16 oam_prt, u8 *pkt, u32 pkt_len, u64 vid, u8 *pSMAC, T_ETH_SRV_OAM *p_oam);
+
+//EVENT - to be called for every OAM packet received
+extern int rx_oam_pckt(u16 oam_prt, u8 *pkt, u32 pkt_len, u64 vid, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl);
+//RxFCl is the ETH-LM counter for CCM/LMM/LMR packets or the timestamp, for DMM/DMR; set to 0 if unused
+
 
 
 
@@ -474,6 +746,19 @@ extern void ethsrv_oam_register_LVL(T_MEG_ID *meg_id, u16 mep_id, u16 mep_indx, 
 extern void ethsrv_oam_register_T(T_MEG_ID *meg_id, u16 mep_id, u16 mep_indx, u16 porta, u64 vid, u8 period);
 
 
+
+
+extern u64 rd_TxFCl(u16 i_mep);     // counter for in-profile data frames txed twrds peer MEP
+//extern u64 rd_RxFCl(u16 i_mep);     // counter ...                        rxed from peer
+
+
+
+
+//this function returns the port where the bridge knows this MAC is or an invalid value (all 1s) otherwise
+extern u16 MAC_in_prt(u8 *MAC);
+
+//returns a pointer to a (6 byte) MAC, representing the NE/bridge's MAC for the given port or an invalid (all 1s) otherwise
+extern u8 *this_prts_MAC(u16 oam_prt);
 
 
 
@@ -516,5 +801,31 @@ extern int MEP_csf_admin(u16 mep_idx, u8 en1dis0, u8 period, T_ETH_SRV_OAM *p_oa
 extern int MEP_enable_Tx_CSF(u16 mep_idx, u8 CSF_tx_flags, T_ETH_SRV_OAM *p_oam);
 extern int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam);
 extern int MEP_is_CSF_LOS(u16 mep_idx, T_ETH_SRV_OAM *p_oam);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Far End and/or Near End Frame loss ratio (expressed by dividend and divisor)
+//If either NE_flr_Dividend or NE_flr_divisor are NULL pointers, nothing is done to *NE_flr_Dividend and *NE_flr_divisor
+//The same applies to FE_flr_*
+extern void LM_frame_loss_ratio(T_LM *lm, T_LM *lm0, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u64 *FE_flr_Dividend, u64 *FE_flr_divisor);
+extern void LM_last_period(T_MEP_LM *p, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u64 *FE_flr_Dividend, u64 *FE_flr_divisor);
+extern void LM_medium(T_MEP_LM *p, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u64 *FE_flr_Dividend, u64 *FE_flr_divisor);
+
+extern int wr_mep_lm(u32 i_mep, T_MEP_LM *p_mep, T_ETH_SRV_OAM *p_oam);
+extern int del_mep_lm(u32 i_mep, T_ETH_SRV_OAM *p_oam);
 #endif /*_ETHSRV_OAM_H_*/
 

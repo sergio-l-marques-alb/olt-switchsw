@@ -71,6 +71,7 @@ typedef struct sysnet_pdu_info_s
   L7_uint32 destIntIfNum;      /* Destination intIfNum */
   L7_uint32 destVlanId;        /* Destination VLAN */
 
+  L7_uint64 ts;                //PTIN added: SDK's timestamp
 }sysnet_pdu_info_t;
 
 typedef struct

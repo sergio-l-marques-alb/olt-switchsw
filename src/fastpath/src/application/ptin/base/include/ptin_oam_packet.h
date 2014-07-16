@@ -84,6 +84,7 @@ typedef struct ptin_CCM_PDU_Msg_s {
   L7_uchar8        *payload;      /* Pointer to the received PDU          */
   L7_uint32        payloadLen;    /* Length of received PDU               */
   L7_netBufHandle  bufHandle;     /* Buffer handle                        */
+  L7_uint64        ts             //SDK's timestamp
 } ptin_CCM_PDU_Msg_t;
 
 #define PTIN_CCM_PDU_MSG_SIZE   sizeof(ptin_CCM_PDU_Msg_t)

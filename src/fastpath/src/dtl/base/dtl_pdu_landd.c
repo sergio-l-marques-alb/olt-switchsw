@@ -222,6 +222,7 @@ L7_RC_t dtlPduReceive(DAPI_USP_t *ddusp,
   pduInfo.intIfNum = intIfNum;
   pduInfo.vlanId = dei->cmdData.receive.vlanID;
   pduInfo.innerVlanId = dei->cmdData.receive.innerVlanId;
+  pduInfo.ts = dei->cmdData.receive.ts;                     //PTIN added
 
   if (pdu_receive_debug)
     LOG_TRACE(LOG_CTX_PTIN_DTL,"...");

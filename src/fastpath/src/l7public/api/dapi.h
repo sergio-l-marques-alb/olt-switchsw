@@ -534,6 +534,7 @@ typedef enum
   DAPI_CMD_PTIN_SLOT_MODE,
   DAPI_CMD_PTIN_HW_PROCEDURE,
   DAPI_CMD_PTIN_L3,
+  DAPI_CMD_PTIN_MEP_CTRL,
   /* PTin end */
 
   DAPI_NUM_OF_CMDS
@@ -2539,6 +2540,7 @@ typedef struct
       L7_uint32                   priority;
       L7_ushort16                 innerVlanId;
       L7_uint32                   innerVlanPriority;
+      unsigned long long          ts;       //PTIN added: timestamp
     } receive;
 
   } cmdData;

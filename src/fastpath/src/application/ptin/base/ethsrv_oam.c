@@ -26,17 +26,25 @@ extern unsigned short ntohs(unsigned short netw_value);
 
 //OWN TYPES/VARIABLES/OBJECTS***********************************************************
 #include <ethsrv_oam.h>
-#include <logger.h>
 //PUBLIC VARIABLES/OBJECTS**************************************************************
 __OAM_TIMER_CODE_VALUES_DECLARATION__
 __OAM_MC_MAC_DECLARATION__
 //OWN ROUTINES**************************************************************************
 static int send_ccm(u16 oam_prt, T_MEP_HDR *p_mep, u8 RDI, u8 use_mcast_DMAC);
 static int send_csf(u16 oam_prt, T_MEP_HDR *p_mep, u8 CSF_period, u8 CSF_flags);
+static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm);
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
 static int rx_csf(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP *p_mep_db, T_LOOKUP_MEP *p_mep_lut, T_MEP_CSF *p_mep_csf_db);
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
+static int rx_lmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
+static int rx_lmr(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
+static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
+static int rx_ltm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
 //PUBLIC ROUTINES***********************************************************************
 
 static void init_mep(T_MEP *p_mep) {
@@ -44,22 +52,6 @@ u32 i;
     memset(p_mep, 0xff, sizeof(T_MEP));
     for (i=0; i<N_MAX_MEs_PER_MEP; i++) p_mep->ME[i].RDI=0;
 }//init_mep
-
-
-
-
-void init_mep_db(T_MEP *p_mep_db) {
-u32 i;
-T_MEP *_p_mep;
-
- //init_simple_lnkd_list(*p_mep_db, N_MEPs);
- for (i=0; i<N_MEPs; i++) {
-     //set_active_to_(*p_mep_db,i);
-     //_p_mep= pointer2active_node_info(*p_mep_db);
-     _p_mep= &p_mep_db[i];
-     init_mep(_p_mep);
- }//for
-}//init_mep_db
 
 
 
@@ -74,19 +66,39 @@ T_MEP *_p_mep;
 static void init_mep_csf(T_MEP_CSF *p_mep_csf) {
     memset(p_mep_csf, 0xff, sizeof(T_MEP_CSF));
     p_mep_csf->en1dis0 = 0;   
-}//init_mep
+}
 
 
 
-void init_mep_csf_db(T_MEP_CSF *p_mep_csf_db) {
+
+
+
+
+
+
+
+
+static void init_mep_lm(T_MEP_LM *p) {
+    invalidate_T_MEP_LM(p)
+}
+
+
+
+
+void init_mep_db(T_MEP_DB *p_mep_db) {
 u32 i;
-T_MEP_CSF *_p_mep_csf;
+T_MEP *_p_mep;
 
+ //init_simple_lnkd_list(*p_mep_db, N_MEPs);
  for (i=0; i<N_MEPs; i++) {
-     _p_mep_csf= &p_mep_csf_db[i];
-     init_mep_csf(_p_mep_csf);
+     //set_active_to_(*p_mep_db,i);
+     //_p_mep= pointer2active_node_info(*p_mep_db);
+     _p_mep= &p_mep_db[i].mep;
+     init_mep(_p_mep);
+     init_mep_csf(&p_mep_db[i].mep_csf);
+     init_mep_lm(&p_mep_db[i].lm);
  }//for
-}//init_mep_csf_db
+}//init_mep_db
 
 
 
@@ -134,9 +146,8 @@ u32 i;
 
 
 void init_eth_srv_oam(T_ETH_SRV_OAM *p) {
- init_mep_db(p->mep_db);
+ init_mep_db(p->db);
  init_mep_lookup_table(p->mep_lut);
- init_mep_csf_db(p->mep_csf_db);
  p->proc_i_mep= 0;
 }//init_eth_srv_oam
 
@@ -276,7 +287,7 @@ _finger_lut_index:
      }
  }//if (NULL!=unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 && NULL!=alrm_index)
 
- //printf("h=%lu\tj=%lu\t_1st_unoccupied=%lu"NLS, h, j, _1st_unoccupied);
+ //ETHSRV_OAM_LOG("h=%lu\tj=%lu\t_1st_unoccupied=%lu"NLS, h, j, _1st_unoccupied);
  if (!valid_lookup_index(j)) return 0UL-1;//iMEP_iRMEP_TO_MEP_INDEX(N_MEPs, N_MAX_MEs_PER_MEP);
 
  i= p_mep_lut[j].mep_index;
@@ -295,7 +306,7 @@ _finger_lut_index:
  case 0:
      if (j==_1st_unoccupied)    return 0UL-1;
  }
- //printf("i=%lu\tj=%lu\t_1st_unoccupied=%lu"NLS, i, j, _1st_unoccupied);
+ //ETHSRV_OAM_LOG("i=%lu\tj=%lu\t_1st_unoccupied=%lu"NLS, i, j, _1st_unoccupied);
  return i;
 }//finger_lut_index
 
@@ -370,13 +381,13 @@ int invalid_T_MEP_HDR(const T_MEP_HDR *p_mep) {
 //4 - A remote MEP already is using this MEP ID (please try another MEP ID)
 int wr_mep(u32 i_mep, T_MEP_HDR *p_mep, T_ETH_SRV_OAM *p_oam) {
 u32 i_look;
-T_MEP   *p_mep_db;
+T_MEP_DB *p_mep_db;
 T_LOOKUP_MEP *p_mep_lut;
 T_MEP   *_p_mep;
 
  if (invalid_T_MEP_HDR(p_mep) || !valid_mep_index(i_mep))  return 1;
 
- p_mep_db=  p_oam->mep_db;
+ p_mep_db=  p_oam->db;
  p_mep_lut= p_oam->mep_lut;
 
  //Check if entry already in lookup table...
@@ -384,7 +395,7 @@ T_MEP   *_p_mep;
  if (MEP_INDEX_TO_iMEP(i_look)!=i_mep)              return 3;
  if (MEP_INDEX_TO_iRMEP(i_look)!=N_MAX_MEs_PER_MEP) return 4;
 
- _p_mep= &p_mep_db[i_mep];
+ _p_mep= &p_mep_db[i_mep].mep;
  init_mep(_p_mep);
  _p_mep->meg_id=     p_mep->meg_id;
  _p_mep->mep_id=     p_mep->mep_id;
@@ -410,19 +421,17 @@ u32 i;
 T_MEP       *_p_mep;
 T_MEP_CSF   *_p_mep_csf;
 T_ME        *_p_me;
-T_MEP       *p_mep_db;
-T_MEP_CSF   *p_mep_csf_db;
+T_MEP_DB    *p_mep_db;
 T_LOOKUP_MEP *p_mep_lut;
 
 
  if (!valid_mep_index(i_mep))    return 1;
 
- p_mep_db=      p_oam->mep_db;
- p_mep_csf_db=  p_oam->mep_csf_db;
+ p_mep_db=      p_oam->db;
  p_mep_lut=     p_oam->mep_lut;
 
- _p_mep= &p_mep_db[i_mep];
- _p_mep_csf= &p_mep_csf_db[i_mep];
+ _p_mep= &p_mep_db[i_mep].mep;
+ _p_mep_csf= &p_mep_db[i_mep].mep_csf;
  //Remove entry in lookup table...
  finger_lut_index(2, _p_mep->prt, _p_mep->vid, _p_mep->level, 0, _p_mep->mep_id, -1, -1, p_mep_lut, NULL, NULL);
 
@@ -435,6 +444,7 @@ T_LOOKUP_MEP *p_mep_lut;
  }
  init_mep(_p_mep);
  init_mep_csf(_p_mep_csf);
+ init_mep_lm(&p_mep_db[i_mep].lm);
 
  return 0;
 }//del_mep
@@ -487,7 +497,7 @@ int wr_rmep(u32 i_mep, u32 i_rmep, T_RMEP *p_rmep, const T_MEP_HDR *p_mep, T_ETH
 u32 i_look_r;
 T_MEP   *_p_mep;
 T_ME    *_p_me;
-T_MEP   *p_mep_db;
+T_MEP_DB *p_mep_db;
 T_LOOKUP_MEP *p_mep_lut;
 
 
@@ -500,7 +510,7 @@ T_LOOKUP_MEP *p_mep_lut;
  if (p_rmep->tmout  !=  p_mep->tmout)   return 3;
  if (p_rmep->prt    !=  p_mep->prt)     return 3;
 
- p_mep_db=  p_oam->mep_db;
+ p_mep_db=  p_oam->db;
  p_mep_lut= p_oam->mep_lut;
 
  //Check RMEP entry in lookup table...
@@ -508,7 +518,7 @@ T_LOOKUP_MEP *p_mep_lut;
  if (MEP_INDEX_TO_iMEP(i_look_r)!=i_mep)            return 4;
  if (MEP_INDEX_TO_iRMEP(i_look_r)!=i_rmep)          return 4;
 
- _p_mep= &p_mep_db[i_mep];
+ _p_mep= &p_mep_db[i_mep].mep;
 
  //for (i_rmep=0; i_rmep<N_MAX_MEs_PER_MEP; i_rmep++) {
      _p_me=   &_p_mep->ME[i_rmep];
@@ -532,16 +542,16 @@ int del_rmep(u32 i_mep, u32 i_rmep, T_ETH_SRV_OAM *p_oam) {
 u32 i_look_r;
 T_MEP   *_p_mep;
 T_ME    *_p_me;
-T_MEP   *p_mep_db;
+T_MEP_DB *p_mep_db;
 T_LOOKUP_MEP *p_mep_lut;
 
 
  if (!valid_mep_index(i_mep) ||!valid_rmep_index(i_rmep))   return 1;
 
- p_mep_db=  p_oam->mep_db;
+ p_mep_db=  p_oam->db;
  p_mep_lut= p_oam->mep_lut;
 
- _p_mep=&p_mep_db[i_mep];
+ _p_mep=&p_mep_db[i_mep].mep;
  _p_me= &_p_mep->ME[i_rmep];
 
  //Delete entry in lookup table...
@@ -591,28 +601,29 @@ void proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms) {
 u8 timeout, time_2_send_ccms, time_2_send_csf;
 u32 i, tmout, n_rmeps;
 T_MEP       *_p_mep;
-T_MEP       *p_mep_db;
+T_MEP_DB    *p_mep_db;
 T_MEP_CSF   *_p_mep_csf;
-T_MEP_CSF   *p_mep_csf_db;
+T_MEP_LM    *_p_mep_lm;
+
 u16 *proc_i_mep;
-u32 j, n, meps_procssd_per_function_call;
+static u32 j, meps_procssd_per_function_call=0;
 
 
- p_mep_db=      p_oam->mep_db;
+ p_mep_db=      p_oam->db;
  proc_i_mep=    &p_oam->proc_i_mep;
 
- n= N_MEPs;//if (0 == (n=used_nodes(*p_mep_db)))    return;
-
- meps_procssd_per_function_call=    n*T_ms/MEP_MIN_T_ms;
- if (0 != n*T_ms % MEP_MIN_T_ms)    meps_procssd_per_function_call++; //meps_procssd_per_function_call=ceil()...
-
- if (meps_procssd_per_function_call > n)    meps_procssd_per_function_call=n;
- T_ms= T_ms*n/meps_procssd_per_function_call;
+ if (0==meps_procssd_per_function_call) {
+     meps_procssd_per_function_call=    N_MEPs*T_ms/MEP_MIN_T_ms;
+     if (0 != N_MEPs*T_ms % MEP_MIN_T_ms)    meps_procssd_per_function_call++; //meps_procssd_per_function_call=ceil()...
+    
+     if (meps_procssd_per_function_call > N_MEPs)    meps_procssd_per_function_call=N_MEPs;
+ }
+ T_ms= T_ms*N_MEPs/meps_procssd_per_function_call;
 
  for (j=meps_procssd_per_function_call; j; j--) {
     if (++*proc_i_mep>=N_MEPs) *proc_i_mep=0;
     
-    _p_mep= &p_mep_db[*proc_i_mep];              //Get the pointer to this MEP,...
+    _p_mep= &p_mep_db[*proc_i_mep].mep;             //Get the pointer to this MEP,...
     
     //Check if it's time to send CCMs on this MEP...
     if (!valid_oam_tmr(_p_mep->tmout)) continue; //return;
@@ -630,7 +641,7 @@ u32 j, n, meps_procssd_per_function_call;
         else {//if (_p_mep->ME[i].LOC_timer*2 >= tmout*7) {
             if (_p_mep->ME[i].LOC_timer!=0L-1) {
                 ethsrv_oam_register_connection_loss((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
-                LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
+                ETHSRV_OAM_LOG("Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
                 if (_p_mep->ME[i].RDI) {
                      ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
                      _p_mep->ME[i].RDI=0;
@@ -668,12 +679,11 @@ u32 j, n, meps_procssd_per_function_call;
 
 
     // CSF Function --------------------------------------------------------------------
-    p_mep_csf_db =  p_oam->mep_csf_db;
-    _p_mep_csf =    &p_mep_csf_db[*proc_i_mep]; //Get the pointer to this MEP,...
+    _p_mep_csf =    &p_oam->db[*proc_i_mep].mep_csf; //Get the pointer to this MEP,...
 
     if (_p_mep_csf->en1dis0) {
         //Check if it's time to send CSFs on this MEP...
-        if (!valid_oam_tmr(_p_mep_csf->period)) continue;
+        if (!valid_oam_tmr(_p_mep_csf->period)) goto _proc_ethsrv_oam_CSF_function_end;
         tmout= OAM_TMR_CODE_TO_ms[_p_mep_csf->period];
         _p_mep_csf->CSF_timer += T_ms;
         if (_p_mep_csf->CSF_timer+T_ms/2 > tmout) {time_2_send_csf=1;   _p_mep_csf->CSF_timer=0;}
@@ -686,13 +696,37 @@ u32 j, n, meps_procssd_per_function_call;
         if (_p_mep_csf->LOS_timer*2 < tmout*7)   _p_mep_csf->LOS_timer += T_ms; //3.5*tmout
         else {
             if (_p_mep_csf->LOS_timer!=0L-1) {
-                LOG_TRACE(LOG_CTX_OAM,"MEP %u: End of C-LOS"NLS, _p_mep->mep_id);
+                ETHSRV_OAM_LOG("MEP %u: End of C-LOS"NLS, _p_mep->mep_id);
             }
             _p_mep_csf->LOS_timer=   0L-1;
         }
     }
+_proc_ethsrv_oam_CSF_function_end:
     // -------------------------------------------------------------------- CSF Function
 
+
+
+
+
+
+
+
+
+    // LM Function --------------------------------------------------------------------
+    _p_mep_lm =   &p_oam->db[*proc_i_mep].lm; //Get the pointer to this MEP,...
+
+    if (1==_p_mep_lm->CCMs0_LMMR1) {
+        //Check if it's time to send LMMs on this MEP...
+        if (!valid_oam_tmr(_p_mep_lm->period)) goto _proc_ethsrv_oam_LM_function_end;
+        tmout= OAM_TMR_CODE_TO_ms[_p_mep_lm->period];
+        _p_mep_lm->LMM_timer += T_ms;
+        if (_p_mep_lm->LMM_timer+T_ms/2 > tmout) {//time_2_send_lmm=1;
+            _p_mep_lm->LMM_timer=0;
+            send_lmm(*proc_i_mep, (T_MEP_HDR *)_p_mep, _p_mep_lm);
+        }
+    }
+_proc_ethsrv_oam_LM_function_end:;
+    // -------------------------------------------------------------------- LM Function
  }//for (j=meps_procssd_per_function_call; j; j--)
 }//proc_ethsrv_oam
 
@@ -707,13 +741,13 @@ u32 j, n, meps_procssd_per_function_call;
 int MEP_csf_admin(u16 mep_idx, u8 en1dis0, u8 period, T_ETH_SRV_OAM *p_oam)
 {
     T_MEP_CSF   *_p_mep_csf;
-    T_MEP_CSF   *p_mep_csf_db;
+    T_MEP_DB    *p_mep_csf_db;
 
     if (!valid_mep_index(mep_idx))          return 1;
     if (!valid_oam_tmr(period))             return 2;               //if (en1dis0 && period!=4 && period!=6)  return 2;   //Y.1731, 9.21, table 9-6
 
-    p_mep_csf_db =  p_oam->mep_csf_db;
-    _p_mep_csf =    &p_mep_csf_db[mep_idx]; //Get the pointer to this MEP,...
+    p_mep_csf_db =  p_oam->db;
+    _p_mep_csf =    &p_mep_csf_db[mep_idx].mep_csf; //Get the pointer to this MEP,...
 
     init_mep_csf(_p_mep_csf);
 
@@ -729,16 +763,16 @@ int MEP_csf_admin(u16 mep_idx, u8 en1dis0, u8 period, T_ETH_SRV_OAM *p_oam)
 int MEP_enable_Tx_CSF(u16 mep_idx, u8 CSF_tx_flags, T_ETH_SRV_OAM *p_oam)
 {
     T_MEP_CSF   *_p_mep_csf;
-    T_MEP_CSF   *p_mep_csf_db;
+    T_MEP_DB    *p_mep_csf_db;
 
-    p_mep_csf_db =  p_oam->mep_csf_db;
-    _p_mep_csf =    &p_mep_csf_db[mep_idx]; //Get the pointer to this MEP,...
+    p_mep_csf_db =  p_oam->db;
+    _p_mep_csf =    &p_mep_csf_db[mep_idx].mep_csf; //Get the pointer to this MEP,...
 
     if (_p_mep_csf->en1dis0 && _p_mep_csf->CSF_Tx_en_flags != CSF_tx_flags) {
         _p_mep_csf->CSF_Tx_en_flags = CSF_tx_flags;
         _p_mep_csf->CSF_timer=0x3fffffffUL;         //Force a quick transition
         //"CSF_TYPE_INVALID" works like CSF_TYPE_DCI but suppresses sending CSF frames; for a quicker convergence, we should send a CSF_TYPE_DCI
-        if (CSF_TYPE_INVALID==CSF_tx_flags) send_csf(p_oam->mep_db[mep_idx].prt, (T_MEP_HDR *)&p_oam->mep_db[mep_idx], _p_mep_csf->period, CSF_TYPE_DCI);
+        if (CSF_TYPE_INVALID==CSF_tx_flags) send_csf(p_oam->db[mep_idx].mep.prt, (T_MEP_HDR *)&p_oam->db[mep_idx].mep, _p_mep_csf->period, CSF_TYPE_DCI);
     }
 
     return 0;
@@ -747,14 +781,15 @@ int MEP_enable_Tx_CSF(u16 mep_idx, u8 CSF_tx_flags, T_ETH_SRV_OAM *p_oam)
 int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam)
 {
     T_MEP   *_p_mep;
-    T_MEP   *p_mep_db;
+    T_MEP_DB *p_mep_db;
     u32     i;
 
-    p_mep_db =  p_oam->mep_db;
-    _p_mep =    &p_mep_db[mep_idx]; //Get the pointer to this MEP,...
+    p_mep_db =  p_oam->db;
+    _p_mep =    &p_mep_db[mep_idx].mep; //Get the pointer to this MEP,...
 
 
-    for (i=0; i<N_MAX_MEs_PER_MEP; i++) {
+    for 
+        (i=0; i<N_MAX_MEs_PER_MEP; i++) {
         if (!valid_mep_id(_p_mep->ME[i].mep_id))   continue;
 
         if (LOC(_p_mep->ME[i].LOC_timer, OAM_TMR_CODE_TO_ms[_p_mep->tmout])) return 1;
@@ -766,10 +801,10 @@ int MEP_is_CC_LOC_or_RDI(u16 mep_idx, T_ETH_SRV_OAM *p_oam)
 int MEP_is_CSF_LOS(u16 mep_idx, T_ETH_SRV_OAM *p_oam)
 {
     T_MEP_CSF   *_p_mep_csf;
-    T_MEP_CSF   *p_mep_csf_db;
+    T_MEP_DB    *p_mep_csf_db;
 
-    p_mep_csf_db =  p_oam->mep_csf_db;
-    _p_mep_csf =    &p_mep_csf_db[mep_idx]; //Get the pointer to this MEP,...
+    p_mep_csf_db =  p_oam->db;
+    _p_mep_csf =    &p_mep_csf_db[mep_idx].mep_csf; //Get the pointer to this MEP,...
 
     if (_p_mep_csf->en1dis0) {
         if (_p_mep_csf->LOS_timer == (0L-1))    return 0;   // OK
@@ -871,10 +906,164 @@ ETH_SRV_OAM_CSF_DATAGRM csf, *p_csf;
 
 
 
-int rx_oam_pckt(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC, T_ETH_SRV_OAM *p_oam) {
+static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm) {
+T_ETH_OAM_MAC DMAC;
+ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
+
+ DMAC=  OAM_MC_MAC;
+ //pkt[5] &=                      ~0x07;
+ DMAC.byte[5] |=                p_mep->level;// & 0x07;
+
+ p_lmm=                         &lmm;
+ p_lmm->MAlevel_and_version=    ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
+ p_lmm->opcode=                 LMM_OPCODE;
+ p_lmm->flags=                  0;
+ p_lmm->TLV_offset=             12;
+ //p_lmm->RxFCf= p_lmm->TxFCb=    0;
+ p_lmm->end_TLV=                0;
+ p_lmm->TxFCf=                  rd_TxFCl(i_mep);
+
+ return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmm, sizeof(ETH_LMM_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
+}//send_lmm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int send_lmr(u16 i_mep, T_MEP_HDR *p_mep, ETH_LMM_OAM_DATAGRM *p_lmm, u8 *pDMAC) {
+ETH_LMR_OAM_DATAGRM lmr, *p_lmr;
+
+ p_lmr=                         &lmr;
+ p_lmr->MAlevel_and_version=    ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
+ p_lmr->opcode=                 LMR_OPCODE;
+ p_lmr->flags=                  0;
+ p_lmr->TLV_offset=             12;
+ p_lmr->TxFCf=                  p_lmm->TxFCf;
+ p_lmr->RxFCf=                  p_lmm->RxFCf;   //Our side set this on the PDU, @LMM reception
+ p_lmr->end_TLV=                0;
+ p_lmr->TxFCb=                  rd_TxFCl(i_mep);
+
+ return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmr, sizeof(ETH_LMR_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
+}//send_lmr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Uses (and changes both opcode, SMAC, DMAC values) of the buffer pointed by p_lbr
+static int send_lbr(u16 oam_prt, T_MEP_HDR *p_mep, ETH_LBR_OAM_DATAGRM *p_lbr, u16 lbr_len, u8 *pDMAC) {
+    p_lbr->opcode=LBR_OPCODE;
+    return send_eth_pckt(oam_prt, p_mep->up1_down0, (u8*)p_lbr, lbr_len, p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
+}//send_lbr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#define v2008(i_eg_id_tlv)  ((i_eg_id_tlv)<9600)
+/*
+static int send_ltr(u16 oam_prt, T_MEP_HDR *p_mep, ETH_LTM_OAM_DATAGRM *p_ltm, u16 ltr_len, u8 *pDMAC) {
+//u32 i_eg_id_tlv;
+ETH_LTR_OAM_DATAGRM ltr;
+T_LTR_EG_ID_TLV     *p_eg_id;
+T_RPL_IN_ID_TLV     *p_rpl_id;
+
+ ltr.MAlevel_and_version=   ASSEMBLE_OAM_MALEVEL_AND_VERSION(p_mep->level, OAM_PROTO_VERSION);
+ ltr.opcode=                LTR_OPCODE;
+ ltr.flags=                 ASSEMBLE_LTR_flags(LTM_flags_TO_HWonly(p_ltm->flags),FwdYes,TerminalMEP);
+ ltr.TLV_offset=            offsetof(ETH_LTR_OAM_DATAGRM,tlvs)-offsetof(ETH_LTR_OAM_DATAGRM,TLV_offset)-1;//6;
+ ltr.transID=               p_ltm->transID;
+ ltr.TTL=                   p_ltm->TTL-1;
+ ltr.rel_act=               rel_act;
+
+ if (v2008(i_eg_id_tlv)) {
+     p_eg_id=                   ltr.tlvs.nxt_TLV;
+     p_eg_id->type=             LTR_EG_ID_TLV_TYPE;
+     p_eg_id->len=              TLV_LENGTH(T_LTR_EG_ID_TLV);
+
+     {
+      T_LTM_EG_ID_TLV *ltm_eg_id;
+
+         ltm_eg_id= (T_LTM_EG_ID_TLV *) &((u8*)p_ltm)[i_eg_id_tlv];
+         memcpy(&p_eg_id->last, &ltm_eg_id->v, sizeof(ltm_eg_id->v));
+     }
+
+     p_rpl_id=                  p_eg_id+sizeof(T_LTR_EG_ID_TLV);
+ }
+ else { //v2006
+     p_rpl_id=                  ltr.tlvs.nxt_TLV;
+ }
+
+ p_rpl_id->type=            REPLY_IN_TLV_TYPE   REPLY_EG_TLV_TYPE
+ p_rpl_id->len=             TLV_LENGTH(T_RPL_IN_ID_TLV);
+ p_rpl_id-
+
+ return 0;
+}//send_ltr
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int rx_oam_pckt(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl) {
 ETH_SRV_OAM_DATAGRM *p_oam_d;
-T_MEP           *p_mep_db;
-T_MEP_CSF       *p_mep_csf_db;
+T_MEP_DB        *p_mep_db;
 T_LOOKUP_MEP    *p_mep_lut;
 
  if (ntohs(*((u16 *) pkt_ethtype))    !=  OAM_ETH_TYPE)   return 1;
@@ -892,19 +1081,45 @@ T_LOOKUP_MEP    *p_mep_lut;
  default:           return 4;
  case CCM_OPCODE:
      if (pkt_len<sizeof(ETH_SRV_OAM_CCM_DATAGRM)+2)  return 5;
-     p_mep_db=  p_oam->mep_db;
+     p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
-     //printf("rx_ccm=%d"NLS,
+     //ETHSRV_OAM_LOG("rx_ccm=%d"NLS,
             rx_ccm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
             //);
      return 0;
  case CSF_OPCODE:
      if (pkt_len<sizeof(ETH_SRV_OAM_DATAGRM)+2)  return 5;
-     p_mep_db=  p_oam->mep_db;
+     p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
-     p_mep_csf_db= p_oam->mep_csf_db;
-     rx_csf(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, p_mep_csf_db);
+     rx_csf(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
      return 0;
+ case LMM_OPCODE:
+     if (pkt_len<sizeof(ETH_LMM_OAM_DATAGRM)+2)  return 5;
+     p_mep_db=  p_oam->db;
+     p_mep_lut= p_oam->mep_lut;
+     rx_lmm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
+     return 0;
+ case LMR_OPCODE:
+     if (pkt_len<sizeof(ETH_LMR_OAM_DATAGRM)+2)  return 5;
+     p_mep_db=  p_oam->db;
+     p_mep_lut= p_oam->mep_lut;
+     rx_lmr(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
+     return 0;
+ case LBM_OPCODE:
+     if (pkt_len<sizeof(ETH_LBM_OAM_DATAGRM)+2)  return 5;
+     p_mep_db=  p_oam->db;
+     p_mep_lut= p_oam->mep_lut;
+     rx_lbm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
+     return 0;
+ case LTM_OPCODE:
+     if (pkt_len<sizeof(ETH_LTM_OAM_DATAGRM)+2)  return 5;
+     p_mep_db=  p_oam->db;
+     p_mep_lut= p_oam->mep_lut;
+     rx_ltm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
+     return 0;
+
+ //case LBR_OPCODE:
+ //case LTR_OPCODE:
  }
 }//rx_oam_pckt
 
@@ -916,7 +1131,7 @@ T_LOOKUP_MEP    *p_mep_lut;
 
 
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
 ETH_SRV_OAM_CCM_DATAGRM *p_ccm;
 T_MEP   *_p_mep;
 u32 i_look_r, i_mep, i_rmep;
@@ -940,7 +1155,7 @@ u16 ccm_mep_id;
      if (!valid_mep_index(i_mep)) {ethsrv_oam_register_mismerge(&p_ccm->meg_id, ccm_mep_id, 0xffff, oam_prt, vid);   return 1;}
  }
 
- _p_mep=    &p_mep_db[i_mep];
+ _p_mep=    &p_mep_db[i_mep].mep;
 
  i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_ccm->MAlevel_and_version);
  if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
@@ -963,7 +1178,7 @@ u16 ccm_mep_id;
          ethsrv_oam_register_mismerge(&p_ccm->meg_id, ccm_mep_id, i_mep, oam_prt, vid);
      }
      _p_mep->mismerge_timer=0;
-     //printf("REGISTER MISMERGE"NLS);
+     //ETHSRV_OAM_LOG("REGISTER MISMERGE"NLS);
      return 4;
  }
 
@@ -1007,23 +1222,23 @@ u16 ccm_mep_id;
  if (_p_mep->ME[i_rmep].LOC_timer==0L-1) {
      if (flags_TO_RDI(p_ccm->flags)) {
          ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
-         LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
+         ETHSRV_OAM_LOG("MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
      }
      else {
          ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
-         LOG_TRACE(LOG_CTX_OAM,"Connectivity MEP %u to RMEP %u restored"NLS, _p_mep->mep_id, ccm_mep_id);
+         ETHSRV_OAM_LOG("Connectivity MEP %u to RMEP %u restored"NLS, _p_mep->mep_id, ccm_mep_id);
      }
  }
  else
  if (!_p_mep->ME[i_rmep].RDI && flags_TO_RDI(p_ccm->flags)) {
      ethsrv_oam_register_receiving_RDI((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
-     LOG_TRACE(LOG_CTX_OAM,"MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
+     ETHSRV_OAM_LOG("MEP %u receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
  }
  else
  if (_p_mep->ME[i_rmep].RDI && !flags_TO_RDI(p_ccm->flags)) {
      ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
      ethsrv_oam_register_connection_restored((u8*)&_p_mep->meg_id, _p_mep->mep_id, ccm_mep_id, oam_prt, _p_mep->vid);
-     LOG_TRACE(LOG_CTX_OAM,"MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
+     ETHSRV_OAM_LOG("MEP %u stopped receiving RDI from RMEP %u"NLS, _p_mep->mep_id, ccm_mep_id);
  }
 
  _p_mep->ME[i_rmep].LOC_timer=0;
@@ -1035,8 +1250,13 @@ u16 ccm_mep_id;
 
 
 
+
+
+
+
+
 static int rx_csf(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP *p_mep_db, T_LOOKUP_MEP *p_mep_lut, T_MEP_CSF *p_mep_csf_db) {
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
 ETH_SRV_OAM_DATAGRM *p_csf;
 T_MEP       *_p_mep;
 T_MEP_CSF   *_p_mep_csf;
@@ -1060,8 +1280,8 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
      
      if (!valid_mep_index(i_mep)) return 1;
 
-     _p_mep=        &p_mep_db[i_mep];
-     _p_mep_csf=    &p_mep_csf_db[i_mep];
+     _p_mep=        &p_mep_db[i_mep].mep;
+     _p_mep_csf=    &p_mep_db[i_mep].mep_csf;
 
      i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_csf->MAlevel_and_version);
      if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
@@ -1073,7 +1293,7 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
          return 3;
      }
 
-   if (2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) {
+     if (2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) {
        if (_p_mep_csf->period != CSF_flags_TO_CSF_TMOUT(p_csf->flags)) {
          //REGISTER "UNEXPECTED PERIOD"
        }
@@ -1087,8 +1307,371 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
        }
 
        return 0;
-   }
+     }
  }
  return 0;
 }//rx_csf
+
+
+
+
+
+
+
+static int rx_lmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl) {
+ETH_LMM_OAM_DATAGRM *p_lmm;
+T_MEP       *_p_mep;
+u32 i_look_r, i_mep;
+int i;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+
+
+ p_lmm= (ETH_LMM_OAM_DATAGRM *) &pkt_ethtype[2];
+
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_lmm->MAlevel_and_version), 0,
+                             -1, //LMM packet doesn't bring any MEP_ID...
+                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+
+ i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+ //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+ 
+ if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+     
+     if (!valid_mep_index(i_mep)) return 1;
+
+     _p_mep=        &p_mep_db[i_mep].mep;
+
+     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_lmm->MAlevel_and_version);
+     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         return 2;
+     }
+     else
+     if (i<0) {
+         //FWD this packet to every other port on the same vlan
+         return 3;
+     }
+
+     if (2!=unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) return 0;
+
+
+     //Response to an LMM
+     p_lmm->RxFCf = RxFCl;
+     send_lmr(i_mep, (T_MEP_HDR *)_p_mep, (ETH_LMM_OAM_DATAGRM *)p_lmm, pSMAC);
+ }
+ return 0;
+}//rx_lmm
+
+
+
+
+
+
+
+static int rx_lmr(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl) {
+ETH_LMR_OAM_DATAGRM *p_lmr;
+T_MEP       *_p_mep;
+T_MEP_LM    *_p_mep_lm;
+u32 i_look_r, i_mep;
+int i;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+
+
+ p_lmr= (ETH_LMR_OAM_DATAGRM *) &pkt_ethtype[2];
+
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_lmr->MAlevel_and_version), 0,
+                             -1, //LMR packet doesn't bring any MEP_ID...
+                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+
+ i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+ //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+ 
+ if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+     
+     if (!valid_mep_index(i_mep)) return 1;
+
+     _p_mep=        &p_mep_db[i_mep].mep;
+
+     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_lmr->MAlevel_and_version);
+     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         return 2;
+     }
+     else
+     if (i<0) {
+         //FWD this packet to every other port on the same vlan
+         return 3;
+     }
+
+     if (2!=unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) return 0;
+
+
+     //LMR processing
+     _p_mep_lm=     &p_mep_db[i_mep].lm;
+     if (1!=_p_mep_lm->CCMs0_LMMR1) return 0;
+     {
+      T_LM *p;
+
+        //last photo
+        p = &_p_mep_lm->lm[iLMlast(++_p_mep_lm->tog_iLM)];
+        p->tx      = p_lmr->TxFCf;
+        p->rx_peer = p_lmr->RxFCf;
+        p->tx_peer = p_lmr->TxFCb;
+        p->rx      = RxFCl;
+
+        {//if iLM0 still unwritten (1st photo)...
+         u8 *p2;
+            p2 = (u8*)&_p_mep_lm->lm[iLM0];
+            for (i=0; i<sizeof(T_LM); i++) if (T_LM_VIRGIN_PATTERN!=p2[i]) return 0;
+
+            *(T_LM*)p2 = *p;
+        }//...write it
+     }
+ }
+ return 0;
+}//rx_lmr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Far End and/or Near End Frame loss ratio (expressed by dividend and divisor)
+//If either NE_flr_Dividend or NE_flr_divisor are NULL pointers, nothing is done to *NE_flr_Dividend and *NE_flr_divisor
+//The same applies to FE_flr_*
+void LM_frame_loss_ratio(T_LM *lm, T_LM *lm0, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u64 *FE_flr_Dividend, u64 *FE_flr_divisor) {
+u64 a, b;
+ if (NULL!=NE_flr_Dividend && NULL!=NE_flr_divisor) {
+     a = diff_LM_counters(lm->tx_peer, lm0->tx_peer);
+     b = diff_LM_counters(lm->rx, lm0->rx);
+     *NE_flr_divisor = a;
+     *NE_flr_Dividend = diff_LM_counters(a,b);
+ }
+
+ if (NULL!=FE_flr_Dividend && NULL!=FE_flr_divisor) {
+     a = diff_LM_counters(lm->tx, lm0->tx);
+     b = diff_LM_counters(lm->rx_peer, lm0->rx_peer);
+     *FE_flr_divisor = a;
+     *FE_flr_Dividend = diff_LM_counters(a,b);
+ }
+}//LM_frame_loss_ratio
+
+
+
+
+void LM_last_period(T_MEP_LM *p, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u64 *FE_flr_Dividend, u64 *FE_flr_divisor) {
+ LM_frame_loss_ratio(&p->lm[iLMlast(p->tog_iLM)], &p->lm[iLMpenu(p->tog_iLM)], NE_flr_Dividend, NE_flr_divisor, FE_flr_Dividend, FE_flr_divisor);
+}
+
+
+
+
+void LM_medium(T_MEP_LM *p, u64 *NE_flr_Dividend, u64 *NE_flr_divisor, u64 *FE_flr_Dividend, u64 *FE_flr_divisor) {
+ LM_frame_loss_ratio(&p->lm[iLMlast(p->tog_iLM)], &p->lm[iLM0], NE_flr_Dividend, NE_flr_divisor, FE_flr_Dividend, FE_flr_divisor);
+}
+
+
+
+
+int wr_mep_lm(u32 i_mep, T_MEP_LM *p_mep_lm, T_ETH_SRV_OAM *p_oam) {
+T_MEP_LM *_p_mep_lm;
+
+ if (!valid_mep_index(i_mep)) return 1;
+
+ if (invalid_T_MEP_LM(p_mep_lm)) return del_mep_lm(i_mep,p_oam);
+
+ if (1==p_mep_lm->CCMs0_LMMR1 && !valid_oam_tmr(p_mep_lm->period)) return 2;
+
+ _p_mep_lm = &p_oam->db[i_mep].lm;
+ init_mep_lm(_p_mep_lm);
+ _p_mep_lm->CCMs0_LMMR1=    p_mep_lm->CCMs0_LMMR1;
+ _p_mep_lm->period=         p_mep_lm->period;
+
+ return 0;
+}//wr_mep_lm
+
+
+
+
+int del_mep_lm(u32 i_mep, T_ETH_SRV_OAM *p_oam) {
+ if (!valid_mep_index(i_mep)) return 1;
+ invalidate_T_MEP_LM(&p_oam->db[i_mep].lm);
+ return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static int rx_lbm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
+ETH_LBM_OAM_DATAGRM *p_lbm;
+T_MEP       *_p_mep;
+u32 i_look_r, i_mep;
+int i;
+u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+
+
+ p_lbm= (ETH_LBM_OAM_DATAGRM *) &pkt_ethtype[2];
+
+ i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_lbm->MAlevel_and_version), 0,
+                             -1, //LBM packet doesn't bring any MEP_ID...
+                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+
+ i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+ //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+ 
+ if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+     
+     if (!valid_mep_index(i_mep)) return 1;
+
+     _p_mep=        &p_mep_db[i_mep].mep;
+
+     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_lbm->MAlevel_and_version);
+     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+         return 2;
+     }
+     else
+     if (i<0) {
+         //FWD this packet to every other port on the same vlan
+         return 3;
+     }
+
+     if (2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) {
+       //Response to an LBM
+       send_lbr(oam_prt, (T_MEP_HDR *)_p_mep, (ETH_LBM_OAM_DATAGRM *)p_lbm, pkt_len-2, pSMAC);
+     }
+ }
+ return 0;
+}//rx_lbm
+
+
+
+
+
+
+
+#define H (sizeof(((T_GEN_TLV *)0)->type) + sizeof(((T_GEN_TLV *)0)->len))
+/*
+static u32 iTLV_search(ETH_SRV_OAM_DATAGRM *p, u32 oam_len, u8 TLV_type) {
+u32 i;
+T_GEN_TLV *p2;
+
+ //for (i=(u8)&p->TLV_offset-(u8)p +1+ p->TLV_offset; i<oam_len;) {
+ for (i=offsetof(ETH_SRV_OAM_DATAGRM,TLV_offset) +1+ p->TLV_offset; i<oam_len;) {
+     p2=(T_GEN_TLV*)    &((u8*)p)[i];
+     if (TLV_type==p2->type) {  //found
+         if (i+p2->len+H>=oam_len) return 0UL-1;
+         return i;
+     }
+     i+=p2->len+H;
+ }
+ return 0UL-1;  //not found
+}//iTLV
+*/
+
+
+
+static int rx_ltm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
+//ETH_LTM_OAM_DATAGRM *p_ltm;
+//T_MEP       *_p_mep;
+//u32 i_look_r, i_mep;
+//int i;
+//u16 targ_prt;
+//u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
+//
+//
+// p_ltm= (ETH_LTM_OAM_DATAGRM *) &pkt_ethtype[2];
+//
+// i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version), 0,
+//                             -1, //LTM packet doesn't bring any MEP_ID...
+//                             -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
+//
+// i_mep= MEP_INDEX_TO_iMEP(i_look_r);    //...so this MEP_ID (-1) won't be found...
+// //i_rmep=MEP_INDEX_TO_iRMEP(i_look_r);
+// 
+// if (!valid_mep_index(i_mep) /*|| !valid_rmep_index(i_rmep)*/) {
+//     i_mep= MEP_INDEX_TO_iMEP(alrm_index);      //...and we'll have to deal just with alarms: the MEP in a certain port, VID and level (alarm: unexpected MEP)
+//     //i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
+//     
+//     if (!valid_mep_index(i_mep)) return 1;
+//
+//     _p_mep=        &p_mep_db[i_mep];
+//
+//     i= _p_mep->level - MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version);
+//     if (/*0==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4 ||*/  i>0) {
+//         return 2;
+//     }
+//     else
+//     if (i<0) {
+//         //FWD this packet to every other port on the same vlan
+//         return 3;
+//     }
+//
+//
+//     if (!(2==unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4)) return 0;//4;
+//
+//     //Response to an LTM
+//     if (0==p_ltm->TTL) return 0;
+//
+//     if (1/*we're a MEP*/ && memcmp(p_ltm->targ_mac, this_prts_MAC(oam_prt), 6)) return 0;//5;
+//
+//     targ_prt=MAC_in_prt(p_ltm->targ_mac);
+//     if (targ_prt>=N_OAM_PRTS) return 0;//6;  //NE unaware of this TargetMAC or associating it to more than a single egress port
+//
+//     i=iTLV_search((ETH_SRV_OAM_DATAGRM*)p_ltm, pkt_len-2, LTM_EG_ID_TLV_TYPE);
+//
+//     if (v2008(i)) {            //LTM egress identifier found (v2008)
+//     }
+//     else {                     //LTM egress identifier not found (v2006)
+//     }
+//     
+//     send_ltr(oam_prt, (T_MEP_HDR *)_p_mep, (ETH_LBR_OAM_DATAGRM *)p_ltm, pkt_len-2, pSMAC);
+//
+//     if (0/*we're a MIP*/ && p_ltm->TTL>1 && memcmp(p_ltm->targ_mac, this_prts_MAC(oam_prt), 6)) {
+//          //send_ltm(oam_prt, (T_MEP_HDR *)_p_mep, (ETH_LTM_OAM_DATAGRM *)p_ltm, pkt_len-2, pSMAC);
+//     }
+// }//if (!valid_mep_index(i_mep)
+
+ return 0;
+}//rx_ltm
 

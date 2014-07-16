@@ -412,11 +412,11 @@ void tst_send(void) {
 int MEP_is_in_LOC(L7_ulong32 i_mep, L7_ulong32 i_rmep, T_ETH_SRV_OAM *p) {
     if (i_mep>=N_MEPs) return 0;
 
-    if (i_rmep<N_MAX_MEs_PER_MEP) return 0L-1==p->mep_db[i_mep].ME[i_rmep].LOC_timer;
+    if (i_rmep<N_MAX_MEs_PER_MEP) return 0L-1==p->db[i_mep].mep.ME[i_rmep].LOC_timer;
 
     for (i_rmep=0; i_rmep<N_MAX_MEs_PER_MEP; i_rmep++) {
-        if (p->mep_db[i_mep].ME[i_rmep].mep_id > HIGHEST_MEP) continue;
-        if (0L-1==p->mep_db[i_mep].ME[i_rmep].LOC_timer) return 1;
+        if (p->db[i_mep].mep.ME[i_rmep].mep_id > HIGHEST_MEP) continue;
+        if (0L-1==p->db[i_mep].mep.ME[i_rmep].LOC_timer) return 1;
     }
 
     return 0;
@@ -526,7 +526,7 @@ void ptin_oam_eth_task(void)
                    {
                     int r;
 
-                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam)))
+                    if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.ts)))
                         LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
                    }
                    goto _ptin_oam_eth_task1;
@@ -598,8 +598,8 @@ void eth_srv_oam_msg_defaults_reset(void) {
 L7_uint32 i;
 
     for (i=0; i<N_MEPs; i++) {
-        if (EMPTY_T_MEP(oam.mep_db[i])) continue;
-        ptin_ccm_packet_trap(oam.mep_db[i].prt, oam.mep_db[i].vid, oam.mep_db[i].level, 0);
+        if (EMPTY_T_MEP(oam.db[i].mep)) continue;
+        ptin_ccm_packet_trap(oam.db[i].mep.prt, oam.db[i].mep.vid, oam.db[i].mep.level, 0);
     }
     init_eth_srv_oam(&oam);
     {
@@ -780,7 +780,7 @@ dont_txrx_oam_criterion_t *p;
 
      if (prt==tbl_erps[i].protParam.port0.idx) {
          iMEP=  tbl_erps[i].protParam.port0CfmIdx;  //not using "iMEP" parameter
-         if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.mep_db[iMEP]) && vid==oam.mep_db[iMEP].vid) return 0;  //sub-ERP-MEP
+         if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.db[iMEP].mep) && vid==oam.db[iMEP].mep.vid) return 0;  //sub-ERP-MEP
          if (vid==tbl_erps[i].protParam.controlVid) return 0;   //ERP APS VID
          if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) {              //ERP protected VID
              if (ERPS_PORT_BLOCKING==tbl_erps[i].portState[0]) return 1;                            //RPL position
@@ -790,7 +790,7 @@ dont_txrx_oam_criterion_t *p;
      else
      if (prt==tbl_erps[i].protParam.port1.idx) {
          iMEP=  tbl_erps[i].protParam.port1CfmIdx;  //not using "iMEP" parameter
-         if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.mep_db[iMEP]) && vid==oam.mep_db[iMEP].vid) return 0;  //sub-ERP-MEP
+         if (iMEP<N_MEPs && !EMPTY_T_MEP(oam.db[iMEP].mep) && vid==oam.db[iMEP].mep.vid) return 0;  //sub-ERP-MEP
          if (vid==tbl_erps[i].protParam.controlVid) return 0;   //ERP APS VID
          if (vid < 1<<12    &&    tbl_erps[i].protParam.vid_bmp[vid/8] & 1<<(vid%8)) {              //ERP protected VID
              if (ERPS_PORT_BLOCKING==tbl_erps[i].portState[1]) return 1;                            //RPL position
@@ -819,4 +819,17 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 
 L7_RC_t ptin_oam_eth_init(void) {return L7_SUCCESS;}
 #endif //__Y1731_802_1ag_OAM_ETH__
+
+
+
+
+
+
+
+
+
+
+
+
+u64 rd_TxFCl(u16 i_mep) {return 0;}  //No need to do anything; BCM HW fills this field
 

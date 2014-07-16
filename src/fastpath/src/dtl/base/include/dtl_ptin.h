@@ -275,4 +275,5 @@ extern L7_RC_t dtlPtinL3RouteAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 i
  */
 extern L7_RC_t dtlPtinL3RouteRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_uint32 ipMask, L7_char8 *mac);
 
+extern L7_RC_t dtlPtinMEPControl(L7_uint32 intIfNum, hapi_mep_t *dapiCmd);
 #endif

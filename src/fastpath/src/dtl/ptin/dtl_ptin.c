@@ -874,3 +874,42 @@ L7_RC_t dtlPtinL3RouteRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAdd
   return dapiCtl(&ddUsp, DAPI_CMD_PTIN_L3, (void *) &dapiCmd);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t dtlPtinMEPControl(L7_uint32 intIfNum, hapi_mep_t *dapiCmd)
+{
+  DAPI_USP_t ddUsp;
+  nimUSP_t usp;
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  return dapiCtl(&ddUsp, DAPI_CMD_PTIN_MEP_CTRL, (void *) dapiCmd);
+}
+

@@ -173,7 +173,6 @@
 
 
 /* OAM MEPs Configuration */
-
 #define CCMSG_DUMP_MEPs                     0x9140  /*Exception - 1 input struct; unknown nr of output structs*/
 #define CCMSG_DUMP_MEs                      0x9141  /*Exception - 1 input struct; unknown nr of output structs; input and output structs are the same type*/
 #define CCMSG_DUMP_LUT_MEPs                 0x9142  /*Exception - 1 input struct; unknown nr of output structs*/
@@ -184,6 +183,11 @@
 
 #define CCMSG_FLUSH_MEP                     0x9147
 #define CCMSG_FLUSH_RMEP                    0x9148
+
+#define CCMSG_WR_MEP_LM                     0x9149
+#define CCMSG_RM_MEP_LM                     0x914A
+#define CCMSG_RD_MEP_LM                     0x914B
+
 
 /* Routing */
 #define CCMSG_ROUTING_INTF_CREATE             0x9151  // msg_RoutingIpv4Intf
@@ -1797,6 +1801,7 @@ typedef struct {
 
 
 
+
 typedef T_RMEP  msg_rmep_t;
 typedef struct {
   _MSG_GENERIC_PREFIX_STRUCT;    //index: 16 bit i_mep(0..N_MEPs-1)     16 bit i_rmep(0..N_MAX_MEs_PER_MEP-1)
@@ -1823,6 +1828,24 @@ typedef struct {
   msg_lookup_mep_t bd;
 } __attribute__ ((packed)) msg_bd_lut_mep_t;
 
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index: 0..N_MEPs-1
+  struct {
+      u8  CCMs0_LMMR1;    //other values disable LM; 0 isn't supported
+      u8  period;         //valid just for 1==CCMs0_LMMR1 (LMM/LMRs instead of CCMs)
+  } __attribute__ ((packed)) bd;
+} __attribute__ ((packed)) msg_bd_mep_lm_t;
+
+
+typedef struct {
+    _MSG_GENERIC_PREFIX_STRUCT;     //index: 0..N_MEPs-1 | instance<<16
+                                    //(instance): 0-medium, 1-instantaneous/last packets
+    u64 NEnumerator,
+        NEdenominator,              //frame loss fractions
+        FEnumerator,
+        FEdenominator;              //all-ones values mean unavailable (no packets or still no pair of packets exchanged)
+} __attribute__ ((packed)) msg_frame_loss_t;
 
 
 /***************************************************************************** 

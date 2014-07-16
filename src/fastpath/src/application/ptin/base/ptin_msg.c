@@ -7234,7 +7234,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
 
   if (valid_mep_index(pi[i].index)) {
-      p = &oam.mep_db[pi[i].index];
+      p = &oam.db[pi[i].index].mep;
       if (EMPTY_T_MEP(*p)) ;//changing_trap=0;
       else {
           //old_prt=p->prt;       old_vid=p->vid;     old_level=p->level;
@@ -7295,9 +7295,9 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (i_mep<N_MEPs)
   {
-    prt=oam.mep_db[i_mep].prt;
-    vid=oam.mep_db[i_mep].vid;
-    level=oam.mep_db[i_mep].level;
+    prt=oam.db[i_mep].mep.prt;
+    vid=oam.db[i_mep].mep.vid;
+    level=oam.db[i_mep].mep.level;
   }
 
 
@@ -7363,7 +7363,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
 
   p_oam= &oam;
-  switch (wr_rmep(i_mep, i_rmep, &pi[i].bd, (T_MEP_HDR*)&p_oam->mep_db[i_mep], p_oam))
+  switch (wr_rmep(i_mep, i_rmep, &pi[i].bd, (T_MEP_HDR*)&p_oam->db[i_mep].mep, p_oam))
   {
   case 0:
     r=S_OK;
@@ -7486,8 +7486,8 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
     //if (!active_is_used(p_oam->mep_db))
     //_p_mep= pointer2active_node_info(*p_mep_db);
 
-    if (!EMPTY_T_MEP(p_oam->mep_db[i])  ||  N_MEPs-1==i)
-      po[n++].bd=  *((T_MEP_HDR *) &p_oam->mep_db[i]);
+    if (!EMPTY_T_MEP(p_oam->db[i].mep)  ||  N_MEPs-1==i)
+      po[n++].bd=  *((T_MEP_HDR *) &p_oam->db[i].mep);
 
     if (n+1 > 15   ||  (n+1)*sizeof(msg_bd_mep_t) >= IPCLIB_MAX_MSGSIZE) break;// if (n+1 > 100) break;// if ((n+1)*sizeof(msg_bd_mep_t) >= INFO_DIM_MAX) break;
   }//for
@@ -7530,7 +7530,7 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
   p_oam= &oam;
 
-  if (EMPTY_T_MEP(p_oam->mep_db[i_mep]))
+  if (EMPTY_T_MEP(p_oam->db[i_mep].mep))
   {
     return(L7_FAILURE);
   }
@@ -7540,10 +7540,10 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
     po[n].index = iMEP_iRMEP_TO_MEP_INDEX(i_mep, i);//i_mep*0x10000L+i;
     po[n].err_code = S_OK;
 
-    if (   !EMPTY_T_MEP(p_oam->mep_db[i_mep].ME[i])
+    if (   !EMPTY_T_MEP(p_oam->db[i_mep].mep.ME[i])
            ||  N_MAX_MEs_PER_MEP-1==i)
     {
-      po[n].bd.me=     p_oam->mep_db[i_mep].ME[i];
+      po[n].bd.me=     p_oam->db[i_mep].mep.ME[i];
       //if (0L-1==po[n].bd.me.LOC_timer) po[n].bd.me.RDI=0;
       n++;
     }

@@ -3009,6 +3009,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   pktRxMsg.usp = usp;
   pktRxMsg.reasons = bcm_pkt->rx_reasons;
   pktRxMsg.rx_untagged = bcm_pkt->rx_untagged;
+  cmdInfo.cmdData.receive.ts = bcm_pkt->rx_timestamp;       //PTIN added
   pktRxMsg.cmdInfo = cmdInfo;
   pktRxMsg.cos = bcm_pkt->cos;
 

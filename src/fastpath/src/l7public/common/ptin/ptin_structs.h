@@ -4,6 +4,7 @@
 #include "ptin_globaldefs.h"
 #include "commdefs.h"
 #include "dapi.h"
+#include <ethsrv_oam.h>
 
 /* Used for packet processing timing measure */
 typedef struct
@@ -983,5 +984,14 @@ typedef struct
 
 } st_ptin_l3;
 
+
+
+
+
+typedef struct {
+    unsigned short  imep;
+    T_MEP_HDR       m;
+    T_MEP_LM        lm;
+} hapi_mep_t;
 #endif /* _PTIN_STRUCTS_H */
 
