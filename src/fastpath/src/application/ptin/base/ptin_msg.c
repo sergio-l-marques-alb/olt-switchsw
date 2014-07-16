@@ -4857,8 +4857,9 @@ L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *
    }
    else if ( ptinIpAddr->family == PTIN_AF_INET6 )
    {
-      fpIpAddr->family = L7_AF_INET6;
-      inetAddressSet(L7_AF_INET6, &ptinIpAddr->addr.ipv6, fpIpAddr);                
+      L7_in6_addr_t ipv6Addr;      
+      memcpy(ipv6Addr.in6.addr8, ptinIpAddr->addr.ipv6, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));      
+      inetAddressSet(L7_AF_INET6, &ipv6Addr, fpIpAddr);                
       return L7_SUCCESS;
    }
    else

@@ -388,7 +388,7 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
 
   if(ipAddr->family == L7_AF_INET)
   {
-    /* Validate IP address. Don't allow 0, mcast or above, loopback. */
+    /* Validate IPv4 address. Don't allow 0, mcast or above, loopback. */
     if ((ipAddr->addr.ipv4.s_addr == 0) ||
         (ipAddr->addr.ipv4.s_addr >= (L7_uint32)L7_CLASS_D_ADDR_NETWORK) ||
         (((ipAddr->addr.ipv4.s_addr & 0xff000000) >> 24) == 127))
@@ -398,11 +398,18 @@ L7_RC_t ipsgStaticEntryAdd(L7_uint32 intIfNum,
   }
   else
   {
-    return L7_NOT_IMPLEMENTED_YET;
+    /* Validate IPv6 address. Don't allow 0, mcast, loopback and link local. */
+    if ( (inetIsAddressZero(ipAddr) == L7_TRUE) || 
+         (inetIsInMulticast(ipAddr) == L7_TRUE) ||
+         (L7_IP6_IS_ADDR_LOOPBACK(ipAddr->addr.ipv6.in6.addr32) == L7_TRUE) ||
+         (L7_IP6_IS_ADDR_LINK_LOCAL(ipAddr->addr.ipv6.in6.addr32) == L7_TRUE) )
+    {
+      return L7_ERROR;
+    }
   }
 
   /* Validate MAC address */
-  if (/*(memcmp(macAddr, nullMacAddr, L7_ENET_MAC_ADDR_LEN) == 0) ||*/
+  if ((memcmp(macAddr, nullMacAddr, L7_ENET_MAC_ADDR_LEN) == 0) ||
       ((macAddr->addr[0] & 1) == 1))
   {
     /* Don't allow the following invalid MAC addresses:
@@ -519,11 +526,18 @@ L7_RC_t ipsgStaticEntryRemove(L7_uint32 intIfNum,
   }
   else
   {
-    return L7_NOT_IMPLEMENTED_YET;
+    /* Validate IPv6 address. Don't allow 0, mcast, loopback and link local. */
+    if ( (inetIsAddressZero(ipAddr) == L7_TRUE) || 
+         (inetIsInMulticast(ipAddr) == L7_TRUE) ||
+         (L7_IP6_IS_ADDR_LOOPBACK(ipAddr->addr.ipv6.in6.addr32) == L7_TRUE) ||
+         (L7_IP6_IS_ADDR_LINK_LOCAL(ipAddr->addr.ipv6.in6.addr32) == L7_TRUE) )
+    {
+      return L7_ERROR;
+    }
   }
 
   /* Validate MAC address */
-  if (/*(memcmp(macAddr, nullMacAddr, L7_ENET_MAC_ADDR_LEN) == 0) ||*/
+  if ((memcmp(macAddr, nullMacAddr, L7_ENET_MAC_ADDR_LEN) == 0) ||
       ((macAddr->addr[0] & 1) == 1))
   {
     /* Don't allow the following invalid MAC addresses:
