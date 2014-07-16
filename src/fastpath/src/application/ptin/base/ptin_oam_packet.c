@@ -22,6 +22,7 @@
 L7_uchar8 ccmMacAddr[L7_MAC_ADDR_LEN] = {0x01,0x80,0xC2,0x00,0x00,0x37};  // Last Nibble is the MEG Level -> Fixed = 7
 
 #include <unistd.h>
+#include <arpa/inet.h>
 
 /* Maximum number of messages APS in queue */
 #define PTIN_APS_PACKET_MAX_MESSAGES  128
@@ -747,7 +748,7 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8
   aps_frame.vlan_tag[1]               = 0x00;
   aps_frame.vlan_tag[2]               = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
   aps_frame.vlan_tag[3]               = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
-  aps_frame.etherType                 = L7_ETYPE_CFM;
+  aps_frame.etherType                 = htons(L7_ETYPE_CFM);
 
   aps_frame.aspmsg.mel_version        = 0x21;  // MEG Level 1; Version 1
   aps_frame.aspmsg.opCode             = 40;
