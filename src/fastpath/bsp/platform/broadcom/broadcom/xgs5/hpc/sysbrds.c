@@ -331,6 +331,7 @@ L7_RC_t hpcConfigBoardSet()
         LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
         #endif
 
+      #if (SDK_VERSION_IS < SDK_VERSION(6,3,7,0))
         if (sal_config_set(spn_PORT_PHY_ADDR"_1",  "0xff") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORT_PHY_ADDR"_2",  "0xff") != 0) return(L7_FAILURE);
         if (sal_config_set(spn_PORT_PHY_ADDR"_3",  "0xff") != 0) return(L7_FAILURE);
@@ -430,6 +431,7 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set("phy_wcmod_47", "0") != 0) return(L7_FAILURE);
         if (sal_config_set("phy_wcmod_48", "0") != 0) return(L7_FAILURE);
         if (sal_config_set("phy_wcmod_49", "0") != 0) return(L7_FAILURE);
+      #endif
 
 #ifdef L7_STACKING_PACKAGE
         /* On Stacking packages, restrict FDB size to 16K MAX for FB2. */
