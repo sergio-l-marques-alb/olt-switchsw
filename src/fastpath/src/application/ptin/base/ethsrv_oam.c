@@ -22,6 +22,8 @@
 
 extern unsigned short htons(unsigned short host_value); //Endianess compatibility
 extern unsigned short ntohs(unsigned short netw_value);
+extern unsigned long htonl(unsigned long host_value);
+extern unsigned long ntohl(unsigned long netw_value);
 //these functions return argument as is in BIG, inverted in LITTLE ENDIAN machines
 
 //OWN TYPES/VARIABLES/OBJECTS***********************************************************
@@ -921,7 +923,7 @@ ETH_LMM_OAM_DATAGRM lmm, *p_lmm;
  p_lmm->TLV_offset=             12;
  //p_lmm->RxFCf= p_lmm->TxFCb=    0;
  p_lmm->end_TLV=                0;
- p_lmm->TxFCf=                  rd_TxFCl(i_mep);
+ p_lmm->TxFCf=                  htonl(rd_TxFCl(i_mep));
 
  return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmm, sizeof(ETH_LMM_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
 }//send_lmm
@@ -956,7 +958,7 @@ ETH_LMR_OAM_DATAGRM lmr, *p_lmr;
  p_lmr->TxFCf=                  p_lmm->TxFCf;
  p_lmr->RxFCf=                  p_lmm->RxFCf;   //Our side set this on the PDU, @LMM reception
  p_lmr->end_TLV=                0;
- p_lmr->TxFCb=                  rd_TxFCl(i_mep);
+ p_lmr->TxFCb=                  htonl(rd_TxFCl(i_mep));
 
  return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_lmr, sizeof(ETH_LMR_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
 }//send_lmr
@@ -1020,7 +1022,7 @@ T_RPL_IN_ID_TLV     *p_rpl_id;
  if (v2008(i_eg_id_tlv)) {
      p_eg_id=                   ltr.tlvs.nxt_TLV;
      p_eg_id->type=             LTR_EG_ID_TLV_TYPE;
-     p_eg_id->len=              TLV_LENGTH(T_LTR_EG_ID_TLV);
+     p_eg_id->len=              htons(TLV_LENGTH(T_LTR_EG_ID_TLV));
 
      {
       T_LTM_EG_ID_TLV *ltm_eg_id;
@@ -1036,7 +1038,7 @@ T_RPL_IN_ID_TLV     *p_rpl_id;
  }
 
  p_rpl_id->type=            REPLY_IN_TLV_TYPE   REPLY_EG_TLV_TYPE
- p_rpl_id->len=             TLV_LENGTH(T_RPL_IN_ID_TLV);
+ p_rpl_id->len=             htons(TLV_LENGTH(T_RPL_IN_ID_TLV));
  p_rpl_id-
 
  return 0;
@@ -1358,7 +1360,7 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 
 
      //Response to an LMM
-     p_lmm->RxFCf = RxFCl;
+     p_lmm->RxFCf = htonl(RxFCl);
      send_lmr(i_mep, (T_MEP_HDR *)_p_mep, (ETH_LMM_OAM_DATAGRM *)p_lmm, pSMAC);
  }
  return 0;
@@ -1418,9 +1420,9 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 
         //last photo
         p = &_p_mep_lm->lm[iLMlast(++_p_mep_lm->tog_iLM)];
-        p->tx      = p_lmr->TxFCf;
-        p->rx_peer = p_lmr->RxFCf;
-        p->tx_peer = p_lmr->TxFCb;
+        p->tx      = ntohl(p_lmr->TxFCf);
+        p->rx_peer = ntohl(p_lmr->RxFCf);
+        p->tx_peer = ntohl(p_lmr->TxFCb);
         p->rx      = RxFCl;
 
         {//if iLM0 still unwritten (1st photo)...
@@ -1593,16 +1595,18 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 /*
 static u32 iTLV_search(ETH_SRV_OAM_DATAGRM *p, u32 oam_len, u8 TLV_type) {
 u32 i;
-T_GEN_TLV *p2;
+T_GEN_TLV *p2; 
+u16 len; 
 
  //for (i=(u8)&p->TLV_offset-(u8)p +1+ p->TLV_offset; i<oam_len;) {
  for (i=offsetof(ETH_SRV_OAM_DATAGRM,TLV_offset) +1+ p->TLV_offset; i<oam_len;) {
      p2=(T_GEN_TLV*)    &((u8*)p)[i];
+     len=ntohs(p2->len);
      if (TLV_type==p2->type) {  //found
-         if (i+p2->len+H>=oam_len) return 0UL-1;
+         if (i+len+H>=oam_len) return 0UL-1;
          return i;
      }
-     i+=p2->len+H;
+     i+=len+H;
  }
  return 0UL-1;  //not found
 }//iTLV
