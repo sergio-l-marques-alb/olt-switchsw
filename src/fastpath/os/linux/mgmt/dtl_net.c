@@ -60,7 +60,7 @@
   #include "usmdb_common.h"
 
 /* PTin added: inband */
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_OLT1T0) )
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #define __SUPPORT_FP_ROUTING__                1
 #define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
@@ -856,7 +856,7 @@ void dtlNetInit(void)
   *Inidicate that this is a tap interface
   *and that we provide no additional packet information
   */
- ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+ ifr.ifr_flags = IFF_TAP | IFF_NO_PI | TUN_ONE_QUEUE ;
  if(ioctl(dtl_net_fd,TUNSETIFF,&ifr) < 0)
  {
     SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to create corresponding dtl net ifc\n");
