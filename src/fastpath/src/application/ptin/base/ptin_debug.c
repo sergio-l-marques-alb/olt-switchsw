@@ -513,23 +513,7 @@ void ptin_intf_dump(void)
     }
 
     /* Switch port: ge/xe (indexes changed according to the board) */
-#if 0
-#if (PTIN_BOARD == PTIN_BOARD_CXP360G) || (PTIN_BOARD == PTIN_BOARD_CXO640G)
-    sprintf(bcm_port_str, "xe%u", bcm_port - 1);
-#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-    sprintf(bcm_port_str, "%2.2s%u",
-            (speed_mode==L7_PORTCTRL_PORTSPEED_FULL_10GSX || speed_mode==L7_PORTCTRL_PORTSPEED_FULL_40G_KR4) ? "xe" : "ge",
-            (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 54 : bcm_port - 1);
-#elif (PTIN_BOARD == PTIN_BOARD_TOLT8G) || (PTIN_BOARD == PTIN_BOARD_TG16G)
-    sprintf(bcm_port_str, "%2.2s%u",
-            speed_mode == L7_PORTCTRL_PORTSPEED_FULL_10GSX ? "xe" : "ge",
-            (1<<port) & PTIN_SYSTEM_10G_PORTS_MASK ? bcm_port - 26 : bcm_port - 30);
-#else
-    sprintf(bcm_port_str, "xe??");
-#endif
-#else
     sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[port].portName);
-#endif
 
     printf("| %-6.6s| %2u/%-2u|  %2u  |  %2u | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s | %15llu B %11llu bps | %15llu B %11llu bps |\r\n",
            board_id_str, slot, sport,
