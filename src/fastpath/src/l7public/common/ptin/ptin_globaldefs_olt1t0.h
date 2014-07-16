@@ -24,6 +24,11 @@
 # define PTIN_SYSTEM_N_PORTS_AND_LAGS  max(PTIN_SYSTEM_N_PORTS, PTIN_SYSTEM_N_LAGS)
 # define PTIN_SYSTEM_N_INTERF          (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS)
 
+# define PTIN_SYSTEM_PROTECTION_LAGID_BASE  10
+
+/* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
+#define LAG_DIRECT_CONTROL_FEATURE  1
+
 # define PTIN_SYSTEM_PON_PRIO          1    /* MAC Learning priority (station move is allowed over same prio) */
 # define PTIN_SYSTEM_UPLINK_PRIO       2    /* MAC Learning priority (station move is allowed over same prio) */
 

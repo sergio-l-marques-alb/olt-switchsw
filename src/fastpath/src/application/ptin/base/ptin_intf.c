@@ -30,11 +30,12 @@
 /* Uplink protection */
 #if (PTIN_BOARD_IS_MATRIX)
 static L7_uint64 forcelinked_ports_bmp        = 0;
+#endif
+
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
 static L7_uint64 uplink_protection_ports_bmp  = 0;
 static L7_uint64 uplink_protection_ports_active_bmp = 0;
 static L7_uint64 lag_uplink_protection_ports_bmp[PTIN_SYSTEM_N_LAGS - PTIN_SYSTEM_PROTECTION_LAGID_BASE +1];
-#endif
 #endif
 
 L7_BOOL linkscan_update_control = L7_TRUE;
@@ -258,9 +259,12 @@ L7_RC_t ptin_intf_init(void)
     }
   }
 
-#if (PTIN_BOARD_IS_MATRIX) && defined (PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+#if (PTIN_BOARD_IS_MATRIX)
   /* Clear structures */
   forcelinked_ports_bmp = 0;
+#endif
+#ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
+  /* Clear structures */
   uplink_protection_ports_bmp = 0;
   uplink_protection_ports_active_bmp = 0;
   memset(lag_uplink_protection_ports_bmp, 0x00, sizeof(lag_uplink_protection_ports_bmp));
@@ -1294,7 +1298,7 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
 
 #else
   /* Validate port */
-  if (slot != 0 || port >= ptin_sys_number_of_ports)
+  if (port >= ptin_sys_number_of_ports)
   {
     return L7_FAILURE;
   }
@@ -1968,7 +1972,7 @@ L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo)
  */
 L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port)
 {
-#if (PTIN_BOARD_IS_MATRIX) && defined (PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+#ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   return (((uplink_protection_ports_bmp >> ptin_port) & 1) == 1);
 #else
   return L7_FALSE;
@@ -1986,7 +1990,7 @@ L7_BOOL ptin_intf_is_uplinkProtection(L7_uint32 ptin_port)
  */
 L7_BOOL ptin_intf_is_uplinkProtectionActive(L7_uint32 ptin_port)
 {
-  #if (PTIN_BOARD_IS_MATRIX) && defined(PTIN_SYSTEM_PROTECTION_LAGID_BASE)
+  #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   return (((uplink_protection_ports_active_bmp >> ptin_port) & 1) == 1); 
   #else
   return L7_FALSE;
@@ -2047,7 +2051,6 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   }
 
   /* Uplink protection */
-#if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   /* For Uplink ports, only disable linkscan and force link */
   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
@@ -2176,7 +2179,6 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     LOG_WARNING(LOG_CTX_PTIN_INTF, "Protection LAG %u configured", lag_idx);
     return L7_SUCCESS;
   }
-#endif
 #endif
 
   /* If members list is empty, report error */
@@ -2724,7 +2726,6 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   }
 
   /* Uplink protection */
-#if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   L7_uint   port;
 
@@ -2782,7 +2783,6 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
     LOG_WARNING(LOG_CTX_PTIN_INTF, "Protection lag %u removed", lag_idx);
     return L7_SUCCESS;
   }
-#endif
 #endif
 
   /* Check if LAG really exists */
@@ -2919,7 +2919,6 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   /* Protection lag */
   if (lag_idx >= PTIN_SYSTEM_PROTECTION_LAGID_BASE)
@@ -2932,7 +2931,7 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   }
   else
 #endif
-#endif
+
   /* Normal LAGs */
   {
     if (ptin_intf_lag2intIfNum(lag_idx, &lag_intf) != L7_SUCCESS)
@@ -5024,7 +5023,6 @@ L7_BOOL ptin_intf_is_internal_lag_member(L7_uint32 intIfNum)
  */
 L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
 {
-#if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   L7_uint lag_idx;
   L7_uint32 ptin_port, intIfNum, lag_intIfNum;
@@ -5093,7 +5091,6 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
     LOG_TRACE(LOG_CTX_PTIN_INTF, "intIfNum %u (ptin_port %u) removed from lag_intIfNum %u (lag_idx=%u)", intIfNum, ptin_port, lag_intIfNum, lag_idx);
   }
 #endif
-#endif
 
   return L7_SUCCESS;
 }
@@ -5110,7 +5107,6 @@ L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd)
  */
 L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
 {
-#if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   L7_uint32 ptin_port, intIfNum;
   L7_RC_t rc;
@@ -5199,7 +5195,6 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
   #endif
   }
 #endif
-#endif
 
   return L7_SUCCESS;
 }
@@ -5216,7 +5211,6 @@ L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd)
  */
 L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_uint slot_new, L7_uint port_new)
 {
-#if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_SYSTEM_PROTECTION_LAGID_BASE
   L7_uint32 ptin_port_old, ptin_port_new;
   L7_uint32 intIfNum_old, intIfNum_new;
@@ -5300,7 +5294,6 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   rc = L7_SUCCESS; /* avoid warning */
 #endif
 #endif
-#endif
 
   return L7_SUCCESS;
 }
@@ -5370,7 +5363,7 @@ int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
    /* Interface should be a LAG */
    if (dusp->slot != L7_LAG_SLOT_NUM)
    {
-     LOG_ERR(LOG_CTX_PTIN_INTF, "usp {%d,%d,%d} is not a LAG", usp.unit, usp.slot, usp.port);
+     LOG_ERR(LOG_CTX_PTIN_INTF, "usp {%d,%d,%d} is not a LAG", dusp->unit, dusp->slot, dusp->port);
      return L7_FALSE;
    }
 
