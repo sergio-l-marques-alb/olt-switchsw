@@ -779,18 +779,24 @@ typedef struct {
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
 
+#define MULTICAST_ADMISSION_CONTROL_SUPPORT 0
 /* EVC flow */
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 typedef struct {
-  L7_uint8  SlotId;
-  L7_uint32 evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  L7_uint32 flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
-                            // 0x000200 - IGMP protocol (PTin custom field)
-                            // 0x000400 - PPPOE protocol (PTin custom field)
+  L7_uint8             SlotId;
+  L7_uint32            evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32            flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
+                                // 0x000200 - IGMP protocol (PTin custom field)
+                                // 0x000400 - PPPOE protocol (PTin custom field)
   /* Flow information */
-  L7_uint16 nni_cvlan;    // NNI inner vlan
-  msg_HwEthIntf_t intf;   // Outer vlan is the GEM id
-  L7_uint8  macLearnMax;  // Maximum number of Learned MAC addresses
+  L7_uint16            nni_cvlan;    // NNI inner vlan
+  msg_HwEthIntf_t      intf;         // Outer vlan is the GEM id
+  L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
+#if MULTICAST_ADMISSION_CONTROL_SUPPORT          
+  L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
+  L7_uint32            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+#endif
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /* EVC port add/remove */
@@ -1238,7 +1244,12 @@ typedef struct {
 typedef struct {
   L7_uint8             SlotId;
   L7_uint32            mcEvcId;                 /* Multicast EVC Id */
-  msg_client_info_t client;                /* Client identification */
+  msg_client_info_t    client;                  /* Client identification */
+#if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
+  L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
+  L7_uint32            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+#endif
 } __attribute__((packed)) msg_IgmpClient_t;
 
 /***************************************************** 
@@ -1372,30 +1383,30 @@ typedef struct _st_ClientIgmpStatistics
 // Messages CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET or CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD and CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE
 typedef struct _msg_MCAssocChannel_t
 {
-  L7_uint8  SlotId;                     // slot
-  L7_uint32 evcid_mc;                   // index: EVCid (MC)      /* L7_uint32 */
-  L7_uint16 entry_idx;                  // Entry index: only for readings
-  chmessage_ip_addr_t channel_dstIp;    // IP do canal a adicionar/remover
-  L7_uint8            channel_dstmask;  // MAscara do canal em numero de bits (LSB)
-  chmessage_ip_addr_t channel_srcIp;    // IP source 
-  L7_uint8            channel_srcmask;  // MAscara do IP source em numero de bits (LSB)
+  L7_uint8             SlotId;                     // slot
+  L7_uint32            evcid_mc;                   // index: EVCid (MC)      /* L7_uint32 */
+  L7_uint16            entry_idx;                  // Entry index: only for readings
+  chmessage_ip_addr_t  channel_dstIp;    // IP do canal a adicionar/remover
+  L7_uint8             channel_dstmask;  // MAscara do canal em numero de bits (LSB)
+  chmessage_ip_addr_t  channel_srcIp;    // IP source 
+  L7_uint8             channel_srcmask;  // MAscara do IP source em numero de bits (LSB)
+  L7_uint64            channelBandwidth;  // bit/s 
 } __attribute__((packed)) msg_MCAssocChannel_t;
 
-/*To support adding a Static Source please change 0 to 1*/
-#if 0 
-#define PTIN_IGMP_STATIC_SOURCE_SUPPORT
-#endif
+/*To disable adding a Static Source please change 1 to 0*/
+#define PTIN_IGMP_STATIC_SOURCE_SUPPORT 1
 
 /* To add or remove a static channel */
 // Messages CCMSG_ETH_IGMP_STATIC_GROUP_ADD and CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
 typedef struct _msg_MCStaticChannel_t
 {
-  L7_uint8  SlotId;                    // slot
-  L7_uint32 evc_id;                    // index: EVCid      /* L7_uint32 */
-  msg_in_addr_t channelIp;             // IP of the Multicast Group
+  L7_uint8        SlotId;                    // slot
+  L7_uint32       evc_id;                    // index: EVCid      /* L7_uint32 */
+  msg_in_addr_t   channelIp;                 // IP of the Multicast Group
 #if PTIN_IGMP_STATIC_SOURCE_SUPPORT
-  msg_in_addr_t sourceIp;
-#endif               //  IP of the Multicast Source
+  msg_in_addr_t   sourceIp;                  //  IP of the Multicast Source
+#endif              
+  L7_uint64       channelBandwidth;         // bit/s 
 } __attribute__((packed)) msg_MCStaticChannel_t;
 
 /* To List all channels */
