@@ -98,7 +98,7 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
   event       = eventInfo.event;
   correlator  = eventInfo.correlator;
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", event, intIfNum);
+  LOG_TRACE(LOG_CTX_EVENTS, "dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", event, intIfNum);
 
   if (dot3adIsValidIntf(intIfNum) == L7_FALSE)
   {
@@ -107,7 +107,7 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
      * set the return code for the callback 
      */
     rc = L7_SUCCESS;
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Not Valid interface: intIfNum=%u", intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "Not Valid interface: intIfNum=%u", intIfNum);
   }
   else
   {
@@ -115,18 +115,18 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
     if (tempRc != L7_SUCCESS)
     {
 	 rc = L7_SUCCESS;
-     LOG_INFO(LOG_CTX_PTIN_INTF, "Error: intIfNum=%u", intIfNum);
+     LOG_TRACE(LOG_CTX_EVENTS, "Error: intIfNum=%u", intIfNum);
     }
     tempRc = nimGetIntfLinkState(intIfNum, &linkState);
     if (tempRc != L7_SUCCESS)
     {
 	  rc = L7_SUCCESS;
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Error: intIfNum=%u", intIfNum);
+      LOG_TRACE(LOG_CTX_EVENTS, "Error: intIfNum=%u", intIfNum);
     }
 
     if (tempRc == L7_SUCCESS)
     {
-    LOG_INFO(LOG_CTX_PTIN_INTF, "switch: event=%u, intIfNum=%u", event, intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "switch: event=%u, intIfNum=%u", event, intIfNum);
     dot3adIntfEventTrace(intIfNum,event);
     switch (event)
     {
@@ -263,11 +263,11 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
 
   } /* valid interface */
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "finishing: rc=%u, performNimCallback=%u", rc, performNimCallback);
+  LOG_TRACE(LOG_CTX_EVENTS, "finishing: rc=%u, performNimCallback=%u", rc, performNimCallback);
 
   if (performNimCallback == L7_TRUE)
   {
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Going to call nimEventStatusCallback: intIfNum=%u", intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "Going to call nimEventStatusCallback: intIfNum=%u", intIfNum);
 
     eventInfo.response.rc = rc;
     eventInfo.response.reason = NIM_ERR_RC_UNUSED;
@@ -275,11 +275,11 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
     /* tell NIM that we are done processing the event */
     nimEventStatusCallback(eventInfo);
 
-    LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback called: intIfNum=%u", intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "nimEventStatusCallback called: intIfNum=%u", intIfNum);
   }
   else
   {
-    LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback NOT called: intIfNum=%u", intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "nimEventStatusCallback NOT called: intIfNum=%u", intIfNum);
   }
 
   return L7_SUCCESS;
@@ -305,7 +305,7 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
 
 
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "dot3adIntfChangeCallBack: event=%u, intIfNum=%u", event, intIfNum);
+  LOG_TRACE(LOG_CTX_EVENTS, "dot3adIntfChangeCallBack: event=%u, intIfNum=%u", event, intIfNum);
 
   if (event != L7_PORT_ENABLE &&
       event != L7_UP &&
@@ -324,7 +324,7 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
     status.event        = event;
     status.correlator   = correlator;
 
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Error: event=%u, intIfNum=%u", event, intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "Error: event=%u, intIfNum=%u", event, intIfNum);
 
     nimEventStatusCallback(status);
     return L7_SUCCESS;
@@ -344,13 +344,13 @@ L7_RC_t dot3adIntfChangeCallBack(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELA
 
   L7_int32 numMsg = -1;
   osapiMsgQueueGetNumMsgs(dot3ad_queue, &numMsg);
-  LOG_INFO(LOG_CTX_PTIN_INTF, "Going to send message: event=%u, intIfNum=%u, msg_count=%d", event, intIfNum, numMsg);
+  LOG_TRACE(LOG_CTX_EVENTS, "Going to send message: event=%u, intIfNum=%u, msg_count=%d", event, intIfNum, numMsg);
 
   rc = osapiMessageSend(dot3ad_queue, &msg, (L7_uint32)DOT3AD_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
 
   numMsg = -1;
   osapiMsgQueueGetNumMsgs(dot3ad_queue, &numMsg);
-  LOG_INFO(LOG_CTX_PTIN_INTF, "Message sent: msg_count=%d, rc=%d", numMsg, rc);
+  LOG_TRACE(LOG_CTX_EVENTS, "Message sent: msg_count=%d, rc=%d", numMsg, rc);
 
   return rc;
 }
@@ -667,7 +667,7 @@ void dot3ad_lac_task()
 
     if (msg.event == lacNimIntfChange)
     {
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Message received: event=%u, intIfNum=%u", msg.event, msg.intfData.nimInfo.intIfNum);
+      LOG_TRACE(LOG_CTX_EVENTS, "Message received: event=%u, intIfNum=%u", msg.event, msg.intfData.nimInfo.intIfNum);
     }
 
     rc = osapiSemaTake(dot3adTaskSyncSema, L7_WAIT_FOREVER);
@@ -1052,7 +1052,7 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
     break;
 
     case lacNimIntfChange:
-      LOG_INFO(LOG_CTX_PTIN_INTF, "Dispatching message-dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", msg.intfData.nimInfo.event, msg.intfData.nimInfo.intIfNum);
+      LOG_TRACE(LOG_CTX_EVENTS, "Dispatching message-dot3adIntfChangeCallBackProcess: event=%u, intIfNum=%u", msg.intfData.nimInfo.event, msg.intfData.nimInfo.intIfNum);
       rc = dot3adIntfChangeCallBackProcess(msg.intfData.nimInfo);
       break;
 

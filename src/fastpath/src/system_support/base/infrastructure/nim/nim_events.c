@@ -278,7 +278,7 @@ L7_RC_t nimNotifyIntfChange(L7_uint32 intIfNum, L7_uint32 event)
   if ((returnVal = nimEventIntfNotify(eventInfo,&handle)) != L7_SUCCESS)
   {
     NIM_LOG_MSG("NIM: Failed to send PORT EVENT on NIM_QUEUE\n");
-    LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Failed to send PORT EVENT on NIM_QUEUE (intIfNum=%u)", intIfNum);
+    LOG_ERR(LOG_CTX_EVENTS, "NIM: Failed to send PORT EVENT on NIM_QUEUE (intIfNum=%u)", intIfNum);
   }
   else
   {
@@ -1013,7 +1013,7 @@ void nimTask()
           break;
 
         case NIM_MSG:
-          LOG_INFO(LOG_CTX_PTIN_INTF, "Going to call nimNotifyUserOfIntfChange: intIfNum=%u", nmpdu.data.message.eventInfo.intIfNum);
+          LOG_TRACE(LOG_CTX_EVENTS, "Going to call nimNotifyUserOfIntfChange: intIfNum=%u", nmpdu.data.message.eventInfo.intIfNum);
           if (nimNotifyUserOfIntfChange(nmpdu.data.message.correlator,nmpdu.data.message.eventInfo) != L7_SUCCESS)
           {
             LOG_FATAL(LOG_CTX_MISC,"NIM: Failed to notify users of interface change: event=%u, intIfNum=%u",
@@ -1060,7 +1060,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
   L7_BOOL   done = L7_FALSE;
   NIM_EVENT_STATUS_MSG_t msg = { 0 };
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "nimEventStatusCallback: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
+  LOG_TRACE(LOG_CTX_EVENTS, "nimEventStatusCallback: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
 
   osapiSemaTake(nimEventSema,L7_WAIT_FOREVER);
 
@@ -1071,7 +1071,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
   if ((rc = nimEventTally(status,&done)) != L7_SUCCESS)
   {
     NIM_LOG_MSG("NIM: Error in the tally routine\n");
-    LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Error in the tally routine: Event=%u, intIfNum=%u", status.event, status.intIfNum);
+    LOG_ERR(LOG_CTX_EVENTS, "NIM: Error in the tally routine: Event=%u, intIfNum=%u", status.event, status.intIfNum);
   }
   else if (done == L7_TRUE)
   {
@@ -1083,7 +1083,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
     msg.intIfNum   = status.intIfNum;
     msg.response   = correlatorTable.response;
 
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Sending event: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
+    LOG_TRACE(LOG_CTX_EVENTS, "Sending event: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
 
     rc = osapiMessageSend(pNimEventStatusQueue,
                           &msg,
@@ -1094,7 +1094,7 @@ void nimEventStatusCallback(NIM_EVENT_COMPLETE_INFO_t status)
     if (rc != L7_SUCCESS)
     {
       NIM_LOG_MSG("failed to put status on queue");
-      LOG_ERR(LOG_CTX_PTIN_INTF, "failed to put status on queue: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
+      LOG_ERR(LOG_CTX_EVENTS, "failed to put status on queue: Component=%u, Event=%u, intIfNum=%u", status.component, status.event, status.intIfNum);
     }
 
   }
@@ -1131,30 +1131,30 @@ L7_RC_t nimEventIntfNotify(NIM_EVENT_NOTIFY_INFO_t eventInfo, NIM_HANDLE_t *pHan
   NIM_CORRELATOR_t *correlator;
   correlator = pHandle;
 
-  LOG_INFO(LOG_CTX_PTIN_INTF, "Event=%u: intIfNum=%u", eventInfo.event, eventInfo.intIfNum);
+  LOG_TRACE(LOG_CTX_EVENTS, "Event=%u: intIfNum=%u", eventInfo.event, eventInfo.intIfNum);
 
   /* validate the data */
   if (pHandle == L7_NULL)
   {
     rc = L7_FAILURE;
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error: intIfNum=%u", eventInfo.intIfNum);
+    LOG_ERR(LOG_CTX_EVENTS, "Error: intIfNum=%u", eventInfo.intIfNum);
   }
   else if (eventInfo.component >= L7_LAST_COMPONENT_ID)
   {
     rc = L7_FAILURE;
     NIM_LOG_MSG("NIM: Component(%d) out of range in nimEventIntfNotify\n",eventInfo.component);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Component(%d) out of range in nimEventIntfNotify (intIfNum=%u)",eventInfo.component, eventInfo.intIfNum);
+    LOG_ERR(LOG_CTX_EVENTS, "NIM: Component(%d) out of range in nimEventIntfNotify (intIfNum=%u)",eventInfo.component, eventInfo.intIfNum);
   }
   else if (eventInfo.event >= L7_LAST_PORT_EVENT)
   {
     rc = L7_FAILURE;
     NIM_LOG_MSG("NIM: Event(%d) out of range in nimEventIntfNotify\n",eventInfo.event);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Event(%d) out of range in nimEventIntfNotify (intIfNum=%u)",eventInfo.event, eventInfo.intIfNum);
+    LOG_ERR(LOG_CTX_EVENTS, "NIM: Event(%d) out of range in nimEventIntfNotify (intIfNum=%u)",eventInfo.event, eventInfo.intIfNum);
   }
   else if ((rc = nimEventCorrelatorCreate(correlator)) != L7_SUCCESS)
   {
     NIM_LOG_MSG("NIM: Failed to get a correlator in nimNotify\n");
-    LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Failed to get a correlator in nimNotify (intIfNum=%u)", eventInfo.intIfNum);
+    LOG_ERR(LOG_CTX_EVENTS, "NIM: Failed to get a correlator in nimNotify (intIfNum=%u)", eventInfo.intIfNum);
     rc = L7_FAILURE;
   }
   else
@@ -1178,7 +1178,7 @@ L7_RC_t nimEventIntfNotify(NIM_EVENT_NOTIFY_INFO_t eventInfo, NIM_HANDLE_t *pHan
                           (L7_uint32)sizeof(nimPdu_t), L7_WAIT_FOREVER, L7_MSG_PRIORITY_NORM ) == L7_ERROR)
     {
       NIM_LOG_MSG("NIM: failed to send message to NIM message Queue.\n");
-      LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: failed to send message to NIM message Queue (intIfNum=%u)", eventInfo.intIfNum);
+      LOG_ERR(LOG_CTX_EVENTS, "NIM: failed to send message to NIM message Queue (intIfNum=%u)", eventInfo.intIfNum);
       nimTraceEventError(eventInfo.component,eventInfo.event,eventInfo.intIfNum,NIM_ERR_LAST);
       rc = L7_FAILURE;
     }
@@ -1480,7 +1480,7 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
   {
     NIM_LOG_ERROR("NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)\n",
                   status.correlator,status.event,status.intIfNum);
-    LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)",
+    LOG_ERR(LOG_CTX_EVENTS, "NIM: Unexpected status callback on correlator(%d), event(%d), intIf(%d)",
              status.correlator,status.event,status.intIfNum);
     rc = L7_FAILURE;
   }
@@ -1495,7 +1495,7 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
 
     *complete = (mask == 0)?L7_TRUE:L7_FALSE;
 
-    LOG_INFO(LOG_CTX_PTIN_INTF, "component=%u, event=%u, intIfNum=%u: mask=0x%08x",
+    LOG_TRACE(LOG_CTX_EVENTS, "component=%u, event=%u, intIfNum=%u: mask=0x%08x",
              status.component, status.event, status.intIfNum, mask);
 
     if (status.response.rc != L7_SUCCESS)
@@ -1504,7 +1504,7 @@ L7_RC_t nimEventTally(NIM_EVENT_COMPLETE_INFO_t status,L7_BOOL *complete)
       correlatorTable.failedMask[intIndex] |= (1 << bitIndex);
       NIM_LOG_ERROR("NIM: Component(%d) failed on event(%d) for intIfNum(%d)\n",
                     status.component,status.event,status.intIfNum);
-      LOG_ERR(LOG_CTX_PTIN_INTF, "NIM: Component(%d) failed on event(%d) for intIfNum(%d)",
+      LOG_ERR(LOG_CTX_EVENTS, "NIM: Component(%d) failed on event(%d) for intIfNum(%d)",
                status.component,status.event,status.intIfNum);
     }
   }

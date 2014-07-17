@@ -54,6 +54,7 @@ typedef enum {
     LOG_CTX_OAM,
     LOG_CTX_ERPS,
     LOG_CTX_IPSG,
+    LOG_CTX_EVENTS,
     LOG_CTX_SDK,
     LOG_CTX_STARTUP,    
     /* Last element */
@@ -81,6 +82,15 @@ typedef enum {
     LOG_BRIGHT_MAGENTA,
     LOG_BRIGHT_CYAN,
     LOG_BRIGHT_WHITE,
+    /* Dark */
+    LOG_DARK_BLACK,
+    LOG_DARK_RED,
+    LOG_DARK_GREEN,
+    LOG_DARK_YELLOW,
+    LOG_DARK_BLUE,
+    LOG_DARK_MAGENTA,
+    LOG_DARK_CYAN,
+    LOG_DARK_WHITE,
     /* Last element */
     LOG_COLOR_LAST,
 } log_color_t;

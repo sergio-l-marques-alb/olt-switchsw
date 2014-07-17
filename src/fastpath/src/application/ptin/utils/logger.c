@@ -67,6 +67,7 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
     "OAM  ",
     "ERPS ",
     "IPSG ",
+    "EVENT",
     "SDK  ",
     "START",    
 };
@@ -104,6 +105,14 @@ static char *log_colors[LOG_COLOR_LAST] = {
     "\x1B[01;35m",  /* Bright Magenta */
     "\x1B[01;36m",  /* Bright Cyan */
     "\x1B[01;37m"   /* Bright White */
+    "\x1B[02;30m",  /* Dark Black */
+    "\x1B[02;31m",  /* Dark Red */
+    "\x1B[02;32m",  /* Dark Green */
+    "\x1B[02;33m",  /* Dark Yellow */
+    "\x1B[02;34m",  /* Dark Blue */
+    "\x1B[02;35m",  /* Dark Magenta */
+    "\x1B[02;36m",  /* Dark Cyan */
+    "\x1B[02;37m"   /* Dark White */
 };
 
 /* Colors escape string */
@@ -125,29 +134,37 @@ static char *log_colors_str[LOG_COLOR_LAST] = {
     "Bright Magenta",
     "Bright Cyan",
     "Bright White",
+    "Dark Black",
+    "Dark Red",
+    "Dark Green",
+    "Dark Yellow",
+    "Dark Blue",
+    "Dark Magenta",
+    "Dark Cyan",
+    "Dark White",
 };
 
 /* Logger default configuration
  * NOTE: it is assumed that entries are sorted by context indexes! */
 static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_LOGGER,            LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_IPC,               LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_MSGHANDLER,   LOG_SEV_DEBUG,       LOG_COLOR_MAGENTA},
-    {LOG_CTX_PTIN_MSG,          LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_INTF,         LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_TRUNKS,       LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_HAPI,         LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_DTL,          LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_L2,           LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_XLATE,        LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_API,          LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_EVC,          LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_IPC,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_MSGHANDLER,   LOG_SEV_INFO ,       LOG_COLOR_MAGENTA},
+    {LOG_CTX_PTIN_MSG,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_INTF,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_TRUNKS,       LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_HAPI,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_DTL,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_L2,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_XLATE,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_API,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_EVC,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_CONTROL,      LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_IGMP,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_DHCP,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_PPPOE,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_PROTB,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_ROUTING,      LOG_SEV_TRACE,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_PTIN_ROUTING,      LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_SSM,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_PACKET,       LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_PTIN_CNFGR,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
@@ -155,7 +172,8 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_OAM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_SDK,               LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_DARK_WHITE   },
+    {LOG_CTX_SDK,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT},
 };
 
