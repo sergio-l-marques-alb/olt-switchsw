@@ -42,7 +42,7 @@ if [ $BOARD == "ta48ge" ]; then
  echo "OK!"
 fi
 
-if [ $# -eq 4 ]; then
+if [ $# -ge 3 ]; then
 	IMAGE_VERSION=$3
 	EQUIP_IP=$4
 	echo -n "Generating image for version $3..."
@@ -71,9 +71,11 @@ if [ $# -eq 4 ]; then
 		echo "OK!"
 	fi
 
-	echo -n "Uploading image to 10.112.$4..."
+    if [ $# -ge 4 ]; then
+	echo -n "Uploading image to $4..."
 	./upload $EQUIP_IP > /dev/null 2>&1
 	cd - > /dev/null 2>&1
 	echo "OK!"
+    fi
 fi
 
