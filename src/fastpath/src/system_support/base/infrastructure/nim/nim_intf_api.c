@@ -286,7 +286,16 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
         /* PTin end */
 
         case L7_IANA_10G_ETHERNET:
-          if (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_10GSX)
+          /* PTin added: autoneg */
+          rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
+
+          /* PTin modified: autoneg */
+          if (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_10GSX
+              && intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX
+              && intfSpeed != L7_PORTCTRL_PORTSPEED_AUTO_NEG
+              && ((portCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG)
+              && (rc != L7_SUCCESS)
+             )
           {
             return(L7_FAILURE);
           }
@@ -331,6 +340,8 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
       nimCtlBlk_g->nimConfigData->cfgHdr.dataChanged = L7_TRUE;
     }
 
+    /* PTin removed: autoneg */
+    #if 0
         if ( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.negoCapabilities != 0)
         {
           rc = (L7_SUCCESS);
@@ -338,6 +349,7 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
       NIM_CRIT_SEC_WRITE_EXIT();
         }
         else
+    #endif
         {
       NIM_CRIT_SEC_WRITE_EXIT();
 
@@ -450,7 +462,14 @@ L7_RC_t nimSetDefaultIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
         /* PTin end */
 
         case L7_IANA_10G_ETHERNET:
-          if (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_10GSX)
+          rc = nimGetIntfPhyCapability(intIfNum, &phyCapability);
+
+          if (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_10GSX
+              && intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX   /* PTin added: 1G supported */
+              && intfSpeed != L7_PORTCTRL_PORTSPEED_AUTO_NEG      /* PTin added: 1G w/AN supported */
+              && ((phyCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG)
+              && (rc != L7_SUCCESS)
+             )
           {
             return(L7_FAILURE);
           }

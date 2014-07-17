@@ -695,6 +695,11 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     char speedstr[20];
     switch (phyConf->Speed)
     {
+      case PHY_PORT_AUTONEG:
+        speed_mode = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
+        strcpy(speedstr, "AutoNeg");
+        break;
+
       case PHY_PORT_100_MBPS:
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_100FX;
         strcpy(speedstr, "100Mbps");
@@ -705,9 +710,13 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         strcpy(speedstr, "1000Mbps");
         break;
 
-      case PHY_PORT_1000AN_GBPS:
+    case PHY_PORT_1000AN_GBPS:
+      #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
         /* AN should be always disabled: bug to be solved! */
         speed_mode = L7_PORTCTRL_PORTSPEED_FULL_1000SX; // L7_PORTCTRL_PORTSPEED_AUTO_NEG;  /* PTin modified: solve AN bug */
+      #else
+        speed_mode = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
+      #endif
         strcpy(speedstr, "1000Mbps-AN");
         break;
 
@@ -741,7 +750,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     }
 
     if ((speed_mode != L7_PORTCTRL_PORTSPEED_UNKNOWN) &&
-        (usmDbIfSpeedGet(1, intIfNum, &value) == L7_SUCCESS) &&
+        (usmDbIfDefaultSpeedGet(1, intIfNum, &value) == L7_SUCCESS) &&
         (value != speed_mode))
     {
       if (usmDbIfSpeedSet(1, intIfNum, speed_mode) != L7_SUCCESS)
@@ -855,9 +864,16 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
 
     switch (speed_mode)
     {
+      case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        phyState->Speed = PHY_PORT_AUTONEG;
+        phyState->AutoNegComplete = L7_FALSE;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       AutoNeg");
+        break;
+
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         phyState->Speed = PHY_PORT_100_MBPS;
         phyState->AutoNegComplete = L7_FALSE;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       100Mbps");
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
@@ -915,7 +931,8 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   }
 
   /* Auto-negotiation complete? */
-  if (phyConf_data[port].Speed == PHY_PORT_1000AN_GBPS)
+  if (phyConf_data[port].Speed == PHY_PORT_AUTONEG ||
+      phyConf_data[port].Speed == PHY_PORT_1000AN_GBPS)
   {
     /* AN should be always disabled: bug to be solved! */
     phyState->Mask |= PTIN_PHYSTATE_MASK_AUTONEG;
@@ -1694,7 +1711,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
 
   if(nimGetIntfType(intIfNum, &intfType) != L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_PTIN_INTF, "Unable to get interface type for intfNum %u", intIfNum);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "Unable to get interface type for intfNum %u", intIfNum);
     return L7_FAILURE;
   }
 
@@ -2239,6 +2256,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         return L7_FAILURE;
       }
 
+      /* Remove frame max validation */
+      #if 0
       if (maxFrame == 0)
         maxFrame = phyConf_data[port].MaxFrame;
 
@@ -2248,6 +2267,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
                 lag_idx, maxFrame, phyConf_data[port].MaxFrame);
         return L7_FAILURE;
       }
+      #endif
     }
   }
 
@@ -3863,7 +3883,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   L7_uint32 port;
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
-  L7_uint32 speed_mode, autoneg;
+  L7_uint32 speed_mode/*, autoneg*/;
 
   port = phyConf->Port;
   phyConf->Mask = 0;  /* Clear Mask */
@@ -3919,7 +3939,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   }
 
   /* Speed */
-  if (usmDbIfSpeedGet(1, intIfNum, &speed_mode))
+  if (usmDbIfDefaultSpeedGet(1, intIfNum, &speed_mode))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to get speed of port# %u", port);
     return L7_FAILURE;
@@ -3929,12 +3949,18 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
 
     switch (speed_mode)
     {
+      case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        phyConf->Speed = PHY_PORT_1000AN_GBPS;
+        LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       Auto-Neg");
+        break;
+
       case L7_PORTCTRL_PORTSPEED_FULL_100FX:
         phyConf->Speed = PHY_PORT_100_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       100Mbps");
         break;
 
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+        #if 0
         if (usmDbIfAutoNegAdminStatusGet(1, intIfNum, &autoneg)!=L7_SUCCESS)
         {
           phyConf->Speed = PHY_PORT_1000_MBPS;
@@ -3943,6 +3969,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
         {
           phyConf->Speed = PHY_PORT_1000AN_GBPS;
         }
+        #endif
         phyConf->Speed = PHY_PORT_1000_MBPS;
         LOG_TRACE(LOG_CTX_PTIN_INTF, " Speed:       1000Mbps");
         break;

@@ -1683,10 +1683,6 @@ L7_RC_t hapi_ptin_l2learn_port_set(ptin_dapi_port_t *dapiPort, L7_int macLearn_e
               dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, rv);
       return L7_FAILURE;
     }
-    #if defined(BCM_TRIUMPH3_SUPPORT)
-    LOG_WARNING(LOG_CTX_PTIN_HAPI, "Incomplete configuration for port {%d,%d,%d} -> TRIUMPH3 (bcm_tr3_l2_learn_port_class_set)",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    #endif
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "L2Learn parameters attributed correctly to port {%d,%d,%d} (rv=%d)",
