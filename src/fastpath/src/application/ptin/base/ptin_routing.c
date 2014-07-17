@@ -423,6 +423,13 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
     return L7_FAILURE;
   }
 
+  /* Ensure the requested interface does not exist (required for flushes) */
+  if(__routing_interfaces[routingIntf->intf_id].type != PTIN_ROUTING_INTF_TYPE_UNKNOWN)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_ROUTING, "Received request to create an interface that already exists. Ignored. [intf_id:%u]", routingIntf->intf_id);
+    return L7_SUCCESS;
+  }
+
   /* Determine routing interface type, based on the intf mef_type of this evcId */
   if(L7_SUCCESS != ptin_evc_get_fromIntVlan(internalVlanId, &evc))
   {
@@ -872,6 +879,7 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
       buffer->index              = currentIndex;
       buffer->intf.intf_type     = intf.intf_type;
       buffer->intf.intf_id       = intf.intf_id;
+      buffer->protocol           = snapshotIterator->protocol;
       buffer->updateTime.days    = snapshotIterator->updateTime.days;
       buffer->updateTime.hours   = snapshotIterator->updateTime.hours;
       buffer->updateTime.minutes = snapshotIterator->updateTime.minutes;
