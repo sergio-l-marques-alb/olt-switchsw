@@ -1606,9 +1606,11 @@ typedef struct
 } __attribute__((packed)) msg_RoutingPingSessionQuery;
 
 // Message CCMSG_ROUTING_PINGSESSION_FREE
+#define CCMSG_ROUTING_PINGSESSION_MASK_SESSIONIDX       0x01
 typedef struct
 {
    L7_uint8  slotId;
+   L7_uint8  mask;
    L7_uint16 sessionIdx;
 } __attribute__((packed)) msg_RoutingPingSessionFree;
 
@@ -1675,9 +1677,11 @@ typedef struct
 } __attribute__((packed)) msg_RoutingTracertSessionHopsResponse;
 
 //CCMSG_ROUTING_TRACERTSESSION_FREE
+#define CCMSG_ROUTING_TRACEROUTESESSION_MASK_SESSIONIDX       0x01
 typedef struct
 {
   L7_uint8  slotId;
+  L7_uint8  mask;
   L7_uint16 sessionIdx;
 } __attribute__((packed)) msg_RoutingTracertSessionFree;
 

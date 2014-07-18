@@ -1067,12 +1067,31 @@ L7_RC_t ptin_routing_pingsession_free(L7_uint8 sessionIdx)
   /* Ensure that the requested index belongs to a created session */
   if(__ping_sessions[sessionIdx].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
-    return L7_FAILURE;
+    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Requested index does not belong to a created session [index:%u]", sessionIdx);
+    return L7_SUCCESS;
   }
 
   usmDbPingSessionFree(__ping_sessions[sessionIdx].handle);
   memset(&__ping_sessions[sessionIdx], 0x00, sizeof(ptin_routing_pingsession_t));
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Free all existing ping session.
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_pingsession_freeall()
+{
+  L7_uint8 i;
+
+  /* Free all existing sessions */
+  for(i=0; i<__ping_sessions_max; ++i)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Freeing all existing ping sessions");
+    ptin_routing_pingsession_free(i);
+  }
 
   return L7_SUCCESS;
 }
@@ -1303,12 +1322,29 @@ L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx)
   /* Ensure that the requested index belongs to a created session */
   if(__traceroute_sessions[sessionIdx].handle == 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
-    return L7_FAILURE;
+    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
+    return L7_SUCCESS;
   }
 
   usmDbTraceRouteFree(__traceroute_sessions[sessionIdx].handle);
   memset(&__traceroute_sessions[sessionIdx], 0x00, sizeof(ptin_routing_traceroutesession_t));
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Free all existing traceroute sessions.
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_traceroutesession_freeall()
+{
+  L7_uint8 i;
+
+  for(i=0; i<__traceroute_sessions_max; ++i)
+  {
+    ptin_routing_traceroutesession_free(i);
+  }
 
   return L7_SUCCESS;
 }

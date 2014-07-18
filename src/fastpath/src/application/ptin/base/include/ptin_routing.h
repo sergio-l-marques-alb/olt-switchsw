@@ -189,6 +189,13 @@ L7_RC_t ptin_routing_pingsession_query(msg_RoutingPingSessionQuery* buffer);
 L7_RC_t ptin_routing_pingsession_free(L7_uint8 sessionIdx);
 
 /**
+ * Free all existing ping session.
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_pingsession_freeall();
+
+/**
  * Start a traceroute request.
  * 
  * @param sessionIdx    : Traceroute session index
@@ -237,6 +244,13 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
 L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx);
+
+/**
+ * Free all existing traceroute sessions.
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_traceroutesession_freeall();
 
 
 /*********************************************************** 

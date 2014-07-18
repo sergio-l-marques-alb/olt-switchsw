@@ -9409,12 +9409,24 @@ L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data)
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing ping session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %02X", data->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u",   data->sessionIdx);
 
-  if(L7_SUCCESS != ptin_routing_pingsession_free(data->sessionIdx))
+  if(data->mask & CCMSG_ROUTING_PINGSESSION_MASK_SESSIONIDX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping session");
-    return L7_FAILURE;
+    if(L7_SUCCESS != ptin_routing_pingsession_free(data->sessionIdx))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping session");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    if(L7_SUCCESS != ptin_routing_pingsession_freeall())
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free ping sessions");
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -9544,12 +9556,24 @@ L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data
 
   /* Output data */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Freeing traceroute session:");
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u", data->sessionIdx);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mask       = %02X", data->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  sessionIdx = %u",   data->sessionIdx);
 
-  if(L7_SUCCESS != ptin_routing_traceroutesession_free(data->sessionIdx))
+  if(data->mask & CCMSG_ROUTING_TRACEROUTESESSION_MASK_SESSIONIDX)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free traceroute session");
-    return L7_FAILURE;
+    if(L7_SUCCESS != ptin_routing_traceroutesession_free(data->sessionIdx))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free traceroute session");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    if(L7_SUCCESS != ptin_routing_traceroutesession_freeall())
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to free traceroute sessions");
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
