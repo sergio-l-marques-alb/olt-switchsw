@@ -35,6 +35,8 @@
 #include "link_dependency_api.h"
 #include "nim_exports.h"
 
+#include "logger.h"
+
 #if L7_FEAT_SF10GBT
 extern L7_BOOL  cliIsStackingSupported(void);
 #include "nim_port_fw.h"
@@ -340,16 +342,18 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
       nimCtlBlk_g->nimConfigData->cfgHdr.dataChanged = L7_TRUE;
     }
 
-    /* PTin removed: autoneg */
-    #if 0
-        if ( nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.negoCapabilities != 0)
+    /* PTin added: autoneg */
+        if (/*(nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_FAST_ETHERNET_FX &&*/       /* PTin added */
+             /*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_GIGABIT_ETHERNET &&*/       /* PTin added */
+             /*nimCtlBlk_g->nimPorts[intIfNum].operInfo.ianaType != L7_IANA_10G_ETHERNET) &&*/          /* PTin added */
+            nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.negoCapabilities != 0)
         {
+          LOG_WARNING(LOG_CTX_PTIN_INTF,"Configuration ignored!");
           rc = (L7_SUCCESS);
 
       NIM_CRIT_SEC_WRITE_EXIT();
         }
         else
-    #endif
         {
       NIM_CRIT_SEC_WRITE_EXIT();
 
