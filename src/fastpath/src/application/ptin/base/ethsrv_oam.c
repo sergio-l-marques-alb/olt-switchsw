@@ -34,11 +34,11 @@
 __OAM_TIMER_CODE_VALUES_DECLARATION__
 __OAM_MC_MAC_DECLARATION__
 //OWN ROUTINES**************************************************************************
-static int send_ccm(u16 oam_prt, T_MEP_HDR *p_mep, u8 RDI, u8 use_mcast_DMAC);
+static int send_ccm(u16 i_mep, T_MEP_HDR *p_mep, u8 RDI, T_MEP_LM *p_lm, u8 use_mcast_DMAC);
 static int send_csf(u16 oam_prt, T_MEP_HDR *p_mep, u8 CSF_period, u8 CSF_flags);
 static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm);
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
 static int rx_csf(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
 static int rx_lmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
@@ -670,7 +670,7 @@ static u32 j, meps_procssd_per_function_call=0;
     
     //RDI determination
     if (time_2_send_ccms)
-        send_ccm(_p_mep->prt, (T_MEP_HDR *)_p_mep, timeout || !n_rmeps, 1);
+        send_ccm(*proc_i_mep, (T_MEP_HDR *)_p_mep, timeout || !n_rmeps, &p_mep_db[*proc_i_mep].lm, 1);
     
     //Process AIS...
     //if (!timeout) continue; //return;
@@ -827,7 +827,7 @@ int MEP_is_CSF_LOS(u16 mep_idx, T_ETH_SRV_OAM *p_oam)
 
 
 
-static int send_ccm(u16 oam_prt, T_MEP_HDR *p_mep, u8 RDI, u8 use_mcast_DMAC) {
+static int send_ccm(u16 i_mep, T_MEP_HDR *p_mep, u8 RDI, T_MEP_LM *p_lm, u8 use_mcast_DMAC) {
 T_ETH_OAM_MAC DMAC;
 ETH_SRV_OAM_CCM_DATAGRM ccm, *p_ccm;
 
@@ -843,11 +843,23 @@ ETH_SRV_OAM_CCM_DATAGRM ccm, *p_ccm;
  p_ccm->meg_id=                 p_mep->meg_id;
  p_ccm->SeqNumb=                0;
  p_ccm->mep_id=                 htons(p_mep->mep_id);
- p_ccm->TxFCf=  p_ccm->TxFCb=   p_ccm->RxFCb=0;
  p_ccm->reserved=               0;
  p_ccm->end_TLV=                0;
 
- return send_eth_pckt(oam_prt, p_mep->up1_down0, (u8*)p_ccm, sizeof(ETH_SRV_OAM_CCM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
+ if (0==p_lm->CCMs0_LMMR1) {
+ T_LM *p;
+
+     p=                         &p_lm->lm[iLMlast(p_lm->tog_iLM)];
+
+     p_ccm->TxFCb=              virgin_LM_counter(p->tx_peer)?  0:  htonl(p->tx_peer);
+     p_ccm->RxFCb=              virgin_LM_counter(p->rx)?       0:  htonl(p->rx);
+     p_ccm->TxFCf=              htonl(rd_TxFCl(i_mep));
+ }
+ else {
+     p_ccm->TxFCf=  p_ccm->TxFCb=   p_ccm->RxFCb=0;
+ }
+
+ return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_ccm, sizeof(ETH_SRV_OAM_CCM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
 }//send_ccm
 
 
@@ -1088,7 +1100,7 @@ T_LOOKUP_MEP    *p_mep_lut;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
      //ETHSRV_OAM_LOG("rx_ccm=%d"NLS,
-            rx_ccm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut);
+            rx_ccm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
             //);
      return 0;
  case CSF_OPCODE:
@@ -1135,7 +1147,7 @@ T_LOOKUP_MEP    *p_mep_lut;
 
 
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut) {
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl) {
 ETH_SRV_OAM_CCM_DATAGRM *p_ccm;
 T_MEP   *_p_mep;
 u32 i_look_r, i_mep, i_rmep;
@@ -1249,6 +1261,31 @@ u16 ccm_mep_id;
  _p_mep->ME[i_rmep].RDI= flags_TO_RDI(p_ccm->flags);
 
  //p_mep_lut[i_look_r].SMAC=  *((T_ETH_OAM_MAC *) pSMAC);
+
+ {
+  T_MEP_LM *_p_mep_lm;
+
+  _p_mep_lm=    &p_mep_db[i_mep].lm;
+  if (0==_p_mep_lm->CCMs0_LMMR1) {
+      T_LM *p;
+
+        //last photo
+        p = &_p_mep_lm->lm[iLMlast(++_p_mep_lm->tog_iLM)];
+        p->tx      = ntohl(p_ccm->TxFCb);
+        p->rx_peer = ntohl(p_ccm->RxFCb);
+        p->tx_peer = ntohl(p_ccm->TxFCf);
+        p->rx      = RxFCl;
+
+        {//if iLM0 still unwritten (1st photo)...
+         u8 *p2;
+            p2 = (u8*)&_p_mep_lm->lm[iLM0];
+            for (i=0; i<sizeof(T_LM); i++) if (T_LM_VIRGIN_PATTERN!=p2[i]) goto _rx_ccm_1;
+
+            *(T_LM*)p2 = *p;
+        }//...write it
+_rx_ccm_1:;
+  }//if (0==_p_mep_lm->CCMs0_LMMR1)
+ }
  return 0;
 }//rx_ccm
 
