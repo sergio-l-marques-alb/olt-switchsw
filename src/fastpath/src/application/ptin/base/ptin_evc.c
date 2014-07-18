@@ -10208,7 +10208,7 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profi
   else
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Returned probing evcStats pointer is valid");
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**

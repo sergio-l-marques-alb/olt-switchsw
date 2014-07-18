@@ -2018,10 +2018,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       memcpy(evcstat_out,evcstat_in,sizeof(msg_evcStats_t));
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_evcStats_get(evcstat_out))
+      rc = ptin_msg_evcStats_get(evcstat_out);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while reading EVC stats");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -2046,10 +2048,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       evc_stat = (msg_evcStats_t *) inbuffer->info;
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_evcStats_set(evc_stat))
+      rc = ptin_msg_evcStats_set(evc_stat);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding EVC stats");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -2110,10 +2114,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       memcpy(bwProfile_out,bwProfile_in,sizeof(msg_HwEthBwProfile_t));
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_bwProfile_get(bwProfile_out))
+      rc = ptin_msg_bwProfile_get(bwProfile_out);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting BW profile");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -2140,10 +2146,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       bwProfile = (msg_HwEthBwProfile_t *) inbuffer->info;
 
       /* Execute command */
-      if (L7_SUCCESS != ptin_msg_bwProfile_set(bwProfile, inbuffer->msgId))
+      rc = ptin_msg_bwProfile_set(bwProfile, inbuffer->msgId);
+
+      if (L7_SUCCESS != rc)
       {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting BW profile");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
       }

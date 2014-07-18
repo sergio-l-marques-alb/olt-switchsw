@@ -73,7 +73,7 @@ if [ $# -ge 3 ]; then
 
     if [ $# -ge 4 ]; then
 	echo -n "Uploading image to $4..."
-	./upload $EQUIP_IP > /dev/null 2>&1
+	./upload $EQUIP_IP
 	cd - > /dev/null 2>&1
 	echo "OK!"
     fi

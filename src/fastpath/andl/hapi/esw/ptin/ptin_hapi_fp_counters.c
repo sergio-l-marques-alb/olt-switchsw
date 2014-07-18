@@ -366,6 +366,13 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       if (profile->outer_vlan_in<=0 || profile->outer_vlan_in>=4096)
         continue;
 
+      /* Check for conflicts */
+      if (ptin_hapi_policy_check_conflicts(profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_INGRESS) != L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter already configured in conflict (at ingress stage)");
+        return L7_REQUEST_DENIED;
+      }
+
       /* Define policy type */
       if (profile->inner_vlan_in<=0 || profile->inner_vlan_in>=4096)
         policyType = BROAD_POLICY_TYPE_STAT_EVC;
@@ -856,12 +863,16 @@ static L7_BOOL fpCounters_check_conflicts(void *profile_ptr, const void *policy_
     }
     else if (stage == BROAD_POLICY_STAGE_INGRESS)
     {
-      if (profile->outer_vlan_in == ptr->outer_vlan_in)
+      /* Compare outer, inner, and Dst IP */
+      if (profile->outer_vlan_in == ptr->outer_vlan_in &&
+          profile->inner_vlan_in == ptr->inner_vlan_in)
       {
-        if ((profile->inner_vlan_in == ptr->inner_vlan_in) ||               /* Vlans are the same */
-            (profile->inner_vlan_in == 0 && ptr->inner_vlan_in != 0) ||     /* one is EVC counter, and the other is client counter */
-            (profile->inner_vlan_in != 0 && ptr->inner_vlan_in == 0))
+        if ((profile->dst_ip == ptr->dip) ||
+            (profile->dst_ip == 0 && ptr->dip != 0) ||
+            (profile->dst_ip != 0 && ptr->dip == 0))
+        {
           return L7_TRUE;
+        }
       }
     }
   }
