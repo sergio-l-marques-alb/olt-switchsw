@@ -105,7 +105,7 @@ L7_RC_t tap_monitor_register(int fd, L7_uint32 intIfNum, dtlCmdSend func)
     *make sure the file descriptor is non-blocking
     */
    fd_flags = fcntl(fd,F_GETFL);
-   fd_flags |= O_NONBLOCK;
+   fd_flags |= O_NONBLOCK | O_ASYNC ; /* PTIN added: | O_ASYNC */
    fcntl(fd,F_SETFL,fd_flags);
 
    new_entry.entry.fd = fd;
