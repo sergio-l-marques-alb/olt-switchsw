@@ -311,6 +311,8 @@ static L7_uint16 n_quattro_p2p_igmp_evcs = 0;
 #define IS_EVC_QUATTRO_P2P(evc_id)    (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2P(evc_id))
 #define IS_EVC_QUATTRO_P2MP(evc_id)   (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2MP(evc_id))
 
+#define IS_EVC_IPTV(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV ) == PTIN_EVC_MASK_MC_IPTV)
+
 #define IS_EVC_STACKED(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == PTIN_EVC_MASK_STACKED)
 #define IS_EVC_UNSTACKED(evc_id)      ((evcs[evc_id].flags & PTIN_EVC_MASK_STACKED ) == 0 )
 
@@ -1316,8 +1318,13 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
     if (!evcs[evc_id].intf[ptin_port].in_use)
       continue;
 
+    /* Ignore leaf ports of IPTV EVCs */
+    if (IS_EVC_IPTV(evc_id) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
+    {
+      continue;
+    }
     /* If EVC is stacked, and interface is a leaf, search for its clients */
-    if ((IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id)) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
+    else if ((IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id)) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
     {
       /* Validate inner vlan */
       if (extIVlan==0 || extIVlan>=4096)
