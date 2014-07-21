@@ -568,7 +568,7 @@ extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels);
+extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels);
 
 /**
  * Remove a Multicast client
@@ -578,7 +578,7 @@ extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *client_id);
 
 /**
  * Remove all Multicast clients 
@@ -607,7 +607,7 @@ L7_RC_t ptin_igmp_generalquerier_reset(void);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client,
+extern L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *client_id,
                                          L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list,
                                          L7_uint16 *total_channels);
 
@@ -1104,7 +1104,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics);
+extern L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *client_id, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics);
 
 /**
  * Clear all IGMP statistics
@@ -1150,7 +1150,7 @@ extern L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *client_id);
 
 /**
  * Increment IGMP statistics

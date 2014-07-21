@@ -1084,9 +1084,10 @@ L7_RC_t ptin_pppoe_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                               L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId)
 {
+  ptin_client_id_t client;
   L7_uint pppoe_idx, client_idx;
   ptinPppoeClientDataKey_t avl_key;
   ptinPppoeClientsAvlTree_t *avl_tree;
@@ -1098,7 +1099,7 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
   L7_uint32 intIfNum;
 
   /* Validate arguments */
-  if (client==L7_NULLPTR || PPPOE_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  if (client_id == L7_NULLPTR || PPPOE_CLIENT_MASK_UPDATE(client_id->mask) == 0x00)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments or no parameters provided");
     return L7_FAILURE;
@@ -1111,8 +1112,10 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
     return L7_FAILURE;
   }
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (ptin_pppoe_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  if (ptin_pppoe_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid client id");
     return L7_FAILURE;
@@ -1121,24 +1124,24 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
   /* Get ptin_port value */
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   ptin_port = 0;
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  if (client.mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
     /* Get interface configuration in the UC EVC */
-    if (ptin_evc_intfCfg_get(evc_idx, &client->ptin_intf, &intfCfg)!=L7_SUCCESS)
+    if (ptin_evc_intfCfg_get(evc_idx, &client.ptin_intf, &intfCfg)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error acquiring intf configuration for intf %u/%u, evc=%u",client->ptin_intf.intf_type,client->ptin_intf.intf_id,evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error acquiring intf configuration for intf %u/%u, evc=%u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
     /* Validate interface configuration in EVC: must be in use, and be a leaf/client */
     if (!intfCfg.in_use || intfCfg.type!=PTIN_EVC_INTF_LEAF)
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"intf %u/%u is not in use or is not a leaf in evc %u",client->ptin_intf.intf_type,client->ptin_intf.intf_id,evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"intf %u/%u is not in use or is not a leaf in evc %u",client.ptin_intf.intf_type,client.ptin_intf.intf_id,evc_idx);
       return L7_FAILURE;
     }
     /* Convert to ptin_port format */
-    if (ptin_intf_ptintf2port(&client->ptin_intf,&ptin_port)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2port(&client.ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Cannot convert client intf %u/%u to ptin_port format",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -1146,27 +1149,27 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
 
   /* If uni vlans are not provided, but interface is, get uni vlans from EVC data */
   if ( (uni_ovid<PTIN_VLAN_MIN || uni_ovid>PTIN_VLAN_MAX) &&
-       (client->mask & PTIN_CLIENT_MASK_FIELD_INTF) &&
-       (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) )
+       (client.mask & PTIN_CLIENT_MASK_FIELD_INTF) &&
+       (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) )
   {
      /* Get interface as intIfNum format */
-    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)==L7_SUCCESS)
+    if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
     {
-      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client->innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                  client->ptin_intf.intf_type,client->ptin_intf.intf_id, client->innerVlan, uni_ovid, uni_ivid);
+                  client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
       }
       else
       {
         uni_ovid = uni_ivid = 0;
         LOG_ERR(LOG_CTX_PTIN_PPPOE,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                client->ptin_intf.intf_type,client->ptin_intf.intf_id, client->innerVlan);
+                client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid ptin_intf %u/%u", client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type,client.ptin_intf.intf_id);
     }
   }
 
@@ -1177,17 +1180,17 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
   avl_key.ptin_port = ptin_port;
   #endif
   #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
-  avl_key.outerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client->outerVlan : 0;
+  avl_key.outerVlan = (client.mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client.outerVlan : 0;
   #endif
   #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
-  avl_key.innerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client->innerVlan : 0;
+  avl_key.innerVlan = (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client.innerVlan : 0;
   #endif
   #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
-  avl_key.ipv4_addr = (client->mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client->ipv4_addr : 0;
+  avl_key.ipv4_addr = (client.mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client.ipv4_addr : 0;
   #endif
   #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
-    memcpy(avl_key.macAddr,client->macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+  if (client.mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
+    memcpy(avl_key.macAddr,client.macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   else
     memset(avl_key.macAddr,0x00,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   #endif
@@ -1445,8 +1448,9 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
+L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *client_id)
 {
+  ptin_client_id_t client;
   L7_uint pppoe_idx, client_idx;
   ptinPppoeClientDataKey_t avl_key;
   ptinPppoeClientsAvlTree_t *avl_tree;
@@ -1456,7 +1460,7 @@ L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
   #endif
 
   /* Validate arguments */
-  if (client==L7_NULLPTR || PPPOE_CLIENT_MASK_UPDATE(client->mask)==0x00)
+  if (client_id == L7_NULLPTR || PPPOE_CLIENT_MASK_UPDATE(client_id->mask) == 0x00)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments or no parameters provided");
     return L7_FAILURE;
@@ -1469,8 +1473,10 @@ L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
     return L7_NOT_EXIST;
   }
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (ptin_pppoe_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  if (ptin_pppoe_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid client id");
     return L7_FAILURE;
@@ -1479,11 +1485,11 @@ L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
   /* Convert interface to ptin_port format */
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   ptin_port = 0;
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_INTF)
+  if (client.mask & PTIN_CLIENT_MASK_FIELD_INTF)
   {
-    if (ptin_intf_ptintf2port(&client->ptin_intf,&ptin_port)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2port(&client.ptin_intf,&ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Cannot convert client intf %u/%u to ptin_port format",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Cannot convert client intf %u/%u to ptin_port format",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
       return L7_FAILURE;
     }
   }
@@ -1497,17 +1503,17 @@ L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
   avl_key.ptin_port = ptin_port;
   #endif
   #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
-  avl_key.outerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client->outerVlan : 0;
+  avl_key.outerVlan = (client.mask & PTIN_CLIENT_MASK_FIELD_OUTERVLAN) ? client.outerVlan : 0;
   #endif
   #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
-  avl_key.innerVlan = (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client->innerVlan : 0;
+  avl_key.innerVlan = (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) ? client.innerVlan : 0;
   #endif
   #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
-  avl_key.ipv4_addr = (client->mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client->ipv4_addr : 0;
+  avl_key.ipv4_addr = (client.mask & PTIN_CLIENT_MASK_FIELD_IPADDR   ) ? client.ipv4_addr : 0;
   #endif
   #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
-  if (client->mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
-    memcpy(avl_key.macAddr,client->macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+  if (client.mask & PTIN_CLIENT_MASK_FIELD_MACADDR)
+    memcpy(avl_key.macAddr,client.macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   else
     memset(avl_key.macAddr,0x00,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   #endif
@@ -1915,34 +1921,37 @@ L7_RC_t ptin_pppoe_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_in
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, ptin_PPPOE_Statistics_t *stat_client)
+L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *client_id, ptin_PPPOE_Statistics_t *stat_client)
 {
   L7_uint32 pppoe_idx;
+  ptin_client_id_t client;
   ptinPppoeClientInfoData_t *clientInfo;
 
   /* Validate arguments */
-  if (client==L7_NULLPTR)
+  if (client_id == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Get Pppoe instance */
-  if (ptin_pppoe_instance_find(evc_idx,&pppoe_idx)!=L7_SUCCESS)
+  if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"EVC %u does not belong to any PPPOE instance",evc_idx);
     return L7_FAILURE;
   }
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (ptin_pppoe_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  if (ptin_pppoe_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Get client */
-  if (ptin_pppoe_client_find(pppoe_idx, client, &clientInfo)!=L7_SUCCESS)
+  if (ptin_pppoe_client_find(pppoe_idx, &client, &clientInfo)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,
             "Error searching for client {mask=0x%02x,"
@@ -1952,12 +1961,12 @@ L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, 
             "ipAddr=%u.%u.%u.%u,"
             "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
             "in pppoe_idx=%u",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
+            client.mask,
+            client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.outerVlan,
+            client.innerVlan,
+            (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+            client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5],
             pppoe_idx);
     return L7_FAILURE;
   }
@@ -2201,34 +2210,37 @@ L7_RC_t ptin_pppoe_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
+L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *client_id)
 {
   L7_uint pppoe_idx;
+  ptin_client_id_t client;
   ptinPppoeClientInfoData_t *clientInfo;
 
   /* Validate arguments */
-  if (client==L7_NULLPTR)
+  if (client_id == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Get Pppoe instance */
-  if (ptin_pppoe_instance_find(evc_idx,&pppoe_idx)!=L7_SUCCESS)
+  if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"EVC %u does not belong to any PPPOE instance",evc_idx);
     return L7_FAILURE;
   }
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (ptin_pppoe_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  if (ptin_pppoe_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Find client */
-  if (ptin_pppoe_client_find(pppoe_idx,client,&clientInfo)!=L7_SUCCESS)
+  if (ptin_pppoe_client_find(pppoe_idx, &client, &clientInfo)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,
             "Error searching for client {mask=0x%02x,"
@@ -2238,12 +2250,12 @@ L7_RC_t ptin_pppoe_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client
             "ipAddr=%u.%u.%u.%u,"
             "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} "
             "in pppoe_idx=%u",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5],
+            client.mask,
+            client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.outerVlan,
+            client.innerVlan,
+            (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+            client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5],
             pppoe_idx);
     return L7_FAILURE;
   }

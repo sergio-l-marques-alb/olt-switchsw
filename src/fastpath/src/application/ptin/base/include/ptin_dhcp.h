@@ -282,7 +282,7 @@ extern L7_RC_t ptin_dhcp_client_get(L7_uint32 evc_idx, ptin_client_id_t *client,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
+extern L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid,
                                     L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId);
 
 /**
@@ -293,7 +293,7 @@ extern L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client);
+extern L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *client_id);
 
 /**
  * Get DHCP Binding table
@@ -360,7 +360,7 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, ptin_DHCP_Statistics_t *stat_client);
+extern L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *client_id, ptin_DHCP_Statistics_t *stat_client);
 
 /**
  * Clear all DHCP statistics
@@ -406,7 +406,7 @@ extern L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client);
+extern L7_RC_t ptin_dhcp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *client_id);
 
 
 /*********************************************************** 

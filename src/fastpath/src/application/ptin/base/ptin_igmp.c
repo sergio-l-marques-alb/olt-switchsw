@@ -1914,13 +1914,16 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels)
+L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels)
 {
   L7_RC_t rc;
   L7_uint32 intIfNum;
+  ptin_client_id_t client;
+
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
 
   /* Validate, and rearrange, client info */
-  if (ptin_igmp_clientId_convert(evc_idx, client)!=L7_SUCCESS)
+  if (ptin_igmp_clientId_convert(evc_idx, &client)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
     return L7_FAILURE;
@@ -1928,32 +1931,32 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
 
   /* If uni vlans are not provided, but interface is, get uni vlans from EVC data */
   if ( (uni_ovid<PTIN_VLAN_MIN || uni_ovid>PTIN_VLAN_MAX) &&
-       (client->mask & PTIN_CLIENT_MASK_FIELD_INTF) &&
-       (client->mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) )
+       (client.mask & PTIN_CLIENT_MASK_FIELD_INTF) &&
+       (client.mask & PTIN_CLIENT_MASK_FIELD_INNERVLAN) )
   {
      /* Get interface as intIfNum format */
-    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)==L7_SUCCESS)
+    if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
     {
-      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client->innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+      if (ptin_evc_extVlans_get(intIfNum, evc_idx,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                  client->ptin_intf.intf_type,client->ptin_intf.intf_id, client->innerVlan, uni_ovid, uni_ivid);
+                  client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
       }
       else
       {
         uni_ovid = uni_ivid = 0;
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                client->ptin_intf.intf_type,client->ptin_intf.intf_id, client->innerVlan);
+                client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
       }
     }
     else
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid ptin_intf %u/%u", client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
     }
   }
 
   /* Create new static client */
-  rc = ptin_igmp_clientGroup_add(client, uni_ovid, uni_ivid, maxBandwidth, maxChannels);
+  rc = ptin_igmp_clientGroup_add(&client, uni_ovid, uni_ivid, maxBandwidth, maxChannels);
 
   if (rc!=L7_SUCCESS)
   {
@@ -1972,20 +1975,23 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, ptin_client_id_t *client, L7_uin
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, ptin_client_id_t *client)
+L7_RC_t ptin_igmp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *client_id)
 {
   L7_RC_t rc;
+  ptin_client_id_t client;
+
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
 
   /* Validate, and rearrange, client info */
   /* If error, client does not exist: return success */
-  if (ptin_igmp_clientId_convert(evc_idx, client)!=L7_SUCCESS)
+  if (ptin_igmp_clientId_convert(evc_idx, &client)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
     return L7_NOT_EXIST;
   }
 
   /* Remove client */
-  rc = ptin_igmp_clientGroup_remove(client);
+  rc = ptin_igmp_clientGroup_remove(&client);
 
   if (rc!=L7_SUCCESS)
   {
@@ -2057,30 +2063,35 @@ L7_RC_t ptin_igmp_generalquerier_reset(void)
 //static ptin_igmpChannelInfo_t channelList[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
 //static ptin_igmpChannelInfo_t channelList_tmp[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
 
-L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client, L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list, L7_uint16 *total_channels)
+L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *client_id,
+                                  L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list,
+                                  L7_uint16 *total_channels)
 {
-  L7_uint                                igmp_idx;
-  L7_uint16                              McastRootVlan;
-  L7_uint32                              globalGroupCount = 0;   
+  L7_uint           igmp_idx;
+  L7_uint16         McastRootVlan;
+  L7_uint32         globalGroupCount = 0;   
+  ptin_client_id_t  client;
 
   /* Validate arguments */
-  if (channel_list==L7_NULLPTR || number_of_channels==L7_NULLPTR)
+  if (channel_list == L7_NULLPTR || number_of_channels == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Null parameters");
     return L7_FAILURE;
   }
 
   /* Validate client */
-  if (client==L7_NULLPTR)
+  if (client_id == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client pointer");
     return L7_FAILURE;
   }
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (client->mask != 0)
+  if (client.mask != 0)
   {
-    if (ptin_igmp_clientId_convert(McastEvcId, client)!=L7_SUCCESS)
+    if (ptin_igmp_clientId_convert(McastEvcId, &client)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
       return L7_FAILURE;
@@ -2101,7 +2112,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
     return L7_FAILURE;
   }
 
-  if(client->mask == 0)
+  if(client.mask == 0)
   {   
     uint32 groupCount;    
 
@@ -2180,7 +2191,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
     L7_BOOL                        firstDevice=L7_TRUE;
     
     /* Find client */
-    if (ptin_igmp_clientGroup_find(client, &clientGroup)!=L7_SUCCESS)
+    if (ptin_igmp_clientGroup_find(&client, &clientGroup)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,
               "Error searching for client {mask=0x%02x,"
@@ -2189,19 +2200,19 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, ptin_client_id_t *client
               "cvlan=%u,"
               "ipAddr=%u.%u.%u.%u,"
               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-              client->mask,
-              client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-              client->outerVlan,
-              client->innerVlan,
-              (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-              client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+              client.mask,
+              client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+              client.outerVlan,
+              client.innerVlan,
+              (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+              client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
       return L7_FAILURE;
     }
 
     /* Validate interface */
-    if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+    if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
       return L7_FAILURE;
     }
 
@@ -9235,8 +9246,9 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics)
+L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *client_id, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics)
 {
+  ptin_client_id_t client;
   ptinIgmpClientGroupInfoData_t   *clientInfo;
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
@@ -9248,15 +9260,17 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
 
   memset(statistics, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (ptin_igmp_clientId_convert(evc_idx,client) != L7_SUCCESS)
+  if (ptin_igmp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Get client */
-  if (ptin_igmp_clientGroup_find(client, &clientInfo) != L7_SUCCESS)
+  if (ptin_igmp_clientGroup_find(&client, &clientInfo) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
@@ -9265,19 +9279,19 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, ptin_client_id_t *client, P
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
             "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+            client.mask,
+            client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.outerVlan,
+            client.innerVlan,
+            (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+            client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
     return L7_FAILURE;
   }
 
   /* Validate interface */
-  if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
@@ -9537,8 +9551,9 @@ L7_RC_t ptin_igmp_stat_clearAll(void)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
+L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *client_id)
 {
+  ptin_client_id_t client;
   ptinIgmpClientGroupInfoData_t  *clientInfo;
   PTIN_MGMD_EVENT_t              reqMsg          = {0};
   PTIN_MGMD_EVENT_t              resMsg          = {0};
@@ -9547,15 +9562,17 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
   L7_uint32                      clientId;
   L7_uint32                      intIfNum;
 
+  memcpy(&client, client_id, sizeof(ptin_client_id_t));
+
   /* Validate and rearrange clientId info */
-  if (ptin_igmp_clientId_convert(evc_idx, client) != L7_SUCCESS)
+  if (ptin_igmp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Find client */
-  if (ptin_igmp_clientGroup_find(client, &clientInfo) != L7_SUCCESS)
+  if (ptin_igmp_clientGroup_find(&client, &clientInfo) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
@@ -9564,19 +9581,19 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, ptin_client_id_t *client)
             "cvlan=%u,"
             "ipAddr=%u.%u.%u.%u,"
             "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-            client->mask,
-            client->ptin_intf.intf_type, client->ptin_intf.intf_id,
-            client->outerVlan,
-            client->innerVlan,
-            (client->ipv4_addr>>24) & 0xff, (client->ipv4_addr>>16) & 0xff, (client->ipv4_addr>>8) & 0xff, client->ipv4_addr & 0xff,
-            client->macAddr[0],client->macAddr[1],client->macAddr[2],client->macAddr[3],client->macAddr[4],client->macAddr[5]);
+            client.mask,
+            client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+            client.outerVlan,
+            client.innerVlan,
+            (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+            client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
     return L7_FAILURE;
   }
 
   /* Validate interface */
-  if (ptin_intf_ptintf2intIfNum(&client->ptin_intf, &intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client->ptin_intf.intf_type,client->ptin_intf.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
     return L7_FAILURE;
   }
 
