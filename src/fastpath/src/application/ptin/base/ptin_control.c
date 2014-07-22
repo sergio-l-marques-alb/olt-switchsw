@@ -433,6 +433,9 @@ static void monitor_alarms(void)
       interface_is_valid = L7_TRUE;
     }
 
+    /* Initialize Link-state */
+    linkState = L7_DOWN;
+
     // Get Link status
     if (!interface_is_valid || adminState==L7_DISABLE)
     {
@@ -448,7 +451,7 @@ static void monitor_alarms(void)
   #if ( PTIN_BOARD_IS_STANDALONE )
     if (port<PTIN_SYSTEM_N_PORTS)
     {
-      pfw_shm->intf[port].link  = link;
+      pfw_shm->intf[port].link  = (linkState == L7_UP);
       pfw_shm->intf[port].link |= 
         (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
         (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
