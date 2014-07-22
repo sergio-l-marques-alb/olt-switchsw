@@ -648,15 +648,14 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         ptin_ta48ge_txdisable_control(port, !phyConf->PortEnable);
         #endif
 
-        #if ( PTIN_BOARD_IS_STANDALONE )
-        /* Update shared memory */
-        pfw_shm->intf[port].admin = phyConf->PortEnable & 1;
-        #endif
-
         phyConf_data[port].PortEnable = phyConf->PortEnable & 1; /* update buffered conf data */
         LOG_TRACE(LOG_CTX_PTIN_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
       }
     }
+  #if ( PTIN_BOARD_IS_STANDALONE )
+    /* Update shared memory */
+    pfw_shm->intf[port].admin = phyConf->PortEnable & 1;
+  #endif
   }
   
   /* MaxFrame */
@@ -1095,7 +1094,7 @@ L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
   /* Validate input params */
   if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
+    //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
   }
 
@@ -2050,7 +2049,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   L7_uint32 lag_intf;
   L7_uint32 port, i;
   L7_uint32 intIfNum=0;
-  L7_uint32 maxFrame;
+  L7_uint32 maxFrame=0;
   L7_uint32 value;
   L7_char8  lag_name[DOT3AD_MAX_NAME];
   L7_RC_t   rc=L7_SUCCESS, res;
@@ -2256,18 +2255,11 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         return L7_FAILURE;
       }
 
-      /* Remove frame max validation */
-      #if 0
-      if (maxFrame == 0)
-        maxFrame = phyConf_data[port].MaxFrame;
-
-      if (maxFrame != phyConf_data[port].MaxFrame)
+      /* Calculate max frame */
+      if (phyConf_data[port].MaxFrame > maxFrame)
       {
-        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: there are members with different MaxFrame sizes! (%d != %d)",
-                lag_idx, maxFrame, phyConf_data[port].MaxFrame);
-        return L7_FAILURE;
+        maxFrame = phyConf_data[port].MaxFrame;
       }
-      #endif
     }
   }
 
@@ -3909,6 +3901,11 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   {
     phyConf->Mask |= 0x0020;
     phyConf->PortEnable = value;
+
+  #if ( PTIN_BOARD_IS_STANDALONE )
+    /* Update shared memory */
+    pfw_shm->intf[port].admin = value & 1;
+  #endif
     LOG_TRACE(LOG_CTX_PTIN_INTF, " State:       %s", phyConf->PortEnable ? "Enabled":"Disabled");
   }
 
