@@ -4106,6 +4106,9 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifyDstMimGport);
         BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifySrcMimGport);
 
+        //PTIn added BRCM Support [CASE#782509] 17th June suggestion to avoid packets reaching the board with translated inner VID to trigger LM OAM counters (just proper outer VID ones)
+        BCM_FIELD_QSET_ADD(oc->fp_glp_qs, bcmFieldQualifyVlanTranslationHit);
+
         /* Create fp group */
         rv = bcm_esw_field_group_create(unit, oc->fp_glp_qs, 
                                 BCM_FIELD_GROUP_PRIO_ANY, &(oc->fp_glp_group));
@@ -4188,6 +4191,16 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
             return (rv);
         }
         
+#if 1
+        //PTIn added BRCM Support [CASE#782509] 17th June suggestion to avoid packets reaching the board with translated inner VID to trigger LM OAM counters (just proper outer VID ones)
+        rv = bcm_esw_field_qualify_VlanTranslationHit(unit, hash_data->fp_entry_rx, 
+                                BCM_FIELD_VXLT_LOOKUP_STATUS_HIT, BCM_FIELD_VXLT_LOOKUP_STATUS_HIT);
+        if (BCM_FAILURE(rv)) {
+            OAM_ERR(("OAM(unit %d) Error: Qualifying VlanTranslationHit (rx), \
+            EP=%d %s.\n", unit, hash_data->ep_id, bcm_errmsg(rv)));
+            return (rv);
+        }
+#endif
         rv = _bcm_esw_gport_resolve(unit, hash_data->gport, &modid, 
                                     &local_port, &tgid, &local_id);
         if (BCM_FAILURE(rv)) {
