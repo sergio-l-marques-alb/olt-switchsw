@@ -2921,8 +2921,17 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
 
+#if MULTICAST_ADMISSION_CONTROL_SUPPORT 
+  if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
+    ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u",ptinEvcFlow.maxChannels);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %u bit/s",ptinEvcFlow.maxBandwidth);
+  }
+#endif
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
@@ -5042,6 +5051,27 @@ L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input,
 /*End IP Source Guard Management Functions **************************************************/
 
 /* IGMP Management Functions **************************************************/
+
+/**
+* @purpose Set the IGMP Admission Control 
+*          Configuration
+*  
+* @param  msg_IgmpAdmissionControl : Structure with config 
+*                                  parameters
+*
+* @return L7_RC_t L7_SUCCESS/L7_FAILURE
+*
+* @notes This routine will support configuring the admission 
+*        control parameters on the interface, on the evc id, and
+*        on the igmp client
+*/
+L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl *igmpAdmissionControl)
+{
+  LOG_NOTICE(LOG_CTX_IPSG, "Not Implemented Yet!");
+  return L7_SUCCESS;
+}
+
+
 /**
  * Applies IGMP Proxy configuration
  * 
@@ -5083,8 +5113,11 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinMgmdProxy.host.olderQuerierPresentTimeout        = msgIgmpProxy->host.older_querier_present_timeout;
   ptinMgmdProxy.host.maxRecordsPerReport               = msgIgmpProxy->host.max_records_per_report;
 
-  //Force the whitelist feauture to ENABLE
-  ptinMgmdProxy.whiteList                              = PTIN_MGMD_ENABLE;
+  ptinMgmdProxy.bandwidthControl                       = msgIgmpProxy->bandwidthControl;
+  ptinMgmdProxy.channelsControl                        = msgIgmpProxy->channelsControl;
+
+  //Force the whitelist feauture to DISABLE
+  ptinMgmdProxy.whiteList                              = PTIN_MGMD_DISABLE;
   ptinMgmdProxy.mask                                  |= PTIN_MGMD_CONFIG_WHITELIST_MASK;
 
   /* Output data */
@@ -5095,7 +5128,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinMgmdProxy.ipv4Addr>>24)&0xFF, (ptinMgmdProxy.ipv4Addr>>16)&0xFF, 
                                                                                   (ptinMgmdProxy.ipv4Addr>>8)&0xFF, ptinMgmdProxy.ipv4Addr&0xFF);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  COS                              = %u", ptinMgmdProxy.igmpCos);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");  
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Querier (mask=0x%08X)", ptinMgmdProxy.querier.mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Flags                          = 0x%04X", ptinMgmdProxy.querier.flags);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinMgmdProxy.querier.robustness);
@@ -5114,7 +5147,10 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinMgmdProxy.host.unsolicitedReportInterval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present Timeout  = %u", ptinMgmdProxy.host.olderQuerierPresentTimeout);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Max Group Records per Packet   = %u", ptinMgmdProxy.host.maxRecordsPerReport);
-
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Bandwidth Control                = %s", ptinMgmdProxy.bandwidthControl != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Channels Control                 = %s", ptinMgmdProxy.channelsControl != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  WhiteList                        = %s", ptinMgmdProxy.whiteList != 0 ? "ON":"OFF");
+  
   /* Apply config */
   rc = ptin_igmp_proxy_config_set(&ptinMgmdProxy);
 
@@ -5180,6 +5216,9 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicitedReportInterval);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.olderQuerierPresentTimeout);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Bandwidth Control                = %s", ptinIgmpProxy.bandwidthControl != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Channels Control                 = %s", ptinIgmpProxy.channelsControl != 0 ? "ON":"OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  WhiteList                        = %s", ptinIgmpProxy.whiteList != 0 ? "ON":"OFF");
 
   /* Copy data */
   msgIgmpProxy->mask                                   = ptinIgmpProxy.mask;
@@ -5208,6 +5247,9 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   msgIgmpProxy->host.robustness                        = ptinIgmpProxy.host.robustness;
   msgIgmpProxy->host.unsolicited_report_interval       = ptinIgmpProxy.host.unsolicitedReportInterval;
   msgIgmpProxy->host.older_querier_present_timeout     = ptinIgmpProxy.host.olderQuerierPresentTimeout;
+
+  msgIgmpProxy->bandwidthControl                       = ptinIgmpProxy.bandwidthControl;
+  msgIgmpProxy->channelsControl                        = ptinIgmpProxy.channelsControl;
 
   return L7_SUCCESS;
 }
@@ -5305,10 +5347,14 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     /* Output data */
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan = %u", McastClient[i].client.outer_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan = %u", McastClient[i].client.inner_vlan);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask         = 0x%02x", McastClient[i].client.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", McastClient[i].client.outer_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", McastClient[i].client.inner_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+#if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.maxChannels  = %u", McastClient[i].maxChannels);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.maxBandwidth = %u bit/s", McastClient[i].maxBandwidth);
+#endif
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
@@ -5329,8 +5375,11 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
+#if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+#else
     rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, (L7_uint32)-1, (L7_uint32)-1);
-
+#endif
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");

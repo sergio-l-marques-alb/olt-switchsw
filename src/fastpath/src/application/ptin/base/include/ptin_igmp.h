@@ -568,7 +568,7 @@ extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels);
+extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
 
 /**
  * Remove a Multicast client
@@ -843,7 +843,7 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint32 maxBandwidth, L7_uint32 maxChannels);
+extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
 
 /**
  * Add a new Multicast client group
@@ -1249,6 +1249,52 @@ extern L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 
  * Get intVlan from Client Id
  */
 extern L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_idx, L7_uint16 *intVlan);
+
+
+#if (!PTIN_BOARD_IS_MATRIX)
+/**
+ * @purpose Verifies if a given client Id has available 
+ * resources for a new multicast channels 
+ * 
+ * @param intIfNum 
+ * @param clientId 
+ * @param group 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId, L7_inet_addr_t* group);
+
+/**
+ * @purpose Allocate resources for a given client Id 
+ * 
+ * @param intIfNum 
+ * @param clientId 
+ * @param group 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId, L7_inet_addr_t* group);
+
+/**
+ * @purpose Release resources for a given client Id 
+ * 
+ * @param intIfNum 
+ * @param clientId 
+ * @param group 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, L7_inet_addr_t* group);
+#endif
 
 #endif//_PTIN_IGMP_H
 

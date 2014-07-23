@@ -769,6 +769,22 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
 L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input, msg_ipsg_binding_table_response_t *output);
 
 /* IGMP Management Functions **************************************************/
+
+/**
+* @purpose Set the IGMP Admission Control 
+*          Configuration
+*  
+* @param  msg_IgmpAdmissionControl : Structure with config 
+*                                  parameters
+*
+* @return L7_RC_t L7_SUCCESS/L7_FAILURE
+*
+* @notes This routine will support configuring the admission 
+*        control parameters on the interface, on the evc id, and
+*        on the igmp client
+*/
+L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl *igmpAdmissionControl);
+
 /**
  * Applies IGMP Proxy configuration
  * 

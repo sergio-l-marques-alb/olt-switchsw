@@ -3760,7 +3760,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
 
     /* Add client */
-    if (ptin_igmp_clientGroup_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, (L7_uint32)-1, (L7_uint32)-1) != L7_SUCCESS)
+    if (ptin_igmp_clientGroup_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, evcFlow->maxBandwidth, evcFlow->maxChannels) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding client to IGMP instance", evc_id);
       return L7_FAILURE;

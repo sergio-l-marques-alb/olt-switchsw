@@ -49,7 +49,7 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
 /* Macro to check infoDim consistency */
 #define CHECK_INFO_SIZE_ATLEAST(msg_st) {             \
   if (inbuffer->infoDim < sizeof(msg_st)) {  \
-    LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting at leat %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
+    LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!", sizeof(msg_st), inbuffer->infoDim);\
     res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
     SetIPCNACK(outbuffer, res);               \
     break;                                    \
@@ -2780,6 +2780,41 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break; 
+    }
+
+    /************************************************************************** 
+     * IGMP Admission Control Config
+     **************************************************************************/
+
+    /* CCMSG_ETH_IGMP_ADMISSION_CONTROL ***********************************************/
+    case CCMSG_ETH_IGMP_ADMISSION_CONTROL:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_IGMP_ADMISSION_CONTROL (0x%04X)", CCMSG_ETH_IGMP_ADMISSION_CONTROL);
+
+      CHECK_INFO_SIZE(msg_IgmpAdmissionControl);
+
+      msg_IgmpAdmissionControl *igmpAdmissionControl;
+      igmpAdmissionControl = (msg_IgmpAdmissionControl *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_IgmpAdmissionControl));
+
+      /* Execute command */
+      rc = ptin_msg_igmp_admission_control_set(igmpAdmissionControl);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting Igmp Admission Control Config");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_IGMP_PROXY_SET */
     }
 
     /************************************************************************** 
