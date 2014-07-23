@@ -28,6 +28,7 @@
 #include "ptin_cnfgr.h"
 #include "ptin_mgmd_inet_defs.h"
 #include "ptin_fpga_api.h"
+#include "ptin_debug.h"
 
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -410,12 +411,13 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 
 unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if 0//(!PTIN_BOARD_IS_MATRIX)
+#if (!PTIN_BOARD_IS_MATRIX)
   L7_inet_addr_t inetGroupAddr;
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-
-  return ptin_igmp_client_resources_available(portId, clientId, &inetGroupAddr);
+  ptin_timer_start(60,"ptin_igmp_client_resources_available");
+  return (ptin_igmp_client_resources_available(portId, clientId, &inetGroupAddr) == L7_SUCCESS);
+  ptin_timer_stop(60);
 #else
   return L7_TRUE;
 #endif
@@ -423,12 +425,13 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if 0//(!PTIN_BOARD_IS_MATRIX)
+#if (!PTIN_BOARD_IS_MATRIX)
   L7_inet_addr_t inetGroupAddr;
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-
-  return ptin_igmp_client_resources_allocate(portId, clientId, &inetGroupAddr);
+  ptin_timer_start(61,"ptin_igmp_client_resources_allocate");
+  return ptin_igmp_client_resources_allocate(portId, clientId, &inetGroupAddr) ;
+  ptin_timer_stop(61);
 #else
   return L7_SUCCESS;
 #endif
@@ -436,12 +439,13 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
 
 unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if 0//(!PTIN_BOARD_IS_MATRIX)
+#if (!PTIN_BOARD_IS_MATRIX)
   L7_inet_addr_t inetGroupAddr;
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-
+  ptin_timer_start(62,"ptin_igmp_client_resources_release");
   return ptin_igmp_client_resources_release(portId, clientId, &inetGroupAddr);
+  ptin_timer_stop(62);
 #else
   return L7_SUCCESS;
 #endif
