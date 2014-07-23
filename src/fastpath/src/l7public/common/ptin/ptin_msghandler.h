@@ -143,11 +143,6 @@
 #define CCMSG_ETH_MAC_ENTRY_ADD             0x90A4  // struct msg_switch_mac_table_t
 #define CCMSG_ETH_MAC_TABLE_SHOW2           0x90A5  // struct msg_switch_mac_table2_t
 
-#define CCMSG_ETH_IGMP_CLIENT_STATS_GET     0x9077  // struct msg_IgmpClientStatistics_t
-#define CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR   0x9078  // struct msg_IgmpClientStatistics_t
-#define CCMSG_ETH_IGMP_INTF_STATS_GET       0x9079  // struct msg_IgmpClientStatistics_t
-#define CCMSG_ETH_IGMP_INTF_STATS_CLEAR     0x907A  // struct msg_IgmpClientStatistics_t
-
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_GET    0x906A  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_ADD    0x906B  // struct msg_MCAssocChannel_t
 #define CCMSG_ETH_IGMP_CHANNEL_ASSOC_REMOVE 0x906C  // struct msg_MCAssocChannel_t
@@ -167,10 +162,18 @@
 #define CCMSG_ETH_IGMP_ENTRY_REMOVE         0x9074  // struct msg_IgmpMultcastUnicastLink_t
 #define CCMSG_ETH_IGMP_CLIENT_ADD           0x9075  // struct msg_IgmpClient_t
 #define CCMSG_ETH_IGMP_CLIENT_REMOVE        0x9076  // struct msg_IgmpClient_t
-#define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9077  // struct msg_IgmpAdmissionControl_t
+
+#define CCMSG_ETH_IGMP_CLIENT_STATS_GET     0x9077  // struct msg_IgmpClientStatistics_t
+#define CCMSG_ETH_IGMP_CLIENT_STATS_CLEAR   0x9078  // struct msg_IgmpClientStatistics_t
+#define CCMSG_ETH_IGMP_INTF_STATS_GET       0x9079  // struct msg_IgmpClientStatistics_t
+#define CCMSG_ETH_IGMP_INTF_STATS_CLEAR     0x907A  // struct msg_IgmpClientStatistics_t
 
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
+                                                    //
+#define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9082  // struct msg_IgmpAdmissionControl_t
+
+
 
 
 /* OAM MEPs Configuration */
