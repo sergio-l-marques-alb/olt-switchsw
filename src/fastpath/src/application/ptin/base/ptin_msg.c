@@ -3943,13 +3943,15 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Id_type            = %u",      circuitid->id_ref.id_type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Id value           = %u",      circuitid->id_ref.id_val.evc_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Template           = %s",      circuitid->template_str);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask               = 0x%04X",  circuitid->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Chassis            = %u",      circuitid->chassis);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rack               = %u",      circuitid->rack);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Frame              = %u",      circuitid->frame);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  S-VID              = %u",      circuitid->s_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
 
   /* TODO: To be reworked */
 
@@ -3957,26 +3959,44 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
   if (circuitid->id_ref.id_type == MSG_ID_DEF_TYPE ||
       circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
   {
-    rc = ptin_dhcp_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+    /* Circuit id */
+    rc = ptin_dhcp_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
                                      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP circuit-id");
       return rc;
     }
-    rc = ptin_pppoe_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+    /* Flags */
+    rc = ptin_dhcp_evc_flags_set(circuitid->id_ref.id_val.evc_id, circuitid->mask_flags, circuitid->broadcast_flag);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP flags");
+      return rc;
+    }
+
+    rc = ptin_pppoe_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
                                       circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+
   }
   else if (circuitid->id_ref.id_type == MSG_ID_NNIVID_TYPE)
   {
-    rc = ptin_dhcp_circuitid_set_nniVid(circuitid->id_ref.id_val.nni_vid, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+    rc = ptin_dhcp_circuitid_set_nniVid(circuitid->id_ref.id_val.nni_vid, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
                                         circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
     if (rc!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP circuit-id");
       return rc;
     }
-    rc = ptin_pppoe_circuitid_set_nniVid(circuitid->id_ref.id_val.nni_vid, circuitid->template_str, circuitid->mask, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
+    /* Flags */
+    rc = ptin_dhcp_nniVid_flags_set(circuitid->id_ref.id_val.nni_vid, circuitid->mask_flags, circuitid->broadcast_flag);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring DHCP flags");
+      return rc;
+    }
+
+    rc = ptin_pppoe_circuitid_set_nniVid(circuitid->id_ref.id_val.nni_vid, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
                                          circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);    
   }
   else
@@ -4021,8 +4041,15 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
   if (circuitid->id_ref.id_type == MSG_ID_DEF_TYPE ||
       circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
   {
-    rc = ptin_dhcp_circuitid_get(circuitid->id_ref.id_val.evc_id, circuitid->template_str, &circuitid->mask, circuitid->access_node_id, &circuitid->chassis, &circuitid->rack,
+    /* Circuit id */
+    rc = ptin_dhcp_circuitid_get(circuitid->id_ref.id_val.evc_id, circuitid->template_str, &circuitid->mask_circuitid,
+                                 circuitid->access_node_id, &circuitid->chassis, &circuitid->rack,
                                  &circuitid->frame, &circuitid->ethernet_priority, &circuitid->s_vid);
+    /* DHCP flags */
+    if (rc == L7_SUCCESS)
+    {
+      rc = ptin_dhcp_evc_flags_get(circuitid->id_ref.id_val.evc_id, &circuitid->mask_flags, &circuitid->broadcast_flag);
+    }
   }
   else if (circuitid->id_ref.id_type == MSG_ID_NNIVID_TYPE)
   {
@@ -4035,7 +4062,7 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
     return L7_FAILURE;
   }
 
-  if (rc!=L7_SUCCESS)
+  if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring circuit-id global data");
     return rc;
@@ -4044,13 +4071,15 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID type            = %u",      circuitid->id_ref.id_type);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ID value           = %u",      circuitid->id_ref.id_val);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Template           = %s",      circuitid->template_str);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Mask               = 0x%04X",  circuitid->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Chassis            = %u",      circuitid->chassis);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Rack               = %u",      circuitid->rack);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Frame              = %u",      circuitid->frame);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  S-VID              = %u",      circuitid->s_vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
 
   return L7_SUCCESS;
 }

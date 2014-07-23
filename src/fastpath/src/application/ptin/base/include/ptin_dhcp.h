@@ -29,6 +29,7 @@
 #define CIRCUITID_PORT                  0x0100
 #define CIRCUITID_QVID                  0x0200
 #define CIRCUITID_CVID                  0x0400
+#define DHCP_FLAGS_MASK_FLAGS           0x01
 
 #define CIRCUITID_ACCESSNODEID_STR      "$accessnodeid"   
 #define CIRCUITID_CHASSIS_STR           "$subrack"   
@@ -45,6 +46,13 @@
 /***********************************************************
  * Typedefs
  ***********************************************************/
+
+typedef enum
+{
+  DHCP_BOOTP_FLAG_NONE=0,
+  DHCP_BOOTP_FLAG_BROADCAST,
+  DHCP_BOOTP_FLAG_UNICAST,
+} ptin_dhcp_flag_enum_t;
 
 typedef enum  {
   DHCP_STAT_FIELD_RX_INTERCEPTED=0,
@@ -204,6 +212,23 @@ extern L7_RC_t ptin_dhcp_reconf_evc(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_ui
 extern L7_RC_t ptin_dhcp_reconf_rootVid(L7_uint16 rootVid, L7_uint8 dhcp_flag, L7_uint32 options);
 
 /**
+ * Get DHCP circuit-id global data
+ *
+ * @param evc_idx           : evc index
+ * @param template_str    : Circuit-id template string (output)
+ * @param mask            : Circuit-id mask (output)
+ * @param access_node_id  : Access Node ID (output)
+ * @param chassis         : Access Node Chassis (output)
+ * @param rack            : Access Node Rack (output)
+ * @param frame           : Access Node Frame (output)
+ * @param slot            : Access Node Chassis/Rack/Frame Slot (output)
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
+                                       L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid);
+
+/**
  * Set DHCP circuit-id global data from EVC id
  *
  * @param evc_idx         : evc index
@@ -238,21 +263,47 @@ extern L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *
                                               L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
 
 /**
- * Get DHCP circuit-id global data
+ * Get DHCP flags of a particular EVC
  *
- * @param evc_idx           : evc index
- * @param template_str    : Circuit-id template string (output)
- * @param mask            : Circuit-id mask (output)
- * @param access_node_id  : Access Node ID (output)
- * @param chassis         : Access Node Chassis (output)
- * @param rack            : Access Node Rack (output)
- * @param frame           : Access Node Frame (output)
- * @param slot            : Access Node Chassis/Rack/Frame Slot (output)
+ * @param evc_idx : evc index 
+ * @param flags   : DHCP flags
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
-                                       L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid);
+extern L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *mask, L7_char8 *flags);
+
+/**
+ * Set DHCP flags for a particular EVC id
+ *
+ * @param evc_idx  : evc index 
+ * @param mask     : flags mask 
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_evc_flags_set(L7_uint32 evc_idx, L7_uchar8 mask, L7_uchar8 flags);
+
+/**
+ * Set DHCP flags for a particular NNI SVlan
+ *
+ * @param nni_outerVid    : NNI STAG 
+ * @param mask     : flags mask 
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_nniVid_flags_set(L7_uint16 nni_outerVid, L7_uchar8 mask, L7_uchar8 flags);
+
+/**
+ * Get DHCP flags
+ *
+ * @param dhcp_idx : instance index 
+ * @param mask     : flags mask 
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_flags_get_instance(L7_uint16 dhcp_idx, L7_uchar8 *mask, L7_char8 *flags);
 
 /**
  * Get DHCP client data (circuit and remote ids)
@@ -452,6 +503,16 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
 L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
+
+/**
+ * Get DHCP flags
+ * 
+ * @param intVlan  : internal vlan
+ * @param flags    : DHCP flags (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *flags);
 
 /**
  * Get DHCP client data (circuit and remote ids)

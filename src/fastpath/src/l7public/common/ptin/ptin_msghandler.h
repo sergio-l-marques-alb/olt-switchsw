@@ -972,6 +972,8 @@ typedef struct {
 #define MSG_DHCP_CIRCUITID_MASK_PARAMETER_QVID     0x0200
 #define MSG_DHCP_CIRCUITID_MASK_PARAMETER_CVID     0x0400
 
+#define MSG_DHCP_FLAGS_MASK_PARAMETER_FLAGS        0x01
+
 /* DHCP Profile */
 typedef struct {
   L7_uchar8    slot_id;       /* Slot ID */ 
@@ -992,7 +994,7 @@ typedef struct {
   msg_id_t    id_ref;               /* Id to apply configuration */
 
   char        template_str[256];    /* Circuit-id template string, as configured by the user */
-  L7_uint32   mask;                 /* Circuit-id mask, identifying which variables are present in the template string */
+  L7_uint32   mask_circuitid;       /* Circuit-id mask, identifying which variables are present in the template string */
 
   char        access_node_id[64];   /* [mask=0x0001] Access Node ID */
   L7_uint8    chassis;              /* [mask=0x0002] Access Node Chassis */
@@ -1000,6 +1002,10 @@ typedef struct {
   L7_uint8    frame;                /* [mask=0x0008] Access Node Frame */
   L7_uint8    ethernet_priority;    /* [mask=0x0010] Ethernet Priority bits on V interface */
   L7_uint16   s_vid;                /* [mask=0x0020] S-VLAN on V interface */
+
+  L7_uint8    mask_flags;           /* Flags mask */
+  L7_uint8    broadcast_flag;       /* [mask=0x01] DHCP broadcast flag: 0-Transparent; 1-Force set; 2-Force clear */
+
 } __attribute__((packed)) msg_AccessNodeCircuitId_t;
 
 typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */

@@ -142,6 +142,7 @@ typedef struct {
   L7_uint16                   nni_ovid;
   L7_uint16                   n_evcs;
   ptinDhcpClients_t           dhcpClients;
+  ptin_dhcp_flag_enum_t       dhcpFlags;
   L7_uint16                   evcDhcpOptions;   /* DHCP Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
   ptin_DHCP_Statistics_t      stats_intf[PTIN_SYSTEM_N_INTERF];  /* DHCP statistics at interface level */
   ptin_AccessNodeCircuitId_t  circuitid;
@@ -181,6 +182,7 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable);
 static void    ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty);
 static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
                                                 L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
+static L7_RC_t ptin_dhcp_flags_set_instance(L7_uint16 dhcp_idx, L7_uchar8 mask, L7_char8 flags);
 static void    ptin_dhcp_circuitId_build(ptin_AccessNodeCircuitId_t *evc_circuitid, ptin_clientCircuitId_t *client_circuitid, L7_char8 *circuitid);
 static void    ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_replace, L7_char8 *parameter);
 static L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_flag, L7_uint32 options);
@@ -810,9 +812,9 @@ L7_RC_t ptin_dhcp_reconf_rootVid(L7_uint16 rootVid, L7_uint8 dhcp_flag, L7_uint3
 }
 
 /**
- * Set DHCP circuit-id global data from NNI SVlan
+ * Get DHCP circuit-id global data
  *
- * @param nni_outerVid    : NNI STAG
+ * @param evc_idx           : evc index
  * @param template_str    : Circuit-id template string
  * @param mask            : Circuit-id mask
  * @param access_node_id  : Access Node ID
@@ -823,19 +825,44 @@ L7_RC_t ptin_dhcp_reconf_rootVid(L7_uint16 rootVid, L7_uint8 dhcp_flag, L7_uint3
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
-                                       L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
+L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
+                                L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid)
 {
   L7_uint dhcp_idx;
 
-  /* Get DHCP instance index */
-  if (ptin_dhcp_instance_find_agg(nni_outerVid, &dhcp_idx) != L7_SUCCESS)
+  /* Validate arguments */
+  if (template_str == L7_NULLPTR || access_node_id == L7_NULLPTR || mask == 0x00)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
-    return L7_NOT_EXIST;
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
+    return L7_FAILURE;
   }
 
-  return ptin_dhcp_circuitid_set_instance(dhcp_idx, template_str, mask, access_node_id, chassis, rack, frame, ethernet_priority, s_vid);
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Validate dhcp instance */
+  if (!dhcpInstances[dhcp_idx].inUse)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+  }
+
+  strncpy(template_str,   dhcpInstances[dhcp_idx].circuitid.template_str,   CIRCUITID_TEMPLATE_MAX_STRING);
+  template_str[CIRCUITID_TEMPLATE_MAX_STRING-1] = '\0';
+  strncpy(access_node_id, dhcpInstances[dhcp_idx].circuitid.access_node_id, FD_DS_MAX_REMOTE_ID_STRING   );
+  access_node_id[FD_DS_MAX_REMOTE_ID_STRING -1] = '\0';
+  *mask              = dhcpInstances[dhcp_idx].circuitid.mask;
+  *chassis           = dhcpInstances[dhcp_idx].circuitid.chassis;
+  *rack              = dhcpInstances[dhcp_idx].circuitid.rack;
+  *frame             = dhcpInstances[dhcp_idx].circuitid.frame;
+  *ethernet_priority = dhcpInstances[dhcp_idx].circuitid.ethernet_priority;
+  *s_vid             = dhcpInstances[dhcp_idx].circuitid.s_vid;
+
+  return L7_SUCCESS;
 }
 
 /**
@@ -861,6 +888,35 @@ L7_RC_t ptin_dhcp_circuitid_set_evc(L7_uint32 evc_idx, L7_char8 *template_str, L
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  return ptin_dhcp_circuitid_set_instance(dhcp_idx, template_str, mask, access_node_id, chassis, rack, frame, ethernet_priority, s_vid);
+}
+
+/**
+ * Set DHCP circuit-id global data from NNI SVlan
+ *
+ * @param nni_outerVid    : NNI STAG
+ * @param template_str    : Circuit-id template string
+ * @param mask            : Circuit-id mask
+ * @param access_node_id  : Access Node ID
+ * @param chassis         : Access Node Chassis
+ * @param rack            : Access Node Rack
+ * @param frame           : Access Node Frame
+ * @param slot            : Access Node Chassis/Rack/Frame Slot
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
+                                       L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid)
+{
+  L7_uint dhcp_idx;
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find_agg(nni_outerVid, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
     return L7_NOT_EXIST;
   }
 
@@ -952,35 +1008,96 @@ static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *te
 }
 
 /**
- * Get DHCP circuit-id global data
+ * Get DHCP flags of a particular EVC
  *
- * @param evc_idx           : evc index
- * @param template_str    : Circuit-id template string
- * @param mask            : Circuit-id mask
- * @param access_node_id  : Access Node ID
- * @param chassis         : Access Node Chassis
- * @param rack            : Access Node Rack
- * @param frame           : Access Node Frame
- * @param slot            : Access Node Chassis/Rack/Frame Slot
+ * @param evc_idx : evc index 
+ * @param mask    : flags mask 
+ * @param flags   : DHCP flags
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_uint32 *mask, L7_char8 *access_node_id, L7_uint8 *chassis,
-                                L7_uint8 *rack, L7_uint8 *frame, L7_uint8 *ethernet_priority, L7_uint16 *s_vid)
+L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *mask, L7_char8 *flags)
 {
   L7_uint dhcp_idx;
-
-  /* Validate arguments */
-  if (template_str == L7_NULLPTR || access_node_id == L7_NULLPTR || mask == 0x00)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid arguments or no parameters provided");
-    return L7_FAILURE;
-  }
 
   /* Get DHCP instance index */
   if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    return L7_FAILURE;
+  }
+
+  /* Validate dhcp instance */
+  if (ptin_dhcp_flags_get_instance(dhcp_idx, mask, flags) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error getting DHCP flags for eEVC %u / dhcp_idx=%u", evc_idx, dhcp_idx);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS; 
+}
+
+/**
+ * Set DHCP flags for a particular EVC id
+ *
+ * @param evc_idx  : evc index 
+ * @param mask     : flags mask 
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_evc_flags_set(L7_uint32 evc_idx, L7_uchar8 mask, L7_uchar8 flags)
+{
+  L7_uint dhcp_idx;
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
+    return L7_NOT_EXIST;
+  }
+
+  return ptin_dhcp_flags_set_instance(dhcp_idx, mask, flags);
+}
+
+/**
+ * Set DHCP flags for a particular NNI SVlan
+ *
+ * @param nni_outerVid    : NNI STAG 
+ * @param mask     : flags mask 
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_nniVid_flags_set(L7_uint16 nni_outerVid, L7_uchar8 mask, L7_uchar8 flags)
+{
+  L7_uint dhcp_idx;
+
+  /* Get DHCP instance index */
+  if (ptin_dhcp_instance_find_agg(nni_outerVid, &dhcp_idx) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance for NNI Vid %u", nni_outerVid);
+    return L7_NOT_EXIST;
+  }
+
+  return ptin_dhcp_flags_set_instance(dhcp_idx, mask, flags);
+}
+
+/**
+ * Get DHCP flags
+ *
+ * @param dhcp_idx : instance index 
+ * @param mask     : flags mask
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_flags_get_instance(L7_uint16 dhcp_idx, L7_uchar8 *mask, L7_char8 *flags)
+{
+  /* Validate DHCP instance index */
+  if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u", dhcp_idx);
     return L7_FAILURE;
   }
 
@@ -991,16 +1108,55 @@ L7_RC_t ptin_dhcp_circuitid_get(L7_uint32 evc_idx, L7_char8 *template_str, L7_ui
     return L7_FAILURE;
   }
 
-  strncpy(template_str,   dhcpInstances[dhcp_idx].circuitid.template_str,   CIRCUITID_TEMPLATE_MAX_STRING);
-  template_str[CIRCUITID_TEMPLATE_MAX_STRING-1] = '\0';
-  strncpy(access_node_id, dhcpInstances[dhcp_idx].circuitid.access_node_id, FD_DS_MAX_REMOTE_ID_STRING   );
-  access_node_id[FD_DS_MAX_REMOTE_ID_STRING -1] = '\0';
-  *mask              = dhcpInstances[dhcp_idx].circuitid.mask;
-  *chassis           = dhcpInstances[dhcp_idx].circuitid.chassis;
-  *rack              = dhcpInstances[dhcp_idx].circuitid.rack;
-  *frame             = dhcpInstances[dhcp_idx].circuitid.frame;
-  *ethernet_priority = dhcpInstances[dhcp_idx].circuitid.ethernet_priority;
-  *s_vid             = dhcpInstances[dhcp_idx].circuitid.s_vid;
+  /* Clear mask */
+  if (mask != L7_NULLPTR)
+  {
+    *mask = 0;
+  }
+
+  /* Get flags */
+  if (flags != L7_NULLPTR)
+  {
+    *flags = dhcpInstances[dhcp_idx].dhcpFlags;
+  }
+  if (mask != L7_NULLPTR)
+  {
+    *mask |= DHCP_FLAGS_MASK_FLAGS;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set DHCP flags
+ *
+ * @param dhcp_idx : instance index 
+ * @param mask     : flags mask 
+ * @param flags    : DHCP flags
+ *
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t ptin_dhcp_flags_set_instance(L7_uint16 dhcp_idx, L7_uchar8 mask, L7_char8 flags)
+{
+  /* Validate DHCP instance index */
+  if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u", dhcp_idx);
+    return L7_FAILURE;
+  }
+
+  /* Validate dhcp instance */
+  if (!dhcpInstances[dhcp_idx].inUse)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP instance %u is not in use", dhcp_idx);
+    return L7_FAILURE;
+  }
+
+  /* Update flags */
+  if (mask & DHCP_FLAGS_MASK_FLAGS)
+  {
+    dhcpInstances[dhcp_idx].dhcpFlags = flags;
+  }
 
   return L7_SUCCESS;
 }
@@ -2766,6 +2922,46 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
   memcpy(client->macAddr,clientInfo->dhcpClientDataKey.macAddr,sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
   client->mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
   #endif
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get DHCP client data (circuit and remote ids)
+ * 
+ * @param intIfNum : FP interface
+ * @param intVlan  : internal vlan
+ * @param flags    : DHCP flags (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *flags)
+{
+  L7_uint dhcp_idx;
+
+  /* Validate arguments */
+  if (intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get dhcp instance */
+  if (ptin_dhcp_inst_get_fromIntVlan(intVlan, L7_NULLPTR, &dhcp_idx) != L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Internal vlan %u does not correspond to any DHCP instance",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Get flags */
+  if (ptin_dhcp_flags_get_instance(dhcp_idx, L7_NULLPTR, flags) != L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring flags for internal vlan %u / dhcp_idx=%u", intVlan, dhcp_idx);
+    return L7_FAILURE;
+  }
 
   return L7_SUCCESS;
 }
