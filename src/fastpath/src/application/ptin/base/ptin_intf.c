@@ -384,23 +384,17 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Port# %u/%u: intIfNum# %2u", ptin_intf->intf_type,ptin_intf->intf_id, intIfNum);
 
-  /* Apply configuration */
-  if (dtlPtinL2PortExtSet(intIfNum, mefExt)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Error SETTING MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
-    return L7_FAILURE;
-  }
-
   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DEFVID)
   {
-    if ((usmDbQportsPVIDSet(unit, intIfNum, mefExt->defVid) != L7_SUCCESS))
+    /* New VID: translation and verification */
+    if ((mefExt->defVid == 0) || (ptin_xlate_PVID_set(intIfNum, mefExt->defVid) != L7_SUCCESS))
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", mefExt->defVid);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting VID %u", mefExt->defVid);
       return L7_FAILURE;
     }
   }
@@ -436,9 +430,16 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
     /* Configure how to handle tagged/untagged frames */
     if (usmDbQportsAcceptFrameTypeSet(unit, intIfNum, mefExt->acceptable_frame_types) != L7_SUCCESS) 
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering %d, mefExt->acceptable_frame_types");
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering %d", mefExt->acceptable_frame_types);
       return L7_FAILURE;
     }
+  }
+
+  /* Apply configuration */
+  if (dtlPtinL2PortExtSet(intIfNum, mefExt)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error SETTING MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Success setting MEF Ext of port %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);

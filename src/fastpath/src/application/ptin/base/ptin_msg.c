@@ -1244,10 +1244,8 @@ L7_RC_t ptin_msg_slotMode_apply(void)
  */
 L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 {
-  L7_uint         i;
-  ptin_intf_t     ptin_intf;
-  L7_uint32       intIfNum;
-  L7_uint16       defVid;
+  L7_uint          i;
+  ptin_intf_t      ptin_intf;
   ptin_HWPortExt_t portExt_conf;
 
   for (i=0; i<nElems; i++)
@@ -1272,37 +1270,6 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 
     ptin_intf.intf_type = portExt[i].intf.intf_type;
     ptin_intf.intf_id   = portExt[i].intf.intf_id;
-
-    if (portExt_conf.Mask & PTIN_HWPORTEXT_MASK_DEFVID)
-    {
-      /* Get intIfNum */
-      if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!=L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
-        return L7_FAILURE;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type,ptin_intf.intf_id, intIfNum);
-
-      /* VID translation and verification */
-      if ((portExt_conf.defVid == 0) || (ptin_xlate_ingress_get(intIfNum, portExt_conf.defVid, PTIN_XLATE_NOT_DEFINED, &defVid) != L7_SUCCESS))
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting VID %u", portExt_conf.defVid);
-        return L7_FAILURE;
-      }
-
-      LOG_ERR(LOG_CTX_PTIN_MSG, "converted VID %u to intIfNum/VID %u/%u", portExt_conf.defVid, intIfNum, defVid);
-
-      /* Apply Default VID configuration */
-      if (defVid == 0)
-      {
-        portExt_conf.defVid = 1;
-      }
-      else
-      {
-        portExt_conf.defVid = defVid;
-        return L7_FAILURE;
-      }
-    }
 
     /* Set MEF parameters */
     if (ptin_intf_portExt_set(&ptin_intf, &portExt_conf)!=L7_SUCCESS)

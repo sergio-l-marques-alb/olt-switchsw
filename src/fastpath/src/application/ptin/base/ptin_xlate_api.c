@@ -7,6 +7,8 @@
 
 #include "usmdb_nim_api.h"
 
+#include "usmdb_mib_vlan_api.h"
+
 #include "dtlinclude.h"
 
 /***************************************************************** 
@@ -23,6 +25,9 @@ static L7_uint16 xlate_table_egress_newVlan[PTIN_SYSTEM_N_INTERF][4096];
 
 /* List of portgroups for each interface */
 static L7_int xlate_table_portgroup[PTIN_SYSTEM_N_PORTS];
+
+/* PVID database */ 
+static L7_uint16 xlate_table_pvid[PTIN_SYSTEM_N_INTERF];
 
 
 L7_BOOL ptin_debug_xlate = 0;
@@ -159,6 +164,8 @@ static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage);
  */
 static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgroup);
 
+static L7_RC_t ptin_xlate_PVID_init(void);
+
 
 /**
  * Add ingress translation entry
@@ -284,7 +291,7 @@ L7_RC_t ptin_xlate_egress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_u
  */
 L7_RC_t ptin_xlate_init(void)
 {
-  L7_RC_t rc1, rc2;
+  L7_RC_t rc1, rc2, rc3;
 
   LOG_TRACE(LOG_CTX_PTIN_XLATE, "Initializing xlate module...");
 
@@ -294,7 +301,10 @@ L7_RC_t ptin_xlate_init(void)
   /* Reset class ids */
   rc2 = ptin_xlate_portgroup_reset_all();
 
-  LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc1=%d, rc2=%d", rc1, rc2);
+  /* Reset pvid */
+  rc3 = ptin_xlate_PVID_init();
+
+  LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc1=%d, rc2=%d, rc3=%d", rc1, rc2, rc3);  
 
   /* Return result */
   if (rc1!=L7_SUCCESS || rc2!=L7_SUCCESS)
@@ -903,7 +913,14 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
     return L7_FAILURE;
   }
 
-  rc = ptin_xlate_egress_portgroup_add(class_id, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
+  if ( (xlate_table_pvid[intIfNum] == newOuterVlanId) && (newInnerVlanId > 4095) )
+  {
+    rc = ptin_xlate_egress_portgroup_add(class_id, outerVlanId, innerVlanId, -1, -1);
+  }
+  else
+  {
+    rc = ptin_xlate_egress_portgroup_add(class_id, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
+  }
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: intIfNum=%u, class_id=%u,  rc=%d", intIfNum, class_id, rc);
@@ -1099,8 +1116,8 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
 
   /* Validate arguments */
   if (portgroup==0 || 
-      outerVlanId>4095 || /*innerVlanId>4095 || */
-      newOuterVlanId>4095 /*|| (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095)*/)
+      outerVlanId>4095 /*|| innerVlanId>4095 ||
+      newOuterVlanId>4095 || (newInnerVlanId!=(L7_uint16)-1 && newInnerVlanId>4095)*/)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
@@ -1112,7 +1129,7 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
   xlate.outerVlan     = outerVlanId;
   xlate.innerVlan     = (innerVlanId > 4095) ? 0 : innerVlanId;
-  xlate.outerVlan_new = newOuterVlanId;
+  xlate.outerVlan_new = (newOuterVlanId > 4095) ? 0 : newOuterVlanId;
   xlate.innerVlan_new = (newInnerVlanId>4095) ? 0 : newInnerVlanId;
   xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
 #if ( PTIN_BOARD_IS_MATRIX )
@@ -1136,6 +1153,8 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
     xlate.innerAction = PTIN_XLATE_ACTION_REPLACE;
   }
   //xlate.innerAction = (newInnerVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
+
+  xlate.outerAction = (newOuterVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_REPLACE;
 #endif
 
   /* DTL call */
@@ -1303,6 +1322,74 @@ L7_RC_t ptin_xlate_delete_flush( void )
   return L7_SUCCESS;
 }
 
+/**
+ * Init PVID
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+static L7_RC_t ptin_xlate_PVID_init(void)
+{
+  L7_uint32 intIfNum;
+  for (intIfNum = 0; intIfNum < PTIN_SYSTEM_N_INTERF; intIfNum++)
+  {
+    xlate_table_pvid[intIfNum] = 1;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * Configures PVID. This information is used on egress Action
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
+{
+  L7_uint32 unit = 0;
+  L7_uint16 int_defVid;
+
+  if (intIfNum > PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, "Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* New VID: translation and verification */
+  if (ptin_xlate_ingress_get(intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &int_defVid) == L7_SUCCESS)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "converted VID %u to intIfNum/VID %u/%u", vlanId, intIfNum, int_defVid);
+
+    /* Apply Default VID configuration */
+    if (int_defVid == 0)
+    {
+      int_defVid = 1;
+    }
+    else
+    {
+      ptin_xlate_egress_delete(intIfNum, int_defVid, 0);
+      ptin_xlate_egress_add(intIfNum, int_defVid, PTIN_XLATE_NOT_DEFINED, -1, -1);
+    }
+  }
+
+  if (usmDbQportsPVIDSet(unit, intIfNum, int_defVid) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", int_defVid);
+    return L7_FAILURE;
+  }
+
+  xlate_table_pvid[intIfNum] = vlanId;
+  return L7_SUCCESS;
+}
+
+/**
+ * Get PVID
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId)
+{
+  *vlanId = xlate_table_pvid[intIfNum];
+  return L7_SUCCESS;
+}
 
 /***************************************************************** 
  * STATIC FUNCTIONS IMPLEMENTATION
@@ -1416,8 +1503,8 @@ static L7_RC_t xlate_database_store(ptin_vlanXlate_stage_enum stage, L7_uint32 i
   /* Validate arguments */
   if ( ( stage!=PTIN_XLATE_STAGE_INGRESS && stage!=PTIN_XLATE_STAGE_EGRESS ) ||
        ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
-       ( outerVlanId>4095) ||
-       ( newOuterVlanId>4095 ) )
+       ( outerVlanId>4095) /*||
+       ( newOuterVlanId>4095 )*/ )
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u, newOVlan=%u)", stage, intIfNum, ptin_port, outerVlanId, newOuterVlanId);
     return L7_FAILURE;

@@ -218,4 +218,18 @@ extern L7_RC_t ptin_xlate_delete_all( void );
  */
 extern L7_RC_t ptin_xlate_delete_flush( void );
 
+/**
+ * Configures PVID. This information is used on egress Action
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+extern L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId);
+
+/**
+ * Get PVID
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+extern L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId);
+
 #endif /* _PTIN_XLATE_API__H */
