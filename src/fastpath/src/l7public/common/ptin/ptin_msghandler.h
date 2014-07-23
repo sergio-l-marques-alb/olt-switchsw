@@ -167,6 +167,7 @@
 #define CCMSG_ETH_IGMP_ENTRY_REMOVE         0x9074  // struct msg_IgmpMultcastUnicastLink_t
 #define CCMSG_ETH_IGMP_CLIENT_ADD           0x9075  // struct msg_IgmpClient_t
 #define CCMSG_ETH_IGMP_CLIENT_REMOVE        0x9076  // struct msg_IgmpClient_t
+#define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9077  // struct msg_IgmpAdmissionControl_t
 
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
@@ -503,7 +504,7 @@ typedef struct
 {
   L7_uint8              SlotId;
   msg_HwEthInterface_t  intf;                           /* Interface id: can be physical or logical */
-  L7_uint16             Mask;                           /* Configuration mask */
+  L7_uint32             Mask;                           /* Configuration mask */
   L7_uint16             defVid;                         // [Mask=0x0001] (only physical interfaces)
   L7_uint8              defPrio;                        // [Mask=0x0002] (only physical interfaces)
   L7_uint8              acceptable_frame_types;         // [Mask=0x0004] (only physical interfaces)
@@ -518,7 +519,9 @@ typedef struct
   L7_uint8              macLearn_enable;                // [Mask=0x1000] Enable Mac Learning (only physical interfaces)
   L7_uint8              macLearn_stationMove_enable;    // [Mask=0x2000] Mac Station Move Enable (physical/LAG interfaces)
   L7_uint8              macLearn_stationMove_prio;      // [Mask=0x4000] Mac Station Move Priority: 1-2 (physical/LAG interfaces)
-  L7_uint8              macLearn_stationMove_samePrio;  // [Mask=0x8000] Enable Station Move between same priority ports (physical/LAG interfaces)
+  L7_uint8              macLearn_stationMove_samePrio;  // [Mask=0x8000] Enable Station Move between same priority ports (physical/LAG interfaces)   
+  L7_uint16             maxChannels;                    // [mask=0x10000] Maximum number of channels this port can have simultaneously
+  L7_uint64             maxBandwidth;                   // [mask=0x20000] Maximum multicast bandwidth  this port can consume
 } __attribute__((packed)) msg_HWPortExt_t;
 
 typedef struct
@@ -779,7 +782,7 @@ typedef struct {
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
 
-#define MULTICAST_ADMISSION_CONTROL_SUPPORT 0
+#define MULTICAST_ADMISSION_CONTROL_SUPPORT 1
 /* EVC flow */
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 typedef struct {
@@ -794,7 +797,7 @@ typedef struct {
   L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
 #if MULTICAST_ADMISSION_CONTROL_SUPPORT          
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
-  L7_uint32            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
 #endif
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
@@ -1216,19 +1219,20 @@ typedef struct {
 /* IGMP Proxy config structure */
 // Messages CCMSG_ETH_IGMP_PROXY_GET and CCMSG_ETH_IGMP_PROXY_SET
 typedef struct {
-  L7_uint8      SlodId;
-  L7_uint8      mask;                           /* PTIN_IGMP_PROXY_MASK_xxxx */
+  L7_uint8               SlodId;
+  L7_uint16              mask;                           /* PTIN_IGMP_PROXY_MASK_xxxx */
 
-  L7_uint8      admin;                          /* [Mask: 0x01] (Global admin for both host and querier) */
-  L7_uint8      networkVersion;                 /* [Mask: 0x02] (defines maximum working version - overrides query/host version) */
-  L7_uint8      clientVersion;                  /* [Mask: 0x04] (defines maximum working version - overrides query/host version) */
-  msg_in_addr_t ipv4_addr;                      /* [Mask: 0x08] (Proxy IP (for both host and querier)) */
-  L7_uint8      igmp_cos;                       /* [Mask: 0x10] [1..7] */
-  L7_uint8      fast_leave;                     /* [Mask: 0x20] TRUE/FALSE */
+  L7_uint8               admin;                          /* [Mask: 0x01] (Global admin for both host and querier) */
+  L7_uint8               networkVersion;                 /* [Mask: 0x02] (defines maximum working version - overrides query/host version) */
+  L7_uint8               clientVersion;                  /* [Mask: 0x04] (defines maximum working version - overrides query/host version) */
+  msg_in_addr_t          ipv4_addr;                      /* [Mask: 0x08] (Proxy IP (for both host and querier)) */
+  L7_uint8               igmp_cos;                       /* [Mask: 0x10] [1..7] */
+  L7_uint8               fast_leave;                     /* [Mask: 0x20] TRUE/FALSE */
 
-  msg_IgmpV3QuerierCfg_t querier;               /* [Mask: 0x40] */
-  msg_IgmpV3HostCfg_t    host;                  /* [Mask: 0x80] */
-
+  msg_IgmpV3QuerierCfg_t querier;                        /* [Mask: 0x40] */
+  msg_IgmpV3HostCfg_t    host;                           /* [Mask: 0x80] */
+  L7_uint8               bandwidthControl;               /* [Mask: 0x100] ENABLE/DISABLE */
+  L7_uint8               channelsControl;               /*  [Mask: 0x200] ENABLE/DISABLE */
 } __attribute__((packed)) msg_IgmpProxyCfg_t;
 
 /* IGMP EVC Multicast/Unicast link config structure */
@@ -1247,10 +1251,23 @@ typedef struct {
   msg_client_info_t    client;                  /* Client identification */
 #if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
-  L7_uint32            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
 #endif
 } __attribute__((packed)) msg_IgmpClient_t;
+
+
+// Messages CCMSG_ETH_IGMP_ADMISSION_CONTROL
+typedef struct {
+  L7_uint8             SlotId;      
+  L7_uint8             mask;         //Mask of fields to be considered                             
+  L7_uint32            evcId;        //[mask=0x01] EVC Id
+  msg_HwEthInterface_t intf;         //[mask=0x02] Interface  
+  L7_uint16            outer_vlan;   //[mask=0x04] Outer vlan 
+  L7_uint16            inner_vlan;   //[mask=0x08] Inner vlan                                       
+  L7_uint16            maxChannels;  //[mask=0x20] Maximum number of channels 
+  L7_uint64            maxBandwidth; //[mask=0x10] Maximum bandwidth (bit/s)  
+} __attribute__((packed)) msg_IgmpAdmissionControl;
 
 /***************************************************** 
  * IGMP STATISTICS
