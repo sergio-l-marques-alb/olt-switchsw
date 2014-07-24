@@ -132,7 +132,8 @@ typedef enum  {
   DTLNET_PTINDEBUG_LEVEL1 = 0x01,
   DTLNET_PTINDEBUG_LEVEL2 = 0x02,
   DTLNET_PTINDEBUG_LEVEL3 = 0x04,
-  DTLNET_PTINDEBUG_LEVEL4 = 0x08
+  DTLNET_PTINDEBUG_LEVEL4 = 0x08,
+  DTLNET_PTINDEBUG_LEVEL5 = 0x10
 } dtlNetPtinDebug_enum_t;
 
 dtlNetPtinDebug_enum_t dtlNetPtinDebug = DTLNET_PTINDEBUG_LEVEL0;
@@ -991,13 +992,24 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
    {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Sending Tagged Packet...\n\r");
+      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlSendCmd(): Sending Packet...\n\r");
+
+     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL5)
+     {
+        int i;
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Tx: \n\r");
+        for (i=0; i<data_length; i++)
+        {
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%.2x ", data[i]);
+        }
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
+     }
    }
 
    /* PTin added: Is this a 802.1Q packet? */
    if (memcmp(&data[12], etype_8021q, 2) == 0)
    {
-      dtl0Vid = osapiNtohs((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
+      dtl0Vid = ((data[14]<<8) & 0xFF00) | (data[15] & 0x00FF);
 
       isTaggedPacket = L7_TRUE;
 
@@ -1048,8 +1060,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       vid = simMgmtVlanIdGet();                    /* This is the internal VID */
    }
 
-   #if __PACKET_DEBUG__
-   if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)
+   if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL5)
    {
       int i;
 
@@ -1060,7 +1071,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       }
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
    }
-   #endif
 
    /* PTin end */
 
