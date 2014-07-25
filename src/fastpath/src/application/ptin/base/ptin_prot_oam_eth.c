@@ -16,6 +16,7 @@
 #include <ptin_intf.h>
 #include <ethsrv_oam.h>
 #include <ptin_oam_packet.h>
+#include <ptin_prot_oam_eth.h>
 #include <ptin_packet.h>
 
 
@@ -282,13 +283,9 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
   if (!ptin_fgpa_mx_is_matrixactive())
   {
     if (ptin_debug_oam)
-      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. I'm a Slave Matrix");
+      LOG_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. I'm a Slave Matrix");
     return L7_SUCCESS;
   }
-#endif
-
-#ifdef PTIN_ENABLE_ERPS
-    //if (OAM_ETH_TYPE==ETHtype    &&    dont_txrx_oam_criterion(3, port, -1, vid, NULL)) return 4;
 #endif
 
     ptin_intf_port2intIfNum(port, &intIfNum);
@@ -301,14 +298,18 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     if ( (nimGetIntfActiveState(intIfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
     {
       if (ptin_debug_oam)
-        LOG_NOTICE(LOG_CTX_OAM,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",intIfNum);    
+        LOG_DEBUG(LOG_CTX_OAM,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",intIfNum);    
       return L7_SUCCESS;
     }
+
+#ifdef PTIN_ENABLE_ERPS
+    //if (OAM_ETH_TYPE==ETHtype    &&    dont_txrx_oam_criterion(3, port, -1, vid, NULL)) return 4;
+#endif
 
 #ifdef RAW_MODE
     SYSAPI_NET_MBUF_GET(bufHandle);
     if (bufHandle == L7_NULL) {
-      LOG_TRACE(LOG_CTX_OAM,"send_eth_pckt: System out of netbuffs");
+      LOG_WARNING(LOG_CTX_OAM,"send_eth_pckt: System out of netbuffs");
       return 2;
     }
 #endif
