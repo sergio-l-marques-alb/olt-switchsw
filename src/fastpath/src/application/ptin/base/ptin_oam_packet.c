@@ -750,7 +750,7 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8
   aps_frame.vlan_tag[3]               = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
   aps_frame.etherType                 = htons(L7_ETYPE_CFM);
 
-  aps_frame.aspmsg.mel_version        = 0x21;  // MEG Level 1; Version 1
+  aps_frame.aspmsg.mel_version        = 1 | tbl_erps[erps_idx].protParam.megLevel<<5;//0x21;  // MEG Level 1; Version 1
   aps_frame.aspmsg.opCode             = 40;
   aps_frame.aspmsg.flags              = 0x00;
   aps_frame.aspmsg.tlvOffset          = 0x20;
