@@ -454,6 +454,19 @@ L7_BOOL ptin_pppoe_vlan_validate(L7_uint16 intVlanId);
 L7_BOOL ptin_pppoe_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, L7_uint16 innerVlanId*/);
 
 /**
+ * Set all interfaces as untrusted
+ */
+void ptin_pppoe_intfTrusted_init(void);
+
+/**
+ * Set a particular interface as trusted or not
+ * 
+ * @param intIfNum : interface
+ * @param trusted  : trusted
+ */
+void ptin_pppoe_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted);
+
+/**
  * Check if a particular interface of one EVC is trusted
  * 
  * @param intIfNum    : interface
@@ -462,6 +475,17 @@ L7_BOOL ptin_pppoe_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*,
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
 L7_BOOL ptin_pppoe_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
+
+/**
+ * Get the list of trusted interfaces associated to a internal 
+ * vlan 
+ * 
+ * @param intVlan  : Internal vlan 
+ * @param intfList : List of interfaces
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_BOOL ptin_pppoe_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList);
 
 /**
  * Get PPPOE client data (circuit and remote ids)

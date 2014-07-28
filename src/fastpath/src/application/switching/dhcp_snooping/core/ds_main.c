@@ -4681,8 +4681,8 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
   /* PTin modified: DHCP snooping */
   #if 1
-  /* Only send to rrot interfaces of EVC that this vlan belongs */
-  if (ptin_evc_intfType_getList(vlanId,PTIN_EVC_INTF_ROOT,&portMask) == L7_SUCCESS)
+  /* Only send to trusted ports */
+  if (ptin_dhcp_intfTrusted_getList(vlanId, &portMask) == L7_SUCCESS)
   #else
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   #endif

@@ -673,7 +673,8 @@ L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId)
      return L7_FAILURE;
   }
 
-  if (ptin_evc_intfType_getList(vlanId,PTIN_EVC_INTF_ROOT,&portMask) == L7_SUCCESS)
+  /* Get list of trusted ports */
+  if (ptin_pppoe_intfTrusted_getList(vlanId, &portMask) == L7_SUCCESS)
   {
     for (*intIfNum = 1; *intIfNum < L7_MAX_INTERFACE_COUNT; ++(*intIfNum))
     {

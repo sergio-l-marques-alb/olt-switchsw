@@ -157,6 +157,9 @@ static L7_uint32 dhcp_quattro_p2p_evcs = 0;
  * Data structs
  ***********************************************************/
 
+/* Global DHCP statistics at interface level */
+NIM_INTF_MASK_t dhcp_intIfNum_trusted;
+
 /* DHCP instances array */
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
 
@@ -270,6 +273,9 @@ L7_RC_t ptin_dhcp_init(void)
   /* Clear database */
   memset(dhcp_relay_database, 0x00, sizeof(dhcp_relay_database));
   #endif
+
+  /* All interfaces are untrusted */
+  ptin_dhcp_intfTrusted_init();
 
   /* Reset instances array */
   memset(dhcpInstances, 0x00, sizeof(dhcpInstances));
@@ -2565,6 +2571,54 @@ L7_BOOL ptin_dhcp_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlanId /*, 
 }
 
 /**
+ * Set all interfaces as untrusted
+ */
+void ptin_dhcp_intfTrusted_init(void)
+{
+  /* All ports as untrusted */
+  memset(&dhcp_intIfNum_trusted, 0x00, sizeof(dhcp_intIfNum_trusted));
+
+  /* Only for linecards at slot systems: backplane ports of linecard are trusted */
+#if ( PTIN_BOARD_IS_LINECARD )
+  L7_uint32 port, intIfNum;
+
+  /* Run all physical interfaces */
+  for (port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    /* Get intIfNum */
+    if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
+      continue;
+
+    /* If is an internal/backplane port, set as trusted */
+    if (!(PTIN_SYSTEM_PON_PORTS_MASK & port) && !(PTIN_SYSTEM_ETH_PORTS_MASK & port))
+    {
+      L7_INTF_SETMASKBIT(dhcp_intIfNum_trusted, intIfNum);
+    }
+  }
+#endif
+  LOG_INFO(LOG_CTX_PTIN_DHCP,"Trusted ports initialized");
+}
+
+/**
+ * Set a particular interface as trusted or not
+ * 
+ * @param intIfNum : interface
+ * @param trusted  : trusted
+ */
+void ptin_dhcp_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted)
+{
+  if (trusted)
+  {
+    L7_INTF_SETMASKBIT(dhcp_intIfNum_trusted, intIfNum);
+  }
+  else
+  {
+    L7_INTF_CLRMASKBIT(dhcp_intIfNum_trusted, intIfNum);
+  }
+}
+
+
+/**
  * Check if a particular interface of one EVC is trusted
  * 
  * @param intIfNum    : interface
@@ -2587,6 +2641,13 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
     return L7_FALSE;
   }
+
+  /* Mask with list of trusted ports */
+  if (!L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
+  {
+    return L7_FALSE;
+  }
+  /* Proceed: it should be a root port */
 
   /* Convert interface to ptin_port */
   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
@@ -2638,13 +2699,88 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
     return L7_FALSE;
   }
 
-  /* Root ports are trusted */
-  if ( intfCfg.type != PTIN_EVC_INTF_ROOT )
+  return L7_TRUE;
+}
+
+/**
+ * Get the list of trusted interfaces associated to a internal 
+ * vlan 
+ * 
+ * @param intVlan  : Internal vlan 
+ * @param intfList : List of interfaces
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intfList)
+{
+  L7_uint32             i, intIfNum;
+  ptin_intf_t           ptintf;
+  L7_uint               dhcp_idx;
+  st_DhcpInstCfg_t      *dhcpInst;
+  L7_uint32             evc_id_ext;
+  ptin_HwEthMef10Evc_t  evcConf;
+
+  /* DHCP instance, from internal vlan */
+  if (ptin_dhcp_inst_get_fromIntVlan(intVlanId, &dhcpInst, &dhcp_idx)!=L7_SUCCESS)
   {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u", intVlanId);
     return L7_FALSE;
   }
 
-  return L7_TRUE;
+  /* DHCP instance, from internal vlan */
+  if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"No EVC id associated to intVlan %u", intVlanId);
+    return L7_FALSE;
+  }
+
+  /* Check if EVCs are in use */
+  if (!ptin_evc_is_in_use(evc_id_ext))
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
+    return L7_FAILURE;
+  }
+
+  /* Get interface configuration */
+  memset(&evcConf, 0x00, sizeof(evcConf));
+  evcConf.index = evc_id_ext;
+  if (ptin_evc_get(&evcConf) != L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring eEVC %u configuration", evc_id_ext);
+    return L7_FALSE;
+  }
+
+  /* Validate output list */
+  if (intfList == L7_NULLPTR)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Clear output mask ports */
+  memset(intfList, 0x00, sizeof(NIM_INTF_MASK_t));
+
+  /* Check all EVC ports for trusted ones */
+  for (i = 0; i < evcConf.n_intf; i++)
+  {
+    ptintf.intf_type = evcConf.intf[i].intf_type;
+    ptintf.intf_id   = evcConf.intf[i].intf_id;
+
+    /* Convert interface to intIfNum */
+    if (ptin_intf_ptintf2intIfNum(&ptintf, &intIfNum) != L7_SUCCESS)
+      continue;
+
+    /* Mark interface as trusted, if it is */
+    if (L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
+    {
+      L7_INTF_SETMASKBIT(*intfList, intIfNum);
+    }
+  }
+
+  return L7_SUCCESS;
 }
 
 /**
