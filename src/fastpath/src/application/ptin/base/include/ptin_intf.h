@@ -48,7 +48,7 @@ extern L7_RC_t ptin_intf_portExt_init(void);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
+extern L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
 
 /**
  * Get Port exitension definitions
@@ -58,7 +58,7 @@ extern L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *m
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_portExt_get(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
+extern L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
 
 /**
  * Set MAC address
@@ -68,7 +68,7 @@ extern L7_RC_t ptin_intf_portExt_get(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *m
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_portMAC_set(ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac);
+extern L7_RC_t ptin_intf_portMAC_set(const ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac);
 
 /**
  * Get MAC address
@@ -78,7 +78,7 @@ extern L7_RC_t ptin_intf_portMAC_set(ptin_intf_t *ptin_intf, ptin_HWPortMac_t *p
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_intf_portMAC_get(ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac);
+extern L7_RC_t ptin_intf_portMAC_get(const ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac);
 
 /**
  * Configure a physical interface
@@ -235,7 +235,7 @@ extern L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type);
+extern L7_RC_t ptin_intf_ptintf2SlotPort(const ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type);
 
 /**
  * Get the ptin_intf from the slot and port location in the 
@@ -314,7 +314,7 @@ extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *pt
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_ptintf2port(ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
+extern inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
 
 /**
  * Converts FP interface# to PTin port type and id
@@ -336,7 +336,7 @@ extern inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern inline L7_RC_t ptin_intf_ptintf2intIfNum(ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
+extern inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
 
 /**
  * Converts LAG index [1..PTIN_SYSTEM_N_LAGS] to FP intIfNum
@@ -494,7 +494,7 @@ extern L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_QoS_intf_config_set(ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos);
+extern L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos);
 
 /**
  * Read interface properties for QoS
@@ -504,7 +504,7 @@ extern L7_RC_t ptin_QoS_intf_config_set(ptin_intf_t *ptin_intf, ptin_QoS_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_QoS_intf_config_get(ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos);
+extern L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos);
 
 /**
  * Configures a class of service
@@ -515,7 +515,7 @@ extern L7_RC_t ptin_QoS_intf_config_get(ptin_intf_t *ptin_intf, ptin_QoS_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_QoS_cos_config_set(ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
+extern L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
 
 /**
  * Reads a class of service QoS configuration
@@ -526,7 +526,7 @@ extern L7_RC_t ptin_QoS_cos_config_set(ptin_intf_t *ptin_intf, L7_uint8 cos, pti
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_QoS_cos_config_get(ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
+extern L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
 
 /**
  * Activate PRBS generator/checker
@@ -669,7 +669,7 @@ extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
+extern L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
 
 /**
  * Protection command

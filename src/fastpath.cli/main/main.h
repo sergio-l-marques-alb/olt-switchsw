@@ -324,41 +324,47 @@ typedef struct {
 
 /* MEF extension definitions for a specific port */
 // Messages CCMSG_ETH_PORT_EXT_SET and CCMSG_ETH_PORT_EXT_GET
-#define MSG_HWPORTEXT_MASK_DEFVID                         0x0001
-#define MSG_HWPORTEXT_MASK_DEFPRIO                        0x0002
-#define MSG_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES         0x0004
-#define MSG_HWPORTEXT_MASK_INGRESS_FILTER                 0x0008
-#define MSG_HWPORTEXT_MASK_RESTRICTED_VLAN_REG            0x0010
-#define MSG_HWPORTEXT_MASK_VLAN_AWARE                     0x0020
-#define MSG_HWPORTEXT_MASK_TYPE                           0x0040
-#define MSG_HWPORTEXT_MASK_DOUBLETAG                      0x0100
-#define MSG_HWPORTEXT_MASK_OUTER_TPID                     0x0200
-#define MSG_HWPORTEXT_MASK_INNER_TPID                     0x0400
-#define MSG_HWPORTEXT_MASK_EGRESS_TYPE                    0x0800
-#define MSG_HWPORTEXT_MASK_MACLEARN_ENABLE                0x1000
-#define MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE    0x2000
-#define MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO      0x4000
-#define MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO  0x8000
+#define MSG_HWPORTEXT_MASK_DEFVID                           0x0001
+#define MSG_HWPORTEXT_MASK_DEFPRIO                          0x0002
+#define MSG_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES           0x0004
+#define MSG_HWPORTEXT_MASK_INGRESS_FILTER                   0x0008
+#define MSG_HWPORTEXT_MASK_RESTRICTED_VLAN_REG              0x0010
+#define MSG_HWPORTEXT_MASK_VLAN_AWARE                       0x0020
+#define MSG_HWPORTEXT_MASK_TYPE                             0x0040
+#define MSG_HWPORTEXT_MASK_DOUBLETAG                        0x0100
+#define MSG_HWPORTEXT_MASK_OUTER_TPID                       0x0200
+#define MSG_HWPORTEXT_MASK_INNER_TPID                       0x0400
+#define MSG_HWPORTEXT_MASK_EGRESS_TYPE                      0x0800
+#define MSG_HWPORTEXT_MASK_MACLEARN_ENABLE                  0x1000
+#define MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE      0x2000
+#define MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO        0x4000
+#define MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO    0x8000
+#define MSG_HWPORTEXT_MASK_MAXCHANNELS_INTF               0x010000
+#define MSG_HWPORTEXT_MASK_MAXBANDWIDTH_INTF              0x020000
+#define MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF               0x100000
 typedef struct
 {
   L7_uint8              SlotId;
   msg_HwEthInterface_t  intf;                           /* Interface id: can be physical or logical */
-  L7_uint16             Mask;                           /* Configuration mask */
-  L7_uint16             defVid;                         // [Mask=0x0001] (only physical interfaces)
-  L7_uint8              defPrio;                        // [Mask=0x0002] (only physical interfaces)
-  L7_uint8              acceptable_frame_types;         // [Mask=0x0004] (only physical interfaces)
-  L7_uint8              ingress_filter;                 // [Mask=0x0008] (only physical interfaces)
-  L7_uint8              restricted_vlan_reg;            // [Mask=0x0010] (only physical interfaces)
-  L7_uint8              vlan_aware;                     // [Mask=0x0020] (only physical interfaces)
-  L7_uint8              type;                           // [Mask=0x0040] UNI=1, NNI=2 (only physical interfaces)
-  L7_uint8              doubletag;                      // [Mask=0x0100] (only physical interfaces)
-  L7_uint16             outer_tpid;                     // [Mask=0x0200] (only physical interfaces)
-  L7_uint16             inner_tpid;                     // [Mask=0x0400] (only physical interfaces)
-  L7_uint8              egress_type;                    // [Mask=0x0800] PROMISCUOUS=0 / COMMUNITY=1 / ISOLATED=2
-  L7_uint8              macLearn_enable;                // [Mask=0x1000] Enable Mac Learning (only physical interfaces)
-  L7_uint8              macLearn_stationMove_enable;    // [Mask=0x2000] Mac Station Move Enable (physical/LAG interfaces)
-  L7_uint8              macLearn_stationMove_prio;      // [Mask=0x4000] Mac Station Move Priority: 1-2 (physical/LAG interfaces)
-  L7_uint8              macLearn_stationMove_samePrio;  // [Mask=0x8000] Enable Station Move between same priority ports (physical/LAG interfaces)
+  L7_uint32             Mask;                           /* Configuration mask */
+  L7_uint16             defVid;                         // [Mask=0x000001] (only physical interfaces)
+  L7_uint8              defPrio;                        // [Mask=0x000002] (only physical interfaces)
+  L7_uint8              acceptable_frame_types;         // [Mask=0x000004] (only physical interfaces)
+  L7_uint8              ingress_filter;                 // [Mask=0x000008] (only physical interfaces)
+  L7_uint8              restricted_vlan_reg;            // [Mask=0x000010] (only physical interfaces)
+  L7_uint8              vlan_aware;                     // [Mask=0x000020] (only physical interfaces)
+  L7_uint8              type;                           // [Mask=0x000040] UNI=1, NNI=2 (only physical interfaces)
+  L7_uint8              doubletag;                      // [Mask=0x000100] (only physical interfaces)
+  L7_uint16             outer_tpid;                     // [Mask=0x000200] (only physical interfaces)
+  L7_uint16             inner_tpid;                     // [Mask=0x000400] (only physical interfaces)
+  L7_uint8              egress_type;                    // [Mask=0x000800] (only physical interfaces)
+  L7_uint8              macLearn_enable;                // [Mask=0x001000] Enable Mac Learning (only physical interfaces)
+  L7_uint8              macLearn_stationMove_enable;    // [Mask=0x002000] Mac Station Move Enable (physical/LAG interfaces)
+  L7_uint8              macLearn_stationMove_prio;      // [Mask=0x004000] Mac Station Move Priority: 1-2 (physical/LAG interfaces)
+  L7_uint8              macLearn_stationMove_samePrio;  // [Mask=0x008000] Enable Station Move between same priority ports (physical/LAG interfaces)   
+  L7_uint16             maxChannels;                    // [mask=0x010000] Maximum number of channels this port can have simultaneously
+  L7_uint64             maxBandwidth;                   // [mask=0x020000] Maximum multicast bandwidth  this port can consume
+  L7_uint8              protocol_trusted;               // [Mask=0x100000] Trusted interface for DHCP and PPPoE protocols (only physical interfaces)
 } __attribute__((packed)) msg_HWPortExt_t;
 
 typedef struct

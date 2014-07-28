@@ -119,21 +119,24 @@ typedef struct {
 /* MEF extension definitions for a specific port */
 typedef enum
 {
-  PTIN_HWPORTEXT_MASK_DEFVID                        = 0x0001,
-  PTIN_HWPORTEXT_MASK_DEFPRIO                       = 0x0002,
-  PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES        = 0x0004,
-  PTIN_HWPORTEXT_MASK_INGRESS_FILTER                = 0x0008,
-  PTIN_HWPORTEXT_MASK_RESTRICTED_VLAN_REG           = 0x0010,
-  PTIN_HWPORTEXT_MASK_VLAN_AWARE                    = 0x0020,
-  PTIN_HWPORTEXT_MASK_TYPE                          = 0x0040,
-  PTIN_HWPORTEXT_MASK_DOUBLETAG                     = 0x0100,
-  PTIN_HWPORTEXT_MASK_OUTER_TPID                    = 0x0200,
-  PTIN_HWPORTEXT_MASK_INNER_TPID                    = 0x0400,
-  PTIN_HWPORTEXT_MASK_EGRESS_TYPE                   = 0x0800,
-  PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE               = 0x1000,
-  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE   = 0x2000,
-  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO     = 0x4000,
-  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO = 0x8000
+  PTIN_HWPORTEXT_MASK_DEFVID                            = 0x0001,
+  PTIN_HWPORTEXT_MASK_DEFPRIO                           = 0x0002,
+  PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES            = 0x0004,
+  PTIN_HWPORTEXT_MASK_INGRESS_FILTER                    = 0x0008,
+  PTIN_HWPORTEXT_MASK_RESTRICTED_VLAN_REG               = 0x0010,
+  PTIN_HWPORTEXT_MASK_VLAN_AWARE                        = 0x0020,
+  PTIN_HWPORTEXT_MASK_TYPE                              = 0x0040,
+  PTIN_HWPORTEXT_MASK_DOUBLETAG                         = 0x0100,
+  PTIN_HWPORTEXT_MASK_OUTER_TPID                        = 0x0200,
+  PTIN_HWPORTEXT_MASK_INNER_TPID                        = 0x0400,
+  PTIN_HWPORTEXT_MASK_EGRESS_TYPE                       = 0x0800,
+  PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE                   = 0x1000,
+  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE       = 0x2000,
+  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO         = 0x4000,
+  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO     = 0x8000,
+  PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF              = 0x00010000,
+  PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF             = 0x00020000,
+  PTIN_HWPORTEXT_MASK_DHCP_TRUSTED                  = 0x00100000,
 } HWPORTEXT_MASK;
 
 typedef enum
@@ -146,22 +149,25 @@ typedef enum
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;
-  L7_uint16 Mask;
-  L7_uint16 defVid;                         // 0x0001
-  L7_uint8  defPrio;                        // 0x0002
-  L7_uint8  acceptable_frame_types;         // 0x0004
-  L7_uint8  ingress_filter;                 // 0x0008
-  L7_uint8  restricted_vlan_reg;            // 0x0010
-  L7_uint8  vlan_aware;                     // 0x0020
-  L7_uint8  type;                           // 0x0040   UNI=1, NNI=2
-  L7_uint8  doubletag;                      // 0x0100
-  L7_uint16 outer_tpid;                     // 0x0200
-  L7_uint16 inner_tpid;                     // 0x0400
-  L7_uint8  egress_type;                    // 0x0800   PROMISCUOUS=0, COMMUNITY=1, ISOLATED=2
-  L7_uint8  macLearn_enable;                // 0x1000
-  L7_uint8  macLearn_stationMove_enable;    // 0x2000
-  L7_uint8  macLearn_stationMove_prio;      // 0x4000
-  L7_uint8  macLearn_stationMove_samePrio;  // 0x8000
+  L7_uint32 Mask;
+  L7_uint16 defVid;                         // 0x00000001
+  L7_uint8  defPrio;                        // 0x00000002
+  L7_uint8  acceptable_frame_types;         // 0x00000004
+  L7_uint8  ingress_filter;                 // 0x00000008
+  L7_uint8  restricted_vlan_reg;            // 0x00000010
+  L7_uint8  vlan_aware;                     // 0x00000020
+  L7_uint8  type;                           // 0x00000040   UNI=1, NNI=2
+  L7_uint8  doubletag;                      // 0x00000100
+  L7_uint16 outer_tpid;                     // 0x00000200
+  L7_uint16 inner_tpid;                     // 0x00000400
+  L7_uint8  egress_type;                    // 0x00000800   PROMISCUOUS=0, COMMUNITY=1, ISOLATED=2
+  L7_uint8  macLearn_enable;                // 0x00001000
+  L7_uint8  macLearn_stationMove_enable;    // 0x00002000
+  L7_uint8  macLearn_stationMove_prio;      // 0x00004000
+  L7_uint8  macLearn_stationMove_samePrio;  // 0x00008000
+  L7_uint16 maxChannels;                    // 0x00010000 Maximum number of channels this port can have simultaneously
+  L7_uint64 maxBandwidth;                   // 0x00020000 Maximum multicast bandwidth  this port can consume
+  L7_uint8  dhcp_trusted;                   // 0x00100000
 } ptin_HWPortExt_t;
 
 /* MAC address attributions */

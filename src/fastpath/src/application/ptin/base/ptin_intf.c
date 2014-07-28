@@ -21,6 +21,8 @@
 #include "ptin_xlate_api.h"
 #include "ptin_xconnect_api.h"
 #include "ptin_cnfgr.h"
+#include "ptin_dhcp.h"
+#include "ptin_pppoe.h"
 #include "fw_shm.h"
 
 #include "ptin_fpga_api.h"
@@ -291,7 +293,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   L7_RC_t         rc = L7_SUCCESS;
 
   /* Default values */
-  mefExt.Mask                         = 0xffff;
+  mefExt.Mask                         = 0xffffffff;   /* All values */
   mefExt.defVid                       = 1;
   mefExt.defPrio                      = 0;
   mefExt.acceptable_frame_types       = L7_DOT1Q_ADMIT_ALL;
@@ -307,6 +309,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
   mefExt.macLearn_stationMove_samePrio= L7_TRUE;
+  mefExt.dhcp_trusted                 = L7_FALSE;     /* By default a port is untrusted */
 
   /* Only apply to physical interfaces */
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
@@ -330,6 +333,15 @@ L7_RC_t ptin_intf_portExt_init(void)
     }
     #endif
 
+    /* Only for linecards at slot systems */
+    #if ( PTIN_BOARD_IS_LINECARD )
+    /* If is an internal/backplane port, set as trusted */
+    if (!(PTIN_SYSTEM_PON_PORTS_MASK & port) && !(PTIN_SYSTEM_ETH_PORTS_MASK & port))
+    {
+      mefExt.dhcp_trusted = L7_TRUE;
+    }
+    #endif
+
     /* Apply MEF EXT defaults */
     if (ptin_intf_portExt_set(&ptin_intf, &mefExt)!=L7_SUCCESS)
     {
@@ -350,7 +362,7 @@ L7_RC_t ptin_intf_portExt_init(void)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
+L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
   L7_uint32 intIfNum;
   L7_uint32 unit = 0;
@@ -380,6 +392,9 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable  = %u", mefExt->macLearn_stationMove_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio    = %u", mefExt->macLearn_stationMove_prio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_samePrio= %u", mefExt->macLearn_stationMove_samePrio);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxChannels  = %u"                , mefExt->maxChannels);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %u"                , mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," dhcp_trusted = %u"                , mefExt->dhcp_trusted);
 
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
@@ -435,6 +450,24 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
     }
   }
 
+  /* Set MAX Channels */
+  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "MAX Channels configuration for port %u/%u NOT IMPLEMENTED", ptin_intf->intf_type, ptin_intf->intf_id);
+  }
+  /* Set MAX Bandwidth */
+  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_INTF, "MAX Bandwidth configuration for port %u/%u NOT IMPLEMENTED", ptin_intf->intf_type, ptin_intf->intf_id);
+  }
+
+  /* Set trusted state */
+  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_DHCP_TRUSTED)
+  {
+    ptin_dhcp_intfTrusted_set(intIfNum, mefExt->dhcp_trusted);
+    ptin_pppoe_intfTrusted_set(intIfNum, mefExt->dhcp_trusted);
+  }
+
   /* Apply configuration */
   if (dtlPtinL2PortExtSet(intIfNum, mefExt)!=L7_SUCCESS)
   {
@@ -454,7 +487,7 @@ L7_RC_t ptin_intf_portExt_set(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_portExt_get(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
+L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
 {
   L7_uint32 intIfNum;
 
@@ -511,7 +544,7 @@ L7_RC_t ptin_intf_portExt_get(ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_portMAC_set(ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac)
+L7_RC_t ptin_intf_portMAC_set(const ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac)
 {
   L7_uint32 intIfNum;
 
@@ -557,7 +590,7 @@ L7_RC_t ptin_intf_portMAC_set(ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_portMAC_get(ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac)
+L7_RC_t ptin_intf_portMAC_get(const ptin_intf_t *ptin_intf, ptin_HWPortMac_t *portMac)
 {
   L7_uint32 intIfNum;
 
@@ -1486,7 +1519,7 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_ptintf2SlotPort(ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type)
+L7_RC_t ptin_intf_ptintf2SlotPort(const ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type)
 {
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
@@ -1645,7 +1678,7 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_ptintf2port(ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
+inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
 {
   L7_uint32 p_port=0;
 
@@ -1757,7 +1790,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-inline L7_RC_t ptin_intf_ptintf2intIfNum(ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
+inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
 {
   L7_uint32       ptin_port=0, intIfNum0;
   L7_RC_t         rc;
@@ -3208,7 +3241,7 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_QoS_intf_config_set(ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
+L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2, cos;
   L7_uint32 intIfNum;
@@ -3415,7 +3448,7 @@ L7_RC_t ptin_QoS_intf_config_set(ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQo
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_QoS_intf_config_get(ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
+L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2;
   L7_uint32 intIfNum, value, cos;
@@ -3598,7 +3631,7 @@ L7_RC_t ptin_QoS_intf_config_get(ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQo
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_QoS_cos_config_set(ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf)
+L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf)
 {
   L7_uint32 intIfNum, i, conf_index;
   L7_RC_t   rc = L7_SUCCESS;
@@ -3752,7 +3785,7 @@ L7_RC_t ptin_QoS_cos_config_set(ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_c
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_QoS_cos_config_get(ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf)
+L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf)
 {
   L7_uint32 intIfNum, conf_index, i;
   L7_RC_t   rc = L7_SUCCESS;
@@ -4913,7 +4946,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_intf_info_get(ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type)
+L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type)
 {
   L7_uint32 intIfNum;
   L7_uint32 adminState, linkState;
