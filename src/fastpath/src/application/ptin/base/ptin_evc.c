@@ -263,7 +263,7 @@ typedef enum
   PTIN_VLAN_TYPE_CPU,
   PTIN_VLAN_TYPE_CPU_BCAST,
   PTIN_VLAN_TYPE_CPU_MCAST,
-  PTIN_VLAN_TYPE_QUATTRO_P2P,
+  PTIN_VLAN_TYPE_QUATTRO,
   PTIN_VLAN_TYPE_MAX         /* Do not change this constant */
 } ptin_evc_type_enum_t;
 
@@ -287,14 +287,14 @@ static L7_uint32 evcId_from_internalVlan[4096];
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /* Keep track of number of QUATTRO P2P evcs */
-static L7_uint16 n_quattro_p2p_evcs = 0;
-static L7_uint16 n_quattro_p2p_igmp_evcs = 0;
+static L7_uint16 n_quattro_evcs = 0;
+static L7_uint16 n_quattro_igmp_evcs = 0;
 
-#define INCREMENT_QUATTRO_P2P_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO_P2P(evcId))  (counter)++; }
-#define DECREMENT_QUATTRO_P2P_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO_P2P(evcId) && (counter)>0)  (counter)--; }
+#define INCREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId))  (counter)++; }
+#define DECREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId) && (counter)>0)  (counter)--; }
 
-#define NO_INSTANCE(evcId, counter)       (!IS_EVC_QUATTRO_P2P(evcId) || ((counter) == 0))
-#define UNIQUE_INSTANCE(evcId, counter)   (!IS_EVC_QUATTRO_P2P(evcId) || ((counter) <= 1))
+#define NO_INSTANCE(evcId, counter)       (!IS_EVC_QUATTRO(evcId) || ((counter) == 0))
+#define SINGLE_INSTANCE(evcId, counter)   (!IS_EVC_QUATTRO(evcId) || ((counter) <= 1))
 #endif
 
 /* Local Macros */
@@ -308,8 +308,6 @@ static L7_uint16 n_quattro_p2p_igmp_evcs = 0;
 
 #define IS_EVC_STD_P2P(evc_id)        (IS_EVC_STD(evc_id) && IS_EVC_P2P(evc_id))
 #define IS_EVC_STD_P2MP(evc_id)       (IS_EVC_STD(evc_id) && IS_EVC_P2MP(evc_id))
-#define IS_EVC_QUATTRO_P2P(evc_id)    (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2P(evc_id))
-#define IS_EVC_QUATTRO_P2MP(evc_id)   (IS_EVC_QUATTRO(evc_id) && IS_EVC_P2MP(evc_id))
 
 #define IS_EVC_IPTV(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV ) == PTIN_EVC_MASK_MC_IPTV)
 
@@ -2023,7 +2021,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
-      if (NO_INSTANCE(evc_id, n_quattro_p2p_evcs))
+      if (NO_INSTANCE(evc_id, n_quattro_evcs))
       #endif
       {
         if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
@@ -2143,7 +2141,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     if (igmp_enabled)
     {
       if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
                                  ) != L7_SUCCESS)
       {
         error = L7_TRUE;
@@ -2179,7 +2177,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       if (igmp_enabled)
       {
         ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs)));
+                                (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs)));
       }
       #endif
 
@@ -2206,7 +2204,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       {
         #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
         /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
-        if (NO_INSTANCE(evc_id, n_quattro_p2p_evcs))
+        if (NO_INSTANCE(evc_id, n_quattro_evcs))
         #endif
         {
           ptin_broadcast_rateLimit(L7_DISABLE, root_vlan);
@@ -2264,10 +2262,10 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     {
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       /* Count number of QUATTRO P2P evcs */
-      INCREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_evcs);
+      INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
       /* Update number of IGMP QUATTRO-P2P evcs */
       if (igmp_enabled)
-        INCREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
+        INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
       #endif
     }
   }
@@ -2400,7 +2398,7 @@ _ptin_evc_create1:
     if (igmp_enabled)
     {
       if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
                                   ) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
@@ -2409,7 +2407,7 @@ _ptin_evc_create1:
       {
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added trap rules to IGMP instance", evc_id);
         /* Update number of igmp quattro-p2p evcs */
-        INCREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
+        INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
       }
     }
     #endif
@@ -2749,13 +2747,13 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
     if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
                                ) != L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
     /* Update number of igmp quattro-p2p evcs */
-    DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
+    DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
   }
   #endif
 
@@ -2826,7 +2824,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* Only for non QUATTRO-P2P evcs, or if is the last QUATTRO-P2P */
-    if (UNIQUE_INSTANCE(evc_id, n_quattro_p2p_evcs))
+    if (SINGLE_INSTANCE(evc_id, n_quattro_evcs))
     #endif
     {
       ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
@@ -2859,7 +2857,7 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
-  DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_evcs);
+  DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
   #endif
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
@@ -2943,13 +2941,13 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
     if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
                                ) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
     }
     /* Update number of igmp quattro-p2p evcs */
-    DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
+    DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
   }
   #endif
 
@@ -3060,7 +3058,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* Only for non QUATTRO-P2P evcs, or if is the last QUATTRO-P2P */
-    if (UNIQUE_INSTANCE(evc_id, n_quattro_p2p_evcs))
+    if (SINGLE_INSTANCE(evc_id, n_quattro_evcs))
     #endif
     {
       ptin_broadcast_rateLimit(L7_DISABLE, evcs[evc_id].rvlan);
@@ -3093,7 +3091,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
-  DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_evcs);
+  DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
   #endif
 
   /* If this EVC is for InBand, the allocated VLAN must be deleted directly! */
@@ -3774,7 +3772,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
     {
       if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && NO_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
                                  ) != L7_SUCCESS)
       {
         ptin_igmp_clientGroup_remove(&clientId);
@@ -3786,7 +3784,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added trap rules to IGMP instance", evc_id);
       }
       /* Update number of igmp quattro-p2p evcs */
-      INCREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
+      INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
 
       evcs[evc_id].flags |= PTIN_EVC_MASK_IGMP_PROTOCOL;
     }
@@ -4060,7 +4058,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     {
       /* Remove trap rule */
       if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE,
-                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && UNIQUE_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs))
+                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
                                  ) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
@@ -4071,7 +4069,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
         LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for IGMP evc", evc_id);
       }
       /* Update number of IGMP QUATTRO-P2P evcs */
-      DECREMENT_QUATTRO_P2P_INSTANCE(evc_id, n_quattro_p2p_igmp_evcs);
+      DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
 
       evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
     }
@@ -7374,14 +7372,14 @@ static void ptin_evc_vlan_pool_init(void)
 
   /* QUATTRO P2P vlans */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P][PTIN_VLAN_MACLEARN_ON]);
-  for (i=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX; i++)
+  dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON]);
+  for (i=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
-    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P][PTIN_VLAN_MACLEARN_ON], (dl_queue_elem_t*)&vlans_pool[i]);
+    dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON], (dl_queue_elem_t*)&vlans_pool[i]);
   }
-  LOG_INFO(LOG_CTX_PTIN_EVC,"QUATTRO vlans (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO_P2P, PTIN_VLAN_MACLEARN_ON,
-           PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX);
+  LOG_INFO(LOG_CTX_PTIN_EVC,"QUATTRO vlans (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_VLAN_MACLEARN_ON,
+           PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX);
   #endif
 
   /* E-Tree blocks */
@@ -7666,12 +7664,11 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Allocated free MC vlan queue index=%u",
               ((L7_uint32) *freeVlan_queue - (L7_uint32) queue_free_vlans_etree)/sizeof(dl_queue_t));
   }
-  /* Quattro P2P EVCs */
-  else if ((evc_flags & PTIN_EVC_MASK_QUATTRO) &&
-           (evc_flags & PTIN_EVC_MASK_P2P))
+  /* Quattro EVCs */
+  else if (evc_flags & PTIN_EVC_MASK_QUATTRO)
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO_P2P][PTIN_VLAN_MACLEARN_ON];
+    *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON];
     LOG_TRACE(LOG_CTX_PTIN_EVC, "QUATTRO Free Vlan Queue selected!");
     #else
     LOG_ERR(LOG_CTX_PTIN_EVC, "No QUATTRO vlan available!");
@@ -10691,8 +10688,8 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
          (extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT)));
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  printf("Total number of QUATTRO-P2P evcs: %u\r\n", n_quattro_p2p_evcs);
-  printf("Total number of QUATTRO-P2P evcs with IGMP active: %u\r\n", n_quattro_p2p_igmp_evcs);
+  printf("Total number of QUATTRO-P2P evcs: %u\r\n", n_quattro_evcs);
+  printf("Total number of QUATTRO-P2P evcs with IGMP active: %u\r\n", n_quattro_igmp_evcs);
   #endif
 
   fflush(stdout);

@@ -1263,6 +1263,127 @@ int ptin_vp_group_create(L7_uint32 port_nni, L7_uint32 port_uni, L7_uint16 vid_n
   return 0;
 }
 
+BROAD_POLICY_t cpu_policyId = BROAD_POLICY_INVALID;
+
+L7_RC_t ptin_cpu_traffic_limit( L7_uint16 cir )
+{
+  BROAD_POLICY_t      policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t ruleId = BROAD_POLICY_RULE_INVALID;
+  BROAD_METER_ENTRY_t meterInfo;
+  bcm_port_t          bcm_port = 0;
+  L7_uint32           mask = 0xffffffff;
+  //L7_uint8            drop = 1;
+  L7_RC_t rc = L7_SUCCESS;
+
+  meterInfo.cir       = cir;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = cir;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+  if (cpu_policyId != BROAD_POLICY_INVALID)
+  {
+    hapiBroadPolicyDelete(cpu_policyId);
+    cpu_policyId = BROAD_POLICY_INVALID;
+
+    printf("CPU policy removed\r\n");
+    fflush(stdout);
+  }
+
+  /* Nothing to be done */
+  if (cir == (L7_uint16) -1)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PTIN);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Cannot create trap policy\r\n");
+    return L7_FAILURE;
+  }
+  printf("tRAP Policy created\r\n");
+
+  /* Egress stage */
+  if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS) != L7_SUCCESS)
+  {
+    printf("Error creating a egress policy\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Create rule */
+  rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding rule\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  printf("Adding port qualifier (bcm_port=%d)\r\n",bcm_port);
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 *)&bcm_port, (L7_uchar8 *)&mask);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding port qualifier (bcm_port=%d)\r\n",bcm_port);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("Port qualifier (bcm_port=%d) added\r\n",bcm_port);
+
+  #if 0
+  /* Add drop qualifer */
+  printf("Adding Drop qualifier (drop=%u)\r\n",drop);
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uchar8 *)&drop, (L7_uchar8 *)&mask);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding drop qualifier (drop=%u/0x%02x)\r\n",drop,mask);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("Drop qualifier added (drop=%u/0x%02x)\r\n",drop,mask);
+  #endif
+
+  /* Drop all packets */
+  rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding hard_drop action\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("hard_drop action added\r\n");
+
+  /* Define meter action, to rate limit packets */
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  if (rc != L7_SUCCESS)
+  {
+    printf("Error adding rate limit\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("Rate limit added\r\n");
+
+  printf("Commiting trap policy\r\n");
+  if ((rc=hapiBroadPolicyCommit(&policyId)) != L7_SUCCESS)
+  {
+    printf("Error commiting trap policy\r\n");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  printf("Trap policy commited successfully (policyId=%u)\r\n",policyId);
+
+  /* Save policy id */
+  cpu_policyId = policyId;
+
+  fflush(stdout);
+
+  return L7_SUCCESS;
+}
+
+
+
 #include <soc/xaui.h>
 //#include <soc/phyctrl.h>
 //#include <soc/phyreg.h>

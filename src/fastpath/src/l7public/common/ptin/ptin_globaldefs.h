@@ -144,12 +144,12 @@ extern int ptin_sys_number_of_ports;
 # define PTIN_VLAN_IS_ETREE(vlanId)       ((vlanId)>=PTIN_SYSTEM_EVC_ETREE_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_ETREE_VLAN_MAX)
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-# define PTIN_VLAN_IS_QUATTRO_P2P(vlanId) ((vlanId)>=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX)
-# define PTIN_VLAN_MASK(vlanId)           (PTIN_VLAN_IS_QUATTRO_P2P(vlanId)) ? (PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK) : \
-                                          ((PTIN_VLAN_IS_ETREE(vlanId)) ? (~((L7_uint16) PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-1) & 0xfff) : 0xfff)
+# define PTIN_VLAN_IS_QUATTRO(vlanId) ((vlanId)>=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX)
+# define PTIN_VLAN_MASK(vlanId)       (PTIN_VLAN_IS_QUATTRO(vlanId)) ? (PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK) : \
+                                       ((PTIN_VLAN_IS_ETREE(vlanId)) ? (~((L7_uint16) PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-1) & 0xfff) : 0xfff)
 #else
-# define PTIN_VLAN_IS_QUATTRO_P2P(vlanId) 0
-# define PTIN_VLAN_MASK(vlanId)           ((PTIN_VLAN_IS_ETREE(vlanId)) ? (~((L7_uint16) PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-1) & 0xfff) : 0xfff)
+# define PTIN_VLAN_IS_QUATTRO(vlanId) 0
+# define PTIN_VLAN_MASK(vlanId)       ((PTIN_VLAN_IS_ETREE(vlanId)) ? (~((L7_uint16) PTIN_SYSTEM_EVC_VLANS_PER_BLOCK-1) & 0xfff) : 0xfff)
 #endif
 
 /* PTin task loop period */

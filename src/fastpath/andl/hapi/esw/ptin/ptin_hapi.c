@@ -3003,8 +3003,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
       #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED)
         /* Quattro range */
-        vlanId = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
-        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+        vlanId = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK;
 
         result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
         if (result != L7_SUCCESS)
@@ -3015,7 +3015,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
           break;
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC storm control -> QUATTRO vlans: %u/0x%x",
-                  PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK);
+                  PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK);
       #endif
 
         /* E-tree range */
@@ -3123,8 +3123,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
       #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED)
         /* QUATTRO vlans */
-        vlanId = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
-        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+        vlanId = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK;
 
         result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
         if (result != L7_SUCCESS)  break;
@@ -3133,7 +3133,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         if (result != L7_SUCCESS)  break;
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC storm control -> QUATTRO vlans: %u/0x%x",
-                  PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK);
+                  PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK);
       #endif
 
         /* E-tree range */
@@ -3269,8 +3269,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
       #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED)
         /* QUATTRO vlans */
-        vlanId = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
-        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK;
+        vlanId = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN;
+        vlan_match = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK;
 
         result = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
         if (result != L7_SUCCESS)  break;
@@ -3279,7 +3279,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         if (result != L7_SUCCESS)  break;
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC storm control -> QUATTRO vlans: %u/0x%x",
-                  PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MASK);
+                  PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK);
       #endif
 
         /* E-tree range */

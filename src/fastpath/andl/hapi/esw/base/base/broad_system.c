@@ -3418,7 +3418,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy of cell %u created",index);
         
       /* Rate limit */
-      if (PTIN_VLAN_IS_QUATTRO_P2P(vlan_list[index][POLICY_VLAN_ID]))
+      if (PTIN_VLAN_IS_QUATTRO(vlan_list[index][POLICY_VLAN_ID]))
       {
         meterInfo.cir       = RATE_LIMIT_QUATTRO;
         meterInfo.cbs       = 128;
@@ -3428,9 +3428,9 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       }
       else
       {
-        meterInfo.cir       = RATE_LIMIT_PPPoE;
+        meterInfo.cir       = RATE_LIMIT_IGMP;
         meterInfo.cbs       = 128;
-        meterInfo.pir       = RATE_LIMIT_PPPoE;
+        meterInfo.pir       = RATE_LIMIT_IGMP;
         meterInfo.pbs       = 128;
         meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
       }
@@ -3771,7 +3771,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
       /* Rate limit */
-      if (PTIN_VLAN_IS_QUATTRO_P2P(vlan_list[index][POLICY_VLAN_ID]))
+      if (PTIN_VLAN_IS_QUATTRO(vlan_list[index][POLICY_VLAN_ID]))
       {
         meterInfo.cir       = RATE_LIMIT_QUATTRO;
         meterInfo.cbs       = 128;
@@ -3781,9 +3781,9 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       }
       else
       {
-        meterInfo.cir       = RATE_LIMIT_PPPoE;
+        meterInfo.cir       = RATE_LIMIT_DHCP;
         meterInfo.cbs       = 128;
-        meterInfo.pir       = RATE_LIMIT_PPPoE;
+        meterInfo.pir       = RATE_LIMIT_DHCP;
         meterInfo.pbs       = 128;
         meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
       }
@@ -4226,7 +4226,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
       /* Rate limit */
-      if (PTIN_VLAN_IS_QUATTRO_P2P(vlan_list[index][POLICY_VLAN_ID]))
+      if (PTIN_VLAN_IS_QUATTRO(vlan_list[index][POLICY_VLAN_ID]))
       {
         meterInfo.cir       = RATE_LIMIT_QUATTRO;
         meterInfo.cbs       = 128;
