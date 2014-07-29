@@ -41,8 +41,8 @@ help h:
 	@echo ""
 
 all:
-	@$(MAKE) -f cxp360g.make
-	@$(MAKE) -f tolt8g.make
+	#@$(MAKE) -f cxp360g.make
+	#@$(MAKE) -f tolt8g.make
 	@$(MAKE) -f tg16g.make
 	@$(MAKE) -f ta48ge.make
 	@$(MAKE) -f cxo640g.make
@@ -50,8 +50,8 @@ all:
 	@$(MAKE) -f olt1t0.make
 
 install:
-	@$(MAKE) -f cxp360g.make install
-	@$(MAKE) -f tolt8g.make install
+	#@$(MAKE) -f cxp360g.make install
+	#@$(MAKE) -f tolt8g.make install
 	@$(MAKE) -f tg16g.make install
 	@$(MAKE) -f ta48ge.make install
 	@$(MAKE) -f cxo640g.make install

@@ -534,7 +534,6 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," Max Channels      = %u"           , mefExt->maxChannels);
   LOG_TRACE(LOG_CTX_PTIN_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
   LOG_TRACE(LOG_CTX_PTIN_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);

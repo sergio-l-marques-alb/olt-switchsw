@@ -5311,7 +5311,7 @@ int main (int argc, char *argv[])
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO)
               printf("\tMAC Learn Station Move within same priority intfs = %u\n\r",po[index].macLearn_stationMove_samePrio);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF)
-              printf("\tMAC Trusted interface  = %u\n\r",po[index].protocol_trusted);
+              printf("\tTrusted interface      = %u\n\r",po[index].protocol_trusted);
           }
           printf("DONE!!!\n\r");
         }
