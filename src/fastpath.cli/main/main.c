@@ -1079,8 +1079,8 @@ int main (int argc, char *argv[])
               printf("Invalid trust value\r\n");
               exit(0);
             }
-            ptr->protocol_trusted = (uint8) valued;
-            ptr->Mask |= MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF;
+            //ptr->protocol_trusted = (uint8) valued;
+            //ptr->Mask |= MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF;
           }
           else
           {
@@ -5310,8 +5310,8 @@ int main (int argc, char *argv[])
               printf("\tMAC Learn Station Move Priority = %u\n\r",po[index].macLearn_stationMove_prio);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO)
               printf("\tMAC Learn Station Move within same priority intfs = %u\n\r",po[index].macLearn_stationMove_samePrio);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF)
-              printf("\tTrusted interface      = %u\n\r",po[index].protocol_trusted);
+            //if (po[index].Mask & MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF)
+            //  printf("\tTrusted interface      = %u\n\r",po[index].protocol_trusted);
           }
           printf("DONE!!!\n\r");
         }
