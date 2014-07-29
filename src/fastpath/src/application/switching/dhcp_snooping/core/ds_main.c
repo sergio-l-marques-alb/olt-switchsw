@@ -1426,6 +1426,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dhcpSnoopBinding_t dhcp_binding;
   L7_enetHeader_t *mac_header = 0;
   L7_uint32 relayOptIntIfNum = 0;
+  L7_uchar8 broadcast_flag;           /* PTin added */
 
   udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
   dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
@@ -1606,13 +1607,38 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
         ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
 
-#if 1 /* PTin Added: Flexible circuit-id */
+      #if 1 /* PTin Added: Flexible circuit-id */
       }
       else
       {
         ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTIONS);
       }
-#endif
+      #endif
+
+      /* PTin added: change broadcast flag */
+      #if 1
+      /* check if broadcast flag should be modified */
+      if (ptin_dhcp_flags_get(vlanId, &broadcast_flag) == L7_SUCCESS &&
+          broadcast_flag != DHCP_BOOTP_FLAG_NONE)
+      {
+        /* Force broadcast flag */
+        if (broadcast_flag == DHCP_BOOTP_FLAG_BROADCAST)
+        {
+          dhcpPacket->flags |= osapiHtons(0x8000);
+        }
+        /* Clear broadcast flag */
+        else
+        {
+          dhcpPacket->flags &= osapiHtons((L7_uint16) ~0x8000);
+        }
+
+        /* Need to recalculate UDP checksum. */
+        dsUdpCheckSumCalculate(frame, &frameLen, L7_TRUE, 0);
+
+        if (ptin_debug_dhcp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Broadcast flag changed (%u)",broadcast_flag);
+      }
+      #endif
     }
   }
 #endif
@@ -3173,7 +3199,6 @@ L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
   nimUSP_t   nimUsp;
   L7_BOOL    cidFlag = L7_FALSE;
   L7_BOOL    ridFlag = L7_FALSE;
-  L7_uchar8  broadcast_flag;                                      /* PTin added */
   L7_uchar8  optLen_cId, circuitIdStr[DS_MAX_REMOTE_ID_STRING];   /* PTin added: DHCP snooping */
   L7_uchar8  optLen_rId, remoteIdStr[DS_MAX_REMOTE_ID_STRING];
   L7_udp_header_t *udp_header;
@@ -3225,27 +3250,6 @@ L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
     }
     return L7_SUCCESS;
   }
-
-  /* PTin added: change broadcast flag */
-  #if 1
-  /* check if broadcast flag should be modified */
-  if (ptin_dhcp_flags_get(vlanId, &broadcast_flag) == L7_SUCCESS &&
-      broadcast_flag != DHCP_BOOTP_FLAG_NONE)
-  {
-    /* Force broadcast flag */
-    if (broadcast_flag == DHCP_BOOTP_FLAG_BROADCAST)
-    {
-      pDhcpPacket->flags |= osapiHtons(0x8000);
-    }
-    /* Clear broadcast flag */
-    else
-    {
-      pDhcpPacket->flags &= osapiHtons((L7_uint16) ~0x8000);
-    }
-    if (ptin_debug_dhcp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP,"Broadcast flag changed (%u)",broadcast_flag);
-  }
-  #endif
 
   maxPktLen = (L7_uchar8*)(pDhcpPacket) + pktSize; /*length of the REQUEST Packet */
   dhcpOption = (L7_uchar8 *)( pDhcpPacket + 1 );
