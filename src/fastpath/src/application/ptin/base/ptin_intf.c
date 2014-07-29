@@ -293,14 +293,31 @@ L7_RC_t ptin_intf_portExt_init(void)
   L7_RC_t         rc = L7_SUCCESS;
 
   /* Default values */
-  mefExt.Mask                         = 0xffffffff;   /* All values */
+  mefExt.Mask = PTIN_HWPORTEXT_MASK_DEFVID                         |
+                PTIN_HWPORTEXT_MASK_DEFPRIO                        |
+                 PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES        |
+                 PTIN_HWPORTEXT_MASK_INGRESS_FILTER                |
+                 /*PTIN_HWPORTEXT_MASK_RESTRICTED_VLAN_REG           |*/
+                 /*PTIN_HWPORTEXT_MASK_VLAN_AWARE                    |*/
+                 /*PTIN_HWPORTEXT_MASK_TYPE                          |*/
+                 PTIN_HWPORTEXT_MASK_DOUBLETAG                     |
+                 PTIN_HWPORTEXT_MASK_OUTER_TPID                    |
+                 PTIN_HWPORTEXT_MASK_INNER_TPID                    |
+                 PTIN_HWPORTEXT_MASK_EGRESS_TYPE                   |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE               |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE   |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO     |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO |
+                 /*PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF              |*/
+                 /*PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF             |*/
+                 PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
   mefExt.defVid                       = 1;
   mefExt.defPrio                      = 0;
   mefExt.acceptable_frame_types       = L7_DOT1Q_ADMIT_ALL;
   mefExt.ingress_filter               = L7_FALSE;
-  mefExt.restricted_vlan_reg          = 0;
-  mefExt.vlan_aware                   = L7_FALSE;
-  mefExt.type                         = 0;
+  mefExt.restricted_vlan_reg          = 0;            /* Not defined */
+  mefExt.vlan_aware                   = L7_FALSE;     /* Not defined */
+  mefExt.type                         = 0;            /* Not defined */
   mefExt.doubletag                    = L7_TRUE;
   mefExt.outer_tpid                   = 0x8100;
   mefExt.inner_tpid                   = 0x8100;
@@ -309,7 +326,9 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
   mefExt.macLearn_stationMove_samePrio= L7_TRUE;
-  mefExt.dhcp_trusted                 = L7_FALSE;     /* By default a port is untrusted */
+  mefExt.maxChannels                  = 0;            /* Not defined */
+  mefExt.maxBandwidth                 = 0;            /* Not defined */
+  mefExt.dhcp_trusted                 = L7_FALSE;   /* By default a port is untrusted */
 
   /* Only apply to physical interfaces */
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
