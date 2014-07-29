@@ -1369,6 +1369,9 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
     portExt[index].macLearn_stationMove_enable   = portExt_conf.macLearn_stationMove_enable;
     portExt[index].macLearn_stationMove_prio     = portExt_conf.macLearn_stationMove_prio;
     portExt[index].macLearn_stationMove_samePrio = portExt_conf.macLearn_stationMove_samePrio;
+    portExt[index].maxChannels                   = portExt_conf.maxChannels;
+    portExt[index].maxBandwidth                  = portExt_conf.maxBandwidth;
+    portExt[index].protocol_trusted              = portExt_conf.dhcp_trusted;
 
     index++;
   }

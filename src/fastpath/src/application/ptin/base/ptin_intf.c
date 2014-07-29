@@ -513,6 +513,10 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
     return L7_FAILURE;
   }
 
+  /* Trusted state */
+  mefExt->dhcp_trusted = ptin_dhcp_is_intfTrusted(intIfNum, L7_NULL);
+  mefExt->Mask        |= PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
+
   LOG_TRACE(LOG_CTX_PTIN_INTF,"MefExt parameters:");
   LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
   LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%04x"                    , mefExt->Mask);
@@ -530,6 +534,10 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Max Channels      = %u"           , mefExt->maxChannels);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);
 
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Success getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
 

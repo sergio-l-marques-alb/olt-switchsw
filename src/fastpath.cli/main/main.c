@@ -53,7 +53,7 @@ void help_oltBuga(void)
         "m 1014 slot[2-19] port[0-3] cmd[0/1] - (Uplink) Protection command\n\r"
         "m 1015 [0-Phy,1-Lag]/[intf#] - Get port type definitions\r\n"
         "m 1016 slot=[0-17] intf=<[0-Phy;1-Lag]/intf#> defvid=[1-4095] defprio=[0-7] aftypes=[0/1] ifilter=[0/1] rvlanreg=[0/1] vlanaware=[0/1] type=[0/1/2]\r\n"
-        "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] etype=[0/1/2] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] - Set port type definitions\r\n"
+        "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] etype=[0/1/2] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] trust=[0/1] - Set port type definitions\r\n"
         "m 1017 [0-Phy,1-Lag]/[intf#] - Get MAC address of given interface\r\n"
         "m 1018 [0-Phy,1-Lag]/[intf#] macAddr[xxxxxxxxxxxxh] - Set MAC address for the provided interface\r\n"
         "m 1020 port[0-17] - Show switch RFC2819 statistics\n\r"
@@ -1071,6 +1071,16 @@ int main (int argc, char *argv[])
             }
             ptr->macLearn_stationMove_samePrio = (uint8) valued;
             ptr->Mask |= MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO;
+          }
+          else if (strcmp(param,"trust")==0 || strcmp(param,"trusted")==0)
+          {
+            if (StrToLongLong(value,&valued)<0)
+            {
+              printf("Invalid trust value\r\n");
+              exit(0);
+            }
+            ptr->protocol_trusted = (uint8) valued;
+            ptr->Mask |= MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF;
           }
           else
           {
@@ -5300,6 +5310,8 @@ int main (int argc, char *argv[])
               printf("\tMAC Learn Station Move Priority = %u\n\r",po[index].macLearn_stationMove_prio);
             if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO)
               printf("\tMAC Learn Station Move within same priority intfs = %u\n\r",po[index].macLearn_stationMove_samePrio);
+            if (po[index].Mask & MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF)
+              printf("\tMAC Trusted interface  = %u\n\r",po[index].protocol_trusted);
           }
           printf("DONE!!!\n\r");
         }

@@ -2635,8 +2635,8 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   st_DhcpInstCfg_t *dhcpInst;
 
   /* Validate arguments */
-  if ( intIfNum==0 || intIfNum>=L7_MAX_INTERFACE_COUNT ||
-       intVlanId<PTIN_VLAN_MIN || intVlanId>PTIN_VLAN_MAX )
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
+      (intVlanId != 0 && (intVlanId < PTIN_VLAN_MIN || intVlanId > PTIN_VLAN_MAX)) )
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
     return L7_FALSE;
@@ -2647,7 +2647,14 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
   {
     return L7_FALSE;
   }
-  /* Proceed: it should be a root port */
+
+  /* If VLAN is null, return general trusted state */
+  if (intVlanId == 0)
+  {
+    return L7_TRUE;
+  }
+
+  /* Proceed to vlan validation */
 
   /* Convert interface to ptin_port */
   if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
