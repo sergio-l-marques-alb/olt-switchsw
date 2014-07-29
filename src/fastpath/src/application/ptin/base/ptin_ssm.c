@@ -621,7 +621,6 @@ L7_RC_t ssmPDUProcess(L7_uint32 intf, void *buffer)
   /* Validar restantes campos do campo */
   /* ITU-OUI */
   itu_oui = ((L7_uint32) pdu->itu_oui[0]<<16) | ((L7_uint32) pdu->itu_oui[1]<<8) | ((L7_uint32) pdu->itu_oui[2]);
-  itu_oui = osapiNtohl(itu_oui);
 
   if (itu_oui != SSM_ITU_OUI)
   {
