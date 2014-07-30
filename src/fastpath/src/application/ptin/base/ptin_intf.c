@@ -2412,6 +2412,16 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u: Success initializing QoS definitions", lag_idx);
     }
+
+    /* For Linecards, LAG 1/0 belongs to backplane... should be trusted */
+    #if (PTIN_BOARD_IS_LINECARD)
+    if (lag_idx == 0)
+    {
+      ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
+      ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+    }
+    #endif
   }
   else
   {
@@ -2512,6 +2522,16 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
         LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
+
+      /* Return to untrust state */
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (lag_idx == 0)
+      {
+        ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
+        ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
+        LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+      }
+      #endif
 
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
@@ -2771,6 +2791,16 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
         LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
 
+      /* Return to untrust state */
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (lag_idx == 0)
+      {
+        ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
+        ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
+        LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+      }
+      #endif
+
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
 
@@ -2903,6 +2933,16 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
 
     osapiSleepMSec(10);
   } while (1);
+
+  /* For Linecards, LAG 1/0 belongs to backplane... should return to untrusted state */
+  #if (PTIN_BOARD_IS_LINECARD)
+  if (lag_idx == 0)
+  {
+    ptin_dhcp_intfTrusted_set(lag_intIfNum, L7_FALSE); 
+    ptin_pppoe_intfTrusted_set(lag_intIfNum, L7_FALSE);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u returns to untrusted", lag_idx);
+  }
+  #endif
 
   /* Update PortGroups (used on egress translations) */
   ptin_pbmp = lagConf_data[lag_idx].members_pbmp64;

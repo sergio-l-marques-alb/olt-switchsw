@@ -2764,8 +2764,13 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
   /* Validate output list */
   if (intfList == L7_NULLPTR)
   {
+    if (ptin_debug_dhcp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_DHCP,"Will not return data");
     return L7_SUCCESS;
   }
+
+  if (ptin_debug_dhcp_snooping)
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"eEVC %u, has %u ports", evc_id_ext, evcConf.n_intf);
 
   /* Clear output mask ports */
   memset(intfList, 0x00, sizeof(NIM_INTF_MASK_t));
@@ -2776,14 +2781,28 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
     ptintf.intf_type = evcConf.intf[i].intf_type;
     ptintf.intf_id   = evcConf.intf[i].intf_id;
 
+    if (ptin_debug_dhcp_snooping)
+      LOG_WARNING(LOG_CTX_PTIN_DHCP,"Processing ptin_intf %u/%u", ptintf.intf_type, ptintf.intf_id);
+
     /* Convert interface to intIfNum */
     if (ptin_intf_ptintf2intIfNum(&ptintf, &intIfNum) != L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_WARNING(LOG_CTX_PTIN_DHCP,"Error converting ptin_intf %u/%u to intIfNum format", ptintf.intf_type, ptintf.intf_id);
       continue;
+    }
 
     /* Mark interface as trusted, if it is */
     if (L7_INTF_ISMASKBITSET(dhcp_intIfNum_trusted, intIfNum))
     {
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"ptin_intf %u/%u or intIfNum %u is trusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
       L7_INTF_SETMASKBIT(*intfList, intIfNum);
+    }
+    else
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP,"ptin_intf %u/%u or intIfNum %u is UNtrusted", ptintf.intf_type, ptintf.intf_id, intIfNum);
     }
   }
 

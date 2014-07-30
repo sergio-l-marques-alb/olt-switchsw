@@ -946,7 +946,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         }
         SYSAPI_NET_MBUF_FREE(bufHandle);
         if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet ignored");
+          LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet consumed");
         return SYSNET_PDU_RC_CONSUMED;
       }
     }
@@ -4683,6 +4683,9 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uint32 i;
   L7_RC_t rc = L7_SUCCESS;
 
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to flood packet (src_intIfNum %u, vlanId=%u, innerVlanId=%u)", intIfNum, vlanId, innerVlanId);
+
   /* PTin modified: DHCP snooping */
   #if 1
   /* Only send to trusted ports */
@@ -4697,6 +4700,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
         continue;
       }
+
       /* The API dot1qVlanEgressPortsGet returns both LAG interface as
          well as its particpating interfaces. So exclude the particpiating
          interfaces so that the underlying layer takes care of forwarding
@@ -4708,6 +4712,9 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
       if (L7_INTF_ISMASKBITSET(portMask, i))
       {
+        if (ptin_debug_dhcp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to flood to intIfNum %u", i);
+
         /* This port is in the packet's VLAN.
          * If we are not snooping this VLAN,
          *   send packet on every member port.
@@ -4727,6 +4734,9 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
         {
           L7_uint8  ethPrty;
           L7_uint8  *frameEthPrty;
+
+          if (ptin_debug_dhcp_snooping)
+            LOG_TRACE(LOG_CTX_PTIN_DHCP, "I am here");
 
           //Change ethernet priority bit
           if (ptin_dhcp_ethPrty_get(vlanId, &ethPrty) != L7_SUCCESS)
@@ -5070,6 +5080,9 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_INTF_TYPES_t   sysIntfType;
   //L7_BOOL           is_vlan_stacked;
 
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
       (sysIntfType == L7_CPU_INTF))
@@ -5103,6 +5116,9 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
   //L7_int i;
+
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
@@ -5159,6 +5175,9 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     }
     printf("===================\n");
   }
+
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Ready to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
 
   if (dtlIpBufSend(intIfNum, vlanId, bufHandle) != L7_SUCCESS)
   {
