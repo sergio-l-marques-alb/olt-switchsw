@@ -462,8 +462,10 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  bcm_port_t bcm_port;
-  L7_uint32  rval;
+  L7_uint       port_index;
+  bcm_port_t    bcm_port;
+  bcmx_lport_t  lport;
+  L7_uint32     rval;
 
   /* Inicialize polarity invertions (ge48 port) */
   if (hapi_ptin_bcmPort_get(ptin_sys_number_of_ports-1, &bcm_port) == L7_SUCCESS)
@@ -503,6 +505,49 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     rc = L7_FAILURE;
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting backup recovery clock from bcm_port=52");
   }
+
+#if (1)
+    /* PTin added: Cancellation rule */
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+    L7_uint16 vlanId_value = PTIN_VLAN_BL2CPU_EXT;
+    L7_uint16 vlanId_mask  = 0xFFF;
+
+    /* Create cancellation rule for VLANS 4092-4095 */
+    hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    hapiBroadPolicyCreate(BROAD_POLICY_TYPE_IPSG);
+    hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+    hapiBroadPolicyRuleAdd(&ruleId);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8*)&vlanId_value, (L7_uchar8*)&vlanId_mask);
+    hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+       return rc;
+
+    /* Apply this rule to PON ports */
+    for (port_index = 0; port_index < PTIN_SYSTEM_N_PONS; port_index++)
+    {
+      /* Get lport */
+      if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
+        return L7_FAILURE;
+      lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+      rc = hapiBroadPolicyApplyToIface(policyId, lport);
+      if (L7_SUCCESS != rc)
+         return rc;
+      LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to port %u", port_index);
+    }
+
+    /* Apply this rule only to GE48 port */
+    if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
+      return L7_FAILURE;
+    lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    if (L7_SUCCESS != rc)
+       return rc;
+    LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to GE48 port", port_index);
+#endif
 
 #else
   rc = L7_NOT_SUPPORTED;
