@@ -303,7 +303,7 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
     }
 
 #ifdef PTIN_ENABLE_ERPS
-    //if (OAM_ETH_TYPE==ETHtype    &&    dont_txrx_oam_criterion(3, port, -1, vid, NULL)) return 4;
+    if (OAM_ETH_TYPE==ETHtype    &&    dont_txrx_oam_criterion(3, port, -1, vid, NULL)) return 4;
 #endif
 
 #ifdef RAW_MODE
