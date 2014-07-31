@@ -4931,15 +4931,15 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource)
   /*Despite the IPSG API having two input parameters: IP filtering and MAC filtering. 
     It does not support enabling just one!
     */
-  if( (msgIpsgVerifySource->enable & IPSG_ENABLE) == IPSG_DISABLE )
+  if( (msgIpsgVerifySource->enable & IPSG_ENABLE) == IPSG_ENABLE )
   {
-    return (ipsgVerifySourceSet(intIfNum, IPSG_DISABLE, IPSG_DISABLE));
+    return (ipsgVerifySourceSet(intIfNum, IPSG_ENABLE, IPSG_ENABLE));
   }
   else
   {
-    if( (msgIpsgVerifySource->enable & IPSG_ENABLE) == IPSG_ENABLE )
+    if( (msgIpsgVerifySource->enable & IPSG_DISABLE) == IPSG_DISABLE )
     {
-      return (ipsgVerifySourceSet(intIfNum, IPSG_ENABLE, IPSG_ENABLE));
+      return (ipsgVerifySourceSet(intIfNum, IPSG_DISABLE, IPSG_DISABLE));
     }
     else
     {
@@ -5035,13 +5035,13 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
   }
 
 #ifdef L7_IPSG_PACKAGE
-  if ((msgIpsgStaticEntry->action&IPSG_ENABLE) == IPSG_DISABLE)
+  if ((msgIpsgStaticEntry->action&IPSG_ACTION_ADD) == IPSG_ACTION_ADD)
   {
-    return (ipsgStaticEntryRemove(intIfNum, vlanId, &macAddr, &ipAddr));  
+    return (ipsgStaticEntryAdd(intIfNum, vlanId, &macAddr, &ipAddr));
   }
   else
   {
-    return (ipsgStaticEntryAdd(intIfNum, vlanId, &macAddr, &ipAddr));
+    return (ipsgStaticEntryRemove(intIfNum, vlanId, &macAddr, &ipAddr));  
   }   
 #else
   LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
