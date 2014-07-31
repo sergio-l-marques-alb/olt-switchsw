@@ -173,23 +173,29 @@ typedef struct {
     ptinIgmpClientGroupsSnapshotInfoData_t *dataHeap;
 } ptinIgmpClientGroupsSnapshotAvlTree_t;
 
-#define PTIN_IGMP_MAX_ALLOWED_CHANNELS  0x01
-#define PTIN_IGMP_MAX_ALLOWED_BANDWIDTH 0x02
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+typedef struct { 
+  L7_uint8                  mask;                 /*mask = 0x00 Disable | mask !=0x00 Enable*/
+  L7_uint16                 maxAllowedChannels;   /* [mask 0x01] Maximum number of channels allowed for this client */
+  L7_uint32                 maxAllowedBandwidth;  /* [mask 0x02] Maximum bandwidth allowed for this client (kbit/s)*/
+  L7_uint16                 allocatedChannels;     /* Number of channels currently allocated  for this client */
+  L7_uint32                 allocatedBandwidth;    /* Bandwidth currently allocated for this client (kbit/s) */
+} ptinIgmpAdmissionControl_t;
+#endif
+
 /* Client Groups */
 typedef struct ptinIgmpClientGroupInfoData_s
 {
-  ptinIgmpClientDataKey_t   igmpClientDataKey;
-  L7_uint16                 uni_ovid;               /* Ext. OVID to be used for packet transmission */
-  L7_uint16                 uni_ivid;               /* Ext. IVID to be used for packet transmission */
-  L7_uint8                  ptin_port;              /* Port */
-  L7_uint32                 client_bmp_list[PTIN_IGMP_CLIENTIDX_MAX/(sizeof(L7_uint32)*8)+1];  /* Clients (children) bitmap (only for one interface) */
-  dl_queue_t                queue_clientDevices;
-  ptin_IGMP_Statistics_t    stats_client;
-  L7_uint8                  mask;
-  L7_uint16                 maxAllowedChannels;   /* Maximum number of channels allowed for this client */
-  L7_uint64                 maxAllowedBandwidth;  /* Maximum bandwidth allowed for this client (bit/s)*/
-  L7_uint16                 allocatedChannels;     /* Number of channels currently allocated  for this client */
-  L7_uint64                 allocatedBandwidth;    /* Bandwidth currently allocated for this client (bit/s) */
+  ptinIgmpClientDataKey_t     igmpClientDataKey;
+  L7_uint16                   uni_ovid;               /* Ext. OVID to be used for packet transmission */
+  L7_uint16                   uni_ivid;               /* Ext. IVID to be used for packet transmission */
+  L7_uint8                    ptin_port;              /* Port */
+  L7_uint32                   client_bmp_list[PTIN_IGMP_CLIENTIDX_MAX/(sizeof(L7_uint32)*8)+1];  /* Clients (children) bitmap (only for one interface) */
+  dl_queue_t                  queue_clientDevices;
+  ptin_IGMP_Statistics_t      stats_client;
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+  ptinIgmpAdmissionControl_t  admissionControl;   
+#endif
   void *next;
 } ptinIgmpClientGroupInfoData_t;
 
@@ -257,17 +263,21 @@ ptinIgmpClientGroups_t igmpClientGroups;
 /* Unified list with all clients (to be added dynamically) */
 ptinIgmpClients_unified_t igmpClients_unified;
 
-#if (!PTIN_BOARD_IS_MATRIX)
+/************IGMP Admission Control Feature****************************************************/ 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
 typedef struct {
-    L7_uint8                         inUse;
-    ptinIgmpClientGroupInfoData_t*   clientGroupPtr;         
+//L7_uint8                         inUse; //Removed to Save Memory Consumption
+  ptinIgmpClientGroupInfoData_t*   clientGroupPtr;         
 } ptinIgmpClientGroupLookUpTable_t;
 
-ptinIgmpClientGroupLookUpTable_t clientGroupLookUpTable[PTIN_SYSTEM_N_INTERF][PTIN_IGMP_CLIENTIDX_MAX];
+ 
 
-/*Pointer to the clientGroup of the last IGMP packet received*/
-ptinIgmpClientGroupInfoData_t* clientGroupPtr = L7_NULLPTR;
+static ptinIgmpClientGroupLookUpTable_t clientGroupLookUpTable[PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH][PTIN_IGMP_CLIENTIDX_MAX];
+
+static ptinIgmpAdmissionControl_t igmpMulticastAdmissionControl[PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF];
+
+static ptinIgmpAdmissionControl_t igmpPortAdmissionControl[PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH];
 
 static void ptin_igmp_clientgroup_lookup_table_entry_add(L7_uint32 ptinPort, L7_uint32 clientId, ptinIgmpClientGroupInfoData_t* clientGroupPtr)
 {
@@ -276,8 +286,7 @@ static void ptin_igmp_clientgroup_lookup_table_entry_add(L7_uint32 ptinPort, L7_
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptinPort:%u clientId:%u clientGroupPtr:%p",ptinPort, clientId, clientGroupPtr);
     return;
-  }
-  clientGroupLookUpTable[ptinPort][clientId].inUse = L7_TRUE;
+  }  
   clientGroupLookUpTable[ptinPort][clientId].clientGroupPtr = clientGroupPtr;  
 }
 
@@ -289,12 +298,9 @@ static ptinIgmpClientGroupInfoData_t* ptin_igmp_clientgroup_lookup_table_entry_g
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptinPort:%u clientId:%u",ptinPort, clientId);
     return L7_NULLPTR;
   }
-
-  if (clientGroupLookUpTable[ptinPort][clientId].inUse == L7_TRUE)
-    return clientGroupLookUpTable[ptinPort][clientId].clientGroupPtr;
-  else
-    return L7_NULLPTR;
+  return clientGroupLookUpTable[ptinPort][clientId].clientGroupPtr;
 }
+
 
 static void ptin_igmp_clientgroup_lookup_table_entry_remove(L7_uint32 ptinPort, L7_uint32 clientId)
 {
@@ -304,11 +310,11 @@ static void ptin_igmp_clientgroup_lookup_table_entry_remove(L7_uint32 ptinPort, 
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptinPort:%u clientId:%u",ptinPort, clientId);
     return;
   }
-  clientGroupLookUpTable[ptinPort][clientId].inUse = L7_FALSE;    
+  clientGroupLookUpTable[ptinPort][clientId].clientGroupPtr = L7_NULLPTR;
 }
 
-
 #endif
+/*******************End IGMP Admission Control Feature***********************************************/
 
 /******************************* 
  * MULTI MULTICAST FEATURE
@@ -342,7 +348,9 @@ typedef struct
   L7_uint32                 evc_uc;
   L7_uint16                 igmp_idx;
   L7_BOOL                   is_static;
-  L7_uint64                 channelBandwidth;  // bit/s 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+  L7_uint32                 channelBandwidth;  // kbps 
+#endif
   void *next;
 } ptinIgmpPairInfoData_t;
 
@@ -639,9 +647,15 @@ L7_RC_t ptin_igmp_proxy_init(void)
   /* Client group */
   memset(&igmpClientGroups, 0x00, sizeof(igmpClientGroups));
 
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   /* Client group look up table*/
   memset(&clientGroupLookUpTable, 0x00, sizeof(clientGroupLookUpTable));
+
+  /* Port Admission Control*/
+  memset(&igmpPortAdmissionControl, 0x00, sizeof(igmpPortAdmissionControl));
+
+  /* Multicast Admission Control*/
+  memset(&igmpMulticastAdmissionControl, 0x00, sizeof(igmpPortAdmissionControl));  
 #endif
   
   igmpClientGroups.avlTree.igmpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_IGMP_MAXONUS * sizeof(avlTreeTables_t)); 
@@ -1272,7 +1286,7 @@ void ptin_igmp_proxy_bandwidth_control_set(L7_uint8 bandwidthControl){igmpProxyC
 
 void ptin_igmp_proxy_channels_control_set(L7_uint8 channelsControl){igmpProxyCfg.channelsControl = (channelsControl & L7_TRUE);};
 
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 static L7_uint8 ptin_igmp_proxy_admission_control_get(void){return (igmpProxyCfg.bandwidthControl | igmpProxyCfg.channelsControl);};
 
 static L7_uint8 ptin_igmp_proxy_bandwidth_control_get(void){return igmpProxyCfg.bandwidthControl;};
@@ -2001,16 +2015,21 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
 /**
  * Add a new Multicast client
  * 
- * @param evc_idx     : evc id
- * @param client      : client identification parameters 
- * @param uni_ovid    : External Outer vlan 
- * @param uni_ivid    : External Inner vlan 
- * @param maxBandwidth : Maximum allowed bandwidth for this client. Use (L7_uint32)-1 to disable.
- * @param maxChannels  : Maximum number of channels for this client. Use (L7_uint32)-1 to disable. 
+ * @param evc_idx      : evc id
+ * @param client       : client identification parameters 
+ * @param uni_ovid     : External Outer vlan 
+ * @param uni_ivid     : External Inner vlan 
+ * @param mask         : To set the admission control parameters
+ * @param maxBandwidth : [mask 0x01] Maximum allowed bandwidth 
+ *                     for this client. Use (L7_uint64)-1 to
+ *                     disable.
+ * @param maxChannels  : [mask 0x02] Maximum number of channels 
+ *                     for this client. Use (L7_uint64)-1 to
+ *                     disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint64 maxBandwidth, L7_uint16 maxChannels)
+L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels)
 {
   L7_RC_t rc;
   L7_uint32 intIfNum;
@@ -2052,7 +2071,7 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   }
 
   /* Create new static client */
-  rc = ptin_igmp_clientGroup_add(&client, uni_ovid, uni_ivid, maxBandwidth, maxChannels);
+  rc = ptin_igmp_clientGroup_add(&client, uni_ovid, uni_ivid, mask, maxBandwidth, maxChannels);
 
   if (rc!=L7_SUCCESS)
   {
@@ -3211,12 +3230,18 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum, L7_uint32 client_idx)
  * @param intVid       : Internal vlan
  * @param uni_ovid     : External Outer vlan 
  * @param uni_ivid     : External Inner vlan 
- * @param maxBandwidth : Maximum allowed bandwidth for this client. Use (L7_uint32)-1 to disable.
- * @param maxChannels  : Maximum number of channels for this client. Use (L7_uint32)-1 to disable.
+ * @param mask         : Applies only to the Multicast Admission
+ *                     Control Parameters
+ * @param maxBandwidth : [Mask = 0x01] Maximum allowed bandwidth
+ *                     for this client. Use (L7_uint64)-1 to
+ *                     disable.
+ * @param maxChannels  : [Mask = 0x02] Maximum number of 
+ *                     channels for this client. Use
+ *                     (L7_uint64)-1 to disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint64 maxBandwidth, L7_uint16 maxChannels)
+L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels)
 {
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientGroupAvlTree_t *avl_tree;
@@ -3479,12 +3504,34 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     }
   }
 
-  osapiSemaGive(ptin_igmp_clients_sem);
-
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   /* Save IGMP client bandwidth/channel restrictions */
-  avl_infoData->maxAllowedBandwidth = maxBandwidth;
-  avl_infoData->maxAllowedChannels = maxChannels;
+  if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
+  {
+    if (maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE)  /*Disable this Parameter*/
+      mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+    else
+    {
+      avl_infoData->admissionControl.maxAllowedChannels = maxAllowedChannels;    
+      avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+    }
+  }
 
+  if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
+  {    
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE) /*Disable this Parameter*/
+    {
+      avl_infoData->admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+    }
+    else
+    {
+      avl_infoData->admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
+      avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+    }
+  }
+#endif
+
+  osapiSemaGive(ptin_igmp_clients_sem);
   return L7_SUCCESS;
 }
 
@@ -6173,14 +6220,16 @@ L7_RC_t igmp_assoc_channelList_get( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * @param channel_group   : Group channel
  * @param channel_grpMask : Number of masked bits
  * @param channel_source  : Source channel
- * @param channel_srcMask : Number of masked bits
+ * @param channel_srcMask : Number of masked bits 
+ * @param channelBandwidth: Bandwidth required for this channel
+ *                  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                 L7_inet_addr_t *channel_group , L7_uint16 channel_grpMask,
                                 L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
-                                L7_BOOL is_static )
+                                L7_BOOL is_static, L7_uint64 channelBandwidth)
 {
   L7_uint         igmpInst_idx;
   L7_inet_addr_t  group, source;
@@ -6288,6 +6337,10 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
 
       #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
       memcpy(&avl_node.igmpPairDataKey.channel_source, &source, sizeof(L7_inet_addr_t));
+      #endif
+
+      #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+      avl_node.channelBandwidth = channelBandwidth/1000; /*Convert from bps to kbps*/      
       #endif
 
       /* In case of success, continue adding nodes into avl tree */
@@ -6743,6 +6796,10 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
   #endif
   avl_infoData->igmp_idx  = node->igmp_idx;
   avl_infoData->is_static = node->is_static & 1;
+
+  #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+  avl_infoData->channelBandwidth = node->channelBandwidth;
+  #endif
 
   return L7_SUCCESS;
 }
@@ -11553,7 +11610,7 @@ static L7_uint16 igmp_clientIndex_get_new(L7_uint ptin_port, ptinIgmpClientGroup
   /* Mark index as being used */
   pClientIdx->in_use = L7_TRUE;
 
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   //Add this Client Id to the LookUp Table
   ptin_igmp_clientgroup_lookup_table_entry_add(ptin_port, pClientIdx->client_idx, clientGroup);
 #endif
@@ -11601,7 +11658,7 @@ static void igmp_clientIndex_free(L7_uint ptin_port, L7_uint16 client_idx)
   /* Update in_use flag */
   pClientIdx->in_use = L7_FALSE;
 
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   //Remove this ClientId from the LookUp Table
   ptin_igmp_clientgroup_lookup_table_entry_remove(ptin_port, client_idx);
 #endif
@@ -11775,7 +11832,10 @@ void ptin_igmp_groupclients_dump(void)
            #if (MC_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
-           ": port=%-2u uni_vid=%4u+%-4u (#devices=%u) (mask=0x%x allocatedBandwidth=%llu maxAllowedBandwidth=%llu allocatedChannels=%u maxAllowedChannels=%u)\r\n",
+           #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+           "mask=0x%x allocatedBandwidth=%u maxAllowedBandwidth=%u allocatedChannels=%u maxAllowedChannels=%u "
+           #endif
+           ": port=%-2u uni_vid=%4u+%-4u (#devices=%u)\r\n",
            i_client,
            #if (MC_CLIENT_INTERF_SUPPORTED)
            clientGroup->igmpClientDataKey.ptin_port,
@@ -11800,10 +11860,16 @@ void ptin_igmp_groupclients_dump(void)
                clientGroup->igmpClientDataKey.macAddr[4],
                 clientGroup->igmpClientDataKey.macAddr[5],
            #endif
+           #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+           clientGroup->admissionControl.mask, 
+           clientGroup->admissionControl.allocatedBandwidth,
+           clientGroup->admissionControl.maxAllowedBandwidth,
+           clientGroup->admissionControl.allocatedChannels,
+           clientGroup->admissionControl.maxAllowedChannels,
+           #endif
            clientGroup->ptin_port,
            clientGroup->uni_ovid, clientGroup->uni_ivid,
-           child_clients,
-           clientGroup->mask, clientGroup->allocatedBandwidth,clientGroup->maxAllowedBandwidth,clientGroup->allocatedChannels,clientGroup->maxAllowedChannels);
+           child_clients);
 
     i_client++;
   }
@@ -11815,7 +11881,56 @@ void ptin_igmp_groupclients_dump(void)
 }
 
 
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+
+/**
+ * @purpose Set the Port Admission Control Parameters
+ * 
+ * @param ptin_port 
+ * @param mask 
+ * @param maxAllowedChannels 
+ * @param maxAllowedBandwidth  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7_uint16 maxAllowedChannels, L7_uint64 maxAllowedBandwidth)  
+{
+  /*Input Parameters Validation*/
+  if (ptin_port >= PTIN_SYSTEM_N_PORTS || mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);    
+    return L7_FAILURE;
+  }
+
+  if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
+  {
+    if (maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE) /*Disable this Parameter*/
+      igmpPortAdmissionControl[ptin_port].mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+    else
+    {
+      igmpPortAdmissionControl[ptin_port].maxAllowedChannels = maxAllowedChannels;    
+      igmpPortAdmissionControl[ptin_port].mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+    }
+  }
+
+  if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
+  {    
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE) /*Disable this Parameter*/
+    {
+      igmpPortAdmissionControl[ptin_port].mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+    }
+    else
+    {
+      igmpPortAdmissionControl[ptin_port].maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
+      igmpPortAdmissionControl[ptin_port].mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+    }
+  }
+
+  return L7_SUCCESS;
+}
 /**
  * @purpose Verifies if a given client Id has available 
  * resources for a new multicast channels 
@@ -11877,7 +11992,7 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
     return L7_SUCCESS;
   }
 
-  //Convert to intIfNum to ptin_port
+  //Convert from intIfNum to ptin_port
   ptin_intf_intIfNum2port(intIfNum, &ptin_port);
 
   /*Obtain the Bandwidth of this Multicast Channel***/
@@ -11947,19 +12062,19 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
 
   switch (globalAdmissionControlMask)
   {
-  case (PTIN_IGMP_MAX_ALLOWED_CHANNELS | PTIN_IGMP_MAX_ALLOWED_BANDWIDTH):          
-    switch (ptinIgmpClientGroupInfoData->mask)
+  case (PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS | PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH):          
+    switch (ptinIgmpClientGroupInfoData->admissionControl.mask)
     {
-    case (PTIN_IGMP_MAX_ALLOWED_CHANNELS | PTIN_IGMP_MAX_ALLOWED_BANDWIDTH):
-      if ( (ptinIgmpClientGroupInfoData->allocatedChannels + 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels) ||
-           ptinIgmpClientGroupInfoData->allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+    case (PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS | PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH):
+      if ( (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels + 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels) ||
+           ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation"
                      "[allocatedChannels:%u maxChannels:%u | allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels,
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels,
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -11968,23 +12083,23 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u | allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels,
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels,
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-//          ++ptinIgmpClientGroupInfoData->allocatedChannels;
-//          ptinIgmpClientGroupInfoData->allocatedBandwidth += channelBandwidth;
+//          ++ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
+//          ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth += channelBandwidth;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
 
       break;
-    case PTIN_IGMP_MAX_ALLOWED_CHANNELS:           
-      if (ptinIgmpClientGroupInfoData->allocatedChannels + 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels)
+    case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS:           
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels + 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedChannels:%u maxChannels:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -11993,21 +12108,21 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
 
-//          ++ptinIgmpClientGroupInfoData->allocatedChannels;
+//          ++ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
 
       break;
-    case PTIN_IGMP_MAX_ALLOWED_BANDWIDTH:
-      if (ptinIgmpClientGroupInfoData->allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+    case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12016,9 +12131,9 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedBandwidth:%u maxAllowedBandwidth:%u]",                       
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-//          ptinIgmpClientGroupInfoData->allocatedBandwidth += channelBandwidth;
+//          ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth += channelBandwidth;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
@@ -12032,15 +12147,15 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
       return L7_SUCCESS;              
     }
     break;                    
-  case PTIN_IGMP_MAX_ALLOWED_CHANNELS: 
-    if ( (ptinIgmpClientGroupInfoData->mask & PTIN_IGMP_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_MAX_ALLOWED_CHANNELS)
+  case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS: 
+    if ( (ptinIgmpClientGroupInfoData->admissionControl.mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
     {
-      if (ptinIgmpClientGroupInfoData->allocatedChannels + 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels)
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels + 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedChannels:%u maxChannels:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12049,9 +12164,9 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
 
-//          ++ptinIgmpClientGroupInfoData->allocatedChannels;
+//          ++ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
     }
     else
     {
@@ -12062,15 +12177,15 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_SUCCESS; 
     break;          
-  case PTIN_IGMP_MAX_ALLOWED_BANDWIDTH:  
-    if ( (ptinIgmpClientGroupInfoData->mask & PTIN_IGMP_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_MAX_ALLOWED_BANDWIDTH)
+  case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:  
+    if ( (ptinIgmpClientGroupInfoData->admissionControl.mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
     {
-      if (ptinIgmpClientGroupInfoData->allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12079,9 +12194,9 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedBandwidth:%u maxAllowedBandwidth:%u]",                       
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-//          ptinIgmpClientGroupInfoData->allocatedBandwidth += channelBandwidth;
+//          ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth += channelBandwidth;
     }
     else
     {
@@ -12241,19 +12356,19 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
 
   switch (globalAdmissionControlMask)
   {
-  case (PTIN_IGMP_MAX_ALLOWED_CHANNELS | PTIN_IGMP_MAX_ALLOWED_BANDWIDTH):          
-    switch (ptinIgmpClientGroupInfoData->mask)
+  case (PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS | PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH):          
+    switch (ptinIgmpClientGroupInfoData->admissionControl.mask)
     {
-    case (PTIN_IGMP_MAX_ALLOWED_CHANNELS | PTIN_IGMP_MAX_ALLOWED_BANDWIDTH):
-      if ( (ptinIgmpClientGroupInfoData->allocatedChannels + 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels) ||
-           ptinIgmpClientGroupInfoData->allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+    case (PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS | PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH):
+      if ( (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels + 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels) ||
+           ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation"
                      "[allocatedChannels:%u maxChannels:%u | allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels,
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels,
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12262,23 +12377,23 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u | allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels,
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels,
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-      ++ptinIgmpClientGroupInfoData->allocatedChannels;
-      ptinIgmpClientGroupInfoData->allocatedBandwidth += channelBandwidth;
+      ++ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
+      ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth += channelBandwidth;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
 
       break;
-    case PTIN_IGMP_MAX_ALLOWED_CHANNELS:           
-      if (ptinIgmpClientGroupInfoData->allocatedChannels + 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels)
+    case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS:           
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels + 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedChannels:%u maxChannels:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12287,21 +12402,21 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
 
-      ++ptinIgmpClientGroupInfoData->allocatedChannels;
+      ++ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
 
       break;
-    case PTIN_IGMP_MAX_ALLOWED_BANDWIDTH:
-      if (ptinIgmpClientGroupInfoData->allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+    case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12310,9 +12425,9 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedBandwidth:%u maxAllowedBandwidth:%u]",                       
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-      ptinIgmpClientGroupInfoData->allocatedBandwidth += channelBandwidth;
+      ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth += channelBandwidth;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
@@ -12326,15 +12441,15 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
       return L7_SUCCESS;              
     }
     break;                    
-  case PTIN_IGMP_MAX_ALLOWED_CHANNELS: 
-    if ( (ptinIgmpClientGroupInfoData->mask & PTIN_IGMP_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_MAX_ALLOWED_CHANNELS)
+  case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS: 
+    if ( (ptinIgmpClientGroupInfoData->admissionControl.mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
     {
-      if (ptinIgmpClientGroupInfoData->allocatedChannels + 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels)
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels + 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedChannels:%u maxChannels:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12343,9 +12458,9 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
 
-      ++ptinIgmpClientGroupInfoData->allocatedChannels;
+      ++ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
     }
     else
     {
@@ -12356,15 +12471,15 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_SUCCESS; 
     break;          
-  case PTIN_IGMP_MAX_ALLOWED_BANDWIDTH:  
-    if ( (ptinIgmpClientGroupInfoData->mask & PTIN_IGMP_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_MAX_ALLOWED_BANDWIDTH)
+  case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:  
+    if ( (ptinIgmpClientGroupInfoData->admissionControl.mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
     {
-      if (ptinIgmpClientGroupInfoData->allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth + channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12373,9 +12488,9 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId,
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedBandwidth:%u maxAllowedBandwidth:%u]",                       
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-      ptinIgmpClientGroupInfoData->allocatedBandwidth += channelBandwidth;
+      ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth += channelBandwidth;
     }
     else
     {
@@ -12535,18 +12650,18 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
 
   switch (globalAdmissionControlMask)
   {
-  case (PTIN_IGMP_MAX_ALLOWED_CHANNELS | PTIN_IGMP_MAX_ALLOWED_BANDWIDTH):          
-    switch (ptinIgmpClientGroupInfoData->mask)
+  case (PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS | PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH):          
+    switch (ptinIgmpClientGroupInfoData->admissionControl.mask)
     {
-    case (PTIN_IGMP_MAX_ALLOWED_CHANNELS | PTIN_IGMP_MAX_ALLOWED_BANDWIDTH):
-      if ( (ptinIgmpClientGroupInfoData->allocatedChannels - 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels) ||
-           ptinIgmpClientGroupInfoData->allocatedBandwidth - channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+    case (PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS | PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH):
+      if ( (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels - 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels) ||
+           ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth - channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources        
         LOG_ERR(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation"
                      "[allocatedChannels:%u maxChannels:%u | allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels,
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels,
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12555,22 +12670,22 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u | allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels,
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels,
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-      --ptinIgmpClientGroupInfoData->allocatedChannels;
-      ptinIgmpClientGroupInfoData->allocatedBandwidth -= channelBandwidth;
+      --ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
+      ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth -= channelBandwidth;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
 
       break;
-    case PTIN_IGMP_MAX_ALLOWED_CHANNELS:           
-      if (ptinIgmpClientGroupInfoData->allocatedChannels - 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels)
+    case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS:           
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels - 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels)
       {
         //Not Enough Resources        
         LOG_ERR(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedChannels:%u maxChannels:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12579,20 +12694,20 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
 
-      --ptinIgmpClientGroupInfoData->allocatedChannels;
+      --ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
 
       break;
-    case PTIN_IGMP_MAX_ALLOWED_BANDWIDTH:
-      if (ptinIgmpClientGroupInfoData->allocatedBandwidth - channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+    case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth - channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources        
        LOG_ERR(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12601,9 +12716,9 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedBandwidth:%u maxAllowedBandwidth:%u]",                       
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-      ptinIgmpClientGroupInfoData->allocatedBandwidth -= channelBandwidth;
+      ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth -= channelBandwidth;
 
       osapiSemaGive(ptin_igmp_clients_sem);
       return L7_SUCCESS;
@@ -12617,14 +12732,14 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
       return L7_SUCCESS;              
     }
     break;                    
-  case PTIN_IGMP_MAX_ALLOWED_CHANNELS: 
-    if ( (ptinIgmpClientGroupInfoData->mask & PTIN_IGMP_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_MAX_ALLOWED_CHANNELS)
+  case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS: 
+    if ( (ptinIgmpClientGroupInfoData->admissionControl.mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
     {
-      if (ptinIgmpClientGroupInfoData->allocatedChannels - 1 > ptinIgmpClientGroupInfoData->maxAllowedChannels)
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels - 1 > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels)
       {
         //Not Enough Resources        
         LOG_ERR(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedChannels:%u maxChannels:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12633,9 +12748,9 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedChannels:%u maxChannels:%u]",
-                  ptinIgmpClientGroupInfoData->allocatedChannels, ptinIgmpClientGroupInfoData->maxAllowedChannels);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels);
 
-      --ptinIgmpClientGroupInfoData->allocatedChannels;
+      --ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels;
     }
     else
     {
@@ -12646,14 +12761,14 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_SUCCESS; 
     break;          
-  case PTIN_IGMP_MAX_ALLOWED_BANDWIDTH:  
-    if ( (ptinIgmpClientGroupInfoData->mask & PTIN_IGMP_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_MAX_ALLOWED_BANDWIDTH)
+  case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:  
+    if ( (ptinIgmpClientGroupInfoData->admissionControl.mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
     {
-      if (ptinIgmpClientGroupInfoData->allocatedBandwidth - channelBandwidth > ptinIgmpClientGroupInfoData->maxAllowedBandwidth)
+      if (ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth - channelBandwidth > ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth)
       {
         //Not Enough Resources        
         LOG_ERR(LOG_CTX_PTIN_IGMP, "This client does not have enough resources to perform this operation [allocatedBandwidth:%u maxAllowedBandwidth:%u]",
-                     ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                     ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
         osapiSemaGive(ptin_igmp_clients_sem);
         return L7_FAILURE;
       }
@@ -12662,9 +12777,9 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, 
       if (ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This client has enough resources to perform this operation"
                   "[allocatedBandwidth:%u maxAllowedBandwidth:%u]",                       
-                  ptinIgmpClientGroupInfoData->allocatedBandwidth, ptinIgmpClientGroupInfoData->maxAllowedBandwidth);
+                  ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth);
 
-      ptinIgmpClientGroupInfoData->allocatedBandwidth -= channelBandwidth;
+      ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth -= channelBandwidth;
     }
     else
     {

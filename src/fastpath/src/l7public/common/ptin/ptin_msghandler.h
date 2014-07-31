@@ -789,7 +789,6 @@ typedef struct {
   msg_HwEthMef10Intf_t intf;// VID represents the new outer VLAN (Vs')
 } __attribute__((packed)) msg_HwEthEvcBridge_t;
 
-#define MULTICAST_ADMISSION_CONTROL_SUPPORT 1
 /* EVC flow */
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 typedef struct {
@@ -802,11 +801,9 @@ typedef struct {
   L7_uint16            nni_cvlan;    // NNI inner vlan
   msg_HwEthIntf_t      intf;         // Outer vlan is the GEM id
   L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
-#if MULTICAST_ADMISSION_CONTROL_SUPPORT          
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
-#endif
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /* EVC port add/remove */
@@ -1262,11 +1259,9 @@ typedef struct {
   L7_uint8             SlotId;
   L7_uint32            mcEvcId;                 /* Multicast EVC Id */
   msg_client_info_t    client;                  /* Client identification */
-#if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
-#endif
 } __attribute__((packed)) msg_IgmpClient_t;
 
 

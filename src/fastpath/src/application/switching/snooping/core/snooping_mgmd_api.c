@@ -411,7 +411,7 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 
 unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
@@ -425,7 +425,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
@@ -439,7 +439,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
 
 unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);

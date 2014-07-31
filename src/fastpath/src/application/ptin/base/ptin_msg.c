@@ -2929,15 +2929,29 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
 
-#if MULTICAST_ADMISSION_CONTROL_SUPPORT 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
+    if ( (msgEvcFlow->mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID) || 
+        ( ( (msgEvcFlow->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH ) &&
+          (msgEvcFlow->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE && msgEvcFlow->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
+         ( ( (msgEvcFlow->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS ) &&
+          (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+        
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%x maxBandwidth:%ull maxChannels:%u",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
+      return L7_FAILURE;
+    }
+    ptinEvcFlow.mask                = msgEvcFlow->mask;
     ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
     ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
+    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " mask        = 0x%x",ptinEvcFlow.mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u",ptinEvcFlow.maxChannels);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %u bit/s",ptinEvcFlow.maxBandwidth);
   }
 #endif
+
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
@@ -5357,7 +5371,20 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", McastClient[i].client.outer_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", McastClient[i].client.inner_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
-#if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT                                     
+  
+    if ( (McastClient[i].mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID) || 
+        ( ( (McastClient[i].mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH ) &&
+          (McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
+         ( ( (McastClient[i].mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS ) &&
+          (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+        
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%x maxBandwidth:%ull maxChannels:%u",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+      return L7_FAILURE;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.mask         = %u", McastClient[i].mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.maxChannels  = %u", McastClient[i].maxChannels);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.maxBandwidth = %u bit/s", McastClient[i].maxBandwidth);
 #endif
@@ -5381,11 +5408,8 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
-#if MULTICAST_ADMISSION_CONTROL_SUPPORT                                     
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
-#else
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, (L7_uint32)-1, (L7_uint32)-1);
-#endif
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+
     if (rc!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");
@@ -6038,6 +6062,15 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
     LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
+    #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %ull", channel_list[i].channelBandwidth);
+
+    if (channel_list[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid channelBandwidth:%ull",channel_list[i].channelBandwidth);
+      return L7_FAILURE;
+    }
+    #endif
     /* Prepare group address */
     memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
     if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
@@ -6067,7 +6100,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
 
     if ((rc=igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
                                     &groupAddr , channel_list[i].channel_dstmask,
-                                    &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE )) != L7_SUCCESS)
+                                    &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE, channel_list[i].channelBandwidth )) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,

@@ -100,7 +100,20 @@
 #define PTIN_IGMP_MIN_VLAN_ID                                 1
 #define PTIN_IGMP_MAX_VLAN_ID                                 4095
 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
+#define PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS  0x01
+#define PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH 0x02
+#define PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID                 0x03
+
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE      (L7_uint64) -1 
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE       (L7_uint16) -1
+
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS               16384
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS         000100000000 /*100.000.000 kbps*/
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS          100000000000ULL /*100.000.000.000 bps*/
+
+#endif
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
@@ -559,16 +572,21 @@ extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
 /**
  * Add a new Multicast client
  * 
- * @param evc_idx     : evc id
- * @param client      : client identification parameters 
- * @param uni_ovid    : External Outer vlan 
- * @param uni_ivid    : External Inner vlan 
- * @param maxBandwidth : Maximum allowed bandwidth for this client. Use (L7_uint32)-1 to disable.
- * @param maxChannels  : Maximum number of channels for this client. Use (L7_uint32)-1 to disable. 
+ * @param evc_idx      : evc id
+ * @param client       : client identification parameters 
+ * @param uni_ovid     : External Outer vlan 
+ * @param uni_ivid     : External Inner vlan 
+ * @param mask         : To set the admission control parameters
+ * @param maxBandwidth : [mask 0x01] Maximum allowed bandwidth 
+ *                     for this client. Use (L7_uint64)-1 to
+ *                     disable.
+ * @param maxChannels  : [mask 0x02] Maximum number of channels 
+ *                     for this client. Use (L7_uint16)-1 to
+ *                     disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
+extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
 
 /**
  * Remove a Multicast client
@@ -711,14 +729,16 @@ extern L7_RC_t igmp_assoc_channelList_get( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * @param channel_group   : Group channel
  * @param channel_grpMask : Number of masked bits
  * @param channel_source  : Source channel
- * @param channel_srcMask : Number of masked bits
+ * @param channel_srcMask : Number of masked bits 
+ * @param channelBandwidth: Bandwidth required for this channel
+ *                  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
-                                       L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
-                                       L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
-                                       L7_BOOL is_static );
+                                L7_inet_addr_t *channel_group , L7_uint16 channel_grpMask,
+                                L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
+                                L7_BOOL is_static, L7_uint64 channelBandwidth);
 
 /**
  * Remove an association to a MC service, applied only to a 
@@ -838,12 +858,18 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
  * @param intVid       : Internal vlan
  * @param uni_ovid     : External Outer vlan 
  * @param uni_ivid     : External Inner vlan 
- * @param maxBandwidth : Maximum allowed bandwidth for this client. Use (L7_uint32)-1 to disable.
- * @param maxChannels  : Maximum number of channels for this client. Use (L7_uint32)-1 to disable.
+ * @param mask         : Applies only to the Multicast Admission
+ *                     Control Parameters
+ * @param maxBandwidth : [Mask = 0x01] Maximum allowed bandwidth
+ *                     for this client. Use (L7_uint64)-1 to
+ *                     disable.
+ * @param maxChannels  : [Mask = 0x02] Maximum number of 
+ *                     channels for this client. Use
+ *                     (L7_uint16)-1 to disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
+extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
 
 /**
  * Add a new Multicast client group
@@ -1251,7 +1277,23 @@ extern L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 
 extern L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_idx, L7_uint16 *intVlan);
 
 
-#if (!PTIN_BOARD_IS_MATRIX)
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+
+/**
+ * @purpose Set the Port Admission Control Parameters
+ * 
+ * @param ptin_port 
+ * @param mask 
+ * @param maxAllowedChannels 
+ * @param maxAllowedBandwidth  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7_uint16 maxAllowedChannels, L7_uint64 maxAllowedBandwidth);
+
 /**
  * @purpose Verifies if a given client Id has available 
  * resources for a new multicast channels 

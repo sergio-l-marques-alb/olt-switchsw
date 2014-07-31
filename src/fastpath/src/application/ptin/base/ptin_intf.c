@@ -24,6 +24,7 @@
 #include "ptin_dhcp.h"
 #include "ptin_pppoe.h"
 #include "fw_shm.h"
+#include "ptin_igmp.h" //Added for Admission Control Support
 
 #include "ptin_fpga_api.h"
 
@@ -415,6 +416,42 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %u"                , mefExt->maxBandwidth);
   LOG_TRACE(LOG_CTX_PTIN_INTF," dhcp_trusted = %u"                , mefExt->dhcp_trusted);
 
+  /*Port Multicast Admission Control Support*/
+  #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+  {
+    L7_uint32 ptin_port;
+    L7_uint8  mask = 0x00;
+
+    if ( ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) && 
+           (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
+         ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
+           && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%04x maxBandwidth:%ull maxChannels:%u", mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
+      return L7_FAILURE;
+    }
+
+    if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",ptin_intf->intf_type, ptin_intf->intf_id);
+      return L7_FAILURE;
+    }
+
+    if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
+      mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+
+    if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF)
+      mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+
+    if (ptin_igmp_admission_control_port_set(ptin_port, mask, mefExt->maxChannels, mefExt->maxBandwidth) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set port admission control parameters");
+      return L7_FAILURE;
+    }
+  }
+  #endif
+  /*End Port Multicast Admission Control Support*/
+
   /* Get intIfNum */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
@@ -467,17 +504,6 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying Ingress Filtering %d", mefExt->acceptable_frame_types);
       return L7_FAILURE;
     }
-  }
-
-  /* Set MAX Channels */
-  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "MAX Channels configuration for port %u/%u NOT IMPLEMENTED", ptin_intf->intf_type, ptin_intf->intf_id);
-  }
-  /* Set MAX Bandwidth */
-  if (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "MAX Bandwidth configuration for port %u/%u NOT IMPLEMENTED", ptin_intf->intf_type, ptin_intf->intf_id);
   }
 
   /* Set trusted state */
