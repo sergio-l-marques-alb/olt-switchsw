@@ -50,8 +50,7 @@ void ptin_timer_start(L7_uint16 timer_id, char *str)
   time_now = osapiTimeMicrosecondsGet();
 
   processing_timer[timer_id].time_start = time_now;
-  processing_timer[timer_id].time_end   = time_now;
-
+  
   if (str!=L7_NULLPTR)
     strncpy(processing_timer[timer_id].timer_string,str,100);
 }
@@ -65,7 +64,8 @@ void ptin_timer_stop(L7_uint16 timer_id)
 
   time_now = osapiTimeMicrosecondsGet();
 
-  processing_timer[timer_id].time_end   = time_now;
+  processing_timer[timer_id].time_start = (L7_uint32) (time_now - processing_timer[timer_id].time_start);  
+  processing_timer[timer_id].time_end   = (L7_uint32) ((processing_timer[timer_id].time_end + processing_timer[timer_id].time_start)/2);
 }
 
 L7_uint32 ptin_timer_get(L7_uint16 timer_id, char **str)
@@ -76,7 +76,7 @@ L7_uint32 ptin_timer_get(L7_uint16 timer_id, char **str)
   if (str!=L7_NULLPTR)
     *str = processing_timer[timer_id].timer_string;
     
-  return ( (L7_uint32) (processing_timer[timer_id].time_end - processing_timer[timer_id].time_start) );
+  return ( (L7_uint32) (processing_timer[timer_id].time_end) );
 }
 
 /*************************** 

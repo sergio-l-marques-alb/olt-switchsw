@@ -413,11 +413,45 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 {
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
+  L7_uint32      channelBandwidth;
+  L7_uint32      ptin_port;
+  L7_RC_t        rc;
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+  
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  {
+    return L7_FALSE;
+  }
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  ptin_timer_start(60,"ptin_igmp_client_resources_available");
-  return (ptin_igmp_client_resources_available(portId, clientId, &inetGroupAddr) == L7_SUCCESS);
+
+  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+  channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
   ptin_timer_stop(60);
+
+  ptin_timer_start(61,"ptin_igmp_port_resources_available");
+  rc = ptin_igmp_port_resources_available(ptin_port, channelBandwidth);
+  ptin_timer_stop(61);
+
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FALSE;
+  }
+
+  ptin_timer_start(62,"ptin_igmp_multicast_service_resources_available");
+  rc = ptin_igmp_multicast_service_resources_available(ptin_port, clientId,serviceId,channelBandwidth);
+  ptin_timer_stop(62);
+
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FALSE;
+  }
+
+  ptin_timer_start(63,"ptin_igmp_client_resources_available");
+  rc = ptin_igmp_client_resources_available(ptin_port, clientId, channelBandwidth);
+  ptin_timer_stop(63);
+  return (rc == L7_SUCCESS) ;
 #else
   return L7_TRUE;
 #endif
@@ -427,11 +461,43 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
 {
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
+  L7_uint32      channelBandwidth;
+  L7_uint32      ptin_port;
+  L7_RC_t        rc;
+  
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  {
+    return L7_FAILURE;
+  }
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  ptin_timer_start(61,"ptin_igmp_client_resources_allocate");
-  return ptin_igmp_client_resources_allocate(portId, clientId, &inetGroupAddr) ;
-  ptin_timer_stop(61);
+
+  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+  channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
+  ptin_timer_stop(60);
+
+  ptin_timer_start(64,"ptin_igmp_port_resources_allocate");
+  rc = ptin_igmp_port_resources_allocate(ptin_port, channelBandwidth);
+  ptin_timer_stop(64);
+
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  ptin_timer_start(65,"ptin_igmp_multicast_service_resources_allocate");
+  rc = ptin_igmp_multicast_service_resources_allocate(ptin_port, clientId,serviceId,channelBandwidth);
+  ptin_timer_stop(65);
+
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  ptin_timer_start(66,"ptin_igmp_client_resources_allocate");
+  rc = ptin_igmp_client_resources_allocate(portId, clientId, channelBandwidth);
+  ptin_timer_stop(66);
+  return rc;
 #else
   return L7_SUCCESS;
 #endif
@@ -441,11 +507,43 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
 {
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
+  L7_uint32      channelBandwidth;
+  L7_uint32      ptin_port;
+  L7_RC_t        rc;
+  
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  {
+    return L7_FAILURE;
+  }
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  ptin_timer_start(62,"ptin_igmp_client_resources_release");
-  return ptin_igmp_client_resources_release(portId, clientId, &inetGroupAddr);
-  ptin_timer_stop(62);
+
+  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+  channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
+  ptin_timer_stop(60);
+
+  ptin_timer_start(67,"ptin_igmp_port_resources_release");
+  rc = ptin_igmp_port_resources_release(ptin_port, channelBandwidth);
+  ptin_timer_stop(67);
+
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  ptin_timer_start(68,"ptin_igmp_multicast_service_resources_release");
+  rc = ptin_igmp_multicast_service_resources_release(ptin_port, clientId,serviceId,channelBandwidth);
+  ptin_timer_stop(68);
+
+  if (rc != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  ptin_timer_start(69,"ptin_igmp_client_resources_release");
+  rc = ptin_igmp_client_resources_release(portId, clientId, channelBandwidth);
+  ptin_timer_stop(69);
+  return rc;
 #else
   return L7_SUCCESS;
 #endif

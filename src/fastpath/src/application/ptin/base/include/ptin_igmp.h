@@ -100,20 +100,25 @@
 #define PTIN_IGMP_MIN_VLAN_ID                                 1
 #define PTIN_IGMP_MAX_VLAN_ID                                 4095
 
+/**If IGMP Admission Control Feature is Enabled **/ 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
-#define PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS  0x01
-#define PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH 0x02
-#define PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID                 0x03
+#define PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS      0x01
+#define PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH     0x02
+#define PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID                     0x03
 
-#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE      (L7_uint64) -1 
-#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE       (L7_uint16) -1
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE   (L7_uint64) -1 
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS_DISABLE  (L7_uint32) -1 
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE           (L7_uint16) -1
 
-#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS               16384
-#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS         000100000000 /*100.000.000 kbps*/
-#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS          100000000000ULL /*100.000.000.000 bps*/
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS                    16384
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS              000100000000 /*100.000.000 kbps*/
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS               100000000000ULL /*100.000.000.000 bps*/
+                                                                  
+#define PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS                  PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH
 
 #endif
+/**End IGMP Admission Control Feature**/ 
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
@@ -1295,47 +1300,145 @@ extern L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_
 RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7_uint16 maxAllowedChannels, L7_uint64 maxAllowedBandwidth);
 
 /**
+ * @purpose Get the bandwidth requested by a given 
+ * channel
+ * 
+ * @param group: L7_inet_addr_t 
+ *  
+ * @return channelBandwidth: L7_uint32 
+ *
+ * @notes Channel bandwidth is given in kbps. If the channel 
+ *        does not exist, zero is returned.
+ *  
+ */
+extern L7_uint32 ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* group);
+
+/**
  * @purpose Verifies if a given client Id has available 
  * resources for a new multicast channels 
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param clientId 
- * @param group 
+ * @param channelBandwidth 
  *  
  * @return RC_t
  *
  * @notes none 
  *  
  */
-extern RC_t ptin_igmp_client_resources_available(L7_uint32 intIfNum, L7_uint32 clientId, L7_inet_addr_t* group);
+extern RC_t ptin_igmp_client_resources_available(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 channelBandwidth);
 
 /**
  * @purpose Allocate resources for a given client Id 
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param clientId 
- * @param group 
+ * @param channelBandwidth 
  *  
  * @return RC_t
  *
  * @notes none 
  *  
  */
-extern RC_t ptin_igmp_client_resources_allocate(L7_uint32 intIfNum, L7_uint32 clientId, L7_inet_addr_t* group);
+extern RC_t ptin_igmp_client_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 channelBandwidth);
 
 /**
  * @purpose Release resources for a given client Id 
  * 
- * @param intIfNum 
+ * @param ptin_port 
  * @param clientId 
- * @param group 
+ * @param channelBandwidth 
  *  
  * @return RC_t
  *
  * @notes none 
  *  
  */
-extern RC_t ptin_igmp_client_resources_release(L7_uint32 intIfNum, L7_uint32 clientId, L7_inet_addr_t* group);
+extern RC_t ptin_igmp_client_resources_release(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 channelBandwidth);
+
+/**
+ * @purpose Verifies if a given client Id has available 
+ * resources for a new multicast channels 
+ * 
+ * @param ptin_port 
+ * @param clientId 
+ * @param channelBandwidth 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_service_resources_available(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 serviceId, L7_uint32 channelBandwidth);
+
+/**
+ * @purpose Allocate resources for a given client Id 
+ * 
+ * @param ptin_port 
+ * @param clientId 
+ * @param channelBandwidth 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_service_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 serviceId, L7_uint32 channelBandwidth);
+
+/**
+ * @purpose Release resources for a given client Id 
+ * 
+ * @param ptin_port 
+ * @param clientId 
+ * @param channelBandwidth 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_service_resources_release(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 serviceId, L7_uint32 channelBandwidth);
+
+/**
+ * @purpose Verifies if a given port Id has available 
+ * resources for a new multicast channels 
+ * 
+ * @param ptin_port 
+ * @param channelBandwidth 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_port_resources_available(L7_uint32 ptin_port, L7_uint32 channelBandwidth);
+
+/**
+ * @purpose Allocate resources for a given port Id 
+ * 
+ * @param ptin_port 
+ * @param channelBandwidth 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_port_resources_allocate(L7_uint32 ptin_port, L7_uint32 channelBandwidth);
+
+/**
+ * @purpose Release resources for a given port Id 
+ * 
+ * @param ptin_port 
+ * @param channelBandwidth 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBandwidth);
+
 #endif
 
 #endif//_PTIN_IGMP_H
