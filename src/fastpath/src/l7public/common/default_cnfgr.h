@@ -125,7 +125,7 @@
 /* End of CONFIGURATOR CLI_WEB Component's Factory Defaults */
 
 /* Start of CONFIGURATOR Sysnet Factory Defaults */
-#define FD_CNFGR_SYSNET_MAX_REGISTRATIONS   15
+#define FD_CNFGR_SYSNET_MAX_REGISTRATIONS   30
 /* End of CONFIGURATOR Sysnet Factory Defaults */
 
 /* Start of CONFIGURATOR Sysapi Factory Defaults */
