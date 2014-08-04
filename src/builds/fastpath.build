@@ -116,19 +116,20 @@ cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
 echo -en $colorNotice
 echo "Transferring image tarball to final destination..."
 echo -en $colorReset
-echo -en $colorReq
-echo -en "What is your username on $DST_IPADDR machine?"
-echo -en $colorReset
-echo -en " "
-read USERNAME
-if [ -z $USERNAME ]; then
-  USERNAME=`whoami`
-  echo -en $colorReq
-  echo "Using '$USERNAME' user name."
-  echo -en $colorReset
-fi
+#echo -en $colorReq
+#echo -en "What is your username on $DST_IPADDR machine?"
+#echo -en $colorReset
+#echo -en " "
+#read USERNAME
+#if [ -z $USERNAME ]; then
+#  USERNAME=`whoami`
+#  echo -en $colorReq
+#  echo "Using '$USERNAME' user name."
+#  echo -en $colorReset
+#fi
 
-scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+#scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
+mv -v $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
@@ -161,20 +162,21 @@ rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
 
 echo -en $colorNotice
 echo "Transferring backup tarball to final destination..."
-echo -en $colorReset
-echo -en $colorReq
-echo -en "What is your username on $DST_IPADDR machine?"
-echo -en $colorReset
-echo -en " "
-read USERNAME
-if [ -z $USERNAME ]; then
-  USERNAME=`whoami`
-  echo -en $colorReq
-  echo "Using '$USERNAME' user name."
-  echo -en $colorReset
-fi
+#echo -en $colorReset
+#echo -en $colorReq
+#echo -en "What is your username on $DST_IPADDR machine?"
+#echo -en $colorReset
+#echo -en " "
+#read USERNAME
+#if [ -z $USERNAME ]; then
+#  USERNAME=`whoami`
+#  echo -en $colorReq
+#  echo "Using '$USERNAME' user name."
+#  echo -en $colorReset
+#fi
 
-scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
+#scp $BUILDS_FOLDER/$backup_7z $USERNAME@$DST_IPADDR:$DST_PATH
+mv $BUILDS_FOLDER/$backup_7z $DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
