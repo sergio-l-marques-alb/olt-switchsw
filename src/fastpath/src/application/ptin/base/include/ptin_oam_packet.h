@@ -108,7 +108,7 @@ extern void *ptin_ccm_packetRx_queue;
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL enable);
+extern L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L7_BOOL enable);
 
 /**
  * Set global enable for APS packets to go to the CPU

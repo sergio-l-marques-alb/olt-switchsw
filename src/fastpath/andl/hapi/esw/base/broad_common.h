@@ -751,10 +751,10 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 #endif
 
 /* PTin added: APS */
-L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId, DAPI_t *dapi_g);
+L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId_oam_level, DAPI_t *dapi_g);
 
 /* PTin added: CCM */
-L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g);
+L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g);
 
 /* PTin added: IP DTL0 */
 L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 *mac_addr, DAPI_t *dapi_g);

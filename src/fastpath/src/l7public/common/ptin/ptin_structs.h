@@ -1010,8 +1010,8 @@ typedef struct
 
 typedef struct {
     unsigned short  imep;
-    T_MEP_HDR       m;
-    T_MEP_LM        lm;
+    T_MEP_HDR       *m;
+    T_MEP_LM        *lm;
 } hapi_mep_t;
 #endif /* _PTIN_STRUCTS_H */
 

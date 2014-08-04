@@ -87,7 +87,7 @@ void ptin_oam_packet_debug( L7_BOOL enable)
  * @return L7_RC_t 
  */
 #ifdef PTIN_ENABLE_ERPS
-L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL enable)
+L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L7_BOOL enable)
 {
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
@@ -102,7 +102,7 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId, L7_BOOL ena
   dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
   dapiCmd.cmdData.oamConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.oamConfig.level       = ringId;
+  dapiCmd.cmdData.oamConfig.level       = ringId_oam_level;
   dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_APS;  
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);

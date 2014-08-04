@@ -1422,7 +1422,7 @@ L7_RC_t hapiBroadPtinStart(void)
 L7_RC_t hapiBroadPtinMEPControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
     T_MEP_HDR         *p;
 
-    p= &((hapi_mep_t *) data)->m;
+    p= ((hapi_mep_t *) data)->m;
 
     if (EMPTY_T_MEP(*p))    return hapiBroadPtinMEPDelete(usp, cmd, data, dapi_g);
     else                    return hapiBroadPtinMEPCreate(usp, cmd, data, dapi_g);
@@ -1435,6 +1435,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   DAPI_PORT_t       *dapiPortPtr;
   BROAD_PORT_t      *hapiPortPtr;
   T_MEP_HDR         *p;
+  T_MEP_LM          *lm;
   //bcm_error_t rv;
   bcm_oam_group_info_t ginfo;
   bcm_oam_endpoint_info_t mep;
@@ -1449,7 +1450,8 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 
-  p= &((hapi_mep_t *) data)->m;
+  p= ((hapi_mep_t *) data)->m;
+  lm= ((hapi_mep_t *) data)->lm;
 
   //LOG_TRACE(LOG_CTX_PTIN_API, ,);
 
@@ -1501,22 +1503,25 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
       //BCM_OAM_ENDPOINT_USE_QOS_MAP | BCM_OAM_ENDPOINT_PRI_TAG |
 
-      //BCM_OAM_ENDPOINT_CCM_RX | BCM_OAM_ENDPOINT_CCM_COPYTOCPU | BCM_OAM_ENDPOINT_CCM_DROP | BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU |
+      BCM_OAM_ENDPOINT_CCM_COPYTOCPU |
+      //BCM_OAM_ENDPOINT_CCM_RX | BCM_OAM_ENDPOINT_CCM_DROP | BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_TX | BCM_OAM_ENDPOINT_REMOTE_EVENT_DISABLE |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_AUTO_UPDATE |
 
       //BCM_OAM_ENDPOINT_LOOPBACK | BCM_OAM_ENDPOINT_LINKTRACE |
-      //BCM_OAM_ENDPOINT_DELAY_MEASUREMENT | BCM_OAM_ENDPOINT_DM_COPYTOCPU | BCM_OAM_ENDPOINT_DM_DROP |
-      //BCM_OAM_ENDPOINT_LB_COPYTOCPU | BCM_OAM_ENDPOINT_LB_DROP |
+      BCM_OAM_ENDPOINT_DELAY_MEASUREMENT | BCM_OAM_ENDPOINT_DM_COPYTOCPU |
+      //BCM_OAM_ENDPOINT_DM_DROP |
+      BCM_OAM_ENDPOINT_LB_COPYTOCPU |
+      //BCM_OAM_ENDPOINT_LB_DROP |
       //BCM_OAM_ENDPOINT_LT_COPYTOCPU | BCM_OAM_ENDPOINT_LT_DROP |
-      BCM_OAM_ENDPOINT_LOSS_MEASUREMENT | 
 
       //BCM_OAM_ENDPOINT_PORT_STATE_TX | BCM_OAM_ENDPOINT_INTERFACE_STATE_TX |
       //BCM_OAM_ENDPOINT_PORT_STATE_UPDATE | BCM_OAM_ENDPOINT_INTERFACE_STATE_UPDATE |
       //BCM_OAM_ENDPOINT_MATCH_INNER_VLAN | BCM_OAM_ENDPOINT_MATCH_OUTER_AND_INNER_VLAN |        // Selection of MEP based on S and C VLAN
       BCM_OAM_ENDPOINT_WITH_ID;
 
-  if (p->up1_down0) mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
+  if (!invalid_T_MEP_LM(lm))    mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
+  if (p->up1_down0)             mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
 
   //mep.opcode_flags
   //mep.lm_flags
@@ -1539,6 +1544,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
        bcm_mac_t v;
    } d={{0x01, 0x80, 0xC2, 0x00, 0x00, 0x30}};//, s={{0, 1, 2, 3, 4, 5}};
 
+   d.v[5]= p->level;
    memcpy(mep.dst_mac_address, &d, 6);
    {//SRC MAC ADDRESS
      L7_uint32 intIfNum;

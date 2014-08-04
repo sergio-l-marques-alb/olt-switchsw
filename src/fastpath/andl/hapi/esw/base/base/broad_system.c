@@ -2014,11 +2014,11 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     {
       switch (dapiCmd->cmdData.oamConfig.getOrSet)  {
         case DAPI_CMD_SET:
-          status = hapiBroadConfigApsFilter( L7_ENABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
+          status = hapiBroadConfigApsFilter(usp, L7_ENABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
           break;
 
         case DAPI_CMD_CLEAR:
-          status = hapiBroadConfigApsFilter( L7_DISABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
+          status = hapiBroadConfigApsFilter(usp, L7_DISABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
           break;
 
         default:
@@ -2031,11 +2031,11 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     {
       switch (dapiCmd->cmdData.oamConfig.getOrSet)  {
         case DAPI_CMD_SET:
-          status = hapiBroadConfigCcmFilter( L7_ENABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
+          status = hapiBroadConfigCcmFilter(usp, L7_ENABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
           break;
 
         case DAPI_CMD_CLEAR:
-          status = hapiBroadConfigCcmFilter( L7_DISABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
+          status = hapiBroadConfigCcmFilter(usp, L7_DISABLE, dapiCmd->cmdData.oamConfig.vlanId, dapiCmd->cmdData.oamConfig.level, dapi_g );
           break;
 
         default:
@@ -4376,8 +4376,12 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 /* PTin added: APS */
 #if 1
 #define APS_TRAP_MAX_VLANS 16
-L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId, DAPI_t *dapi_g)
+L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId_oam_level, DAPI_t *dapi_g)
 {
+#ifdef __APS_AND_CCM_COMMON_FILTER__
+  if (L7_NULL==vlanId) return L7_SUCCESS;
+  return hapiBroadConfigCcmFilter(usp, enable, vlanId, ringId_oam_level, dapi_g);
+#else
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, aps_enable = L7_TRUE;
   static BROAD_POLICY_t   policyId[APS_TRAP_MAX_VLANS];
@@ -4393,7 +4397,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_uint16 index, aps_index, aps_index_free;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing (enable %d, vlanId %d, ringId %d)", enable, vlanId, ringId);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Starting APS trapping processing (enable %d, vlanId %d, ringId %d)", enable, vlanId, ringId_oam_level);
 
   /* Initialization */
   if (first_time)
@@ -4455,7 +4459,7 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
         aps_index = aps_index_free;
         vlan_list[aps_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
         vlan_list[aps_index][POLICY_VLAN_MASK] = vlan_match;
-        ringId_list[aps_index] = ringId;
+        ringId_list[aps_index] = ringId_oam_level;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, aps_index);
       }
       /* If it is to remove a vlan, and it was not found, return SUCCESS */
@@ -4594,13 +4598,14 @@ L7_RC_t hapiBroadConfigApsFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ring
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Finished APS trapping processing");
 
   return result;
+#endif //#ifdef __APS_AND_CCM_COMMON_FILTER__   #else
 }
 #endif
 
 /* PTin added: CCM */
 #if 1
 #define CCM_TRAP_MAX_VLANS 16
-L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g)
+L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE;
@@ -4612,7 +4617,9 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam
   } vid_lvl[CCM_TRAP_MAX_VLANS];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
 //L7_ushort16             ccm_ethtype  = L7_ETYPE_CCM;
+#ifndef __APS_AND_CCM_COMMON_FILTER__
   L7_uchar8 ccm_MacAddr[] = {0x01,0x80,0xC2,0x00,0x00,0x37};
+#endif
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   L7_uint16               vlan_match = 0xfff;
@@ -4722,12 +4729,14 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam
         break;
       }
       
+#ifndef __APS_AND_CCM_COMMON_FILTER__
       ccm_MacAddr[5]&=0xf0;
       ccm_MacAddr[5]|=oam_level;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, ccm_MacAddr, exact_match);
       if (result != L7_SUCCESS)  {
         break;
       }
+#endif
 
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
       if (result != L7_SUCCESS)  break;
@@ -4751,6 +4760,66 @@ L7_RC_t hapiBroadConfigCcmFilter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam
       if (result != L7_SUCCESS)  {
         break;
       }
+
+
+
+
+#if defined (__APS_AND_CCM_COMMON_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
+      {//MC DMAC can't be used for frames like LMR, DMR...
+       BROAD_POLICY_RULE_t     ruleId2 = BROAD_POLICY_RULE_INVALID;
+       L7_ushort16             ethtype;
+#ifndef __APS_AND_CCM_COMMON_FILTER__
+       L7_uchar8               this_prts_SMacAddr[6];
+
+       {//SRC MAC ADDRESS
+         L7_uint32 intIfNum;
+         nimUSP_t  nim_usp;
+             nim_usp.unit= usp->unit;
+             nim_usp.slot= usp->slot;
+             nim_usp.port= usp->port+1;
+             if (L7_SUCCESS!= (result=nimGetIntIfNumFromUSP(&nim_usp, &intIfNum))
+                 ||
+                 L7_SUCCESS!= (result=nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, this_prts_SMacAddr))) {
+
+                 LOG_ERR(LOG_CTX_PTIN_HAPI, "couldn't get SMAC");
+                 break;
+             }//memcpy(mep.src_mac_address, &s, 6);
+       }//SRC MAC ADDRESS
+#endif
+
+#ifdef __APS_AND_CCM_COMMON_FILTER__
+       ruleId2 = ruleId;
+#else
+       hapiBroadPolicyRuleCopy(ruleId, &ruleId2);
+#endif
+
+       //Realized just now: opposite to APSfilter, CCMs aren't filtering ETHtype; to change that, just move RuleCopy below this qualifier and change it to "ruleId", instead of "ruleId2"
+       ethtype  = L7_ETYPE_CFM;
+       result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethtype, exact_match);
+       if (result != L7_SUCCESS)  break;
+
+#ifndef __APS_AND_CCM_COMMON_FILTER__
+       result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_MACDA, this_prts_SMacAddr, exact_match);
+       //in this other rule, the MC DMAC match is overwritten by this one
+       if (result != L7_SUCCESS) break;
+#else
+       {//OAM ETH's MEL 3 bits (Check SDK's _bcm_tr3_oam_fp_create())
+        bcm_ip6_t mdl_data, mdl_mask;
+
+        memset(&mdl_data, 0, sizeof(bcm_ip6_t));
+        mdl_data[0] = oam_level << 5;
+        memset(&mdl_mask, 0, sizeof(bcm_ip6_t));
+        mdl_mask[0] = 0xE0;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_IP6_DST, mdl_data, mdl_mask);
+        if (result != L7_SUCCESS) break;
+       }
+      }//MC DMAC can't be used for frames like LMR, DMR...
+#endif
+#endif //#if defined (__APS_AND_CCM_COMMON_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
+
+
+
 
     } while ( 0 );
 
