@@ -578,7 +578,9 @@ L7_uint16 vidInternal;
         L7_SUCCESS!=ptin_xlate_ingress_get( intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &vidInternal)) return L7_FAILURE;
 
     if (enable) {
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
         if (L7_SUCCESS!=ptin_ccm_packet_init(oam_level)) return L7_FAILURE;
+#endif
         if (L7_SUCCESS!=ptin_ccm_packet_vlan_trap(vidInternal, oam_level, 1)) {
             ptin_ccm_packet_deinit(oam_level);
             return L7_FAILURE;

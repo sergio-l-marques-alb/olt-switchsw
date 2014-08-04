@@ -200,5 +200,13 @@ extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L
 extern L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport);
 
 
+
+
+#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+L7_RC_t common_aps_ccm_packetRx_callback_register(void);
+//L7_RC_t common_aps_ccm_packetRx_callback_deregister(void);  //dummy; does nothing
+#endif  //COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+
 #endif  /* _PTIN_OAM_PACKET_H */
 

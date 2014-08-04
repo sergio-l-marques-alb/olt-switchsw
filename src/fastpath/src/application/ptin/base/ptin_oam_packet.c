@@ -199,7 +199,9 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
 #ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
 {
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   sysnetNotifyEntry_t snEntry;
+#endif
   L7_uint8            queue_str[24];
   L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
   L7_uint8            i;
@@ -213,7 +215,7 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
     LOG_FATAL(LOG_CTX_ERPS,"APS packet queue %d creation error.", erps_idx);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_ERPS,"APS packet queue %d created.", erps_idx);
+  LOG_INFO(LOG_CTX_ERPS,"APS packet queue %d created.", erps_idx);
 
 
   /* Ring ID needs to be set on rule/trap creation. */
@@ -225,6 +227,7 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
     if ( (tbl_erps[i].admin == PROT_ERPS_ENTRY_BUSY) && (tbl_erps[i].protParam.ringId == tbl_erps[erps_idx].protParam.ringId) ) return L7_SUCCESS;
   }
 
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   /* Register APS packets */
   strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
   snEntry.notify_pdu_receive = ptin_aps_packetRx_callback;
@@ -235,6 +238,9 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback registered!");
+#else
+  //return common_aps_ccm_packetRx_callback_register(); must register callback elsewhere, being sure both OAM ETH and ERP are up
+#endif
 
   return L7_SUCCESS;
 }
@@ -250,7 +256,9 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 {
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   sysnetNotifyEntry_t snEntry;
+#endif
   L7_long32 i;
 
   if (oam_level>=N_OAM_TMR_VALUES) {
@@ -262,7 +270,7 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
           LOG_FATAL(LOG_CTX_OAM,"CCM packet queue creation error.");
           return L7_FAILURE;
         }
-        LOG_TRACE(LOG_CTX_OAM,"CCM packet queue created.");
+        LOG_INFO(LOG_CTX_OAM,"CCM packet queue created.");
     
         for (i=0; i<N_OAM_TMR_VALUES; i++) nr_using_ETH_oam_lvl[i]=0;
       }
@@ -272,6 +280,7 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 
   if (nr_using_ETH_oam_lvl[oam_level]++) return L7_SUCCESS; //No need to register if already done. (Only need that on "nr_us..."'s transition 0->1.)
 
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   /* Register CCM packets */
   strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
   snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
@@ -284,6 +293,9 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
     return L7_FAILURE;
   }
   LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback registered!");
+#else
+  //return common_aps_ccm_packetRx_callback_register(); must register callback elsewhere, being sure both OAM ETH and ERP are up
+#endif
 
   return L7_SUCCESS;
 }
@@ -299,6 +311,7 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 #ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
 {
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   sysnetNotifyEntry_t snEntry;
   L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
   L7_uchar8           i;
@@ -331,6 +344,7 @@ L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
     osapiMsgQueueDelete(ptin_aps_packetRx_queue[erps_idx]);
     ptin_aps_packetRx_queue[erps_idx] = L7_NULLPTR;
   }
+#endif
 
   LOG_INFO(LOG_CTX_ERPS, "PTin APS packet deinit OK");
 
@@ -348,7 +362,6 @@ L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
 {
-  sysnetNotifyEntry_t snEntry;
   L7_long32 a,b,i;
 
   if (oam_level<N_OAM_TMR_VALUES) {
@@ -366,7 +379,10 @@ L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
     for (i=0; i<N_OAM_TMR_VALUES; i++) nr_using_ETH_oam_lvl[i]=0;
   }
 
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   for (i=a; i<=b; i++) {
+  sysnetNotifyEntry_t snEntry;
+
     /* Deregister broadcast packets capture */
     strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
     snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
@@ -380,6 +396,7 @@ L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
     }
     LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
   }//for
+#endif
 
   if (oam_level<N_OAM_TMR_VALUES) return L7_SUCCESS;
 
@@ -606,6 +623,57 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   /* Return failure to guarantee these packets are consumed by other entities */
   return L7_FAILURE;
 }
+
+
+
+
+
+#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo) {
+    L7_uchar8 *payload;
+    //L7_uint32 payloadLen;
+
+    if (ptin_oam_packet_debug_enable)   LOG_TRACE(LOG_CTX_OAM,"APS or CCM packet received");
+
+    SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, payload);
+    //SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, payloadLen);
+
+#ifdef PTIN_ENABLE_ERPS
+    if (0==memcmp(&ccmMacAddr[1], &payload[1], 4))  return ptin_ccm_packetRx_callback(bufHandle, pduInfo);
+    else                                            return ptin_aps_packetRx_callback(bufHandle, pduInfo);
+    //could instead check the OAM ETH opcode (calling aps for APS opcodes, ccm for every other), but this option is closer to the pdu beginning
+#else
+    return ptin_ccm_packetRx_callback(bufHandle, pduInfo);
+#endif
+}
+
+
+
+L7_RC_t common_aps_ccm_packetRx_callback_register(void) {
+  sysnetNotifyEntry_t snEntry;
+  static int _1st_time=1;
+
+  if (!_1st_time) return L7_SUCCESS;
+
+  _1st_time=0;
+
+  memset(&snEntry, 0x00, sizeof(snEntry));
+
+  strcpy(snEntry.funcName, "common_aps_ccm_packetRx_callback");
+  snEntry.notify_pdu_receive = common_aps_ccm_packetRx_callback;
+  snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+  snEntry.u.protocol_type = L7_ETYPE_CFM;
+  if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
+    LOG_ERR(LOG_CTX_OAM, "Cannot register common_aps_ccm_packetRx_callback !");
+    return L7_FAILURE;
+  }
+  LOG_INFO(LOG_CTX_OAM, "common_aps_ccm_packetRx_callback registered!");
+  return L7_SUCCESS;
+}
+
+
+//L7_RC_t common_aps_ccm_packetRx_callback_deregister(void) {return L7_SUCCESS;}
+#endif  //COMMON_APS_CCM_CALLBACKS__ETYPE_REG
 
 
 /**

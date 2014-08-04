@@ -233,8 +233,10 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
     ptin_hal_initdone |= 0x01;
   }
 
+#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   // Init APS packets trap and queues
   ptin_aps_packet_init(erps_idx);
+#endif
 
   // HW Sync init
   tbl_halErps[erps_idx].hwSync     = 0;

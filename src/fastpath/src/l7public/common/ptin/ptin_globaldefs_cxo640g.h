@@ -10,6 +10,8 @@
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
 #define __Y1731_802_1ag_OAM_ETH__
+//#define __APS_AND_CCM_COMMON_FILTER__     //can't define this; most likely we aren't being allowed to add BROAD_FIELD_IP6_DST to group existent qualifiers
+#define COMMON_APS_CCM_CALLBACKS__ETYPE_REG
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED

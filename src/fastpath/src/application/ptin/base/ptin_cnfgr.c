@@ -36,6 +36,7 @@
 #include "ptin_prot_erps.h"
 #include "ptin_ipdtl0_packet.h"
 #include <ptin_prot_oam_eth.h>
+#include <ptin_oam_packet.h>
 
 #include "ipc.h"
 
@@ -486,6 +487,16 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     /* Initialize ERPS data structures (includes semaphores and timer) */
 #ifdef PTIN_ENABLE_ERPS
   ptin_prot_erps_init();
+#endif
+
+#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+  {
+   unsigned long i;
+
+   for (i=0; i<MAX_PROT_PROT_ERPS; i++) ptin_aps_packet_init(i);//Initialize message queues
+
+   common_aps_ccm_packetRx_callback_register(); //must be after OAM ETH and ERP queues init: ptin_ccm_packet_init(-1) and ptin_aps_packet_init()
+  }
 #endif
 
   /* IP dtl0 module initialization. */
