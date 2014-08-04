@@ -123,7 +123,7 @@ extern L7_BOOL dtlNetInitDone;
 #ifdef DTL_USE_TAP
 #define TAP_DRV_NAME "/dev/tap"
 #define TUN_DRV_NAME "/dev/net/tun"
-int dtl_net_fd;
+int dtl_net_fd = -1;
 #endif
 
 /* PTin added: inband */
@@ -306,7 +306,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
 {
   L7_ushort16 etype = 0;
 
-  if (data!=NULL && nbytes!=0)
+  if (data!=NULL && nbytes!=0 && (dtl_net_fd >= 0))
   {
     /* At this point, Packet is always tagged */
     memcpy(&etype, &data[16], sizeof(etype));      
@@ -594,7 +594,7 @@ L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 
 #ifdef DTL_USE_TAP
-  if(is_local)
+  if(is_local && (dtl_net_fd >= 0))
   {
     /* added here to check for tagged VLan packet */
     memcpy(&pktEtherType, data + L7_ENET_HDR_SIZE, sizeof(L7_ushort16));
@@ -723,30 +723,33 @@ L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   }
 
 #ifdef DTL_USE_TAP
-    memcpy(&ether_type, &data[12], sizeof(ether_type));
-    ether_type = osapiNtohs(ether_type);
-    if (__ENABLE_DTL0INBANDVID_REMOVAL__ && ether_type == L7_ETYPE_8021Q)
+    if (dtl_net_fd >= 0)
     {
-       /*make sure its the default vlan*/
-       memcpy(&vlan_id, &data[14], sizeof(vlan_id));
-       vlan_id = osapiNtohs(vlan_id);
-       vlan_id &= L7_VLAN_TAG_VLAN_ID_MASK;
-       if(vlan_id != simMgmtVlanIdGet())
-       {
-          return L7_FAILURE;
-       }
-       memcpy(tmp_buf,data,12);
-       memcpy(data+4,tmp_buf,12);
-       data += 4;
-       nbytes -= 4;
-    }
+      memcpy(&ether_type, &data[12], sizeof(ether_type));
+      ether_type = osapiNtohs(ether_type);
+      if (__ENABLE_DTL0INBANDVID_REMOVAL__ && ether_type == L7_ETYPE_8021Q)
+      {
+         /*make sure its the default vlan*/
+         memcpy(&vlan_id, &data[14], sizeof(vlan_id));
+         vlan_id = osapiNtohs(vlan_id);
+         vlan_id &= L7_VLAN_TAG_VLAN_ID_MASK;
+         if(vlan_id != simMgmtVlanIdGet())
+         {
+            return L7_FAILURE;
+         }
+         memcpy(tmp_buf,data,12);
+         memcpy(data+4,tmp_buf,12);
+         data += 4;
+         nbytes -= 4;
+      }
 
-    if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL2)
-    {
-      SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlARPProtoRecv (%d): Sending Packet to dtl\n\r", __LINE__);
-    }
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL2)
+      {
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlARPProtoRecv (%d): Sending Packet to dtl\n\r", __LINE__);
+      }
 
-    if(0 > write(dtl_net_fd,data,nbytes)){}
+      if(0 > write(dtl_net_fd,data,nbytes)){}
+    }
 #endif
 
   /* Update MIB2 statistics. */ /*???*/
@@ -865,6 +868,13 @@ void dtlNetInit(void)
     LOG_ERROR(dtl_net_fd);
     return;
  }
+#if 0
+ /* Debug level */
+ if (ioctl(dtl_net_fd, TUNSETDEBUG, 1) < 0) 
+ {
+   printf("Unable to create corresponding dtl net ifc\n");
+ }
+#endif
 #endif
 
   if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
@@ -919,6 +929,261 @@ void dtlNetInit(void)
 
   dtlNetInitDone = L7_TRUE;
 }
+
+/* PTin added */
+#if 1
+void dtlNetDebug(L7_uint level)
+{
+  if (dtl_net_fd < 0)
+  {
+    printf("dtl_net_fd not open\r\n");
+    return;
+  }
+
+  if (ioctl(dtl_net_fd, TUNSETDEBUG, level) < 0) 
+  {
+    printf("Unable to create corresponding dtl net ifc\n");
+  }
+}
+
+/**************************************************************************
+* @purpose  Close DTL interface.
+*
+* @param    none
+*
+* @returns   none
+*
+* @comments    none.
+*
+* @end
+*************************************************************************/
+void dtlNetClose(void)
+{
+  if (dtl_net_fd >= 0)
+  {
+    /*
+     *unregister this fd with the tap monitor.
+     */
+    if(tap_monitor_unregister(dtl_net_fd) == L7_FAILURE)
+    {
+       printf("Failed TAP UNREGISTRATION\n");
+    }
+
+  #ifdef DTL_USE_TAP
+    /*
+     *if we are using the tap driver here
+     *for the dtl interface then we need to
+     *a file descriptor to it and set up
+     *the corresponding network interface
+     */
+    if(close(dtl_net_fd) < 0)
+    {
+       printf("Unable to close %s\n",TUN_DRV_NAME);
+    }
+    else
+    {
+       dtl_net_fd = -1;
+       printf("%s closed\n",TUN_DRV_NAME);
+    }
+  #endif
+
+    dtlDeleteAll();
+
+    //dtlNetInitDone = L7_FALSE;
+  }
+}
+
+/**************************************************************************
+* @purpose  Reopen DTL interface.
+*
+* @param    none
+*
+* @returns   none
+*
+* @comments    none.
+*
+* @end
+*************************************************************************/
+void dtlNetReopen(void)
+{
+
+  L7_uchar8 empty[6], mac[6];
+  L7_uint32 vlanId;
+#ifdef DTL_USE_TAP
+  struct ifreq ifr;
+#endif
+  unsigned long queue_len;
+  char queue_len_buf[11];
+
+  if (dtl_net_fd >= 0)
+  {
+    /*
+     *unregister this fd with the tap monitor.
+     */
+    if(tap_monitor_unregister(dtl_net_fd) == L7_FAILURE)
+    {
+       printf("Failed TAP UNREGISTRATION\n");
+    }
+
+  #ifdef DTL_USE_TAP
+    /*
+     *if we are using the tap driver here
+     *for the dtl interface then we need to
+     *a file descriptor to it and set up
+     *the corresponding network interface
+     */
+    if(close(dtl_net_fd) < 0)
+    {
+       printf("Unable to close %s\n",TUN_DRV_NAME);
+    }
+    else
+    {
+      dtl_net_fd = -1;
+      printf("%s closed\n",TUN_DRV_NAME);
+    }
+  #endif
+
+    dtlDeleteAll();
+
+    //dtlNetInitDone = L7_FALSE;
+  }
+
+  /*******************************/
+
+  memset(empty, 0x00, L7_MAC_ADDR_LEN);
+
+#ifdef DTL_USE_TAP
+  /*
+   *if we are using the tap driver here
+   *for the dtl interface then we need to
+   *a file descriptor to it and set up
+   *the corresponding network interface
+   */
+  dtl_net_fd = open(TAP_DRV_NAME,O_RDWR);
+  if(dtl_net_fd < 0)
+  {
+     /*SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to open %s\n",TAP_DRV_NAME);*/
+     dtl_net_fd = open(TUN_DRV_NAME,O_RDWR);
+     if(dtl_net_fd < 0)
+     {
+       printf("Unable to open %s\n",TUN_DRV_NAME);
+       return;
+     }
+  }
+
+  /*
+   *register this fd with the tap monitor.
+   *make sure to add a dtlCmd function
+   */
+  if(tap_monitor_register(dtl_net_fd,0,dtlSendCmd) == L7_FAILURE)
+  {
+     printf("Failed TAP REGISTRATION\n");
+     close(dtl_net_fd);
+     return;
+  }
+
+ /*
+  *once its open we need to create the corresponding
+  *network interface.  We do this with an ioctl
+  */
+ memset(&ifr, 0, sizeof(ifr));
+ strcpy(ifr.ifr_name,"dtl0");
+
+ /*
+  *Inidicate that this is a tap interface
+  *and that we provide no additional packet information
+  */
+ ifr.ifr_flags = IFF_TAP | IFF_NO_PI | TUN_ONE_QUEUE ;
+ if(ioctl(dtl_net_fd,TUNSETIFF,&ifr) < 0)
+ {
+    printf("Unable to create corresponding dtl net ifc\n");
+    close(dtl_net_fd);
+    LOG_ERROR(dtl_net_fd);
+    return;
+ }
+
+#if 0
+ /* Debug level */
+ if (ioctl(dtl_net_fd, TUNSETDEBUG, 1) < 0) 
+ {
+   printf("Unable to create corresponding dtl net ifc\n");
+ }
+#endif
+#endif
+
+  if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
+  {
+
+    simGetSystemIPBurnedInMac(mac);
+
+  }
+  else
+  {
+
+    simGetSystemIPLocalAdminMac(mac);
+
+  }
+
+#ifdef DTL_USE_TAP
+  /*
+   *we need to override the random
+   *mac given to the tap interface
+   *with our own defined MAC
+   */
+
+ /*
+  *  Do not set the interface mac here.
+  *  SIM config data has not yet been populated
+  *  at this point in the bootup, so the mac in there is all
+  *  zeros.  Newer kernel versions will error and not allow setting
+  *  the mac to all zeros.  The mac gets set properly later when
+  *  dtlFdbMacAddrChange() is called.  
+  */
+
+#endif
+
+  queue_len = L7_MAX_NETWORK_BUFF_PER_BOX;
+  osapiSnprintf(queue_len_buf, sizeof(queue_len_buf), "%lu", queue_len);
+  osapi_proc_set("/proc/sys/net/ipv4/neigh/default/unres_qlen", queue_len_buf);
+
+#if defined(L7_IPV6_PACKAGE) || defined(L7_IPV6_MGMT_PACKAGE)
+  /* need to check if this is needed as service port is enabled from sim*/
+  osapi_proc_set("/proc/sys/net/ipv6/conf/dtl0/ipv6_enable", "1");
+  osapi_proc_set("/proc/sys/net/ipv6/neigh/default/unres_qlen", queue_len_buf);
+  osapi_proc_set("/proc/sys/net/ipv6/conf/dtl0/autoconf", "0");
+#endif
+
+  /* Add our MAC Address to the Search Machines. */
+  if (bcmp (empty, mac, L7_MAC_ADDR_LEN))
+  {
+    vlanId = simMgmtVlanIdGet();
+    fdbSysMacAddEntry(mac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
+
+  }
+
+  //dtlNetInitDone = L7_TRUE;
+
+  printf("%s open\n",TUN_DRV_NAME);
+}
+
+/* Now read data coming from the kernel */
+void dtl_test(void)
+{
+  int nread, buffer[512];
+
+  if (dtl_net_fd >= 0)
+  {
+      /* Note that "buffer" should be at least the MTU size of the interface, eg 1500 bytes */
+      nread = read(dtl_net_fd,buffer,sizeof(buffer));
+      if(nread < 0) {
+        printf("Reading from interface");
+      }
+
+      /* Do whatever with the data */
+      printf("Read %d bytes from device\n", nread);
+  }
+}
+#endif
 
 
 #ifdef DTL_USE_TAP
