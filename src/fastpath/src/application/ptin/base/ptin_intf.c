@@ -422,21 +422,6 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
     L7_uint32 ptin_port;
     L7_uint8  mask = 0x00;
 
-    if ( ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) && 
-           (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
-         ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
-           && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%04x maxBandwidth:%ull maxChannels:%u", mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
-      return L7_FAILURE;
-    }
-
-    if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",ptin_intf->intf_type, ptin_intf->intf_id);
-      return L7_FAILURE;
-    }
-
     if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
       mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
 
