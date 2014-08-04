@@ -6058,13 +6058,13 @@ static L7_RC_t igmp_assoc_pair_get( L7_uint32 evc_uc,
        return L7_FAILURE;
      }   
   }
-#if 1
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   else
-#endif
   {
     //Cache this Group and it's channelBandwidth
     ptin_igmp_channel_bandwidth_cache_set(avl_infoData);
   }
+#endif
 
   /* Return MC EVC */
   if ( evc_mc != L7_NULLPTR )
