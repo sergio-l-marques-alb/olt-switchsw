@@ -2437,24 +2437,6 @@ void ptin_pppoe_intfTrusted_init(void)
 {
   memset(&pppoe_intIfNum_trusted, 0x00, sizeof(pppoe_intIfNum_trusted));
 
-    /* Only for linecards at slot systems: backplane ports of linecard are trusted */
-#if ( PTIN_BOARD_IS_LINECARD )
-  L7_uint32 port, intIfNum;
-
-  /* Run all physical interfaces */
-  for (port=0; port<ptin_sys_number_of_ports; port++)
-  {
-    /* Get intIfNum */
-    if (ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS)
-      continue;
-
-    /* If is an internal/backplane port, set as trusted */
-    if (!(PTIN_SYSTEM_PON_PORTS_MASK & port) && !(PTIN_SYSTEM_ETH_PORTS_MASK & port))
-    {
-      L7_INTF_SETMASKBIT(pppoe_intIfNum_trusted, intIfNum);
-    }
-  }
-#endif
   LOG_INFO(LOG_CTX_PTIN_DHCP,"Trusted ports initialized");
 }
 

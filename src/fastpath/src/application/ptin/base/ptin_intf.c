@@ -356,7 +356,7 @@ L7_RC_t ptin_intf_portExt_init(void)
     /* Only for linecards at slot systems */
     #if ( PTIN_BOARD_IS_LINECARD )
     /* If is an internal/backplane port, set as trusted */
-    if (!(PTIN_SYSTEM_PON_PORTS_MASK & port) && !(PTIN_SYSTEM_ETH_PORTS_MASK & port))
+    if (!((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1) && !((PTIN_SYSTEM_ETH_PORTS_MASK >> port) & 1))
     {
       mefExt.dhcp_trusted = L7_TRUE;
     }
@@ -396,7 +396,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
 
   LOG_TRACE(LOG_CTX_PTIN_INTF,"MefExt parameters:");
   LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%04x"                    , mefExt->Mask);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%08x"                    , mefExt->Mask);
   LOG_TRACE(LOG_CTX_PTIN_INTF," defVid = %u"                      , mefExt->defVid);
   LOG_TRACE(LOG_CTX_PTIN_INTF," defPrio = %u"                     , mefExt->defPrio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," acceptable_frame_types = %u"      , mefExt->acceptable_frame_types);
@@ -568,7 +568,7 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
 
   LOG_TRACE(LOG_CTX_PTIN_INTF,"MefExt parameters:");
   LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%04x"                    , mefExt->Mask);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%08x"                    , mefExt->Mask);
   LOG_TRACE(LOG_CTX_PTIN_INTF," defVid = %u"                      , mefExt->defVid);
   LOG_TRACE(LOG_CTX_PTIN_INTF," defPrio = %u"                     , mefExt->defPrio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," acceptable_frame_types = %u"      , mefExt->acceptable_frame_types);
