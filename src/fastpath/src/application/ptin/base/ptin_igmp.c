@@ -974,7 +974,7 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_ADMIN
       && igmpProxyCfg.admin != igmpProxy->admin)
   {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Admin:                                   %s", igmpProxy.admin == 0 ? "OFF":"ON");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Admin:                                   %s", igmpProxyCfg.admin == 0 ? "OFF":"ON");
   }
 
   /* Network Version */
