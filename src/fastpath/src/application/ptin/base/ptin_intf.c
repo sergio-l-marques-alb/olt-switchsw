@@ -294,14 +294,31 @@ L7_RC_t ptin_intf_portExt_init(void)
   L7_RC_t         rc = L7_SUCCESS;
 
   /* Default values */
-  mefExt.Mask                         = 0xffffffff;   /* All values */
+  mefExt.Mask = PTIN_HWPORTEXT_MASK_DEFVID                         |
+                PTIN_HWPORTEXT_MASK_DEFPRIO                        |
+                 PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES        |
+                 PTIN_HWPORTEXT_MASK_INGRESS_FILTER                |
+                 /*PTIN_HWPORTEXT_MASK_RESTRICTED_VLAN_REG           |*/
+                 /*PTIN_HWPORTEXT_MASK_VLAN_AWARE                    |*/
+                 /*PTIN_HWPORTEXT_MASK_TYPE                          |*/
+                 PTIN_HWPORTEXT_MASK_DOUBLETAG                     |
+                 PTIN_HWPORTEXT_MASK_OUTER_TPID                    |
+                 PTIN_HWPORTEXT_MASK_INNER_TPID                    |
+                 PTIN_HWPORTEXT_MASK_EGRESS_TYPE                   |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE               |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE   |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO     |
+                 PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO |
+                 /*PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF              |*/
+                 /*PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF             |*/
+                 PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
   mefExt.defVid                       = 1;
   mefExt.defPrio                      = 0;
   mefExt.acceptable_frame_types       = L7_DOT1Q_ADMIT_ALL;
   mefExt.ingress_filter               = L7_FALSE;
-  mefExt.restricted_vlan_reg          = 0;
-  mefExt.vlan_aware                   = L7_FALSE;
-  mefExt.type                         = 0;
+  mefExt.restricted_vlan_reg          = 0;            /* Not defined */
+  mefExt.vlan_aware                   = L7_FALSE;     /* Not defined */
+  mefExt.type                         = 0;            /* Not defined */
   mefExt.doubletag                    = L7_TRUE;
   mefExt.outer_tpid                   = 0x8100;
   mefExt.inner_tpid                   = 0x8100;
@@ -310,7 +327,9 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
   mefExt.macLearn_stationMove_samePrio= L7_TRUE;
-  mefExt.dhcp_trusted                 = L7_FALSE;     /* By default a port is untrusted */
+  mefExt.maxChannels                  = 0;            /* Not defined */
+  mefExt.maxBandwidth                 = 0;            /* Not defined */
+  mefExt.dhcp_trusted                 = L7_FALSE;   /* By default a port is untrusted */
 
   /* Only apply to physical interfaces */
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
@@ -402,6 +421,21 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   {
     L7_uint32 ptin_port;
     L7_uint8  mask = 0x00;
+
+    if ( ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) && 
+           (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
+         ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
+           && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%04x maxBandwidth:%ull maxChannels:%u", mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
+      return L7_FAILURE;
+    }
+
+    if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",ptin_intf->intf_type, ptin_intf->intf_id);
+      return L7_FAILURE;
+    }
 
     if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
       mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
@@ -543,6 +577,10 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
     return L7_FAILURE;
   }
 
+  /* Trusted state */
+  mefExt->dhcp_trusted = ptin_dhcp_is_intfTrusted(intIfNum, L7_NULL);
+  mefExt->Mask        |= PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
+
   LOG_TRACE(LOG_CTX_PTIN_INTF,"MefExt parameters:");
   LOG_TRACE(LOG_CTX_PTIN_INTF," Port = %u/%u"                     , ptin_intf->intf_type,ptin_intf->intf_id);
   LOG_TRACE(LOG_CTX_PTIN_INTF," Mask = 0x%04x"                    , mefExt->Mask);
@@ -560,6 +598,9 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_enable = %u"             , mefExt->macLearn_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_enable = %u" , mefExt->macLearn_stationMove_enable);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio   = %u" , mefExt->macLearn_stationMove_prio);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Max Channels      = %u"           , mefExt->maxChannels);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Max Bandwidth     = %u"           , mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," Interface trusted = %u"           , mefExt->dhcp_trusted);
 
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Success getting MEF Ext of port %u/%u", ptin_intf->intf_type,ptin_intf->intf_id);
 
@@ -2416,6 +2457,16 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u: Success initializing QoS definitions", lag_idx);
     }
+
+    /* For Linecards, LAG 1/0 belongs to backplane... should be trusted */
+    #if (PTIN_BOARD_IS_LINECARD)
+    if (lag_idx == 0)
+    {
+      ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
+      ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+    }
+    #endif
   }
   else
   {
@@ -2516,6 +2567,16 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     {
       if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
         LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
+
+      /* Return to untrust state */
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (lag_idx == 0)
+      {
+        ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
+        ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
+        LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+      }
+      #endif
 
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
@@ -2775,6 +2836,16 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       if (usmDbDot3adRemoveSet(1, lag_intf) != L7_SUCCESS)
         LOG_CRITICAL(LOG_CTX_PTIN_INTF, "LAG# %u: failed to undo LAG creation", lag_idx);
 
+      /* Return to untrust state */
+      #if (PTIN_BOARD_IS_LINECARD)
+      if (lag_idx == 0)
+      {
+        ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
+        ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
+        LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+      }
+      #endif
+
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
 
@@ -2907,6 +2978,16 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
 
     osapiSleepMSec(10);
   } while (1);
+
+  /* For Linecards, LAG 1/0 belongs to backplane... should return to untrusted state */
+  #if (PTIN_BOARD_IS_LINECARD)
+  if (lag_idx == 0)
+  {
+    ptin_dhcp_intfTrusted_set(lag_intIfNum, L7_FALSE); 
+    ptin_pppoe_intfTrusted_set(lag_intIfNum, L7_FALSE);
+    LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u returns to untrusted", lag_idx);
+  }
+  #endif
 
   /* Update PortGroups (used on egress translations) */
   ptin_pbmp = lagConf_data[lag_idx].members_pbmp64;
