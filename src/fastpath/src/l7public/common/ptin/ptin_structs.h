@@ -515,7 +515,8 @@ typedef struct {
   ptin_intf_t ptin_intf;    // PON interface
   L7_uint16   uni_ovid;     // GEM id
   L7_uint16   uni_ivid;     // UNI cvlan
-  L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses
+  L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses                           
+  L7_uint8    onuId;        //ONU/CPE Identifier
   L7_uint8    mask;
   L7_uint16   maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64   maxBandwidth; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)

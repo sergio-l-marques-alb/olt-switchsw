@@ -581,17 +581,18 @@ extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
  * @param client       : client identification parameters 
  * @param uni_ovid     : External Outer vlan 
  * @param uni_ivid     : External Inner vlan 
+ * @param OnuId        : ONU Identifier 
  * @param mask         : To set the admission control parameters
  * @param maxBandwidth : [mask 0x01] Maximum allowed bandwidth 
  *                     for this client. Use (L7_uint64)-1 to
  *                     disable.
  * @param maxChannels  : [mask 0x02] Maximum number of channels 
- *                     for this client. Use (L7_uint16)-1 to
+ *                     for this client. Use (L7_uint64)-1 to
  *                     disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
+extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
 
 /**
  * Remove a Multicast client
@@ -863,6 +864,7 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
  * @param intVid       : Internal vlan
  * @param uni_ovid     : External Outer vlan 
  * @param uni_ivid     : External Inner vlan 
+ * @param onuId        : ONU/CPE Id
  * @param mask         : Applies only to the Multicast Admission
  *                     Control Parameters
  * @param maxBandwidth : [Mask = 0x01] Maximum allowed bandwidth
@@ -870,11 +872,11 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
  *                     disable.
  * @param maxChannels  : [Mask = 0x02] Maximum number of 
  *                     channels for this client. Use
- *                     (L7_uint16)-1 to disable.
+ *                     (L7_uint64)-1 to disable.
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
+extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels);
 
 /**
  * Add a new Multicast client group

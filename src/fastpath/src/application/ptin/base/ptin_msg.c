@@ -2942,13 +2942,15 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
       LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%x maxBandwidth:%ull maxChannels:%u",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
       return L7_FAILURE;
     }
+    ptinEvcFlow.onuId               = msgEvcFlow->onuId;
     ptinEvcFlow.mask                = msgEvcFlow->mask;
     ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
     ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
     
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " mask        = 0x%x",ptinEvcFlow.mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u",ptinEvcFlow.maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %u bit/s",ptinEvcFlow.maxBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " onuId       = %u", ptinEvcFlow.onuId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %u bit/s", ptinEvcFlow.maxBandwidth);
   }
 #endif
 
@@ -5384,9 +5386,10 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.mask         = %u", McastClient[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.maxChannels  = %u", McastClient[i].maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.maxBandwidth = %u bit/s", McastClient[i].maxBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId        = %u", McastClient[i].onuId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   mask         = %u", McastClient[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %ull bit/s", McastClient[i].maxBandwidth);
 #endif
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -5408,7 +5411,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
 
     if (rc!=L7_SUCCESS)
     {

@@ -193,6 +193,7 @@ typedef struct ptinIgmpClientGroupInfoData_s
   L7_uint32                   client_bmp_list[PTIN_IGMP_CLIENTIDX_MAX/(sizeof(L7_uint32)*8)+1];  /* Clients (children) bitmap (only for one interface) */
   dl_queue_t                  queue_clientDevices;
   ptin_IGMP_Statistics_t      stats_client;
+  L7_uint8                    onuId;
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   ptinIgmpAdmissionControl_t  admissionControl;   
 #endif
@@ -2018,6 +2019,7 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
  * @param client       : client identification parameters 
  * @param uni_ovid     : External Outer vlan 
  * @param uni_ivid     : External Inner vlan 
+ * @param OnuId        : ONU Identifier 
  * @param mask         : To set the admission control parameters
  * @param maxBandwidth : [mask 0x01] Maximum allowed bandwidth 
  *                     for this client. Use (L7_uint64)-1 to
@@ -2028,7 +2030,7 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels)
+L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels)
 {
   L7_RC_t rc;
   L7_uint32 intIfNum;
@@ -2070,7 +2072,7 @@ L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   }
 
   /* Create new static client */
-  rc = ptin_igmp_clientGroup_add(&client, uni_ovid, uni_ivid, mask, maxBandwidth, maxChannels);
+  rc = ptin_igmp_clientGroup_add(&client, uni_ovid, uni_ivid, onuId, mask, maxBandwidth, maxChannels);
 
   if (rc!=L7_SUCCESS)
   {
@@ -3213,6 +3215,7 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum, L7_uint32 client_idx)
  * @param intVid       : Internal vlan
  * @param uni_ovid     : External Outer vlan 
  * @param uni_ivid     : External Inner vlan 
+ * @param onuId        : ONU/CPE Id
  * @param mask         : Applies only to the Multicast Admission
  *                     Control Parameters
  * @param maxBandwidth : [Mask = 0x01] Maximum allowed bandwidth
@@ -3224,7 +3227,7 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum, L7_uint32 client_idx)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels)
+L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels)
 {
   ptinIgmpClientDataKey_t avl_key;
   ptinIgmpClientGroupAvlTree_t *avl_tree;
@@ -3487,17 +3490,23 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     }
   }
 
+  avl_infoData->onuId = onuId;
+
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   /* Save IGMP client bandwidth/channel restrictions */
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
   {
     if (maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE)  /*Disable this Parameter*/
+    { 
+      avl_infoData->admissionControl.maxAllowedChannels = PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE;         
       mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+    }
     else
-    {
+    {      
       avl_infoData->admissionControl.maxAllowedChannels = maxAllowedChannels;    
       avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
+    
   }
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
@@ -11934,9 +11943,9 @@ static void ptin_igmp_clientgroup_lookup_table_entry_remove(L7_uint32 ptinPort, 
 RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7_uint16 maxAllowedChannels, L7_uint64 maxAllowedBandwidth)  
 {
   /*Input Parameters Validation*/
-  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID)
+  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",ptin_port, mask, maxAllowedChannels, maxAllowedBandwidth);    
     return L7_FAILURE;
   }
 
@@ -12019,7 +12028,7 @@ RC_t ptin_igmp_admission_control_multicast_service_set(L7_uint32 ptin_port, L7_u
   /*Input Parameters Validation*/
   if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || onuId > PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF || mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u onuId:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%llu]",ptin_port, onuId, mask, maxAllowedChannels, maxAllowedBandwidth);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u onuId:%u mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%ull]",ptin_port, onuId, mask, maxAllowedChannels, maxAllowedBandwidth);    
     return L7_FAILURE;
   }
 
