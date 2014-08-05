@@ -2180,9 +2180,7 @@ L7_RC_t ptin_igmp_generalquerier_reset(void)
 L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *client_id,
                                   L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list,
                                   L7_uint16 *total_channels)
-{
-  L7_uint           igmp_idx;
-  L7_uint16         McastRootVlan;
+{ 
   L7_uint32         globalGroupCount = 0;   
   ptin_client_id_t  client;
 
@@ -2210,20 +2208,6 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client id");
       return L7_FAILURE;
     }
-  }
-
-  /* Get IGMP instance index */
-  if (ptin_igmp_instance_find_fromMcastEvcId(McastEvcId, &igmp_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"There is no IGMP instance with MC EVC id %u",McastEvcId);
-    return L7_FAILURE;
-  }
-
-  /* Get Multicast root vlan */
-  if (ptin_evc_intRootVlan_get(igmpInstances[igmp_idx].McastEvcId, &McastRootVlan)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan for MCEvcId=%u (intVlan=%u)",McastEvcId, McastRootVlan);
-    return L7_FAILURE;
   }
 
   if(client.mask == 0)
