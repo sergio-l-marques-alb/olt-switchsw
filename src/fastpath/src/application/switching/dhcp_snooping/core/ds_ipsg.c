@@ -838,7 +838,7 @@ L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr,
     return L7_FAILURE;
   }
   
-  inetAddrHton(ipAddr, &clientIpAddr);
+  inetCopy(&clientIpAddr, ipAddr);
 
   if (ipsgPsIsEnabled(intIfNum))
     memcpy(&clientMacAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
