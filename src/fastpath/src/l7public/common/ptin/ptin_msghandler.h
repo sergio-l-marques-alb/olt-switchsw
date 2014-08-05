@@ -85,8 +85,8 @@
 #define CCMSG_ETH_BW_PROFILE_SET            0x9050  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_DELETE         0x9051  // struct msg_HwEthBwProfileData_t
 #define CCMSG_ETH_BW_PROFILE_GET            0x9052  // struct msg_HwEthBwProfileData_t
-#define CCMSG_ETH_BW_PROFILE_SET_II            0x9053  // struct msg_HwEthBwProfileData_t
-#define CCMSG_ETH_BW_PROFILE_DELETE_II         0x905F  // struct msg_HwEthBwProfileData_t
+#define CCMSG_ETH_BW_PROFILE_SET_II         0x9053  // struct msg_HwEthBwProfileData_t
+#define CCMSG_ETH_BW_PROFILE_DELETE_II      0x905F  // struct msg_HwEthBwProfileData_t
 
 #define CCMSG_ETH_STORM_CONTROL_GET         0x9054  // struct msg_HwEthStormControl_t
 #define CCMSG_ETH_STORM_CONTROL_RESET       0x9055  // struct msg_HwEthStormControl_t
@@ -170,7 +170,7 @@
 
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
-                                                    //
+                                                    
 #define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9082  // struct msg_IgmpAdmissionControl_t
 
 
@@ -801,6 +801,7 @@ typedef struct {
   L7_uint16            nni_cvlan;    // NNI inner vlan
   msg_HwEthIntf_t      intf;         // Outer vlan is the GEM id
   L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
+  L7_uint8             onuId;        //ONU Identifier
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
@@ -1257,8 +1258,9 @@ typedef struct {
 // Messages CCMSG_ETH_IGMP_CLIENT_ADD, CCMSG_ETH_IGMP_CLIENT_REMOVE
 typedef struct {
   L7_uint8             SlotId;
-  L7_uint32            mcEvcId;                 /* Multicast EVC Id */
-  msg_client_info_t    client;                  /* Client identification */
+  L7_uint32            mcEvcId;      //Multicast EVC Id 
+  msg_client_info_t    client;       //Client identification 
+  L7_uint8             onuId;        //ONU Identifier
   L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
@@ -1270,11 +1272,12 @@ typedef struct {
   L7_uint8             SlotId;      
   L7_uint8             mask;         //Mask of fields to be considered                             
   L7_uint32            evcId;        //[mask=0x01] EVC Id
-  msg_HwEthInterface_t intf;         //[mask=0x02] Interface  
-  L7_uint16            outer_vlan;   //[mask=0x04] Outer vlan 
-  L7_uint16            inner_vlan;   //[mask=0x08] Inner vlan                                       
+  msg_HwEthInterface_t intf;         //[mask=0x02] Interface 
+  L7_uint8             onuId;        //[mask=0x04] ONU Identifier 
+  L7_uint16            outer_vlan;   //[mask=0x08] Outer vlan 
+  L7_uint16            inner_vlan;   //[mask=0x10] Inner vlan                                       
   L7_uint16            maxChannels;  //[mask=0x20] Maximum number of channels 
-  L7_uint64            maxBandwidth; //[mask=0x10] Maximum bandwidth (bit/s)  
+  L7_uint64            maxBandwidth; //[mask=0x40] Maximum bandwidth (bit/s)  
 } __attribute__((packed)) msg_IgmpAdmissionControl;
 
 /***************************************************** 
