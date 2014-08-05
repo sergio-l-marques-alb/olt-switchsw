@@ -6,11 +6,13 @@
 /* ************************** */
 /* Global Features Activation */
 
-#if PTIN_BOARD_IS_MATRIX
+#if PTIN_BOARD_IS_MATRIX || (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   #define PTIN_ENABLE_ERPS
   #define PTIN_ERPS_EVC
+#endif
+#if PTIN_BOARD_IS_MATRIX
   #define PTIN_ENABLE_DTL0TRAP
-#endif  // PTIN_BOARD_IS_MATRIX
+#endif
 
 /* ************************** */
 
