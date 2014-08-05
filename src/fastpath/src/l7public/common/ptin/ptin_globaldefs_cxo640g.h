@@ -129,7 +129,7 @@
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MAX    (PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN + PTIN_SYSTEM_EVC_ETREE_BS_VLAN_BLOCKS*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK - 1)
 
 
-# define PTIN_SYSTEM_N_IGMP_INSTANCES               8     /* Maximum nr of IGMP instances */
+# define PTIN_SYSTEM_N_IGMP_INSTANCES               8    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP        (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF          1
 # define PTIN_SYSTEM_IGMP_MAXONUS                   (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)  /* 20 clients per IGMP instance (20 slots) */
@@ -138,12 +138,12 @@
 # define PTIN_SYSTEM_IGMP_MAXCLIENTS                PTIN_SYSTEM_IGMP_MAXONUS
 # define PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP      5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE        (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
-# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE           1   /* Maximum number of entries in Query queue */
-# define PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT 0 /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
+# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE           1     /* Maximum number of entries in Query queue */
+# define PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT 0     /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
 
-# define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
-# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+# define PTIN_SYSTEM_N_DHCP_INSTANCES               1     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES              1     /* Maximum nr of PPPoE instances */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   512   /* 512 clients per DHCP instance */
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512
 

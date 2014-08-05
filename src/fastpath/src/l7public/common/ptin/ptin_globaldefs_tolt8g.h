@@ -116,12 +116,12 @@
 # define PTIN_SYSTEM_IGMP_MAXCLIENTS                PTIN_SYSTEM_IGMP_MAXONUS
 # define PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP      5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE        (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
-# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE           1   /* Maximum number of entries in Query queue */
-# define PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT 1 /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
+# define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE           1     /* Maximum number of entries in Query queue */
+# define PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT 1     /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
 
-# define PTIN_SYSTEM_N_DHCP_INSTANCES             8     /* Maximum nr of DHCP instances */
-# define PTIN_SYSTEM_N_PPPOE_INSTANCES            8     /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE 512   /* 512 clients per DHCP instance */
+# define PTIN_SYSTEM_N_DHCP_INSTANCES               8     /* Maximum nr of DHCP instances */
+# define PTIN_SYSTEM_N_PPPOE_INSTANCES              8     /* Maximum nr of PPPoE instances */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   512   /* 512 clients per DHCP instance */
 
 # define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE 512 
 
