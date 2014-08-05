@@ -311,7 +311,7 @@ L7_RC_t ptin_intf_portExt_init(void)
                  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO |
                  /*PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF              |*/
                  /*PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF             |*/
-                 PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;
+                 PTIN_HWPORTEXT_MASK_DHCP_TRUSTED;  
   mefExt.defVid                       = 1;
   mefExt.defPrio                      = 0;
   mefExt.acceptable_frame_types       = L7_DOT1Q_ADMIT_ALL;
@@ -327,8 +327,8 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
   mefExt.macLearn_stationMove_samePrio= L7_TRUE;
-  mefExt.maxChannels                  = 0;            /* Not defined */
-  mefExt.maxBandwidth                 = 0;            /* Not defined */
+  mefExt.maxChannels                  = (L7_uint16) -1;            /* Not defined */
+  mefExt.maxBandwidth                 = (L7_uint64) -1;            /* Not defined */
   mefExt.dhcp_trusted                 = L7_FALSE;   /* By default a port is untrusted */
 
   /* Only apply to physical interfaces */
@@ -418,39 +418,54 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
 
   /*Port Multicast Admission Control Support*/
   #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-  {
-    L7_uint32 ptin_port;
-    L7_uint8  mask = 0x00;
-
-    if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
-      mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
-
-    if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF)
-      mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
-
-    /*If Mask Is Set*/
-    if (mask != 0x00)
+  {    
+     /*If port is physical*/
+    if (ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL)
     {
-      if ( ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) && 
-             (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
-           ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
-             && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%04x maxBandwidth:%ull maxChannels:%u", mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
-        return L7_FAILURE;
-      }
+      L7_uint32 ptin_port;
+      L7_uint8  mask = 0x00;
 
       if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",ptin_intf->intf_type, ptin_intf->intf_id);
         return L7_FAILURE;
       }
-
-      if (ptin_igmp_admission_control_port_set(ptin_port, mask, mefExt->maxChannels, mefExt->maxBandwidth) != L7_SUCCESS)
+      
+      /*If port is valid*/
+      if (ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set port admission control parameters");
+        if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
+          mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+
+        if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF)
+          mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+
+        /*If Mask Is Set */
+        if (mask != 0x00)
+        {
+          if ( ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) && 
+                 (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
+               ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
+                 && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+          {
+            LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [ptin_port:%u mask:0x%04x maxBandwidth:%ull maxChannels:%u", ptin_port, mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
+            return L7_FAILURE;
+          }
+
+          if (ptin_igmp_admission_control_port_set(ptin_port, mask, mefExt->maxChannels, mefExt->maxBandwidth) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set port admission control parameters");
+            return L7_FAILURE;
+          }      
+        }
+      }
+#if 0 //This only applies for the internal ports and it is not considered an error.
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Port = %u/%u (ptin_port=%u)", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port);
         return L7_FAILURE;
-      }      
+      }
+#endif
     }
   }
   #endif
