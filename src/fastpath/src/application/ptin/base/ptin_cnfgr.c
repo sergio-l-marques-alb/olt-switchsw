@@ -491,9 +491,11 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
 #ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   {
+#ifdef PTIN_ENABLE_ERPS
    unsigned long i;
 
    for (i=0; i<MAX_PROT_PROT_ERPS; i++) ptin_aps_packet_init(i);//Initialize message queues
+#endif
 
    common_aps_ccm_packetRx_callback_register(); //must be after OAM ETH and ERP queues init: ptin_ccm_packet_init(-1) and ptin_aps_packet_init()
   }
