@@ -543,8 +543,9 @@ L7_RC_t ipsgIntfEnableApply(L7_uint32 intIfNum, L7_BOOL addingMacFilter)
       ipsgEntryCopy (&key, pNode);
       continue;
     }
-   
-    inetAddrHton(&pNode->ipsgEntryKey.ipAddr, &clientIpAddr);
+ 
+    inetCopy(&clientIpAddr, &pNode->ipsgEntryKey.ipAddr);
+
     if (addingMacFilter)
     {
         /* first delete existing classifier entry (w/ all 0s MAC addr) */
@@ -918,7 +919,7 @@ L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr)
     return L7_FAILURE;
   }
 
-  inetAddrHton(ipAddr, &clientIpAddr);
+  inetCopy(&clientIpAddr, ipAddr);
 
   if (L7_AF_INET == ipAddr->family)
   {
