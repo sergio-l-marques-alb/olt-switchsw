@@ -3520,6 +3520,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
   {    
     if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
+      avl_infoData->admissionControl.maxAllowedBandwidth = PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS_DISABLE;
       avl_infoData->admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
@@ -11839,7 +11840,7 @@ void ptin_igmp_groupclients_dump(void)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
            #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-           "mask=0x%x allocatedBandwidth=%u maxAllowedBandwidth=%u allocatedChannels=%u maxAllowedChannels=%u "
+           "mask=%02x allocatedBandwidth=%u maxAllowedBandwidth=%u allocatedChannels=%u maxAllowedChannels=%u "
            #endif
            ": port=%-2u uni_vid=%4u+%-4u (#devices=%u)\r\n",
            i_client,
@@ -11932,6 +11933,7 @@ static void ptin_igmp_clientgroup_lookup_table_entry_remove(L7_uint32 ptinPort, 
   }
   clientGroupLookUpTable[ptinPort][clientId].clientGroupPtr = L7_NULLPTR;
 }
+
 /**
  * @purpose Set the Port Admission Control Parameters
  * 
@@ -11979,6 +11981,25 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
   }
 
   return L7_SUCCESS;
+}
+
+/**
+ * @purpose Dump the Port Admission Control Parameters
+ * 
+ * @notes none 
+ *  
+ */
+void ptin_igmp_admission_control_port_dump(void)  
+{
+  L7_uint32 ptin_port;
+
+  for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
+  {
+    printf("mask:%02x maxAllowedChannels:%u maxAllowedBandwidth:%u\n",
+           igmpPortAdmissionControl[ptin_port].admissionControl.mask,
+           igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels,
+           igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth);
+  }  
 }
 
 /**
