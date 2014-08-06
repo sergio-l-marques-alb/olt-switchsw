@@ -3498,7 +3498,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
   {
     if (maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE)  /*Disable this Parameter*/
     { 
-      avl_infoData->admissionControl.maxAllowedChannels = PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE;         
+      avl_infoData->admissionControl.maxAllowedChannels = 0;         
       mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
     }
     else
@@ -3513,7 +3513,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
   {    
     if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
-      avl_infoData->admissionControl.maxAllowedBandwidth = PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS_DISABLE;
+      avl_infoData->admissionControl.maxAllowedBandwidth = 0;
       avl_infoData->admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
@@ -11952,7 +11952,10 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS)
   {
     if (maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE) /*Disable this Parameter*/
+    {
+      igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels = 0;
       igmpPortAdmissionControl[ptin_port].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+    }
     else
     {
       igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels = maxAllowedChannels;    
@@ -11964,6 +11967,7 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
   {    
     if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
+      igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = 0;
       igmpPortAdmissionControl[ptin_port].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
@@ -11988,7 +11992,7 @@ void ptin_igmp_admission_control_port_dump(void)
 
   for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
   {
-    printf("mask:%02x maxAllowedChannels:%u maxAllowedBandwidth:%u\n",
+    printf("mask:%02x maxAllowedChannels:%u maxAllowedBandwidth:%u kbps\n",
            igmpPortAdmissionControl[ptin_port].admissionControl.mask,
            igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels,
            igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth);

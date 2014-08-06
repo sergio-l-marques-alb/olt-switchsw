@@ -327,8 +327,8 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 1;
   mefExt.macLearn_stationMove_samePrio= L7_TRUE;
-  mefExt.maxChannels                  = (L7_uint16) -1;            /* Not defined */
-  mefExt.maxBandwidth                 = (L7_uint64) -1;            /* Not defined */
+  mefExt.maxChannels                  = 0;            /* Not defined */
+  mefExt.maxBandwidth                 = 0;            /* Not defined */
   mefExt.dhcp_trusted                 = L7_FALSE;   /* By default a port is untrusted */
 
   /* Only apply to physical interfaces */
