@@ -400,7 +400,9 @@ L7_RC_t nimCheckIfNumber(L7_uint32 intIfNum)
   }
   else
   {
+#if 0 //Removed this print
     NIM_LOG_MSG("nimCheckIfNumber: internal interface number %d out of range\n", (int)intIfNum);
+#endif
     rc = L7_FAILURE;
   }
 
