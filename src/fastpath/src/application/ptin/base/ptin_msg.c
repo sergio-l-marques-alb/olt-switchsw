@@ -2939,7 +2939,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
           (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02 maxBandwidth:%llu maxChannels:%u",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
       return L7_FAILURE;
     }
     ptinEvcFlow.onuId               = msgEvcFlow->onuId;
@@ -5382,14 +5382,14 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
           (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02 maxBandwidth:%llu maxChannels:%u",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId        = %u", McastClient[i].onuId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   mask         = %u", McastClient[i].mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s", McastClient[i].maxBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -6066,11 +6066,11 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %ull", channel_list[i].channelBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu bits/s", channel_list[i].channelBandwidth);
 
     if (channel_list[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid channelBandwidth:%ull",channel_list[i].channelBandwidth);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid channelBandwidth:%llu bits/s",channel_list[i].channelBandwidth);
       return L7_FAILURE;
     }
     #endif
@@ -6273,21 +6273,17 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
   for (i=0; i<n_channels; i++)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId =%u",channel[i].SlotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId           = %u",channel[i].SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId            = %u",channel[i].evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel          = %u.%u.%u.%u",
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
-#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP=%u.%u.%u.%u",
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP         = %u.%u.%u.%u",
               (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
-#endif
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu", channel[i].channelBandwidth);
+                               
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
-#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
-#else
-    staticGroup.sourceIp  = 0x00;
-#endif
 
     if ((rc = ptin_igmp_static_channel_add(&staticGroup)) != L7_SUCCESS)
     {
@@ -6301,14 +6297,15 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     channel_list.SlotId=channel[i].SlotId;
     channel_list.evcid_mc=channel[i].evc_id;
 
-    channel_list.channel_dstIp.family=PTIN_AF_INET;
-    channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
+    channel_list.channel_dstIp.family = PTIN_AF_INET;
+    channel_list.channel_dstIp.addr.ipv4 = channel[i].channelIp.s_addr;
     channel_list.channel_dstmask=32;//32 Bits of Mask
 
-    //Currently not supported by the Manager
     channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4=0x0000;
-    channel_list.channel_srcmask=0x00;
+    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
+    channel_list.channel_srcmask=32;
+
+    channel_list.channelBandwidth = channel[i].channelBandwidth;
     
     ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1);   
     #endif//End Static Channel Add

@@ -1421,9 +1421,6 @@ typedef struct _msg_MCAssocChannel_t
   L7_uint64            channelBandwidth;  // bit/s 
 } __attribute__((packed)) msg_MCAssocChannel_t;
 
-/*To disable adding a Static Source please change 1 to 0*/
-#define PTIN_IGMP_STATIC_SOURCE_SUPPORT 1
-
 /* To add or remove a static channel */
 // Messages CCMSG_ETH_IGMP_STATIC_GROUP_ADD and CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
 typedef struct _msg_MCStaticChannel_t
@@ -1431,9 +1428,7 @@ typedef struct _msg_MCStaticChannel_t
   L7_uint8        SlotId;                    // slot
   L7_uint32       evc_id;                    // index: EVCid      /* L7_uint32 */
   msg_in_addr_t   channelIp;                 // IP of the Multicast Group
-#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
   msg_in_addr_t   sourceIp;                  //  IP of the Multicast Source
-#endif              
   L7_uint64       channelBandwidth;         // bit/s 
 } __attribute__((packed)) msg_MCStaticChannel_t;
 

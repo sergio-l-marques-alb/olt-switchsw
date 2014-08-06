@@ -11867,7 +11867,7 @@ void ptin_igmp_groupclients_dump(void)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
            #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-           "mask=%02x allocatedBandwidth=%u maxAllowedBandwidth=%u allocatedChannels=%u maxAllowedChannels=%u "
+           "mask=0x%02x allocatedBandwidth=%u maxAllowedBandwidth=%u allocatedChannels=%hu maxAllowedChannels=%hu "
            #endif
            ": port=%-2u uni_vid=%4u+%-4u (#devices=%u)\r\n",
            i_client,
@@ -12026,7 +12026,7 @@ void ptin_igmp_admission_control_port_dump(void)
 
   for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
   {
-    printf("mask:%02x maxAllowedChannels:%u maxAllowedBandwidth:%u kbps\n",
+    printf("mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u kbps\n",
            igmpPortAdmissionControl[ptin_port].admissionControl.mask,
            igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels,
            igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth);
