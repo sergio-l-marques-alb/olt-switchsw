@@ -192,7 +192,9 @@ typedef struct ptinIgmpClientGroupInfoData_s
   L7_uint8                    ptin_port;              /* Port */
   L7_uint32                   client_bmp_list[PTIN_IGMP_CLIENTIDX_MAX/(sizeof(L7_uint32)*8)+1];  /* Clients (children) bitmap (only for one interface) */
   dl_queue_t                  queue_clientDevices;
+#if !PTIN_SNOOP_USE_MGMD 
   ptin_IGMP_Statistics_t      stats_client;
+#endif
   L7_uint8                    onuId;
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   ptinIgmpAdmissionControl_t  admissionControl;   
@@ -373,7 +375,9 @@ typedef struct {
   L7_uint32 UcastEvcId;
   L7_uint16 nni_ovid;         /* NNI outer vlan used for EVC aggregation in one instance */
   L7_uint16 n_evcs;
+  #if !PTIN_SNOOP_USE_MGMD  
   ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
+  #endif
 } st_IgmpInstCfg_t;
 
 /* IGMP instances array
@@ -525,7 +529,9 @@ L7_int32 igmp_timer_dataCmp(void *p, void *q, L7_uint32 key);
 void *igmp_sem = NULL;
 
 /* Semaphore to access IGMP stats */
+#if !PTIN_SNOOP_USE_MGMD  
 void *ptin_igmp_stats_sem = L7_NULLPTR;
+#endif
 void *ptin_igmp_clients_sem = L7_NULLPTR;
 void *ptin_igmp_clients_snapshot_sem = L7_NULLPTR;
 
@@ -774,12 +780,14 @@ L7_RC_t ptin_igmp_proxy_init(void)
                    sizeof(ptinIgmpPairDataKey_t));
 #endif
 
+ #if !PTIN_SNOOP_USE_MGMD  
   ptin_igmp_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_igmp_stats_sem == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_igmp_stats_sem semaphore!");
     return L7_FAILURE;
   }
+  #endif
 
   ptin_igmp_clients_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_igmp_clients_sem == L7_NULLPTR)
@@ -851,8 +859,10 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
   /* Reset structure of unified list of clients */
   memset(&igmpClientGroups, 0x00, sizeof(igmpClientGroups));
 
+  #if !PTIN_SNOOP_USE_MGMD  
   osapiSemaDelete(ptin_igmp_stats_sem);
   ptin_igmp_stats_sem = L7_NULLPTR;
+  #endif
 
   osapiSemaDelete(ptin_igmp_clients_sem);
   ptin_igmp_clients_sem = L7_NULLPTR;
@@ -3441,11 +3451,12 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     /* Initialize client devices queue */
     dl_queue_init(&avl_infoData->queue_clientDevices);
 
+    #if !PTIN_SNOOP_USE_MGMD      
     /* Clear igmp statistics */
     osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
     memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
     osapiSemaGive(ptin_igmp_stats_sem);
-
+    #endif
     /* Update global data (one more group of clients) */
     igmpClientGroups.number_of_clients++;
   }
@@ -7882,10 +7893,12 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_BOOL isDynamic, L7_BOOL only_wo_chann
     if (isDynamic != avl_infoData->isDynamic)
       continue;
 
+    #if !PTIN_SNOOP_USE_MGMD      
     /* Check only_wo_channels parameter */
     if (only_wo_channels &&
         (avl_infoData->pClientGroup==L7_NULLPTR || avl_infoData->pClientGroup->stats_client.active_groups>0))
       continue;    
+    #endif
 
     /* Save client index */
     ptin_port  = avl_infoData->ptin_port;
@@ -8079,7 +8092,11 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
 
   /* If there is no channels, or channels are forced to be removed... */
   if ( force_remove ||
-       (clientInfo->pClientGroup!=L7_NULLPTR && clientInfo->pClientGroup->stats_client.active_groups==0) )
+       (clientInfo->pClientGroup!=L7_NULLPTR 
+#if !PTIN_SNOOP_USE_MGMD      
+        && clientInfo->pClientGroup->stats_client.active_groups==0
+#endif
+        ) )
   {
     if (ptin_debug_igmp_snooping)
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"Stopping timer");
@@ -9590,6 +9607,7 @@ L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
  */
 L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf)
 {
+  #if !PTIN_SNOOP_USE_MGMD  
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
   {
@@ -9632,7 +9650,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
   memset(&igmpInstances[igmp_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
   osapiSemaGive(ptin_igmp_stats_sem);
   #endif
-
+  #endif
   return L7_SUCCESS;
 }
 
@@ -9645,6 +9663,8 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
  */
 L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx)
 {
+  #if !PTIN_SNOOP_USE_MGMD  
+
   #if PTIN_IGMP_STATS_IN_EVCS
   L7_RC_t rc;
 
@@ -9673,6 +9693,7 @@ L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx)
   memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
   osapiSemaGive(ptin_igmp_stats_sem);
   #endif
+  #endif
 
   return L7_SUCCESS;
 }
@@ -9684,12 +9705,14 @@ L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_igmp_stat_clearAll(void)
 {
+ #if !PTIN_SNOOP_USE_MGMD  
   osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
 
   /* Clear global statistics */
   memset(global_stats_intf,0x00,sizeof(global_stats_intf));
 
   osapiSemaGive(ptin_igmp_stats_sem);
+  #endif
 
   return L7_SUCCESS;
 }
@@ -9797,6 +9820,7 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
  */
 L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
+  #if !PTIN_SNOOP_USE_MGMD  
   L7_uint32 ptin_port;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -9847,11 +9871,13 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
   if (client_idx < PTIN_IGMP_CLIENTIDX_MAX && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
     client = igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client;
+    #if !PTIN_SNOOP_USE_MGMD  
     if (client != L7_NULLPTR && client->pClientGroup != L7_NULLPTR)
     {
       /* Statistics at client level: point to clientGroup data */
       stat_client = &client->pClientGroup->stats_client;
     }
+    #endif
   }
 
   switch (field) {
@@ -10262,7 +10288,7 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
   LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPortG:%u",statPortG);
   LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPort:%u",statPort);
   LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statClient:%u",statClient);
-
+  #endif
   return L7_SUCCESS;
 }
 
@@ -10278,6 +10304,8 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
  */
 L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
+  #if !PTIN_SNOOP_USE_MGMD   
+ 
   L7_uint32 ptin_port;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -10333,12 +10361,12 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
   /* If client index is valid... */
   if (client_idx < PTIN_IGMP_CLIENTIDX_MAX && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
-    client = igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client;
+    client = igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client;   
     if (client != L7_NULLPTR && client->pClientGroup != L7_NULLPTR)
     {
       /* Statistics at client level */
       stat_client = &client->pClientGroup->stats_client;
-    }
+    }    
   }
 
   switch (field) {
@@ -10744,8 +10772,9 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
   default:
     break;
   }
-
+  #endif
   return L7_SUCCESS;
+  
 }
 
 /**
@@ -10760,6 +10789,8 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
  */
 L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
+  #if !PTIN_SNOOP_USE_MGMD  
+
   L7_uint32 ptin_port = (L7_uint32)-1;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -11253,7 +11284,7 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
   }
 
   osapiSemaGive(ptin_igmp_stats_sem);
-
+  #endif
   return L7_SUCCESS;
 }
 
@@ -11269,6 +11300,8 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
  */
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
+  #if !PTIN_SNOOP_USE_MGMD  
+
   L7_uint32 ptin_port;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -11360,6 +11393,7 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
 
   osapiSemaGive(ptin_igmp_stats_sem);
 
+  #endif
   return L7_SUCCESS;
 }
 
@@ -13568,7 +13602,11 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
              #if (MC_CLIENT_MACADDR_SUPPORTED)
              "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
              #endif
-             ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] #channels=%u",
+             ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] "
+             #if !PTIN_SNOOP_USE_MGMD 
+                "#channels=%u"
+             #endif
+             " ",
              i_client,
              #if (MC_CLIENT_INTERF_SUPPORTED)
              avl_info->igmpClientDataKey.ptin_port,
@@ -13596,8 +13634,11 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
              avl_info->ptin_port,
              avl_info->client_index,
              avl_info->uni_ovid, avl_info->uni_ivid,
-             ((avl_info->isDynamic) ? "dynamic" : "static "),
-             (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0);
+             ((avl_info->isDynamic) ? "dynamic" : "static ")
+             #if !PTIN_SNOOP_USE_MGMD  
+             ,(avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0
+             #endif
+                );
     }
 
 
@@ -13800,7 +13841,11 @@ void ptin_igmp_clients_dump(void)
            #if (MC_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
-           ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] #channels=%u\r\n",
+           ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] "
+           #if !PTIN_SNOOP_USE_MGMD 
+           "#channels=%u"
+           #endif
+           "\r\n",
            i_client,
            #if (MC_CLIENT_INTERF_SUPPORTED)
            avl_info->igmpClientDataKey.ptin_port,
@@ -13828,8 +13873,11 @@ void ptin_igmp_clients_dump(void)
            avl_info->ptin_port,
            avl_info->client_index,
            avl_info->uni_ovid, avl_info->uni_ivid,
-           ((avl_info->isDynamic) ? "dynamic" : "static "),
-           (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0);
+           ((avl_info->isDynamic) ? "dynamic" : "static ")
+           #if !PTIN_SNOOP_USE_MGMD 
+           ,(avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->stats_client.active_groups : 0
+           #endif
+           );
 
     i_client++;
   }
