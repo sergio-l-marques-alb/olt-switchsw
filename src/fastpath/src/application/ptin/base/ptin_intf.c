@@ -413,7 +413,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio    = %u", mefExt->macLearn_stationMove_prio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_samePrio= %u", mefExt->macLearn_stationMove_samePrio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," MaxChannels  = %u"                , mefExt->maxChannels);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %u"                , mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %llu bits/s"              , mefExt->maxBandwidth);
   LOG_TRACE(LOG_CTX_PTIN_INTF," dhcp_trusted = %u"                , mefExt->dhcp_trusted);
 
   /*Port Multicast Admission Control Support*/
@@ -448,7 +448,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
                ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
                  && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
           {
-            LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [ptin_port:%u mask:0x%04x maxBandwidth:%ull maxChannels:%u", ptin_port, mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
+            LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [ptin_port:%u mask:0x%04x maxBandwidth:%llu maxChannels:%u", ptin_port, mefExt->Mask, mefExt->maxBandwidth, mefExt->maxChannels);
             return L7_FAILURE;
           }
 
