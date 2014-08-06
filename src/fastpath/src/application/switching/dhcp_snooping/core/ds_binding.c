@@ -26,6 +26,7 @@
 #include "avl_api.h"
 #include "ds_util.h"
 #include "ds_cfg.h"
+#include "ptin_evc.h"
 
 #ifdef L7_IPSG_PACKAGE
 #include "ds_ipsg.h"
@@ -1314,6 +1315,37 @@ L7_RC_t dsBindingsValidate(void)
     memcpy(&macAddr, &binding->macAddr.addr, L7_ENET_MAC_ADDR_LEN);
   }
   return rc;
+}
+
+/*********************************************************************
+* @purpose  Remove all DHCP leases that belong to a given EVC ID
+*
+* @end
+*********************************************************************/
+void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
+{
+  dsBindingTreeNode_t *binding = NULL;
+  L7_enetMacAddr_t macAddr;
+  L7_uint16 internalVlan;
+
+  if (L7_SUCCESS != ptin_evc_intRootVlan_get(ext_evc_id, &internalVlan))
+  {
+    printf("Unable to find internal vlan associated with ext_evc_id %u\n", ext_evc_id);
+    return;
+  }
+
+  memset(&macAddr, 0, sizeof(macAddr));
+  while (dsBindingTreeSearch(&macAddr, L7_MATCH_GETNEXT, &binding) == L7_SUCCESS)
+  {
+    /* store key for use in next search */
+    memcpy(&macAddr, &binding->macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+
+    /* If this entry belongs to our service, remove it */
+    if(binding->vlanId == internalVlan)
+    {
+      dsBindingRemove(&macAddr);
+    }
+  }
 }
 
 /*********************************************************************

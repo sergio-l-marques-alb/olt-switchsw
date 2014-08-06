@@ -982,6 +982,20 @@ L7_RC_t dsStaticBindingRemove(L7_enetMacAddr_t *macAddr);
 L7_RC_t dsBindingClear(L7_uint32 intIfNum);
 
 /*********************************************************************
+* @purpose  Clear DHCP snooping bindings that belong to the requested EVC.
+*
+* @param    ext_evc_id  @b((input))  EVC id 
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @notes    
+*
+* @end
+*********************************************************************/
+L7_RC_t dsEvcBindingsClear(L7_uint32 ext_evc_id);
+
+
+/*********************************************************************
 * @purpose  Get the number of DHCP snooping bindings.
 *
 * @param    void

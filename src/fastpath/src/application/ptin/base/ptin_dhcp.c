@@ -1835,6 +1835,13 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
             #endif
             dhcp_idx);
 
+  /* Remove all associated DHCP leases */
+  if (L7_SUCCESS != dsEvcBindingsClear(evc_idx))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove DHCP leases [evc_idx:%u]", evc_idx);
+    return L7_FAILURE;
+  }
+
   return L7_SUCCESS;
 }
 
@@ -1971,6 +1978,20 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding)
     LOG_ERR(LOG_CTX_PTIN_DHCP, "Error removing entry");
     return L7_FAILURE;
   }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Removes all DHCP leases belonging to the given EVC
+ * 
+ * @param evc_ext_id : External Service ID
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_bindtable_service_remove(L7_uint32 evc_ext_id)
+{
+  LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Removing all DHCP leases associated with external service ID %u", evc_ext_id);
 
   return L7_SUCCESS;
 }

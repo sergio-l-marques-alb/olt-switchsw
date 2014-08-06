@@ -377,6 +377,15 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
  */
 L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding);
 
+/**
+ * Removes all DHCP leases belonging to the given EVC
+ * 
+ * @param evc_ext_id : External Service ID
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_bindtable_service_remove(L7_uint32 evc_ext_id);
+
 
 
 /**

@@ -894,6 +894,13 @@ L7_RC_t dstxtCfgEventProcess(L7_uint32);
 void dsTimerCallback(void);
 L7_RC_t dsBindingsValidate(void);
 
+/*********************************************************************
+* @purpose  Remove all DHCP leases that belong to a given EVC ID
+*
+* @end
+*********************************************************************/
+void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id);
+
 /* ds_outcalls.c */
 L7_BOOL dsIntfTypeIsValid(L7_uint32 intIfNum, L7_uint32 sysIntfType);
 L7_BOOL dsIntfIsValid(L7_uint32 intIfNum);
