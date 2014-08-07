@@ -1131,7 +1131,7 @@ L7_RC_t sysapiConfigSwitchIp (L7_uint32 ipAddr, L7_uint32 ipNetMask)
   osapiArpFlush ((L7_uchar8 *)buf);
 
   /* PTin removed: inband */
-  #if ( PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B )
+  #if ( PTIN_BOARD_IS_STANDALONE )
   rc = osapiNetIfConfig((L7_uchar8 *)buf,ipAddr,ipNetMask);
   #else
   rc = L7_SUCCESS;

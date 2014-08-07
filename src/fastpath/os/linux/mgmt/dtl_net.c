@@ -60,12 +60,14 @@
   #include "usmdb_common.h"
 
 /* PTin added: inband */
-#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_OLT1T0) )
+#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) )
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #define __SUPPORT_FP_ROUTING__                1
 #define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
 #else
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      1
+//#define __SUPPORT_FP_ROUTING__                1
+//#define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
 #endif
 
 #define DTL0INBANDVID 4093

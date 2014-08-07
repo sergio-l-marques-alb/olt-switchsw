@@ -462,9 +462,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  L7_uint       port_index;
   bcm_port_t    bcm_port;
-  bcmx_lport_t  lport;
   L7_uint32     rval;
 
   /* Inicialize polarity invertions (ge48 port) */
@@ -513,11 +511,14 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     L7_uint16 vlanId_value = PTIN_VLAN_BL2CPU_EXT;
     L7_uint16 vlanId_mask  = 0xFFF;
 
+    L7_uint       port_index;
+    bcmx_lport_t  lport;
+
     /* Create cancellation rule for VLANS 4092-4095 */
-    hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     hapiBroadPolicyCreate(BROAD_POLICY_TYPE_IPSG);
     hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
     hapiBroadPolicyRuleAdd(&ruleId);
+    //hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8*)&vlanId_value, (L7_uchar8*)&vlanId_mask);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_PERMIT, 0, 0, 0);
     rc = hapiBroadPolicyCommit(&policyId);

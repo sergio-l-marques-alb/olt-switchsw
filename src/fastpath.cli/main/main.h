@@ -792,15 +792,19 @@ typedef struct {
 /* EVC flow */
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 typedef struct {
-  L7_uint8  SlotId;
-  L7_uint32 evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  L7_uint32 flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
-                            // 0x000200 - IGMP protocol (PTin custom field)
-                            // 0x000400 - PPPOE protocol (PTin custom field)
+  L7_uint8             SlotId;
+  L7_uint32            evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint32            flags;  // Flags:  0x000100 - DHCP protocol (PTin custom field)
+                                // 0x000200 - IGMP protocol (PTin custom field)
+                                // 0x000400 - PPPOE protocol (PTin custom field)
   /* Flow information */
-  L7_uint16 nni_cvlan;  // NNI inner vlan
-  msg_HwEthIntf_t intf; // outer vlan is the GEM id
-  L7_uint8  macLearnMax;  // Maximum number of Learned MAC addresses
+  L7_uint16            nni_cvlan;    // NNI inner vlan
+  msg_HwEthIntf_t      intf;         // Outer vlan is the GEM id
+  L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
+  L7_uint8             onuId;        //ONU Identifier
+  L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
+  L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /***************************************************** 
@@ -1075,9 +1079,27 @@ typedef struct {
 // Messages CCMSG_ETH_IGMP_CLIENT_ADD, CCMSG_ETH_IGMP_CLIENT_REMOVE
 typedef struct {
   L7_uint8             SlotId;
-  L7_uint32            mcEvcId;                 /* Multicast EVC Id */
-  msg_client_info_t client;                /* Client identification */
+  L7_uint32            mcEvcId;      //Multicast EVC Id 
+  msg_client_info_t    client;       //Client identification 
+  L7_uint8             onuId;        //ONU Identifier
+  L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
+  L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
 } __attribute__((packed)) msg_IgmpClient_t;
+
+
+// Messages CCMSG_ETH_IGMP_ADMISSION_CONTROL
+typedef struct {
+  L7_uint8             SlotId;      
+  L7_uint8             mask;         //Mask of fields to be considered                             
+  L7_uint32            evcId;        //[mask=0x01] EVC Id
+  msg_HwEthInterface_t intf;         //[mask=0x02] Interface 
+  L7_uint8             onuId;        //[mask=0x04] ONU Identifier 
+  L7_uint16            outer_vlan;   //[mask=0x08] Outer vlan 
+  L7_uint16            inner_vlan;   //[mask=0x10] Inner vlan                                       
+  L7_uint16            maxChannels;  //[mask=0x20] Maximum number of channels 
+  L7_uint64            maxBandwidth; //[mask=0x40] Maximum bandwidth (bit/s)  
+} __attribute__((packed)) msg_IgmpAdmissionControl;
 
 /***************************************************** 
  * IGMP STATISTICS
