@@ -5108,6 +5108,8 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
       if (!(evcCfg.flags & PTIN_EVC_MASK_STACKED) || evcCfg.n_clients > 0)
       #endif
       {
+        if (ptin_debug_igmp_snooping)
+          LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Port bitmap set intIfNum:%u",intIfNum);
         L7_INTF_SETMASKBIT(*intfList,intIfNum);
       }
     }

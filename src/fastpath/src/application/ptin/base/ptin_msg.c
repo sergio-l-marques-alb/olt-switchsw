@@ -6343,17 +6343,13 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId  =%u",channel[i].evc_id);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Channel=%u.%u.%u.%u",
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
-#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP=%u.%u.%u.%u",
               (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
-#endif
+
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
-#if PTIN_IGMP_STATIC_SOURCE_SUPPORT
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
-#else
-    staticGroup.sourceIp  = 0x00;
-#endif
+
     if ((rc = ptin_igmp_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
@@ -6371,10 +6367,11 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
     channel_list.channel_dstmask=32;//32 Bits of Mask
 
-    //Currently not supported by the Manager
     channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4=0x0000;
-    channel_list.channel_srcmask=0x00;
+    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
+    channel_list.channel_srcmask=32;
+
+    channel_list.channelBandwidth = channel[i].channelBandwidth;
     
     ptin_msg_IGMP_ChannelAssoc_remove(&channel_list,1);   
     #endif//End Static Channel Remove
