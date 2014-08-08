@@ -214,7 +214,7 @@ void *ptin_hapi_policy_next(void *base_ptr, ptin_hapi_database_t *db)
  * @return void* : Pointer to the found element (L7_NULLPTR if 
  *         not found or error)
  */
-void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_database_t *db)
+void *ptin_hapi_policy_find(DAPI_USP_t *usp, void *profile, void *base_ptr, ptin_hapi_database_t *db)
 {
   void *ptr;
 
@@ -224,7 +224,7 @@ void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_database_t 
        FP_POLICY_INC_PTR(ptr,db) /*ptr = GET_POLICY_PTR_NEXT(ptr)*/ )
   {
     /* Is some comparison parameter differ, skip to the next element */
-    if (db->policy_compare(profile,ptr))  break;
+    if (db->policy_compare(usp,profile,ptr))  break;
   }
 
   /* Check if all elements were checked without success: not found situation */
@@ -253,7 +253,7 @@ void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_database_t 
  * @return void* : Pointer to the found element (L7_NULLPTR if 
  *         not found or error)
  */
-void *ptin_hapi_policy_check_conflicts(void *profile, void *base_ptr, ptin_hapi_database_t *db, int stage)
+void *ptin_hapi_policy_check_conflicts(DAPI_USP_t *usp, void *profile, void *base_ptr, ptin_hapi_database_t *db, int stage)
 {
   void *ptr;
 
@@ -263,7 +263,7 @@ void *ptin_hapi_policy_check_conflicts(void *profile, void *base_ptr, ptin_hapi_
        FP_POLICY_INC_PTR(ptr,db) /*ptr = GET_POLICY_PTR_NEXT(ptr)*/ )
   {
     /* Is some comparison parameter differ, skip to the next element */
-    if (db->policy_check_conflicts(profile, ptr, stage))  break;
+    if (db->policy_check_conflicts(usp, profile, ptr, stage))  break;
   }
 
   /* Check if all elements were checked without success: not found situation */

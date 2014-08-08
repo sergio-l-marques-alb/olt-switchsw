@@ -18,8 +18,8 @@ typedef struct {
 
   void (*policy_clear_data)(void *policy);                          /* Function to clear element */
   L7_BOOL (*policy_inUse)(void *policy);                            /* Function to check if element is in use */
-  L7_BOOL (*policy_compare)(void *profile, const void *policy);     /* Function to compare data */
-  L7_BOOL (*policy_check_conflicts)(void *profile, const void *policy, int stage);  /* Function to compare data */
+  L7_BOOL (*policy_compare)(DAPI_USP_t *usp, void *profile, const void *policy);     /* Function to compare data */
+  L7_BOOL (*policy_check_conflicts)(DAPI_USP_t *usp, void *profile, const void *policy, int stage);  /* Function to compare data */
 } ptin_hapi_database_t;
 
 /*********************************
@@ -79,7 +79,7 @@ extern void *ptin_hapi_policy_next(void *base_ptr, ptin_hapi_database_t *db);
  * @return void* : Pointer to the found element (L7_NULLPTR if 
  *         not found or error)
  */
-extern void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_database_t *db);
+extern void *ptin_hapi_policy_find(DAPI_USP_t *usp, void *profile, void *base_ptr, ptin_hapi_database_t *db);
 
 /**
  * Find element in database with conflict
@@ -94,7 +94,7 @@ extern void *ptin_hapi_policy_find(void *profile, void *base_ptr, ptin_hapi_data
  * @return void* : Pointer to the found element (L7_NULLPTR if 
  *         not found or error)
  */
-extern void *ptin_hapi_policy_check_conflicts(void *profile, void *base_ptr, ptin_hapi_database_t *db, int stage);
+extern void *ptin_hapi_policy_check_conflicts(DAPI_USP_t *usp, void *profile, void *base_ptr, ptin_hapi_database_t *db, int stage);
 
 /**
  * Find first free element in database

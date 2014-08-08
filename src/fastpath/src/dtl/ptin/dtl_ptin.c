@@ -411,17 +411,38 @@ L7_RC_t dtlPtinBWPolicer( ptin_bwPolicer_t *bw_policer )
 /**
  * Apply/Get EVC Statistics
  *  
+ * @param intIfNum : First interface for the cross-connection  
  * @param evcStats : EVC Stats structure
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinEvcStats( ptin_evcStats_t *evcStats )
+L7_RC_t dtlPtinEvcStats( L7_uint32 intIfNum, ptin_evcStats_t *evcStats )
 {
+  nimUSP_t usp;
   DAPI_USP_t ddUsp;
 
-  ddUsp.unit = -1;
-  ddUsp.slot = -1;
-  ddUsp.port = -1;
+  /* Validate arguments */
+  if (evcStats == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
 
   return dapiCtl(&ddUsp, DAPI_CMD_PTIN_FP_COUNTERS, (void *) evcStats);
 }

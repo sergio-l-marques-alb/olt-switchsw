@@ -25,8 +25,8 @@ ptin_hapi_database_t *bwp_db = &bw_policer_database;
  ********************************************/
 
 static void bwPolicy_clear_data(void *policy_ptr);
-static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr);
-static L7_BOOL bwPolicy_check_conflicts(void *profile_ptr, const void *policy_ptr, int stage);
+static L7_BOOL bwPolicy_compare(DAPI_USP_t *usp, void *profile_ptr, const void *policy_ptr);
+static L7_BOOL bwPolicy_check_conflicts(DAPI_USP_t *usp, void *profile_ptr, const void *policy_ptr, int stage);
 static L7_BOOL bwPolicy_inUse(void *policy_ptr);
 
 
@@ -197,7 +197,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer ptr is null: Looking to profile to find a match policer...");
     /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
-    policer_ptr = ptin_hapi_policy_find(profile, L7_NULLPTR, bwp_db);
+    policer_ptr = ptin_hapi_policy_find(L7_NULLPTR, profile, L7_NULLPTR, bwp_db);
     if (policer_ptr!=L7_NULLPTR)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, OVID_int=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u found!", 
@@ -689,7 +689,7 @@ static void bwPolicy_clear_data(void *policy_ptr)
  * 
  * @return L7_BOOL : L7_TRUE if equal / L7_FALSE if not
  */
-static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr)
+static L7_BOOL bwPolicy_compare(DAPI_USP_t *usp, void *profile_ptr, const void *policy_ptr)
 {
   ptin_bw_profile_t *profile = (ptin_bw_profile_t *) profile_ptr;
   const ptin_bw_policy_t *ptr = (const ptin_bw_policy_t *) policy_ptr;
@@ -732,7 +732,7 @@ static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr)
  * @return L7_BOOL : L7_TRUE if there is conflict / L7_FALSE if 
  *         not
  */
-static L7_BOOL bwPolicy_check_conflicts(void *profile_ptr, const void *policy_ptr, int stage)
+static L7_BOOL bwPolicy_check_conflicts(DAPI_USP_t *usp, void *profile_ptr, const void *policy_ptr, int stage)
 {
   return L7_FALSE;
 }

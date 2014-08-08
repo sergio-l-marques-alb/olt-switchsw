@@ -12,6 +12,7 @@
 
 #include "ptin_fieldproc.h"
 #include "dtl_ptin.h"
+#include "ptin_intf.h"
 
 /**
  * BW POLICERS MANAGEMENT
@@ -119,21 +120,36 @@ L7_RC_t ptin_bwPolicer_deleteAll(void)
  * Get EVC Statistics
  * 
  * @param stats   : Statistics data
- * @param evcStats : evcStats pointer
+ * @param profile : evcStats profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_policy_t *policy)
+L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_profile_t *profile)
 {
+  L7_uint32 intIfNum;
   ptin_evcStats_t evcStats;
   L7_RC_t rc;
+
+  /* Validate arguments */
+  if (profile == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    return L7_FAILURE;
+  }
+  /* Get intIfNum */
+  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+    return L7_FAILURE;
+  }
 
   memset(&evcStats,0x00,sizeof(ptin_evcStats_t));
 
   evcStats.operation  = DAPI_CMD_GET;
-  evcStats.policy_ptr = policy;
+  evcStats.profile    = *profile;
+  evcStats.policy_ptr = L7_NULLPTR;
 
-  rc=dtlPtinEvcStats(&evcStats);
+  rc = dtlPtinEvcStats(intIfNum, &evcStats);
   if (rc!=L7_SUCCESS)  return rc;
 
   /* Copy counters data */
@@ -146,35 +162,36 @@ L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_policy_
  * Set a new EVC Statistics rule
  * 
  * @param profile : EVC Stats profile 
- * @param evcStats : evcStats pointer
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile, ptin_evcStats_policy_t **policy)
+L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile)
 {
+  L7_uint32 intIfNum;
   ptin_evcStats_t evcStats;
   L7_RC_t rc;
 
-  /* Policer must be a valid pointer */
-  if (profile==L7_NULLPTR || policy==L7_NULLPTR)
+  /* Validate arguments */
+  if (profile == L7_NULLPTR)
   {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    return L7_FAILURE;
+  }
+  /* Get intIfNum */
+  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
     return L7_FAILURE;
   }
 
+  memset(&evcStats,0x00,sizeof(ptin_evcStats_t));
+
   evcStats.operation  = DAPI_CMD_SET;
   evcStats.profile    = *profile;
-  evcStats.policy_ptr = *policy;
+  evcStats.policy_ptr = L7_NULLPTR;
 
-  rc=dtlPtinEvcStats(&evcStats);
+  rc = dtlPtinEvcStats(intIfNum, &evcStats);
   if (rc!=L7_SUCCESS)  return rc;
-
-  /* Policer pointer could been changed */
-  *policy = evcStats.policy_ptr;
-
-  if (evcStats.policy_ptr==L7_NULLPTR)
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Returned policy pointer is null");
-  else
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Returned policy pointer is valid");
 
   return rc;
 }
@@ -182,34 +199,70 @@ L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile, ptin_evcStats_policy
 /**
  * Delete an EVC Statistics rule
  * 
- * @param profile : EVC Stats profile 
- * @param evcStats : evcStats pointer
+ * @param profile : EVC Stats profile
  * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evcStats_delete(ptin_evcStats_policy_t *policy)
+L7_RC_t ptin_evcStats_delete(ptin_evcStats_profile_t *profile)
 {
+  L7_uint32 intIfNum;
   ptin_evcStats_t evcStats;
 
-  evcStats.operation  = DAPI_CMD_CLEAR;
-  evcStats.policy_ptr = policy;
+  /* Validate arguments */
+  if (profile == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    return L7_FAILURE;
+  }
+  /* Get intIfNum */
+  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+    return L7_FAILURE;
+  }
 
-  return dtlPtinEvcStats(&evcStats);
+  memset(&evcStats,0x00,sizeof(ptin_evcStats_t));
+
+  /* Clear stats */
+  evcStats.operation  = DAPI_CMD_CLEAR;  
+  evcStats.profile    = *profile;
+  evcStats.policy_ptr = L7_NULLPTR;
+
+  return dtlPtinEvcStats(intIfNum, &evcStats);
 }
 
 /**
- * Remove All existent EVC Statistics rules
+ * Remove All existent EVC Statistics rules 
+ *  
+ * @param profile : EVC Stats profile 
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evcStats_deleteAll(void)
+L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile)
 {
+  L7_uint32 intIfNum;
   ptin_evcStats_t evcStats;
 
+  /* Validate arguments */
+  if (profile == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
+    return L7_FAILURE;
+  }
+  /* Get intIfNum */
+  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+    return L7_FAILURE;
+  }
+
+  memset(&evcStats,0x00,sizeof(ptin_evcStats_t));
+
   evcStats.operation  = DAPI_CMD_CLEAR_ALL;
+  evcStats.profile    = *profile;
   evcStats.policy_ptr = L7_NULLPTR;
 
-  return dtlPtinEvcStats(&evcStats);
+  return dtlPtinEvcStats(intIfNum, &evcStats);
 }
 
 /**

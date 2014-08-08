@@ -660,8 +660,7 @@ typedef struct {
 
 // Policy data
 typedef struct {
-  DAPI_USP_t ddUsp_src;                 // Interface
-  DAPI_USP_t ddUsp_dst;                 // Interface
+  L7_int     ptin_port;                 // Interface
   L7_uint16  outer_vlan_in;             // Outer vlan
   L7_uint16  outer_vlan_internal;       // Internal VLAN
   L7_uint16  outer_vlan_out;            // Outer vlan

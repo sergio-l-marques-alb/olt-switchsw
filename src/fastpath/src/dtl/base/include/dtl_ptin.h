@@ -138,11 +138,12 @@ extern L7_RC_t dtlPtinBWPolicer( ptin_bwPolicer_t *bw_policer );
 /**
  * Apply/Get EVC Statistics
  *  
+ * @param intIfNum : First interface for the cross-connection  
  * @param evcStats : EVC Stats structure
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinEvcStats( ptin_evcStats_t *evcStats );
+extern L7_RC_t dtlPtinEvcStats( L7_uint32 intIfNum, ptin_evcStats_t *evcStats );
 
 /**
  * Add/Remove rule to trap DHCP packets

@@ -124,6 +124,7 @@ void ptin_debug(void)
   printf("  ptin_stormcontrol_dump_debug                              - Dump storm control configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug                                 - Dump configured bandwidth policers\r\n");
   printf("  ptin_fpcounters_dump_debug                                - Dump configured EVC/client counters (at request)\r\n");
+  printf("  ptin_fpcounters_flush_debug                               - Flush configured EVC/client counters (at request)\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>                        - Enable policy management debug messages (minimum level should be 3)\r\n");
   printf("\r\n");                                                    
   printf("  ssm_debug_dump                                            - prints info about SSM operation\r\n");

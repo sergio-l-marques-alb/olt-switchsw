@@ -6512,6 +6512,20 @@ int main (int argc, char *argv[])
           printf("Failed to delete EVC stacked bridge - error %08X\r\n", *(unsigned int*)resposta.info);
         break;
 
+      case 1607:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf("EVC GEM flow successfully created\n\r");
+        else
+          printf("Failed to create EVC GEM flow - error %08X\r\n", *(unsigned int*)resposta.info);
+        break;
+
+      case 1608:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf("EVC GEM flow successfully deleted\n\r");
+        else
+          printf("Failed to delete EVC GEM flow - error %08X\r\n", *(unsigned int*)resposta.info);
+        break;
+
       case 1610:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK)) {
           msg_NtwConnectivity_t *pNtwConn = (msg_NtwConnectivity_t *) resposta.info;
@@ -6692,6 +6706,7 @@ int main (int argc, char *argv[])
     }
 
     //printf("Fim do send BUGA to Controlo...\n\r");
+    fflush(stdout);
     exit(0);
   }//if argc == m 
   else if ( !strcmp(argv[1],"testit") && ( argc >= 3 ) )
@@ -6727,6 +6742,7 @@ int main (int argc, char *argv[])
     if ( canal_buga<0 )
     {
       printf("Erro no open IPC do BUGA...\n\r");
+      fflush(stdout);
       exit(0);
     }
     valued = send_data (canal_buga, PORTO_RX_MSG_BUGA, IP_LOCALHOST, &comando, &resposta);
@@ -6734,6 +6750,7 @@ int main (int argc, char *argv[])
     if ( valued )
     {
       printf("Erro %llu  no send_data IPC do BUGA...\n\r", valued);
+      fflush(stdout);
       exit(0);
     }
 

@@ -7240,8 +7240,6 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
 static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_evcStats_profile_t *evcStats_profile)
 {
   L7_int    ptin_port;
-  L7_uint32 intIfNum;
-  nimUSP_t  usp;
 
   /* Validate arguments */
   if (msg_evcStats==L7_NULLPTR || evcStats_profile==L7_NULLPTR)
@@ -7251,8 +7249,6 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   }
 
   /* Source interface */
-  evcStats_profile->ddUsp_src.unit = evcStats_profile->ddUsp_src.slot = evcStats_profile->ddUsp_src.port = -1;
-  evcStats_profile->ddUsp_dst.unit = evcStats_profile->ddUsp_dst.slot = evcStats_profile->ddUsp_dst.port = -1;
   if (msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_INTF)
   {
     /* Get ptin_port */
@@ -7261,22 +7257,7 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
       LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid port reference");
       return L7_FAILURE;
     }
-    /* Get intIfNum */
-    if (ptin_intf_port2intIfNum(ptin_port,&intIfNum)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port");
-      return L7_FAILURE;
-    }
-    /* Get USP */
-    if (nimGetUnitSlotPort(intIfNum,&usp)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting USP reference");
-      return L7_FAILURE;
-    }
-    /* Calculate ddUSP */
-    evcStats_profile->ddUsp_src.unit = usp.unit;
-    evcStats_profile->ddUsp_src.slot = usp.slot;
-    evcStats_profile->ddUsp_src.port = usp.port - 1;
+    evcStats_profile->ptin_port = ptin_port;
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf extracted!");
   }
 

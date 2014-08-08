@@ -65,38 +65,38 @@ L7_RC_t ptin_bwPolicer_deleteAll(void);
  * Get EVC Statistics
  * 
  * @param stats   : Statistics data
- * @param evcStats : evcStats pointer
+ * @param profile : evcStats profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_policy_t *policy);
+extern L7_RC_t ptin_evcStats_get(ptin_evcStats_counters_t *stats, ptin_evcStats_profile_t *profile);
 
 /**
  * Set a new EVC Statistics rule
  * 
  * @param profile : EVC Stats profile 
- * @param evcStats : evcStats pointer
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile, ptin_evcStats_policy_t **policy);
+extern L7_RC_t ptin_evcStats_set(ptin_evcStats_profile_t *profile);
 
 /**
  * Delete an EVC Statistics rule
  * 
- * @param profile : EVC Stats profile 
- * @param evcStats : evcStats pointer
+ * @param profile : EVC Stats profile
  * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_evcStats_delete(ptin_evcStats_policy_t *policy);
+extern L7_RC_t ptin_evcStats_delete(ptin_evcStats_profile_t *profile);
 
 /**
  * Remove All existent EVC Statistics rules
  *  
+ * @param profile : EVC Stats profile 
+ *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_evcStats_deleteAll(void);
+extern L7_RC_t ptin_evcStats_deleteAll(ptin_evcStats_profile_t *profile);
 
 /**
  * Set global enable for IGMP packets to go to the CPU
