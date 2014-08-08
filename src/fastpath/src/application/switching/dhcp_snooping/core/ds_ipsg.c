@@ -1156,7 +1156,7 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
   }
   else /* No entry found for this */
   {
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
 
   dsConfigDataChange();

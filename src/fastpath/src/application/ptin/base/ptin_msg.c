@@ -5016,18 +5016,23 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
   {
     if ( (msgIpsgStaticEntry->idType & IPSG_ID_ALL) == IPSG_ROOT_VLAN )
     {
+#if 0
       L7_uint32         eEVCId;
-      if ((vlanId = (0x0000FFFF & msgIpsgStaticEntry->id)) != msgIpsgStaticEntry->id)
+#endif
+      if ((vlanId = (0x0000FFFF & msgIpsgStaticEntry->id)) != msgIpsgStaticEntry->id && vlanId >= 4096)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid root vlan given:%u", msgIpsgStaticEntry->id);
-        return L7_NOT_EXIST;
+        return L7_FAILURE;
       }
+/*Disabled this verification to support MAC Bridge Services*/
+#if 0
       if (ptin_evc_get_evcIdfromIntVlan(vlanId, &eEVCId) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid root VLAN:%u", vlanId);
         return L7_NOT_EXIST;
       }
       LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",eEVCId, vlanId);
+#endif
     }
     else
     {
