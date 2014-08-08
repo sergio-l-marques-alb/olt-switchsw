@@ -17,6 +17,189 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+static BROAD_POLICY_t       policyId_counter[10]  = {[0 ... 9] = BROAD_POLICY_INVALID};
+static BROAD_POLICY_RULE_t  ruleId_counter[10]    = {[0 ... 9] = BROAD_POLICY_INVALID};
+
+int ptin_lookup_counter_read(L7_int index)
+{
+  BROAD_POLICY_STATS_t stat;
+  L7_RC_t rc;
+
+  if (index >= 10)
+  {
+    return L7_FAILURE;
+  }
+
+  if (policyId_counter[index] == BROAD_POLICY_INVALID || 
+      ruleId_counter[index] == BROAD_POLICY_INVALID)
+  {
+    printf("No counter defined\r\n");
+    fflush(stdout);
+    return L7_FAILURE;
+  }
+
+  printf("Going to read counter\r\n");
+  fflush(stdout);
+
+  if ((rc=hapiBroadPolicyStatsGet(policyId_counter[index], ruleId_counter[index], &stat))!=L7_SUCCESS)
+  {
+    printf("Error reading counters\r\n");
+    fflush(stdout);
+    return L7_FAILURE;
+  }
+
+  printf("Packets: %llu\r\n",stat.statMode.counter.count);
+  fflush(stdout);
+
+  return L7_SUCCESS;
+}
+
+int ptin_lookup_counter_clear(L7_int index)
+{
+  if (index >= 10)
+  {
+    return L7_FAILURE;
+  }
+
+  if (policyId_counter[index] != BROAD_POLICY_INVALID)
+  {
+    hapiBroadPolicyDelete(policyId_counter[index]);
+    policyId_counter[index] = BROAD_POLICY_INVALID;
+    ruleId_counter[index] = BROAD_POLICY_INVALID;
+
+    printf("%s(%d) Counter removed\r\n",__FUNCTION__,__LINE__);
+  }
+
+  return L7_SUCCESS;
+}
+
+int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan)
+{
+  bcm_port_t          bcm_port;
+  bcmx_lport_t        lport;
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_uint8  dmac[]       = {0x00, 0x00, 0xc0, 0x01, 0x01, 0x02};
+  L7_uint8  mask[]       = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (stage >= BROAD_POLICY_STAGE_COUNT || index >= 10)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Apply this rule only to GE48 port */
+  if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+  {
+    printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+    fflush(stdout);
+    hapiBroadPolicyDelete(policyId);
+    return L7_FAILURE;
+  }
+  lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+  ptin_lookup_counter_clear(index);
+
+  hapiBroadPolicyCreate(type);
+  hapiBroadPolicyStageSet(stage);
+  hapiBroadPolicyRuleAdd(&ruleId);
+
+  if (stage == BROAD_POLICY_STAGE_EGRESS)
+  {
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uchar8 * ) &bcm_port, mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    printf("%s(%d) Outport qualifier added\r\n",__FUNCTION__,__LINE__);
+  }
+
+  /* Outer Vlan qualifier */
+  if (outerVlan >= 1 && outerVlan <=4095)
+  {
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 * ) &outerVlan, mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    printf("%s(%d) Outer vlan qualifier added\r\n",__FUNCTION__,__LINE__);
+  }
+
+  /* Inner Vlan qualifier */
+  if (innerVlan >= 1 && innerVlan <=4095)
+  {
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IVID, (L7_uchar8 * ) &innerVlan, mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    printf("%s(%d) Inner vlan qualifier added\r\n",__FUNCTION__,__LINE__);
+  }
+
+  rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, dmac, mask);
+  if (rc != L7_SUCCESS)
+  {
+    printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+    fflush(stdout);
+    hapiBroadPolicyCreateCancel();
+    return rc;
+  }
+  printf("%s(%d) DMAC qualifier added\r\n",__FUNCTION__,__LINE__);
+
+  /* Actions */
+  /* Add counter */
+  rc = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+  if (rc != L7_SUCCESS)
+  {
+    printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+    fflush(stdout);
+    hapiBroadPolicyCreateCancel();
+    return rc;
+  }
+  
+  /* Commit */
+  rc = hapiBroadPolicyCommit(&policyId);
+  if (rc != L7_SUCCESS)
+  {
+    printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+    fflush(stdout);
+    hapiBroadPolicyCreateCancel();
+    return rc;
+  }
+
+  if (stage == BROAD_POLICY_STAGE_LOOKUP ||
+      stage == BROAD_POLICY_STAGE_INGRESS)
+  {
+    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    if (L7_SUCCESS != rc)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyDelete(policyId);
+      return rc;
+    }
+  }
+
+  /* Save policy id */
+  policyId_counter[index] = policyId;
+  ruleId_counter[index] = ruleId;
+
+  printf("Counter applied successfully\r\n");
+  fflush(stdout);
+
+  return L7_SUCCESS;
+}
+
+
 int ptin_l2_replace_port(bcm_port_t bcm_port_old, bcm_port_t bcm_port_new)
 {
   bcm_l2_addr_t bcm_l2_addr;

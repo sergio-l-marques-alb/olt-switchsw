@@ -93,18 +93,20 @@ L7_RC_t hapi_ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_policy_t *po
   }
 
   /* Copy data */
-  profile->ddUsp_src      = policer->ddUsp_src;
-  profile->ddUsp_dst      = policer->ddUsp_dst;
-  profile->outer_vlan_in  = policer->outer_vlan_in;
-  profile->outer_vlan_out = policer->outer_vlan_out;
-  profile->inner_vlan_in  = policer->inner_vlan_in;
-  profile->inner_vlan_out = policer->inner_vlan_out;
-  profile->cos            = policer->cos;
-  profile->meter          = policer->meter;
+  profile->ddUsp_src            = policer->ddUsp_src;
+  profile->ddUsp_dst            = policer->ddUsp_dst;
+  profile->outer_vlan_in        = 0;    /* policer->outer_vlan_in; */
+  profile->outer_vlan_internal  = policer->outer_vlan_internal;
+  profile->outer_vlan_out       = policer->outer_vlan_out;
+  profile->inner_vlan_in        = policer->inner_vlan_in;
+  profile->inner_vlan_out       = policer->inner_vlan_out;
+  profile->cos                  = policer->cos;
+  profile->meter                = policer->meter;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " ddUsp_src= {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " ddUsp_dst= {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " OVID_in     = %u",profile->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, " OVID_int    = %u",profile->outer_vlan_internal);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " IVID_in     = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, " IVID_out    = %u",profile->inner_vlan_out);
@@ -158,7 +160,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     LOG_TRACE(LOG_CTX_PTIN_HAPI," inUse=%u",policer_ptr->inUse);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_src={%d,%d,%d}",policer_ptr->ddUsp_src.unit,policer_ptr->ddUsp_src.slot,policer_ptr->ddUsp_src.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_dst={%d,%d,%d}",policer_ptr->ddUsp_dst.unit,policer_ptr->ddUsp_dst.slot,policer_ptr->ddUsp_dst.port);
-    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in  =%u",policer_ptr->outer_vlan_in);
+    //LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in  =%u",policer_ptr->outer_vlan_in);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int =%u",policer_ptr->outer_vlan_internal);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out =%u",policer_ptr->outer_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in  =%u",policer_ptr->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out =%u",policer_ptr->inner_vlan_out);
@@ -177,6 +180,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_src={%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_dst={%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in  =%u",profile->outer_vlan_in);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int =%u",profile->outer_vlan_internal);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out =%u",profile->outer_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in  =%u",profile->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out =%u",profile->inner_vlan_out);
@@ -196,13 +200,13 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     policer_ptr = ptin_hapi_policy_find(profile, L7_NULLPTR, bwp_db);
     if (policer_ptr!=L7_NULLPTR)
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u found!", 
-                profile->outer_vlan_in, profile->inner_vlan_in, profile->outer_vlan_out, profile->inner_vlan_out);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, OVID_int=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u found!", 
+                profile->outer_vlan_in, profile->outer_vlan_internal, profile->inner_vlan_in, profile->outer_vlan_out, profile->inner_vlan_out);
     }
     else
     {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u not found!", 
-                profile->outer_vlan_in, profile->inner_vlan_in, profile->outer_vlan_out, profile->inner_vlan_out);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Database entry with OVID_in=%u, OVID_int=%u, IVID_in=%u, OVID_out=%u and IVID_out=%u not found!", 
+                profile->outer_vlan_in, profile->outer_vlan_internal, profile->inner_vlan_in, profile->outer_vlan_out, profile->inner_vlan_out);
     }
   }
 
@@ -212,7 +216,10 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   if ( (profile==L7_NULLPTR) ||
        ((profile->ddUsp_src.unit<0 && profile->ddUsp_src.slot<0 && profile->ddUsp_src.port<0) &&
         (profile->ddUsp_dst.unit<0 && profile->ddUsp_dst.slot<0 && profile->ddUsp_dst.port<0) &&
-        (profile->outer_vlan_in==0 || profile->outer_vlan_in>=4096) && (profile->inner_vlan_in==0 || profile->inner_vlan_in>=4096)) ||
+        /*(profile->outer_vlan_in==0 || profile->outer_vlan_in>=4096) &&*/
+        (profile->outer_vlan_internal==0 || profile->outer_vlan_internal>=4096) &&
+        (profile->outer_vlan_out==0 || profile->outer_vlan_out>=4096) &&
+        (profile->inner_vlan_in==0 || profile->inner_vlan_in>=4096)) ||
        (profile->meter.cir>=BW_MAX ) )
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Found conflicting data");
@@ -237,22 +244,23 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is in use: comparing inputs...");
     /* If some input parameter is different, we have to destroy fp policy */
-    if ( ( policer_ptr->ddUsp_src.unit !=profile->ddUsp_src.unit ) ||
-         ( policer_ptr->ddUsp_src.slot !=profile->ddUsp_src.slot ) ||
-         ( policer_ptr->ddUsp_src.port !=profile->ddUsp_src.port ) ||
-         ( policer_ptr->ddUsp_dst.slot !=profile->ddUsp_dst.slot ) ||
-         ( policer_ptr->ddUsp_dst.port !=profile->ddUsp_dst.port ) ||
-         ( policer_ptr->outer_vlan_in  != profile->outer_vlan_in ) ||
-         ( policer_ptr->outer_vlan_out != profile->outer_vlan_out) ||
-         ( policer_ptr->inner_vlan_in  != profile->inner_vlan_in ) ||
-         ( policer_ptr->inner_vlan_out != profile->inner_vlan_out) ||
+    if ( ( policer_ptr->ddUsp_src.unit      != profile->ddUsp_src.unit      ) ||
+         ( policer_ptr->ddUsp_src.slot      != profile->ddUsp_src.slot      ) ||
+         ( policer_ptr->ddUsp_src.port      != profile->ddUsp_src.port      ) ||
+         ( policer_ptr->ddUsp_dst.slot      != profile->ddUsp_dst.slot      ) ||
+         ( policer_ptr->ddUsp_dst.port      != profile->ddUsp_dst.port      ) ||
+         /*( policer_ptr->outer_vlan_in       != profile->outer_vlan_in       ) ||*/
+         ( policer_ptr->outer_vlan_internal != profile->outer_vlan_internal ) ||
+         ( policer_ptr->outer_vlan_out      != profile->outer_vlan_out      ) ||
+         ( policer_ptr->inner_vlan_in       != profile->inner_vlan_in       ) ||
+         ( policer_ptr->inner_vlan_out      != profile->inner_vlan_out      ) ||
          ( policer_ptr->cos  != profile->cos && policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos>=L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos>=L7_COS_INTF_QUEUE_MAX_COUNT) ||
-         ( policer_ptr->meter.cir      != profile->meter.cir     ) ||
-         ( policer_ptr->meter.eir      != profile->meter.eir     ) ||
-         ( policer_ptr->meter.cbs      != profile->meter.cbs     ) ||
-         ( policer_ptr->meter.ebs      != profile->meter.ebs     ) )
+         ( policer_ptr->meter.cir != profile->meter.cir ) ||
+         ( policer_ptr->meter.eir != profile->meter.eir ) ||
+         ( policer_ptr->meter.cbs != profile->meter.cbs ) ||
+         ( policer_ptr->meter.ebs != profile->meter.ebs ) )
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inputs are different... we have to destroy firstly the policer");
       if (hapi_ptin_bwPolicer_delete(policer_ptr)==L7_SUCCESS)
@@ -383,9 +391,9 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     }
 
     /* Internal vlans */
-    if (profile->outer_vlan_in>0 && profile->outer_vlan_in<4096)
+    if (profile->outer_vlan_internal>0 && profile->outer_vlan_internal<4096)
     {
-      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_in, (L7_uint8 *) mask))!=L7_SUCCESS)
+      if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_internal, (L7_uint8 *) mask))!=L7_SUCCESS)
       {
         hapiBroadPolicyCreateCancel();
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID)");
@@ -526,17 +534,18 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
 
   /* AT THIS POINT, THE NEW POLICER IS APPLIED TO HARDWARE */
 
-  policer_ptr->ddUsp_src      = profile->ddUsp_src;
-  policer_ptr->ddUsp_dst      = profile->ddUsp_dst;
-  policer_ptr->outer_vlan_in  = profile->outer_vlan_in;
-  policer_ptr->outer_vlan_out = profile->outer_vlan_out;
-  policer_ptr->inner_vlan_in  = profile->inner_vlan_in;
-  policer_ptr->inner_vlan_out = profile->inner_vlan_out;
-  policer_ptr->cos            = profile->cos;
-  policer_ptr->meter          = profile->meter;
-  policer_ptr->policy_id      = policyId;
+  policer_ptr->ddUsp_src            = profile->ddUsp_src;
+  policer_ptr->ddUsp_dst            = profile->ddUsp_dst;
+  //policer_ptr->outer_vlan_in        = profile->outer_vlan_in;
+  policer_ptr->outer_vlan_internal  = profile->outer_vlan_internal;
+  policer_ptr->outer_vlan_out       = profile->outer_vlan_out;
+  policer_ptr->inner_vlan_in        = profile->inner_vlan_in;
+  policer_ptr->inner_vlan_out       = profile->inner_vlan_out;
+  policer_ptr->cos                  = profile->cos;
+  policer_ptr->meter                = profile->meter;
+  policer_ptr->policy_id            = policyId;
                               
-  policer_ptr->inUse          = L7_TRUE;
+  policer_ptr->inUse                = L7_TRUE;
 
   /* Search for the following empty entry in database */
   ptin_hapi_policy_find_free(bwp_db);
@@ -658,15 +667,16 @@ static void bwPolicy_clear_data(void *policy_ptr)
 {
   ptin_bw_policy_t *ptr = (ptin_bw_policy_t *) policy_ptr;
 
-  ptr->inUse          = L7_FALSE;
-  ptr->policy_id      = 0;
-  ptr->ddUsp_src.unit = ptr->ddUsp_src.slot = ptr->ddUsp_src.port = -1;
-  ptr->ddUsp_dst.unit = ptr->ddUsp_dst.slot = ptr->ddUsp_dst.port = -1;
-  ptr->outer_vlan_in  = 0;
-  ptr->outer_vlan_out = 0;
-  ptr->inner_vlan_in  = 0;
-  ptr->inner_vlan_out = 0;
-  ptr->cos            = -1;
+  ptr->inUse                = L7_FALSE;
+  ptr->policy_id            = 0;
+  ptr->ddUsp_src.unit       = ptr->ddUsp_src.slot = ptr->ddUsp_src.port = -1;
+  ptr->ddUsp_dst.unit       = ptr->ddUsp_dst.slot = ptr->ddUsp_dst.port = -1;
+  //ptr->outer_vlan_in        = 0;
+  ptr->outer_vlan_internal  = 0;
+  ptr->outer_vlan_out       = 0;
+  ptr->inner_vlan_in        = 0;
+  ptr->inner_vlan_out       = 0;
+  ptr->cos                  = -1;
   ptr->meter.cir = ptr->meter.cbs = 0;
   ptr->meter.eir = ptr->meter.ebs = 0;
 }
@@ -698,8 +708,9 @@ static L7_BOOL bwPolicy_compare(void *profile_ptr, const void *policy_ptr)
       profile->ddUsp_dst.port!=ptr->ddUsp_dst.port)  return L7_FALSE;
 
   /* Verify SVID*/
-  if (profile->outer_vlan_in !=ptr->outer_vlan_in )  return L7_FALSE;
-  if (profile->outer_vlan_out!=ptr->outer_vlan_out)  return L7_FALSE;
+  //if (profile->outer_vlan_in       != ptr->outer_vlan_in)       return L7_FALSE;
+  if (profile->outer_vlan_internal != ptr->outer_vlan_internal) return L7_FALSE;
+  if (profile->outer_vlan_out      != ptr->outer_vlan_out)      return L7_FALSE;
 
   /* Verify IVID */
   if (profile->inner_vlan_in !=ptr->inner_vlan_in )  return L7_FALSE;
@@ -749,7 +760,8 @@ void ptin_bwpolicer_dump_debug(void)
     printf("  inUse = %u\r\n",ptr->inUse);
     printf("  ddUsp_src= {%d,%d,%d}\r\n",ptr->ddUsp_src.unit,ptr->ddUsp_src.slot,ptr->ddUsp_src.port);
     printf("  ddUsp_dst= {%d,%d,%d}\r\n",ptr->ddUsp_dst.unit,ptr->ddUsp_dst.slot,ptr->ddUsp_dst.port);
-    printf("  OVID_in  = %u\r\n",ptr->outer_vlan_in);
+    //printf("  OVID_in  = %u\r\n",ptr->outer_vlan_in);
+    printf("  OVID_int = %u\r\n",ptr->outer_vlan_internal);
     printf("  OVID_out = %u\r\n",ptr->outer_vlan_out);
     printf("  IVID_in  = %u\r\n",ptr->inner_vlan_in);
     printf("  IVID_out = %u\r\n",ptr->inner_vlan_out);

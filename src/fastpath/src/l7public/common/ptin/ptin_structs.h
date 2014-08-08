@@ -603,7 +603,7 @@ typedef struct {
   L7_uint8   inUse;                     // This entry is in use (TRUE to be in use)
   DAPI_USP_t ddUsp_src;                 // Source interface (have precedence over port_bmp_src)
   DAPI_USP_t ddUsp_dst;                 // Destination interface (have precedence over port_bmp_dst)
-  L7_uint16  outer_vlan_in;             // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_internal;       // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
   L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)
   L7_uint16  inner_vlan_out;            // CVlan (0 value means no appliance)
@@ -616,6 +616,7 @@ typedef struct {
   DAPI_USP_t ddUsp_src;                 // Source interface (have precedence over port_bmp_src)
   DAPI_USP_t ddUsp_dst;                 // Destination interface (have precedence over port_bmp_dst)
   L7_uint16  outer_vlan_in;             // SVlan (0 value means no appliance)               
+  L7_uint16  outer_vlan_internal;       // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
   L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)               
   L7_uint16  inner_vlan_out;            // CVlan (0 value means no appliance)
@@ -648,6 +649,7 @@ typedef struct {
   DAPI_USP_t ddUsp_src;                 // Interface
   DAPI_USP_t ddUsp_dst;                 // Interface
   L7_uint16  outer_vlan_in;             // Outer vlan
+  L7_uint16  outer_vlan_internal;       // Outer vlan
   L7_uint16  outer_vlan_out;            // Outer vlan
   L7_uint16  inner_vlan_in;             // Inner vlan
   L7_uint16  inner_vlan_out;            // Inner vlan
@@ -661,6 +663,7 @@ typedef struct {
   DAPI_USP_t ddUsp_src;                 // Interface
   DAPI_USP_t ddUsp_dst;                 // Interface
   L7_uint16  outer_vlan_in;             // Outer vlan
+  L7_uint16  outer_vlan_internal;       // Internal VLAN
   L7_uint16  outer_vlan_out;            // Outer vlan
   L7_uint16  inner_vlan_in;             // Inner vlan
   L7_uint16  inner_vlan_out;            // Inner vlan

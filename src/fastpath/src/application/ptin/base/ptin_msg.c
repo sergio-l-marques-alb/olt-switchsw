@@ -7105,8 +7105,9 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   }
 
   /* SVID */
-  profile->outer_vlan_in  = 0;
-  profile->outer_vlan_out = 0;
+  profile->outer_vlan_in        = 0;
+  profile->outer_vlan_internal  = 0;
+  profile->outer_vlan_out       = 0;
 
   /* CVID */
   profile->inner_vlan_in  = 0;
@@ -7275,8 +7276,9 @@ static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_e
   }
 
   /* SVID */
-  evcStats_profile->outer_vlan_in  = 0;
-  evcStats_profile->outer_vlan_out = 0;
+  evcStats_profile->outer_vlan_in       = 0;
+  evcStats_profile->outer_vlan_internal = 0;
+  evcStats_profile->outer_vlan_out      = 0;
   if ((msg_evcStats->mask & MSG_EVC_COUNTERS_MASK_SVLAN) &&
       (msg_evcStats->service_vlan>0 && msg_evcStats->service_vlan<4096))
   {

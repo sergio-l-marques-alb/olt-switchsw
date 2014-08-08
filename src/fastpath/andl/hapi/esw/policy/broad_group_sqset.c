@@ -648,15 +648,18 @@ bcm_field_qualify_t l2l3l4QsetLookup[] =    /* l2/l3 */
     bcmFieldQualifyPortClass,
 #endif
     bcmFieldQualifySrcMac,
+    bcmFieldQualifyDstMac,        /* PTin added: Destination MAC */
     bcmFieldQualifySrcIp,
     bcmFieldQualifyDstIp,
     bcmFieldQualifyOuterVlan,
+    bcmFieldQualifyInnerVlan,     /* PTin added: Inner Vlan */
     bcmFieldQualifyIpProtocol,
     bcmFieldQualifyDSCP,
     bcmFieldQualifyL4DstPort,
     bcmFieldQualifyL2Format,
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyIpType,
+    bcmFieldQualifySnap,          /* PTin added: snap */
     bcmFieldQualifyStageLookup
 };
 #define l2l3l4QsetLookupSize (sizeof(l2l3l4QsetLookup) / sizeof(bcm_field_qualify_t))

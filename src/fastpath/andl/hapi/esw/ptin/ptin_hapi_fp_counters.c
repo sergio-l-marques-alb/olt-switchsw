@@ -97,6 +97,7 @@ L7_RC_t hapi_ptin_fpCounters_get(ptin_evcStats_counters_t *stats, ptin_evcStats_
   LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_src = {%d,%d,%d}", counter->ddUsp_src.unit,counter->ddUsp_src.slot,counter->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_dst = {%d,%d,%d}", counter->ddUsp_dst.unit,counter->ddUsp_dst.slot,counter->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",         counter->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",         counter->outer_vlan_internal);
   LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",         counter->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",         counter->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",         counter->inner_vlan_out);
@@ -117,7 +118,7 @@ L7_RC_t hapi_ptin_fpCounters_get(ptin_evcStats_counters_t *stats, ptin_evcStats_
   /* Clear returned stats */
   memset(stats,0x00,sizeof(ptin_evcStats_counters_t));
 
-  for (stage=BROAD_POLICY_STAGE_INGRESS; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
+  for (stage=BROAD_POLICY_STAGE_LOOKUP; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
   {
     /* Validate policy id */
     if (counter->policy_id[stage]<=0)
@@ -136,7 +137,7 @@ L7_RC_t hapi_ptin_fpCounters_get(ptin_evcStats_counters_t *stats, ptin_evcStats_
       }
     }
 
-    if (stage==BROAD_POLICY_STAGE_INGRESS)
+    if (stage==BROAD_POLICY_STAGE_LOOKUP || stage==BROAD_POLICY_STAGE_INGRESS)
     {
       /* Copy extracted data to output structure */
       stats->rx.pktUnicast   = (L7_uint32) stat[PTIN_PACKETS_TYPE_UNICAST  ].statMode.counter.count;
@@ -157,7 +158,7 @@ L7_RC_t hapi_ptin_fpCounters_get(ptin_evcStats_counters_t *stats, ptin_evcStats_
       stats->mask |= PTIN_EVCSTATS_COUNTERS_MASK_TX;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, " Stage %s",((stage==BROAD_POLICY_STAGE_INGRESS) ? "INGRESS" : "EGRESS"));
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, " Stage %s",(stage==BROAD_POLICY_STAGE_LOOKUP) ? "LOOKUP" : ((stage==BROAD_POLICY_STAGE_INGRESS) ? "INGRESS" : "EGRESS"));
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Unicast   = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_UNICAST  ].statMode.counter.count);
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Multicast = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_MULTICAST].statMode.counter.count);
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "  Broadcast = %u", (L7_uint32) stat[PTIN_PACKETS_TYPE_BROADCAST].statMode.counter.count);
@@ -212,6 +213,7 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_src = {%d,%d,%d}", counter_ptr->ddUsp_src.unit,counter_ptr->ddUsp_src.slot,counter_ptr->ddUsp_src.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_dst = {%d,%d,%d}", counter_ptr->ddUsp_dst.unit,counter_ptr->ddUsp_dst.slot,counter_ptr->ddUsp_dst.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",         counter_ptr->outer_vlan_in);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",         counter_ptr->outer_vlan_internal);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",         counter_ptr->outer_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",         counter_ptr->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",         counter_ptr->inner_vlan_out);
@@ -233,6 +235,7 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_src = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp_dst = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_in);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_internal);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",profile->outer_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",profile->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",profile->inner_vlan_out);
@@ -248,7 +251,9 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
   /* If there is not enough input parameters, remove counter and leave */
   if ( (profile==L7_NULLPTR) ||
        ((profile->ddUsp_src.unit<0 && profile->ddUsp_src.slot<0 && profile->ddUsp_src.port<0) &&
-        (profile->outer_vlan_in==0 || profile->outer_vlan_in>=4096) && (profile->inner_vlan_in==0 || profile->inner_vlan_in>=4096)) )
+        (profile->outer_vlan_in==0       || profile->outer_vlan_in>=4096) &&
+        (profile->outer_vlan_internal==0 || profile->outer_vlan_internal>=4096) &&
+        (profile->inner_vlan_in==0       || profile->inner_vlan_in>=4096)) )
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Found conflicting data");
     if (counter_ptr!=L7_NULLPTR)
@@ -288,14 +293,15 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policer_ptr is in use: comparing inputs...");
     /* If some input parameter is different, we have to destroy fp policy */
-    if ( ( counter_ptr->ddUsp_src.unit != profile->ddUsp_src.unit ) ||
-         ( counter_ptr->ddUsp_src.slot != profile->ddUsp_src.slot ) ||
-         ( counter_ptr->ddUsp_src.port != profile->ddUsp_src.port ) ||
-         ( counter_ptr->outer_vlan_in  != profile->outer_vlan_in  ) ||
-         ( counter_ptr->outer_vlan_out != profile->outer_vlan_out ) ||
-         ( counter_ptr->inner_vlan_in  != profile->inner_vlan_in  ) ||
-         ( counter_ptr->inner_vlan_out != profile->inner_vlan_out ) ||
-         ( counter_ptr->dip            != profile->dst_ip         ) )
+    if ( ( counter_ptr->ddUsp_src.unit      != profile->ddUsp_src.unit      ) ||
+         ( counter_ptr->ddUsp_src.slot      != profile->ddUsp_src.slot      ) ||
+         ( counter_ptr->ddUsp_src.port      != profile->ddUsp_src.port      ) ||
+         ( counter_ptr->outer_vlan_in       != profile->outer_vlan_in       ) ||
+         ( counter_ptr->outer_vlan_internal != profile->outer_vlan_internal ) ||
+         ( counter_ptr->outer_vlan_out      != profile->outer_vlan_out      ) ||
+         ( counter_ptr->inner_vlan_in       != profile->inner_vlan_in       ) ||
+         ( counter_ptr->inner_vlan_out      != profile->inner_vlan_out      ) ||
+         ( counter_ptr->dip                 != profile->dst_ip              ) )
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inputs are different... we have to destroy firstly the counter");
       if (hapi_ptin_fpCounters_delete(counter_ptr)==L7_SUCCESS)
@@ -353,17 +359,31 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
 
   /* AT THIS POINT ENTRY IN DATABASE MUST BE CONFIGURED IN HARDWARE (inUse==L7_FALSE) */
 
-  #if 1
-  for ( stage=BROAD_POLICY_STAGE_INGRESS; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
-  #else
-  stage = BROAD_POLICY_STAGE_INGRESS;
-  #endif
+  for ( stage=BROAD_POLICY_STAGE_LOOKUP; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
   {
     /* Check if policy need to be created.
        At least the outer vlan must be defined. */
-    if (stage==BROAD_POLICY_STAGE_INGRESS)
+    if (stage==BROAD_POLICY_STAGE_LOOKUP)
     {
-      if (profile->outer_vlan_in<=0 || profile->outer_vlan_in>=4096)
+      if (profile->outer_vlan_in <= 0 || profile->outer_vlan_in >= 4096)
+        continue;
+
+      /* Check for conflicts */
+      if (ptin_hapi_policy_check_conflicts(profile, L7_NULLPTR, cnt_db, BROAD_POLICY_STAGE_LOOKUP) != L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Counter already configured in conflict (at lookup stage)");
+        return L7_REQUEST_DENIED;
+      }
+
+      /* Define policy type */
+      if (profile->inner_vlan_in<=0 || profile->inner_vlan_in>=4096)
+        policyType = BROAD_POLICY_TYPE_STAT_EVC;
+      else
+        policyType = BROAD_POLICY_TYPE_STAT_CLIENT;
+    }
+    else if (stage==BROAD_POLICY_STAGE_INGRESS)
+    {
+      if (profile->outer_vlan_internal <= 0 || profile->outer_vlan_internal >= 4096)
         continue;
 
       /* Check for conflicts */
@@ -381,7 +401,7 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
     }
     else if (stage==BROAD_POLICY_STAGE_EGRESS)
     {
-      if (profile->outer_vlan_out<=0 || profile->outer_vlan_out>=4096)
+      if (profile->outer_vlan_out <= 0 || profile->outer_vlan_out >= 4096)
         continue;
 
       /* Check for conflicts */
@@ -434,6 +454,7 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       /* Initialize mask */
       memset(mask,0xff,sizeof(mask));
 
+      /* Regarding to the input port qualifier, we will deal with lookup stage later */
       if (stage==BROAD_POLICY_STAGE_INGRESS)
       {
         if (portDescriptor.bcm_port>=0)
@@ -484,11 +505,23 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       }
 
       /* SVLAN */
-      if (stage==BROAD_POLICY_STAGE_INGRESS)
+      if (stage==BROAD_POLICY_STAGE_LOOKUP)
       {
         if (profile->outer_vlan_in>0 && profile->outer_vlan_in<4096)
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_in, (L7_uint8 *) mask))!=L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_in)");
+            break;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OVID_in qualifier added");
+        }
+      }
+      else if (stage==BROAD_POLICY_STAGE_INGRESS)
+      {
+        if (profile->outer_vlan_internal>0 && profile->outer_vlan_internal<4096)
+        {
+          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uint8 *)&profile->outer_vlan_internal, (L7_uint8 *) mask))!=L7_SUCCESS)
           {
             LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OVID_in)");
             break;
@@ -510,7 +543,7 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       }
 
       /* CVLAN */
-      if (stage==BROAD_POLICY_STAGE_INGRESS)
+      if (stage==BROAD_POLICY_STAGE_LOOKUP || stage==BROAD_POLICY_STAGE_INGRESS)
       {
         if (profile->inner_vlan_in>0 && profile->inner_vlan_in<4096)
         {
@@ -621,7 +654,7 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       hapiBroadPolicyCreateCancel();
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyCommit (stage=%u)",stage);
       /* Only return error, for ingress stage */
-      if (stage==BROAD_POLICY_STAGE_INGRESS)
+      if (stage != BROAD_POLICY_STAGE_EGRESS)
       {
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Returning error %u (stage=%u)",result,stage);
         return result;
@@ -638,20 +671,34 @@ L7_RC_t hapi_ptin_fpCounters_set(ptin_evcStats_profile_t *profile, ptin_evcStats
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy committed (stage=%u)",stage);
     }
 
+    /* Add input port, for lookup stage */
+    if (stage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      result = hapiBroadPolicyApplyToIface(policyId, portDescriptor.lport);
+
+      if (L7_SUCCESS != result)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding lport 0x%08x (stage=%u)",portDescriptor.lport, stage);
+        hapiBroadPolicyDelete(policyId);
+        return result;
+      }
+    }
+
     /* Save policy id */
     counter_ptr->policy_id[stage] = policyId;
   }
 
   /* AT THIS POINT, THE NEW COUNTER IS APPLIED TO HARDWARE */
 
-  counter_ptr->ddUsp_src      = profile->ddUsp_src;
-  counter_ptr->ddUsp_dst      = profile->ddUsp_dst;
-  counter_ptr->outer_vlan_in  = profile->outer_vlan_in;
-  counter_ptr->outer_vlan_out = profile->outer_vlan_out;
-  counter_ptr->inner_vlan_in  = profile->inner_vlan_in;
-  counter_ptr->inner_vlan_out = profile->inner_vlan_out;
-  counter_ptr->dip            = profile->dst_ip;
-  counter_ptr->inUse          = L7_TRUE;
+  counter_ptr->ddUsp_src            = profile->ddUsp_src;
+  counter_ptr->ddUsp_dst            = profile->ddUsp_dst;
+  counter_ptr->outer_vlan_in        = profile->outer_vlan_in;
+  counter_ptr->outer_vlan_internal  = profile->outer_vlan_internal;
+  counter_ptr->outer_vlan_out       = profile->outer_vlan_out;
+  counter_ptr->inner_vlan_in        = profile->inner_vlan_in;
+  counter_ptr->inner_vlan_out       = profile->inner_vlan_out;
+  counter_ptr->dip                  = profile->dst_ip;
+  counter_ptr->inUse                = L7_TRUE;
 
   /* Search for the following empty entry in database */
   ptin_hapi_policy_find_free(cnt_db);
@@ -697,7 +744,7 @@ L7_RC_t hapi_ptin_fpCounters_delete(ptin_evcStats_policy_t *counter)
     return L7_SUCCESS;
   }
 
-  for (stage=BROAD_POLICY_STAGE_INGRESS; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
+  for (stage=BROAD_POLICY_STAGE_LOOKUP; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
   {
     /* Destroy counter */
     if (counter->policy_id[stage]>0)
@@ -778,13 +825,14 @@ static void fpCounters_clear_data(void *policy_ptr)
   ptin_evcStats_policy_t *ptr = (ptin_evcStats_policy_t *) policy_ptr;
 
   ptr->inUse = L7_FALSE;
-  ptr->ddUsp_src.unit = ptr->ddUsp_src.slot = ptr->ddUsp_src.port = -1;
-  ptr->ddUsp_dst.unit = ptr->ddUsp_dst.slot = ptr->ddUsp_dst.port = -1;
-  ptr->outer_vlan_in  = 0;
-  ptr->outer_vlan_out = 0;
-  ptr->inner_vlan_in  = 0;
-  ptr->inner_vlan_out = 0;
-  ptr->dip            = 0;
+  ptr->ddUsp_src.unit       = ptr->ddUsp_src.slot = ptr->ddUsp_src.port = -1;
+  ptr->ddUsp_dst.unit       = ptr->ddUsp_dst.slot = ptr->ddUsp_dst.port = -1;
+  ptr->outer_vlan_in        = 0;
+  ptr->outer_vlan_internal  = 0;
+  ptr->outer_vlan_out       = 0;
+  ptr->inner_vlan_in        = 0;
+  ptr->inner_vlan_out       = 0;
+  ptr->dip                  = 0;
 
   for (stage=0; stage<PTIN_POLICY_STAGE_COUNT; stage++)
   {
@@ -815,8 +863,9 @@ static L7_BOOL fpCounters_compare(void *profile_ptr, const void *policy_ptr)
       profile->ddUsp_src.port!=ptr->ddUsp_src.port)  return L7_FALSE;
 
   /* Verify OVID */
-  if (profile->outer_vlan_in !=ptr->outer_vlan_in )  return L7_FALSE;
-  if (profile->outer_vlan_out!=ptr->outer_vlan_out)  return L7_FALSE;
+  if (profile->outer_vlan_in       != ptr->outer_vlan_in )      return L7_FALSE;
+  if (profile->outer_vlan_internal != ptr->outer_vlan_internal) return L7_FALSE;
+  if (profile->outer_vlan_out      != ptr->outer_vlan_out)      return L7_FALSE;
 
   /* Verify CVID */
   if (profile->inner_vlan_in !=ptr->inner_vlan_in )  return L7_FALSE;
@@ -875,6 +924,10 @@ static L7_BOOL fpCounters_check_conflicts(void *profile_ptr, const void *policy_
         }
       }
     }
+    else if (stage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      /* Nothing to be done */
+    }
   }
 
   return L7_FALSE;
@@ -903,13 +956,14 @@ void ptin_fpcounters_dump_debug(void)
     printf("  ddUsp_src = {%d,%d,%d}\r\n",ptr->ddUsp_src.unit,ptr->ddUsp_src.slot,ptr->ddUsp_src.port);
     printf("  ddUsp_dst = {%d,%d,%d}\r\n",ptr->ddUsp_dst.unit,ptr->ddUsp_dst.slot,ptr->ddUsp_dst.port);
     printf("  OVID_in   = %u\r\n",ptr->outer_vlan_in);
+    printf("  OVID_int  = %u\r\n",ptr->outer_vlan_internal);
     printf("  OVID_out  = %u\r\n",ptr->outer_vlan_out);
     printf("  IVID_in   = %u\r\n",ptr->inner_vlan_in);
     printf("  IVID_out  = %u\r\n",ptr->inner_vlan_out);
     printf("  DIP       = %03u.%03u.%03u.%03u\r\n",(ptr->dip>>24) & 0xFF,(ptr->dip>>16) & 0xFF,(ptr->dip>>8) & 0xFF,ptr->dip & 0xFF);
-    for (stage=BROAD_POLICY_STAGE_INGRESS; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
+    for (stage=BROAD_POLICY_STAGE_LOOKUP; stage<=BROAD_POLICY_STAGE_EGRESS; stage++)
     {
-      printf("  Stage=%s\r\n",((stage==BROAD_POLICY_STAGE_INGRESS) ? "INGRESS" : "EGRESS"));
+      printf("  Stage=%s\r\n",(stage==BROAD_POLICY_STAGE_LOOKUP) ? "LOOKUP" : ((stage==BROAD_POLICY_STAGE_INGRESS) ? "INGRESS" : "EGRESS"));
       printf("    policy_id = %d\r\n",ptr->policy_id[stage]);
       for (rule=0; rule<PTIN_PACKETS_TYPE_MAX; rule++)
       {

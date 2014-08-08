@@ -9445,6 +9445,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC," srcIntf     = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," dstIntf     = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int    = %u",profile->outer_vlan_internal);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
@@ -9576,8 +9577,9 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     } /* if (bwPolicer_ptr!=L7_NULLPTR) */
 
     /* If svlan is provided, it was already validated... Rewrite it with the internal value */
-    profile->outer_vlan_in = evcs[evc_id].intf[ptin_port].int_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_in);
+    profile->outer_vlan_in = 0;
+    profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_internal);
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
   /* If destination interface is provided, validate it */
   else if (profile->ddUsp_dst.unit>=0 && profile->ddUsp_dst.slot>=0 && profile->ddUsp_dst.port>=0)
@@ -9701,6 +9703,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC," srcIntf     = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," dstIntf     = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int    = %u",profile->outer_vlan_internal);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
@@ -9743,6 +9746,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_src = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_dst = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",profile->outer_vlan_internal);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_out);
@@ -9871,9 +9875,10 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
       } /* else (profile->inner_vlan_in==0) */
     } /* if (counters_ptr!=L7_NULLPTR) */
 
-    /* If svlan is provided, it was already validated... Rewrite it with the internal value */
-    profile->outer_vlan_in = evcs[evc_id].intf[ptin_port].int_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_in);
+    /* If svlan is provided, it was already validated... Use internal value, instead of original one */
+    profile->outer_vlan_in = 0;
+    profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in=%u, OVid_int=%u",ptin_port,profile->outer_vlan_in,profile->outer_vlan_internal);
 
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
   /* If interface is not provided... */
@@ -9888,6 +9893,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_src = {%d,%d,%d}",profile->ddUsp_src.unit,profile->ddUsp_src.slot,profile->ddUsp_src.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ddUsp_dst = {%d,%d,%d}",profile->ddUsp_dst.unit,profile->ddUsp_dst.slot,profile->ddUsp_dst.port);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",profile->outer_vlan_internal);
   LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_in);
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_out);
@@ -10115,10 +10121,11 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profi
   }
 
   /* Update outer vlans */
-  profile->outer_vlan_out = 0;
-  profile->outer_vlan_in  = evcs[evc_id].intf[ptin_port].int_vlan;
-  profile->inner_vlan_out = 0;
-  profile->inner_vlan_out = 0;
+  profile->outer_vlan_out       = 0;
+  profile->outer_vlan_in        = 0;
+  profile->outer_vlan_internal  = evcs[evc_id].intf[ptin_port].int_vlan;
+  profile->inner_vlan_out       = 0;
+  profile->inner_vlan_out       = 0;
 
   /* Find an existent probe */
   if (dl_queue_get_head(&evcs[evc_id].intf[ptin_port].queue_probes, (dl_queue_elem_t **) &pprobe)==NOERR)
