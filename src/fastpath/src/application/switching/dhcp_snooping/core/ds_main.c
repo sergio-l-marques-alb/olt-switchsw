@@ -1448,12 +1448,17 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) &&
         (dsVlanIntfIsSnooping(vlanId,intIfNum) /*dsIntfIsSnooping(intIfNum)*/ == L7_TRUE))    /* PTin modified: DHCP snooping */
     {
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP, "intIfNum %u, vlanId=%u valid", intIfNum, vlanId);
+
       if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) ||
           (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST && (_dsVlanIntfTrustGet(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ != L7_TRUE)))   /* PTin modified: DHCP snooping */
       {
-
         if(dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
         {
+          if (ptin_debug_dhcp_snooping)
+            LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REPLY");
+
           /* Search for this client before the binding is extracted because the entry in this table will be removed if a NACK/DECLINE is received */
           memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
           mac_header = (L7_enetHeader_t*) frame;
@@ -1475,6 +1480,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         if ((dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) &&
             (rc == L7_REQUEST_DENIED))
         {
+          if (ptin_debug_dhcp_snooping)
+            LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REQUEST: Request denied");
+
           /* Static binding exists for client on untrusted interface. Consider
            * this a configuration error. Drop client messages. Logic does let
            * through server messages to client on untrusted interface, but if
@@ -1500,6 +1508,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
        it needs to removed before relaying back to the client.*/
     if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
     {
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REPLY");
+
       memset(&relayAgentInfo, 0, sizeof(dsRelayAgentInfo_t));
       /* PTin modified: DHCP snooping */
       if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen,
@@ -1518,6 +1529,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         }
         return L7_FAILURE;
       }
+
       if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
       {
         L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
@@ -1557,6 +1569,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* This 'intIfNumFwd' field is applicable only for L2 Relay server messages.*/
       relayOptIntIfNum = 0;
 
+      if (ptin_debug_dhcp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REQUEST");
+
       if (dsL2RelayServiceIsEnabled(intIfNum, vlanId, innerVlanId) == L7_FALSE)
       {
         if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
@@ -1580,9 +1595,13 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
                   intIfNum, vlanId, innerVlanId);
         return L7_FAILURE;
       }
+
       if (isActiveOp82)
       {
 #endif
+        if (ptin_debug_dhcp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Is Active option 82");
+
         /* This function adds Option-82 only if it does not already exists.*/
         if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen)
                                 != L7_SUCCESS)
@@ -1597,6 +1616,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
           }
           return L7_FAILURE;
         }
+
         if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
         {
           L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
@@ -1621,6 +1641,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       if (ptin_dhcp_flags_get(vlanId, &broadcast_flag) == L7_SUCCESS &&
           broadcast_flag != DHCP_BOOTP_FLAG_NONE)
       {
+        if (ptin_debug_dhcp_snooping)
+          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Broadcast_flag = 0x%x", broadcast_flag);
+
         /* Force broadcast flag */
         if (broadcast_flag == DHCP_BOOTP_FLAG_BROADCAST)
         {
@@ -1642,6 +1665,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
     }
   }
 #endif
+
+  if (ptin_debug_dhcp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_DHCP, "Going to forward packet from intIfNum %u to %u (vlanId=%u, innerVlanId=%u)", intIfNum, relayOptIntIfNum, vlanId, innerVlanId);
 
   /* Forward packet */
   if (dsFrameForward(intIfNum, vlanId, frame, frameLen,
