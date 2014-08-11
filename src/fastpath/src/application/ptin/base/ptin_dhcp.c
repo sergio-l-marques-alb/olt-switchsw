@@ -788,7 +788,7 @@ L7_RC_t ptin_dhcp_reconf_evc(L7_uint32 evc_idx, L7_uint8 dhcp_flag, L7_uint32 op
    if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
    {
     LOG_ERR(LOG_CTX_PTIN_DHCP, "There is no DHCP instance with EVC id %u", evc_idx);
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
    }
 
    return ptin_dhcp_reconf_instance(dhcp_idx, dhcp_flag, options);
