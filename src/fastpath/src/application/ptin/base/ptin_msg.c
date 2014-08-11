@@ -6289,6 +6289,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
+    staticGroup.portType  = PTIN_MGMD_PORT_TYPE_LEAF;
 
     if ((rc = ptin_igmp_static_channel_add(&staticGroup)) != L7_SUCCESS)
     {
@@ -6354,6 +6355,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
+    staticGroup.portType  = PTIN_MGMD_PORT_TYPE_LEAF;
 
     if ((rc = ptin_igmp_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
