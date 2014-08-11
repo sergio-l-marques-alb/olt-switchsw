@@ -10,7 +10,6 @@
 *
 **********************************************************************/
 #include "snooping_mgmd_api.h"
-#include "ptin_globaldefs.h"
 #include "logger.h" 
 #include "usmdb_snooping_api.h"
 #include "l3_addrdefs.h"
@@ -53,9 +52,11 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
   .portList_get                = &snooping_portList_get,
   .portType_get                = &snooping_portType_get,
   .clientList_get              = &snooping_clientList_get,
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   .client_resources_available  = &snooping_client_resources_available,
   .client_resources_allocate   = &snooping_client_resources_allocate,
   .client_resources_release    = &snooping_client_resources_release,
+#endif
   .port_open                   = &snooping_port_open,
   .port_close                  = &snooping_port_close,
   .tx_packet                   = &snooping_tx_packet,
@@ -409,9 +410,11 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
   return SUCCESS;
 }
 
+/*Admission Control Feature*/
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+
 unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
@@ -458,14 +461,10 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
   rc = ptin_igmp_client_resources_available(ptin_port, clientId, channelBandwidth);
   ptin_timer_stop(63);
   return (rc == L7_SUCCESS) ;
-#else
-  return L7_TRUE;
-#endif
 }
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
@@ -505,14 +504,10 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   rc = ptin_igmp_client_resources_allocate(portId, clientId, channelBandwidth);
   ptin_timer_stop(66);
   return rc;
-#else
-  return L7_SUCCESS;
-#endif
 }
 
 unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
@@ -553,10 +548,9 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   rc = ptin_igmp_client_resources_release(portId, clientId, channelBandwidth);
   ptin_timer_stop(69);
   return rc;
-#else
-  return L7_SUCCESS;
-#endif
 }
+
+#endif //End Admission Control
 
 unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned char isStatic)
 {
@@ -863,7 +857,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
         L7_uint32             mgmdNumberOfQueryInstances;
         L7_uint32             numberOfQueriesSent=0;
 
-        mgmdQueryInstancesPtr=ptin_mgmd_query_instances_get(&mgmdNumberOfQueryInstances);
+        mgmdQueryInstancesPtr = ptin_mgmd_query_instances_get(&mgmdNumberOfQueryInstances);
         if ((mgmdNumberOfQueryInstances>0 && mgmdQueryInstancesPtr==L7_NULLPTR) || mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
         {
           LOG_WARNING(LOG_CTX_PTIN_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstancesPtr);
