@@ -9740,7 +9740,7 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
   ptin_port = profile->ptin_port;
 
   /* If interface is provided, validate it */
-  if (ptin_port >= 0 && ptin_port < ptin_sys_number_of_ports)
+  if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing interface: ptin_port=%u",ptin_port);
 
@@ -9885,7 +9885,7 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profi
   ptin_port = profile->ptin_port;
 
   /* If interface is provided, validate it */
-  if (ptin_port >= 0 && ptin_port < ptin_sys_number_of_ports)
+  if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing interface: ptin_port=%u",ptin_port);
   }
@@ -9958,7 +9958,7 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profi
   ptin_port = profile->ptin_port;
 
   /* If interface is provided, validate it */
-  if (ptin_port >= 0 && ptin_port < ptin_sys_number_of_ports)
+  if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing Interface: ptin_port=%u",ptin_port);
   }
@@ -10039,7 +10039,7 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *pr
   ptin_port = profile->ptin_port;
 
   /* If interface is provided, validate it */
-  if (ptin_port >= 0 && ptin_port < ptin_sys_number_of_ports)
+  if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Processing interface: ptin_port=%u", ptin_port);
   }
