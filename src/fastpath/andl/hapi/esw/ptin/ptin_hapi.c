@@ -1538,29 +1538,16 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
   }
   /* STANDALONE board */
 #else
-  if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS ||
-      port_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
-  {
-    if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-  }
+  if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
+              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
   else
-  {
-    if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-  }
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
+              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 #endif
 #endif
   
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
             port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 
   return L7_SUCCESS;
@@ -2976,11 +2963,13 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
   #if (PTIN_BOARD_IS_MATRIX)
   /* Only consider uplink ports in matrix */
   BCM_PBMP_OR(portbmp, pbm_egress_root_ports);
-  //#elif (PTIN_BOARD_IS_LINECARD)
-  #else
+  #elif (PTIN_BOARD_IS_LINECARD)
   /* Only consider downlink ports at LCs */
   BCM_PBMP_OR(portbmp, pbm_egress_all_ports);
   BCM_PBMP_REMOVE(portbmp, pbm_egress_root_ports);
+  #else
+  /* All ports for standalone boards */
+  BCM_PBMP_OR(portbmp, pbm_egress_all_ports);
   #endif
   
   /* Init BC storm control */
