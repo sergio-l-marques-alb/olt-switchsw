@@ -3239,10 +3239,11 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum, L7_uint32 client_idx)
  */
 L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels)
 {
-  ptinIgmpClientDataKey_t avl_key;
-  ptinIgmpClientGroupAvlTree_t *avl_tree;
+  ptinIgmpClientDataKey_t        avl_key;
+  ptinIgmpClientGroupAvlTree_t  *avl_tree;
   ptinIgmpClientGroupInfoData_t *avl_infoData;
-  L7_uint32 ptin_port;
+  L7_uint32                      ptin_port;
+  L7_BOOL                        newEntry = L7_FALSE;
 
   /* Get ptin_port value */
   ptin_port = 0;
@@ -3459,6 +3460,8 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     #endif
     /* Update global data (one more group of clients) */
     igmpClientGroups.number_of_clients++;
+
+    newEntry = L7_TRUE;
   }
   /* ClientGroup already present */
   else
@@ -3510,12 +3513,18 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     if (maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE)  /*Disable this Parameter*/
     { 
       avl_infoData->admissionControl.maxAllowedChannels = 0;         
+      avl_infoData->admissionControl.allocatedChannels  = 0;         
       mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
     }
     else
     {      
       avl_infoData->admissionControl.maxAllowedChannels = maxAllowedChannels;    
       avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+
+      if (newEntry == L7_TRUE)
+      {
+        avl_infoData->admissionControl.allocatedChannels  = 0;         
+      }
     }
     
   }
@@ -3525,12 +3534,18 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
       avl_infoData->admissionControl.maxAllowedBandwidth = 0;
+      avl_infoData->admissionControl.allocatedBandwidth  = 0;
       avl_infoData->admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
     {
       avl_infoData->admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
       avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+
+      if (newEntry == L7_TRUE)
+      {
+        avl_infoData->admissionControl.allocatedBandwidth  = 0;
+      }
     }
   }
 #endif
