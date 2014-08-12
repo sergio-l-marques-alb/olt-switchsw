@@ -56,11 +56,13 @@ extern L7_RC_t ptin_xlate_portgroup_reset_all(void);
  * @param intIfNum : interface reference
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 *newOuterVlanId );
+extern L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                                       L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId);
 
 /**
  * Get egress translation new vlan
@@ -68,11 +70,13 @@ extern L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId
  * @param intIfNum : interface reference
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 *newOuterVlanId );
+extern L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                                      L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId );
 
 /**
  * Get egress translation new vlan
@@ -80,44 +84,55 @@ extern L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId,
  * @param portgroup : port group id
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 *newOuterVlanId );
+extern L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                                                L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId );
 
 /**
  * Get ingress translation original vlan
  * 
  * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan (to be returned)
- * @param newOuterVlanId : new vlan id
+ * @param outerVlanId : lookup outer vlan (to be returned) 
+ * @param innerVlanId : lookup inner vlan (to be returned)  
+ * @param newOuterVlanId : new OUTER vlan id 
+ * @param newInnerVlanId : new inner vlan id   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId );
+extern L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
+                                                    L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
 
 /**
  * Get egress translation original vlan
  * 
  * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan (to be returned)
- * @param newOuterVlanId : new vlan id
+ * @param outerVlanId : lookup outer vlan (to be returned) 
+ * @param innerVlanId : lookup inner vlan (to be returned)  
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId );
+extern L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
+                                                   L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
 
 /**
  * Get egress translation original vlan
  * 
  * @param portgroup : port group id
- * @param outerVlanId : lookup outer vlan (to be returned)
- * @param newOuterVlanId : new vlan id
+ * @param outerVlanId : lookup outer vlan (to be returned) 
+ * @param innerVlanId : lookup inner vlan (to be returned)  
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId );
+extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
+                                                             L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
 
 /**
  * Add ingress translation entry

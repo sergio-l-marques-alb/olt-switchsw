@@ -468,7 +468,7 @@ L7_RC_t ptin_ipdtl0_control(L7_uint16 dtl0Vid, L7_uint16 outerVid, L7_uint16 int
     /* Convert to internal VLAN ID(if not previously provided) */
     if(enable && (internalVid == (L7_uint16)-1))
     {
-      rc = ptin_xlate_ingress_get(intfNum, outerVid, PTIN_XLATE_NOT_DEFINED, &internalVid);
+      rc = ptin_xlate_ingress_get(intfNum, outerVid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR);
       if ((rc != L7_SUCCESS) || (internalVid == 0))
       {
           LOG_ERR(LOG_CTX_PTIN_API,"Error Enabling IP dtl0");

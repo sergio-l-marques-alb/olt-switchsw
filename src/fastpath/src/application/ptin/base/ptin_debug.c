@@ -109,6 +109,7 @@ void ptin_debug(void)
   printf("  ptin_evc_allclientsflows_remove <id>                      - Remove all clients of an EVC (internal id)\r\n");
   printf("  ptin_evc_intfclientsflows_remove <id> <intfType> <intfId> - Remove all clients of one interface of an EVC (internal id)\r\n");
   printf("  ptin_evc_client_remove <id> <intf_type> <intf_id> <cvlan> - Remove a client of an EVC (internal id)\r\n");
+  printf("  ptin_xlate_dump <stage> [inv]                             - Dump translation entries for ingress (1) or egress (2) stage\r\n");
   printf("\r\n");
   printf("  ptin_debug_trap_packets <port> <OVid> <IVid> <only_drops> - Redirect packets from <port>, with <ovid> and <ivid>, to CPU\r\n");
   printf("  ptin_debug_trap_packets_egress <port> <OVid> <IVid> <drp> - Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");

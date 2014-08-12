@@ -342,7 +342,10 @@ int send_eth_pckt(L7_uint16 port, L7_uint8 up1_down0,
 
 #ifndef RAW_MODE
     // Convert to internal VLAN ID
-    ptin_xlate_ingress_get( intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal );
+    if (ptin_xlate_ingress_get( intIfNum, vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR ) != L7_SUCCESS)
+    {
+      vidInternal = 0;
+    }
 
     ptin_packet_send(intIfNum, vidInternal, vid, buff, length);
 #else
@@ -513,7 +516,10 @@ void ptin_oam_eth_task(void)
            L7_uint32 i, ptin_port;//, vid;
            L7_uint16 newOuterVlanId;           
 
-           ptin_xlate_egress_get( msg.intIfNum, msg.vlanId, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId );
+           if (ptin_xlate_egress_get( msg.intIfNum, msg.vlanId, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId, L7_NULLPTR ) != L7_SUCCESS)
+           {
+             newOuterVlanId = 0;
+           }
 
            if (L7_SUCCESS!=ptin_intf_intIfNum2port(msg.intIfNum, &ptin_port)) {LOG_INFO(LOG_CTX_OAM,"but in invalid port"); break;}
            //for (i=0; i<msg.payloadLen; i++) printf(" %2.2x", msg.payload[i]);      printf("\n\r");
@@ -575,7 +581,7 @@ L7_uint16 vidInternal;
         ||
         L7_SUCCESS!=ptin_intf_port2intIfNum(prt, &intIfNum)
         ||
-        L7_SUCCESS!=ptin_xlate_ingress_get( intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &vidInternal)) return L7_FAILURE;
+        L7_SUCCESS!=ptin_xlate_ingress_get( intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) return L7_FAILURE;
 
     if (enable) {
 #ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG

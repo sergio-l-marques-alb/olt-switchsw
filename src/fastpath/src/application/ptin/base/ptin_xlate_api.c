@@ -11,17 +11,48 @@
 
 #include "dtlinclude.h"
 
+/**************************************************************** 
+ * DATA TYPES
+ ****************************************************************/
+
+#define PTIN_XLATE_MAX_SIZE 8192
+
+typedef struct ptinXlateKey_s
+{
+  L7_uint32 ptin_port;
+  L7_uint32 portGroup;
+  L7_uint16 outerVid;
+  L7_uint16 innerVid;
+} ptinXlateKey_t;
+
+/* Client list snapshot */
+typedef struct ptinXlateInfoData_s
+{
+  ptinXlateKey_t    key;
+
+  L7_BOOL           in_use;
+  L7_uint           outerAction;
+  L7_uint           innerAction;
+  L7_uint16         outerVid_result;
+  L7_uint16         innerVid_result;
+
+  void             *next;
+} ptinXlateInfoData_t;
+
+typedef struct {
+    avlTree_t            avlTree;
+    avlTreeTables_t     *treeHeap;
+    ptinXlateInfoData_t *dataHeap;
+    L7_uint              number_of_entries;
+} ptinXlateAvlTree_t;
+
 /***************************************************************** 
  * INTERNAL VARIABLES
  *****************************************************************/
 
-/* Backup ingress and egress translations to a quick "get"...
-   only applies to single outer-vlan translations */
-static L7_uint16 xlate_table_ingress_oldVlan[PTIN_SYSTEM_N_INTERF][4096];
-static L7_uint16 xlate_table_ingress_newVlan[PTIN_SYSTEM_N_INTERF][4096];
-
-static L7_uint16 xlate_table_egress_oldVlan[PTIN_SYSTEM_N_INTERF][4096];
-static L7_uint16 xlate_table_egress_newVlan[PTIN_SYSTEM_N_INTERF][4096];
+/* All translation rules are saved here (3 stages) */
+ptinXlateAvlTree_t database_xlate[PTIN_XLATE_STAGE_ALL];
+ptinXlateAvlTree_t database_xlate_inv[PTIN_XLATE_STAGE_ALL];
 
 /* List of portgroups for each interface */
 static L7_int xlate_table_portgroup[PTIN_SYSTEM_N_PORTS];
@@ -42,117 +73,20 @@ void ptin_xlate_debug_enable(L7_BOOL enable)
  * INTERNAL FUNCTION PROTOTYPES
  *****************************************************************/
 
-/**
- * Get new VlanId from local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id (to be returned)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_newVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 *newOuterVlanId);
+/** XLATE operations */
+static L7_RC_t ptin_xlate_operation(L7_int operation, L7_uint32 intIfNum, ptin_vlanXlate_t *xlate );
 
 /**
- * Get new VlanId from local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id (to be returned)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ * XLATE database management
  */
-static L7_RC_t xlate_database_portgroup_newVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 *newOuterVlanId);
-
-/**
- * Get original VlanId from local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id (to be returned)
- * @param newOuterVlanId : New outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_oldVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId);
-
-/**
- * Get original VlanId from local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id (to be returned)
- * @param newOuterVlanId : New outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_oldVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId);
-
-/**
- * Save translation entry in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_store(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId);
-
-/**
- * Save translation entry in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_store(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId);
-
-/**
- * Clear translation entry in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_clear(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 outerVlanId);
-
-/**
- * Clear translation entry in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_clear(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 outerVlanId);
-
-/**
- * Clear all translation entries in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
+static L7_RC_t xlate_database_init(void);
+static L7_RC_t xlate_database_newVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *vlanXlate_data);
+static L7_RC_t xlate_database_oldVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *vlanXlate_data);
+static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *vlanXlate_data);
+static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *vlanXlate_data);
 static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage);
+
+void ptin_xlate_dump(ptin_vlanXlate_stage_enum stage, L7_BOOL inv);
 
 /**
  * Calculate portGroup id, from interface
@@ -196,7 +130,6 @@ L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   }
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_SET;
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
   xlate.outerVlan     = outerVlanId;
@@ -206,15 +139,7 @@ L7_RC_t ptin_xlate_ingress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
   xlate.outerAction   = PTIN_XLATE_ACTION_REPLACE;
   xlate.innerAction   = PTIN_XLATE_ACTION_DELETE;
 
-  /* DTL call */
-  rc = dtlPtinVlanTranslate(intIfNum, &xlate);
-
-  /* If addition went well... */
-  if (rc == L7_SUCCESS)
-  {
-    /* single-vlan translation: store this entry in a local database for quick access */
-    rc = xlate_database_store(PTIN_XLATE_STAGE_INGRESS, intIfNum, outerVlanId, newOuterVlanId);
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_SET, intIfNum, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -253,7 +178,6 @@ L7_RC_t ptin_xlate_egress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_u
   }
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_SET;
   xlate.portgroup     = portgroup;
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
   xlate.outerVlan     = outerVlanId;
@@ -264,13 +188,7 @@ L7_RC_t ptin_xlate_egress_add_2( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_u
   xlate.innerAction   = PTIN_XLATE_ACTION_ADD;
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
-
-  /* If addition went well... */
-  if (rc == L7_SUCCESS)
-  {
-    rc = xlate_database_portgroup_store(PTIN_XLATE_STAGE_EGRESS, portgroup, outerVlanId, newOuterVlanId);
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -296,7 +214,7 @@ L7_RC_t ptin_xlate_init(void)
   LOG_TRACE(LOG_CTX_PTIN_XLATE, "Initializing xlate module...");
 
   /* Init data structs */
-  rc1 = xlate_database_clear_all(PTIN_XLATE_STAGE_ALL);
+  rc1 = xlate_database_init();
 
   /* Reset class ids */
   rc2 = ptin_xlate_portgroup_reset_all();
@@ -511,13 +429,15 @@ L7_RC_t ptin_xlate_portgroup_reset_all(void)
  * @param intIfNum : interface reference
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 *newOuterVlanId )
+L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                                L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId)
 {
-  L7_uint16 newVlanId;
+  L7_uint16 newOuterVid, newInnerVid;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -533,53 +453,65 @@ L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   }
 
   /* Initialize new Vlan... as 0 (invalid value) */
-  newVlanId = PTIN_XLATE_NOT_DEFINED;
+  newOuterVid = PTIN_XLATE_NOT_DEFINED;
+  newInnerVid = PTIN_XLATE_NOT_DEFINED;
 
-  /* If innerVlanId is not defined, we can get this value directly to the local database */
-  if (innerVlanId == PTIN_XLATE_NOT_DEFINED)
+  memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
+  xlate.stage     = PTIN_XLATE_STAGE_INGRESS;
+  xlate.portgroup = PTIN_XLATE_PORTGROUP_INTERFACE;
+  xlate.outerVlan = outerVlanId;
+  xlate.innerVlan = innerVlanId;
+
+  rc = xlate_database_newVlan_get(intIfNum, &xlate);
+
+  if (rc == L7_SUCCESS)
   {
-    rc = xlate_database_newVlan_get(PTIN_XLATE_STAGE_INGRESS, intIfNum, outerVlanId, &newVlanId);
+    newOuterVid = xlate.outerVlan_new;
+    newInnerVid = xlate.innerVlan_new;
   }
-  /* Otherwise, goto HAPI to discover vlan to be returned */
   else
   {
-    /* Define structure */
-    xlate.oper          = DAPI_CMD_GET;
-    xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
-    xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
-    xlate.outerVlan     = outerVlanId;
-    xlate.innerVlan     = innerVlanId;
-    xlate.outerVlan_new = PTIN_XLATE_NOT_DEFINED;
-    xlate.innerVlan_new = PTIN_XLATE_NOT_DEFINED;
-    xlate.outerAction   = PTIN_XLATE_ACTION_NONE;
-    xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
-  
-    /* DTL call */
-    rc = dtlPtinVlanTranslate(intIfNum, &xlate);
-  
-    /* If successfull, extract vlan to be returned */
-    if ( rc == L7_SUCCESS )
-    {
-      newVlanId = xlate.outerVlan_new;
-    }
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Entry not found");
+    rc = L7_FAILURE;
   }
+  #if 0
+  /* Define structure */
+  xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
+  xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
+  xlate.outerVlan     = outerVlanId;
+  xlate.innerVlan     = innerVlanId;
+  xlate.outerVlan_new = PTIN_XLATE_NOT_DEFINED;
+  xlate.innerVlan_new = PTIN_XLATE_NOT_DEFINED;
+  xlate.outerAction   = PTIN_XLATE_ACTION_NONE;
+  xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
+
+  /* DTL call */
+  rc = ptin_xlate_operation(DAPI_CMD_GET, intIfNum, &xlate);
+
+  /* If successfull, extract vlan to be returned */
+  if ( rc == L7_SUCCESS )
+  {
+    newOuterVid = xlate.outerVlan_new;
+    newInnerVid = xlate.innerVlan_new;
+  }
+  #endif
 
   /* Return value */
   if (rc==L7_SUCCESS)
   {
-    if (newVlanId>4095)
+    if (newOuterVid > 4095 || newInnerVid > 4095)
     {
       rc = L7_FAILURE;
     }
     else
     {
-      if (newOuterVlanId!=L7_NULLPTR)
-        *newOuterVlanId = newVlanId;
+      if (newOuterVlanId != L7_NULLPTR)   *newOuterVlanId = newOuterVid;
+      if (newInnerVlanId != L7_NULLPTR)   *newInnerVlanId = newInnerVid;
     }
   }
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newVlan=%u, rc=%d", newVlanId, rc);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newOVid=%u, newIVid=%u, rc=%d", newOuterVid, newInnerVid, rc);
 
   /* Return status */
   return rc;
@@ -589,48 +521,71 @@ L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
  * Get ingress translation original vlan
  * 
  * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan (to be returned)
- * @param newOuterVlanId : new vlan id
+ * @param outerVlanId : lookup outer vlan (to be returned) 
+ * @param innerVlanId : lookup inner vlan (to be returned) 
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId )
+L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
+                                             L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
 {
-  L7_uint16 oldVlanId;
+  L7_uint16 oldOuterVid, oldInnerVid;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, newOuterVlanId=%u",
-              intIfNum, newOuterVlanId);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              intIfNum, newOuterVlanId, newInnerVlanId);
 
   /* Validate arguments */
-  if (newOuterVlanId>4095)
+  if (newOuterVlanId > 4095 || newInnerVlanId > 4095)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Initialize new Vlan... as 0 (invalid value) */
-  oldVlanId = PTIN_XLATE_NOT_DEFINED;
+  oldOuterVid = PTIN_XLATE_NOT_DEFINED;
+  oldInnerVid = PTIN_XLATE_NOT_DEFINED;
 
-  rc = xlate_database_oldVlan_get(PTIN_XLATE_STAGE_INGRESS, intIfNum, &oldVlanId, newOuterVlanId);
+  ptin_vlanXlate_t xlate;
+
+  memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
+  xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
+  xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
+  xlate.outerVlan_new = newOuterVlanId;
+  xlate.innerVlan_new = newInnerVlanId;
+
+  rc = xlate_database_oldVlan_get(intIfNum, &xlate);
+
+  if (rc == L7_SUCCESS)
+  {
+    oldOuterVid = xlate.outerVlan;
+    oldInnerVid = xlate.innerVlan;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Entry not found");
+    rc = L7_FAILURE;
+  }
 
   /* Return value */
   if (rc==L7_SUCCESS)
   {
-    if (oldVlanId>4095)
+    if (oldOuterVid > 4095 || oldInnerVid > 4095)
     {
       rc = L7_FAILURE;
     }
     else
     {
-      if (outerVlanId!=L7_NULLPTR)
-        *outerVlanId = oldVlanId;
+      if (outerVlanId != L7_NULLPTR)  *outerVlanId = oldOuterVid;
+      if (innerVlanId != L7_NULLPTR)  *innerVlanId = oldInnerVid;
     }
   }
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldVlan=%u, rc=%d", oldVlanId, rc);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldOVlan=%u, oldIVid=%u rc=%d", oldOuterVid, oldInnerVid, rc);
 
   /* Return status */
   return rc;
@@ -666,7 +621,6 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   }
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_SET;
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
   xlate.outerVlan     = outerVlanId;
@@ -708,14 +662,7 @@ L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
 #endif
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(intIfNum, &xlate);
-
-  /* If addition went well... */
-  if (rc == L7_SUCCESS)
-  {
-    /* single-vlan translation: store this entry in a local database for quick access */
-    rc = xlate_database_store(PTIN_XLATE_STAGE_INGRESS, intIfNum, outerVlanId, newOuterVlanId);
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_SET, intIfNum, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -749,7 +696,6 @@ L7_RC_t ptin_xlate_ingress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7
   }
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_CLEAR;
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
   xlate.outerVlan     = outerVlanId;
@@ -760,17 +706,7 @@ L7_RC_t ptin_xlate_ingress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(intIfNum, &xlate);
-
-  /* If deletion went well... */
-  if (rc == L7_SUCCESS)
-  {
-    /* Only if is a single-vlan translation, clear this entry in local database */
-    if ( innerVlanId == PTIN_XLATE_NOT_DEFINED )
-    {
-      rc = xlate_database_clear(PTIN_XLATE_STAGE_INGRESS, intIfNum, outerVlanId);
-    }
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR, intIfNum, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -792,7 +728,6 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Beginning...");
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_CLEAR_ALL;
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_INGRESS;
   xlate.outerVlan     = PTIN_XLATE_NOT_DEFINED;
@@ -803,13 +738,7 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
-
-  /* If deletion went well... */
-  if (rc == L7_SUCCESS)
-  {
-    rc = xlate_database_clear_all(PTIN_XLATE_STAGE_INGRESS);
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, L7_ALL_INTERFACES, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -823,11 +752,13 @@ L7_RC_t ptin_xlate_ingress_delete_all( void )
  * @param intIfNum : interface reference
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 *newOuterVlanId )
+L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                               L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId )
 {
   L7_uint32 class_id;
   L7_RC_t rc = L7_SUCCESS;
@@ -843,10 +774,10 @@ L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
     return L7_FAILURE;
   }
 
-  rc = ptin_xlate_egress_portgroup_get(class_id, outerVlanId, innerVlanId, newOuterVlanId);
+  rc = ptin_xlate_egress_portgroup_get(class_id, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newVlan=%u, rc=%d", *newOuterVlanId, rc);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newOVlan=%u, rc=%d", *newOuterVlanId, rc);
 
   /* Return status */
   return rc;
@@ -856,19 +787,22 @@ L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
  * Get egress translation original vlan
  * 
  * @param intIfNum : interface reference
- * @param outerVlanId : lookup outer vlan (to be returned)
- * @param newOuterVlanId : new vlan id
+ * @param outerVlanId : lookup outer vlan (to be returned) 
+ * @param innerVlanId : lookup inner vlan (to be returned)  
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId )
+L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
+                                            L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
 {
   L7_uint32 class_id;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, newOuterVlanId=%u",
-              intIfNum, newOuterVlanId);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              intIfNum, newOuterVlanId, newInnerVlanId);
 
   /* Get class id */
   if (xlate_portgroup_from_intf(intIfNum, &class_id)!=L7_SUCCESS)
@@ -877,7 +811,7 @@ L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outer
     return L7_FAILURE;
   }
 
-  rc = ptin_xlate_egress_portgroup_get_originalVlan(class_id, outerVlanId, newOuterVlanId);
+  rc = ptin_xlate_egress_portgroup_get_originalVlan(class_id, outerVlanId, innerVlanId, newOuterVlanId, newInnerVlanId);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldVlan=%u, rc=%d", *outerVlanId, rc);
@@ -967,13 +901,15 @@ L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_
  * @param portgroup : port group id
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 *newOuterVlanId )
+L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                                         L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId )
 {
-  L7_uint16 newVlanId;
+  L7_uint16 newOuterVid, newInnerVid;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
@@ -990,53 +926,66 @@ L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVla
   }
 
   /* Initialize new Vlan... as 0 (invalid value) */
-  newVlanId = PTIN_XLATE_NOT_DEFINED;
+  newOuterVid = PTIN_XLATE_NOT_DEFINED;
+  newInnerVid = PTIN_XLATE_NOT_DEFINED;
 
-  /* If innerVlanId is not defined, we can get this value directly to the local database */
-  if (innerVlanId == PTIN_XLATE_NOT_DEFINED)
+  memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
+  xlate.stage     = PTIN_XLATE_STAGE_EGRESS;
+  xlate.portgroup = portgroup;
+  xlate.outerVlan = outerVlanId;
+  xlate.innerVlan = innerVlanId;
+
+  rc = xlate_database_newVlan_get(L7_ALL_INTERFACES, &xlate);
+
+  if (rc == L7_SUCCESS)
   {
-    rc = xlate_database_portgroup_newVlan_get(PTIN_XLATE_STAGE_EGRESS, portgroup, outerVlanId, &newVlanId);
+    newOuterVid = xlate.outerVlan_new; 
+    newInnerVid = xlate.innerVlan_new; 
   }
-  /* Otherwise, goto HAPI to discover vlan to be returned */
   else
   {
-    /* Define structure */
-    xlate.oper          = DAPI_CMD_GET;
-    xlate.portgroup     = portgroup;
-    xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
-    xlate.outerVlan     = outerVlanId;
-    xlate.innerVlan     = innerVlanId;
-    xlate.outerVlan_new = PTIN_XLATE_NOT_DEFINED;
-    xlate.innerVlan_new = PTIN_XLATE_NOT_DEFINED;
-    xlate.outerAction   = PTIN_XLATE_ACTION_NONE;
-    xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
-
-    /* DTL call */
-    rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
-
-    /* If successfull, extract vlan to be returned */
-    if ( rc == L7_SUCCESS )
-    {
-      newVlanId = xlate.outerVlan_new;
-    }
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Entry not found");
+    rc = L7_FAILURE;
   }
+
+  #if 0
+  /* Define structure */
+  xlate.portgroup     = portgroup;
+  xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
+  xlate.outerVlan     = outerVlanId;
+  xlate.innerVlan     = innerVlanId;
+  xlate.outerVlan_new = PTIN_XLATE_NOT_DEFINED;
+  xlate.innerVlan_new = PTIN_XLATE_NOT_DEFINED;
+  xlate.outerAction   = PTIN_XLATE_ACTION_NONE;
+  xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
+
+  /* DTL call */
+  rc = ptin_xlate_operation(DAPI_CMD_GET, L7_ALL_INTERFACES, &xlate);
+
+  /* If successfull, extract vlan to be returned */
+  if ( rc == L7_SUCCESS )
+  {
+    newOuterVid = xlate.outerVlan_new;
+    newInnerVid = xlate.innerVlan_new;
+  }
+  #endif
 
   /* Return value */
   if (rc==L7_SUCCESS)
   {
-    if (newVlanId>4095)
+    if (newOuterVid > 4095 || newInnerVid > 4095)
     {
       rc = L7_FAILURE;
     }
     else
     {
-      if (newOuterVlanId!=L7_NULLPTR)
-        *newOuterVlanId = newVlanId;
+      if (newOuterVlanId != L7_NULLPTR)   *newOuterVlanId = newOuterVid;
+      if (newInnerVlanId != L7_NULLPTR)   *newInnerVlanId = newInnerVid;
     }
   }
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newVlan=%u, rc=%d", newVlanId, rc);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: newOVid=%um newIVid=%u, rc=%d", newOuterVid, newInnerVid, rc);
 
   /* Return status */
   return rc;
@@ -1046,49 +995,72 @@ L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVla
  * Get egress translation original vlan
  * 
  * @param portgroup : port group id
- * @param outerVlanId : lookup outer vlan (to be returned)
- * @param newOuterVlanId : new vlan id
+ * @param outerVlanId : lookup outer vlan (to be returned) 
+ * @param innerVlanId : lookup inner vlan (to be returned)  
+ * @param newOuterVlanId : new outer vlan id 
+ * @param newInnerVlanId : new inner vlan id   
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId )
+L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
+                                                      L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId )
 {
-  L7_uint16 oldVlanId;
+  L7_uint16 oldOuterVid, oldInnerVid;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, newOuterVlanId=%u",
-              portgroup, newOuterVlanId);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "portgroup=%u, newOuterVlanId=%u, newInnerVlanId=%u",
+              portgroup, newOuterVlanId, newInnerVlanId);
 
   /* Validate arguments */
   if (portgroup==0 || 
-      newOuterVlanId>4095)
+      newOuterVlanId > 4095 || newInnerVlanId > 4095)
   {
     LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Initialize new Vlan... as 0 (invalid value) */
-  oldVlanId = PTIN_XLATE_NOT_DEFINED;
+  oldOuterVid = PTIN_XLATE_NOT_DEFINED;
+  oldInnerVid = PTIN_XLATE_NOT_DEFINED;
 
-  rc = xlate_database_portgroup_oldVlan_get(PTIN_XLATE_STAGE_EGRESS, portgroup, &oldVlanId, newOuterVlanId);
+  ptin_vlanXlate_t xlate;
+
+  memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
+  xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
+  xlate.portgroup     = portgroup;
+  xlate.outerVlan_new = newOuterVlanId;
+  xlate.innerVlan_new = newInnerVlanId;
+
+  rc = xlate_database_oldVlan_get(L7_ALL_INTERFACES, &xlate);
+
+  if (rc == L7_SUCCESS)
+  {
+    oldOuterVid = xlate.outerVlan; 
+    oldInnerVid = xlate.innerVlan; 
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Entry not found");
+    rc = L7_FAILURE;
+  }
 
   /* Return value */
   if (rc==L7_SUCCESS)
   {
-    if (oldVlanId>4095)
+    if (oldOuterVid > 4095 || oldInnerVid > 4095)
     {
       rc = L7_FAILURE;
     }
     else
     {
-      if (outerVlanId!=L7_NULLPTR)
-        *outerVlanId = oldVlanId;
+      if (outerVlanId != L7_NULLPTR)  *outerVlanId = oldOuterVid;
+      if (innerVlanId != L7_NULLPTR)  *innerVlanId = oldInnerVid;
     }
   }
 
   if (ptin_debug_xlate)
-    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldVlan=%u, rc=%d", oldVlanId, rc);
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: oldOVlan=%u, oldIVid=%u, rc=%d", oldOuterVid, oldInnerVid, rc);
 
   /* Return status */
   return rc;
@@ -1124,7 +1096,6 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
   }
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_SET;
   xlate.portgroup     = portgroup;
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
   xlate.outerVlan     = outerVlanId;
@@ -1158,17 +1129,7 @@ L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVla
 #endif
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
-
-  /* If addition went well... */
-  if (rc == L7_SUCCESS)
-  {
-    /* Only if is a single-vlan translation, store this entry in a local database for quick access */
-    if ( innerVlanId == PTIN_XLATE_NOT_DEFINED )
-    {
-      rc = xlate_database_portgroup_store(PTIN_XLATE_STAGE_EGRESS, portgroup, outerVlanId, newOuterVlanId);
-    }
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -1203,7 +1164,6 @@ L7_RC_t ptin_xlate_egress_portgroup_delete( L7_uint32 portgroup, L7_uint16 outer
   }
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_CLEAR;
   xlate.portgroup     = portgroup;
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
   xlate.outerVlan     = outerVlanId;
@@ -1214,16 +1174,12 @@ L7_RC_t ptin_xlate_egress_portgroup_delete( L7_uint32 portgroup, L7_uint16 outer
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR, L7_ALL_INTERFACES, &xlate);
 
   /* If deletion went well... */
   if (rc == L7_SUCCESS)
   {
-    /* Only if is a single-vlan translation, clear this entry in local database */
-    if ( innerVlanId == PTIN_XLATE_NOT_DEFINED )
-    {
-      rc = xlate_database_portgroup_clear(PTIN_XLATE_STAGE_EGRESS, portgroup, outerVlanId);
-    }
+    rc = xlate_database_clear(L7_ALL_INTERFACES, &xlate);
   }
 
   if (ptin_debug_xlate)
@@ -1246,7 +1202,6 @@ L7_RC_t ptin_xlate_egress_delete_all( void )
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Beginning...");
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_CLEAR_ALL;
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_EGRESS;
   xlate.outerVlan     = PTIN_XLATE_NOT_DEFINED;
@@ -1257,13 +1212,7 @@ L7_RC_t ptin_xlate_egress_delete_all( void )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
-
-  /* If deletion went well... */
-  if (rc == L7_SUCCESS)
-  {
-    rc = xlate_database_clear_all(PTIN_XLATE_STAGE_EGRESS);
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, L7_ALL_INTERFACES, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -1285,7 +1234,6 @@ L7_RC_t ptin_xlate_delete_all( void )
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Beginning...");
 
   /* Define structure */
-  xlate.oper          = DAPI_CMD_CLEAR_ALL;
   xlate.portgroup     = PTIN_XLATE_PORTGROUP_INTERFACE;
   xlate.stage         = PTIN_XLATE_STAGE_ALL;
   xlate.outerVlan     = PTIN_XLATE_NOT_DEFINED;
@@ -1296,13 +1244,7 @@ L7_RC_t ptin_xlate_delete_all( void )
   xlate.innerAction   = PTIN_XLATE_ACTION_NONE;
 
   /* DTL call */
-  rc = dtlPtinVlanTranslate(L7_ALL_INTERFACES, &xlate);
-
-  /* If deletion went well... */
-  if (rc == L7_SUCCESS)
-  {
-    rc = xlate_database_clear_all(PTIN_XLATE_STAGE_ALL);
-  }
+  rc = ptin_xlate_operation(DAPI_CMD_CLEAR_ALL, L7_ALL_INTERFACES, &xlate);
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
@@ -1322,20 +1264,6 @@ L7_RC_t ptin_xlate_delete_flush( void )
   return L7_SUCCESS;
 }
 
-/**
- * Init PVID
- * 
- * @return L7_RC_t : L7_SUCCESS
- */
-static L7_RC_t ptin_xlate_PVID_init(void)
-{
-  L7_uint32 intIfNum;
-  for (intIfNum = 0; intIfNum < PTIN_SYSTEM_N_INTERF; intIfNum++)
-  {
-    xlate_table_pvid[intIfNum] = 1;
-  }
-  return L7_SUCCESS;
-}
 
 /**
  * Configures PVID. This information is used on egress Action
@@ -1354,7 +1282,7 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
   }
 
   /* New VID: translation and verification */
-  if (ptin_xlate_ingress_get(intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &int_defVid) == L7_SUCCESS)
+  if (ptin_xlate_ingress_get(intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &int_defVid, L7_NULLPTR) == L7_SUCCESS)
   {
     LOG_TRACE(LOG_CTX_PTIN_INTF, "converted VID %u to intIfNum/VID %u/%u", vlanId, intIfNum, int_defVid);
 
@@ -1368,6 +1296,10 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
       ptin_xlate_egress_delete(intIfNum, int_defVid, 0);
       ptin_xlate_egress_add(intIfNum, int_defVid, PTIN_XLATE_NOT_DEFINED, -1, -1);
     }
+  }
+  else
+  {
+    int_defVid = 1;
   }
 
   if (usmDbQportsPVIDSet(unit, intIfNum, int_defVid) != L7_SUCCESS)
@@ -1396,44 +1328,208 @@ L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId)
  *****************************************************************/
 
 /**
- * Get new VlanId from local database
+ * Init PVID
  * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id (to be returned)
+ * @return L7_RC_t : L7_SUCCESS
+ */
+static L7_RC_t ptin_xlate_PVID_init(void)
+{
+  L7_uint32 intIfNum;
+  for (intIfNum = 0; intIfNum < PTIN_SYSTEM_N_INTERF; intIfNum++)
+  {
+    xlate_table_pvid[intIfNum] = 1;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * Apply xlate operation
+ *  
+ * @param operation : operation (DAPI_CMD_GET / DAPI_CMD_SET / 
+ *                  DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL)
+ * @param intIfNum : interface reference
+ * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t xlate_database_newVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 *newOuterVlanId)
+static L7_RC_t ptin_xlate_operation(L7_int operation, L7_uint32 intIfNum, ptin_vlanXlate_t *xlate )
 {
-  L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint16 newVlanId = PTIN_XLATE_NOT_DEFINED;
+  L7_RC_t rc = L7_SUCCESS;
 
-  /* Validate arguments */
-  if ( ( stage!=PTIN_XLATE_STAGE_INGRESS && stage!=PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
-       ( outerVlanId>4095) )
+  if (xlate == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", stage, intIfNum, ptin_port, outerVlanId);
     return L7_FAILURE;
   }
 
-  /* Get value */
-  if (stage==PTIN_XLATE_STAGE_EGRESS)
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "oper=%d: intIfNum=%u/pgroup=%u, Vid=%u+%u, newVid=%u+%u (action %u+%u)",
+              operation, intIfNum, xlate->portgroup,
+              xlate->outerVlan, xlate->innerVlan,
+              xlate->outerVlan_new, xlate->innerVlan_new, xlate->outerAction, xlate->innerAction);
+
+  /* Set operation */
+  xlate->oper = operation;
+
+  /* DTL call */
+  rc = dtlPtinVlanTranslate(intIfNum, xlate);
+
+  /* If addition went well... */
+  if (rc == L7_SUCCESS)
   {
-    newVlanId = xlate_table_egress_newVlan[ptin_port][outerVlanId];
+    switch (operation)
+    {
+      case DAPI_CMD_SET:
+        rc = xlate_database_store(intIfNum, xlate);
+        break;
+      case DAPI_CMD_CLEAR:
+        rc = xlate_database_clear(intIfNum, xlate);
+        break;
+      case DAPI_CMD_CLEAR_ALL:
+        rc = xlate_database_clear_all(xlate->stage);
+        break;
+    }
   }
-  else
+
+  if (ptin_debug_xlate)
+    LOG_TRACE(LOG_CTX_PTIN_XLATE, "Finished: rc=%d", rc);
+
+  return rc;
+}
+
+/**
+ * Initialize XLATE AVL trees
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+static L7_RC_t xlate_database_init(void)
+{
+  L7_int stage;
+
+  /* Reset xlate AVL tree */
+  memset(database_xlate, 0x00, sizeof(database_xlate));
+
+  /* Translation table */
+  for (stage=PTIN_XLATE_STAGE_INGRESS; stage<=PTIN_XLATE_STAGE_EGRESS; stage++)
   {
-    newVlanId = xlate_table_ingress_newVlan[ptin_port][outerVlanId];
+    /* Reset xlate AVL tree */
+    memset(&database_xlate[stage], 0x00, sizeof(ptinXlateAvlTree_t));
+
+    database_xlate[stage].treeHeap = (avlTreeTables_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_XLATE_MAX_SIZE * sizeof(avlTreeTables_t)); 
+    database_xlate[stage].dataHeap = (ptinXlateInfoData_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_XLATE_MAX_SIZE * sizeof(ptinXlateInfoData_t)); 
+
+    if ((database_xlate[stage].treeHeap == L7_NULLPTR) ||
+        (database_xlate[stage].dataHeap == L7_NULLPTR))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error allocating data for XLATE AVL Trees");
+      return L7_FAILURE;
+    }
+
+    /* Initialize the storage for all the AVL trees */
+    memset (&database_xlate[stage].avlTree, 0x00, sizeof(avlTree_t));
+    memset ( database_xlate[stage].treeHeap, 0x00, PTIN_XLATE_MAX_SIZE * sizeof(avlTreeTables_t));
+    memset ( database_xlate[stage].dataHeap, 0x00, PTIN_XLATE_MAX_SIZE * sizeof(ptinXlateInfoData_t));
+
+    // AVL Tree creations - snoopIpAvlTree
+    avlCreateAvlTree(&database_xlate[stage].avlTree,
+                     database_xlate[stage].treeHeap,
+                     database_xlate[stage].dataHeap,
+                     PTIN_XLATE_MAX_SIZE, 
+                     sizeof(ptinXlateInfoData_t),
+                     0x10,
+                     sizeof(ptinXlateKey_t));
+
+    /* No entries at the beginning */
+    database_xlate[stage].number_of_entries = 0;
+  }
+
+  /* Inverted Translation table */
+  for (stage=PTIN_XLATE_STAGE_INGRESS; stage<=PTIN_XLATE_STAGE_EGRESS; stage++)
+  {
+    /* Reset xlate AVL tree */
+    memset(&database_xlate_inv[stage], 0x00, sizeof(ptinXlateAvlTree_t));
+
+    database_xlate_inv[stage].treeHeap = (avlTreeTables_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_XLATE_MAX_SIZE * sizeof(avlTreeTables_t)); 
+    database_xlate_inv[stage].dataHeap = (ptinXlateInfoData_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_XLATE_MAX_SIZE * sizeof(ptinXlateInfoData_t)); 
+
+    if ((database_xlate_inv[stage].treeHeap == L7_NULLPTR) ||
+        (database_xlate_inv[stage].dataHeap == L7_NULLPTR))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error allocating data for Inverted XLATE AVL Trees\n");
+      return L7_FAILURE;
+    }
+
+    /* Initialize the storage for all the AVL trees */
+    memset (&database_xlate_inv[stage].avlTree, 0x00, sizeof(avlTree_t));
+    memset ( database_xlate_inv[stage].treeHeap, 0x00, PTIN_XLATE_MAX_SIZE * sizeof(avlTreeTables_t));
+    memset ( database_xlate_inv[stage].dataHeap, 0x00, PTIN_XLATE_MAX_SIZE * sizeof(ptinXlateInfoData_t));
+
+    // AVL Tree creations - snoopIpAvlTree
+    avlCreateAvlTree(&database_xlate_inv[stage].avlTree,
+                     database_xlate_inv[stage].treeHeap,
+                     database_xlate_inv[stage].dataHeap,
+                     PTIN_XLATE_MAX_SIZE, 
+                     sizeof(ptinXlateInfoData_t),
+                     0x10,
+                     sizeof(ptinXlateKey_t));
+
+    /* No entries at the beginning */
+    database_xlate_inv[stage].number_of_entries = 0;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get new VlanId from local database
+ * 
+ * @param intIfNum : Interface reference
+ * @param vlanXlate_data : VLAN translation info
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+static L7_RC_t xlate_database_newVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *vlanXlate_data)
+{
+  L7_int stage;
+  ptinXlateKey_t        avl_key;
+  ptinXlateInfoData_t  *avl_infoData;
+  L7_uint32 ptin_port=(L7_uint32)-1;
+
+  /* Validate arguments */
+  if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
+       ( vlanXlate_data->outerVlan > 4095) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan);
+    return L7_FAILURE;
+  }
+
+  stage = vlanXlate_data->stage;
+
+  /* Prepare key */
+  memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
+  avl_key.ptin_port = ptin_port;
+  avl_key.portGroup = vlanXlate_data->portgroup;
+  avl_key.outerVid  = vlanXlate_data->outerVlan;
+  avl_key.innerVid  = vlanXlate_data->innerVlan;
+
+  /* Search for entry, to get new vlans  */
+  avl_infoData = avlSearchLVL7(&database_xlate[stage].avlTree, (void *)&avl_key, AVL_EXACT);
+
+  /* Failed? */
+  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " Entry does not exist");
+    return L7_FAILURE;
   }
 
   /* Return value */
-  if (newOuterVlanId!=L7_NULLPTR)
+  if (vlanXlate_data != L7_NULLPTR)
   {
-    *newOuterVlanId = newVlanId;
+    vlanXlate_data->outerAction = avl_infoData->outerAction;
+    vlanXlate_data->innerAction = avl_infoData->innerAction;
+
+    vlanXlate_data->outerVlan_new = avl_infoData->outerVid_result;
+    vlanXlate_data->innerVlan_new = avl_infoData->innerVid_result;
   }
 
   /* Success */
@@ -1443,42 +1539,54 @@ static L7_RC_t xlate_database_newVlan_get(ptin_vlanXlate_stage_enum stage, L7_ui
 /**
  * Get original VlanId from local database
  * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
  * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id (to be returned)
- * @param newOuterVlanId : New outer vlan id
+ * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t xlate_database_oldVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId)
+static L7_RC_t xlate_database_oldVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *vlanXlate_data)
 {
+  L7_int stage;
+  ptinXlateKey_t        avl_key;
+  ptinXlateInfoData_t  *avl_infoData;
   L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint16 oldVlanId = PTIN_XLATE_NOT_DEFINED;
 
   /* Validate arguments */
-  if ( ( stage!=PTIN_XLATE_STAGE_INGRESS && stage!=PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
-       ( newOuterVlanId>4095) )
+  if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
+       ( vlanXlate_data->outerVlan_new > 4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, newOVlan=%u)", stage, intIfNum, ptin_port, newOuterVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, newOVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan_new);
     return L7_FAILURE;
   }
 
-  /* Get value */
-  if (stage==PTIN_XLATE_STAGE_EGRESS)
+  stage = vlanXlate_data->stage;
+
+  /* Prepare key */
+  memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
+  avl_key.ptin_port = ptin_port;
+  avl_key.portGroup = vlanXlate_data->portgroup;
+  avl_key.outerVid  = vlanXlate_data->outerVlan_new;
+  avl_key.innerVid  = vlanXlate_data->innerVlan_new;
+
+  /* Search for entry, to get new vlans  */
+  avl_infoData = avlSearchLVL7(&database_xlate_inv[stage].avlTree, (void *)&avl_key, AVL_EXACT);
+
+  /* Failed? */
+  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
   {
-    oldVlanId = xlate_table_egress_oldVlan[ptin_port][newOuterVlanId];
-  }
-  else
-  {
-    oldVlanId = xlate_table_ingress_oldVlan[ptin_port][newOuterVlanId];
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " Entry does not exist");
+    return L7_FAILURE;
   }
 
   /* Return value */
-  if (outerVlanId!=L7_NULLPTR)
+  if (vlanXlate_data != L7_NULLPTR)
   {
-    *outerVlanId = oldVlanId;
+    vlanXlate_data->outerAction = avl_infoData->outerAction;
+    vlanXlate_data->innerAction = avl_infoData->innerAction;
+
+    vlanXlate_data->outerVlan = avl_infoData->outerVid_result;
+    vlanXlate_data->innerVlan = avl_infoData->innerVid_result;
   }
 
   /* Success */
@@ -1488,39 +1596,121 @@ static L7_RC_t xlate_database_oldVlan_get(ptin_vlanXlate_stage_enum stage, L7_ui
 /**
  * Save translation entry in local database
  * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
  * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id
+ * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t xlate_database_store(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId)
+static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *vlanXlate_data)
 {
+  L7_int stage;
+  ptinXlateKey_t        avl_key, avl_key_inv;
+  ptinXlateInfoData_t  *avl_infoData;
   L7_uint32 ptin_port=(L7_uint32)-1;
 
   /* Validate arguments */
-  if ( ( stage!=PTIN_XLATE_STAGE_INGRESS && stage!=PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
-       ( outerVlanId>4095) /*||
-       ( newOuterVlanId>4095 )*/ )
+  if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
+       ( vlanXlate_data->outerVlan > 4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u, newOVlan=%u)", stage, intIfNum, ptin_port, outerVlanId, newOuterVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u, newOVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan, vlanXlate_data->outerVlan_new);
     return L7_FAILURE;
   }
 
-  /* Store value */
-  if (stage==PTIN_XLATE_STAGE_EGRESS)
+  stage = vlanXlate_data->stage;
+
+  /* Check if there is space in AVL tree */
+  if (database_xlate[stage].number_of_entries >= PTIN_XLATE_MAX_SIZE ||
+      database_xlate_inv[stage].number_of_entries >= PTIN_XLATE_MAX_SIZE)
   {
-    xlate_table_egress_newVlan[ptin_port][outerVlanId]    = newOuterVlanId;
-    xlate_table_egress_oldVlan[ptin_port][newOuterVlanId] = outerVlanId;
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: XLATE AVL tree is full (stage=%u, %u/%u entries)",
+            stage, database_xlate[stage].number_of_entries, database_xlate_inv[stage].number_of_entries);
+    return L7_FAILURE;
   }
-  else
+
+  /* Prepare key */
+  memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
+  avl_key.ptin_port = ptin_port;
+  avl_key.portGroup = vlanXlate_data->portgroup;
+  avl_key.outerVid  = vlanXlate_data->outerVlan;
+  avl_key.innerVid  = vlanXlate_data->innerVlan;
+
+  /* Create AVL node */
+  avl_infoData = avlInsertEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
+
+  /* Failed? */
+  if ((ptinXlateKey_t *) avl_infoData == &avl_key)
   {
-    xlate_table_ingress_newVlan[ptin_port][outerVlanId]    = newOuterVlanId;
-    xlate_table_ingress_oldVlan[ptin_port][newOuterVlanId] = outerVlanId;
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR inserting new node");
+    return L7_FAILURE;
   }
+
+  /* We have a new item */
+  if (avl_infoData == L7_NULLPTR)
+  {
+    /* Find new item */
+    avl_infoData = (ptinXlateInfoData_t *) avlSearchLVL7(&database_xlate[stage].avlTree, (void *)&avl_key, AVL_EXACT);
+
+    /* Check if item was successfully obtained */
+    if (avl_infoData == L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " Strange... item looks to not be created");
+      return L7_FAILURE;
+    }
+    /* One more entry */
+    database_xlate[stage].number_of_entries++;
+  }
+
+  /* Fill information */
+  avl_infoData->in_use = L7_TRUE;
+  avl_infoData->outerAction = vlanXlate_data->outerAction;
+  avl_infoData->innerAction = vlanXlate_data->innerAction;
+  avl_infoData->outerVid_result = vlanXlate_data->outerVlan_new;
+  avl_infoData->innerVid_result = vlanXlate_data->innerVlan_new;
+
+  /* Original AVL tree */
+
+  /* Prepare key */
+  memset(&avl_key_inv, 0x00, sizeof(ptinXlateKey_t));
+  avl_key_inv.ptin_port = ptin_port;
+  avl_key_inv.portGroup = vlanXlate_data->portgroup;
+  avl_key_inv.outerVid  = vlanXlate_data->outerVlan_new;
+  avl_key_inv.innerVid  = vlanXlate_data->innerVlan_new;
+
+  /* Create AVL node */
+  avl_infoData = avlInsertEntry(&database_xlate_inv[stage].avlTree, (void *)&avl_key_inv);
+
+  /* Failed? */
+  if ((ptinXlateKey_t *) avl_infoData == &avl_key_inv)
+  {
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR inserting new node");
+    avlDeleteEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
+    return L7_FAILURE;
+  }
+
+  /* We have a new item */
+  if (avl_infoData == L7_NULLPTR)
+  {
+    /* Find new item */
+    avl_infoData = (ptinXlateInfoData_t *) avlSearchLVL7(&database_xlate_inv[stage].avlTree, (void *)&avl_key_inv, AVL_EXACT);
+
+    /* Check if item was successfully obtained */
+    if (avl_infoData == L7_NULLPTR)
+    {
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " Strange... item looks to not be created");
+      avlDeleteEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
+      return L7_FAILURE;
+    }
+    /* One more entry */
+    database_xlate_inv[stage].number_of_entries++;
+  }
+
+  /* Fill information */
+  avl_infoData->in_use = L7_TRUE;
+  avl_infoData->outerAction = vlanXlate_data->outerAction;
+  avl_infoData->innerAction = vlanXlate_data->innerAction;
+  avl_infoData->outerVid_result = vlanXlate_data->outerVlan;
+  avl_infoData->innerVid_result = vlanXlate_data->innerVlan;
 
   /* Success */
   return L7_SUCCESS;
@@ -1529,204 +1719,79 @@ static L7_RC_t xlate_database_store(ptin_vlanXlate_stage_enum stage, L7_uint32 i
 /**
  * Clear translation entry in local database
  * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
  * @param intIfNum : Interface reference
- * @param outerVlanId : outer vlan id
+ * @param vlanXlate_data : VLAN translation info
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-static L7_RC_t xlate_database_clear(ptin_vlanXlate_stage_enum stage, L7_uint32 intIfNum, L7_uint16 outerVlanId)
+static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *vlanXlate_data)
 {
+  L7_int stage;
+  ptinXlateKey_t        avl_key, avl_key_inv;
+  ptinXlateInfoData_t  *avl_infoData;
   L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint16 newOuterVlanId;
 
   /* Validate arguments */
-  if ( ( stage!=PTIN_XLATE_STAGE_INGRESS && stage!=PTIN_XLATE_STAGE_EGRESS ) ||
-       ( ptin_intf_intIfNum2port(intIfNum, &ptin_port)!=L7_SUCCESS ) ||
-       ( outerVlanId>4095) )
+  if ( ( vlanXlate_data->stage != PTIN_XLATE_STAGE_INGRESS && vlanXlate_data->stage != PTIN_XLATE_STAGE_EGRESS ) ||
+       ( intIfNum > 0 && intIfNum < L7_ALL_INTERFACES && ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ) ||
+       ( vlanXlate_data->outerVlan > 4095) )
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", stage, intIfNum, ptin_port, outerVlanId);
+    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan);
     return L7_FAILURE;
   }
 
-  /* Clear value */
-  if (stage==PTIN_XLATE_STAGE_EGRESS)
-  {
-    newOuterVlanId = xlate_table_egress_newVlan[ptin_port][outerVlanId];
+  stage = vlanXlate_data->stage;
 
-    xlate_table_egress_newVlan[ptin_port][outerVlanId] = PTIN_XLATE_NOT_DEFINED;
-    if (newOuterVlanId<=4095)
-      xlate_table_egress_oldVlan[ptin_port][newOuterVlanId] = PTIN_XLATE_NOT_DEFINED;
-  }
-  else
-  {
-    newOuterVlanId = xlate_table_ingress_newVlan[ptin_port][outerVlanId];
+  /* Prepare key */
+  memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
+  avl_key.ptin_port = ptin_port;
+  avl_key.portGroup = vlanXlate_data->portgroup;
+  avl_key.outerVid  = vlanXlate_data->outerVlan;
+  avl_key.innerVid  = vlanXlate_data->innerVlan;
 
-    xlate_table_ingress_newVlan[ptin_port][outerVlanId] = PTIN_XLATE_NOT_DEFINED;
-    if (newOuterVlanId<=4095)
-      xlate_table_ingress_oldVlan[ptin_port][newOuterVlanId] = PTIN_XLATE_NOT_DEFINED;
+  /* Search for entry, to get new vlans  */
+  avl_infoData = avlSearchLVL7(&database_xlate[stage].avlTree, (void *)&avl_key, AVL_EXACT);
+
+  /* Failed? */
+  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Entry does not exist");
+    return L7_SUCCESS;
   }
+
+  /* Prepare original key */
+  memset(&avl_key_inv, 0x00, sizeof(ptinXlateKey_t));
+  avl_key_inv.ptin_port = ptin_port;
+  avl_key_inv.portGroup = vlanXlate_data->portgroup;
+  avl_key_inv.outerVid  = avl_infoData->outerVid_result;
+  avl_key_inv.innerVid  = avl_infoData->innerVid_result;
+
+  /* Delete inverted vlans entry */
+  avl_infoData = avlDeleteEntry(&database_xlate_inv[stage].avlTree, (void *)&avl_key_inv);
+
+  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Failed Inverted Entry remotion");
+    return L7_FAILURE;
+  }
+
+  if (database_xlate_inv[stage].number_of_entries > 0)
+    database_xlate_inv[stage].number_of_entries--;
+
+  /* Delete entry */
+  avl_infoData = avlDeleteEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
+
+  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Failed Entry remotion");
+    return L7_FAILURE;
+  }
+
+  if (database_xlate[stage].number_of_entries > 0)
+    database_xlate[stage].number_of_entries--;
 
   /* Success */
   return L7_SUCCESS;
-}
-
-/**
- * Get new VlanId from local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id (to be returned)
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_newVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 *newOuterVlanId)
-{
-  L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint32 intIfNum;
-
-  /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
-  if (ptin_port>=ptin_sys_number_of_ports)
-  {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: No interface was found using portgroup %u", portgroup);
-    return L7_FAILURE;
-  }
-
-  /* Calculate intIfNum */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
-    return L7_FAILURE;
-  }
-
-  /* Call standard function */
-  return xlate_database_newVlan_get(stage, intIfNum, outerVlanId, newOuterVlanId);
-}
-
-/**
- * Get original VlanId from local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id (to be returned)
- * @param newOuterVlanId : New outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_oldVlan_get(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 newOuterVlanId)
-{
-  L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint32 intIfNum;
-
-  /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports && xlate_table_portgroup[ptin_port]!=portgroup; ptin_port++);
-  if (ptin_port>=ptin_sys_number_of_ports)
-  {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: No interface was found using portgroup %u", portgroup);
-    return L7_FAILURE;
-  }
-
-  /* Calculate intIfNum */
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
-    return L7_FAILURE;
-  }
-
-  /* Call standard function */
-  return xlate_database_oldVlan_get(stage, intIfNum, outerVlanId, newOuterVlanId);
-}
-
-/**
- * Save translation entry in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id
- * @param newOuterVlanId : New outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_store(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 newOuterVlanId)
-{
-  L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint32 intIfNum;
-  L7_RC_t rc = L7_SUCCESS;
-
-  /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
-  {
-    /* Only process ports with the specified portgroup */
-    if (xlate_table_portgroup[ptin_port]!=portgroup)  continue;
-
-    /* Calculate intIfNum */
-    if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
-      rc = L7_FAILURE;
-      continue;
-    }
-
-    /* Call standard function */
-    if (xlate_database_store(stage, intIfNum, outerVlanId, newOuterVlanId)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: xlate_database_store failed");
-      rc = L7_FAILURE;
-      continue;
-    }
-  }
-
-  /* Return global result */
-  return rc;
-}
-
-/**
- * Clear translation entry in local database
- * 
- * @param stage : PTIN_XLATE_STAGE_INGRESS or 
- *             PTIN_XLATE_STAGE_EGRESS
- * @param portgroup : port group reference
- * @param outerVlanId : outer vlan id
- * 
- * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
- */
-static L7_RC_t xlate_database_portgroup_clear(ptin_vlanXlate_stage_enum stage, L7_uint32 portgroup, L7_uint16 outerVlanId)
-{
-  L7_uint32 ptin_port=(L7_uint32)-1;
-  L7_uint32 intIfNum;
-  L7_RC_t rc = L7_SUCCESS;
-
-  /* Find ptin_port correspondent to this portgroup */
-  for (ptin_port=0; ptin_port<ptin_sys_number_of_ports; ptin_port++)
-  {
-    /* Only process ports with the specified portgroup */
-    if (xlate_table_portgroup[ptin_port]!=portgroup)  continue;
-
-    /* Calculate intIfNum */
-    if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Port %u looks to not exist", ptin_port);
-      rc = L7_FAILURE;
-      continue;
-    }
-
-    /* Call standard function */
-    if (xlate_database_clear(stage, intIfNum, outerVlanId)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: xlate_database_clear failed");
-      rc = L7_FAILURE;
-      continue;
-    }
-  }
-
-  /* Return global result */
-  return rc;
 }
 
 /**
@@ -1739,6 +1804,8 @@ static L7_RC_t xlate_database_portgroup_clear(ptin_vlanXlate_stage_enum stage, L
  */
 static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage)
 {
+  L7_int i;
+
   /* Validate arguments */
   if ( stage!=PTIN_XLATE_STAGE_ALL &&
        stage!=PTIN_XLATE_STAGE_INGRESS &&
@@ -1748,17 +1815,17 @@ static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage)
     return L7_FAILURE;
   }
 
-  /* Init data structs */
-  if (stage==PTIN_XLATE_STAGE_ALL || stage==PTIN_XLATE_STAGE_EGRESS)
+  for (i=PTIN_XLATE_STAGE_INGRESS; i<=PTIN_XLATE_STAGE_EGRESS; i++)
   {
-    memset(xlate_table_egress_oldVlan, 0x00, sizeof(xlate_table_egress_oldVlan));
-    memset(xlate_table_egress_newVlan, 0x00, sizeof(xlate_table_egress_newVlan));
-  }
+    if (stage == PTIN_XLATE_STAGE_ALL || stage == i)
+    {
+      /* Purge AVL trees */
+      avlPurgeAvlTree(&database_xlate[stage].avlTree, PTIN_XLATE_MAX_SIZE);
+      database_xlate[stage].number_of_entries = 0;
 
-  if (stage==PTIN_XLATE_STAGE_ALL || stage==PTIN_XLATE_STAGE_INGRESS)
-  {
-    memset(xlate_table_ingress_oldVlan, 0x00, sizeof(xlate_table_ingress_oldVlan));
-    memset(xlate_table_ingress_newVlan, 0x00, sizeof(xlate_table_ingress_newVlan));
+      avlPurgeAvlTree(&database_xlate_inv[stage].avlTree, PTIN_XLATE_MAX_SIZE);
+      database_xlate_inv[stage].number_of_entries = 0;
+    }
   }
 
   return L7_SUCCESS;
@@ -1814,6 +1881,45 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgrou
  * DEVSHELL FUNCTIONS
  *****************************************************************/
 
+void ptin_xlate_dump(ptin_vlanXlate_stage_enum stage, L7_BOOL inv)
+{
+  ptinXlateKey_t        avl_key;
+  ptinXlateInfoData_t  *avl_infoData;
+  ptinXlateAvlTree_t   *avl_tree;
+
+  if (stage != PTIN_XLATE_STAGE_INGRESS && stage != PTIN_XLATE_STAGE_EGRESS)
+  {
+    printf("Invalid stage. Only allowed 1 (Ingress) or 2 (egress)\r\n");
+    return;
+  }
+
+  printf("Dumping %s%s XLATE table:\r\n",
+         (inv) ? "inverted " : "",
+         (stage==PTIN_XLATE_STAGE_INGRESS) ? "INGRESS" : "EGRESS");
+
+  /* Select AVL tree */
+  avl_tree = (inv) ? &database_xlate_inv[stage] : &database_xlate[stage];
+
+  /* Initialize AVL key */
+  memset(&avl_key, 0x00, sizeof(ptinXlateKey_t));
+
+  /* Run all items */
+  while ((avl_infoData=(ptinXlateInfoData_t *)avlSearchLVL7(&avl_tree->avlTree, (void *)&avl_key, AVL_NEXT)) != L7_NULLPTR)
+  {
+    printf(" port=%-2d / group=%-2d: VLANs %4u+%-4u -> %4u+%-4u (Action %d + %d)\r\n",
+            (signed int) avl_infoData->key.ptin_port, (signed int) avl_infoData->key.portGroup,
+            avl_infoData->key.outerVid, avl_infoData->key.innerVid,
+            avl_infoData->outerVid_result, avl_infoData->innerVid_result,
+            avl_infoData->outerAction, avl_infoData->innerAction);
+
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_infoData->key, sizeof(ptinXlateKey_t));
+  }
+  
+  printf("Done! Total entries: %u\r\n", avl_tree->number_of_entries);
+  fflush(stdout);
+}
+
 L7_RC_t devshell_ptin_xlate_portgroup_get(L7_uint32 intIfNum)
 {
   L7_uint32 portGroup;
@@ -1831,7 +1937,7 @@ L7_RC_t devshell_ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlan
   L7_uint16 newOuterVlanId;
   L7_RC_t rc;
 
-  rc = ptin_xlate_ingress_get(intIfNum, outerVlanId, innerVlanId, &newOuterVlanId);
+  rc = ptin_xlate_ingress_get(intIfNum, outerVlanId, innerVlanId, &newOuterVlanId, L7_NULLPTR);
 
   printf("ptin_xlate_ingress_get(%u, %u, %u, &newOuterVlanId)=>%u newOuterVlanId=%u", intIfNum, outerVlanId, innerVlanId, rc, newOuterVlanId);
 
@@ -1843,7 +1949,7 @@ L7_RC_t devshell_ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uin
   L7_uint16 outerVlanId;
   L7_RC_t rc;
 
-  rc = ptin_xlate_ingress_get_originalVlan(intIfNum, &outerVlanId, newOuterVlanId);
+  rc = ptin_xlate_ingress_get_originalVlan(intIfNum, &outerVlanId, L7_NULLPTR, newOuterVlanId, L7_NULL);
 
   printf("ptin_xlate_ingress_get_originalVlan(%u, &outerVlanId, %u)=>%u outerVlanId=%u", intIfNum, newOuterVlanId, rc, outerVlanId);
 
@@ -1855,7 +1961,7 @@ L7_RC_t devshell_ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanI
   L7_uint16 newOuterVlanId;
   L7_RC_t rc;
 
-  rc = ptin_xlate_egress_get(intIfNum, outerVlanId, innerVlanId, &newOuterVlanId);
+  rc = ptin_xlate_egress_get(intIfNum, outerVlanId, innerVlanId, &newOuterVlanId, L7_NULLPTR);
 
   printf("ptin_xlate_egress_get(%u, %u, %u, &newOuterVlanId)=>%u newOuterVlanId=%u", intIfNum, outerVlanId, innerVlanId, rc, newOuterVlanId);
 
@@ -1867,7 +1973,7 @@ L7_RC_t devshell_ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint
   L7_uint16 outerVlanId;
   L7_RC_t rc;
 
-  rc = ptin_xlate_egress_get_originalVlan(intIfNum, &outerVlanId, newOuterVlanId);
+  rc = ptin_xlate_egress_get_originalVlan(intIfNum, &outerVlanId, L7_NULLPTR, newOuterVlanId, L7_NULL);
 
   printf("ptin_xlate_egress_get_originalVlan(%u, &outerVlanId, %u)=>%u outerVlanId=%u", intIfNum, newOuterVlanId, rc, outerVlanId);
 
@@ -1879,7 +1985,7 @@ L7_RC_t devshell_ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16
   L7_uint16 newOuterVlanId;
   L7_RC_t rc;
 
-  rc = ptin_xlate_egress_portgroup_get(portgroup, outerVlanId, innerVlanId, &newOuterVlanId);
+  rc = ptin_xlate_egress_portgroup_get(portgroup, outerVlanId, innerVlanId, &newOuterVlanId, L7_NULLPTR);
 
   printf("ptin_xlate_egress_portgroup_get(%u, %u, %u, &newOuterVlanId)=>%u newOuterVlanId=%u", portgroup, outerVlanId, innerVlanId, rc, newOuterVlanId);
 
@@ -1891,7 +1997,7 @@ L7_RC_t devshell_ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgro
   L7_uint16 outerVlanId;
   L7_RC_t rc;
 
-  rc = ptin_xlate_egress_portgroup_get_originalVlan(portgroup, &outerVlanId, newOuterVlanId);
+  rc = ptin_xlate_egress_portgroup_get_originalVlan(portgroup, &outerVlanId, L7_NULLPTR, newOuterVlanId, L7_NULL);
 
   printf("ptin_xlate_egress_portgroup_get_originalVlan(%u, &outerVlanId, %u)=>%u outerVlanId=%u", portgroup, newOuterVlanId, rc, outerVlanId);
 
