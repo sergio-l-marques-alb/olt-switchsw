@@ -102,13 +102,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTin task will now start!");
 
-  /* Apply configuration on DTL and lower layers */
-  if (dtlPtinInit() != L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing PTin DTL module! CRASH!");
-    PTIN_CRASH();
-  }
-
   /* Initialize storm control */
   rc = ptin_stormControl_init();
   if (rc != L7_SUCCESS)
@@ -118,19 +111,26 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "Storm Control is active with default values.");
 
-  /* Initialize xlate module in application layer */
-  if (ptin_xlate_init()!=L7_SUCCESS)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing PTin XLATE module! CRASH!");
-    PTIN_CRASH();
-  }
-
   /* Initialize PTin Interface module data structures
    * Note: ptin_intf_data_init() needs to be invoked ONLY after nim
    * initialization, which can be guaranteed at this stage */
   if (ptin_intf_init() != L7_SUCCESS)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing PTin Interface module! CRASH!");
+    PTIN_CRASH();
+  }
+
+  /* Apply configuration on DTL and lower layers */
+  if (dtlPtinInit() != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing PTin DTL module! CRASH!");
+    PTIN_CRASH();
+  }
+
+  /* Initialize xlate module in application layer */
+  if (ptin_xlate_init()!=L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing PTin XLATE module! CRASH!");
     PTIN_CRASH();
   }
 
