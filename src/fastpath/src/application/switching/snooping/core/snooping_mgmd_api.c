@@ -476,6 +476,11 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
   ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
   channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
   ptin_timer_stop(60);
+
+  if (ptin_debug_igmp_snooping)
+  {   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+  }
   
 #if 0
   ptin_timer_start(61,"ptin_igmp_port_resources_available");
@@ -521,6 +526,11 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
   ptin_timer_stop(60);
 
+  if (ptin_debug_igmp_snooping)
+  {   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+  }
+
 #if 0
   ptin_timer_start(64,"ptin_igmp_port_resources_allocate");
   rc = ptin_igmp_port_resources_allocate(ptin_port, channelBandwidth);
@@ -563,6 +573,11 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
   channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
   ptin_timer_stop(60);
+
+  if (ptin_debug_igmp_snooping)
+  {   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+  }
 
 #if 0
   ptin_timer_start(67,"ptin_igmp_port_resources_release");

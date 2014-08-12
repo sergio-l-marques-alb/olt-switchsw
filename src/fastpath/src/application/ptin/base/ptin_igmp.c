@@ -465,6 +465,8 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client);
 
 static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpPairInfoData_t* ptinIgmpPairInfoData);
 
+static void ptin_igmp_channel_bandwidth_cache_unset(ptinIgmpPairDataKey_t* ptinIgmpPairDataKey);
+
 static ptinIgmpChannelBandwidthCache_t* ptin_igmp_channel_bandwidth_cache_get(void);
 
 static void ptin_igmp_clientgroup_lookup_table_entry_add(L7_uint32 ptinPort, L7_uint32 clientId, ptinIgmpClientGroupInfoData_t* clientGroupPtr);
@@ -6344,6 +6346,10 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   avl_node.igmp_idx   = igmpInst_idx;
   avl_node.is_static  = is_static & 1;
 
+  #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+  avl_node.channelBandwidth = channelBandwidth/1000; /*Convert from bps to kbps*/      
+  #endif
+
   /* Add channels */
   i = j = 0;
   rc = L7_SUCCESS;
@@ -6365,10 +6371,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
 
       #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
       memcpy(&avl_node.igmpPairDataKey.channel_source, &source, sizeof(L7_inet_addr_t));
-      #endif
-
-      #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-      avl_node.channelBandwidth = channelBandwidth/1000; /*Convert from bps to kbps*/      
       #endif
 
       /* In case of success, continue adding nodes into avl tree */
@@ -6578,6 +6580,10 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
         LOG_ERR(LOG_CTX_PTIN_IGMP,"No MC EVC associated with UC EVC %u",evc_uc);
         rc = L7_FAILURE;
       }      
+
+      #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT      
+      ptin_igmp_channel_bandwidth_cache_unset(&avl_key);
+      #endif
 
       /* Add node into avl tree */
       if ( (rc == L7_SUCCESS) && (igmp_assoc_avlTree_remove( &avl_key ) != L7_SUCCESS))
@@ -11933,18 +11939,8 @@ void ptin_igmp_groupclients_dump(void)
 
 /************IGMP Admission Control Feature****************************************************/ 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpPairInfoData_t* ptinIgmpPairInfoData)
-{
-  ptinIgmpChannelBandwidthCache.inUse = L7_TRUE;
-  ptinIgmpChannelBandwidthCache.channelBandwidth = ptinIgmpPairInfoData->channelBandwidth;
-  memcpy(&ptinIgmpChannelBandwidthCache.channel_group, &ptinIgmpPairInfoData->igmpPairDataKey.channel_group, sizeof(L7_inet_addr_t));    
-}
 
-static ptinIgmpChannelBandwidthCache_t* ptin_igmp_channel_bandwidth_cache_get(void)
-{
-  return (&ptinIgmpChannelBandwidthCache);  
-}
-
+/************IGMP Look Up Table Feature****************************************************/ 
 static void ptin_igmp_clientgroup_lookup_table_entry_add(L7_uint32 ptinPort, L7_uint32 clientId, ptinIgmpClientGroupInfoData_t* clientGroupPtr)
 {
   /*Input Arguments Validation*/
@@ -11976,6 +11972,43 @@ static void ptin_igmp_clientgroup_lookup_table_entry_remove(L7_uint32 ptinPort, 
     return;
   }
   clientGroupLookUpTable[ptinPort][clientId].clientGroupPtr = L7_NULLPTR;
+}
+/************End IGMP Look Up Table Feature****************************************************/ 
+
+static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpPairInfoData_t* ptinIgmpPairInfoData)
+{
+  ptinIgmpChannelBandwidthCache.inUse = L7_TRUE;
+  ptinIgmpChannelBandwidthCache.channelBandwidth = ptinIgmpPairInfoData->channelBandwidth;
+  memcpy(&ptinIgmpChannelBandwidthCache.channel_group, &ptinIgmpPairInfoData->igmpPairDataKey.channel_group, sizeof(L7_inet_addr_t));   
+  if (ptin_debug_igmp_snooping)
+  {
+    char  debug_buf[IPV6_DISP_ADDR_LEN]={};    
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Caching Channel Bandwidth [channel:%s bandwidth:%u kbps]",inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,debug_buf), ptinIgmpChannelBandwidthCache.channelBandwidth); 
+  }
+}
+
+static void ptin_igmp_channel_bandwidth_cache_unset(ptinIgmpPairDataKey_t* ptinIgmpPairDataKey)
+{
+  if ( ptinIgmpChannelBandwidthCache.inUse == L7_TRUE && L7_INET_ADDR_COMPARE(&ptinIgmpPairDataKey->channel_group, &ptinIgmpChannelBandwidthCache.channel_group) == 0) 
+  {
+    if (ptin_debug_igmp_snooping)
+    {
+      char  debug_buf[IPV6_DISP_ADDR_LEN]={};    
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Uncache Channel Bandwidth [channel:%s bandwidth:%u kbps]",inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,debug_buf), ptinIgmpChannelBandwidthCache.channelBandwidth); 
+    }
+
+    ptinIgmpChannelBandwidthCache.inUse = L7_FALSE;
+  }
+}
+
+static ptinIgmpChannelBandwidthCache_t* ptin_igmp_channel_bandwidth_cache_get(void)
+{
+  if (ptin_debug_igmp_snooping)
+  {
+    char  debug_buf[IPV6_DISP_ADDR_LEN]={};
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cached Channel Bandwidth [inUse:%s channel:%s bandwidth:%u kbps]",ptinIgmpChannelBandwidthCache.inUse?"Yes":"No", inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,debug_buf), ptinIgmpChannelBandwidthCache.channelBandwidth); 
+  }
+  return (&ptinIgmpChannelBandwidthCache);  
 }
 
 /**
@@ -12141,7 +12174,6 @@ L7_uint32 ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* group)
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
 #error "Parameter Currently Not Supported!"    
 #endif
-
 
   /*  Argument validation */
   if (group == L7_NULLPTR)
