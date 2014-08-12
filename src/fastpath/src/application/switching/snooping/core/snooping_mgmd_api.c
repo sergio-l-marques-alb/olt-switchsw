@@ -551,7 +551,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   }
 
   ptin_timer_start(66,"ptin_igmp_client_resources_allocate");
-  rc = ptin_igmp_client_resources_allocate(portId, clientId, channelBandwidth);
+  rc = ptin_igmp_client_resources_allocate(ptin_port, clientId, channelBandwidth);
   ptin_timer_stop(66);
   return rc;
 }
@@ -600,7 +600,7 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   }
 
   ptin_timer_start(69,"ptin_igmp_client_resources_release");
-  rc = ptin_igmp_client_resources_release(portId, clientId, channelBandwidth);
+  rc = ptin_igmp_client_resources_release(ptin_port, clientId, channelBandwidth);
   ptin_timer_stop(69);
   return rc;
 }

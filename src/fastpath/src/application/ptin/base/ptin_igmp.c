@@ -12882,7 +12882,7 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 ptin_port, L7_uint32 clientI
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
 
   if ( globalAdmissionControl == L7_FALSE )
   {
@@ -13130,7 +13130,7 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",channelBandwidth);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
 
   if ( globalAdmissionControl == L7_FALSE )
   {
@@ -13378,7 +13378,7 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 ptin_port, L7_uint32 clientId,
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",channelBandwidth);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
 
   if ( globalAdmissionControl == L7_FALSE )
   {
