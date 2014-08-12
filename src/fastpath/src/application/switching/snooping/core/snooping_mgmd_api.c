@@ -51,6 +51,7 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
   .cos_set                     = &snooping_cos_set,
   .portList_get                = &snooping_portList_get,
   .portType_get                = &snooping_portType_get,
+  .channel_serviceid_get       = &snooping_channel_serviceid_get,
   .clientList_get              = &snooping_clientList_get,
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   .client_resources_available  = &snooping_client_resources_available,
@@ -387,6 +388,45 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
     return FAILURE;
   }
+
+  return SUCCESS;
+}
+
+unsigned int snooping_channel_serviceid_get(unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
+{
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [groupAddr:%08X sourceAddr:%08X serviceId:%p]", groupAddr, sourceAddr, serviceId);
+
+  if(serviceId == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Abnormal context [serviceId:%p]", serviceId);
+    return FAILURE;
+  }
+
+#if (!PTIN_BOARD_IS_MATRIX) //Conversion from IGMP service to the Multicast service is only performed in the linecards
+{
+  L7_inet_addr_t groupInetAddr;
+  L7_inet_addr_t sourceInetAddr;
+  L7_uint16      mcastRootVlan;
+
+  /* Get multicast root vlan */
+  inetAddressSet(L7_AF_INET, &groupAddr,  &groupInetAddr);
+  inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
+  if (ptin_igmp_McastRootVlan_get(&groupInetAddr, &sourceInetAddr, (L7_uint16)-1, &mcastRootVlan)==L7_SUCCESS)
+  {
+    if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, serviceId)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to internal vlan %u", mcastRootVlan);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Found serviceID %u associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", *serviceId, groupAddr, sourceAddr);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to determine serviceID associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", groupAddr, sourceAddr);
+    return L7_FAILURE;
+  }
+}
+#endif //(!PTIN_BOARD_IS_MATRIX)
 
   return SUCCESS;
 }
