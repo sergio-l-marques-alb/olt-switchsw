@@ -31,6 +31,7 @@ if test -f configure; then
    export OBJDUMP="$COMPILER_DIR"/"$COMPILER_PREFIX"objdump
    export INSTALL=/usr/bin/install
    #export PTIN_MGMD_PLATFORM_CTRL_TIMEOUT=
+   #export PTIN_MGMD_PLATFORM_MSGQUEUE_SIZE=
    #export PTIN_MGMD_PLATFORM_STACK_SIZE=
    #export PTIN_MGMD_PLATFORM_MAX_CHANNELS=
    #export PTIN_MGMD_PLATFORM_MAX_WHITELIST=
@@ -40,6 +41,7 @@ if test -f configure; then
    #export PTIN_MGMD_PLATFORM_MAX_SERVICES=
    #export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=
    #export PTIN_MGMD_PLATFORM_MAX_FRAME_SIZE=
+   #export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=
 
    rm -rf ./build/export.var
    echo '.EXPORT_ALL_VARIABLES:' > ./build/export.var
@@ -73,6 +75,7 @@ if test -f configure; then
    echo "export OBJDUMP                           = $OBJDUMP"                              >> ./build/export.var
    echo "export INSTALL                           = $INSTALL"                              >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_CTRL_TIMEOUT   = $PTIN_MGMD_PLATFORM_CTRL_TIMEOUT"      >> ./build/export.var   
+   echo "export PTIN_MGMD_PLATFORM_MSGQUEUE_SIZE  = $PTIN_MGMD_PLATFORM_MSGQUEUE_SIZE"     >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_STACK_SIZE     = $PTIN_MGMD_PLATFORM_STACK_SIZE"        >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_MAX_CHANNELS   = $PTIN_MGMD_PLATFORM_MAX_CHANNELS"      >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_MAX_WHITELIST  = $PTIN_MGMD_PLATFORM_MAX_WHITELIST"     >> ./build/export.var
@@ -82,6 +85,7 @@ if test -f configure; then
    echo "export PTIN_MGMD_PLATFORM_MAX_SERVICES   = $PTIN_MGMD_PLATFORM_MAX_SERVICES"      >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID = $PTIN_MGMD_PLATFORM_MAX_SERVICE_ID"    >> ./build/export.var
    echo "export PTIN_MGMD_PLATFORM_MAX_FRAME_SIZE = $PTIN_MGMD_PLATFORM_MAX_FRAME_SIZE"    >> ./build/export.var
+   echo "export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT = $PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT"    >> ./build/export.var
    
    ./configure --prefix=$PREFIXDIR $CROSSOPTS
 else
