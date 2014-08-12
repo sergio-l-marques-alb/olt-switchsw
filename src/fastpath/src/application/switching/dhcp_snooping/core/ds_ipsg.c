@@ -257,8 +257,7 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
     }
     else if ((pNode->ipsgEntryType == IPSG_ENTRY_STATIC))
     {
-
-      return L7_ALREADY_CONFIGURED;
+      return L7_SUCCESS;
     }
   }
   else
