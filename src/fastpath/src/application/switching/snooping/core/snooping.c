@@ -704,7 +704,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     /* If the client does not exist, it will be created in dynamic mode */
     if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                      L7_NULL, L7_NULL,
-                                     &data[L7_MAC_ADDR_LEN],
+                                     L7_NULL,
                                      &client_idx) != L7_SUCCESS)
     #else
     /* For Linecard only: If client was not recognized, add it as dynamic */
