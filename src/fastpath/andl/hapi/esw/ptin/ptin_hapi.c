@@ -243,7 +243,6 @@ L7_RC_t ptin_hapi_phy_init(void)
   }
 
   return L7_SUCCESS;
-
 }
 
 
@@ -1482,70 +1481,46 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     }
   }
 
-  #if 0
-  /* Reconfigure storm control */
-  if (stormControl_backup.operation == DAPI_CMD_SET &&
-      stormControl_backup.flags != 0)
-  {
-    if (hapi_ptin_stormControl_set(dapiPort, L7_ENABLE, &stormControl_backup)  == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Storm control reactivated");
-    else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reactivating storm control");
-  }
-  #endif
-
   /* Update storm control applied ports */
-#if 1
-  /* MATRIX board */
-#if (PTIN_BOARD_IS_MATRIX)
-  if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
+
+  PORT_EGRESS_TYPE egress_type;
+
+  for (egress_type = 0; egress_type < PTIN_PORT_EGRESS_TYPE_MAX; egress_type++)
   {
-    if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    /* Do not process COMMUNITY ports */
+    if (egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
+      continue;
+
+  #if (PTIN_BOARD_IS_MATRIX)
+    if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)   /* For matrix, only process PROMISCUOUS ports */
+  #elif (PTIN_BOARD_IS_LINECARD)
+    if (egress_type != PTIN_PORT_EGRESS_TYPE_ISOLATED)      /* For matrix, only process ISOLATED ports */
+  #else
+    if (0)                                                  /* For others, process all ports */
+  #endif
+    {
+      continue;
+    }
+
+    if (port_type == egress_type)
+    {
+      if (hapi_ptin_stormControl_port_add(dapiPort, egress_type) == L7_SUCCESS)
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+      else
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    }
     else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    {
+      if (hapi_ptin_stormControl_port_remove(dapiPort, egress_type) == L7_SUCCESS)
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+      else
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+    }
   }
-  else
-  {
-    if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-  }
-  /* LINECARD board */
-#elif (PTIN_BOARD_IS_LINECARD)
-  if (port_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
-  {
-    if (hapi_ptin_stormControl_port_remove(dapiPort) == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} from storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} from storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-  }
-  else
-  {
-    if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-    else
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
-                dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-  }
-  /* STANDALONE board */
-#else
-  if (hapi_ptin_stormControl_port_add(dapiPort) == L7_SUCCESS)
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to storm control policies",
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-  else
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to storm control policies",
-              dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
-#endif
-#endif
   
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
             port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
@@ -2919,18 +2894,19 @@ typedef enum
   STORM_CONTROL_TRAFFIC_MAX
 } storm_control_traffic_enum_t;
 
-static BROAD_POLICY_t policyId_storm[STORM_CONTROL_TRAFFIC_MAX];
+static BROAD_POLICY_t policyId_storm[PTIN_PORT_EGRESS_TYPE_MAX][STORM_CONTROL_TRAFFIC_MAX];
 
 /**
  * Configures storm control
  * 
  * @param dapiPort : port 
  * @param enable   : Enable or diable
- * @param stormControl : storm control data
+ * @param stormControl : storm control data 
+ * @param egress_type : Egress type port 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *control)
+L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *control, PORT_EGRESS_TYPE egress_type)
 {
   L7_RC_t                 result = L7_SUCCESS;
   BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
@@ -2960,17 +2936,32 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
   BCM_PBMP_CLEAR(portbmp_mask);
   BCM_PBMP_OR(portbmp_mask, PBMP_E_ALL(bcm_unit));
 
-  #if (PTIN_BOARD_IS_MATRIX)
-  /* Only consider uplink ports in matrix */
-  BCM_PBMP_OR(portbmp, pbm_egress_root_ports);
-  #elif (PTIN_BOARD_IS_LINECARD)
-  /* Only consider downlink ports at LCs */
-  BCM_PBMP_OR(portbmp, pbm_egress_all_ports);
-  BCM_PBMP_REMOVE(portbmp, pbm_egress_root_ports);
-  #else
-  /* All ports for standalone boards */
-  BCM_PBMP_OR(portbmp, pbm_egress_all_ports);
-  #endif
+  if (egress_type == PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)
+  {
+    /* Only consider uplink ports in matrix */
+    BCM_PBMP_OR(portbmp, pbm_egress_root_ports);
+  }
+  else if (egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
+  {
+    /* Only consider uplink ports in matrix */
+    BCM_PBMP_OR(portbmp, pbm_egress_community_ports);
+  }
+  else if (egress_type == PTIN_PORT_EGRESS_TYPE_ISOLATED)
+  {
+    /* Only consider downlink ports at LCs */
+    BCM_PBMP_OR(portbmp, pbm_egress_all_ports);
+    BCM_PBMP_REMOVE(portbmp, pbm_egress_root_ports);
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown port type %u", egress_type);
+    return L7_FAILURE;
+  }
+
+  /* For OLT1T0 remove GE48 (last port) */
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  BCM_PBMP_PORT_REMOVE(portbmp, usp_map[PTIN_SYSTEM_N_PORTS-1].port);
+#endif
   
   /* Init BC storm control */
   if (control->flags & PTIN_STORMCONTROL_MASK_BCAST)
@@ -2978,10 +2969,10 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removing BC storm control processing");
 
     /* Clean policers */
-    if (policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] != BROAD_POLICY_INVALID)
+    if (policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_BCAST] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId_storm[STORM_CONTROL_TRAFFIC_BCAST]);
-      policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_BCAST]);
+      policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_BCAST] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC storm control deleted");
     }
 
@@ -2990,9 +2981,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     {
       /* Rate Limit */
       meterInfo.cir       = control->bcast_rate;
-      meterInfo.cbs       = 64;
+      meterInfo.cbs       = 16;
       meterInfo.pir       = control->bcast_rate;
-      meterInfo.pbs       = 64;
+      meterInfo.pbs       = 16;
       meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding BC storm control to %u kbps", meterInfo.cir);
@@ -3008,11 +2999,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW );
         if (result != L7_SUCCESS)  break;
 
-        #if 1
         /* Ports */
         result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (uint8 *) &portbmp, (uint8 *) &portbmp_mask);
         if (result != L7_SUCCESS)  break;
-        #endif
 
         /* Broadcast traffic */
         result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, broadcast_mac, broadcast_mac_mask);
@@ -3075,7 +3064,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting BC policy");
         if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
         {
-          policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] = policyId;
+          policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_BCAST] = policyId;
           LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC policy commited successfully");
         }
         else
@@ -3086,7 +3075,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
       else
       {
         hapiBroadPolicyCreateCancel();
-        policyId_storm[STORM_CONTROL_TRAFFIC_BCAST] = BROAD_POLICY_INVALID;
+        policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_BCAST] = BROAD_POLICY_INVALID;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Canceling BC policy: %d", result);
       }
     }
@@ -3098,10 +3087,10 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removing MC storm control processing");
 
     /* Clean policers */
-    if (policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] != BROAD_POLICY_INVALID)
+    if (policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_MCAST] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId_storm[STORM_CONTROL_TRAFFIC_MCAST]);
-      policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_MCAST]);
+      policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_MCAST] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC storm control deleted");
     }
 
@@ -3110,9 +3099,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     {
       /* Rate Limit */
       meterInfo.cir       = control->mcast_rate;
-      meterInfo.cbs       = 64;
+      meterInfo.cbs       = 16;
       meterInfo.pir       = control->mcast_rate;
-      meterInfo.pbs       = 64;
+      meterInfo.pbs       = 16;
       meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding MC storm control to %u kbps", meterInfo.cir);
@@ -3193,7 +3182,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting MC policy");
         if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
         {
-          policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] = policyId;
+          policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_MCAST] = policyId;
           LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC policy commited successfully");
         }
         else
@@ -3204,7 +3193,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
       else
       {
         hapiBroadPolicyCreateCancel();
-        policyId_storm[STORM_CONTROL_TRAFFIC_MCAST] = BROAD_POLICY_INVALID;
+        policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_MCAST] = BROAD_POLICY_INVALID;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Canceling MC policy", index);
       }
     }
@@ -3216,10 +3205,10 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removing Unknown UC storm control processing");
 
     /* Clean policers */
-    if (policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] != BROAD_POLICY_INVALID)
+    if (policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_UNKN_UC] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC]);
-      policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_UNKN_UC]);
+      policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_UNKN_UC] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC storm control deleted");
     }
 
@@ -3228,9 +3217,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     {
       /* Rate Limit */
       meterInfo.cir       = control->ucunk_rate;
-      meterInfo.cbs       = 64;
+      meterInfo.cbs       = 16;
       meterInfo.pir       = control->ucunk_rate;
-      meterInfo.pbs       = 64;
+      meterInfo.pbs       = 16;
       meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Adding Unknown UC storm control to %u kbps", meterInfo.cir);
@@ -3339,7 +3328,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting Unknown UC policy");
         if ((result=hapiBroadPolicyCommit(&policyId)) == L7_SUCCESS)
         {
-          policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] = policyId;
+          policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_UNKN_UC] = policyId;
           LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC policy commited successfully");
         }
         else
@@ -3350,7 +3339,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
       else
       {
         hapiBroadPolicyCreateCancel();
-        policyId_storm[STORM_CONTROL_TRAFFIC_UNKN_UC] = BROAD_POLICY_INVALID;
+        policyId_storm[egress_type][STORM_CONTROL_TRAFFIC_UNKN_UC] = BROAD_POLICY_INVALID;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Canceling Unknown UC policy", index);
       }
     }
@@ -3372,10 +3361,11 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
  * Add port to storm control policies
  * 
  * @param dapiPort 
+ * @param egress_type : Egress type port  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort)
+L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort, PORT_EGRESS_TYPE egress_type)
 {
   L7_int i, policy;
   DAPI_PORT_t  *dapiPortPtr;
@@ -3389,6 +3379,15 @@ L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort)
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Validate egress type */
+  if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS &&
+      egress_type != PTIN_PORT_EGRESS_TYPE_COMMUNITY &&
+      egress_type != PTIN_PORT_EGRESS_TYPE_ISOLATED)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Unknown port type %u", egress_type);
     return L7_FAILURE;
   }
 
@@ -3408,20 +3407,20 @@ L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort)
     /* Change port of all storm control policys */
     for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
     {
-      if (policyId_storm[policy] != 0 ||
-          policyId_storm[policy] != BROAD_POLICY_INVALID)
+      if (policyId_storm[egress_type][policy] != 0 ||
+          policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
       {
-        rc = hapiBroadPolicyApplyToIface(policyId_storm[policy], hapiPortPtr->bcmx_lport);
+        rc = hapiBroadPolicyApplyToIface(policyId_storm[egress_type][policy], hapiPortPtr->bcmx_lport);
         if (rc != L7_SUCCESS && rc != L7_ALREADY_CONFIGURED)
         {
           LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding port {%d,%d,%d} to policy id %u",
-                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[egress_type][policy]);
           return L7_FAILURE;
         }
         else
         {
           LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added port {%d,%d,%d} to policy id %u",
-                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[egress_type][policy]);
         }
       }
     }
@@ -3446,20 +3445,20 @@ L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort)
       /* Add physical port to all storm control policys */
       for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
       {
-        if (policyId_storm[policy] != 0 ||
-            policyId_storm[policy] != BROAD_POLICY_INVALID)
+        if (policyId_storm[egress_type][policy] != 0 ||
+            policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
         {
-          rc = hapiBroadPolicyApplyToIface(policyId_storm[policy], hapiPortPtr_member->bcmx_lport);
+          rc = hapiBroadPolicyApplyToIface(policyId_storm[egress_type][policy], hapiPortPtr_member->bcmx_lport);
           if (rc != L7_SUCCESS && rc != L7_ALREADY_CONFIGURED)
           {
             LOG_ERR(LOG_CTX_PTIN_HAPI, "Error adding lport 0x%08x to policy id %u",
-                    hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+                    hapiPortPtr_member->bcmx_lport, policyId_storm[egress_type][policy]);
             return L7_FAILURE;
           }
           else
           {
             LOG_TRACE(LOG_CTX_PTIN_HAPI, "Added lport 0x%08x to policy id %u",
-                      hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+                      hapiPortPtr_member->bcmx_lport, policyId_storm[egress_type][policy]);
           }
         }
       } /* policy */
@@ -3473,10 +3472,11 @@ L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort)
  * Remove port to storm control policies
  * 
  * @param dapiPort 
+ * @param egress_type : Egress type port  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort)
+L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PORT_EGRESS_TYPE egress_type)
 {
   L7_int i, policy;
   DAPI_PORT_t  *dapiPortPtr;
@@ -3490,6 +3490,15 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort)
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Validate egress type */
+  if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS &&
+      egress_type != PTIN_PORT_EGRESS_TYPE_COMMUNITY &&
+      egress_type != PTIN_PORT_EGRESS_TYPE_ISOLATED)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Unknown port type %u", egress_type);
     return L7_FAILURE;
   }
 
@@ -3509,20 +3518,20 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort)
     /* Change port of all storm control policys */
     for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
     {
-      if (policyId_storm[policy] != 0 ||
-          policyId_storm[policy] != BROAD_POLICY_INVALID)
+      if (policyId_storm[egress_type][policy] != 0 ||
+          policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
       {
-        rc = hapiBroadPolicyRemoveFromIface(policyId_storm[policy], hapiPortPtr->bcmx_lport); 
+        rc = hapiBroadPolicyRemoveFromIface(policyId_storm[egress_type][policy], hapiPortPtr->bcmx_lport); 
         if (rc != L7_SUCCESS && rc != L7_NOT_EXIST)
         {
           LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing port {%d,%d,%d} to policy id %u",
-                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+                  dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[egress_type][policy]);
           return L7_FAILURE;
         }
         else
         {
           LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed port {%d,%d,%d} to policy id %u",
-                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[policy]);
+                    dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port, policyId_storm[egress_type][policy]);
         }
       }
     }
@@ -3547,20 +3556,20 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort)
       /* Add physical port to all storm control policys */
       for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
       {
-        if (policyId_storm[policy] != 0 ||
-            policyId_storm[policy] != BROAD_POLICY_INVALID)
+        if (policyId_storm[egress_type][policy] != 0 ||
+            policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
         {
-          rc = hapiBroadPolicyRemoveFromIface(policyId_storm[policy], hapiPortPtr_member->bcmx_lport);
+          rc = hapiBroadPolicyRemoveFromIface(policyId_storm[egress_type][policy], hapiPortPtr_member->bcmx_lport);
           if (rc != L7_SUCCESS && rc != L7_NOT_EXIST)
           {
             LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing lport 0x%08x from policy id %u",
-                    hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+                    hapiPortPtr_member->bcmx_lport, policyId_storm[egress_type][policy]);
             return L7_FAILURE;
           }
           else
           {
             LOG_TRACE(LOG_CTX_PTIN_HAPI, "Removed lport 0x%08x from policy id %u",
-                      hapiPortPtr_member->bcmx_lport, policyId_storm[policy]);
+                      hapiPortPtr_member->bcmx_lport, policyId_storm[egress_type][policy]);
           }
         }
       } /* policy */
@@ -3576,30 +3585,46 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort)
  */
 void ptin_stormcontrol_dump_debug(void)
 {
-  L7_int index, rule;
+  L7_int index, egress_type, rule;
   BROAD_GROUP_t group_id;
   BROAD_ENTRY_t entry_id;
   int policer_id, counter_id;
 
   printf("Listing rate limiters list...\r\n");
 
-  for (index=0; index<STORM_CONTROL_TRAFFIC_MAX; index++)
+  for (egress_type = 0; egress_type < PTIN_PORT_EGRESS_TYPE_MAX; egress_type++)
   {
-    rule = 0;
-    while (policyId_storm[index] != 0 && policyId_storm[index] != BROAD_POLICY_INVALID &&
-           l7_bcm_policy_hwInfo_get(0, policyId_storm[index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+    printf("Egress type: ");
+    switch (egress_type)
     {
-      /* Also print hw group id and entry id*/
-      printf(" TraffType %u, policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
-             index, policyId_storm[index], rule, group_id, entry_id, policer_id, counter_id);
-      rule++;
+    case PTIN_PORT_EGRESS_TYPE_PROMISCUOUS:
+      printf("PROMISCUOUS\r\n");
+      break;
+    case PTIN_PORT_EGRESS_TYPE_COMMUNITY:
+      printf("COMMUNITY\r\n");
+      break;
+    case PTIN_PORT_EGRESS_TYPE_ISOLATED:
+      printf("ISOLATED\r\n");
+      break;
+    }
+    for (index = 0; index < STORM_CONTROL_TRAFFIC_MAX; index++) 
+    {
+      rule = 0;
+      while (policyId_storm[egress_type][index] != 0 && policyId_storm[egress_type][index] != BROAD_POLICY_INVALID &&
+             l7_bcm_policy_hwInfo_get(0, policyId_storm[egress_type][index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+      {
+        /* Also print hw group id and entry id*/
+        printf("   TraffType %u, policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
+               index, policyId_storm[egress_type][index], rule, group_id, entry_id, policer_id, counter_id);
+        rule++;
+      }
     }
   }
   printf("Done!\r\n");
   fflush(stdout);
 }
 
-L7_RC_t hapi_ptin_stormControl_test(L7_uint enable, L7_uint32 flags, L7_uint32 rate)
+L7_RC_t hapi_ptin_stormControl_test(L7_uint enable, L7_uint32 flags, L7_uint32 rate, PORT_EGRESS_TYPE egress_type)
 {
   ptin_stormControl_t control;
 
@@ -3608,7 +3633,7 @@ L7_RC_t hapi_ptin_stormControl_test(L7_uint enable, L7_uint32 flags, L7_uint32 r
   control.mcast_rate = rate;
   control.ucunk_rate = rate;
 
-  return hapi_ptin_stormControl_set(L7_NULLPTR, enable, &control);
+  return hapi_ptin_stormControl_set(L7_NULLPTR, enable, &control, egress_type);
 }
 #endif
 

@@ -1177,6 +1177,7 @@ L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
  */
 L7_RC_t hapiBroadStormControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
+  L7_BOOL enable;
   ptin_dapi_port_t    dapiPort;
   ptin_stormControl_t *stormControl = (ptin_stormControl_t *) data;
   L7_RC_t status=L7_SUCCESS;
@@ -1185,16 +1186,23 @@ L7_RC_t hapiBroadStormControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
 
   switch (stormControl->operation)  {
     case DAPI_CMD_SET:
-      status=hapi_ptin_stormControl_set(&dapiPort, L7_ENABLE, stormControl);
+      enable = L7_ENABLE;
       break;
 
     case DAPI_CMD_CLEAR:
-      status=hapi_ptin_stormControl_set(&dapiPort, L7_DISABLE, stormControl);
+      enable = L7_DISABLE;
       break;
 
     default:
-      status = L7_FAILURE;
+      return L7_FAILURE;
   }
+
+  #if (!PTIN_BOARD_IS_LINECARD)
+  status = hapi_ptin_stormControl_set(&dapiPort, enable, stormControl, PTIN_PORT_EGRESS_TYPE_PROMISCUOUS);
+  #endif
+  #if (!PTIN_BOARD_IS_MATRIX)
+  status = hapi_ptin_stormControl_set(&dapiPort, enable, stormControl, PTIN_PORT_EGRESS_TYPE_ISOLATED);
+  #endif
 
   return status;
 }

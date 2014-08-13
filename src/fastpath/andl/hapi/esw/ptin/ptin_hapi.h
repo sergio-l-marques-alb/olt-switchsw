@@ -279,30 +279,33 @@ extern L7_RC_t hapi_ptin_rateLimit_set(ptin_dapi_port_t *dapiPort, L7_BOOL enabl
  * 
  * @param dapiPort : port 
  * @param enable   : Enable or diable
- * @param stormControl : storm control data
+ * @param stormControl : storm control data 
+ * @param egress_type : Egress type port
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *stormControl);
+extern L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, ptin_stormControl_t *stormControl, PORT_EGRESS_TYPE egress_type);
 
 #if 1
 /**
  * Add port to storm control policies
  * 
  * @param dapiPort 
+ * @param egress_type : Egress type port  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort);
+extern L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort, PORT_EGRESS_TYPE egress_type);
 
 /**
  * Remove port to storm control policies
  * 
  * @param dapiPort 
+ * @param egress_type : Egress type port  
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort);
+extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PORT_EGRESS_TYPE egress_type);
 #endif
 
 /**
