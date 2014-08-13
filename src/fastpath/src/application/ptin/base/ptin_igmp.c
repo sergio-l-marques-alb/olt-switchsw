@@ -3516,7 +3516,11 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     { 
       avl_infoData->admissionControl.maxAllowedChannels = 0;         
       avl_infoData->admissionControl.allocatedChannels  = 0;         
-      mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+      avl_infoData->admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+      if (ptin_debug_igmp_snooping)
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Disabling Max Channels Control [mask:0x%x allocatedChannels maxAllowedChannels]",avl_infoData->admissionControl.mask, avl_infoData->admissionControl.allocatedChannels, avl_infoData->admissionControl.maxAllowedChannels);
+      }
     }
     else
     {      
@@ -3526,6 +3530,11 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
       if (newEntry == L7_TRUE)
       {
         avl_infoData->admissionControl.allocatedChannels  = 0;         
+      }
+
+      if (ptin_debug_igmp_snooping)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Channels Control [mask:0x%x allocatedChannels maxAllowedChannels]",avl_infoData->admissionControl.mask, avl_infoData->admissionControl.allocatedChannels, avl_infoData->admissionControl.maxAllowedChannels);
       }
     }
     
@@ -3538,6 +3547,11 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
       avl_infoData->admissionControl.maxAllowedBandwidth = 0;
       avl_infoData->admissionControl.allocatedBandwidth  = 0;
       avl_infoData->admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+
+      if (ptin_debug_igmp_snooping)
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Disabling Max Channels Control [mask:0x%x allocatedBandwidth maxAllowedBandwidth]",avl_infoData->admissionControl.mask, avl_infoData->admissionControl.allocatedBandwidth, avl_infoData->admissionControl.maxAllowedBandwidth);
+      }
     }
     else
     {
@@ -3547,6 +3561,11 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
       if (newEntry == L7_TRUE)
       {
         avl_infoData->admissionControl.allocatedBandwidth  = 0;
+      }
+
+      if (ptin_debug_igmp_snooping)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Max Bandwidth Control [mask:0x%x allocatedBandwidth maxAllowedBandwidth]",avl_infoData->admissionControl.mask, avl_infoData->admissionControl.allocatedBandwidth, avl_infoData->admissionControl.maxAllowedBandwidth);
       }
     }
   }
