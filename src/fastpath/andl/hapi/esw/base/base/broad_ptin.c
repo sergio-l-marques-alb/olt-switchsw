@@ -1143,19 +1143,19 @@ L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
 
   switch (fpCounter->operation)  {
     case DAPI_CMD_GET:
-      status=hapi_ptin_fpCounters_get(&fpCounter->counters, fpCounter->policy_ptr);
+      status=hapi_ptin_fpCounters_get(usp, &fpCounter->counters, &fpCounter->profile, dapi_g);
       break;
 
     case DAPI_CMD_SET:
-      status=hapi_ptin_fpCounters_set(&fpCounter->profile, &(fpCounter->policy_ptr), dapi_g);
+      status=hapi_ptin_fpCounters_set(usp, &fpCounter->profile, dapi_g);
       break;
 
     case DAPI_CMD_CLEAR:
-      status=hapi_ptin_fpCounters_delete(fpCounter->policy_ptr);
+      status=hapi_ptin_fpCounters_delete(usp, &fpCounter->profile, dapi_g);
       break;
             
   case DAPI_CMD_CLEAR_ALL:
-    status=hapi_ptin_fpCounters_deleteAll();
+    status=hapi_ptin_fpCounters_deleteAll(usp, &fpCounter->profile);
     break;
 
     default:
