@@ -413,7 +413,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_prio    = %u", mefExt->macLearn_stationMove_prio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," macLearn_stationMove_samePrio= %u", mefExt->macLearn_stationMove_samePrio);
   LOG_TRACE(LOG_CTX_PTIN_INTF," MaxChannels  = %u"                , mefExt->maxChannels);
-  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %llu bits/s", mefExt->maxBandwidth);
+  LOG_TRACE(LOG_CTX_PTIN_INTF," MaxBandwidth = %llu kbits/s"      , mefExt->maxBandwidth);
   LOG_TRACE(LOG_CTX_PTIN_INTF," dhcp_trusted = %u"                , mefExt->dhcp_trusted);
 
   /*Port Multicast Admission Control Support*/
@@ -444,7 +444,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
         if (mask != 0x00)
         {
           if ( ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) == PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF) && 
-                 (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_BPS) ) ||
+                 (mefExt->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64 && mefExt->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS) ) ||
                ( ((mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
                  && (mefExt->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && mefExt->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
           {

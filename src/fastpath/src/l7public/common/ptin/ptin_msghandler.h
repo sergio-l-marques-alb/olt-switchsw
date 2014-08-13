@@ -527,7 +527,7 @@ typedef struct
   L7_uint8              macLearn_stationMove_prio;      // [Mask=0x004000] Mac Station Move Priority: 1-2 (physical/LAG interfaces)
   L7_uint8              macLearn_stationMove_samePrio;  // [Mask=0x008000] Enable Station Move between same priority ports (physical/LAG interfaces)   
   L7_uint16             maxChannels;                    // [mask=0x010000] Maximum number of channels this port can have simultaneously
-  L7_uint64             maxBandwidth;                   // [mask=0x020000] Maximum multicast bandwidth  this port can consume
+  L7_uint64             maxBandwidth;                   // [mask=0x020000] Maximum multicast bandwidth  this port can consume (kbits/s)
   L7_uint8              protocol_trusted;               // [Mask=0x100000] Trusted interface for DHCP and PPPoE protocols (only physical interfaces)
 } __attribute__((packed)) msg_HWPortExt_t;
 
@@ -1418,7 +1418,7 @@ typedef struct _msg_MCAssocChannel_t
   L7_uint8             channel_dstmask;  // MAscara do canal em numero de bits (LSB)
   chmessage_ip_addr_t  channel_srcIp;    // IP source 
   L7_uint8             channel_srcmask;  // MAscara do IP source em numero de bits (LSB)
-  L7_uint64            channelBandwidth;  // bit/s 
+  L7_uint64            channelBandwidth;  // kbit/s 
 } __attribute__((packed)) msg_MCAssocChannel_t;
 
 /* To add or remove a static channel */
@@ -1429,7 +1429,7 @@ typedef struct _msg_MCStaticChannel_t
   L7_uint32       evc_id;                    // index: EVCid      /* L7_uint32 */
   msg_in_addr_t   channelIp;                 // IP of the Multicast Group
   msg_in_addr_t   sourceIp;                  //  IP of the Multicast Source
-  L7_uint64       channelBandwidth;         // bit/s 
+  L7_uint64       channelBandwidth;         // kbit/s 
 } __attribute__((packed)) msg_MCStaticChannel_t;
 
 /* To List all channels */

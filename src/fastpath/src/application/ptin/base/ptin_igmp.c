@@ -3533,7 +3533,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
   {    
-    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64) /*Disable this Parameter*/
     {
       avl_infoData->admissionControl.maxAllowedBandwidth = 0;
       avl_infoData->admissionControl.allocatedBandwidth  = 0;
@@ -3541,7 +3541,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     }
     else
     {
-      avl_infoData->admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
+      avl_infoData->admissionControl.maxAllowedBandwidth = maxAllowedBandwidth ; /*kbps*/
       avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
 
       if (newEntry == L7_TRUE)
@@ -6347,7 +6347,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   avl_node.is_static  = is_static & 1;
 
   #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-  avl_node.channelBandwidth = channelBandwidth/1000; /*Convert from bps to kbps*/      
+  avl_node.channelBandwidth = channelBandwidth; /*kbps*/      
   #endif
 
   /* Add channels */
@@ -12049,14 +12049,14 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
   {    
-    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64) /*Disable this Parameter*/
     {
       igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = 0;
       igmpPortAdmissionControl[ptin_port].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
     {
-      igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
+      igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth; /*kbps*/
       igmpPortAdmissionControl[ptin_port].admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
     }
   }
@@ -12133,13 +12133,13 @@ RC_t ptin_igmp_admission_control_multicast_service_set(L7_uint32 ptin_port, L7_u
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
   {    
-    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64) /*Disable this Parameter*/
     {
       igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
     {
-      igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
+      igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth; /*kbps*/
       igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
     }
   }
