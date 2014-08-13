@@ -415,7 +415,7 @@ unsigned int snooping_channel_serviceid_get(unsigned int groupAddr, unsigned int
   {
     if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, serviceId)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to internal vlan %u", mcastRootVlan);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to mcastRootVlan %u", mcastRootVlan);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Found serviceID %u associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", *serviceId, groupAddr, sourceAddr);
