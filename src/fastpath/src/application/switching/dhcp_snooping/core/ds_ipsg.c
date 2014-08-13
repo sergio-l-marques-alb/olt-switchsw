@@ -179,6 +179,10 @@ L7_RC_t ipsgEntryAdd(ipsgEntryType_t entryType,
                      L7_enetMacAddr_t *macAddr,
                      L7_inet_addr_t *ipAddr)
 {
+#ifndef IPSG_VLAN_FIELD_IS_CARE
+  vlanId = 0;
+#endif
+
   L7_INTF_STATES_t intIfState;
   ipsgEntryTreeNode_t  ipsgEntry, *pNode;
 
@@ -1036,6 +1040,9 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
                      L7_inet_addr_t* ipAddr)
 
 {
+#ifndef IPSG_VLAN_FIELD_IS_CARE
+  vlanId = 0;
+#endif
 
   ipsgEntryTreeNode_t *pNode = NULL, *freeNode=NULL, ipsgEntry;
   dhcpSnoopBinding_t dsNode;
@@ -1098,7 +1105,7 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
         }
 
         if ( L7_INET_ADDR_COMPARE(&dsIpAddr,ipAddr) == 0  &&
-             (dsNode.vlanId == vlanId) &&
+             /*(dsNode.vlanId == vlanId) &&*/
              (dsNode.intIfNum == intIfNum) )
         {
            pNode->ipsgEntryType = IPSG_ENTRY_DYNAMIC;
