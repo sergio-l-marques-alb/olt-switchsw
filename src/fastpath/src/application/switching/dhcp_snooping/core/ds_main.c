@@ -2281,13 +2281,17 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 L7_RC_t dsv6AddOption9(L7_uchar8 *frame, L7_uint32 *frameLen, L7_uchar8 *dhcpRelayFrame, L7_ushort16 dhcpRelayFrameLen)
 {
    L7_dhcp6_option_packet_t dhcp_op_dhcp_relay = { 0 };
+   L7_dhcp6_option_packet_t dhcp_op_dhcp_relay_be = { 0 };
 
    dhcp_op_dhcp_relay.option_code = L7_DHCP6_OPT_RELAY_MSG;
    dhcp_op_dhcp_relay.option_len  = dhcpRelayFrameLen;
 
-   memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
+   dhcp_op_dhcp_relay_be.option_code = osapiHtons(dhcp_op_dhcp_relay.option_code);
+   dhcp_op_dhcp_relay_be.option_len  = osapiHtons(dhcp_op_dhcp_relay.option_len);
+
+   memcpy(frame + *frameLen, &dhcp_op_dhcp_relay_be, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
-   memcpy(frame + *frameLen, dhcpRelayFrame,      dhcp_op_dhcp_relay.option_len); //Copy DHCP-relay-message
+   memcpy(frame + *frameLen, dhcpRelayFrame, dhcp_op_dhcp_relay.option_len); //Copy DHCP-relay-message
    *frameLen += dhcp_op_dhcp_relay.option_len;
 
    return L7_SUCCESS;
@@ -2309,23 +2313,23 @@ L7_RC_t dsv6AddOption18or37(L7_uint32 intIfNum, L7_uchar8 *frame, L7_uint32 *fra
                             L7_ushort16 innerVlanId, L7_uchar8 *macAddr, L7_dhcp6_opttype_t dhcpOp)
 {
    L7_char8 circuit_id[DS_MAX_REMOTE_ID_STRING], remote_id[DS_MAX_REMOTE_ID_STRING];
-   L7_dhcp6_option_packet_t dhcp_op_dhcp_relay = { 0 };
+   L7_dhcp6_option_packet_t dhcp_op_dhcp_relay_be = { 0 };
 
    if (ptin_dhcp_stringIds_get(intIfNum, vlanId, innerVlanId , macAddr, circuit_id, remote_id) != L7_SUCCESS)
    {
       return L7_FAILURE;
    }
 
-   dhcp_op_dhcp_relay.option_code = dhcpOp;
+   dhcp_op_dhcp_relay_be.option_code = osapiHtons(dhcpOp);
    if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
    {
-      dhcp_op_dhcp_relay.option_len = strlen(circuit_id);
+      dhcp_op_dhcp_relay_be.option_len = osapiHtons(strlen(circuit_id));
    }
    else if(L7_DHCP6_OPT_REMOTE_ID == dhcpOp)
    {
-      dhcp_op_dhcp_relay.option_len = sizeof(L7_uint32) + strlen(remote_id); //VendorId + RemoteId
+      dhcp_op_dhcp_relay_be.option_len = osapiHtons(sizeof(L7_uint32) + strlen(remote_id)); //VendorId + RemoteId
    }
-   memcpy(frame + *frameLen, &dhcp_op_dhcp_relay, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
+   memcpy(frame + *frameLen, &dhcp_op_dhcp_relay_be, sizeof(L7_dhcp6_option_packet_t)); //Copy Relay-message option header
    *frameLen += sizeof(L7_dhcp6_option_packet_t);
 
    if(L7_DHCP6_OPT_INTERFACE_ID == dhcpOp)
