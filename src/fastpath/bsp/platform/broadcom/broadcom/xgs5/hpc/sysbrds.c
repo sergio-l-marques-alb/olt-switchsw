@@ -249,6 +249,10 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
           return(L7_FAILURE);
 
+        /* Configure mmu lossy mode */
+        if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+          return(L7_FAILURE);
+
         #if 0
         if (sal_config_set(spn_POLLED_IRQ_MODE, "1") != 0)
           return(L7_FAILURE);
@@ -305,6 +309,10 @@ L7_RC_t hpcConfigBoardSet()
 
         /* Configure to use LCPLL reference clock */
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
+          return(L7_FAILURE);
+
+        /* Configure mmu lossy mode */
+        if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
           return(L7_FAILURE);
 
         #if 0
@@ -506,6 +514,10 @@ L7_RC_t hpcConfigBoardSet()
       if (sal_config_set(spn_PORTGROUP"_11", "4") != 0)
         return(L7_FAILURE);
       if (sal_config_set(spn_PORTGROUP"_12", "1") != 0)   /* WC group: 10G ports */
+        return(L7_FAILURE);
+
+      /* Configure mmu lossy mode */
+      if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
         return(L7_FAILURE);
 
 #ifdef L7_STACKING_PACKAGE
@@ -779,6 +791,10 @@ L7_RC_t hpcConfigBoardSet()
 
         /* Configure to use LCPLL reference clock */
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0) return(L7_FAILURE);
+
+        /* Configure mmu lossy mode */
+        if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+          return(L7_FAILURE);
 
         /* For CXO640G */
         #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
