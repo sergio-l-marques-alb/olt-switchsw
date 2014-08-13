@@ -143,7 +143,8 @@ typedef enum
 {
   PTIN_PORT_EGRESS_TYPE_PROMISCUOUS   = 0,
   PTIN_PORT_EGRESS_TYPE_COMMUNITY     = 1,
-  PTIN_PORT_EGRESS_TYPE_ISOLATED      = 2
+  PTIN_PORT_EGRESS_TYPE_ISOLATED      = 2,
+  PTIN_PORT_EGRESS_TYPE_MAX,
 } PORT_EGRESS_TYPE;
 
 typedef struct
@@ -323,6 +324,7 @@ typedef struct {
   L7_uint16 innerVlan;                      // Inner vlan id [0..4095]: 0 means to not use this field
   L7_uint16 outerVlan_new;                  // New outer vlan [1..4095]
   L7_uint16 innerVlan_new;                  // New inner vlan [0..4095]: 0 means to not translate this field
+  L7_BOOL   remove_VLANs;                   // Should VLANs be removed?
 } ptin_vlanXlate_t;
 
 

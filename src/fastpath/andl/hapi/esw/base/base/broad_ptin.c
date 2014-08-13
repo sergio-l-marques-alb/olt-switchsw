@@ -388,11 +388,12 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   ptin_dapi_port_t dapiPort;
   ptin_hapi_xlate_t hapi_xlate;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}, Stage=%u, operation=%u, group=%u, oVlanId=%u, iVlanId=%u, newOVlanId=%u(%u), newIVlanId=%u(%u)",
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}, Stage=%u, operation=%u, group=%u, oVlanId=%u, iVlanId=%u, newOVlanId=%u(%u), newIVlanId=%u(%u), rem_VLANs=%u",
             usp->unit, usp->slot, usp->port, xlate->stage, xlate->oper, xlate->portgroup,
             xlate->outerVlan, xlate->innerVlan,
             xlate->outerVlan_new,xlate->outerAction,
-            xlate->innerVlan_new,xlate->innerAction);
+            xlate->innerVlan_new,xlate->innerAction,
+            xlate->remove_VLANs);
 
   /* Validate interface */
   if ( ( xlate->portgroup==PTIN_XLATE_PORTGROUP_INTERFACE ) &&
@@ -410,8 +411,8 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   hapi_xlate.innerVlanId    = xlate->innerVlan;
   hapi_xlate.newOuterVlanId = xlate->outerVlan_new;
   hapi_xlate.newInnerVlanId = xlate->innerVlan_new;
-  hapi_xlate.outerAction    = xlate->outerAction;
-  hapi_xlate.innerAction    = xlate->innerAction;
+  hapi_xlate.outerAction    = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->outerAction;
+  hapi_xlate.innerAction    = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->innerAction;
 
   switch ((L7_int) xlate->stage)
   {

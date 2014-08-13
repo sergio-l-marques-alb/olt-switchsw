@@ -78,6 +78,7 @@ extern L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId
 extern L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
                                       L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId );
 
+#if 0
 /**
  * Get egress translation new vlan
  * 
@@ -91,6 +92,7 @@ extern L7_RC_t ptin_xlate_egress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId,
  */
 extern L7_RC_t ptin_xlate_egress_portgroup_get( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
                                                 L7_uint16 *newOuterVlanId, L7_uint16 *newInnerVlanId );
+#endif
 
 /**
  * Get ingress translation original vlan
@@ -120,6 +122,7 @@ extern L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint1
 extern L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
                                                    L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
 
+#if 0
 /**
  * Get egress translation original vlan
  * 
@@ -133,6 +136,7 @@ extern L7_RC_t ptin_xlate_egress_get_originalVlan( L7_uint32 intIfNum, L7_uint16
  */
 extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup, L7_uint16 *outerVlanId, L7_uint16 *innerVlanId,
                                                              L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
+#endif
 
 /**
  * Add ingress translation entry
@@ -160,18 +164,21 @@ extern L7_RC_t ptin_xlate_ingress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId
  */
 extern L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
 
+#if 0
 /**
  * Add egress translation entry
  * 
  * @param portgroup : port group id
  * @param outerVlanId : lookup outer vlan
  * @param innerVlanId : lookup inner vlan (0 to not be used)
- * @param newOuterVlanId : new vlan id
+ * @param newOuterVlanId : new vlan id 
+ * @param remove_VLANs : flag to remove VLANs
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId );
-
+extern L7_RC_t ptin_xlate_egress_portgroup_add( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId,
+                                                L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_BOOL remove_VLANs );
+#endif
 /**
  * Delete ingress translation entry
  * 
@@ -194,6 +201,7 @@ extern L7_RC_t ptin_xlate_ingress_delete( L7_uint32 intIfNum, L7_uint16 outerVla
  */
 extern L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uint16 innerVlanId );
 
+#if 0
 /**
  * Delete egress translation entry
  * 
@@ -204,6 +212,7 @@ extern L7_RC_t ptin_xlate_egress_delete( L7_uint32 intIfNum, L7_uint16 outerVlan
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
 extern L7_RC_t ptin_xlate_egress_portgroup_delete( L7_uint32 portgroup, L7_uint16 outerVlanId, L7_uint16 innerVlanId );
+#endif
 
 /**
  * Deletes all ingress translation entries
