@@ -51,6 +51,8 @@
 
 #include "ptin_fpga_api.h"//To interact with CPLD register
 
+#include <dtl_ptin.h>
+
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
 /******************************************************** 
@@ -7370,6 +7372,24 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   case 0:    r=S_OK;
     //if (changing_trap)  ptin_ccm_packet_trap(old_prt, old_vid, old_level, 0);
     ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
+#ifdef USING_SDK_OAM_FP_CREATE
+    {
+     L7_uint32 intIfNum;
+     hapi_mep_t hm;
+     L7_uint16 vidInternal;
+
+     hm.imep=   pi[i].index;
+     hm.m=      &pi[i].bd;
+
+     if (L7_SUCCESS!=ptin_intf_port2intIfNum(porta, &intIfNum));
+     else
+     if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal)) ;
+     else {
+         pi[i].bd.vid=vidInternal;
+         if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));
+     }
+    }
+#endif
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 2:    r=ERROR_CODE_FULLTABLE;    break;
@@ -7425,6 +7445,19 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   {
   case 0:    r=S_OK;
     ptin_ccm_packet_trap(prt, vid, level, 0);
+#ifdef USING_SDK_OAM_FP_CREATE
+    {
+     L7_uint32 intIfNum;
+     hapi_mep_t hm;
+
+     hm.imep=   i_mep;
+     hm.m=      (T_MEP_HDR*)&oam.db[i_mep].mep;
+
+     if (L7_SUCCESS!=ptin_intf_port2intIfNum(prt, &intIfNum));
+     else
+     if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));
+    }
+#endif
     {
      L7_uint16 slot, port;
 

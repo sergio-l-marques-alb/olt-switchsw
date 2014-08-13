@@ -1142,19 +1142,19 @@ L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
 
   switch (fpCounter->operation)  {
     case DAPI_CMD_GET:
-      status=hapi_ptin_fpCounters_get(usp, &fpCounter->counters, &fpCounter->profile, dapi_g);
+      status=hapi_ptin_fpCounters_get(&fpCounter->counters, fpCounter->policy_ptr);
       break;
 
     case DAPI_CMD_SET:
-      status=hapi_ptin_fpCounters_set(usp, &fpCounter->profile, dapi_g);
+      status=hapi_ptin_fpCounters_set(&fpCounter->profile, &(fpCounter->policy_ptr), dapi_g);
       break;
 
     case DAPI_CMD_CLEAR:
-      status=hapi_ptin_fpCounters_delete(usp, &fpCounter->profile, dapi_g);
+      status=hapi_ptin_fpCounters_delete(fpCounter->policy_ptr);
       break;
             
   case DAPI_CMD_CLEAR_ALL:
-    status=hapi_ptin_fpCounters_deleteAll(usp, &fpCounter->profile);
+    status=hapi_ptin_fpCounters_deleteAll();
     break;
 
     default:
@@ -1503,8 +1503,8 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
       //BCM_OAM_ENDPOINT_USE_QOS_MAP | BCM_OAM_ENDPOINT_PRI_TAG |
 
-      BCM_OAM_ENDPOINT_CCM_COPYTOCPU |
-      //BCM_OAM_ENDPOINT_CCM_RX | BCM_OAM_ENDPOINT_CCM_DROP | BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU |
+      BCM_OAM_ENDPOINT_CCM_COPYTOCPU | //BCM_OAM_ENDPOINT_CCM_RX |
+      //BCM_OAM_ENDPOINT_CCM_DROP | BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_TX | BCM_OAM_ENDPOINT_REMOTE_EVENT_DISABLE |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_AUTO_UPDATE |
 
@@ -1513,14 +1513,16 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       //BCM_OAM_ENDPOINT_DM_DROP |
       BCM_OAM_ENDPOINT_LB_COPYTOCPU |
       //BCM_OAM_ENDPOINT_LB_DROP |
-      //BCM_OAM_ENDPOINT_LT_COPYTOCPU | BCM_OAM_ENDPOINT_LT_DROP |
+      BCM_OAM_ENDPOINT_LT_COPYTOCPU |
+      //BCM_OAM_ENDPOINT_LT_DROP |
 
       //BCM_OAM_ENDPOINT_PORT_STATE_TX | BCM_OAM_ENDPOINT_INTERFACE_STATE_TX |
       //BCM_OAM_ENDPOINT_PORT_STATE_UPDATE | BCM_OAM_ENDPOINT_INTERFACE_STATE_UPDATE |
       //BCM_OAM_ENDPOINT_MATCH_INNER_VLAN | BCM_OAM_ENDPOINT_MATCH_OUTER_AND_INNER_VLAN |        // Selection of MEP based on S and C VLAN
       BCM_OAM_ENDPOINT_WITH_ID;
 
-  if (!invalid_T_MEP_LM(lm))    mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
+  //if (!invalid_T_MEP_LM(lm))
+      mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
   if (p->up1_down0)             mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
 
   //mep.opcode_flags
@@ -1651,29 +1653,35 @@ bcm_oam_endpoint_info_t mep;
 
 
 
-/*
+
 extern DAPI_t *dapi_g;
 
 void hapitest(unsigned long intIfNum, unsigned short vid, unsigned char level, unsigned char prior) {
 nimUSP_t  nim_usp;
 DAPI_USP_t usp;
 hapi_mep_t mep;
+T_MEP_HDR  m;
+T_MEP_LM   lm;
 
     nimGetUnitSlotPort(intIfNum, &nim_usp);
     usp.unit= nim_usp.unit;
     usp.slot= nim_usp.slot;
     usp.port= nim_usp.port-1;
     
-    sprintf((char*)&mep.m.meg_id, "%c%c%cbaby faceABCD", 1, 32, 13);
     mep.imep=0;
-    mep.m.vid=vid;
-    mep.m.mep_id=0;
-    mep.m.level=level;
-    mep.m.tmout=0;
-    mep.m.prt=10;//0;
+    mep.m=&m;
+    mep.lm=&lm;
+    lm.CCMs0_LMMR1=1;
+    memset(&m.meg_id, 0, 48);
+    sprintf((char*)&m.meg_id, "%c%c%cbaby faceABCD", 1, 32, 13);
+    m.vid=vid;
+    m.mep_id=1;
+    m.level=level;
+    m.tmout=0;
+    m.prt=10;//0;
 
-    mep.m.prior=prior;
-    mep.m.up1_down0=0;
+    m.prior=prior;
+    m.up1_down0=0;
     //u8  CoS, dummy_color;
 
 
@@ -1690,25 +1698,31 @@ void hapitest2(unsigned long intIfNum, unsigned short vid, unsigned char level, 
 nimUSP_t  nim_usp;
 DAPI_USP_t usp;
 hapi_mep_t mep;
+T_MEP_HDR m;
+T_MEP_LM  lm;
 
     nimGetUnitSlotPort(intIfNum, &nim_usp);
     usp.unit= nim_usp.unit;
     usp.slot= nim_usp.slot;
     usp.port= nim_usp.port-1;
-    
-    sprintf((char*)&mep.m.meg_id, "%c%c%cbaby faceABCD", 1, 32, 13);
+ 
     mep.imep=0;
-    mep.m.vid=vid;
-    mep.m.mep_id=-1;
-    mep.m.level=level;
-    mep.m.tmout=0;
-    mep.m.prt=10;//0;
+    mep.m=&m;
+    mep.lm=&lm;
+    lm.CCMs0_LMMR1=-1;
+    sprintf((char*)&m.meg_id, "%c%c%cbaby faceABCD", 1, 32, 13);
+    mep.imep=0;
+    m.vid=vid;
+    m.mep_id=-1;
+    m.level=level;
+    m.tmout=0;
+    m.prt=10;//0;
         
-    mep.m.prior=prior;
-    mep.m.up1_down0=0;
+    m.prior=prior;
+    m.up1_down0=0;
     //u8  CoS, dummy_color;
 
 
     hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
 }
-*/
+
