@@ -2934,12 +2934,12 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   {
     if ( (msgEvcFlow->mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID) || 
         ( ( (msgEvcFlow->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-          (msgEvcFlow->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64 && msgEvcFlow->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS) ) ||
+          (msgEvcFlow->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgEvcFlow->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
          ( ( (msgEvcFlow->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS ) &&
           (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu kbits/s maxChannels:%hu",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
       return L7_FAILURE;
     }
     ptinEvcFlow.onuId               = msgEvcFlow->onuId;
@@ -2950,7 +2950,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " onuId       = %u", ptinEvcFlow.onuId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %llu kbit/s", ptinEvcFlow.maxBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
   }
 #endif
 
@@ -5382,19 +5382,19 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
   
     if ( (McastClient[i].mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID) || 
         ( ( (McastClient[i].mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-          (McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64 && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS) ) ||
+          (McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
          ( ( (McastClient[i].mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS ) &&
           (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu kbits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId        = %u", McastClient[i].onuId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   mask         = %u", McastClient[i].mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu kbit/s ", McastClient[i].maxBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -6071,11 +6071,11 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu kbits/s", channel_list[i].channelBandwidth);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu bits/s", channel_list[i].channelBandwidth);
 
-    if (channel_list[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS)
+    if (channel_list[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid channelBandwidth:%llu kbits/s",channel_list[i].channelBandwidth);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid channelBandwidth:%llu bits/s",channel_list[i].channelBandwidth);
       return L7_FAILURE;
     }
     #endif
@@ -6287,7 +6287,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
     LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu", channel[i].channelBandwidth);
                                
-    if (channel[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS)
+    if (channel[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid channelBandwidth = %llu", channel[i].channelBandwidth);
       return L7_FAILURE;

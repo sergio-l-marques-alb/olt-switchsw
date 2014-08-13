@@ -166,7 +166,7 @@ typedef struct
   L7_uint8  macLearn_stationMove_prio;      // 0x00004000
   L7_uint8  macLearn_stationMove_samePrio;  // 0x00008000
   L7_uint16 maxChannels;                    // 0x00010000 Maximum number of channels this port can have simultaneously
-  L7_uint64 maxBandwidth;                   // 0x00020000 Maximum multicast bandwidth  this port can consume (kbits/s)
+  L7_uint64 maxBandwidth;                   // 0x00020000 Maximum multicast bandwidth  this port can consume (bits/s)
   L7_uint8  dhcp_trusted;                   // 0x00100000
 } ptin_HWPortExt_t;
 

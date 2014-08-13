@@ -3542,7 +3542,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
   {    
-    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64) /*Disable this Parameter*/
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
       avl_infoData->admissionControl.maxAllowedBandwidth = 0;
       avl_infoData->admissionControl.allocatedBandwidth  = 0;
@@ -3555,7 +3555,7 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     }
     else
     {
-      avl_infoData->admissionControl.maxAllowedBandwidth = maxAllowedBandwidth ; /*kbps*/
+      avl_infoData->admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
       avl_infoData->admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
 
       if (newEntry == L7_TRUE)
@@ -6366,7 +6366,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   avl_node.is_static  = is_static & 1;
 
   #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-  avl_node.channelBandwidth = channelBandwidth; /*kbps*/      
+  avl_node.channelBandwidth = channelBandwidth/1000; /*Convert from bps to kbps*/      
   #endif
 
   /* Add channels */
@@ -12068,14 +12068,14 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
   {    
-    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64) /*Disable this Parameter*/
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
       igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = 0;
       igmpPortAdmissionControl[ptin_port].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
     {
-      igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth; /*kbps*/
+      igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
       igmpPortAdmissionControl[ptin_port].admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
     }
   }
@@ -12152,13 +12152,13 @@ RC_t ptin_igmp_admission_control_multicast_service_set(L7_uint32 ptin_port, L7_u
 
   if ( (mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
   {    
-    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_DISABLE_UINT64) /*Disable this Parameter*/
+    if (maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
       igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
     }
     else
     {
-      igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth; /*kbps*/
+      igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.maxAllowedBandwidth = maxAllowedBandwidth / 1000; /*Convert from bps to kbps*/
       igmpMulticastAdmissionControl[ptin_port][onuId].admissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
     }
   }
@@ -12309,7 +12309,7 @@ RC_t ptin_igmp_port_resources_available(L7_uint32 ptin_port, L7_uint32 channelBa
   L7_uint8                        globalAdmissionControlMask = (globalBandwidthControl << 1) | globalChannelsControl;
 
   /* Argument validation */
-  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS || L7_NULLPTR == (ptinIgmpAdmissionControlPort = ptin_igmp_admission_control_port_get(ptin_port)) )
+  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS || L7_NULLPTR == (ptinIgmpAdmissionControlPort = ptin_igmp_admission_control_port_get(ptin_port)) )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);    
     return L7_FAILURE;
@@ -12498,7 +12498,7 @@ RC_t ptin_igmp_port_resources_allocate(L7_uint32 ptin_port, L7_uint32 channelBan
   L7_uint8                        globalAdmissionControlMask = (globalBandwidthControl << 1) | globalChannelsControl;
 
   /* Argument validation */
-  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS || L7_NULLPTR == (ptinIgmpAdmissionControlPort = ptin_igmp_admission_control_port_get(ptin_port)) )
+  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS || L7_NULLPTR == (ptinIgmpAdmissionControlPort = ptin_igmp_admission_control_port_get(ptin_port)) )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);    
     return L7_FAILURE;
@@ -12694,7 +12694,7 @@ RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBand
   L7_uint8                        globalAdmissionControlMask = (globalBandwidthControl << 1) | globalChannelsControl;
 
   /* Argument validation */
-  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS || L7_NULLPTR == (ptinIgmpAdmissionControlPort = ptin_igmp_admission_control_port_get(ptin_port)) )
+  if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS || L7_NULLPTR == (ptinIgmpAdmissionControlPort = ptin_igmp_admission_control_port_get(ptin_port)) )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);    
     return L7_FAILURE;
@@ -12894,7 +12894,7 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 ptin_port, L7_uint32 clientI
 #endif
 
   /* Argument validation */
-  if ( ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || clientId >= PTIN_IGMP_CLIENTIDX_MAX || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS )
+  if ( ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || clientId >= PTIN_IGMP_CLIENTIDX_MAX || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);    
     return L7_FAILURE;
@@ -13142,7 +13142,7 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId
 #endif
 
   /* Argument validation */
-  if ( ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || clientId >= PTIN_IGMP_CLIENTIDX_MAX || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS )
+  if ( ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || clientId >= PTIN_IGMP_CLIENTIDX_MAX || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);    
     return L7_FAILURE;
@@ -13390,7 +13390,7 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 ptin_port, L7_uint32 clientId,
 #endif
 
   /* Argument validation */
-  if ( ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || clientId >= PTIN_IGMP_CLIENTIDX_MAX || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS )
+  if ( ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS || clientId >= PTIN_IGMP_CLIENTIDX_MAX || channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);    
     return L7_FAILURE;
