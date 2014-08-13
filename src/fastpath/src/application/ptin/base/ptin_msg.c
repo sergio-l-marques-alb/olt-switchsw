@@ -6272,8 +6272,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
-
-     
+    
 
   for (i=0; i<n_channels; i++)
   {
@@ -6284,8 +6283,17 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
               (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SourceIP         = %u.%u.%u.%u",
               (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
+
+    #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
     LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu", channel[i].channelBandwidth);
                                
+    if (channel[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_KBPS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid channelBandwidth = %llu", channel[i].channelBandwidth);
+      return L7_FAILURE;
+    }
+    #endif
+
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
