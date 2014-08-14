@@ -57,6 +57,9 @@ ptin_mgmd_externalapi_t mgmd_external_api = {
   .client_resources_available  = &snooping_client_resources_available,
   .client_resources_allocate   = &snooping_client_resources_allocate,
   .client_resources_release    = &snooping_client_resources_release,
+  .port_resources_available    = &snooping_port_resources_available,
+  .port_resources_allocate     = &snooping_port_resources_allocate,
+  .port_resources_release      = &snooping_port_resources_release,
 #endif
   .port_open                   = &snooping_port_open,
   .port_close                  = &snooping_port_close,
@@ -453,7 +456,7 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 /*Admission Control Feature*/
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
-unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
+unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
@@ -462,12 +465,15 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
   
-  if (clientId == (L7_uint32) -1)
+  if (portId == 0)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_TRUE;
   }
+
   if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FALSE;
   }
 
@@ -482,17 +488,123 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
   
-#if 0
   ptin_timer_start(61,"ptin_igmp_port_resources_available");
   rc = ptin_igmp_port_resources_available(ptin_port, channelBandwidth);
   ptin_timer_stop(61);
 
-  if (rc != L7_SUCCESS)
+  return (rc == L7_SUCCESS) ;
+}
+
+unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
+{
+  L7_inet_addr_t inetGroupAddr;
+  L7_uint32      channelBandwidth;
+  L7_uint32      ptin_port;
+  L7_RC_t        rc;
+  
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, groupAddr, sourceAddr);
+
+  if (portId == 0)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_SUCCESS;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_FAILURE;
+  }
+
+  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+
+  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+  channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
+  ptin_timer_stop(60);
+
+  if (ptin_debug_igmp_snooping)
+  {   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+  }
+
+  ptin_timer_start(64,"ptin_igmp_port_resources_allocate");
+  rc = ptin_igmp_port_resources_allocate(ptin_port, channelBandwidth);
+  ptin_timer_stop(64);
+
+  return rc;
+}
+
+unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
+{
+  L7_inet_addr_t inetGroupAddr;
+  L7_uint32      channelBandwidth;
+  L7_uint32      ptin_port;
+  L7_RC_t        rc;
+  
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, groupAddr, sourceAddr);
+
+  if (portId == 0)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_SUCCESS;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_FAILURE;
+  }
+
+  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+
+  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+  channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
+  ptin_timer_stop(60);
+
+  if (ptin_debug_igmp_snooping)
+  {   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+  }
+
+  ptin_timer_start(67,"ptin_igmp_port_resources_release");
+  rc = ptin_igmp_port_resources_release(ptin_port, channelBandwidth);
+  ptin_timer_stop(67);
+
+  return rc;
+}
+
+unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
+{
+  L7_inet_addr_t inetGroupAddr;
+  L7_uint32      channelBandwidth;
+  L7_uint32      ptin_port;
+  L7_RC_t        rc;
+
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, clientId, groupAddr, sourceAddr);
+  
+  if (portId == 0 || clientId == (L7_uint32) -1)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_TRUE;
+  }
+
+  if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FALSE;
   }
-#endif
 
+  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+
+  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+  channelBandwidth = ptin_igmp_channel_bandwidth_get(&inetGroupAddr);
+  ptin_timer_stop(60);
+
+  if (ptin_debug_igmp_snooping)
+  {   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+  }
+  
   ptin_timer_start(62,"ptin_igmp_multicast_service_resources_available");
   rc = ptin_igmp_multicast_service_resources_available(ptin_port, clientId,serviceId,channelBandwidth);
   ptin_timer_stop(62);
@@ -515,8 +627,17 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, clientId, groupAddr, sourceAddr);
+
+  if (portId == 0 || clientId == (L7_uint32) -1)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_SUCCESS;
+  }
+
   if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
   }
 
@@ -531,16 +652,6 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
 
-#if 0
-  ptin_timer_start(64,"ptin_igmp_port_resources_allocate");
-  rc = ptin_igmp_port_resources_allocate(ptin_port, channelBandwidth);
-  ptin_timer_stop(64);
-
-  if (rc != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
-#endif
   ptin_timer_start(65,"ptin_igmp_multicast_service_resources_allocate");
   rc = ptin_igmp_multicast_service_resources_allocate(ptin_port, clientId,serviceId,channelBandwidth);
   ptin_timer_stop(65);
@@ -563,8 +674,17 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, clientId, groupAddr, sourceAddr);
+
+  if (portId == 0 || clientId == (L7_uint32) -1)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+    return L7_SUCCESS;
+  }
+
   if (L7_SUCCESS != ptin_intf_intIfNum2port(portId, &ptin_port))
   {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
   }
 
@@ -578,17 +698,6 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   {   
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
-
-#if 0
-  ptin_timer_start(67,"ptin_igmp_port_resources_release");
-  rc = ptin_igmp_port_resources_release(ptin_port, channelBandwidth);
-  ptin_timer_stop(67);
-
-  if (rc != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
-#endif
 
   ptin_timer_start(68,"ptin_igmp_multicast_service_resources_release");
   rc = ptin_igmp_multicast_service_resources_release(ptin_port, clientId,serviceId,channelBandwidth);
