@@ -2120,24 +2120,24 @@ L7_RC_t hapiBroadTrVlMmuModify(L7_uint32 unit)
 
 /* PTin added */
 #if 1
+/***************************************************************************
+ * For Helix4 and Triumph3 it is necessary to add "mmu_lossless=0" variable.
+ * For Trident, it is necessary to initialize these registers:
+ * modreg PORT_MIN_CELL PORT_MIN=46080
+ * modreg PORT_MIN_PG_ENABLE PG_BMP=0x80
+ * setreg OP_VOQ_PORT_CONFIG 0xff
+ ***************************************************************************/
 L7_RC_t hapiBroadTridentMmuModify(L7_uint32 unit)
 {
-    uint64              rval64;
-    uint32              rval, rval0, rval1, cell_rval, pkt_rval;
-    uint32              cell_rval_cpu,pkt_rval_cpu,field_max;
+    uint32              cell_rval;
+    uint32              field_max;
     int                 port;
     int                 total_cells, total_pkts;
     int                 in_reserved_cells, in_reserved_pkts;
     int                 out_reserved_cells, out_reserved_pkts;
-    int                 out_shared_cells, out_shared_pkts;
-    int                 idx;
     int                 triumph2_family;
-    soc_pbmp_t          pbmp_8pg, pbmp_2pg, temp;
 
     int cpu_port = CMIC_PORT(unit);
-
-    /* used for cpu, doesn't need to be exact with regard to loopback/wlan */
-    int                 num_ports = NUM_ALL_PORT(unit);
 
     hapiBroadMmuCellLimits(unit, &total_cells, &total_pkts, &in_reserved_cells, 
                            &in_reserved_pkts, &out_reserved_cells, &out_reserved_pkts);
@@ -2147,596 +2147,28 @@ L7_RC_t hapiBroadTridentMmuModify(L7_uint32 unit)
     triumph2_family = SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
                       SOC_IS_TRIUMPH3(unit) || SOC_IS_TRIDENT(unit);
 
-    /* Ports with 8PG (1PG for other ports) */
-    SOC_PBMP_CLEAR(pbmp_2pg);
-    SOC_PBMP_CLEAR(pbmp_8pg);
-    if (triumph2_family) {
-        /* 8PG_PORTS = [26..30,34,38,42,46,50,54] */
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 26);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 27);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 28);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 29);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 30); 
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 34);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 38);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 42);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 46);
-        SOC_PBMP_PORT_ADD(pbmp_8pg, 50);
-        if (soc_feature(unit, soc_feature_internal_loopback)) {
-            SOC_PBMP_PORT_ADD(pbmp_8pg, 54);
-        }
-        /* 2PG_PORTS = [0,1..25,31..33,35..37,39..41,43..45,47..49,51..53,55,56] */
-        SOC_PBMP_ASSIGN(pbmp_2pg, PBMP_ALL(unit));
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 26);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 27);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 28);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 29);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 30); 
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 34);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 38);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 42);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 46);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 50);
-        SOC_PBMP_PORT_REMOVE(pbmp_2pg, 54);
-        if (soc_feature(unit, soc_feature_internal_loopback)) {
-            if (soc_feature(unit, soc_feature_wlan)) {
-                SOC_PBMP_PORT_ADD(pbmp_2pg, 55);
-            }
-            SOC_PBMP_PORT_ADD(pbmp_2pg, 56);
-        }        
-    } else { /* Not Triumph2 */
-      SOC_PBMP_WORD_SET(pbmp_8pg, 0, 0xfc004004); /* 2, 14, 26-31 */
-    }
-    SOC_PBMP_AND(pbmp_8pg, PBMP_ALL(unit));
-
     /*
      * Input ports threshold
      */
     /* Reserved space: Input port per-port minimum */
     cell_rval = 0;
-    soc_reg_field_set(unit, PORT_MIN_CELLr, &cell_rval, PORT_MINf,
-                      TR_MMU_IN_PORT_MIN_CELLS);
-    pkt_rval = 0;
-    //soc_reg_field_set(unit, PORT_MIN_PACKETr, &pkt_rval, PORT_MINf,
-    //                  TR_MMU_IN_PORT_MIN_PKTS);
-
+    soc_reg_field_set(unit, PORT_MIN_CELLr, &cell_rval, PORT_MINf, 46080);
 
     PBMP_PORT_ITER(unit, port) {
-    //PBMP_ALL_ITER(unit, port) {
         SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, port, cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_PACKETr(unit, port, pkt_rval));
     }
 
+    LOG_INFO(LOG_CTX_MISC, "PORT_MIN_CELL value applied to all ports: %u", cell_rval);
 
     /* handle the cpu backpressure issue */
     /* set the cpu port_min to the max so no bp is allowed on cpu */
-    cell_rval_cpu = 0;
-    pkt_rval_cpu = 0;
+    cell_rval = 0;
 
     field_max = ( 1 << soc_reg_field_length(unit,PORT_MIN_CELLr,PORT_MINf)) - 1;
-    soc_reg_field_set(unit, PORT_MIN_CELLr, &cell_rval_cpu, PORT_MINf,field_max);
-    SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, cpu_port, cell_rval_cpu));
+    soc_reg_field_set(unit, PORT_MIN_CELLr, &cell_rval, PORT_MINf,field_max);
+    SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, cpu_port, cell_rval));
 
-//  field_max = ( 1 << soc_reg_field_length(unit,PORT_MIN_PACKETr,PORT_MINf)) - 1;
-//  soc_reg_field_set(unit, PORT_MIN_PACKETr, &pkt_rval_cpu, PORT_MINf,field_max);
-//  SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_PACKETr(unit, cpu_port, pkt_rval_cpu));
-
-    /* static memory and the entire space for the cpu */
-    cell_rval_cpu = 0;
-    pkt_rval_cpu = 0;
-
-//  field_max = ( 1 << soc_reg_field_length(unit,PORT_SHARED_LIMIT_CELLr,PORT_SHARED_LIMITf)) - 1;
-//  soc_reg_field_set(unit, PORT_SHARED_LIMIT_CELLr, &cell_rval_cpu,PORT_SHARED_LIMITf, field_max);
-//  soc_reg_field_set(unit, PORT_SHARED_LIMIT_CELLr, &cell_rval_cpu, PORT_SHARED_DYNAMICf, 0);
-//  SOC_IF_ERROR_RETURN(WRITE_PORT_SHARED_LIMIT_CELLr(unit, cpu_port, cell_rval_cpu));
-
-//  field_max = ( 1 << soc_reg_field_length(unit,PORT_SHARED_LIMIT_PACKETr,PORT_SHARED_LIMITf)) - 1;
-//  soc_reg_field_set(unit, PORT_SHARED_LIMIT_PACKETr, &pkt_rval_cpu, PORT_SHARED_LIMITf, field_max);
-//  soc_reg_field_set(unit, PORT_SHARED_LIMIT_PACKETr, &pkt_rval_cpu, PORT_SHARED_DYNAMICf, 0);
-//  SOC_IF_ERROR_RETURN(WRITE_PORT_SHARED_LIMIT_PACKETr(unit, cpu_port, pkt_rval_cpu));
-
-    /* Deal with loopback / wlan ports. */
-    if (soc_feature(unit, soc_feature_internal_loopback)) {
-        /* Redirect port */
-        SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, 56, cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_PACKETr(unit, 56, pkt_rval));
-        rval = 0;
-//      soc_reg_field_set(unit, RDE_PORT_SHARED_LIMIT_PACKETr, &rval,
-//                        PORT_SHARED_LIMITf, 1024);
-//      SOC_IF_ERROR_RETURN(WRITE_RDE_PORT_SHARED_LIMIT_PACKETr(unit, rval));
-        rval = 0;
-        soc_reg_field_set(unit, PG_RDE_RESET_OFFSET_PACKETr, &rval, 
-                          PG_RESET_OFFSETf, 4);
-        SOC_IF_ERROR_RETURN(WRITE_PG_RDE_RESET_OFFSET_PACKETr(unit, 0, rval));
-        SOC_IF_ERROR_RETURN(WRITE_PG_RDE_RESET_OFFSET_PACKETr(unit, 1, rval));
-        rval = 0;
-        soc_reg_field_set(unit, PG_RDE_THRESH_SEL2r, &rval, 
-                          PG0_THRESH_SELf, 8);
-        SOC_IF_ERROR_RETURN(WRITE_PG_RDE_THRESH_SEL2r(unit, rval));
-        /* PG_RDE_MIN_PACKET = 0 : default */
-        /* WLAN port */
-        if (soc_feature(unit, soc_feature_wlan)) {
-            SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_CELLr(unit, 55, cell_rval));
-//          SOC_IF_ERROR_RETURN(WRITE_PORT_MIN_PACKETr(unit, 55, pkt_rval));
-            rval = 0;
-//          soc_reg_field_set(unit, WL_PORT_SHARED_LIMIT_CELLr, &rval,
-//                            PORT_SHARED_LIMITf, 8192);
-//          SOC_IF_ERROR_RETURN(WRITE_WL_PORT_SHARED_LIMIT_CELLr(unit, rval));
-            rval = 0;
-//          soc_reg_field_set(unit, WL_PORT_SHARED_LIMIT_PACKETr, &rval,
-//                            PORT_SHARED_LIMITf, 2048);
-//          SOC_IF_ERROR_RETURN(WRITE_WL_PORT_SHARED_LIMIT_PACKETr(unit, rval));
-            rval = 0;
-            soc_reg_field_set(unit, PG_WL_RESET_OFFSET_CELLr, &rval, 
-                              PG_RESET_OFFSETf, 4);
-            SOC_IF_ERROR_RETURN(WRITE_PG_WL_RESET_OFFSET_CELLr(unit, 0, rval));
-            SOC_IF_ERROR_RETURN(WRITE_PG_WL_RESET_OFFSET_CELLr(unit, 1, rval));
-            rval = 0;
-            soc_reg_field_set(unit, PG_WL_RESET_OFFSET_PACKETr, &rval, 
-                              PG_RESET_OFFSETf, 4);
-            SOC_IF_ERROR_RETURN
-                (WRITE_PG_WL_RESET_OFFSET_PACKETr(unit, 0, rval));
-            SOC_IF_ERROR_RETURN
-                (WRITE_PG_WL_RESET_OFFSET_PACKETr(unit, 1, rval));
-            rval = 0;
-            soc_reg_field_set(unit, WL_DROP_POLICYr, &rval, 
-                              DROP_PG0_1ST_FRAGMENTf, 1);
-            soc_reg_field_set(unit, WL_DROP_POLICYr, &rval, 
-                              DROP_PG0_ANY_FRAGMENTf, 1);
-            soc_reg_field_set(unit, WL_DROP_POLICYr, &rval, 
-                              DROP_PG0_NON_FRAGMENTf, 1);
-            SOC_IF_ERROR_RETURN(WRITE_WL_DROP_POLICYr(unit, rval));
-        }
-    }
-
-    /* Reserved space: Input port per-PG minimum
-     * Use defalt value 0
-     * With only one PG in use PORT_MIN should be sufficient */
-
-    /* PG_WL_RESET_FLOOR_CELL, PG_WL_MIN_CELL and PG_WL_MIN_PACKET 
-     * are zeroes (default) */
-
-    /* Reserved space: Input port per-PG headroom
-     * Use only 1PG (highest priority PG for the port) */
-    cell_rval = 0;
-    soc_reg_field_set(unit, PG_HDRM_LIMIT_CELLr, &cell_rval, PG_HDRM_LIMITf,
-                      TR_MMU_PG_HDRM_LIMIT_CELLS);
-    soc_reg_field_set(unit, PG_HDRM_LIMIT_CELLr, &cell_rval, PG_GEf, 1);
-    pkt_rval = 0;
-//  soc_reg_field_set(unit, PG_HDRM_LIMIT_PACKETr, &pkt_rval, PG_HDRM_LIMITf,
-//                    TR_MMU_PG_HDRM_LIMIT_PKTS);
-    PBMP_PORT_ITER(unit, port) {
-      if (SOC_PBMP_MEMBER(pbmp_8pg, port)) {
-	idx = TR_MMU_NUM_PG - 1;
-      } else if (SOC_PBMP_MEMBER(pbmp_2pg, port)) {
-	idx = 1;
-      } else {
-	idx = 0;
-      }
-        SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_CELLr(unit, port, idx,
-                                                      cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_PACKETr(unit, port, idx,
-//                                                      pkt_rval));
-    }
-    if (soc_feature(unit, soc_feature_internal_loopback)) {
-        /* Loopback ingress */
-        idx = TR_MMU_NUM_PG - 1;
-        SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_CELLr(unit, 54, idx,
-                                                      cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_PACKETr(unit, 54, idx,
-//                                                      pkt_rval));
-        /* EP redirection */
-        SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_CELLr(unit, 56, 1,
-                                                      cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_PACKETr(unit, 56, 1,
-//                                                      pkt_rval));
-        /* WLAN */
-        if (soc_feature(unit, soc_feature_wlan)) {
-            SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_CELLr(unit, 55, 1,
-                                                          cell_rval));
-//          SOC_IF_ERROR_RETURN(WRITE_PG_HDRM_LIMIT_PACKETr(unit, 55, 1,
-//                                                          pkt_rval));
-        }
-    }
-
-    /* Reserved space: Input port per-device headroom */
-    cell_rval = 0;
-    soc_reg_field_set(unit, GLOBAL_HDRM_LIMITr, &cell_rval, GLOBAL_HDRM_LIMITf,
-                      TR_MMU_GLOBAL_HDRM_LIMIT_CELLS);
-    SOC_IF_ERROR_RETURN(WRITE_GLOBAL_HDRM_LIMITr(unit, cell_rval));
-
-    /* Global and port shared limits set in hapiBroadMmuTriumphPauseSet() */
-
-    /* Input port per-PG reset offset
-     * Use only 1PG (highest priority PG for the port)
-     * Use default value 0 for CPU */
-    cell_rval = 0;
-    soc_reg_field_set(unit, PG_RESET_OFFSET_CELLr, &cell_rval,
-                      PG_RESET_OFFSETf, TR_MMU_PG_RESET_OFFSET_CELLS);
-    pkt_rval = 0;
-//  soc_reg_field_set(unit, PG_RESET_OFFSET_PACKETr, &pkt_rval,
-//                    PG_RESET_OFFSETf, TR_MMU_PG_RESET_OFFSET_PKTS);
-    PBMP_PORT_ITER(unit, port) {
-        idx = SOC_PBMP_MEMBER(pbmp_8pg, port) ? TR_MMU_NUM_PG - 1 : 0;
-        if ((idx == 0) && triumph2_family) {
-            idx = 1;
-        }
-        SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_CELLr(unit, port, idx,
-                                                        cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_PACKETr(unit, port, idx,
-//                                                        pkt_rval));
-    }
-    if (soc_feature(unit, soc_feature_internal_loopback)) {
-        /* Loopback ingress */
-        idx = TR_MMU_NUM_PG - 1;
-        SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_CELLr(unit, 54, idx,
-                                                        cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_PACKETr(unit, 54, idx,
-//                                                        pkt_rval));
-        /* EP redirection */
-        SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_CELLr(unit, 56, 1,
-                                                        cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_PACKETr(unit, 56, 1,
-//                                                        pkt_rval));
-        /* WLAN */
-        if (soc_feature(unit, soc_feature_wlan)) {
-            SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_CELLr(unit, 55, 1,
-                                                            cell_rval));
-//          SOC_IF_ERROR_RETURN(WRITE_PG_RESET_OFFSET_PACKETr(unit, 55, 1,
-//                                                            pkt_rval));
-        }
-    }
-
-    /* Input port per-PG reset floor (cell). Use default value 0 */
-
-    /* Reserved space: Input port per-port minimum for SC and QM traffic
-     * Use default value 0 */
-
-    /* Input port priority XON disable */
-
-    /* Input port max packet size in cells */
-    rval0 = 0;
-    soc_reg_field_set(unit, PORT_MAX_PKT_SIZEr, &rval0, PORT_MAX_PKT_SIZEf,
-                      TR_MMU_JUMBO_FRAME_CELLS);
-    PBMP_PORT_ITER(unit, port) {
-    //PBMP_ALL_ITER(unit, port) {
-        SOC_IF_ERROR_RETURN(WRITE_PORT_MAX_PKT_SIZEr(unit, port, rval0));
-    }
-    if (soc_feature(unit, soc_feature_wlan)) {
-        SOC_IF_ERROR_RETURN(WRITE_PORT_MAX_PKT_SIZEr(unit, 55, rval0));
-    }
-
-    /* Input port per-PG threshold */
-//  rval0 = 0;
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG0_THRESH_SELf, 0x8);
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG1_THRESH_SELf, 0x8);
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG2_THRESH_SELf, 0x8);
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG3_THRESH_SELf, 0x8);
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG4_THRESH_SELf, 0x8);
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG5_THRESH_SELf, 0x8);
-//  soc_reg_field_set(unit, PG_THRESH_SELr, &rval0, PG6_THRESH_SELf, 0x8);
-//  PBMP_ITER(pbmp_8pg, port) {
-//      SOC_IF_ERROR_RETURN(WRITE_PG_THRESH_SELr(unit, port, rval0));
-//  }
-//  if (triumph2_family) {
-//      rval0 = 0;
-//      soc_reg_field_set(unit, PG_THRESH_SEL2r, &rval0, PG0_THRESH_SELf, 0x8);
-//      PBMP_ITER(pbmp_2pg, port) {
-//          SOC_IF_ERROR_RETURN(WRITE_PG_THRESH_SEL2r(unit, port, rval0));
-//      }
-//  }
-
-    idx = TR_MMU_NUM_PG - 1;
-    rval0 = 0;
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI0_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI1_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI2_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI3_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI4_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI5_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI6_GRPf, idx);
-    rval1 = 0;
-    if (triumph2_family) {
-        soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval0, PRI7_GRPf, idx);
-        soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI14_GRPf, idx);
-        soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI15_GRPf, idx);
-    } else {
-        soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI7_GRPf, idx);
-    }
-#if 1
-    soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI8_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI9_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI10_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI11_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI12_GRPf, idx);
-    soc_reg_field_set(unit, PORT_PRI_GRP1r, &rval1, PRI13_GRPf, idx);
-    PBMP_ITER(pbmp_8pg, port) {
-        SOC_IF_ERROR_RETURN(WRITE_PORT_PRI_GRP0r(unit, port, rval0));
-        SOC_IF_ERROR_RETURN(WRITE_PORT_PRI_GRP1r(unit, port, rval1));
-    }
-#endif
-    if (triumph2_family) {
-      rval0 = 0xffff; /* 16 priorities, all in PG 1 */
-      PBMP_ITER(pbmp_2pg, port) {
-	//SOC_IF_ERROR_RETURN(WRITE_PORT_PRI_GRP2r(unit, port, rval0));
-      }
-    }
-
-    /* Input port pause enable */
-//  COMPILER_64_ZERO(rval64);
-//  soc_reg64_field32_set(unit, PORT_PAUSE_ENABLE_64r, &rval64,
-//      PORT_PAUSE_ENABLE_LOf,
-//      SOC_PBMP_WORD_GET(PBMP_ALL(unit), 0));
-//  soc_reg64_field32_set(unit, PORT_PAUSE_ENABLE_64r, &rval64,
-//      PORT_PAUSE_ENABLE_HIf,
-//      SOC_PBMP_WORD_GET(PBMP_ALL(unit), 1));
-//  SOC_IF_ERROR_RETURN(WRITE_PORT_PAUSE_ENABLE_64r(unit, rval64));
-
-    /* PO_QUEUE_CONfIG_CELL/PACKET handled by hapiBroadMmuTriumphPauseSet() */
-
-    if (soc_feature(unit, soc_feature_internal_loopback)) {
-        /* EP redirection */
-        pkt_rval = 0;
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_XQ_CONFIG_PACKETr, &pkt_rval, 
-                          Q_MIN_PACKETf, TR_MMU_OUT_PORT_MIN_PKTS);
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_XQ_CONFIG_PACKETr, &pkt_rval,
-                          Q_LIMIT_DYNAMIC_PACKETf, 0x1);
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_XQ_CONFIG_PACKETr, &pkt_rval,
-                          Q_SHARED_ALPHA_PACKETf, TR_MMU_OUT_QUEUE_PKT_ALPHA_IDX); 
-        rval = 0;
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_CONFIG_PACKETr, &rval, 
-                          Q_MIN_PACKETf, TR_MMU_OUT_PORT_MIN_PKTS);
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_CONFIG_PACKETr, &rval,
-                          Q_LIMIT_DYNAMIC_PACKETf, 0x1);
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_CONFIG_PACKETr, &rval,
-                          Q_SHARED_ALPHA_PACKETf, TR_MMU_OUT_QUEUE_PKT_ALPHA_IDX);
-        cell_rval = 0;
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_CONFIG_CELLr, &cell_rval, 
-                          Q_MIN_CELLf, TR_MMU_OUT_PORT_MIN_CELLS);
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_CONFIG_CELLr, &cell_rval,
-                          Q_LIMIT_DYNAMIC_CELLf, 0x1);
-        soc_reg_field_set(unit, OP_QUEUE_REDIRECT_CONFIG_CELLr, &cell_rval,
-                          Q_SHARED_ALPHA_CELLf, TR_MMU_OUT_QUEUE_PKT_ALPHA_IDX); 
-
-        for (idx = 0; idx < TR_MMU_NUM_COS; idx++) {
-            SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_REDIRECT_XQ_CONFIG_PACKETr
-                                (unit, 54, idx, pkt_rval));
-            SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_REDIRECT_CONFIG_PACKETr
-                                (unit, 54, idx, rval));
-            SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_REDIRECT_CONFIG_CELLr
-                                (unit, 54, idx, cell_rval));
-        }
-        /* WLAN */
-        if (soc_feature(unit, soc_feature_wlan)) {
-            /* Max out (disable) first fragment shared limits */
-            cell_rval = (1 << soc_reg_field_length(unit, 
-                         OP_QUEUE_FIRST_FRAGMENT_CONFIG_CELLr, 
-                         Q_SHARED_LIMIT_CELLf)) - 1;
-            pkt_rval = (1 << soc_reg_field_length(unit, 
-                        OP_QUEUE_FIRST_FRAGMENT_CONFIG_PACKETr, 
-                        Q_SHARED_LIMIT_PACKETf)) - 1;
-            for (idx = 0; idx < TR_MMU_NUM_COS; idx++) {
-                SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_FIRST_FRAGMENT_CONFIG_PACKETr
-                                    (unit, 54, idx, pkt_rval));
-                SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_FIRST_FRAGMENT_CONFIG_CELLr
-                                    (unit, 54, idx, cell_rval));
-            }
-        }
-    }
-
-    /* Addition to SDK default: Set up custom output limits for CPU port */
-    port = CMIC_PORT(unit);
-
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_QUEUE_CONFIG_CELLr, &cell_rval, Q_MIN_CELLf, TR_MMU_OUT_QUEUE_CELL_CPU_MIN_CELL);
-    soc_reg_field_set(unit, OP_QUEUE_CONFIG_CELLr, &cell_rval, Q_SHARED_LIMIT_CELLf, TR_MMU_OUT_QUEUE_CELL_CPU_MIN_CELL/2);
-//  soc_reg_field_set(unit, OP_QUEUE_CONFIG_CELLr, &cell_rval, Q_LIMIT_ENABLE_CELLf, TR_MMU_OUT_QUEUE_CELL_CPU_LIMIT_ENABLE);
-//  soc_reg_field_set(unit, OP_QUEUE_CONFIG_CELLr, &cell_rval, Q_LIMIT_DYNAMIC_CELLf,TR_MMU_OUT_QUEUE_CELL_CPU_LIMIT_DYNAMIC);
-
-    pkt_rval = 0;
-//  soc_reg_field_set(unit, OP_QUEUE_CONFIG_PACKETr, &pkt_rval, Q_MIN_PACKETf, TR_MMU_OUT_QUEUE_PKT_CPU_MIN_PKT);
-//  soc_reg_field_set(unit, OP_QUEUE_CONFIG_PACKETr, &pkt_rval, Q_SHARED_LIMIT_PACKETf, TR_MMU_OUT_QUEUE_PKT_CPU_MIN_PKT/2);
-//  soc_reg_field_set(unit, OP_QUEUE_CONFIG_PACKETr, &pkt_rval, Q_LIMIT_ENABLE_PACKETf, TR_MMU_OUT_QUEUE_PKT_CPU_LIMIT_ENABLE);
-//  soc_reg_field_set(unit, OP_QUEUE_CONFIG_PACKETr, &pkt_rval, Q_LIMIT_DYNAMIC_PACKETf,TR_MMU_OUT_QUEUE_PKT_CPU_LIMIT_DYNAMIC);
-
-    for (idx = 0; idx < TR_MMU_NUM_COS; idx++) {
-      SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_CONFIG_CELLr(unit, port, idx, cell_rval));
-//    SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_CONFIG_PACKETr(unit, port, idx, pkt_rval));
-    }
-    /* End CPU port output buffering customization */
-
-    /* Output port per-port per-COS reset offset */
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_QUEUE_RESET_OFFSET_CELLr, &cell_rval,
-                      Q_RESET_OFFSET_CELLf, TR_MMU_OUT_RESET_OFFSET_CELLS);
-    pkt_rval = 0;
-//  soc_reg_field_set(unit, OP_QUEUE_RESET_OFFSET_PACKETr, &pkt_rval,
-//                    Q_RESET_OFFSET_PACKETf, TR_MMU_OUT_RESET_OFFSET_PKTS);
-    PBMP_PORT_ITER(unit, port) {
-    //PBMP_ALL_ITER(unit, port) {
-        for (idx = 0; idx < TR_MMU_NUM_COS; idx++) {
-            SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_RESET_OFFSET_CELLr(unit, port,
-                                                                  idx,
-                                                                  cell_rval));
-//          SOC_IF_ERROR_RETURN(WRITE_OP_QUEUE_RESET_OFFSET_PACKETr(unit, port,
-//                                                                  idx,
-//                                                                  pkt_rval));
-        }
-    }
-
-    out_shared_cells = total_cells - out_reserved_cells;
-    out_shared_pkts = total_pkts - out_reserved_pkts;
-
-    /* Output port per-device shared */
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_BUFFER_SHARED_LIMIT_CELLr, &cell_rval,
-                      OP_BUFFER_SHARED_LIMIT_CELLf, out_shared_cells - num_ports);
-    SOC_IF_ERROR_RETURN(WRITE_OP_BUFFER_SHARED_LIMIT_CELLr(unit, cell_rval));
-    pkt_rval = 0;
-#if 0
-    soc_reg_field_set(unit, OP_BUFFER_SHARED_LIMIT_PACKETr, &pkt_rval,
-                      OP_BUFFER_SHARED_LIMIT_PACKETf, out_shared_pkts - num_ports);
-    SOC_IF_ERROR_RETURN(WRITE_OP_BUFFER_SHARED_LIMIT_PACKETr(unit, pkt_rval));
-#endif
-
-    /* Output port per-device shared for YELLOW traffic */
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_BUFFER_LIMIT_YELLOW_CELLr, &cell_rval,
-                      OP_BUFFER_LIMIT_YELLOW_CELLf, out_shared_cells >> 3);
-    SOC_IF_ERROR_RETURN(WRITE_OP_BUFFER_LIMIT_YELLOW_CELLr(unit, cell_rval));
-    pkt_rval = 0;
-#if 0
-    soc_reg_field_set(unit, OP_BUFFER_LIMIT_YELLOW_PACKETr, &pkt_rval,
-                      OP_BUFFER_LIMIT_YELLOW_PACKETf, out_shared_pkts >> 3);
-    SOC_IF_ERROR_RETURN(WRITE_OP_BUFFER_LIMIT_YELLOW_PACKETr(unit, pkt_rval));
-#endif
-
-    /* Output port per-device shared for RED traffic */
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_BUFFER_LIMIT_RED_CELLr, &cell_rval,
-                      OP_BUFFER_LIMIT_RED_CELLf, out_shared_cells >> 3);
-    SOC_IF_ERROR_RETURN(WRITE_OP_BUFFER_LIMIT_RED_CELLr(unit, cell_rval));
-    pkt_rval = 0;
-#if 0
-    soc_reg_field_set(unit, OP_BUFFER_LIMIT_RED_PACKETr, &pkt_rval,
-                      OP_BUFFER_LIMIT_RED_PACKETf, out_shared_pkts >> 3);
-    SOC_IF_ERROR_RETURN(WRITE_OP_BUFFER_LIMIT_RED_PACKETr(unit, pkt_rval));
-#endif
-
-    /*
-     * Output port per-port shared
-     * Limit check disabled, however still keep code as reference
-     * OP_SHARED_LIMIT set to 3/4 of total shared space
-     * OP_SHARED_RESET_VALUE set to 1/2 of total shared space
-     */
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_PORT_CONFIG_CELLr, &cell_rval,
-                      OP_SHARED_LIMIT_CELLf, out_shared_cells * 3 / 4);
-    soc_reg_field_set(unit, OP_PORT_CONFIG_CELLr, &cell_rval,
-                      OP_SHARED_RESET_VALUE_CELLf, out_shared_cells / 2);
-//  soc_reg_field_set(unit, OP_PORT_CONFIG_CELLr, &cell_rval,
-//                    PORT_LIMIT_ENABLE_CELLf, 0);
-    pkt_rval = 0;
-#if 0
-    soc_reg_field_set(unit, OP_PORT_CONFIG_PACKETr, &pkt_rval,
-                      OP_SHARED_LIMIT_PACKETf, out_shared_pkts * 3 / 4);
-    soc_reg_field_set(unit, OP_PORT_CONFIG_PACKETr, &pkt_rval,
-                      OP_SHARED_RESET_VALUE_PACKETf, out_shared_pkts / 2);
-    soc_reg_field_set(unit, OP_PORT_CONFIG_PACKETr, &pkt_rval,
-                      PORT_LIMIT_ENABLE_PACKETf, 0);
-#endif
-    PBMP_PORT_ITER(unit, port) {
-    //PBMP_ALL_ITER(unit, port) {
-        SOC_IF_ERROR_RETURN(WRITE_OP_PORT_CONFIG_CELLr(unit, port, cell_rval));
-#if 0
-        SOC_IF_ERROR_RETURN(WRITE_OP_PORT_CONFIG_PACKETr(unit, port,
-                                                         pkt_rval));
-#endif
-    }
-
-/* CPU output port modifications */
-    port = CMIC_PORT(unit);
-
-
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_PORT_CONFIG_CELLr, &cell_rval,
-                      OP_SHARED_LIMIT_CELLf, TR_MMU_OUT_PORT_CPU_CELL_SHARED_LIMIT);
-    soc_reg_field_set(unit, OP_PORT_CONFIG_CELLr, &cell_rval,
-                      OP_SHARED_RESET_VALUE_CELLf, TR_MMU_OUT_PORT_CPU_CELL_SHARED_LIMIT/2);
-//  soc_reg_field_set(unit, OP_PORT_CONFIG_CELLr, &cell_rval,
-//                    PORT_LIMIT_ENABLE_CELLf, TR_MMU_OUT_PORT_CPU_CELL_SHARED_ENABLE);
-
-    pkt_rval = 0;
-#if 0
-    soc_reg_field_set(unit, OP_PORT_CONFIG_PACKETr, &pkt_rval,
-                      OP_SHARED_LIMIT_PACKETf, TR_MMU_OUT_PORT_CPU_PKT_SHARED_LIMIT);
-    soc_reg_field_set(unit, OP_PORT_CONFIG_PACKETr, &pkt_rval,
-                      OP_SHARED_RESET_VALUE_PACKETf,TR_MMU_OUT_PORT_CPU_PKT_SHARED_LIMIT/2 );
-    soc_reg_field_set(unit, OP_PORT_CONFIG_PACKETr, &pkt_rval,
-                      PORT_LIMIT_ENABLE_PACKETf, TR_MMU_OUT_PORT_CPU_PKT_SHARED_ENABLE);
-#endif
-
-    SOC_IF_ERROR_RETURN(WRITE_OP_PORT_CONFIG_CELLr(unit, port, cell_rval));
-#if 0
-    SOC_IF_ERROR_RETURN(WRITE_OP_PORT_CONFIG_PACKETr(unit, port, pkt_rval));
-#endif
-
-    /* Output port per-port shared for YELLOW traffic */
-//  cell_rval = 0;
-//  soc_reg_field_set(unit, OP_PORT_LIMIT_YELLOW_CELLr, &cell_rval,
-//                    OP_PORT_LIMIT_YELLOW_CELLf,
-//                    (out_shared_cells * 3 / 4) >> 3);
-//  pkt_rval = 0;
-//  soc_reg_field_set(unit, OP_PORT_LIMIT_YELLOW_PACKETr, &pkt_rval,
-//                    OP_PORT_LIMIT_YELLOW_PACKETf,
-//                    (out_shared_pkts * 3 / 4) >> 3);
-//  PBMP_PORT_ITER(unit, port) {
-    //PBMP_ALL_ITER(unit, port) {
-//      SOC_IF_ERROR_RETURN(WRITE_OP_PORT_LIMIT_YELLOW_CELLr(unit, port,
-//                                                           cell_rval));
-//      SOC_IF_ERROR_RETURN(WRITE_OP_PORT_LIMIT_YELLOW_PACKETr(unit, port,
-//                                                             pkt_rval));
-//  }
-
-    /* Output port per-port shared for RED traffic */
-#if 0
-    cell_rval = 0;
-    soc_reg_field_set(unit, OP_PORT_LIMIT_RED_CELLr, &cell_rval,
-                      OP_PORT_LIMIT_RED_CELLf,
-                      (out_shared_cells * 3 / 4) >> 3);
-    pkt_rval = 0;
-//  soc_reg_field_set(unit, OP_PORT_LIMIT_RED_PACKETr, &pkt_rval,
-//                    OP_PORT_LIMIT_RED_PACKETf,
-//                    (out_shared_pkts * 3 / 4) >> 3);
-    PBMP_PORT_ITER(unit, port) {
-//  PBMP_ALL_ITER(unit, port) {
-    SOC_IF_ERROR_RETURN(WRITE_OP_PORT_LIMIT_RED_CELLr(unit, port,
-                                                      cell_rval));
-//  SOC_IF_ERROR_RETURN(WRITE_OP_PORT_LIMIT_RED_PACKETr(unit, port,
-//                                                      pkt_rval));
-}
-#endif
-    /* End CPU port modifications */
-
-    /* Output port configuration */
-    rval0 = 0;
-    soc_reg_field_set(unit, OP_THR_CONFIGr, &rval0,
-                      MOP_POLICYf, TR_MMU_MOP_POLICY);
-    soc_reg_field_set(unit, OP_THR_CONFIGr, &rval0,
-                      SOP_POLICYf, TR_MMU_SOP_POLICY);
-    SOC_IF_ERROR_RETURN(WRITE_OP_THR_CONFIGr(unit, rval0));
-
-    /* Input port enable */
-//  COMPILER_64_ZERO(rval64);
-//  soc_reg64_field32_set(unit, OUTPUT_PORT_RX_ENABLE_64r, &rval64,
-//      OUTPUT_PORT_RX_ENABLE_LOf,
-//      SOC_PBMP_WORD_GET(PBMP_ALL(unit), 0));
-//  soc_reg64_field32_set(unit, OUTPUT_PORT_RX_ENABLE_64r, &rval64,
-//      OUTPUT_PORT_RX_ENABLE_HIf,
-//      SOC_PBMP_WORD_GET(PBMP_ALL(unit), 1));
-//  SOC_IF_ERROR_RETURN(WRITE_OUTPUT_PORT_RX_ENABLE_64r(unit, rval64));
-
-    COMPILER_64_ZERO(rval64);
-    SOC_PBMP_CLEAR(temp);
-    SOC_PBMP_ASSIGN(temp, PBMP_ALL(unit));
-    if (triumph2_family) {
-      SOC_PBMP_OR(temp, PBMP_MMU(unit));
-    }
-//  soc_reg64_field32_set(unit, INPUT_PORT_RX_ENABLE_64r, &rval64,
-//      INPUT_PORT_RX_ENABLE_LOf,
-//      SOC_PBMP_WORD_GET(temp, 0));
-//  soc_reg64_field32_set(unit, INPUT_PORT_RX_ENABLE_64r, &rval64,
-//      INPUT_PORT_RX_ENABLE_HIf,
-//      SOC_PBMP_WORD_GET(temp, 1));
-//  SOC_IF_ERROR_RETURN(WRITE_INPUT_PORT_RX_ENABLE_64r(unit, rval64));
-
-#ifndef SAFC_DISABLED
-    SOC_IF_ERROR_RETURN(hapiBroadPgInit(unit,cosmap,sizeof(cosmap)/sizeof(pg_cosmap_t),
-                        pg_vals,sizeof(pg_vals)/sizeof(pg_vals_t)));
-#endif
-
-    /* set to the no pause first */
-    SOC_IF_ERROR_RETURN(hapiBroadMmuPauseSet(unit, 0));
+    LOG_INFO(LOG_CTX_MISC, "PORT_MIN_CELL value applied to CPU: %u", cell_rval);
 
     return SOC_E_NONE;
 }
@@ -4962,14 +4394,13 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   else if (SOC_IS_TRIDENT(unit))
   {
     // TODO
-    LOG_WARNING(LOG_CTX_MISC, "hapiBroadTridentMmuModify() is NOT IMPLEMENTED!");
-    //rc = hapiBroadTridentMmuModify(unit);
+    LOG_INFO(LOG_CTX_MISC, "hapiBroadTridentMmuModify() IMPLEMENTED!");
+    rc = hapiBroadTridentMmuModify(unit);
   }
   else if (SOC_IS_TRIUMPH3(unit))
   {
     // TODO
     LOG_WARNING(LOG_CTX_MISC, "hapiBroadTriumph3MmuModify() is NOT IMPLEMENTED!");
-    //rc = hapiBroadTridentMmuModify(unit);
   }
   /* PTin end */
 #endif /* TRIUMPH */
