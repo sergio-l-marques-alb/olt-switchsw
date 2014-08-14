@@ -1268,8 +1268,16 @@ typedef struct {
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
 } __attribute__((packed)) msg_IgmpClient_t;
 
-
 // Messages CCMSG_ETH_IGMP_ADMISSION_CONTROL
+
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID         0x01
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_INTF          0x02
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID         0x04
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_OUTER_VLAN    0x08
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_INNER_VLAN    0x10
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS  0x20
+#define PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH 0x40
+
 typedef struct {
   L7_uint8             SlotId;      
   L7_uint8             mask;         //Mask of fields to be considered                             
@@ -1280,7 +1288,7 @@ typedef struct {
   L7_uint16            inner_vlan;   //[mask=0x10] Inner vlan                                       
   L7_uint16            maxChannels;  //[mask=0x20] Maximum number of channels 
   L7_uint64            maxBandwidth; //[mask=0x40] Maximum bandwidth (bit/s)  
-} __attribute__((packed)) msg_IgmpAdmissionControl;
+} __attribute__((packed)) msg_IgmpAdmissionControl_t;
 
 /***************************************************** 
  * IGMP STATISTICS

@@ -124,6 +124,12 @@
                                                                  
 #define PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS                  PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH
 
+#if PTIN_BOARD_IS_ACTIVETH
+#define PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID 40
+#else                           
+#define PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID 8
+#endif
+
 #endif
 /**End IGMP Admission Control Feature**/ 
 
@@ -417,6 +423,23 @@ typedef enum
   PTIN_DIR_DOWNLINK,
   PTIN_DIR_BOTH,
 } ptin_dir_t;
+
+/**If IGMP Admission Control Feature is Enabled **/ 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+
+typedef struct {    
+  L7_uint32            serviceId;        
+  L7_uint32            ptin_port;    
+  L7_uint8             onuId;        
+  L7_uint8             mask;         //Mask of fields to be considered                             
+  L7_uint16            maxAllowedChannels;  //[mask=0x01] Maximum number of channels 
+  L7_uint64            maxAllowedBandwidth; //[mask=0x02] Maximum bandwidth (bit/s)  
+} ptin_igmp_admission_control_t;
+
+
+#endif
+/**End IGMP Admission Control Feature is Enabled **/ 
+
 
 /**
  * Initializes IGMP module
@@ -1307,6 +1330,19 @@ extern L7_RC_t igmp_intVlan_from_clientId_get(L7_uint ptin_port, L7_uint client_
  *  
  */
 RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7_uint16 maxAllowedChannels, L7_uint64 maxAllowedBandwidth);
+
+
+/**
+ * @purpose Set the Multicast Admission Control Parameters
+ * 
+ * @param igmpAdmissionControl 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_control_t *igmpAdmissionControl);
 
 /**
  * @purpose Get the bandwidth requested by a given 

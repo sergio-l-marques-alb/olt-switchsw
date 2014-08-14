@@ -783,7 +783,7 @@ L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input,
 *        control parameters on the interface, on the evc id, and
 *        on the igmp client
 */
-L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl *igmpAdmissionControl);
+L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *igmpAdmissionControl);
 
 /**
  * Applies IGMP Proxy configuration

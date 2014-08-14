@@ -2792,12 +2792,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IGMP_ADMISSION_CONTROL (0x%04X)", CCMSG_ETH_IGMP_ADMISSION_CONTROL);
 
-      CHECK_INFO_SIZE(msg_IgmpAdmissionControl);
+      CHECK_INFO_SIZE(msg_IgmpAdmissionControl_t);
 
-      msg_IgmpAdmissionControl *igmpAdmissionControl;
-      igmpAdmissionControl = (msg_IgmpAdmissionControl *) outbuffer->info;
+      msg_IgmpAdmissionControl_t *igmpAdmissionControl;
+      igmpAdmissionControl = (msg_IgmpAdmissionControl_t *) outbuffer->info;
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_IgmpAdmissionControl));
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_IgmpAdmissionControl_t));
 
       /* Execute command */
       rc = ptin_msg_igmp_admission_control_set(igmpAdmissionControl);

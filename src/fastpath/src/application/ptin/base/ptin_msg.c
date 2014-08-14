@@ -5094,10 +5094,81 @@ L7_RC_t ptin_msg_ipsg_binding_table_get(msg_ipsg_binding_table_request_t *input,
 *        control parameters on the interface, on the evc id, and
 *        on the igmp client
 */
-L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl *igmpAdmissionControl)
-{
-  LOG_NOTICE(LOG_CTX_IPSG, "Not Implemented Yet!");
-  return L7_SUCCESS;
+L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmissionControl)
+{  
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT                                     
+
+  ptin_igmp_admission_control_t igmpAdmissionControl;                             
+  ptin_intf_t                   intf;  
+
+  if (msgAdmissionControl == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Input Parameters: igmpAdmissionControl=%p", msgAdmissionControl);
+    return L7_FAILURE;
+  }
+   /* Output data */
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "SlotId       = %u"        , msgAdmissionControl->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "mask         = 0x%02X"    , msgAdmissionControl->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "evcId        = %u"        , msgAdmissionControl->evcId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "intf         = %u/%u"     , msgAdmissionControl->intf.intf_type, msgAdmissionControl->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "onuId        = %u"        , msgAdmissionControl->onuId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "outer_vlan   = %u"        , msgAdmissionControl->outer_vlan);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "inner_vlan   = %u"        , msgAdmissionControl->inner_vlan);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "maxChannels  = %hu"       , msgAdmissionControl->maxChannels);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "maxBandwidth = %llu bit/s", msgAdmissionControl->maxBandwidth);
+
+  if ( ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) ||
+       ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) ||
+      #if  !PTIN_BOARD_IS_ACTIVETH
+       ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) ||
+       #endif         
+      ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH ) &&
+        (msgAdmissionControl->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgAdmissionControl->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+       ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS ) &&
+        (msgAdmissionControl->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgAdmissionControl->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+      
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, msgAdmissionControl->maxChannels, msgAdmissionControl->maxBandwidth);
+    return L7_FAILURE;
+  }
+
+  igmpAdmissionControl.mask = 0x00;
+
+  if ( (igmpAdmissionControl.mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS)
+    igmpAdmissionControl.mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
+
+  if ( (igmpAdmissionControl.mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH)
+    igmpAdmissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
+
+  /*If Mask Is Set */
+  if (igmpAdmissionControl.mask != 0x00)
+  {
+    intf.intf_id = msgAdmissionControl->intf.intf_id;  
+    intf.intf_type = msgAdmissionControl->intf.intf_type;  
+    if (ptin_intf_ptintf2port(&intf, &igmpAdmissionControl.ptin_port) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to obtain ptin_port from ptin_intf [ptin_intf.intf_type:%u ptin_intf:%u]",intf.intf_type, intf.intf_id);
+      return L7_FAILURE;
+    }
+   
+    igmpAdmissionControl.serviceId      = msgAdmissionControl->evcId;    
+#if  !PTIN_BOARD_IS_ACTIVETH
+    igmpAdmissionControl.onuId         = msgAdmissionControl->onuId;
+#else
+    igmpAdmissionControl.onuId         = 0;
+#endif  
+    igmpAdmissionControl.maxAllowedChannels   = msgAdmissionControl->maxChannels;
+    igmpAdmissionControl.maxAllowedBandwidth  = msgAdmissionControl->maxBandwidth;
+
+    if (ptin_igmp_admission_control_multicast_service_set(&igmpAdmissionControl) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set multicast admission control parameters");
+      return L7_FAILURE;
+    }      
+  }
+#endif 
+  return L7_SUCCESS;  
+
 }
 
 
