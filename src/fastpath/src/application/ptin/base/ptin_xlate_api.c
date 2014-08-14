@@ -2066,11 +2066,17 @@ static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *
   avl_infoData = avlSearchLVL7(&database_xlate[stage].avlTree, (void *)&avl_key, AVL_EXACT);
 
   /* Failed? */
-  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  if (avl_infoData == L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Entry does not exist");
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Entry does not exist (ptin_port=%u, pgroup=%u, ovlan=%u, ivlan=%u)",
+                avl_key.ptin_port, avl_key.portGroup, avl_key.outerVid, avl_key.innerVid);
     return L7_SUCCESS;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_XLATE, " Found entry: ptin_port=%u, pgroup=%u, ovlan=%u, ivlan=%u -> oVlan=%u (action %u), iVlan=%u (action %u)",
+            avl_key.ptin_port, avl_key.portGroup, avl_key.outerVid, avl_key.innerVid,
+            avl_infoData->outerVid_result, avl_infoData->outerAction,
+            avl_infoData->innerVid_result, avl_infoData->innerAction);
 
   /* Prepare original key */
   memset(&avl_key_inv, 0x00, sizeof(ptinXlateKey_t));
@@ -2080,28 +2086,35 @@ static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *
   avl_key_inv.innerVid  = avl_infoData->innerVid_result;
 
   /* Delete inverted vlans entry */
+  /* If several entries have the same result VLANs, we may have error here... ignore failure */
   avl_infoData = avlDeleteEntry(&database_xlate_inv[stage].avlTree, (void *)&avl_key_inv);
 
-  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  if (avl_infoData == L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Failed Inverted Entry remotion");
-    return L7_FAILURE;
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Failed Inverted Entry remotion (ptin_port=%u, pgroup=%u, ovlan=%u, ivlan=%u)",
+                avl_key_inv.ptin_port, avl_key_inv.portGroup, avl_key_inv.outerVid, avl_key_inv.innerVid);
+    //return L7_FAILURE;
   }
-
-  if (database_xlate_inv[stage].number_of_entries > 0)
-    database_xlate_inv[stage].number_of_entries--;
+  else
+  {
+    if (database_xlate_inv[stage].number_of_entries > 0)
+      database_xlate_inv[stage].number_of_entries--;
+  }
 
   /* Delete entry */
   avl_infoData = avlDeleteEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
 
-  if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
+  if (avl_infoData == L7_NULLPTR)
   {
-    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Failed Entry remotion");
-    return L7_FAILURE;
+    LOG_WARNING(LOG_CTX_PTIN_XLATE, " Failed Inverted Entry remotion (ptin_port=%u, pgroup=%u, ovlan=%u, ivlan=%u)",
+                avl_key.ptin_port, avl_key.portGroup, avl_key.outerVid, avl_key.innerVid);
+    //return L7_FAILURE;
   }
-
-  if (database_xlate[stage].number_of_entries > 0)
-    database_xlate[stage].number_of_entries--;
+  else
+  {
+    if (database_xlate[stage].number_of_entries > 0)
+      database_xlate[stage].number_of_entries--;
+  }
 
   /* Success */
   return L7_SUCCESS;
