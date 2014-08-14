@@ -162,17 +162,32 @@ _gmodule_pprint(char* buf)
     return PEND(buf);
 }
 
+//JORGE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
 static int 
 _gmodule_read_proc(char *page, char **start, off_t off,
 		   int count, int *eof, void *data)
 {
     *eof = 1;
+#else
+static ssize_t
+_gmodule_read_proc(struct file *file, char __user *page,
+                   size_t count, loff_t *ppos)
+{
+#endif
     return _gmodule_pprint(page);
 }
 
+//JORGE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
 static int 
 _gmodule_write_proc(struct file *file, const char *buffer,
 		    unsigned long count, void *data)
+#else
+static ssize_t
+_gmodule_write_proc(struct file *file, const char __user *buffer,
+              	   size_t count, loff_t *ppos)
+#endif
 {
     /* Workaround to toggle debugging */
     if(count > 2) {
@@ -188,12 +203,24 @@ static int
 _gmodule_create_proc(void)
 {
     struct proc_dir_entry* ent;
+//JORGE
+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
     if((ent = create_proc_entry(_gmodule->name, S_IRUGO | S_IWUGO, NULL)) != NULL) {
 	ent->read_proc = _gmodule_read_proc;
 	ent->write_proc = _gmodule_write_proc;
 	return 0;
     }
     return -1;
+#else
+	static const struct file_operations wl_proc_fops = {
+		.owner = THIS_MODULE,
+		.read = _gmodule_read_proc,
+		.write = _gmodule_write_proc,
+	};
+	if((ent = proc_create(_gmodule->name, S_IRUGO | S_IWUGO, NULL, &wl_proc_fops)) != NULL)
+		return 0;
+	return -1;
+#endif
 }
 
 static void 

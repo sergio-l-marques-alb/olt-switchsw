@@ -181,7 +181,8 @@ do { \
 #define SCHED_OTHER     SCHED_NORMAL
 #endif
 
-#ifdef MAX_USER_RT_PRIO
+//JORGE
+#if defined (MAX_USER_RT_PRIO) || LINUX_VERSION_CODE >= KERNEL_VERSION(3, 12, 0)
 /* Assume 2.6 scheduler - Some Linux vendors have the 2.6 scheduler in 2.4 (MontaVista)
    This is a way of detecting it.
  */
