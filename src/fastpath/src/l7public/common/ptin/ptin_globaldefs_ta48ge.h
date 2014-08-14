@@ -4,7 +4,10 @@
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
-#define __Y1731_802_1ag_OAM_ETH_
+//#define __Y1731_802_1ag_OAM_ETH__
+//#define __APS_AND_CCM_COMMON_FILTER__     //can't define this; most likely we aren't being allowed to add BROAD_FIELD_IP6_DST to group existent qualifiers
+//#define COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+//#define USING_SDK_OAM_FP_CREATE
 
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 /* Querier will be active for Multicast services */

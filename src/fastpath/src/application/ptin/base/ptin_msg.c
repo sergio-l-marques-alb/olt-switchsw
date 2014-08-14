@@ -7383,7 +7383,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
      if (L7_SUCCESS!=ptin_intf_port2intIfNum(porta, &intIfNum));
      else
-     if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal)) ;
+     if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) ;
      else {
          pi[i].bd.vid=vidInternal;
          if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));

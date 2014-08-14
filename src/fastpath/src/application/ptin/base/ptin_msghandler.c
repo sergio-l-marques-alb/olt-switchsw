@@ -4139,18 +4139,21 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       CHECK_INFO_SIZE(msg_bd_mep_lm_t);
     
       if (CCMSG_RM_MEP_LM==inbuffer->msgId) {
-          rc = del_mep_lm(((msg_bd_mep_lm_t*)inbuffer->info)->index, &oam)? L7_FAILURE: L7_SUCCESS;
+          rc = del_mep_lm(((msg_bd_mep_lm_t*)inbuffer->info)->idx, &oam)? L7_FAILURE: L7_SUCCESS;
       }
       else {
        msg_bd_mep_lm_t *p;
        
        p = (msg_bd_mep_lm_t*)inbuffer->info;
 
-       if (0==p->bd.CCMs0_LMMR1) rc = L7_NOT_SUPPORTED;
+       if (0==p->type) rc = L7_NOT_SUPPORTED;
        else {
         T_MEP_LM mep_lm;
+
+        mep_lm.CCMs0_LMMR1 =    p->type;
+        mep_lm.period =         p->lmmPeriod;
     
-        switch (wr_mep_lm(p->index, &mep_lm, &oam)) {
+        switch (wr_mep_lm(p->idx, &mep_lm, &oam)) {
         case 0: rc = L7_SUCCESS; break;
         case 1: rc = L7_NOT_EXIST; break;
         default: rc = L7_ERROR; break;
@@ -4204,6 +4207,51 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
             break;
         default: rc = L7_ERROR; break;
         }//switch
+      }
+  
+      if (L7_SUCCESS != rc) {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+  
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+  
+      break;
+
+    case CHMSG_CCM_MEP_FRAMELOSS:
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CHMSG_CCM_MEP_FRAMELOSS (0x%04X)", inbuffer->msgId);
+  
+  
+      {
+        MSG_FRAMELOSS_status *pi;
+        MSG_FRAMELOSS_status *po;
+        u16 i_mep;
+  
+        if (inbuffer->infoDim<offsetof(MSG_FRAMELOSS_status, idx)+sizeof(pi->idx)) {
+            SetIPCNACK(outbuffer, SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE));
+            break;
+        }
+        //CHECK_INFO_SIZE(MSG_FRAMELOSS_status);
+
+
+        pi = (MSG_FRAMELOSS_status*)inbuffer->info;
+        i_mep = pi->idx;
+
+        po = (MSG_FRAMELOSS_status*)outbuffer->info;
+        outbuffer->infoDim = sizeof(MSG_FRAMELOSS_status);
+
+        if (i_mep>=N_MEPs) rc = L7_NOT_EXIST;
+        else {
+            //LM_medium(&oam.db[i_mep].lm, &po->Delta_LM_rx_i, &po->Delta_LM_tx_i, &po->Delta_LM_rx_e, &po->Delta_LM_tx_e);
+            LM_last_period(&oam.db[i_mep].lm, &po->Delta_LM_rx_i, &po->Delta_LM_tx_i, &po->Delta_LM_rx_e, &po->Delta_LM_tx_e);
+            po->Delta_LM_rx_i = diff_LM_counters(po->Delta_LM_tx_i, po->Delta_LM_rx_i);
+            po->Delta_LM_rx_e = diff_LM_counters(po->Delta_LM_tx_e, po->Delta_LM_rx_e);
+            rc = L7_SUCCESS;
+        }
       }
   
       if (L7_SUCCESS != rc) {

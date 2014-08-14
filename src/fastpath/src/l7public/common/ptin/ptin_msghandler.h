@@ -191,6 +191,8 @@
 #define CCMSG_WR_MEP_LM                     0x9149
 #define CCMSG_RM_MEP_LM                     0x914A
 #define CCMSG_RD_MEP_LM                     0x914B
+#define CCMSG_RD_MEP_LM_II                  0x914C
+#define CHMSG_CCM_MEP_FRAMELOSS             CCMSG_RD_MEP_LM_II
 
 
 /* Routing */
@@ -1868,11 +1870,14 @@ typedef struct {
 
 
 typedef struct {
-  _MSG_GENERIC_PREFIX_STRUCT;    //index: 0..N_MEPs-1
-  struct {
-      u8  CCMs0_LMMR1;    //other values disable LM; 0 isn't supported
-      u8  period;         //valid just for 1==CCMs0_LMMR1 (LMM/LMRs instead of CCMs)
-  } __attribute__ ((packed)) bd;
+      unsigned char         slot;
+      unsigned int          idx;         // indice do MP
+      unsigned long         port;
+
+      unsigned char         type;        // ccm 0, lmm 1
+      unsigned char         lmmPeriod;   // Periodo de Tx das LLMs
+      unsigned char         lmmCosColor; // CoS e Color para Tx das LLMs
+      unsigned char         flrCosColor;
 } __attribute__ ((packed)) msg_bd_mep_lm_t;
 
 
@@ -1884,6 +1889,19 @@ typedef struct {
         FEnumerator,
         FEdenominator;              //all-ones values mean unavailable (no packets or still no pair of packets exchanged)
 } __attribute__ ((packed)) msg_frame_loss_t;
+
+
+typedef struct {
+      unsigned char         slot;
+      unsigned int          idx;            // indice do MP
+      unsigned long         port;
+
+      unsigned int          mask;           // [0] Delta_LM_tx_e; [1] Delta_LM_rx_e; [2] Delta_LM_tx_i; [3] Delta_LM_rx_i; [4..] not used
+      unsigned long long    Delta_LM_tx_e;  // LM_egress  = (Delta_LM_tx_e - Delta_LM_rx_e) / Delta_LM_tx_e
+      unsigned long long    Delta_LM_rx_e;  //
+      unsigned long long    Delta_LM_tx_i;  // LM_ingress = (Delta_LM_tx_i - Delta_LM_rx_i) / Delta_LM_tx_i
+      unsigned long long    Delta_LM_rx_i;  //
+} __attribute__ ((packed)) MSG_FRAMELOSS_status;
 
 
 /***************************************************************************** 
