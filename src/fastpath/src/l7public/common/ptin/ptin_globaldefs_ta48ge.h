@@ -120,7 +120,7 @@
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF          1     /* 1 client per frontal port */
 # define PTIN_SYSTEM_IGMP_MAXONUS                   (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU        8     /* Settop boxes connected to ONUs */
-# define PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF       PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF
+# define PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF       16 /*PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*/
 # define PTIN_SYSTEM_IGMP_MAXCLIENTS                PTIN_SYSTEM_IGMP_MAXONUS
 # define PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP      5     /* Maximum number of sources per multicast/interface group */
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE        (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
