@@ -5134,10 +5134,10 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
 
   igmpAdmissionControl.mask = 0x00;
 
-  if ( (igmpAdmissionControl.mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS)
+  if ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS)
     igmpAdmissionControl.mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
 
-  if ( (igmpAdmissionControl.mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH)
+  if ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH)
     igmpAdmissionControl.mask |= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;
 
   /*If Mask Is Set */
@@ -5165,6 +5165,10 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
       LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set multicast admission control parameters");
       return L7_FAILURE;
     }      
+  }
+  else
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_MSG,"Ignoring Request - Admission Control Mask is 0x00!");    
   }
 #endif 
   return L7_SUCCESS;  
