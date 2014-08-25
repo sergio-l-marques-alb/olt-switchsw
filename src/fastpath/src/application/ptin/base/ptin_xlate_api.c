@@ -939,6 +939,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
   L7_uint32 class_id;
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 unit = 0;
 
   if (ptin_debug_xlate)
     LOG_TRACE(LOG_CTX_PTIN_XLATE, "intIfNum=%u, outerVlanId=%u, innerVlanId=%u, newOuterVlanId=%u, newInnerVlanId=%u",
@@ -1005,6 +1006,14 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
 #endif
   /* Remove VLANs? */
   xlate.remove_VLANs = (xlate_table_pvid[intIfNum] == newOuterVlanId);
+
+  if (xlate.remove_VLANs)
+  {
+    if (usmDbQportsPVIDSet(unit, intIfNum, xlate_table_pvid[intIfNum]) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", int_defVid);
+    }
+  }
 
   /* DTL call */
   rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
