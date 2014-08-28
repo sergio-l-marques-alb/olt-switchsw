@@ -1009,7 +1009,7 @@ L7_RC_t ptin_xlate_egress_add( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_uin
 
   if (xlate.remove_VLANs)
   {
-    if (usmDbQportsPVIDSet(unit, intIfNum, xlate_table_pvid[intIfNum]) != L7_SUCCESS) 
+    if (usmDbQportsPVIDSet(unit, intIfNum, outerVlanId) != L7_SUCCESS) 
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying VID %u", xlate_table_pvid[intIfNum]);
     }
