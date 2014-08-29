@@ -1447,7 +1447,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "intIfNum %u, vlanId=%u valid", intIfNum, vlanId);
 
     if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) ||
-        (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST && (_dsVlanIntfTrustGet(vlanId,intIfNum) != L7_TRUE))) 
+        (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST /*&& (_dsVlanIntfTrustGet(vlanId,intIfNum) != L7_TRUE)*/)) 
     {
       if(dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
       {
@@ -2183,8 +2183,6 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    //Increment server tx counters
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTIONS);
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_TX_FORWARDED);
-
-   
 
    //Remove the entry in the binding table if the client has previously sent a release
    if(dhcp_binding.leaseStatus == DS_LEASESTATUS_V6_RELEASE)
@@ -4077,21 +4075,21 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
     }
 
-//  /* On L2 Relay trusted interfaces, Option-82 is expected.
-//     On L2 Relay untrusted interfaces, Option-82 is not expected.
-//     If either of this cases fail to match, mark the packet to filter.*/
-//  if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE))   /* PTin modified: DHCP snooping */
-//  {
-//    dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
-//    ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
-//    DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82"
-//                       "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
-//                       (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
-//                        DS_TRACE_LOG);
-//    if (ptin_debug_dhcp_snooping)
-//      LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg with Option-82 rx'ed on L2 Relay untrusted");
-//    return L7_TRUE;
-//  }
+    /* On L2 Relay trusted interfaces, Option-82 is expected.
+       On L2 Relay untrusted interfaces, Option-82 is not expected.
+       If either of this cases fail to match, mark the packet to filter.*/
+    if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE))   /* PTin modified: DHCP snooping */
+    {
+      dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82"
+                         "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
+                         (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                          DS_TRACE_LOG);
+      if (ptin_debug_dhcp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg with Option-82 rx'ed on L2 Relay untrusted");
+      return L7_TRUE;
+    }
 //
 //  if ((relayFlag == L7_FALSE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE))   /* PTin modified: DHCP snooping */
 //  {
