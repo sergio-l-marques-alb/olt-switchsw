@@ -1171,7 +1171,7 @@ void dtlNetReopen(void)
 /* Now read data coming from the kernel */
 void dtl_test(void)
 {
-  int nread, buffer[512];
+  int nread, buffer[1522];
 
   if (dtl_net_fd >= 0)
   {
