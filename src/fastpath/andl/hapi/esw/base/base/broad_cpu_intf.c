@@ -2122,10 +2122,12 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     }
     /* end of added for 16728 */
   
+#if 0 /* PTIN Removed */
   /* increment the CPU stats */
   hapiBroadStatsCpuIncrement(bcm_pkt.pkt_data->data, 
                              bcm_pkt.pkt_data->len,
                              usp,dapi_g,L7_FALSE,L7_FALSE);
+#endif
 
   /* Free the frame from the buffer */
   sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
