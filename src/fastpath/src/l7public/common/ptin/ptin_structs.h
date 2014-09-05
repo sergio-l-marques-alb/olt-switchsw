@@ -414,6 +414,7 @@ typedef struct
 #define PTIN_EVC_INTF_ROUTING       2
 #define PTIN_EVC_INTF_ROOT          0
 #define PTIN_EVC_INTF_LEAF          1
+#define PTIN_EVC_INTF_NOTUSED       255
 
 typedef struct {
   L7_uint8  intf_id;      // Interface Id# (phy ports / LAGs)

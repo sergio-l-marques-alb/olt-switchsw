@@ -1374,6 +1374,71 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
 }
 
 /**
+ * Get interface type for a given internal vlan
+ * 
+ * @param intVlan  : Internal vlan 
+ * @param intIfNum : Interface
+ * @param type     : Interface type (output)
+ *                    PTIN_EVC_INTF_ROOT=0,
+ *                    PTIN_EVC_INTF_LEAF=1,
+ *                    PTIN_EVC_INTF_NOTUSED=255
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_uint8 *type)
+{
+  ptin_evc_intfCfg_t intfCfg;
+  L7_uint16 evc_id;
+  ptin_intf_t ptin_intf;
+
+  /* Validate interface */
+  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Validate arguments */
+  if (intVlan<PTIN_VLAN_MIN || intVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid intVlan %u", intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_id = evcId_from_internalVlan[intVlan];
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intVlan);
+    return L7_FAILURE;
+  }
+
+  /* Get MC EVC configuration */
+  memset(&intfCfg, 0x00, sizeof(intfCfg));
+  if (ptin_evc_intfCfg_get(evcs[evc_id].extended_id, &ptin_intf, &intfCfg) != L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting evc %u (intVlan=%u), intf=%u/%u configuration", evc_id, intVlan, ptin_intf.intf_type, ptin_intf.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* type pointer must not be null */
+  if (type != L7_NULLPTR)
+  {
+    if (!intfCfg.in_use)
+    {
+      *type = PTIN_EVC_INTF_NOTUSED;
+    }
+    else
+    {
+      *type = intfCfg.type;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Get the list of interfaces associated to a internal vlan
  * 
  * @param intVlan  : Internal vlan 
@@ -1747,14 +1812,14 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   iptv_enabled  = (evcConf->flags & PTIN_EVC_MASK_MC_IPTV)        == PTIN_EVC_MASK_MC_IPTV;
   cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
 
+  /* To be removed */
+  #if 0
   /* To be changed in the future */
   if (dhcp_enabled && !pppoe_enabled)
   {
     pppoe_enabled = L7_TRUE;
     evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
   }
-  /* To be removed */
-  #if 0
   /* If MC is in flood all mode, active flag */
   if (evcConf->mc_flood != PTIN_EVC_MC_FLOOD_ALL)
   {

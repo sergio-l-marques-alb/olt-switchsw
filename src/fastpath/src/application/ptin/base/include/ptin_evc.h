@@ -391,6 +391,20 @@ extern L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 
                                               L7_uint16 *intOVlan);
 
 /**
+ * Get interface type for a given internal vlan
+ * 
+ * @param intVlan  : Internal vlan 
+ * @param intIfNum : Interface
+ * @param type     : Interface type (output)
+ *                    PTIN_EVC_INTF_ROOT=0,
+ *                    PTIN_EVC_INTF_LEAF=1,
+ *                    PTIN_EVC_INTF_NOTUSED=255
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_uint8 *type);
+
+/**
  * Get the list of interfaces associated to a internal vlan
  * 
  * @param intVlan  : Internal vlan 

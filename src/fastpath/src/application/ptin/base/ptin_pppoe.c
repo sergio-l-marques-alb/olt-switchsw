@@ -2643,10 +2643,26 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
   L7_uint32 flags;
   L7_uint16 ovid, ivid;
   ptinPppoeClientInfoData_t *clientInfo;
+  L7_uint8  intf_type;
+
+  /* Get interface type */
+  if (ptin_evc_intf_type_get(intOVlan, intIfNum, &intf_type) != L7_SUCCESS)
+  {
+    if (ptin_debug_pppoe_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_DHCP, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
+    return L7_FAILURE;
+  }
+  /* Validate interface type */
+  if (intf_type != PTIN_EVC_INTF_ROOT && intf_type != PTIN_EVC_INTF_LEAF)
+  {
+    if (ptin_debug_pppoe_snooping)
+      LOG_TRACE(LOG_CTX_PTIN_DHCP, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
+    return L7_FAILURE;
+  }
 
   ovid = ivid = 0;
   /* If client is provided, go directly to client info */
-  if (!ptin_pppoe_is_intfTrusted(intIfNum, intOVlan) &&
+  if ((intf_type == PTIN_EVC_INTF_LEAF) &&
       (client_idx>=0 && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE) &&
       ptin_pppoe_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &pppoe_idx)==L7_SUCCESS)
   {
@@ -2673,7 +2689,7 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
   /* For packets sent to root ports, belonging to unstacked EVCs, remove inner vlan */
   if (ptin_evc_flags_get_fromIntVlan(intOVlan, &flags, L7_NULLPTR) == L7_SUCCESS)
   {
-    if ( ( (flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED) && (ptin_pppoe_is_intfTrusted(intIfNum, intOVlan)) ) ||
+    if ( ( (flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED) && (intf_type == PTIN_EVC_INTF_ROOT) ) ||
          (!(flags & PTIN_EVC_MASK_QUATTRO) && !(flags & PTIN_EVC_MASK_STACKED)) )
     {
       ivid = 0;
