@@ -13172,7 +13172,9 @@ RC_t ptin_igmp_multicast_service_resources_available(L7_uint32 ptin_port, L7_uin
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_available(&ptinIgmpAdmissionControlPtr->admissionControl, channelBandwidth)))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Service with no Resources [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
+ 	//Not Enough Resources    
+	if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Multicast Service without Resources [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
             ptin_port, clientId, onuId, serviceId, channelBandwidth);    
   }
 
@@ -13350,7 +13352,9 @@ RC_t ptin_igmp_port_resources_available(L7_uint32 ptin_port, L7_uint32 channelBa
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_available(&ptinIgmpAdmissionControlPtr->admissionControl, channelBandwidth)))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Port without Resources [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
+ 	//Not Enough Resources    
+	if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Port without Resources [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
   }
 
   if (ptin_debug_igmp_snooping)
@@ -13510,7 +13514,8 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 ptin_port, L7_uint32 clientI
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_available(&ptinIgmpClientGroupInfoData->admissionControl, channelBandwidth)))
   {
     //Not Enough Resources
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Client without resources available [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
+    if (ptin_debug_igmp_snooping)     
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Client without resources [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
   }
 
   if (ptin_debug_igmp_snooping)
