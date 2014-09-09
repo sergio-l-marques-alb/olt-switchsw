@@ -12560,12 +12560,23 @@ L7_uint32 ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* group)
   /* Check if this key does exist */
   if ((ptinIgmpPairInfoData = (ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *) &ptinIgmpPairDataKey, AVL_EXACT)) == L7_NULLPTR)
   {
-    /*If this key does not exist. Should we try to use a pre-defined value or search for the default multicast group?*/
+    /*If this key does not exist. Should we try to use a pre-defined value or search for the default multicast group?*/    
 
-    LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist",
+	/*Trying to search for a pre-defined value*/
+    memset( &ptinIgmpPairDataKey, 0x00, sizeof(ptinIgmpPairDataKey_t));
+    if ((ptinIgmpPairInfoData = (ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *) &ptinIgmpPairDataKey, AVL_EXACT)) == L7_NULLPTR)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist.",
                 ptinIgmpPairDataKey.channel_group.addr.ipv4.s_addr);
-
-    return 0;
+	  //If no valid entry is found. Returning an invalid bandwidth value
+      return PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS_DISABLE;
+    }
+    else
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist. Using Instead Default Multicast Service",
+                ptinIgmpPairDataKey.channel_group.addr.ipv4.s_addr);
+    }
   }
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Bandwidth required %u kbit/s for Group Channel:0x%08x", ptinIgmpPairInfoData->channelBandwidth, ptinIgmpPairDataKey.channel_group.addr.ipv4.s_addr);
@@ -12992,7 +13003,7 @@ static RC_t ptin_igmp_admission_control_release(ptinIgmpAdmissionControl_t* admi
                      admissionControlPtr->allocatedChannels, admissionControlPtr->maxAllowedChannels);
       }
 
-      if (admissionControlPtr->allocatedBandwidth - channelBandwidth > 0)
+      if (admissionControlPtr->allocatedBandwidth - channelBandwidth <= admissionControlPtr->allocatedBandwidth)
       {
         admissionControlPtr->allocatedBandwidth -= channelBandwidth;
       }
@@ -13011,7 +13022,7 @@ static RC_t ptin_igmp_admission_control_release(ptinIgmpAdmissionControl_t* admi
       }
       return L7_SUCCESS;      
     case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:
-      if (admissionControlPtr->allocatedBandwidth - channelBandwidth > 0)
+      if (admissionControlPtr->allocatedBandwidth - channelBandwidth <= admissionControlPtr->allocatedBandwidth)
       {
         admissionControlPtr->allocatedBandwidth -= channelBandwidth;
       }
@@ -13051,7 +13062,7 @@ static RC_t ptin_igmp_admission_control_release(ptinIgmpAdmissionControl_t* admi
   case PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH:  
     if ( (admissionControlPtr->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH)
     {
-      if (admissionControlPtr->allocatedBandwidth - channelBandwidth > 0)
+      if (admissionControlPtr->allocatedBandwidth - channelBandwidth <= admissionControlPtr->allocatedBandwidth)
       {
         admissionControlPtr->allocatedBandwidth -= channelBandwidth;
       }
