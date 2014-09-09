@@ -12435,7 +12435,7 @@ static igmpMulticastAdmissionControl_t* ptin_igmp_admission_multicast_service_ge
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Arguments [mask:0x%x maxAllowedChannels:%u maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)]",
               igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask,
               igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedChannels,
-              igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedChannels,
+              igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedBandwidth,
               igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.allocatedChannels,
               igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.allocatedBandwidth );
 
