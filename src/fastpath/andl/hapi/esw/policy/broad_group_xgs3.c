@@ -1610,10 +1610,13 @@ void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, group_alloc_block_t *blo
      */
     switch (type)
     {
-    case BROAD_POLICY_TYPE_VLAN:
-    case BROAD_POLICY_TYPE_ISCSI:
     case BROAD_POLICY_TYPE_IPSG:
     case BROAD_POLICY_TYPE_LLPF:
+        *block = ALLOC_BLOCK_LOW;
+        *dir   = ALLOC_LOW_TO_HIGH;
+        break;
+    case BROAD_POLICY_TYPE_VLAN:
+    case BROAD_POLICY_TYPE_ISCSI:
         *block = ALLOC_BLOCK_MEDIUM;
         *dir   = ALLOC_LOW_TO_HIGH;
         break;
@@ -1784,11 +1787,15 @@ static int _policy_group_find_first(int                  unit,
        the block requested */
     if (_policy_group_types_compatible(unit, type, groupPtr->type) == L7_FALSE)
     {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("- Incompatible group types (%u VS %u)\n", type, groupPtr->type);
       return BCM_E_FAIL;
     }
     _policy_group_alloc_type(groupPtr->type, &used_block, &used_dir);
     if (block != used_block)
     {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("- Different blocks (%u VS %u)\n", block, used_block);
       return BCM_E_FAIL;
     }
   }
@@ -2398,6 +2405,9 @@ static int _policy_group_alloc_group(int                             unit,
 
     /* Try to find a group priority that we can use to create this group. */
     rv = _policy_group_find_first(unit, entryPtr->policyStage, entryPtr->policyType, group);
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("First Group=%u - rv %d\n", *group, rv);
+
     while (BCM_E_NONE == rv)
     {
       /* Enforce physical boundary conditions. */
@@ -2418,6 +2428,8 @@ static int _policy_group_alloc_group(int                             unit,
       }
   
       rv = _policy_group_find_next(unit, entryPtr->policyStage, entryPtr->policyType, group);
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("Next Group=%u - rv %d\n", *group, rv);
     }
   
     if (rv == BCM_E_NONE)
@@ -3766,22 +3778,22 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups - 1;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = lowPrioGroup - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
 
       /* PTin added: policer */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
 
       /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = groups - 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups - 1;
 
       /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = groups - 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups - 1;
 
       /* PTin end */

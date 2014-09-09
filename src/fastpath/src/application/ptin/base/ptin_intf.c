@@ -5479,6 +5479,86 @@ L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_ui
   return L7_SUCCESS;
 }
 
+/**
+ * Configure Default VLANs using VCAP rules
+ * 
+ * @param intIfNum 
+ * @param outerVlan 
+ * @param innerVlan  
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16 innerVlan)
+{
+  L7_uint         i;
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32       intIfNum_list_size;
+  L7_uint32       intIfNum_list[PTIN_SYSTEM_N_PORTS];
+  ptin_hwproc_t hw_proc;
+  L7_RC_t         rc_global = L7_SUCCESS, rc;
+
+  /* Validate ports */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Interface type */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Unable to get intfType from intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* List of ports to be configured */
+  if (intf_type == L7_PHYSICAL_INTF)
+  {
+    intIfNum_list_size = 1;
+    intIfNum_list[0] = intIfNum;
+  }
+  else if (intf_type == L7_LAG_INTF)
+  {
+    intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
+    if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Unable to get LAG members from intIfNum %d", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc, 0x00, sizeof(hw_proc)); 
+
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_VCAP_DEFVID;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = outerVlan;
+  hw_proc.param2 = innerVlan;
+
+  for (i = 0; i < intIfNum_list_size; i++)
+  {
+    /* Apply procedure */
+    rc = dtlPtinHwProc(intIfNum_list[i], &hw_proc);
+
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Error configuring defVid %u+%u for intIfNum %u", outerVlan, innerVlan, intIfNum_list[i]);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"defVid %u+%u for intIfNum %u configured", outerVlan, innerVlan, intIfNum_list[i]);
+    }
+  }
+
+  return rc_global;
+}
+
 
 /**
  * Configure clock recovery references

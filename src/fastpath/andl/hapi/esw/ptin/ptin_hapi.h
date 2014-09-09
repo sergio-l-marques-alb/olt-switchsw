@@ -309,6 +309,18 @@ extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PO
 #endif
 
 /**
+ * Configure default (Outer+Inner) VLANs using VCAP
+ * 
+ * @param usp 
+ * @param outerVlan 
+ * @param innerVlan 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 innerVlan, DAPI_t *dapi_g);
+
+/**
  * Show trapped packets (to CPU) according to the configured 
  * trap rule 
  * 

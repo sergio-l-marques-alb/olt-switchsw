@@ -110,6 +110,7 @@ static char *broadActionNameTable[BROAD_ACTION_LAST] =
     "MIRROR  ",
     "TRAP2CPU",
     "COPY2CPU",
+    "TSTOCPU ",
     "SETCOSQ ",
     "SETDSCP ",
     "SETTOS  ",

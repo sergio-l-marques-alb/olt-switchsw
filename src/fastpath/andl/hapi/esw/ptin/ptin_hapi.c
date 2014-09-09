@@ -4004,6 +4004,170 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
   return L7_SUCCESS;
 }
 
+/* VCAP rules for Default VLAN */
+static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
+static BROAD_POLICY_t ruleId_pvid[PTIN_SYSTEM_N_PORTS]    = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
+
+/**
+ * Configure default (Outer+Inner) VLANs using VCAP
+ * 
+ * @param usp 
+ * @param outerVlan 
+ * @param innerVlan 
+ * @param dapi_g  
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 innerVlan, DAPI_t *dapi_g)
+{
+  L7_uint32           port;
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_uint8  vlan_format = BROAD_VLAN_FORMAT_UNTAG;
+  L7_uint8  mask[]      = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+  DAPI_PORT_t         *dapiPortPtr;
+  BROAD_PORT_t        *hapiPortPtr;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate pointers */
+  if (dapi_g == L7_NULLPTR || usp == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Null pointers");
+    return L7_FAILURE;
+  }
+
+  /* Accept only physical ports */
+  if (usp->unit != 1 && usp->slot != 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid USP {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Validate port */
+  port = usp->port;
+  if (port >= PTIN_SYSTEM_N_PORTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid USP {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  dapiPortPtr = DAPI_PORT_GET( usp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
+
+  if (dapiPortPtr == L7_NULLPTR || hapiPortPtr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Null pointers");
+    return L7_FAILURE;
+  }
+
+  if (policyId_pvid[port] != BROAD_POLICY_INVALID)
+  {
+    hapiBroadPolicyDelete(policyId_pvid[port]);
+    policyId_pvid[port] = BROAD_POLICY_INVALID;
+    ruleId_pvid[port]   = BROAD_POLICY_INVALID;
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"PVID cleared successfully");
+  }
+
+  /* Only consider valid VLANs between 2 and 4095 */
+  if (outerVlan >= 2 && outerVlan <= 4095)
+  {
+    hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
+    hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+    hapiBroadPolicyRuleAdd(&ruleId);
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 * ) &vlan_format, mask);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding qualifier");
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Vlan format qualifier added");
+
+    /* Actions */
+    /* Outer Vlan qualifier */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_OUTER_VID, outerVlan, 0, 0);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding action");
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Outer vlan add action added");
+
+    /* Inner Vlan qualifier */
+    if (innerVlan >= 1 && innerVlan <=4095)
+    {
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_INNER_VID, innerVlan, 0, 0);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error adding action");
+        hapiBroadPolicyCreateCancel();
+        return rc;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Inner vlan add action added");
+    }
+
+    /* Commit */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error commiting policy");
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+
+    /* Apply to interface */
+    rc = hapiBroadPolicyApplyToIface(policyId, hapiPortPtr->bcmx_lport);
+    if (L7_SUCCESS != rc)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error applying policy to interface");
+      hapiBroadPolicyDelete(policyId);
+      return rc;
+    }
+
+    /* Save policy id */
+    policyId_pvid[port] = policyId;
+    ruleId_pvid[port]   = ruleId;
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"PVID set successfully");
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Dump VCAP rules
+ */
+void ptin_vcap_defvid_dump(void)
+{
+  L7_uint i;
+  BROAD_GROUP_t gid;
+  BROAD_ENTRY_t eid;
+
+  printf("Dumping VCAP defVID rules:\r\n");
+
+  for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
+  {
+    if (policyId_pvid[i] != BROAD_POLICY_INVALID && ruleId_pvid[i] != BROAD_POLICY_INVALID)
+    {
+      printf(" Port %2u: ", i);
+
+      if (l7_bcm_policy_hwInfo_get(0, policyId_pvid[i], ruleId_pvid[i], &gid, &eid, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+      {
+        printf("error\r\n");
+      }
+      else
+      {
+        printf("group=%-2d entry=%-5d\r\n", gid, eid);
+      }
+    }
+  }
+  
+  fflush(stdout);
+}
 
 BROAD_POLICY_t policyId_trap = BROAD_POLICY_INVALID;
 L7_int    trap_port = -1;

@@ -908,9 +908,12 @@ static void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, int *block, int *
      */
     switch (type)
     {
+    case BROAD_POLICY_TYPE_IPSG:
+        *block = ALLOC_BLOCK_LOW;
+        *dir   = ALLOC_LOW_TO_HIGH;
+        break;
     case BROAD_POLICY_TYPE_VLAN:
     case BROAD_POLICY_TYPE_ISCSI:
-    case BROAD_POLICY_TYPE_IPSG:
         *block = ALLOC_BLOCK_MEDIUM;
         *dir   = ALLOC_LOW_TO_HIGH;
         break;

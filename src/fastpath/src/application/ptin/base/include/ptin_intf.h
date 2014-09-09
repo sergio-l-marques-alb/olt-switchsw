@@ -549,6 +549,17 @@ extern L7_RC_t ptin_pcs_prbs_enable(L7_uint32 intIfNum, L7_BOOL enable);
 extern L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter);
 
 /**
+ * Configure Default VLANs using VCAP rules
+ * 
+ * @param intIfNum 
+ * @param outerVlan 
+ * @param innerVlan  
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7_uint16 innerVlan);
+
+/**
  * Configure clock recovery references
  * 
  * @param ptin_port_main : main port

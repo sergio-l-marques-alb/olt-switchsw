@@ -200,6 +200,110 @@ int ptin_lookup_counter_set(L7_int type, L7_int stage, L7_int index, L7_int port
 }
 
 
+static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
+
+int ptin_lookup_pvid_set(L7_int port, L7_uint16 outerVlan, L7_uint16 innerVlan, L7_uint8 vlan_format)
+{
+  bcm_port_t          bcm_port;
+  bcmx_lport_t        lport;
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_uint8  mask[]       = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (port >= PTIN_SYSTEM_N_PORTS)
+  {
+    return L7_FAILURE;
+  }
+
+  if (policyId_pvid[port] != BROAD_POLICY_INVALID)
+  {
+    hapiBroadPolicyDelete(policyId_pvid[port]);
+    policyId_pvid[port] = BROAD_POLICY_INVALID;
+
+    printf("PVID cleared successfully\r\n");
+  }
+
+  if (outerVlan >= 1 && outerVlan <= 4095)
+  {
+    /* Apply this rule only to GE48 port */
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      return L7_FAILURE;
+    }
+    lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+    hapiBroadPolicyCreate(BROAD_POLICY_TYPE_PORT);
+    hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+    hapiBroadPolicyRuleAdd(&ruleId);
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 * ) &vlan_format, mask);
+    if (rc != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    printf("%s(%d) Vlan format qualifier added\r\n",__FUNCTION__,__LINE__);
+
+    /* Actions */
+    /* Outer Vlan qualifier */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_OUTER_VID, outerVlan, 0, 0);
+    if (rc != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+    printf("%s(%d) Outer vlan add action added\r\n",__FUNCTION__,__LINE__);
+
+    /* Inner Vlan qualifier */
+    if (innerVlan >= 1 && innerVlan <=4095)
+    {
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_ADD_INNER_VID, innerVlan, 0, 0);
+      if (rc != L7_SUCCESS)
+      {
+        printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+        fflush(stdout);
+        hapiBroadPolicyCreateCancel();
+        return rc;
+      }
+      printf("%s(%d) Inner vlan add action added\r\n",__FUNCTION__,__LINE__);
+    }
+    
+    /* Commit */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (rc != L7_SUCCESS)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyCreateCancel();
+      return rc;
+    }
+
+    rc = hapiBroadPolicyApplyToIface(policyId, lport);
+    if (L7_SUCCESS != rc)
+    {
+      printf("%s(%d) Error\r\n",__FUNCTION__,__LINE__);
+      fflush(stdout);
+      hapiBroadPolicyDelete(policyId);
+      return rc;
+    }
+
+    /* Save policy id */
+    policyId_pvid[port] = policyId;
+
+    printf("PVID set successfully\r\n");
+    fflush(stdout);
+  }
+
+  return L7_SUCCESS;
+}
+
 int ptin_l2_replace_port(bcm_port_t bcm_port_old, bcm_port_t bcm_port_new)
 {
   bcm_l2_addr_t bcm_l2_addr;

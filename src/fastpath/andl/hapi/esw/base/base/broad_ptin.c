@@ -154,6 +154,21 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     }
     break;
 
+  case PTIN_HWPROC_VCAP_DEFVID:
+    if (hwproc->operation == DAPI_CMD_SET)
+    {
+      rc = ptin_hapi_vcap_defvid(usp, hwproc->param1, hwproc->param2, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=%u, innerVlan=%u)", hwproc->param1, hwproc->param2);
+    }
+    else if (hwproc->operation == DAPI_CMD_CLEAR)
+    {
+      rc = ptin_hapi_vcap_defvid(usp, 0, 0, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=0, innerVlan=0)");
+    }
+    break; 
+
   default:
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid procedure: %u", hwproc->procedure);
     rc = L7_FAILURE;
