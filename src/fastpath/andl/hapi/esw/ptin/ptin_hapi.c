@@ -1222,7 +1222,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
  */
 L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t *dapi_g)
 {
-  bcm_port_t   bcm_port=-1;
+  bcm_port_t bcm_port=-1;
 
   /* Main clock */
   if (main_port >= 0)
@@ -1240,6 +1240,14 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid port: main_port=%d", main_port);
       return L7_FAILURE;
     }
+
+    /* Correct bcm_port id for 10G ports: some bug requires to use an offset of +2 (CSP 814123) */
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    if ((1UL << main_port) & PTIN_SYSTEM_10G_PORTS_MASK)
+    {
+      bcm_port += 2;
+    }
+  #endif
 
     /* Configure main clock */
     if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, bcm_port) != L7_SUCCESS)
@@ -1265,6 +1273,14 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid port: backup_port=%d", bckp_port);
       return L7_FAILURE;
     }
+
+    /* Correct bcm_port id for 10G ports: some bug requires to use an offset of +2 (CSP 814123) */
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    if ((1UL << main_port) & PTIN_SYSTEM_10G_PORTS_MASK)
+    {
+      bcm_port += 2;
+    }
+  #endif
 
     /* Configure backup clock */
     if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, bcm_port) != L7_SUCCESS)
