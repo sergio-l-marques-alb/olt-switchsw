@@ -11909,7 +11909,7 @@ void ptin_igmp_groupclients_dump(void)
     /* Count number of child clients */
     child_clients = igmp_clientDevice_get_devices_number(clientGroup);
 
-    printf("      Client#%u: OnuId%u"
+    printf("      Client#%u: (OnuId=%u) "
            #if (MC_CLIENT_INTERF_SUPPORTED)
            "ptin_port=%-2u "
            #endif
