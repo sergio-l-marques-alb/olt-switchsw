@@ -12368,8 +12368,8 @@ RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_contr
   {
     if (igmpAdmissionControl->maxAllowedChannels == PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE) /*Disable this Parameter*/
     {
-      igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.maxAllowedBandwidth = 0;
-      igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.allocatedBandwidth = 0;     
+      igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.maxAllowedChannels = 0;
+      igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.allocatedChannels = 0;     
       igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH;      
     }
     else
@@ -12384,7 +12384,7 @@ RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_contr
     if (igmpAdmissionControl->maxAllowedBandwidth == PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE) /*Disable this Parameter*/
     {
       igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.maxAllowedBandwidth = 0;
-      igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.allocatedChannels = 0;
+      igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.allocatedBandwidth = 0;
       igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.mask &= PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;       
     }
     else
@@ -12398,7 +12398,7 @@ RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_contr
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Arguments [mask:0x%x maxAllowedChannels:%du maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
       igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.mask,
               igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.maxAllowedChannels,
-              igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.maxAllowedChannels,
+              igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.maxAllowedBandwidth,
               igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.allocatedChannels,
               igmpMulticastAdmissionControl[igmpAdmissionControl->ptin_port][igmpAdmissionControl->onuId][internalServiceId].admissionControl.allocatedBandwidth );    
   return L7_SUCCESS;
