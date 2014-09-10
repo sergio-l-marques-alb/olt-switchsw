@@ -1440,21 +1440,20 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (ptin_debug_dhcp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_DHCP, "Packet frameLen = %d, initial UDP length = %d ", frameLen, osapiNtohs(udp_header->length) );
 
-  /* Update Binding database only when DHCP Snooping is enabled and the interface is untrusted Snooping-wise. */
+  /* Update Binding database only when DHCP Snooping is enabled */
   if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) && (dsVlanIntfIsSnooping(vlanId,intIfNum) == L7_TRUE))
   {
     if (ptin_debug_dhcp_snooping)
       LOG_TRACE(LOG_CTX_PTIN_DHCP, "intIfNum %u, vlanId=%u valid", intIfNum, vlanId);
 
-    if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) ||
-        (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST /*&& (_dsVlanIntfTrustGet(vlanId,intIfNum) != L7_TRUE)*/)) 
+    if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) || (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST)) 
     {
+      /* Search for this client before the binding is extracted because the entry in this table will be removed if a NACK/DECLINE is received */
       if(dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
       {
         if (ptin_debug_dhcp_snooping)
           LOG_TRACE(LOG_CTX_PTIN_DHCP, "L7_DHCP_BOOTP_REPLY");
 
-        /* Search for this client before the binding is extracted because the entry in this table will be removed if a NACK/DECLINE is received */
         memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
         mac_header = (L7_enetHeader_t*) frame;
         memcpy(&dhcp_binding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
@@ -1519,23 +1518,23 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
       relayOptIntIfNum = dhcp_binding.intIfNum;
 
-      /* Remove relay agent info from the received packet only if we are not forwarding it to a trusted interface */
+      /* Remove relay agent info if we added it during the client request */
       memset(&relayAgentInfo, 0, sizeof(dsRelayAgentInfo_t));
-      if(_dsVlanIntfTrustGet(vlanId,relayOptIntIfNum) == L7_TRUE)
-      {
-         if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen, L7_FALSE, &relayAgentInfo) != L7_SUCCESS)
-         {
-            if (ptin_debug_dhcp_snooping)
-               LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error while getting relay agent info");
-            return L7_FAILURE;
-         }
-      }
-      else
+      if(dhcp_binding.flags & DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED)
       {
          if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen, L7_TRUE, &relayAgentInfo) != L7_SUCCESS)
          {
             if (ptin_debug_dhcp_snooping)
                LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error while removing relay agent info");
+            return L7_FAILURE;
+         }
+      }
+      else
+      {
+         if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen, L7_FALSE, &relayAgentInfo) != L7_SUCCESS)
+         {
+            if (ptin_debug_dhcp_snooping)
+               LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Error while getting relay agent info");
             return L7_FAILURE;
          }
       }
@@ -1558,29 +1557,36 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          return L7_FAILURE;
       }
 
-      if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+      /* Client requests received with giaddr different from 0 should be forwarded witout modifications */
+      if(dhcpPacket->giaddr == L7_NULL)
       {
-        if (ptin_debug_dhcp_snooping)
-           LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get DHCP client options [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
-        return L7_FAILURE;
-      }
+         if (ptin_dhcp_client_options_get(intIfNum, vlanId, innerVlanId, &isActiveOp82, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
+         {
+           if (ptin_debug_dhcp_snooping)
+              LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to get DHCP client options [intIfNum:%u vlanId:%u innerVlanId:%u]", intIfNum, vlanId, innerVlanId);
+           return L7_FAILURE;
+         }
 
-      if (isActiveOp82)
-      {
-        if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Is Active option 82");
+         if (isActiveOp82)
+         {
+           if (ptin_debug_dhcp_snooping)
+             LOG_TRACE(LOG_CTX_PTIN_DHCP, "Is Active option 82");
 
-        /* This function adds Option-82 only if it does not already exists.*/
-        if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen) != L7_SUCCESS)
-        {
-          if (ptin_debug_dhcp_snooping)
-             LOG_ERR(LOG_CTX_PTIN_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
-          return L7_FAILURE;
-        }
-        ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
+           /* This function adds Option-82 only if it does not already exists.*/
+           if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen) != L7_SUCCESS)
+           {
+             if (ptin_debug_dhcp_snooping)
+                LOG_ERR(LOG_CTX_PTIN_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
+             return L7_FAILURE;
+           }
+           ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
 
-        if (ptin_debug_dhcp_snooping)
-          LOG_TRACE(LOG_CTX_PTIN_DHCP, "Packet frameLen = %d after Option-82 addition", frameLen);
+           /* Set the relayop_added bit so we know, when processing the server response, that it was us who added the relay option */
+           dhcp_binding.flags |= DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED;
+
+           if (ptin_debug_dhcp_snooping)
+             LOG_TRACE(LOG_CTX_PTIN_DHCP, "Packet frameLen = %d after Option-82 addition", frameLen);
+         }
       }
 
       /* Check if broadcast flag should be modified */
@@ -4075,34 +4081,22 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
     }
 
-    /* On L2 Relay trusted interfaces, Option-82 is expected.
-       On L2 Relay untrusted interfaces, Option-82 is not expected.
-       If either of this cases fail to match, mark the packet to filter.*/
-    if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_FALSE))   /* PTin modified: DHCP snooping */
+    /* If giaadr is 0, we MUST drop packets with the relay option recv on untrusted interfaces. */
+    if(dhcpPacket->giaddr == 0)
     {
-      dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
-      ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
-      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82"
-                         "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
-                         (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
-                          DS_TRACE_LOG);
-      if (ptin_debug_dhcp_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg with Option-82 rx'ed on L2 Relay untrusted");
-      return L7_TRUE;
+       if ((relayFlag == L7_TRUE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) == L7_FALSE))   /* PTin modified: DHCP snooping */
+       {
+         dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
+         ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOPS_ON_UNTRUSTED_INTF);
+         DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82 and giaddr==0 "
+                            "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
+                            (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                             DS_TRACE_LOG);
+         if (ptin_debug_dhcp_snooping)
+           LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg with Option-82 and giaddr==0 rx'ed on L2 Relay untrusted");
+         return L7_TRUE;
+       }
     }
-//
-//  if ((relayFlag == L7_FALSE) && (_dsVlanIntfL2RelayTrustGet(vlanId,intIfNum) /*_dsIntfL2RelayTrustGet(intIfNum)*/ == L7_TRUE))   /* PTin modified: DHCP snooping */
-//  {
-//    dsIntfInfo[intIfNum].dsIntfStats.trustedClientFramesWithoutOption82++;
-//    ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_CLIENT_PKTS_ON_TRUSTED_INTF);
-//    DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg without Option-82"
-//                       "rx'ed on L2 Relay trusted", intIfNum, vlanId,
-//                       (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
-//                        DS_TRACE_LOG);
-//    if (ptin_debug_dhcp_snooping)
-//      LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: DHCP L2 Relay dropping client msg without Option-82 rx'ed on L2 Relay trusted");
-//    return L7_TRUE;
-//  }
 
     /* PTin added: DHCP snooping */
     #if 1

@@ -347,6 +347,9 @@ typedef struct dhcpSnoopBinding_s
   /* dynamic, static, tentative */
   dsBindingType_t bindingType;
 
+  /* Flags. See ds_util.h for the used bits and their meaning. */
+  L7_uint8 flags;
+
 } dhcpSnoopBinding_t;
 
 

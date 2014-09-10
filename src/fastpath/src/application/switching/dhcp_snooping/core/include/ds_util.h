@@ -50,6 +50,8 @@
 #define DHO_PAD                       0
 #define DHO_END                 255
 
+#define DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED    0x01  /* This bit should be set when the DHCPv4 relay agent added the relay option to a client request */
+
 #if 1 /* PTin added: DHCPv6 */
 #define PTIN_ENTERPRISE_NUMBER  4746
 #endif
