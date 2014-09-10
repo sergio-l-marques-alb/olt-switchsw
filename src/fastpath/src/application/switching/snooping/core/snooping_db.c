@@ -246,10 +246,14 @@ L7_RC_t snoopEntryAdd(L7_uchar8* macAddr, L7_uint32 vlanId, L7_uchar8 family, L7
   if (pData == &snoopEntry)
   {
     /*some error in avl tree addition*/
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopEntryAdd: some error in avl tree addition");
     return L7_FAILURE;
   }
 
   /*entry already exists*/
+  L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+              "snoopEntryAdd: entry already exists");
   return L7_FAILURE;
 }
 /*********************************************************************
