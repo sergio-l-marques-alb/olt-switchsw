@@ -524,6 +524,16 @@ extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint32 evc_ext_id);
 extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_ext_id);
 
 /**
+ * Get EVC ext id, from NNI vlan
+ * 
+ * @param nni_ovlan  : NNI OVLAN
+ * @param evc_ext_id : EVC extended id 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_get_evcId_fromNNIvlan(L7_uint16 nni_ovid, L7_uint32 *evc_ext_id);
+
+/**
  * Get the outer+inner external vlan for a specific 
  * interface+outer+inner internal vlan. 
  *  

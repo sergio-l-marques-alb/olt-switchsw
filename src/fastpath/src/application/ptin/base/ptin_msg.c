@@ -8604,6 +8604,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   L7_uint8  *directionStr[] =  {"IN", "OUT"};
   L7_uint8  *operationStr[] =  {"APPLY ACL", "UNAPPLY ACL"};
 
+  L7_uint32 evc_ext_id;
   L7_uint16 intRootVlan;
   L7_RC_t   rc = L7_FAILURE;
 
@@ -8641,7 +8642,26 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     return L7_FAILURE;
   }
 
-  if (msgAcl->evcId != L7_ACL_INVALID_EVC_ID)
+  if (msgAcl->vlanId != L7_ACL_INVALID_VLAN_ID)
+  {
+    /* This is NNI VLAN. Get evc id from it, and use it to get the internal VLAN */
+    if (ptin_evc_get_evcId_fromNNIvlan(msgAcl->vlanId, &evc_ext_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId);
+      return L7_FAILURE;
+    }
+    /* Internal VLAN */
+    if (ptin_evc_intRootVlan_get(evc_ext_id, &intRootVlan) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Unable to get internal VLAN from extEVCid %u (NNI VLAN %u)", evc_ext_id, msgAcl->vlanId);
+      return L7_FAILURE;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Retrieved VLAN ID %d", (L7_uint32) intRootVlan);
+    /* Rewrite VLAN with the internal VLAN */
+    msgAcl->vlanId = (L7_uint32) intRootVlan;
+  }
+  else if (msgAcl->evcId != L7_ACL_INVALID_EVC_ID)
   {
     /* Gets the root vlan (internal) for a particular evc */
     rc = ptin_evc_intRootVlan_get(msgAcl->evcId, &intRootVlan);

@@ -859,6 +859,45 @@ L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_ext
 }
 
 /**
+ * Get EVC ext id, from NNI vlan
+ * 
+ * @param nni_ovlan  : NNI OVLAN
+ * @param evc_ext_id : EVC extended id 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_get_evcId_fromNNIvlan(L7_uint16 nni_ovid, L7_uint32 *evc_ext_id)
+{
+  L7_uint evc_id;
+
+  /* Validate arguments */
+  if (nni_ovid == 0 || nni_ovid >= 4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (nni_ovid=%u)",nni_ovid);
+    return L7_FAILURE;
+  }
+
+  /* Run all EVCs */
+  for (evc_id = 0; evc_id < PTIN_SYSTEM_N_EVCS; evc_id++)
+  {
+    /* Skip not used EVCs */
+    if (!evcs[evc_id].in_use)
+      continue;
+
+    /* check for NNI VLAN */
+    if (evcs[evc_id].root_info.nni_ovid == nni_ovid)
+    {
+      if (evc_ext_id != L7_NULLPTR)
+        *evc_ext_id = evcs[evc_id].extended_id;
+      return L7_SUCCESS;
+    }
+  }
+
+  /* At this point, no EVC was found... return error */
+  return L7_NOT_EXIST;
+}
+
+/**
  * Gets the internal vlan for a particular evc and interface
  * 
  * @param evc_ext_id : EVC extended id 
