@@ -68,6 +68,9 @@ extern daiVlanInfo_t *daiVlanInfo;
 /* API to get the ARP Acl entry given the ACL name */
 extern arpAclCfg_t* _arpAclEntryGet(L7_uchar8 *aclName);
 
+/* PTin Added - Routing support */
+extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
+
 #if 0
 /* Not used as vlan events are now a mask and it is not appropriate to have a array */
 static L7_uchar8 *vlanEvents[] = {"Invalid", "ADD", "DELETE PENDING", "DELETE", "ADD PORT",
@@ -1052,6 +1055,18 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
   daiInfo->debugStats.pktsIntercepted++;
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
+
+#if 1 /* PTIN - Change the vlan sent in the packet to match the external vlan */
+  {
+     L7_uint16 dtl0Vid;
+
+     dtl0Vid = ptin_ipdtl0_getdtl0Vid(vlanId);
+     data[14] &= 0xf0;
+     data[14] |= ((dtl0Vid>>8) & 0x0f);
+     data[15]  = dtl0Vid & 0xff;
+     pduInfo->vlanId = vlanId = dtl0Vid;
+  }
+#endif
 
   {
     L7_uchar8 daiTrace[DAI_MAX_TRACE_LEN];
