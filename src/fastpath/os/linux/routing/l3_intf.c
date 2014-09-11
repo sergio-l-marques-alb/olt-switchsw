@@ -189,7 +189,6 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
 #if 1
    if (protocolType != L7_ETYPE_8021Q)
    {
-      L7_uint32 i;
       L7_uint32 messageLen;
       L7_uint16 dtl0Vid = ptin_ipdtl0_getdtl0Vid(vlanId);
 
