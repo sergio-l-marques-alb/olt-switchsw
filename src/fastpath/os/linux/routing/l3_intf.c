@@ -186,7 +186,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
    pEtype = pdataStart + L7_ENET_HDR_SIZE;
    bcopy (pEtype, (L7_uchar8 *)&protocolType, sizeof(L7_ushort16));
    protocolType = ntohs(protocolType);
-#if 1
+#if 0
    if (protocolType != L7_ETYPE_8021Q)
    {
       L7_uint32 messageLen;
