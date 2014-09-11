@@ -52,6 +52,7 @@ extern L7_uint32 ip6ForwardRxIfDown;      /* packets received on down interface 
 extern L7_uint32 ip6ForwardPktsToStack;   /* packets to IP stack */
 
 extern L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *physicalIntfNum); /* I am unable to include ptin_routing here */
+extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
 
 
 /*********************************************************************
@@ -185,6 +186,25 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
    pEtype = pdataStart + L7_ENET_HDR_SIZE;
    bcopy (pEtype, (L7_uchar8 *)&protocolType, sizeof(L7_ushort16));
    protocolType = ntohs(protocolType);
+#if 1
+   if (protocolType != L7_ETYPE_8021Q)
+   {
+      L7_uint32 i;
+      L7_uint32 messageLen;
+      L7_uint16 dtl0Vid = ptin_ipdtl0_getdtl0Vid(vlanId);
+
+      SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, messageLen);
+
+      memmove(pdataStart+L7_ENET_HDR_SIZE+L7_8021Q_ENCAPS_HDR_SIZE, pdataStart+L7_ENET_HDR_SIZE, messageLen-L7_ENET_HDR_SIZE);
+      pdataStart[12] = 0x81;
+      pdataStart[13] = 0x00;
+      pdataStart[14] = (dtl0Vid>>8) & 0x0f;
+      pdataStart[15] = dtl0Vid & 0xff;
+
+      messageLen += 4;
+      SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, messageLen);
+   }
+#endif
 #if 0 /* Ptin removed - routing support (Removed this because the ARP packet now arrives here with the dtl0 vlan) */
    if (protocolType == L7_ETYPE_8021Q)
    {

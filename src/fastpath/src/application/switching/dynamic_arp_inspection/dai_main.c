@@ -1056,18 +1056,6 @@ SYSNET_PDU_RC_t daiArpRecv(L7_uint32 hookId,
 
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
 
-#if 1 /* PTIN - Change the vlan sent in the packet to match the external vlan */
-  {
-     L7_uint16 dtl0Vid;
-
-     dtl0Vid = ptin_ipdtl0_getdtl0Vid(vlanId);
-     data[14] &= 0xf0;
-     data[14] |= ((dtl0Vid>>8) & 0x0f);
-     data[15]  = dtl0Vid & 0xff;
-     pduInfo->vlanId = vlanId = dtl0Vid;
-  }
-#endif
-
   {
     L7_uchar8 daiTrace[DAI_MAX_TRACE_LEN];
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
