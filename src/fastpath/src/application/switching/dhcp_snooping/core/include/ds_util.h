@@ -721,6 +721,17 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum);
 
 /**
  * Check if a particular (internal) vlan+interface is part of a DHCP 
+ * active EVC, with its interface as root
+ * 
+ * @param vlanId : internal vlan
+ * @param intIfNum : interface
+ * 
+ * @return L7_BOOL : L7_TRUE/L7_FALSE
+ */
+L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum);
+
+/**
+ * Check if a particular (internal) vlan+interface is part of a DHCP 
  * active EVC, with its interface as root (trusted interface)
  * 
  * @param vlanId : internal vlan

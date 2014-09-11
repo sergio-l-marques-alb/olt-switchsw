@@ -444,7 +444,7 @@ L7_BOOL _dsIntfTrustGet(L7_uint32 intIfNum)
 /* PTin added: DHCP snooping */
 /**
  * Check if a particular (internal) vlan+interface is part of a DHCP 
- * active EVC, with its interface as root (trusted interface)
+ * active EVC, with its interface as trusted
  * 
  * @param vlanId : internal vlan
  * @param intIfNum : interface
@@ -479,6 +479,20 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
   }
   return L7_FALSE;
   #endif
+}
+
+/**
+ * Check if a particular (internal) vlan+interface is part of a DHCP 
+ * active EVC, with its interface as root
+ * 
+ * @param vlanId : internal vlan
+ * @param intIfNum : interface
+ * 
+ * @return L7_BOOL : L7_TRUE/L7_FALSE
+ */
+L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
+{
+  return ptin_dhcp_is_intfRoot(intIfNum,vlanId);
 }
 
 /*********************************************************************

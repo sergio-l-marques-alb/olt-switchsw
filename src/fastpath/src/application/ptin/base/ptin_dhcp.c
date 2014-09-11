@@ -2158,7 +2158,28 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   if (stat_client!=L7_NULLPTR)
   {
     osapiSemaTake(ptin_dhcp_stats_sem,-1);
+#if 1 /* Daniel - Disabled this for now, as both APIs do not match. Hence, I cannot simply use memcpy */
+    stat_client->dhcp_rx_intercepted                         = clientInfo->client_stats.dhcp_rx_intercepted;
+    stat_client->dhcp_rx                                     = clientInfo->client_stats.dhcp_rx;
+    stat_client->dhcp_rx_filtered                            = clientInfo->client_stats.dhcp_rx_filtered;
+    stat_client->dhcp_tx_forwarded                           = clientInfo->client_stats.dhcp_tx_forwarded;
+    stat_client->dhcp_tx_failed                              = clientInfo->client_stats.dhcp_tx_failed;
+
+    stat_client->dhcp_rx_client_requests_without_options     = clientInfo->client_stats.dhcp_rx_client_requests_without_options;
+    stat_client->dhcp_tx_client_requests_with_option82       = clientInfo->client_stats.dhcp_tx_client_requests_with_option82;
+    stat_client->dhcp_tx_client_requests_with_option37       = clientInfo->client_stats.dhcp_tx_client_requests_with_option37;
+    stat_client->dhcp_tx_client_requests_with_option18       = clientInfo->client_stats.dhcp_tx_client_requests_with_option18;
+    stat_client->dhcp_rx_server_replies_with_option82        = clientInfo->client_stats.dhcp_rx_server_replies_with_option82;
+    stat_client->dhcp_rx_server_replies_with_option37        = clientInfo->client_stats.dhcp_rx_server_replies_with_option37;
+    stat_client->dhcp_rx_server_replies_with_option18        = clientInfo->client_stats.dhcp_rx_server_replies_with_option18;
+    stat_client->dhcp_tx_server_replies_without_options      = clientInfo->client_stats.dhcp_tx_server_replies_without_options;
+
+    stat_client->dhcp_rx_client_pkts_onTrustedIntf           = clientInfo->client_stats.dhcp_rx_client_pkts_onTrustedIntf;
+    stat_client->dhcp_rx_client_pkts_withOps_onUntrustedIntf = clientInfo->client_stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
+    stat_client->dhcp_rx_server_pkts_onUntrustedIntf         = clientInfo->client_stats.dhcp_rx_server_pkts_onUntrustedIntf;
+#else
     memcpy(stat_client, &clientInfo->client_stats, sizeof(ptin_DHCP_Statistics_t));
+#endif
     osapiSemaGive(ptin_dhcp_stats_sem);
   }
 
@@ -2707,6 +2728,47 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
               ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
     return L7_FALSE;
+  }
+
+  return L7_TRUE;
+}
+
+/**
+ * Check if a particular interface of one EVC is root
+ * 
+ * @param intIfNum    : interface
+ * @param intVlanId   : internal vlan
+ * 
+ * @return L7_BOOL : L7_TRUE/L7_FALSE
+ */
+L7_BOOL ptin_dhcp_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId)
+{
+  L7_uint8 intf_type;
+
+  /* Validate arguments */
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
+      (intVlanId != 0 && (intVlanId < PTIN_VLAN_MIN || intVlanId > PTIN_VLAN_MAX)) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
+    return L7_FALSE;
+  }
+
+  /* If VLAN is null, return general trusted state */
+  if (intVlanId == 0)
+  {
+    return L7_TRUE;
+  }
+
+  /* Get interface configuration */
+  if (ptin_evc_intf_type_get(intVlanId, intIfNum, &intf_type)!=L7_SUCCESS)
+  {
+    if (ptin_debug_dhcp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u type from internalVid %u and intIfNum %u", intVlanId, intIfNum);
+    return L7_FALSE;
+  }
+  if(intf_type != PTIN_EVC_INTF_ROOT)
+  {
+     return L7_FALSE;
   }
 
   return L7_TRUE;

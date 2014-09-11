@@ -822,7 +822,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
 
       ptin_client_id_t client;
 
-      if (!_dsVlanIntfTrustGet(pduInfo->vlanId,pduInfo->intIfNum))
+      if (!_dsVlanIsIntfRoot(pduInfo->vlanId,pduInfo->intIfNum))
       {
         #if 0
         /* Validate inner vlan */
@@ -1121,7 +1121,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 
       ptin_client_id_t client;
 
-      if (!_dsVlanIntfTrustGet(pduInfo->vlanId,pduInfo->intIfNum))
+      if (!_dsVlanIsIntfRoot(pduInfo->vlanId,pduInfo->intIfNum))
       {
         #if 0
         /* Validate inner vlan */
@@ -1223,7 +1223,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
           return SYSNET_PDU_RC_IGNORED;
         }
 #endif /* If DHCP server is there */
-        if (_dsVlanIntfTrustGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfTrustGet(pduInfo->intIfNum)*/) /* Trusted port */   /* PTin modified: DHCP snooping */
+        if (_dsVlanIsIntfRoot(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfTrustGet(pduInfo->intIfNum)*/) /* Trusted port */   /* PTin modified: DHCP snooping */
         {
           return SYSNET_PDU_RC_IGNORED;
         }
@@ -3747,7 +3747,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       dsVlanIntfIsSnooping(vlanId,intIfNum) /*dsIntfIsSnooping(intIfNum)*/ == L7_TRUE       /* PTin modified: DHCP snooping */
       /* && _dsVlanEnableGet(vlanId) == L7_TRUE*/)                                          /* PTin removed: DHCP snooping */
   {
-    if (_dsVlanIntfTrustGet(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_FALSE)     /* PTin modified: DHCP snooping */
+    if (_dsVlanIsIntfRoot(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_FALSE)     /* PTin modified: DHCP snooping */
     {
       dsIntfInfo[intIfNum].dsIntfStats.untrustedSvrMsg++;
       if (_dsIntfLogInvalidGet(intIfNum))
@@ -4129,7 +4129,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
      /* && _dsVlanEnableGet(vlanId) == L7_TRUE*/ )                                            /* PTin removed: DHCP snooping */
 
   {
-    if (_dsVlanIntfTrustGet(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_TRUE)        /* PTin modified: DHCP snooping */
+    if (_dsVlanIsIntfRoot(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_TRUE)        /* PTin modified: DHCP snooping */
     {
       /* If the interface is trusted Snooping interface, then the database
          related validations are not needed as the binding database is updated
@@ -4259,7 +4259,7 @@ L7_BOOL dsFilterVerifyMac(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
 
   if ((dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) &&
-      (_dsVlanIntfTrustGet(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_FALSE))     /* PTin modified: DHCP snooping */
+      (_dsVlanIsIntfRoot(vlanId,intIfNum) /*_dsIntfTrustGet(intIfNum)*/ == L7_FALSE))     /* PTin modified: DHCP snooping */
   {
     /* client message on untrusted interface */
     srcMacAddr = (L7_enetMacAddr_t*) (frame + L7_ENET_MAC_ADDR_LEN);
@@ -4688,7 +4688,7 @@ L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId,
          *   request and trigger creation of a binding. Letting the client get
          *   a DHCP address on an untrusted port with no binding could cause
          *   problems for the client if IPSG or DAI are enabled on the port. */
-        if (!_dsVlanEnableGet(vlanId) || _dsVlanIntfTrustGet(vlanId,i) /*_dsIntfTrustGet(i)*/)    /* PTin modified: DHCP snooping */
+        if (!_dsVlanEnableGet(vlanId) || _dsVlanIsIntfRoot(vlanId,i) /*_dsIntfTrustGet(i)*/)    /* PTin modified: DHCP snooping */
         {
           L7_uint8  ethPrty;
           L7_uint8  *frameEthPrty;
