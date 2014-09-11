@@ -188,6 +188,22 @@ L7_RC_t ptin_intf_init(void)
   /* Initialize phy default TPID and MTU */
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
+    rc = usmDbVlanMemberSet(1, 1, map_port2intIfNum[i], L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to remove port# %u from vlan 1", i);
+      return L7_FAILURE;
+    }
+  }
+
+  /* Wait until all requests are attended */
+  do
+    osapiSleepMSec(100);
+  while (!dot1qQueueIsEmpty());
+
+  /* Initialize phy default TPID and MTU */
+  for (i=0; i<ptin_sys_number_of_ports; i++)
+  {
     ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
     ptin_intf.intf_id   = i;
 
@@ -195,14 +211,14 @@ L7_RC_t ptin_intf_init(void)
     phyExt_data[i].outer_tpid = PTIN_TPID_OUTER_DEFAULT;
 //    phyExt_data[i].inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
-    rc = usmDbDvlantagIntfModeSet(0, map_port2intIfNum[i], L7_ENABLE);
+    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
       LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to enable DVLAN mode on port# %u", i);
       return L7_FAILURE;
     }
 
-    rc = usmDbDvlantagIntfEthertypeSet(0, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
+    rc = usmDbDvlantagIntfEthertypeSet(1, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
     if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
     {
       LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to configure default TPID 0x%04X on port# %u (rc = %d)", PTIN_TPID_OUTER_DEFAULT, i, rc);
@@ -215,13 +231,6 @@ L7_RC_t ptin_intf_init(void)
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set max frame on port# %u", i);
-      return L7_FAILURE;
-    }
-
-    rc = usmDbVlanMemberSet(0,1,map_port2intIfNum[i],L7_DOT1Q_FORBIDDEN,DOT1Q_SWPORT_MODE_NONE);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to remove port# %u from vlan 1", i);
       return L7_FAILURE;
     }
 
