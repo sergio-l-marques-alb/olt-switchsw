@@ -647,6 +647,7 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
   char           ipAddrStr[IPV6_DISP_ADDR_LEN];
   L7_inet_addr_t inetIpAddr;
   L7_uint32      intfNum;
+  L7_RC_t        rc;
 
   if( (routingIntf == L7_NULLPTR) )
   {
@@ -663,9 +664,9 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
   /* Configure the routing interface with the given IP address */
   inetAddressSet(ipFamily, &ipAddr, &inetIpAddr);
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %s%u IP address to %s", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr));
-  if(usmDbIpRtrIntfIPAddressSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG) != 0)
+  if((rc = usmDbIpRtrIntfIPAddressSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %s%u IP address to %s", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr));
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %s%u IP address to %s (rc = %u)", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr), rc);
     return L7_FAILURE;
   }
 

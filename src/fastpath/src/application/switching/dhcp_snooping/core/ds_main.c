@@ -1428,7 +1428,9 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
   dhcpSnoopBinding_t  dhcp_binding;
   L7_enetHeader_t    *mac_header = 0;
   L7_uint32           relayOptIntIfNum = 0;
-  L7_uchar8           broadcast_flag;        
+  L7_uchar8           broadcast_flag;  
+  
+  memset(&dhcp_binding, 0x00, sizeof(dhcp_binding));   
 
   ethHdrLen  = sysNetDataOffsetGet(frame);
   ipHeader   = (L7_ipHeader_t*)(frame + ethHdrLen);
@@ -1569,11 +1571,13 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
          if (isActiveOp82)
          {
+           L7_RC_t rcRelayAgentInfoAdd;
+
            if (ptin_debug_dhcp_snooping)
              LOG_TRACE(LOG_CTX_PTIN_DHCP, "Is Active option 82");
 
            /* This function adds Option-82 only if it does not already exists.*/
-           if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen) != L7_SUCCESS)
+           if ((rcRelayAgentInfoAdd = dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen)) == L7_FAILURE)
            {
              if (ptin_debug_dhcp_snooping)
                 LOG_ERR(LOG_CTX_PTIN_DHCP, "Failed to add DHCP Option-82 for Client request on SVLAN %d", vlanIdFwd);
@@ -1582,7 +1586,15 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
            ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
 
            /* Set the relayop_added bit so we know, when processing the server response, that it was us who added the relay option */
-           dhcp_binding.flags |= DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED;
+           LOG_TRACE(LOG_CTX_PTIN_DHCP, "dsRelayAgentInfoAdd returned %u", rcRelayAgentInfoAdd);
+           if(rcRelayAgentInfoAdd == L7_SUCCESS)
+           {
+              L7_enetMacAddr_t clientMacAddr;
+
+              memcpy(&clientMacAddr.addr[0], &dhcpPacket->chaddr[0], L7_MAC_ADDR_LEN);
+              dhcp_binding.flags |= DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED;
+              dsBindingFlagsUpdate(&clientMacAddr, dhcp_binding.flags);
+           }
 
            if (ptin_debug_dhcp_snooping)
              LOG_TRACE(LOG_CTX_PTIN_DHCP, "Packet frameLen = %d after Option-82 addition", frameLen);
@@ -3150,6 +3162,7 @@ void dsL2RelayRelayAgentInfoOptionCfgGet(L7_uint32 intIfNum, L7_uint32 vlanId, L
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
+* @returns  L7_ALREADY_CONFIGURED If the packet already has op82
 *
 * @notes    The packet is added with Option-82 only if the packet does not
 *           already has Option-82.
@@ -3254,7 +3267,7 @@ L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
           }
           /* There's already a Relay Agent Information option
           in this packet. So we are not going to modify it or add more.*/
-          return L7_SUCCESS;
+          return L7_ALREADY_CONFIGURED;
 
       default:
           dhcpOption += dhcpOption [DHCP_OPTION_LENGTH_OFFSET] + DHCP_OPTION_CONTENT_OFFSET;

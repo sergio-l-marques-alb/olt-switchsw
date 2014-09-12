@@ -423,6 +423,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
     }
     pNode->bindingType = bindingType;
     pNode->leaseStatus = DS_LEASESTATUS_UNKNOWN;
+    pNode->flags       = 0;
     memcpy(&pNode->ipAddr, &ipAddr, sizeof(L7_inet_addr_t));
     pNode->vlanId = vlanId;
     pNode->innerVlanId = innerVlanId;     /* PTin added: DHCP */
@@ -852,6 +853,8 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
   extBinding->intIfNum = binding->intIfNum;
   extBinding->bindingType = binding->bindingType;
   extBinding->remLease = 0;
+  extBinding->flags = binding->flags;
+  extBinding->leaseStatus = binding->leaseStatus;
   if (binding->bindingType == DS_BINDING_DYNAMIC)
   {
     if ((binding->leaseStart + binding->leaseTime) > simSystemUpTimeGet())
@@ -894,6 +897,36 @@ static L7_RC_t dsLeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint inetFamily
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Update the lease flags for an existing binding table entry
+*
+* @param    macAddr: Mac address that identifies the binding table entry
+* @param    flags  : Flags
+*
+* @returns  L7_SUCCESS
+*
+* @end
+*********************************************************************/
+L7_RC_t dsBindingFlagsUpdate(L7_enetMacAddr_t *macAddr, L7_uint8 flags)
+{
+  dsBindingTreeNode_t *binding;
+
+  if (dsBindingTreeSearch(macAddr, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Unable to find requested entry [macAddr:%02x:%02x:%02x:%02x:%02x:%02x]",
+            macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5]);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_DHCP, "Updating lease flags [macAddr:%02x:%02x:%02x:%02x:%02x:%02x flags:%02X]",
+            macAddr->addr[0], macAddr->addr[1], macAddr->addr[2], macAddr->addr[3], macAddr->addr[4], macAddr->addr[5], flags);
+
+  dsInfo->dsDbDataChanged = L7_TRUE;
+  binding->flags          = flags;
 
   return L7_SUCCESS;
 }
@@ -1362,10 +1395,11 @@ void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
 void dsBindingTableShow(void)
 {
   dsBindingTreeNode_t *binding = NULL;
-  L7_enetMacAddr_t macAddr;
-  L7_uint32         count;
-  L7_uint32 leaseAge;
-  L7_uint32 remainingLease;
+  L7_enetMacAddr_t     macAddr;
+  L7_uint32            count;
+  L7_uint32            leaseAge;
+  L7_uint32            remainingLease;
+  L7_uint8             flags;
 
   count = avlTreeCount(&dsInfo->bindingsTable.treeData);
   if (count == 0)
@@ -1391,6 +1425,7 @@ void dsBindingTableShow(void)
     dsMacToString(binding->macAddr.addr, macStr);
     inetAddrPrint(&binding->ipAddr, ipAddrStr);
     nimGetIntfName(binding->intIfNum, L7_SYSNAME, ifName);
+    flags = binding->flags;
 
     if (binding->bindingType == DS_BINDING_DYNAMIC)
     {
@@ -1402,11 +1437,11 @@ void dsBindingTableShow(void)
       remainingLease = 0;
     }
 
-    printf("%17s  %-45s  %6u  %9u  %10s %11s %18s %13u\n",
+    printf("%17s  %-45s  %6u  %9u  %10s %11s %18s %13u %02X\n",
            macStr, ipAddrStr, binding->vlanId, binding->innerVlanId, ifName,
            dsBindingTypeNames[binding->bindingType], 
            dsLeaseStatusNames[binding->leaseStatus], 
-           remainingLease / 60);
+           remainingLease / 60, flags);
   }
   printf("\n\n");
 }

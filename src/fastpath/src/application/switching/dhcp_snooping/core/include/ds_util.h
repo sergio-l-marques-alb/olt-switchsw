@@ -436,6 +436,9 @@ typedef struct dsBindingTreeNode_s
                               * Add / Delete of this binding entry */
 #endif
 
+  /* Flags. See ds_util.h for the used bits and their meaning. */
+  L7_uint8 flags;
+
   void *next;                /* AVL next */
 
 } dsBindingTreeNode_t;
@@ -898,6 +901,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr);
 L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr);
 L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType);
 L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType);
+L7_RC_t dsBindingFlagsUpdate(L7_enetMacAddr_t *macAddr, L7_uint8 flags);
 L7_RC_t dsBindingLeaseSet(L7_enetMacAddr_t *macAddr, L7_uint32 leaseTime);
 L7_uint32 _dsBindingsCount(void);
 L7_uint32 _dsStaticBindingsCount(void);
