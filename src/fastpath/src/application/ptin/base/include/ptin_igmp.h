@@ -1345,6 +1345,19 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
 RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_control_t *igmpAdmissionControl);
 
 /**
+ * @purpose Verify if this device client has any other device on
+ *          the same group client
+ * 
+ * @param  ptin_port 
+ * @param  clientId  
+ * @param *clientBmpPtr 
+ *  
+ * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
+ *  
+ */
+extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr);
+
+/**
  * @purpose Get the bandwidth requested by a given 
  * channel
  * 

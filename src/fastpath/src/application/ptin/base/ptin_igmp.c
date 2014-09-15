@@ -11976,6 +11976,96 @@ void ptin_igmp_groupclients_dump(void)
 /************IGMP Admission Control Feature****************************************************/ 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
+/**
+ * @purpose Verify if this device client has any other device on
+ *          the same group client
+ * 
+ * @param  ptin_port 
+ * @param  clientId  
+ * @param *clientBmpPtr 
+ *  
+ * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
+ *  
+ */
+extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr)
+{
+  ptinIgmpClientDevice_t        *client_device = L7_NULLPTR;
+  ptinIgmpClientGroupInfoData_t *ptinIgmpClientGroupInfoData;
+
+  /*Input Arguments Validation*/
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF || clientId >= PTIN_IGMP_CLIENTIDX_MAX || clientBmpPtr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptin_port:%u clientId:%u clientBmpPtr:%p",ptin_port, clientId, clientBmpPtr);
+    return L7_FAILURE;
+  }
+
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Arguments [ptin_port:%u clientId:%u]",ptin_port, clientId); 
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);  
+  if ( (ptinIgmpClientGroupInfoData = ptin_igmp_clientgroup_lookup_table_entry_get(ptin_port, clientId)) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find any valid clientGroup [ptin_port:%u clientId:%u]",ptin_port, clientId);    
+    osapiSemaGive(ptin_igmp_clients_sem);
+    return L7_FAILURE;
+  }
+    
+  while ( (client_device = igmp_clientDevice_next(ptinIgmpClientGroupInfoData, client_device)) != L7_NULLPTR)
+  {
+    if ( clientId == client_device->client->client_index)
+    {
+      continue;
+    }
+
+    if ( PTIN_CLIENT_IS_MASKBITSET(clientBmpPtr, client_device->client->client_index) == L7_TRUE)
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This groupclient has more than one device watching this stream [ptin_port:%u clientId:%u clientId2:%u]",ptin_port, clientId, client_device->client->client_index); 
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_ALREADY_CONFIGURED;
+    }    
+  }
+
+  osapiSemaGive(ptin_igmp_clients_sem);
+  return L7_SUCCESS;
+}
+
+#if 0
+/**
+ * Fill the bitmap of device clients
+ * 
+ * @param  ptin_port 
+ * @param  clientId  
+ * @param *clientBmpPtr 
+ * @param *noOfClients 
+ *  
+ * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
+ *  
+ */
+L7_RC_t ptin_igmp_admission_control_clients_bmp_get(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
+{
+  ptinIgmpClientDevice_t        *client_device = L7_NULLPTR;
+  ptinIgmpClientGroupInfoData_t *ptinIgmpClientGroupInfoData;
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);  
+  if ( (ptinIgmpClientGroupInfoData = ptin_igmp_clientgroup_lookup_table_entry_get(ptin_port, clientId)) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find any valid clientGroup [ptin_port:%u clientId:%u]",ptin_port, clientId);    
+    osapiSemaGive(ptin_igmp_clients_sem);
+    return L7_FAILURE;
+  }
+    
+  while ( (client_device = igmp_clientDevice_next(clientGroup, client_device)) != L7_NULLPTR)
+  {
+    PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, client_device->client->client_index);     
+    (*noOfClients)++;
+  }
+
+  osapiSemaGive(ptin_igmp_clients_sem);
+  return L7_SUCCESS
+}
+#endif
+
 /************IGMP Look Up Table Feature****************************************************/ 
 static void ptin_igmp_clientgroup_lookup_table_entry_add(L7_uint32 ptin_port, L7_uint32 clientId, ptinIgmpClientGroupInfoData_t* clientGroupPtr)
 {
@@ -12062,6 +12152,13 @@ void ptin_igmp_clientgroup_lookup_table_dump(void)
 
 static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpPairInfoData_t* ptinIgmpPairInfoData)
 {
+  /*Input Arguments Validation*/
+  if (ptinIgmpPairInfoData == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptinIgmpPairInfoData:%p",ptinIgmpPairInfoData);
+    return;
+  }
+  
   ptinIgmpChannelBandwidthCache.inUse = L7_TRUE;
   ptinIgmpChannelBandwidthCache.channelBandwidth = ptinIgmpPairInfoData->channelBandwidth;
   memcpy(&ptinIgmpChannelBandwidthCache.channel_group, &ptinIgmpPairInfoData->igmpPairDataKey.channel_group, sizeof(L7_inet_addr_t));   
@@ -12074,6 +12171,13 @@ static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpPairInfoData_t* ptinIg
 
 static void ptin_igmp_channel_bandwidth_cache_unset(ptinIgmpPairDataKey_t* ptinIgmpPairDataKey)
 {
+  /*Input Arguments Validation*/
+  if (ptinIgmpPairDataKey == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptinIgmpPairDataKey:%p",ptinIgmpPairDataKey);
+    return;
+  }
+
   if ( ptinIgmpChannelBandwidthCache.inUse == L7_TRUE && L7_INET_ADDR_COMPARE(&ptinIgmpPairDataKey->channel_group, &ptinIgmpChannelBandwidthCache.channel_group) == 0) 
   {
     if (ptin_debug_igmp_snooping)
@@ -13251,7 +13355,8 @@ RC_t ptin_igmp_multicast_service_resources_allocate(L7_uint32 ptin_port, L7_uint
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_allocate(&ptinIgmpAdmissionControlPtr->admissionControl, channelBandwidth)))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Allocate Multicast Service Resources [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Allocate Multicast Service Resources [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
             ptin_port, clientId, onuId, serviceId, channelBandwidth);    
   }
 
@@ -13314,7 +13419,8 @@ RC_t ptin_igmp_multicast_service_resources_release(L7_uint32 ptin_port, L7_uint3
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_release(&ptinIgmpAdmissionControlPtr->admissionControl, channelBandwidth)))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Release Multicast Service Resources [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Release Multicast Service Resources [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
             ptin_port, clientId, onuId, serviceId, channelBandwidth);    
   }
 
@@ -13413,7 +13519,8 @@ RC_t ptin_igmp_port_resources_allocate(L7_uint32 ptin_port, L7_uint32 channelBan
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_allocate(&ptinIgmpAdmissionControlPtr->admissionControl, channelBandwidth)))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Allocate Port Resources [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Allocate Port Resources [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
   }
 
   if (ptin_debug_igmp_snooping)
@@ -13460,7 +13567,8 @@ RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBand
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_release(&ptinIgmpAdmissionControlPtr->admissionControl, channelBandwidth)))
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Release Port Resources [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Release Port Resources [ptin_port:%u channelBandwidth:%u kbps]",ptin_port, channelBandwidth);
   }
 
   if (ptin_debug_igmp_snooping)
@@ -13591,8 +13699,8 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_allocate(&ptinIgmpClientGroupInfoData->admissionControl, channelBandwidth)))
   {
-    //Not Enough Resources
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Allocate Client Resources [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Allocate Client Resources [ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
   }
 
   if (ptin_debug_igmp_snooping)
@@ -13657,8 +13765,8 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 ptin_port, L7_uint32 clientId,
 
   if (L7_SUCCESS != (rc = ptin_igmp_admission_control_release(&ptinIgmpClientGroupInfoData->admissionControl, channelBandwidth)))
   {
-    //Not Enough Resources
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Release Client Resources[ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Failed to Release Client Resources[ptin_port:%u clientId:%u channelBandwidth:%u kbps]",ptin_port, clientId, channelBandwidth);
   }
 
   if (ptin_debug_igmp_snooping)
@@ -13808,7 +13916,6 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
 
   return SUCCESS;
 }
-
 
 /**
  * Get the id of the first client of each groupclient and fill 

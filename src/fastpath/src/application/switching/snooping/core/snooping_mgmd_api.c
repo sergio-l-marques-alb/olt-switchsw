@@ -573,7 +573,7 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
   return rc;
 }
 
-unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
+unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 {
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
@@ -592,6 +592,17 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FALSE;
+  }
+
+  if ( noOfClients != 0)     
+  {
+    ptin_timer_start(70,"ptin_igmp_admission_control_verify_the_presence_of_other_clients");
+    if (L7_ALREADY_CONFIGURED == ptin_igmp_admission_control_verify_the_presence_of_other_clients(ptin_port, clientId, clientList->value))
+    {
+      ptin_timer_stop(70);
+      return L7_TRUE;
+    }
+     ptin_timer_stop(70);
   }
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
@@ -620,7 +631,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
   return (rc == L7_SUCCESS) ;
 }
 
-unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
+unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 {
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
@@ -639,6 +650,17 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
+  }
+
+  if ( noOfClients != 0)     
+  {
+    ptin_timer_start(70,"ptin_igmp_admission_control_verify_the_presence_of_other_clients");
+    if (L7_ALREADY_CONFIGURED == ptin_igmp_admission_control_verify_the_presence_of_other_clients(ptin_port, clientId, clientList->value))
+    {
+      ptin_timer_stop(70);
+      return L7_SUCCESS;
+    }
+     ptin_timer_stop(70);
   }
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
@@ -667,7 +689,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   return rc;
 }
 
-unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr)
+unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 {
   L7_inet_addr_t inetGroupAddr;
   L7_uint32      channelBandwidth;
@@ -686,6 +708,17 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Port Id [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
     return L7_FAILURE;
+  }
+
+  if ( noOfClients != 0)     
+  {
+    ptin_timer_start(70,"ptin_igmp_admission_control_verify_the_presence_of_other_clients");
+    if (L7_ALREADY_CONFIGURED == ptin_igmp_admission_control_verify_the_presence_of_other_clients(ptin_port, clientId, clientList->value))
+    {
+      ptin_timer_stop(70);
+      return L7_SUCCESS;
+    }
+    ptin_timer_stop(70);
   }
 
   inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
