@@ -1734,7 +1734,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received client request");
 
    //Check if the port through which the message was received is valid
-   if (_dsVlanIntfTrustGet(vlanId,intIfNum))
+   if (_dsVlanIsIntfRoot(vlanId,intIfNum))
    {
       if (ptin_debug_dhcp_snooping)
         LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Received client request on trusted port");
@@ -1956,7 +1956,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply");
 
    //Check if the port through which the message was received is valid
-   if (!_dsVlanIntfTrustGet(vlanId,intIfNum))
+   if (_dsVlanIsIntfRoot(vlanId,intIfNum) == L7_FALSE)
    {
       if (ptin_debug_dhcp_snooping)
         LOG_WARNING(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply on untrusted port");
@@ -1965,15 +1965,15 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Parse the received frame
-   eth_header_ptr       = frame;
-   mac_header           = (L7_enetHeader_t*) frame;
-   ethHdrLen            = sysNetDataOffsetGet(frame);
-   ipv6_header_ptr      = eth_header_ptr + ethHdrLen;
-   ipv6_header          = (L7_ip6Header_t*) ipv6_header_ptr;
-   udp_header_ptr       = ipv6_header_ptr + L7_IP6_HEADER_LEN;
-   udp_header           = (L7_udp_header_t *) udp_header_ptr;
-   dhcp_header_ptr      = udp_header_ptr + sizeof(L7_udp_header_t);
-   relay_agent_header   = (L7_dhcp6_relay_agent_packet_t*) dhcp_header_ptr;
+   eth_header_ptr     = frame;
+   mac_header         = (L7_enetHeader_t*) frame;
+   ethHdrLen          = sysNetDataOffsetGet(frame);
+   ipv6_header_ptr    = eth_header_ptr + ethHdrLen;
+   ipv6_header        = (L7_ip6Header_t*) ipv6_header_ptr;
+   udp_header_ptr     = ipv6_header_ptr + L7_IP6_HEADER_LEN;
+   udp_header         = (L7_udp_header_t *) udp_header_ptr;
+   dhcp_header_ptr    = udp_header_ptr + sizeof(L7_udp_header_t);
+   relay_agent_header = (L7_dhcp6_relay_agent_packet_t*) dhcp_header_ptr;
 
    //Copy received frame up to the end of the UDP header
    memcpy(frame_copy, frame, ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t));
