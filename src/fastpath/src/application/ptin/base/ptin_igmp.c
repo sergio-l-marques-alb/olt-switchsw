@@ -4926,7 +4926,7 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t
   L7_uint32 evcId_mc;
 
   /* IGMP instance, from internal vlan */
-  if (ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)==L7_SUCCESS)
+  if ((L7_uint16)-1 != intVlan && ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)==L7_SUCCESS)
   {
     /* This vlan is related to an EVC belonging to an IGMP instance: use its evc id */
     evcId_mc = igmpInst->McastEvcId;
@@ -12222,10 +12222,12 @@ void ptin_igmp_clientgroup_lookup_table_dump(void)
   {
     for (clientId = 0; clientId < PTIN_IGMP_CLIENTIDX_MAX; clientId++)
     {
-      printf("clientGroupLookUpTable[ptin_port:%u][clientId:%u].clientGroupPtr[%p]\n",ptin_port, clientId, clientGroupLookUpTable[ptin_port][clientId].clientGroupPtr);
+      if (clientGroupLookUpTable[ptin_port][clientId].clientGroupPtr != L7_NULLPTR )
+        printf("clientGroupLookUpTable[ptin_port:%u][clientId:%u][onuId:%u]\n",ptin_port, clientId, clientGroupLookUpTable[ptin_port][clientId].clientGroupPtr->onuId);
     }
   }
 }
+
 /************End IGMP Look Up Table Feature****************************************************/ 
 
 static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpPairInfoData_t* ptinIgmpPairInfoData)
@@ -12345,12 +12347,35 @@ RC_t ptin_igmp_admission_control_port_set(L7_uint32 ptin_port, L7_uint8 mask, L7
  * @notes none 
  *  
  */
-void ptin_igmp_admission_control_port_dump(void)  
+void ptin_igmp_admission_control_port_dump_active(void)  
 {
   L7_uint32 ptin_port;
 
   for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
   {
+    if (igmpPortAdmissionControl[ptin_port].admissionControl.mask != 0x00)
+      printf("ptin_port:%u mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+           ptin_port,
+           igmpPortAdmissionControl[ptin_port].admissionControl.mask,
+           igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels,
+           igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedBandwidth,
+           igmpPortAdmissionControl[ptin_port].admissionControl.allocatedChannels,
+           igmpPortAdmissionControl[ptin_port].admissionControl.allocatedBandwidth);
+  }  
+}
+
+/**
+ * @purpose Dump the Port Admission Control Parameters
+ * 
+ * @notes none 
+ *  
+ */
+void ptin_igmp_admission_control_port_dump(void)  
+{
+  L7_uint32 ptin_port;
+
+  for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
+  {   
     printf("ptin_port:%u mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
            ptin_port,
            igmpPortAdmissionControl[ptin_port].admissionControl.mask,
@@ -12643,7 +12668,7 @@ void ptin_igmp_admission_multicast_service_dump(void)
     {
       for (internalServiceId = 0; internalServiceId < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID; internalServiceId++)
       {
-        if ( ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1)
+        if ( ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1 && igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask != 0x00)
         {
           printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
                  ptin_port, onuId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId], internalServiceId,
@@ -13302,6 +13327,10 @@ L7_uint8 ptin_igmp_client_id_to_onu_id(L7_uint32 ptin_port, L7_uint32 clientId)
     return ((L7_uint8) -1);
   }
 
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input arguments [ptin_port:%u clientId:%u]",
+              ptin_port, clientId);
+
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);  
   if ( (ptinIgmpClientGroupInfoData = ptin_igmp_clientgroup_lookup_table_entry_get(ptin_port, clientId)) == L7_NULLPTR)
   {
@@ -13310,6 +13339,10 @@ L7_uint8 ptin_igmp_client_id_to_onu_id(L7_uint32 ptin_port, L7_uint32 clientId)
     return ((L7_uint8) -1);
   }
   
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output arguments [onuId:%u]",
+            ptinIgmpClientGroupInfoData->onuId);
+
   osapiSemaGive(ptin_igmp_clients_sem);
   return (ptinIgmpClientGroupInfoData->onuId);
 }
@@ -13372,7 +13405,7 @@ RC_t ptin_igmp_multicast_service_resources_available(L7_uint32 ptin_port, L7_uin
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u (kbps) mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u (kbps) mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, clientId, onuId, serviceId, channelBandwidth, 
               ptinIgmpAdmissionControlPtr->admissionControl.mask, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedChannels, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.allocatedChannels, ptinIgmpAdmissionControlPtr->admissionControl.allocatedBandwidth);
@@ -13439,7 +13472,7 @@ RC_t ptin_igmp_multicast_service_resources_allocate(L7_uint32 ptin_port, L7_uint
   }
 
   if (ptin_debug_igmp_snooping)   
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u (kbps) mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u (kbps) mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, clientId, onuId, serviceId, channelBandwidth, 
               ptinIgmpAdmissionControlPtr->admissionControl.mask, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedChannels, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.allocatedChannels, ptinIgmpAdmissionControlPtr->admissionControl.allocatedBandwidth);
@@ -13503,7 +13536,7 @@ RC_t ptin_igmp_multicast_service_resources_release(L7_uint32 ptin_port, L7_uint3
   }
 
   if (ptin_debug_igmp_snooping)   
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u (kbps) mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u (kbps) mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, clientId, onuId, serviceId, channelBandwidth, 
               ptinIgmpAdmissionControlPtr->admissionControl.mask, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedChannels, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.allocatedChannels, ptinIgmpAdmissionControlPtr->admissionControl.allocatedBandwidth);
@@ -13553,7 +13586,7 @@ RC_t ptin_igmp_port_resources_available(L7_uint32 ptin_port, L7_uint32 channelBa
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, channelBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.mask, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedChannels, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.allocatedChannels, ptinIgmpAdmissionControlPtr->admissionControl.allocatedBandwidth);
@@ -13602,7 +13635,7 @@ RC_t ptin_igmp_port_resources_allocate(L7_uint32 ptin_port, L7_uint32 channelBan
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, channelBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.mask, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedChannels, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.allocatedChannels, ptinIgmpAdmissionControlPtr->admissionControl.allocatedBandwidth);
@@ -13650,7 +13683,7 @@ RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBand
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, channelBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.mask, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedChannels, ptinIgmpAdmissionControlPtr->admissionControl.maxAllowedBandwidth,
               ptinIgmpAdmissionControlPtr->admissionControl.allocatedChannels, ptinIgmpAdmissionControlPtr->admissionControl.allocatedBandwidth);
@@ -13716,7 +13749,7 @@ RC_t ptin_igmp_client_resources_available(L7_uint32 ptin_port, L7_uint32 clientI
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, clientId, channelBandwidth,
               ptinIgmpClientGroupInfoData->admissionControl.mask, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth,
               ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth);
@@ -13782,7 +13815,7 @@ RC_t ptin_igmp_client_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId
   }
 
   if (ptin_debug_igmp_snooping)
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
               ptin_port, clientId, channelBandwidth,
               ptinIgmpClientGroupInfoData->admissionControl.mask, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth,
               ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth);
@@ -13848,7 +13881,7 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 ptin_port, L7_uint32 clientId,
   }
 
   if (ptin_debug_igmp_snooping)
-   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
+   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Output Parameters [ptin_port:%u clientId:%u channelBandwidth:%u kbps mask:%u maxAllowedChannels:%u maxAllowedBandwidth:%u allocatedChannels:%u allocatedBandwidth:%u]",
              ptin_port, clientId, channelBandwidth,
              ptinIgmpClientGroupInfoData->admissionControl.mask, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedChannels, ptinIgmpClientGroupInfoData->admissionControl.maxAllowedBandwidth,
              ptinIgmpClientGroupInfoData->admissionControl.allocatedChannels, ptinIgmpClientGroupInfoData->admissionControl.allocatedBandwidth);
