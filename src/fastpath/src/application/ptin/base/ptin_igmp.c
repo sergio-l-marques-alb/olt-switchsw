@@ -12656,7 +12656,7 @@ static igmpMulticastAdmissionControl_t* ptin_igmp_admission_multicast_service_ge
  * @notes none 
  *  
  */
-void ptin_igmp_admission_multicast_service_dump(void)  
+void ptin_igmp_admission_multicast_service_dump_active(void)  
 {
   L7_uint32 ptin_port;
   L7_uint32 onuId;
@@ -12669,6 +12669,40 @@ void ptin_igmp_admission_multicast_service_dump(void)
       for (internalServiceId = 0; internalServiceId < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID; internalServiceId++)
       {
         if ( ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1 && igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask != 0x00)
+        {
+          printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+                 ptin_port, onuId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId], internalServiceId,
+                 igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask,
+                 igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedChannels,
+                 igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedBandwidth,
+                 igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.allocatedChannels,
+                 igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.allocatedBandwidth);
+        }
+      }
+    }
+  }  
+}
+
+/**
+ * @purpose Dump the Active Multicast Service Admission Control 
+ *          Parameters
+ * 
+ * @notes none 
+ *  
+ */
+void ptin_igmp_admission_multicast_service_dump(void)  
+{
+  L7_uint32 ptin_port;
+  L7_uint32 onuId;
+  L7_uint8 internalServiceId;
+
+  for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
+  {
+    for (onuId = 0; onuId < PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF; onuId++)
+    {
+      for (internalServiceId = 0; internalServiceId < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID; internalServiceId++)
+      {
+        if ( ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1 )
         {
           printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
                  ptin_port, onuId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId], internalServiceId,
@@ -13364,14 +13398,14 @@ L7_uint8 ptin_igmp_client_id_to_onu_id(L7_uint32 ptin_port, L7_uint32 clientId)
 RC_t ptin_igmp_multicast_service_resources_available(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 serviceId, L7_uint32 channelBandwidth)
 {
   igmpMulticastAdmissionControl_t* ptinIgmpAdmissionControlPtr;
-  L7_uint32                        onuId = (L7_uint8) -1;
+  L7_uint8                         onuId = (L7_uint8) -1;
   L7_uint8                         globalAdmissionControl = ptin_igmp_proxy_admission_control_get();
   RC_t                             rc;
 
   /* Argument validation */
   if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS ||  clientId >= PTIN_IGMP_CLIENTIDX_MAX || 
       serviceId>=PTIN_SYSTEM_N_EXTENDED_EVCS ||  channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS ||
-      (onuId = ptin_igmp_client_id_to_onu_id(ptin_port,clientId) >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF ))
+      (onuId = ptin_igmp_client_id_to_onu_id(ptin_port,clientId)) >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
             ptin_port, clientId, onuId, serviceId, channelBandwidth);    
@@ -13431,14 +13465,14 @@ RC_t ptin_igmp_multicast_service_resources_available(L7_uint32 ptin_port, L7_uin
 RC_t ptin_igmp_multicast_service_resources_allocate(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 serviceId, L7_uint32 channelBandwidth)
 {
   igmpMulticastAdmissionControl_t* ptinIgmpAdmissionControlPtr;
-  L7_uint32                        onuId = (L7_uint8) -1;
+  L7_uint8                         onuId = (L7_uint8) -1;
   L7_uint8                         globalAdmissionControl = ptin_igmp_proxy_admission_control_get();
   RC_t                             rc;
 
   /* Argument validation */
   if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS ||  clientId >= PTIN_IGMP_CLIENTIDX_MAX || 
       serviceId>=PTIN_SYSTEM_N_EXTENDED_EVCS ||  channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS ||
-      (onuId = ptin_igmp_client_id_to_onu_id(ptin_port,clientId) >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF ))
+      (onuId = ptin_igmp_client_id_to_onu_id(ptin_port,clientId)) >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
             ptin_port, clientId, onuId, serviceId, channelBandwidth);    
@@ -13496,14 +13530,14 @@ RC_t ptin_igmp_multicast_service_resources_allocate(L7_uint32 ptin_port, L7_uint
 RC_t ptin_igmp_multicast_service_resources_release(L7_uint32 ptin_port, L7_uint32 clientId, L7_uint32 serviceId, L7_uint32 channelBandwidth)
 {
   igmpMulticastAdmissionControl_t* ptinIgmpAdmissionControlPtr;
-  L7_uint32                        onuId = (L7_uint8) -1;
+  L7_uint8                         onuId = (L7_uint8) -1;
   L7_uint8                         globalAdmissionControl = ptin_igmp_proxy_admission_control_get();
   RC_t                             rc;
 
   /* Argument validation */
   if (ptin_port >= PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS ||  clientId >= PTIN_IGMP_CLIENTIDX_MAX || 
       serviceId>=PTIN_SYSTEM_N_EXTENDED_EVCS ||  channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS ||
-      (onuId = ptin_igmp_client_id_to_onu_id(ptin_port,clientId) >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF ))
+      (onuId = ptin_igmp_client_id_to_onu_id(ptin_port,clientId)) >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptin_port:%u clientId:%u (onuId:%u) serviceId:%u channelBandwidth:%u kbps]",
             ptin_port, clientId, onuId, serviceId, channelBandwidth);    
