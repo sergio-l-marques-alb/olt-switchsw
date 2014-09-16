@@ -527,9 +527,9 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
 
-  ptin_timer_start(64,"ptin_igmp_port_resources_allocate");
+  ptin_timer_start(62,"ptin_igmp_port_resources_allocate");
   rc = ptin_igmp_port_resources_allocate(ptin_port, channelBandwidth);
-  ptin_timer_stop(64);
+  ptin_timer_stop(62);
 
   return rc;
 }
@@ -566,9 +566,9 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
 
-  ptin_timer_start(67,"ptin_igmp_port_resources_release");
+  ptin_timer_start(63,"ptin_igmp_port_resources_release");
   rc = ptin_igmp_port_resources_release(ptin_port, channelBandwidth);
-  ptin_timer_stop(67);
+  ptin_timer_stop(63);
 
   return rc;
 }
@@ -616,18 +616,32 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
   
-  ptin_timer_start(62,"ptin_igmp_multicast_service_resources_available");
-  rc = ptin_igmp_multicast_service_resources_available(ptin_port, clientId,serviceId,channelBandwidth);
-  ptin_timer_stop(62);
+  ptin_timer_start(64,"ptin_igmp_client_resources_available");
+  rc = ptin_igmp_client_resources_available(ptin_port, clientId, channelBandwidth);
+  ptin_timer_stop(64);
 
   if (rc != L7_SUCCESS)
   {
     return L7_FALSE;
   }
 
-  ptin_timer_start(63,"ptin_igmp_client_resources_available");
-  rc = ptin_igmp_client_resources_available(ptin_port, clientId, channelBandwidth);
-  ptin_timer_stop(63);
+#if PTIN_BOARD_IS_ACTIVETH
+  if ( noOfClients != 0)     
+  {
+    ptin_timer_start(71,"ptin_igmp_admission_control_verify_the_presence_of_other_groupclients");
+    if (L7_ALREADY_CONFIGURED == ptin_igmp_admission_control_verify_the_presence_of_other_groupclients(ptin_port, clientId, clientList->value))
+    {
+      ptin_timer_stop(71);
+      return L7_TRUE;
+    }
+     ptin_timer_stop(71);
+  }
+#endif
+
+  ptin_timer_start(67,"ptin_igmp_multicast_service_resources_available");
+  rc = ptin_igmp_multicast_service_resources_available(ptin_port, clientId,serviceId,channelBandwidth);
+  ptin_timer_stop(67);
+    
   return (rc == L7_SUCCESS) ;
 }
 
@@ -674,8 +688,8 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
 
-  ptin_timer_start(65,"ptin_igmp_multicast_service_resources_allocate");
-  rc = ptin_igmp_multicast_service_resources_allocate(ptin_port, clientId,serviceId,channelBandwidth);
+  ptin_timer_start(65,"ptin_igmp_client_resources_allocate");
+  rc = ptin_igmp_client_resources_allocate(ptin_port, clientId, channelBandwidth);
   ptin_timer_stop(65);
 
   if (rc != L7_SUCCESS)
@@ -683,9 +697,23 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
     return L7_FAILURE;
   }
 
-  ptin_timer_start(66,"ptin_igmp_client_resources_allocate");
-  rc = ptin_igmp_client_resources_allocate(ptin_port, clientId, channelBandwidth);
-  ptin_timer_stop(66);
+#if PTIN_BOARD_IS_ACTIVETH
+  if ( noOfClients != 0)     
+  {
+    ptin_timer_start(71,"ptin_igmp_admission_control_verify_the_presence_of_other_groupclients");
+    if (L7_ALREADY_CONFIGURED == ptin_igmp_admission_control_verify_the_presence_of_other_groupclients(ptin_port, clientId, clientList->value))
+    {
+      ptin_timer_stop(71);
+      return L7_SUCCESS;
+    }
+     ptin_timer_stop(71);
+  }
+#endif
+
+  ptin_timer_start(68,"ptin_igmp_multicast_service_resources_allocate");
+  rc = ptin_igmp_multicast_service_resources_allocate(ptin_port, clientId,serviceId,channelBandwidth);
+  ptin_timer_stop(68);
+    
   return rc;
 }
 
@@ -732,18 +760,32 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
   }
 
-  ptin_timer_start(68,"ptin_igmp_multicast_service_resources_release");
-  rc = ptin_igmp_multicast_service_resources_release(ptin_port, clientId,serviceId,channelBandwidth);
-  ptin_timer_stop(68);
+  ptin_timer_start(66,"ptin_igmp_client_resources_release");
+  rc = ptin_igmp_client_resources_release(ptin_port, clientId, channelBandwidth);
+  ptin_timer_stop(66);
 
   if (rc != L7_SUCCESS)
   {
     return L7_FAILURE;
   }
 
-  ptin_timer_start(69,"ptin_igmp_client_resources_release");
-  rc = ptin_igmp_client_resources_release(ptin_port, clientId, channelBandwidth);
+#if PTIN_BOARD_IS_ACTIVETH
+  if ( noOfClients != 0)     
+  {
+    ptin_timer_start(71,"ptin_igmp_admission_control_verify_the_presence_of_other_groupclients");
+    if (L7_ALREADY_CONFIGURED == ptin_igmp_admission_control_verify_the_presence_of_other_groupclients(ptin_port, clientId, clientList->value))
+    {
+      ptin_timer_stop(71);
+      return L7_SUCCESS;
+    }
+     ptin_timer_stop(71);
+  }
+#endif
+
+  ptin_timer_start(69,"ptin_igmp_multicast_service_resources_release");
+  rc = ptin_igmp_multicast_service_resources_release(ptin_port, clientId,serviceId,channelBandwidth);
   ptin_timer_stop(69);
+    
   return rc;
 }
 

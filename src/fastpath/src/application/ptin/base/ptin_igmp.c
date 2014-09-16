@@ -39,6 +39,7 @@
 #define PTIN_MGMD_MC_SERVICE_ID_IN_USE 
 
 #define PTIN_CLIENT_IS_MASKBITSET(array,idx) ((array[(idx)/(sizeof(L7_uint8)*8)] >> ((idx)%(sizeof(L7_uint8)*8))) & 1)
+#define PTIN_CLIENT_IS_MASKBYTESET(array, idx)  (array[((idx)/(8*sizeof(uint8)))] == 0 ? 0 : 1)  
 #define PTIN_CLIENT_SET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint8)*8)] |=   (L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8)) ; }
 #define PTIN_CLIENT_UNSET_MASKBIT(array,idx) { array[(idx)/(sizeof(L7_uint8)*8)] &= ~((L7_uint32) 1 << ((idx)%(sizeof(L7_uint8)*8))); }
 
@@ -12029,6 +12030,83 @@ extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(
   osapiSemaGive(ptin_igmp_clients_sem);
   return L7_SUCCESS;
 }
+
+#if PTIN_BOARD_IS_ACTIVETH
+/**
+ * @purpose Verify if this group client has any other group 
+ *          clients on the same port
+ * 
+ * @param  ptin_port 
+ * @param  clientId  
+ * @param *clientBmpPtr 
+ *  
+ * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
+ *  
+ */
+extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_groupclients(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr)
+{  
+  ptinIgmpClientGroupInfoData_t *ptinIgmpClientGroupInfoData1;
+  ptinIgmpClientGroupInfoData_t *ptinIgmpClientGroupInfoData2;
+  L7_uint16                      iterator;
+
+  /*Input Arguments Validation*/
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF || clientId >= PTIN_IGMP_CLIENTIDX_MAX || clientBmpPtr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments: ptin_port:%u clientId:%u clientBmpPtr:%p",ptin_port, clientId, clientBmpPtr);
+    return L7_FAILURE;
+  }
+
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Arguments [ptin_port:%u clientId:%u]",ptin_port, clientId); 
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);  
+  if ( (ptinIgmpClientGroupInfoData1 = ptin_igmp_clientgroup_lookup_table_entry_get(ptin_port, clientId)) == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find any valid clientGroup [ptin_port:%u clientId:%u]",ptin_port, clientId);    
+    osapiSemaGive(ptin_igmp_clients_sem);
+    return L7_FAILURE;
+  }
+
+  for (iterator = 0; iterator < PTIN_IGMP_CLIENTIDX_MAX; iterator++)
+  {
+    //Move forward 8 bits if this byte is 0 (no clients)
+    if(! (PTIN_CLIENT_IS_MASKBYTESET(clientBmpPtr, iterator)))
+    {
+      clientId += PTIN_MGMD_CLIENT_MASK_UNIT -1; //Less one, because of the For cycle that increments also 1 unit.
+      continue;
+    }
+     
+    if (iterator == clientId) 
+      continue;
+
+    if ( PTIN_CLIENT_IS_MASKBITSET(clientBmpPtr, iterator) == L7_TRUE)
+    {
+      if ( (ptinIgmpClientGroupInfoData2 = ptin_igmp_clientgroup_lookup_table_entry_get(ptin_port, iterator)) == L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to find any valid clientGroup [ptin_port:%u clientId:%u]",ptin_port, iterator);    
+        osapiSemaGive(ptin_igmp_clients_sem);
+        return L7_FAILURE;
+      }
+
+      /*Is it this groupclient?*/
+      if (ptinIgmpClientGroupInfoData1 == ptinIgmpClientGroupInfoData2)
+        continue;
+
+      /*Is it a group groupclient from another ONU/TA48GE_Port?*/
+      if (ptinIgmpClientGroupInfoData1->onuId != ptinIgmpClientGroupInfoData2->onuId)
+        continue;
+
+      if (ptin_debug_igmp_snooping)
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This ONU/TA48GE Port has more than one groupclient watching this stream [ptin_port:%u clientId:%u clientId2:%u]",ptin_port, clientId, iterator); 
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_ALREADY_CONFIGURED;
+    }    
+  }
+  
+  osapiSemaGive(ptin_igmp_clients_sem);
+  return L7_SUCCESS;
+}
+#endif
 
 #if 0
 /**

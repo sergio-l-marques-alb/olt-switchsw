@@ -1357,6 +1357,21 @@ RC_t ptin_igmp_admission_control_multicast_service_set(ptin_igmp_admission_contr
  */
 extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_clients(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr);
 
+#if PTIN_BOARD_IS_ACTIVETH
+/**
+ * @purpose Verify if this group client has any other group 
+ *          clients on the same port
+ * 
+ * @param  ptin_port 
+ * @param  clientId  
+ * @param *clientBmpPtr 
+ *  
+ * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
+ *  
+ */
+extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_groupclients(L7_uint32 ptin_port, L7_uint32 clientId, L7_uchar8 *clientBmpPtr);
+#endif
+
 /**
  * @purpose Get the bandwidth requested by a given 
  * channel
