@@ -1719,7 +1719,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_uchar8 frame_copy[DS_DHCP_PACKET_SIZE_MAX] = { 0 }, *ipv6_copy_header_ptr, *udp_copy_header_ptr, *dhcp_copy_header_ptr;
    L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *dhcp_op_header_ptr;
    L7_dhcp6_relay_agent_packet_t relay_agent_header = { 0 };
-   L7_uint32 frame_len, frame_copy_len, lease_time = 0;
+   L7_uint32 frame_len, frame_copy_len;
    L7_BOOL isActiveOp37, isActiveOp18;
    L7_ip6Header_t *ipv6_header, *ipv6_copy_header;
    L7_udp_header_t *udp_header, *udp_copy_header;
