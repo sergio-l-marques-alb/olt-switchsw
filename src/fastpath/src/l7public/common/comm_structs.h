@@ -310,10 +310,21 @@ typedef enum
 
 extern L7_uchar8 *dsBindingTypeNames[];
 
-typedef struct dhcpSnoopBinding_s
+typedef struct dhcpSnoopBindingKey_s
 {
   /* A MAC address uniquely identifies a node in the bindings tree. */
   L7_uchar8 macAddr[L7_MAC_ADDR_LEN];
+
+#if 0
+  /* Binding entry context (allows to distinguish between entries with the same MAC+VLAN) */
+  L7_uint8 ip_type; 
+#endif
+} dhcpSnoopBindingKey_t;
+
+typedef struct dhcpSnoopBinding_s
+{
+  /* Entry key */
+  dhcpSnoopBindingKey_t key;
 
   /* VLAN station is in. */
   L7_ushort16 vlanId;

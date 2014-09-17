@@ -1882,7 +1882,7 @@ L7_RC_t ptin_dhcp82_bindtable_get(ptin_DHCP_bind_entry *table, L7_uint32 *max_en
     table[index].ptin_intf      = ptin_intf;
     table[index].outer_vlan     = dsBinding.vlanId;
     table[index].inner_vlan     = dsBinding.innerVlanId;
-    memcpy(table[index].macAddr,dsBinding.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    memcpy(table[index].macAddr,dsBinding.key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
     table[index].ipAddr.s_addr  = dsBinding.ipAddr;
     table[index].remLeave       = dsBinding.remLease;
     table[index].bindingType    = dsBinding.bindingType;
@@ -1933,7 +1933,7 @@ L7_RC_t ptin_dhcpv4v6_bindtable_get(ptin_DHCPv4v6_bind_entry *table, L7_uint32 *
     table[index].ptin_intf      = ptin_intf;
     table[index].outer_vlan     = dsBinding.vlanId;
     table[index].inner_vlan     = dsBinding.innerVlanId;
-    memcpy(table[index].macAddr,dsBinding.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    memcpy(table[index].macAddr,dsBinding.key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
    if ( dsBinding.ipFamily == L7_AF_INET)
    {
       table[index].ipAddr.family = 0;
@@ -1973,7 +1973,7 @@ L7_RC_t ptin_dhcp82_bindtable_remove(dhcpSnoopBinding_t *dsBinding)
   }
 
   // Remove this entry
-  memcpy(macAddr.addr,dsBinding->macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+  memcpy(macAddr.addr,dsBinding->key.macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   if (usmDbDsBindingRemove(&macAddr)!=L7_SUCCESS) {
     LOG_ERR(LOG_CTX_PTIN_DHCP, "Error removing entry");
     return L7_FAILURE;

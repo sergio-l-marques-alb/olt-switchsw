@@ -2227,11 +2227,14 @@ L7_RC_t dsStaticBindingAdd(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 L7_RC_t dsStaticBindingRemove(L7_enetMacAddr_t *macAddr)
 {
   L7_RC_t rc;
+  dsBindingTreeKey_t key;
 
   if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS) 
     return L7_FAILURE;
 
-   rc = dsBindingRemove(macAddr);
+  memset(&key, 0x00, sizeof(key));
+  memcpy(&key.macAddr.addr, &macAddr->addr, sizeof(macAddr->addr));
+   rc = dsBindingRemove(&key);
 
    osapiWriteLockGive(dsCfgRWLock);
    return rc;

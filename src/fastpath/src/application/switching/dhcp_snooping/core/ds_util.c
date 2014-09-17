@@ -426,7 +426,7 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
   rc = dsBindingFind(&dsBinding, L7_MATCH_GETNEXT);
   while (rc == L7_SUCCESS)
   {
-    memcpy(&prevMac, &dsBinding.macAddr, sizeof(L7_enetMacAddr_t));
+    memcpy(&prevMac, &dsBinding.key.macAddr, sizeof(L7_enetMacAddr_t));
     prevIntf = dsBinding.intIfNum;
     prevType = dsBinding.bindingType;
 
@@ -443,7 +443,10 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
         continue;
      }
       /* Delete this binding */
-      if (dsBindingRemove(&prevMac) != L7_SUCCESS)
+      dsBindingTreeKey_t key;
+      memset(&key, 0x00, sizeof(key));
+      memcpy(&key.macAddr.addr, &prevMac.addr, L7_ENET_MAC_ADDR_LEN);
+      if (dsBindingRemove(&key) != L7_SUCCESS)
       retval = L7_FAILURE;
       dsInfo->debugStats.bindingsRemoved++;
     }
@@ -2079,7 +2082,7 @@ L7_RC_t dsDbRemoteSave()
  if (osapiFsFileCreate(DHCP_SNOOPING_UPLOAD_FILE_NAME, &filedesc) == L7_SUCCESS)
  {
    memset (buf, '\0', sizeof(buf));
-   memset(&binding.macAddr, 0, L7_MAC_ADDR_LEN);
+   memset(&binding.key.macAddr, 0, L7_MAC_ADDR_LEN);
    while(dsBindingFind(&binding,L7_MATCH_GETNEXT) == L7_SUCCESS)
    {
      if (binding.bindingType != DS_BINDING_DYNAMIC)
@@ -2087,8 +2090,8 @@ L7_RC_t dsDbRemoteSave()
 
      /* MAC address */
      osapiSnprintf(macStr, sizeof(macStr),"%02X:%02X:%02X:%02X:%02X:%02X",
-                  binding.macAddr[0], binding.macAddr[1], binding.macAddr[2],
-                  binding.macAddr[3], binding.macAddr[4], binding.macAddr[5]);
+                  binding.key.macAddr[0], binding.key.macAddr[1], binding.key.macAddr[2],
+                  binding.key.macAddr[3], binding.key.macAddr[4], binding.key.macAddr[5]);
      /* IP address */
      usmDbInetNtoa(binding.ipAddr, ipAddrStr);
 
@@ -2213,7 +2216,7 @@ L7_RC_t dsDbRemoteRestore()
      {
        if ( count == 0) /* MAC-Address population */
        {
-         if (dsConvertMac(tmpBuf, dsBinding.macAddr) != L7_TRUE)
+         if (dsConvertMac(tmpBuf, dsBinding.key.macAddr) != L7_TRUE)
          {
            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
              "Mac address parsing problem occured while reading the snooping database.");
@@ -2228,7 +2231,7 @@ L7_RC_t dsDbRemoteRestore()
            break;
          }
          count++;
-         memcpy(macAddr.addr, dsBinding.macAddr, L7_ENET_MAC_ADDR_LEN);
+         memcpy(macAddr.addr, dsBinding.key.macAddr, L7_ENET_MAC_ADDR_LEN);
          tmpBuf = strtok((L7_char8 *)'\0', " ");
        }
        if ( count == 1) /* IP-Address */
@@ -2368,7 +2371,7 @@ void dsDbLocalSave()
    return;
  }
 
- memset(&binding.macAddr, 0, L7_MAC_ADDR_LEN);
+ memset(&binding.key.macAddr, 0, L7_MAC_ADDR_LEN);
  memset(dsDbCfgData.dsBindingDb, 0, sizeof(dsDbCfgData.dsBindingDb));
 
  dbEntries = (sizeof(dsDbCfgData.dsBindingDb) / sizeof(dsDbBindingTreeNode_t));
@@ -2379,7 +2382,7 @@ void dsDbLocalSave()
      continue;
 
    memcpy((void *)&dsDbCfgData.dsBindingDb[dbIndex].macAddr.addr,
-            (void *) binding.macAddr, L7_ENET_MAC_ADDR_LEN);
+            (void *) binding.key.macAddr, L7_ENET_MAC_ADDR_LEN);
    dsDbCfgData.dsBindingDb[dbIndex].ipAddr = binding.ipAddr;
    dsDbCfgData.dsBindingDb[dbIndex].vlanId = binding.vlanId;
    dsDbCfgData.dsBindingDb[dbIndex].intIfNum = binding.intIfNum;
@@ -2439,7 +2442,7 @@ void dsDbLocalRestore()
       if ( dsDbCfgData.dsBindingDb[dbIndex].ipAddr > 0)
       {
          memset(&dsBinding, 0, sizeof(dsBinding));
-         memcpy(dsBinding.macAddr,
+         memcpy(dsBinding.key.macAddr,
               (void *)&dsDbCfgData.dsBindingDb[dbIndex].macAddr,
               L7_ENET_MAC_ADDR_LEN);
          rc = dsBindingFind(&dsBinding, L7_MATCH_EXACT);

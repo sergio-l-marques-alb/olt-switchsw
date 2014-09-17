@@ -4843,7 +4843,7 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
               table->bind_table[i].macAddr[5]);
 
     memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
-    memcpy(dsBinding.macAddr,table->bind_table[i].macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+    memcpy(dsBinding.key.macAddr,table->bind_table[i].macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
     rc = ptin_dhcp82_bindtable_remove(&dsBinding);
 

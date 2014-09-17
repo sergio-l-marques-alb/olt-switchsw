@@ -17482,7 +17482,7 @@ k_agentStaticDsBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   entryType = DS_BINDING_STATIC;
 
   memset (&binding, '\0', sizeof(dhcpSnoopBinding_t));
-  memcpy(binding.macAddr,macAddr.addr, L7_MAC_ADDR_LEN); 
+  memcpy(binding.key.macAddr,macAddr.addr, L7_MAC_ADDR_LEN); 
 
 
   if((searchType == EXACT) ?
@@ -17506,7 +17506,7 @@ k_agentStaticDsBindingEntry_get(int serialNum, ContextInfo *contextInfo,
     bzero(name_buffer, SNMP_BUFFER_LEN);
     bzero(mac_buffer, SNMP_BUFFER_LEN);
 
-    snmpConvertMacToString (binding.macAddr,mac_buffer); 
+    snmpConvertMacToString (binding.key.macAddr,mac_buffer); 
 
     if(snmpConvertStringToMac(mac_buffer, name_buffer) != L7_SUCCESS)
     {
@@ -17679,7 +17679,7 @@ k_agentDynamicDsBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   snmpConvertStringToMac ( mac_buffer,macAddr.addr);
 
   entryType = DS_BINDING_DYNAMIC;
-  memcpy(binding.macAddr, macAddr.addr, L7_MAC_ADDR_LEN);
+  memcpy(binding.key.macAddr, macAddr.addr, L7_MAC_ADDR_LEN);
 
   if((searchType == EXACT) ?
      (usmDbDsBindingGetByType(&binding,entryType) != L7_SUCCESS) :
@@ -17705,7 +17705,7 @@ k_agentDynamicDsBindingEntry_get(int serialNum, ContextInfo *contextInfo,
     bzero(name_buffer, SNMP_BUFFER_LEN);
     bzero(mac_buffer, SNMP_BUFFER_LEN);
 
-    snmpConvertMacToString (binding.macAddr,mac_buffer);
+    snmpConvertMacToString (binding.key.macAddr,mac_buffer);
 
     if(snmpConvertStringToMac(mac_buffer, name_buffer) != L7_SUCCESS)
     {

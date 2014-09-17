@@ -1091,7 +1091,10 @@ L7_RC_t usmDbDsStaticBindingRemove(L7_enetMacAddr_t *macAddr)
 *********************************************************************/
 L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr)
 {
-  return dsBindingRemove(macAddr);
+  dsBindingTreeKey_t key;
+  memset(&key, 0x00, sizeof(key));
+  memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  return dsBindingRemove(&key);
 }
 #endif
 

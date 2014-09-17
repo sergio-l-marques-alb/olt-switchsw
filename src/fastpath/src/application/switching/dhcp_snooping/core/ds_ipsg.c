@@ -1082,7 +1082,7 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
       if (ipsgInfo->ipsgEntryTable.currentStaticBindings)
         ipsgInfo->ipsgEntryTable.currentStaticBindings--;
       memset((L7_uchar8 *)&dsNode, 0, sizeof(dsNode));
-      memcpy(&dsNode.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+      memcpy(&dsNode.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
 
       /* Check if there exists an Dynamic Entry */
       if (dsBindingFind(&dsNode,L7_MATCH_EXACT) == L7_SUCCESS)

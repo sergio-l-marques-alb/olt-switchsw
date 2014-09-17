@@ -291,14 +291,14 @@ const char *commandShowIpDhcpSnoopingBinding(EwsContext ewsContext, L7_uint32 ar
   {
     if(L7_TRUE == cliIsPromptRespQuit())
     {
-      memset(&binding.macAddr, 0, L7_MAC_ADDR_LEN);
+      memset(&binding.key.macAddr, 0, L7_MAC_ADDR_LEN);
       ewsCliDepth(ewsContext, cliPrevDepthGet(), argv);
       return cliPrompt(ewsContext);
     }
   }
   else
   {
-    memset(&binding.macAddr, 0, L7_MAC_ADDR_LEN);
+    memset(&binding.key.macAddr, 0, L7_MAC_ADDR_LEN);
   }
 
   cliSyntaxTop(ewsContext);
@@ -535,8 +535,8 @@ const char *commandShowIpDhcpSnoopingBinding(EwsContext ewsContext, L7_uint32 ar
 
     /* MAC address */
     osapiSnprintf(macStr, sizeof(macStr),"%02X:%02X:%02X:%02X:%02X:%02X",
-                  binding.macAddr[0], binding.macAddr[1], binding.macAddr[2], 
-                  binding.macAddr[3], binding.macAddr[4], binding.macAddr[5]);
+                  binding.key.macAddr[0], binding.key.macAddr[1], binding.key.macAddr[2], 
+                  binding.key.macAddr[3], binding.key.macAddr[4], binding.key.macAddr[5]);
 
     /* IP address */
     usmDbInetNtoa(binding.ipAddr, ipAddrStr);
@@ -571,7 +571,7 @@ const char *commandShowIpDhcpSnoopingBinding(EwsContext ewsContext, L7_uint32 ar
   }
   if (rc != L7_SUCCESS)
   {
-    memset(&binding.macAddr, 0, L7_MAC_ADDR_LEN);
+    memset(&binding.key.macAddr, 0, L7_MAC_ADDR_LEN);
     return cliSyntaxReturnPrompt (ewsContext, "");
   }
   else

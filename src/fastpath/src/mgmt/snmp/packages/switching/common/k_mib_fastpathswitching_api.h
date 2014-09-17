@@ -12698,7 +12698,7 @@ L7_RC_t snmpStaticDsBindingRowStatusSet(  L7_char8 *mac_buffer,
 
 
   snmpConvertStringToMac ( mac_buffer,macAddr.addr);
-  memcpy(&binding.macAddr, &macAddr, L7_MAC_ADDR_LEN);
+  memcpy(&binding.key.macAddr, &macAddr, L7_MAC_ADDR_LEN);
 
   switch(rowStatus)
   {

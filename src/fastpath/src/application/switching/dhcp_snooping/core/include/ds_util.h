@@ -397,10 +397,21 @@ typedef struct dsIntfInfo_s
 
 /* Structure to represent a DHCP snooping binding in each tree node.
  * Key is the MAC address. */
-typedef struct dsBindingTreeNode_s
+typedef struct dsBindingTreeKey_s
 {
   /* A MAC address uniquely identifies a node in the bindings tree. */
   L7_enetMacAddr_t macAddr;
+
+#if 0
+  /* Binding entry context (allows to distinguish between entries with the same MAC+VLAN) */
+  L7_uint8 ipType; 
+#endif
+} dsBindingTreeKey_t;
+
+typedef struct dsBindingTreeNode_s
+{
+  /* Binding entry */
+  dsBindingTreeKey_t key;
 
   /* VLAN station is in. */
   L7_ushort16 vlanId;
@@ -893,7 +904,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr,
                      L7_ushort16 vlanId, L7_ushort16 innerVlanId /*PTin modified: DHCP */, L7_uint32 intIfNum);
 L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType, L7_enetMacAddr_t *macAddr,
                        L7_inet_addr_t ipAddr, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 intIfNum);
-L7_RC_t dsBindingRemove(L7_enetMacAddr_t *macAddr);
+L7_RC_t dsBindingRemove(dsBindingTreeKey_t *key);
 L7_BOOL dsBindingExists(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
                         L7_ushort16 vlanId);
 L7_RC_t dsBindingFind(dhcpSnoopBinding_t *dsBinding, L7_uint32 matchType);
@@ -901,7 +912,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr);
 L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr);
 L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType);
 L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType);
-L7_RC_t dsBindingFlagsUpdate(L7_enetMacAddr_t *macAddr, L7_uint8 flags);
+L7_RC_t dsBindingFlagsUpdate(dsBindingTreeKey_t *key, L7_uint8 flags);
 L7_RC_t dsBindingLeaseSet(L7_enetMacAddr_t *macAddr, L7_uint32 leaseTime);
 L7_uint32 _dsBindingsCount(void);
 L7_uint32 _dsStaticBindingsCount(void);

@@ -1490,7 +1490,7 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   /* Filter ARP request / ARP response if the sender-IP + sender-MAC pair
    * is not present in the DHCP snooping bindings database */
   senderIpAddr = GET_IP_FROM_PKT(arp_pkt->arp_spa);
-  memcpy(dsBinding.macAddr, arp_pkt->arp_sha, L7_ENET_MAC_ADDR_LEN);
+  memcpy(dsBinding.key.macAddr, arp_pkt->arp_sha, L7_ENET_MAC_ADDR_LEN);
 
   if(dsFuncTable.dsBindingGet == L7_NULL)
   {
