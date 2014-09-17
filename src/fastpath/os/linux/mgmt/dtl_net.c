@@ -621,6 +621,19 @@ L7_RC_t dtlIPProtoRecv (L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL2)
     {
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecv (%d): Sending Packet to dtl\n\r", __LINE__);
+
+      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL5)
+      {
+         int i;
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Rx: \n\r");
+         for (i=0; i<nbytes && i<128; i++)
+         {
+            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%.2x ", data[i]);
+         }
+         if (nbytes > 128)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
+         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r"); 
+      }
     }
 
     if(0 > write(dtl_net_fd,data,nbytes)){}
@@ -1265,11 +1278,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
      {
         int i;
         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Tx: \n\r");
-        for (i=0; i<data_length; i++)
+        for (i=0; i<data_length && i<128; i++)
         {
            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%.2x ", data[i]);
         }
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
+        if (data_length > 128)
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r"); 
      }
    }
 
@@ -1332,10 +1347,12 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       int i;
 
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Packet Tx: \n\r");
-      for (i=0; i<data_length; i++)
+      for (i=0; i<data_length && i<128; i++)
       {
          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%.2x ", data[i]);
       }
+      if (data_length > 128)
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "...");
       SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n\r");
    }
 
