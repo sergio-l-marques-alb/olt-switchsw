@@ -1276,7 +1276,7 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
 
     /* Correct bcm_port id for 10G ports: some bug requires to use an offset of +2 (CSP 814123) */
   #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-    if ((1ULL << main_port) & PTIN_SYSTEM_10G_PORTS_MASK)
+    if ((1ULL << bckp_port) & PTIN_SYSTEM_10G_PORTS_MASK)
     {
       bcm_port += 2;
     }
