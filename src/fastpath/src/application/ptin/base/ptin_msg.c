@@ -4841,10 +4841,11 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
               table->bind_table[i].macAddr[3],
               table->bind_table[i].macAddr[4],
               table->bind_table[i].macAddr[5]);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"family = %u",table->bind_table[i].ipAddr.family);
 
     memset(&dsBinding,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBinding.key.macAddr,table->bind_table[i].macAddr,sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-
+    dsBinding.key.ipType = (table->bind_table[i].ipAddr.family==0)?(L7_AF_INET):(L7_AF_INET6);
     rc = ptin_dhcp82_bindtable_remove(&dsBinding);
 
     if (rc!=L7_SUCCESS)

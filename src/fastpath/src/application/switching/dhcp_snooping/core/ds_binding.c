@@ -188,7 +188,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
-  key.ipType = L7_AF_INET;
+  binding.key.ipType = L7_AF_INET;
 
   if (dsInfo->bindingsTable.staticBindings == L7_DHCP_SNOOPING_MAX_STATIC_ENTRIES)
   {
@@ -404,7 +404,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
-  key.ipType = L7_AF_INET6;
+  binding.key.ipType = L7_AF_INET6;
 
   if (dsInfo->bindingsTable.staticBindings == L7_DHCP_SNOOPING_MAX_STATIC_ENTRIES)
   {
