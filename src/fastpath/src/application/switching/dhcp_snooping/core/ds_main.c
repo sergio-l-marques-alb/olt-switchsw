@@ -240,6 +240,7 @@ void dhcpSnoopTask(void)
               dsInfo->debugStats.bindingsAdded++;
               memset(&key, 0x00, sizeof(key));
               memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, L7_ENET_MAC_ADDR_LEN);
+              key.ipType = L7_AF_INET;
               dsBindingLeaseSet(&key, eventMsg.dsMsgData.dhcpsEvent.leaseTime);
             }
             osapiWriteLockGive(dsCfgRWLock);
@@ -252,6 +253,7 @@ void dhcpSnoopTask(void)
 
             memset(&key, 0x00, sizeof(key));
             memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, L7_ENET_MAC_ADDR_LEN);
+            key.ipType = L7_AF_INET;
             dsBindingRemove(&key);
             dsInfo->debugStats.bindingsRemoved++;
             osapiWriteLockGive(dsCfgRWLock);
@@ -1600,6 +1602,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
               memset(&key, 0x00, sizeof(key));
               memcpy(&key.macAddr.addr, &dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+              key.ipType = L7_AF_INET;
               dhcp_binding.flags |= DHCP_FLAGS_BIT_CLIENTREQUEST_RELAYOP_ADDED;
               dsBindingFlagsUpdate(&key, dhcp_binding.flags);
            }
@@ -2217,6 +2220,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
      memset(&key, 0x00, sizeof(key));
      memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
+     key.ipType = L7_AF_INET6;
      dsBindingRemove(&key);
    }
    else
@@ -2226,6 +2230,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      //Add a new dynamic entry in the binding table
      memset(&key, 0x00, sizeof(key));
      memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
+     key.ipType = L7_AF_INET6;
      dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
      dsBindingLeaseSet(&key, lease_time);
      dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
@@ -4478,6 +4483,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
          dsBindingTreeKey_t key;
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+         key.ipType = L7_AF_INET;
          leaseTime = dsLeaseTimeGet(dhcpPacket, pktLen);
          dsBindingLeaseSet(&key, leaseTime);
          break;
@@ -4497,6 +4503,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
          dsBindingTreeKey_t key;
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+         key.ipType = L7_AF_INET;
          if (dsBindingRemove(&key) == L7_SUCCESS)
          {
            dsInfo->debugStats.bindingsRemoved++;

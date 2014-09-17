@@ -316,7 +316,7 @@ typedef struct dhcpSnoopBindingKey_s
   L7_uchar8 macAddr[L7_MAC_ADDR_LEN];
 
 #if 1
-  /* Binding entry context (allows to distinguish between entries with the same MAC+VLAN) */
+  /* Binding entry ip type (allows to distinguish between entries with the same MAC) */
   L7_uint8 ipType; 
 #endif
 } dhcpSnoopBindingKey_t;

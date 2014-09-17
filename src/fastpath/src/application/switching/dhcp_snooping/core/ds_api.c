@@ -2234,6 +2234,7 @@ L7_RC_t dsStaticBindingRemove(L7_enetMacAddr_t *macAddr)
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, sizeof(macAddr->addr));
+  key.ipType = L7_AF_INET;
    rc = dsBindingRemove(&key);
 
    osapiWriteLockGive(dsCfgRWLock);
@@ -2403,6 +2404,7 @@ L7_BOOL dsClientKnown(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
 
    memset(&key, 0x00, sizeof(key));
    memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+   key.ipType = L7_AF_INET;
    if (dsBindingExists(&key, ipAddr, vlanId) == L7_TRUE)
      found = L7_TRUE;
 

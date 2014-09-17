@@ -1094,6 +1094,7 @@ L7_RC_t usmDbDsBindingRemove(L7_enetMacAddr_t *macAddr)
   dsBindingTreeKey_t key;
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET;
   return dsBindingRemove(&key);
 }
 #endif

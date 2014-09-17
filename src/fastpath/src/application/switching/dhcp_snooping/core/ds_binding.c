@@ -188,6 +188,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET;
 
   if (dsInfo->bindingsTable.staticBindings == L7_DHCP_SNOOPING_MAX_STATIC_ENTRIES)
   {
@@ -403,6 +404,7 @@ L7_RC_t dsv6BindingAdd(dsBindingType_t bindingType,
 
   memset((L7_uchar8 *)&binding, 0, sizeof(binding));
   memcpy(&binding.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET6;
 
   if (dsInfo->bindingsTable.staticBindings == L7_DHCP_SNOOPING_MAX_STATIC_ENTRIES)
   {
@@ -714,6 +716,7 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *inputKey, L7_uint32 match
 
   memset((L7_uchar8 *)&key, 0, sizeof(key));
   memcpy(&key.macAddr.addr, &inputKey->macAddr, sizeof(inputKey->macAddr));
+  key.ipType = inputKey->ipType;
   pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &key,
                         (L7_uint32)((matchType == L7_MATCH_EXACT) ? AVL_EXACT : AVL_NEXT));
 #ifdef L7_NSF_PACKAGE
@@ -953,6 +956,7 @@ L7_RC_t dsBindingFind(dhcpSnoopBinding_t *extBinding, L7_uint32 matchType)
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &extBinding->key.macAddr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = extBinding->key.ipType;
   if (dsBindingTreeSearch(&key, matchType, &binding) != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -979,6 +983,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr)
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET;
   if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1050,6 +1055,7 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t ipAddr)
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET6;
   if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
 
@@ -1120,6 +1126,7 @@ L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET;
   return dsLeaseStatusUpdate(&key, L7_AF_INET, messageType);
 }
 
@@ -1142,6 +1149,7 @@ L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+  key.ipType = L7_AF_INET6;
   /* 
    * DHCPv6 message types start at value 1.
    * However, in our enum DHCPv6 lease status start at 11. So, we must add an hardcoded 10 to the mesage type

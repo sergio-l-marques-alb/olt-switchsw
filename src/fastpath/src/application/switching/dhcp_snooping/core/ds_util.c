@@ -446,6 +446,7 @@ L7_RC_t _dsBindingClear(L7_uint32 intIfNum,
       dsBindingTreeKey_t key;
       memset(&key, 0x00, sizeof(key));
       memcpy(&key.macAddr.addr, &prevMac.addr, L7_ENET_MAC_ADDR_LEN);
+      key.ipType = dsBinding.key.ipType;
       if (dsBindingRemove(&key) != L7_SUCCESS)
       retval = L7_FAILURE;
       dsInfo->debugStats.bindingsRemoved++;
@@ -2342,6 +2343,7 @@ L7_RC_t dsDbRemoteRestore()
         dsBindingTreeKey_t key;
         memset(&key, 0x00, sizeof(key));
         memcpy(&key.macAddr.addr, &macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+        key.ipType = L7_AF_INET;
         dsBindingLeaseSet(&key, dsBinding.remLease);
        break;
      }
@@ -2461,6 +2463,7 @@ void dsDbLocalRestore()
          dsBindingTreeKey_t key;
          memset(&key, 0x00, sizeof(key));
          memcpy(&key.macAddr.addr, &dsDbCfgData.dsBindingDb[dbIndex].macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+         key.ipType = L7_AF_INET;
          dsBindingLeaseSet(&key,dsDbCfgData.dsBindingDb[dbIndex].remLease);
       }
    }
