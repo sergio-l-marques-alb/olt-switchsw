@@ -2339,7 +2339,10 @@ L7_RC_t dsDbRemoteRestore()
                  osapiFsDeleteFile(DHCP_SNOOPING_DOWNLOAD_FILE_NAME);
                  return L7_FAILURE;
        }
-        dsBindingLeaseSet(&macAddr, dsBinding.remLease);
+        dsBindingTreeKey_t key;
+        memset(&key, 0x00, sizeof(key));
+        memcpy(&key.macAddr.addr, &macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+        dsBindingLeaseSet(&key, dsBinding.remLease);
        break;
      }
      readCnt = readCnt+sizeof(buf);
@@ -2455,8 +2458,10 @@ void dsDbLocalRestore()
                       dsDbCfgData.dsBindingDb[dbIndex].ipAddr,
                       dsDbCfgData.dsBindingDb[dbIndex].vlanId, 0 /* PTin modified: DHCP */,
                       dsDbCfgData.dsBindingDb[dbIndex].intIfNum);
-         dsBindingLeaseSet(&dsDbCfgData.dsBindingDb[dbIndex].macAddr,
-                       dsDbCfgData.dsBindingDb[dbIndex].remLease);
+         dsBindingTreeKey_t key;
+         memset(&key, 0x00, sizeof(key));
+         memcpy(&key.macAddr.addr, &dsDbCfgData.dsBindingDb[dbIndex].macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+         dsBindingLeaseSet(&key,dsDbCfgData.dsBindingDb[dbIndex].remLease);
       }
    }
   }

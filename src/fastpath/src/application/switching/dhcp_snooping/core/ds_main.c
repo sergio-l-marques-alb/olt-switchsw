@@ -235,9 +235,12 @@ void dhcpSnoopTask(void)
                                 osapiNtohl(eventMsg.dsMsgData.dhcpsEvent.ipAddr))
                                   == L7_SUCCESS)
             {
+              dsBindingTreeKey_t key;
+
               dsInfo->debugStats.bindingsAdded++;
-              dsBindingLeaseSet(&eventMsg.dsMsgData.dhcpsEvent.chAddr,
-                               eventMsg.dsMsgData.dhcpsEvent.leaseTime);
+              memset(&key, 0x00, sizeof(key));
+              memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, L7_ENET_MAC_ADDR_LEN);
+              dsBindingLeaseSet(&key, eventMsg.dsMsgData.dhcpsEvent.leaseTime);
             }
             osapiWriteLockGive(dsCfgRWLock);
           }
@@ -248,7 +251,7 @@ void dhcpSnoopTask(void)
             dsBindingTreeKey_t key;
 
             memset(&key, 0x00, sizeof(key));
-            memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, sizeof(L7_ENET_MAC_ADDR_LEN));
+            memcpy(&key.macAddr.addr, &eventMsg.dsMsgData.dhcpsEvent.chAddr.addr, L7_ENET_MAC_ADDR_LEN);
             dsBindingRemove(&key);
             dsInfo->debugStats.bindingsRemoved++;
             osapiWriteLockGive(dsCfgRWLock);
@@ -2213,14 +2216,18 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      dsBindingTreeKey_t key;
 
      memset(&key, 0x00, sizeof(key));
-     memcpy(&key.macAddr.addr, &client_mac_addr.addr, sizeof(L7_ENET_MAC_ADDR_LEN));
+     memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
      dsBindingRemove(&key);
    }
    else
    {
+     dsBindingTreeKey_t key;
+
      //Add a new dynamic entry in the binding table
+     memset(&key, 0x00, sizeof(key));
+     memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
      dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
-     dsBindingLeaseSet(&client_mac_addr, lease_time);
+     dsBindingLeaseSet(&key, lease_time);
      dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
    }
 
@@ -4447,49 +4454,55 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
       break;
 
     case L7_DHCP_ACK:
-      if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing ACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
-                  intIfNum, vlanId, innerVlanId,
-                  dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
+    {
+         if (ptin_debug_dhcp_snooping)
+           LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing ACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+                     intIfNum, vlanId, innerVlanId,
+                     dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
 
-      /* Setting the IP addr on the binding will fail if client is on a
-       * trusted port or a port not enabled for DHCP snooping. This is ok. */
-      /* memcpy to avoid data-alignment problems */
-      memcpy(&yiaddr, &(dhcpPacket->yiaddr), sizeof(yiaddr));
-      yiaddr = osapiNtohl(yiaddr);
-      if ( yiaddr == 0)
-      {
-        /* This is the ACK for the dhcp_offer,IGNORE it */
-        break;
-      }
-      if (dsBindingIpAddrSet(&chaddr, yiaddr) == L7_SUCCESS)
-      {
-        dsInfo->debugStats.bindingsAdded++;
-      }
-      /* Extract lease time */
-      leaseTime = dsLeaseTimeGet(dhcpPacket, pktLen);
-      dsBindingLeaseSet(&chaddr, leaseTime);
-      break;
-
+         /* Setting the IP addr on the binding will fail if client is on a
+          * trusted port or a port not enabled for DHCP snooping. This is ok. */
+         /* memcpy to avoid data-alignment problems */
+         memcpy(&yiaddr, &(dhcpPacket->yiaddr), sizeof(yiaddr));
+         yiaddr = osapiNtohl(yiaddr);
+         if ( yiaddr == 0)
+         {
+           /* This is the ACK for the dhcp_offer,IGNORE it */
+           break;
+         }
+         if (dsBindingIpAddrSet(&chaddr, yiaddr) == L7_SUCCESS)
+         {
+           dsInfo->debugStats.bindingsAdded++;
+         }
+         /* Extract lease time */
+         dsBindingTreeKey_t key;
+         memset(&key, 0x00, sizeof(key));
+         memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+         leaseTime = dsLeaseTimeGet(dhcpPacket, pktLen);
+         dsBindingLeaseSet(&key, leaseTime);
+         break;
+    }
     case L7_DHCP_DECLINE:
     case L7_DHCP_RELEASE:
     case L7_DHCP_NACK:
-      if (ptin_debug_dhcp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing DECLINE / RELEASE / NACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
-                  intIfNum, vlanId, innerVlanId,
-                  dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
+    {
+         if (ptin_debug_dhcp_snooping)
+           LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Processing DECLINE / RELEASE / NACK from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+                     intIfNum, vlanId, innerVlanId,
+                     dsBinding.key.macAddr[0],dsBinding.key.macAddr[1],dsBinding.key.macAddr[2],dsBinding.key.macAddr[3],dsBinding.key.macAddr[4],dsBinding.key.macAddr[5]);
 
-      /* Client has refused or given up lease, or server has refused. Remove binding.
-       * A failure removing binding could be ok. The client might be on a trusted
-       * port or a port not enabled for DHCP snooping. */
-      dsBindingTreeKey_t key;
-      memset(&key, 0x00, sizeof(key));
-      memcpy(&key.macAddr.addr, &chaddr.addr, sizeof(L7_ENET_MAC_ADDR_LEN));
-      if (dsBindingRemove(&key) == L7_SUCCESS)
-      {
-        dsInfo->debugStats.bindingsRemoved++;
-      }
-      break;
+         /* Client has refused or given up lease, or server has refused. Remove binding.
+          * A failure removing binding could be ok. The client might be on a trusted
+          * port or a port not enabled for DHCP snooping. */
+         dsBindingTreeKey_t key;
+         memset(&key, 0x00, sizeof(key));
+         memcpy(&key.macAddr.addr, &chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+         if (dsBindingRemove(&key) == L7_SUCCESS)
+         {
+           dsInfo->debugStats.bindingsRemoved++;
+         }
+         break;
+    }
     default:
       if (ptin_debug_dhcp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_DHCP,"Ignoring OFFER from intIfNum=%u, oVlan=%u, iVlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",

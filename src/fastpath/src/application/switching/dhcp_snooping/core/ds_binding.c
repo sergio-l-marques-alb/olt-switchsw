@@ -804,16 +804,13 @@ L7_RC_t dsBindingNthEntryGet (dhcpSnoopBinding_t *dsBinding,
 *
 * @end
 *********************************************************************/
-L7_BOOL dsBindingExists(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
+L7_BOOL dsBindingExists(dsBindingTreeKey_t *key, L7_uint32 ipAddr,
                         L7_ushort16 vlanId)
 {
   dsBindingTreeNode_t *binding;
   L7_inet_addr_t inet_ipAddr;
-  dsBindingTreeKey_t key;
 
-  memset(&key, 0x00, sizeof(key));
-  memcpy(&key.macAddr.addr, macAddr->addr, sizeof(macAddr->addr));
-  if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
+  if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FALSE;
 
   inet_ipAddr.family = L7_AF_INET;
@@ -1167,14 +1164,11 @@ L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
 *
 * @end
 *********************************************************************/
-L7_RC_t dsBindingLeaseSet(L7_enetMacAddr_t *macAddr, L7_uint32 leaseTime)
+L7_RC_t dsBindingLeaseSet(dsBindingTreeKey_t *key, L7_uint32 leaseTime)
 {
   dsBindingTreeNode_t *binding;
-  dsBindingTreeKey_t key;
 
-  memset(&key, 0x00, sizeof(key));
-  memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
-  if (dsBindingTreeSearch(&key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
+  if (dsBindingTreeSearch(key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
     return L7_FAILURE;
 
   binding->leaseTime = leaseTime;   /* convert to seconds */

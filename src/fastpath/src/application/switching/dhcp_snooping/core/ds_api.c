@@ -2396,11 +2396,14 @@ L7_BOOL dsClientKnown(L7_enetMacAddr_t *macAddr, L7_uint32 ipAddr,
                       L7_ushort16 vlanId)
 {
   L7_BOOL found = L7_FALSE;
+  dsBindingTreeKey_t key;
 
    if (osapiReadLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS) 
     return L7_FALSE;
 
-   if (dsBindingExists(macAddr, ipAddr, vlanId) == L7_TRUE)
+   memset(&key, 0x00, sizeof(key));
+   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
+   if (dsBindingExists(&key, ipAddr, vlanId) == L7_TRUE)
      found = L7_TRUE;
 
    osapiReadLockGive(dsCfgRWLock);
