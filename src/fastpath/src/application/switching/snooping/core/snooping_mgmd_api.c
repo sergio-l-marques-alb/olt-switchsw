@@ -580,7 +580,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
   L7_uint32      ptin_port;
   L7_RC_t        rc;
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, clientId, groupAddr, sourceAddr);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
   
   if (portId == 0 || clientId == (L7_uint32) -1)
   {
@@ -652,7 +652,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, clientId, groupAddr, sourceAddr);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
 
   if (portId == 0 || clientId == (L7_uint32) -1)
   {
@@ -724,7 +724,7 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, clientId, groupAddr, sourceAddr);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
 
   if (portId == 0 || clientId == (L7_uint32) -1)
   {
