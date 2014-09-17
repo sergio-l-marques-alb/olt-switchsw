@@ -1795,7 +1795,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
          return L7_FAILURE;
       }
 
-      switch (osapiNtohs(dhcp_op_header->option_code))
+      /*switch (osapiNtohs(dhcp_op_header->option_code))
       {
          case L7_DHCP6_OPT_INTERFACE_ID:
          case L7_DHCP6_OPT_REMOTE_ID:
@@ -1852,7 +1852,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
                subop_ptr += sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_ia_subop_header->option_len);
             }
          }
-      }
+      }*/
       frame_len          -= sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
       dhcp_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
    }
