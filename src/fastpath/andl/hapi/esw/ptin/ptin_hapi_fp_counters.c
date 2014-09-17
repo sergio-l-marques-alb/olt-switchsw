@@ -87,6 +87,15 @@ L7_RC_t hapi_ptin_fpCounters_get(DAPI_USP_t *usp, ptin_evcStats_counters_t *stat
     return L7_FAILURE;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," ddUsp     = {%d,%d,%d}",usp->unit, usp->slot, usp->port);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_internal);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_out  = %u",profile->outer_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in   = %u",profile->inner_vlan_in);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out  = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI," DIP       = %u",profile->dst_ip);
+
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"Looking to profile to find a matched counter...");
   /* Search in database for an entry with the same profile inputs (Source interface, SVLAN and CVLAN) */
   counter = ptin_hapi_policy_find(usp, profile, L7_NULLPTR, cnt_db);

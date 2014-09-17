@@ -723,7 +723,7 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Copy data to the output struct */
@@ -1614,7 +1614,7 @@ L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type)
   if (ptin_evc_ext2int(evc_id_ext, &evc_id) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting local evc id");
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* EVC should be active */
@@ -3444,7 +3444,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Check if the EVC is P2P or P2MP */
@@ -4426,7 +4426,7 @@ L7_RC_t ptin_evc_flood_vlan_add( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, L
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
-    return L7_NOT_EXIST;
+    return L7_FAILURE;
   }
 
   /* Check if the EVC is stacked */
@@ -10007,6 +10007,10 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profi
   }
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
+  /* Use internal VLAN */
+  profile->outer_vlan_in = 0;
+  profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+
   /* Read policy information */
   if ((rc = ptin_evcStats_get(stats, profile))!=L7_SUCCESS)
   {
@@ -10087,6 +10091,18 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profi
     LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u is not unstacked!",evc_id);
     return L7_FAILURE;
   }
+
+  /* We should have an outer vlan for this interface */
+  if (evcs[evc_id].intf[ptin_port].int_vlan==0 ||
+      evcs[evc_id].intf[ptin_port].int_vlan>=4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"EVC %u: Internal VLAN %u is not valid!",evc_id,evcs[evc_id].intf[ptin_port].int_vlan);
+    return L7_FAILURE;
+  }
+
+  /* Use internal VLAN */
+  profile->outer_vlan_in = 0;
+  profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
 
   /* Apply policy */
   if ((rc = ptin_evcStats_set(profile))!=L7_SUCCESS)
