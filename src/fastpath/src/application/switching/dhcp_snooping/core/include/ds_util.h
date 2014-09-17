@@ -402,7 +402,7 @@ typedef struct dsBindingTreeKey_s
   /* A MAC address uniquely identifies a node in the bindings tree. */
   L7_enetMacAddr_t macAddr;
 
-#if 0
+#if 1
   /* Binding entry context (allows to distinguish between entries with the same MAC+VLAN) */
   L7_uint8 ipType; 
 #endif

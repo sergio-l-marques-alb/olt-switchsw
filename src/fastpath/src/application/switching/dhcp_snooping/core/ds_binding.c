@@ -105,7 +105,7 @@ L7_RC_t dsBindingsTableCreate(void)
   avlCreateAvlTree(&dsInfo->bindingsTable.treeData, dsInfo->bindingsTable.treeHeap,
                    dsInfo->bindingsTable.dataHeap,
                    dsInfo->bindingsTable.maxBindings, dataNodeSize, 0x10,
-                   L7_ENET_MAC_ADDR_LEN);
+                   sizeof(dsBindingTreeKey_t));
 
   return L7_SUCCESS;
 }
@@ -710,10 +710,10 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *inputKey, L7_uint32 match
                                    dsBindingTreeNode_t **binding)
 {
   dsBindingTreeNode_t *pNode;
-  dsBindingTreeNode_t key;
+  dsBindingTreeKey_t key;
 
   memset((L7_uchar8 *)&key, 0, sizeof(key));
-  memcpy(&key.key, inputKey, sizeof(inputKey));
+  memcpy(&key.macAddr.addr, &inputKey->macAddr, sizeof(inputKey->macAddr));
   pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &key,
                         (L7_uint32)((matchType == L7_MATCH_EXACT) ? AVL_EXACT : AVL_NEXT));
 #ifdef L7_NSF_PACKAGE
