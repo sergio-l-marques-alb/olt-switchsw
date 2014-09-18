@@ -524,6 +524,17 @@ extern L7_RC_t ptin_evc_igmp_stats_clear_all(L7_uint32 evc_ext_id);
 extern L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_ext_id);
 
 /**
+ * Gets an EVC internal id from an internal vlan as input
+ * parameter 
+ *  
+ * @param internalVlan : Internal vlan
+ * @param evc_ext_id   : EVC internal Id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_get_internal_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_id);
+
+/**
  * Get EVC ext id, from NNI vlan
  * 
  * @param nni_ovlan  : NNI OVLAN
@@ -758,5 +769,16 @@ L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint8 *pppoe_inst);
 extern
 L7_RC_t ptin_evc_mac_bridge_check(L7_uint32 evc_ext_id, L7_BOOL *is_mac_bridge);
 
+/**
+ * Convert EVC extended id into the internal id
+ * 
+ * @author alex (9/19/2013)
+ * 
+ * @param evc_ext_id 
+ * @param evc_id 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 
 #endif /* _PTIN_EVC_H */

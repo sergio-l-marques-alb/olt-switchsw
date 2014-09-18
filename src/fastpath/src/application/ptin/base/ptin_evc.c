@@ -383,7 +383,7 @@ static void    ptin_evc_entry_init(L7_uint evc_id);
 static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id);
 static L7_RC_t ptin_evc_entry_free(L7_uint32 evc_ext_id);
 
-static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
+//static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id);
 static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoData_t **infoData);
 
 static void    ptin_evc_vlan_pool_init(void);
@@ -854,6 +854,38 @@ L7_RC_t ptin_evc_get_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_ext
 
   if (evc_ext_id != L7_NULLPTR)
     *evc_ext_id = evcs[evc_id].extended_id;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Gets an EVC configuration from an internal vlan as input 
+ * parameter 
+ *  
+ * @param internalVlan : Internal vlan
+ * @param evc_ext_id   : EVC extended id
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_get_internal_evcIdfromIntVlan(L7_uint16 internalVlan, L7_uint32 *evc_id)
+{
+  
+  /* Validate arguments */
+  if (internalVlan>=4096 || evc_id == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (intVlan=%u evc_id=%p)",internalVlan, evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Get evc id */
+  *evc_id = evcId_from_internalVlan[internalVlan];
+
+  /* Check if this internal vlan is in use by any evc */
+  if (*evc_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    return L7_FAILURE;
+  }
 
   return L7_SUCCESS;
 }
@@ -6512,7 +6544,7 @@ static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoDat
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id)
+L7_RC_t ptin_evc_ext2int(L7_uint32 evc_ext_id, L7_uint32 *evc_id)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 

@@ -267,6 +267,9 @@ ptinIgmpClientGroups_t igmpClientGroups;
 /* Unified list with all clients (to be added dynamically) */
 ptinIgmpClients_unified_t igmpClients_unified;
 
+/* Used to save the first client device of each service/port*/
+static L7_uint32  queryClientId[PTIN_SYSTEM_N_EVCS][PTIN_IGMP_INTFPORT_MAX];
+
 /************IGMP Admission Control Feature****************************************************/ 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
@@ -655,6 +658,19 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   /* Client group */
   memset(&igmpClientGroups, 0x00, sizeof(igmpClientGroups));
+
+  /* first client device of each service/port*/
+  memset(&queryClientId, 0x00, sizeof(queryClientId)); 
+  
+  L7_uint32 iterator1, iterator2;
+  for (iterator1 = 0; iterator1 < PTIN_SYSTEM_N_EVCS; iterator1++)
+  {
+    for (iterator2 = 0; iterator2 < PTIN_IGMP_INTFPORT_MAX; iterator2++)
+    {
+      queryClientId[iterator1][iterator2] = (L7_uint32) -1;
+    }
+  }
+  /*end first client device of each service/port*/
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
@@ -11796,6 +11812,21 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
   }
 
   igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = infoData;
+
+  L7_uint32 evcId;
+  if (infoData != L7_NULLPTR && infoData->pClientGroup != L7_NULLPTR &&
+      L7_SUCCESS == ptin_evc_get_internal_evcIdfromIntVlan(infoData->pClientGroup->igmpClientDataKey.outerVlan, &evcId))
+  {
+    if ( queryClientId[evcId][ptin_port] == (L7_uint32) -1 )
+    {       
+      queryClientId[evcId][ptin_port] = client_idx;
+
+      if(ptin_debug_igmp_snooping)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"evcId:%u ptin_port:%u client_idx:%u",evcId, ptin_port, client_idx);
+      } 
+    }
+  }
 }
 
 /**
@@ -11837,6 +11868,39 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx)
       if (igmpClients_unified.number_of_clients_per_intf[ptin_port] > 0 )
       {
         igmpClients_unified.number_of_clients_per_intf[ptin_port]--;
+      }
+    }
+
+    L7_uint32 evcId;
+    if (igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup != L7_NULLPTR)
+    {
+      ptinIgmpClientGroupInfoData_t *clientGroup = igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup;
+      if (L7_SUCCESS == ptin_evc_get_internal_evcIdfromIntVlan(clientGroup->igmpClientDataKey.outerVlan, &evcId))
+      {
+        if ( queryClientId[evcId][ptin_port] == client_idx )
+        {      
+          ptinIgmpClientDevice_t *client_device = L7_NULLPTR;          
+          while ((client_device=igmp_clientDevice_next(clientGroup, client_device)) != L7_NULLPTR)
+          {
+            if (client_device->client->client_index != client_idx)
+            {
+              queryClientId[evcId][ptin_port] = client_idx;
+              if(ptin_debug_igmp_snooping)
+              {
+                LOG_TRACE(LOG_CTX_PTIN_IGMP,"evcId:%u ptin_port:%u client_idx:%u",evcId, ptin_port, client_idx);
+              } 
+              break;
+            }
+          }
+          if (queryClientId[evcId][ptin_port] == client_idx )
+          {
+            queryClientId[evcId][ptin_port] = (L7_uint32) -1;
+            if(ptin_debug_igmp_snooping)
+            {
+              LOG_TRACE(LOG_CTX_PTIN_IGMP,"evcId:%u ptin_port:%u client_idx:%u",evcId, ptin_port, client_idx);
+            } 
+          }
+        }
       }
     }
   }
@@ -14075,6 +14139,56 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
  */
 L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
 {
+  L7_uint32 ptin_port;
+  L7_uint32 evc_id;
+
+  if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "intIfNum# %u is out of range [1..%u]", intIfNum, L7_MAX_INTERFACE_COUNT);
+    return L7_FAILURE;
+  }
+
+  if (extendedEvcId >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "extendedEvcId# %u is out of range [0..%u]", extendedEvcId, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    return L7_FAILURE;
+  }
+
+  if (clientBmpPtr == L7_NULLPTR || noOfClients == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid Input Parameters: clientBmpPtr=%p noOfClients=%p",clientBmpPtr, noOfClients);
+  }
+
+  if ( L7_SUCCESS != ptin_intf_intIfNum2port(intIfNum, &ptin_port))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to convert intIfNum:%u",intIfNum);
+    *noOfClients = 0;
+    return L7_FAILURE;
+  }
+
+  if ( L7_SUCCESS != ptin_evc_ext2int(extendedEvcId, &evc_id))
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to convert extendedEvcId:%u",extendedEvcId);
+    *noOfClients = 0;
+    return L7_FAILURE;
+  }
+ 
+  if (queryClientId[evc_id][ptin_port] != (L7_uint32) -1)
+  {
+    PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, queryClientId[evc_id][ptin_port]);
+    *noOfClients = queryClientId[evc_id][ptin_port];
+  
+    if(ptin_debug_igmp_snooping)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"extendedEvcId:%u ptin_port:%u clientId:%u",extendedEvcId, ptin_port, queryClientId[evc_id][ptin_port]);
+    }  
+  }
+  else
+  {
+    noOfClients = 0;
+  }
+  
+#if 0
   L7_uint                        i_client = 0;            
   L7_uint                        child_clients;
   ptinIgmpClientDataKey_t        avl_key;
@@ -14177,7 +14291,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Done!");
 
   osapiSemaGive(ptin_igmp_clients_sem);
-
+#endif
   return L7_SUCCESS;
 }
 
