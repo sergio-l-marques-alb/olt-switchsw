@@ -47,7 +47,7 @@ L7_uchar8 *dsLeaseStatusNames[] = {"UNKNOWN", "DISCOVER", "OFFER", "REQUEST", "D
                                    "ADVERTISE", "REQUEST", "CONFIRM", "RENEW", "REBIND","REPLY", "RELEASE", "RECONFIGURE", "INFORMATIONREQUEST"};
 
 
-static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *inputKey, L7_uint32 matchType,
+static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *key, L7_uint32 matchType,
                                    dsBindingTreeNode_t **binding);
 
 static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding, dhcpSnoopBinding_t *extBinding);
@@ -199,7 +199,7 @@ L7_RC_t dsBindingAdd(dsBindingType_t bindingType,
   if (pNode == L7_NULLPTR)
   {
     /* new AVL tree node has been added */
-    pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &binding, AVL_EXACT);
+    pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &binding.key, AVL_EXACT);
     if (pNode == L7_NULLPTR)
     {
       /* cannot find new entry */
@@ -683,7 +683,7 @@ L7_RC_t dsBindingRemove(dsBindingTreeKey_t *key)
      * complete to the Standby. In that case 'removeNow' would have been set to L7_FALSE above */
 
     memset((L7_uchar8 *)&binding, 0, sizeof(binding));
-    memcpy(&binding.key.macAddr.addr, key->macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    memcpy(&binding.key, key, sizeof(dsBindingTreeKey_t));
     pNode = avlDeleteEntry(&dsInfo->bindingsTable.treeData, &binding);
     if (pNode == NULL)
       return L7_FAILURE;
@@ -708,16 +708,12 @@ L7_RC_t dsBindingRemove(dsBindingTreeKey_t *key)
 *
 * @end
 *********************************************************************/
-static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *inputKey, L7_uint32 matchType,
+static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *key, L7_uint32 matchType,
                                    dsBindingTreeNode_t **binding)
 {
   dsBindingTreeNode_t *pNode;
-  dsBindingTreeKey_t key;
 
-  memset((L7_uchar8 *)&key, 0, sizeof(key));
-  memcpy(&key.macAddr.addr, &inputKey->macAddr, sizeof(inputKey->macAddr));
-  key.ipType = inputKey->ipType;
-  pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &key,
+  pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, key,
                         (L7_uint32)((matchType == L7_MATCH_EXACT) ? AVL_EXACT : AVL_NEXT));
 #ifdef L7_NSF_PACKAGE
   /* This is a zombie node that is marked for deletion
@@ -732,8 +728,8 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *inputKey, L7_uint32 match
   {
     while ((pNode) && (DS_CKPT_DELETE == pNode->ckptFlag))
     {
-      memcpy(&key.key, &pNode->key, sizeof(pNode->key));
-      pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, &key,
+      memcpy(&key, &pNode->key, sizeof(pNode->key));
+      pNode = avlSearchLVL7(&dsInfo->bindingsTable.treeData, key,
                             (L7_uint32)AVL_NEXT);
     }
   }
@@ -840,7 +836,7 @@ L7_BOOL dsBindingExists(dsBindingTreeKey_t *key, L7_uint32 ipAddr,
 static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
                              dhcpSnoopBinding_t *extBinding)
 {
-  memcpy(extBinding->key.macAddr, binding->key.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+  memcpy(&extBinding->key, &binding->key, sizeof(dsBindingTreeKey_t));
 
   extBinding->ipFamily = binding->ipAddr.family;
   if(binding->ipAddr.family == L7_AF_INET)
@@ -1297,7 +1293,7 @@ L7_RC_t dsLeaseCheck(void)
   while (dsBindingTreeSearch(&key, L7_MATCH_GETNEXT, &binding) == L7_SUCCESS)
   {
     /* store key for use in next search */
-    memcpy(&key.macAddr.addr, &binding->key.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
     if (binding->bindingType == DS_BINDING_STATIC)
     {
@@ -1368,7 +1364,7 @@ L7_RC_t dsBindingsValidate(void)
       rc = L7_ERROR;
     }
     /* store key for use in next search */
-    memcpy(&key.macAddr.addr, &binding->key.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
   }
   return rc;
 }
@@ -1394,7 +1390,7 @@ void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
   while (dsBindingTreeSearch(&key, L7_MATCH_GETNEXT, &binding) == L7_SUCCESS)
   {
     /* store key for use in next search */
-    memcpy(&key.macAddr.addr, &binding->key.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
     /* If this entry belongs to our service, remove it */
     if(binding->vlanId == internalVlan)
@@ -1443,7 +1439,7 @@ void dsBindingTableShow(void)
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
 
     /* store key for use in next search */
-    memcpy(&key.macAddr.addr, &binding->key.macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
     dsMacToString(binding->key.macAddr.addr, macStr);
     inetAddrPrint(&binding->ipAddr, ipAddrStr);

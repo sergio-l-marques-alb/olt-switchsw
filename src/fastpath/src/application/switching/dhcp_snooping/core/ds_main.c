@@ -1468,6 +1468,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
         memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
         mac_header = (L7_enetHeader_t*) frame;
         memcpy(&dhcp_binding.key.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+        dhcp_binding.key.ipType = L7_AF_INET;
         if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
         {
           if (ptin_debug_dhcp_snooping)
@@ -1520,6 +1521,7 @@ L7_RC_t dsDHCPv4FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
          memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
          mac_header = (L7_enetHeader_t*) frame;
          memcpy(&dhcp_binding.key.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+         dhcp_binding.key.ipType = L7_AF_INET;
          if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
          {
            if (ptin_debug_dhcp_snooping)
@@ -1999,6 +2001,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    memset(&dhcp_binding,         0,                     sizeof(dhcpSnoopBinding_t));
    memcpy(&client_mac_addr,      mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
    memcpy(&dhcp_binding.key.macAddr, mac_header->dest.addr, L7_ENET_MAC_ADDR_LEN);
+   dhcp_binding.key.ipType = L7_AF_INET6;
    if (L7_SUCCESS == dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
    {
       intIfNum = dhcp_binding.intIfNum;
@@ -2873,6 +2876,7 @@ L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *mac
 
   memset(&dsBinding,'\0', sizeof(dhcpSnoopBinding_t));
   memcpy(dsBinding.key.macAddr, macaddr, L7_ENET_MAC_ADDR_LEN);
+  dsBinding.key.ipType = L7_AF_INET;
 
   if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
   {
@@ -3848,6 +3852,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
       memset(&dhcp_binding, 0, sizeof(dhcpSnoopBinding_t));
       memcpy(&dhcp_binding.key.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+      dhcp_binding.key.ipType = L7_AF_INET;
       if (L7_SUCCESS != dsBindingFind(&dhcp_binding, L7_MATCH_EXACT))
       {
         if (ptin_debug_dhcp_snooping)
@@ -4183,6 +4188,7 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       {
         memcpy(dsBinding.key.macAddr, srcMacAddr->addr, L7_ENET_MAC_ADDR_LEN);
       }
+      dsBinding.key.ipType = L7_AF_INET;
 
       if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) != L7_SUCCESS)
       {
@@ -4362,6 +4368,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
      don't process it. Log the message. */
 
   memcpy(dsBinding.key.macAddr, chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+  dsBinding.key.ipType = L7_AF_INET;
   if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) == L7_SUCCESS)
   {
      if ( dsBinding.bindingType == DS_BINDING_STATIC)
@@ -4422,6 +4429,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
       /* If client is renewing existing binding, leave it. But allow client to
        * move to a new VLAN and port. */
       memcpy(dsBinding.key.macAddr, chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+      dsBinding.key.ipType = L7_AF_INET;
       if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) == L7_SUCCESS)
       {
         if ((dsBinding.vlanId != vlanId) || (dsBinding.intIfNum != intIfNum))
