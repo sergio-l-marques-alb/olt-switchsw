@@ -8,17 +8,9 @@ cli=/usr/local/ptin/sbin/fp.cli
 startup_log=/usr/local/ptin/log/fastpath/startup.log
 proc_txt=/usr/local/ptin/log/fastpath/proc.txt
 ntry=0
-cpld_gpr=fe000001fh
-db=/usr/local/ptin/bin/db64
-sb=/usr/local/ptin/bin/sb64
-
-insert_modules()
-{
-    echo Inserting modules...
-    insmod /usr/local/ptin/sbin/linux-kernel-bde.ko debug=1
-    insmod /usr/local/ptin/sbin/linux-user-bde.ko
-    sleep 1
-}
+cpld_gpr=ff50001fh
+db=/usr/local/ptin/bin/db
+sb=/usr/local/ptin/bin/sb
 
 startup()
 {
@@ -32,17 +24,15 @@ startup()
     exec 1>>$startup_log 2>&1
 
     # get switch port mapping from unicom
-    #SLOT=`/usr/local/ptin/bin/getslotid`
-    #ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
-
-    insert_modules;
+    SLOT=`/usr/local/ptin/bin/getslotid`
+    ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
 
     # Launch app
 #    nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &
 
     # Wait 200 seconds for FP to boot up
-    $cli ping 6 30
+    $cli ping 10 20
 
     # Redirect output to the default pipes
     exec 1>&- 2>&-
@@ -56,16 +46,16 @@ wait4cxp()
     while [ 1 ]
     do
         reg=`$db $cpld_gpr 1 | awk '{print $2}'`
-	if [ $reg == "00" ]; then
-	    sleep 1;
-        elif [ $reg == "01" ]; then
+        if [ $reg == "00" ]; then
+	      sleep 1;
+          elif [ $reg == "01" ]; then
             echo "Sleeping 10 seconds before FP launch..."
             sleep 10
             echo "Hardware is configured! Launching Fastpath..."
-	    break;
-        else
-	    break;
-	fi
+	      break;
+          else
+	      break;
+        fi
     done
 }
 
@@ -112,7 +102,6 @@ elif [ $mode = "boot" ]; then
     else
         filesize=0;
     fi
-
     if [ $filesize -gt "2048" ]; then
       echo "Move file $startup_log => startup_log.old"
       mv -f $startup_log $startup_log.old
@@ -127,16 +116,14 @@ elif [ $mode = "boot" ]; then
         # Query application to determine if it is running or not
         $cli ping 3 5 > /dev/null
         if [ "$?" -ne "0" ]; then
-	    echo "No reply"
             if [ $ntry = 0 ]; then
-		echo "Going to start application"
                 startup;
                 signalcxp   # Signal CXP FW that Fastpath is launched
             else
 		echo "Transferring LOGs to Matrix board..."
 		/bin/sh /usr/local/ptin/scripts/transfer_logs.sh
-		echo "Going to reboot"
-                /sbin/reboot;
+		echo "Rebooting board"
+                reboot;
                 exit;
             fi
         else
@@ -168,14 +155,10 @@ else
     fi
 
     # get switch port mapping from unicom
-    #SLOT=`/usr/local/ptin/bin/getslotid`
-    #ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
-
-    insert_modules;
+    SLOT=`/usr/local/ptin/bin/getslotid`
+    ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
 
     # Launch app
 #    nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &
-
-    signalcxp;
 fi

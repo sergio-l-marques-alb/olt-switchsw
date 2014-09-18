@@ -1,0 +1,45 @@
+n_args=$#
+
+if [ $n_args -lt 4 ]; then
+  echo "Syntax: fp.reg <port> <WClane> <AER> <block> <reg> [value]"
+  exit
+fi
+
+command 1>&3
+command 
+
+PORT=$1
+WCLANE=$2
+AER=$3
+BLOCK=$4
+REG=$5
+
+AER_REG=0
+let "AER_REG=$AER<<11 | $WCLANE"
+
+# Disable linkscan
+fp.shell linkscan off
+
+# Select AER and Lane
+fp.shell phy $PORT 0x1f 0xffd0
+fp.shell phy $PORT 0x1e $AER_REG
+
+# Select block
+fp.shell phy $PORT 0x1f $BLOCK
+
+# Reading operation
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+if [ $n_args -ge 6 ]; then
+  echo "===== Writing $6 to [AER=$AER, Block=$BLOCK, Reg=$REG] ========"
+  fp.shell phy $PORT $REG $6
+else
+  echo "===== Reading [AER=$AER, Block=$BLOCK, Reg=$REG] =============="
+  fp.shell phy $PORT $REG
+fi
+echo "============================================================"
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+
+# Reenable linkscan
+fp.shell phy $PORT 0x1f 0xffd0
+fp.shell phy $PORT 0x1e 0x0000
+fp.shell linkscan on
