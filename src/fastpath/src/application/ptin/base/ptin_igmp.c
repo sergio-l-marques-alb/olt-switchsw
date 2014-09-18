@@ -14136,6 +14136,7 @@ L7_RC_t ptin_igmp_clients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L
  *  
  * @return L7_RC_t           : L7_SUCCESS/L7_FAILURE  
  *  
+ * @notes The noOfClients will be used to encode the clientId
  */
 L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfNum, L7_uchar8 *clientBmpPtr, L7_uint32 *noOfClients)
 {
@@ -14176,7 +14177,8 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
   if (queryClientId[evc_id][ptin_port] != (L7_uint32) -1)
   {
     PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, queryClientId[evc_id][ptin_port]);
-    *noOfClients = queryClientId[evc_id][ptin_port];
+    /*To support clientId equal to zero*/
+    *noOfClients = queryClientId[evc_id][ptin_port] - 1;
   
     if(ptin_debug_igmp_snooping)
     {
