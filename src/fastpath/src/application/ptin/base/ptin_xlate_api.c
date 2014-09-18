@@ -471,7 +471,8 @@ L7_RC_t ptin_xlate_ingress_get( L7_uint32 intIfNum, L7_uint16 outerVlanId, L7_ui
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Entry not found");
+    if (ptin_debug_xlate)
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " ERROR: Entry not found");
     rc = L7_FAILURE;
   }
   #if 0
@@ -1554,7 +1555,8 @@ L7_RC_t ptin_xlate_PVID_set(L7_uint32 intIfNum, L7_uint16 vlanId)
   if (ptin_xlate_ingress_get(intIfNum, vlanId, PTIN_XLATE_NOT_DEFINED, &int_defVid, &int_innerVid) != L7_SUCCESS)
   {
     int_defVid = 1;
-    LOG_WARNING(LOG_CTX_PTIN_INTF, "Could not acquire internal vlan associated to intIfNum %u/vlan %u... Assuming 1", intIfNum, vlanId);
+    if (ptin_debug_xlate)
+      LOG_WARNING(LOG_CTX_PTIN_INTF, "Could not acquire internal vlan associated to intIfNum %u/vlan %u... Assuming 1", intIfNum, vlanId);
   }
   else
   {
@@ -1892,7 +1894,8 @@ static L7_RC_t xlate_database_newVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *
   /* Failed? */
   if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " Entry does not exist");
+    if (ptin_debug_xlate)
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " Entry does not exist"); 
     return L7_FAILURE;
   }
 
@@ -1951,7 +1954,8 @@ static L7_RC_t xlate_database_oldVlan_get(L7_uint32 intIfNum, ptin_vlanXlate_t *
   /* Failed? */
   if ((ptinXlateKey_t *) avl_infoData == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_XLATE, " Entry does not exist");
+    if (ptin_debug_xlate)
+      LOG_ERR(LOG_CTX_PTIN_XLATE, " Entry does not exist");
     return L7_FAILURE;
   }
 

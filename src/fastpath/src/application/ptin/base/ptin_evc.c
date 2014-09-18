@@ -6808,8 +6808,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   while (!dot1qQueueIsEmpty())
     osapiSleepMSec(10);
 
-  /* Uplink protection */
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* If this is a protection port, remove port from the vlan (only at hardware level) */
   if ( is_root &&
        ptin_intf_is_uplinkProtection(ptin_port) &&
@@ -6818,7 +6816,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     ptin_vlan_port_removeFlush(ptin_port, int_vlan);
     LOG_INFO(LOG_CTX_PTIN_EVC,"Root intf %u removed from all vlans", ptin_port);
   }
-  #endif
 
   /* Update snooping configuration */
   if (ptin_intf_port2ptintf(ptin_port,&intf)==L7_SUCCESS)

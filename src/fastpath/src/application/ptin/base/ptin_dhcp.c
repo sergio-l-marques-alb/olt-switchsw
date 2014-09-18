@@ -1642,7 +1642,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
   if (ptin_dhcp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid client id");
-    return L7_FAILURE;
+    return L7_NOT_EXIST;
   }
 
   /* Convert interface to ptin_port format */
