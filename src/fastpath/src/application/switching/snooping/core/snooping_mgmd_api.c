@@ -436,16 +436,19 @@ unsigned int snooping_channel_serviceid_get(unsigned int groupAddr, unsigned int
 
 unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int *noOfClients)
 {
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientList:%p noOfClients:%p]", serviceId, portId, clientList, noOfClients);
 
   memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
   
 #if (!PTIN_BOARD_IS_MATRIX) //Since we do not expose any counters for the packets sent from the MX to the LC it does not make sense to increment them on the MGMD module
+  ptin_timer_start(72,"ptin_igmp_groupclients_bmp_get");
   if(ptin_igmp_groupclients_bmp_get(serviceId, portId, clientList->value, noOfClients)!=L7_SUCCESS)
   {
+    ptin_timer_stop(72);
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to obtain client bitmap [serviceId:%u portId:%u clientList:%p]", serviceId, portId, clientList);
     return FAILURE;
   }
+  ptin_timer_stop(72);
 #else
   *noOfClients=0;
 #endif
