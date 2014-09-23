@@ -1,0 +1,1 @@
+cmd_net/netlink/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o net/netlink/built-in.o net/netlink/af_netlink.o net/netlink/genetlink.o 
