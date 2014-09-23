@@ -5332,7 +5332,7 @@ int wcmod_tx_tap_control(wcmod_st* pc)
 {
   int cntl = pc->per_lane_control;
   int val = 0, mask = 0, mask_cntl = 0;
-
+#if 0
  if (cntl & 0x8000000) {
     MODIFY_WC40_CL72_USERB0_CL72_TX_FIR_TAP_REGISTERr(pc->unit, pc,
             0, CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK );
@@ -5366,6 +5366,75 @@ int wcmod_tx_tap_control(wcmod_st* pc)
     MODIFY_WC40_CL72_USERB0_CL72_TX_FIR_TAP_REGISTERr(pc->unit, pc,
       (val | CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK),
       (mask_cntl | CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK));
+#endif
+  uint16 tmp_lane, post, main_tap;
+
+  post = 0;
+  main_tap = 0;
+
+  if (pc->model_type == WCMOD_QS_A0) {
+    tmp_lane = pc->this_lane;
+    pc->this_lane = (pc->this_lane / 4) * 4;
+  } else {
+    tmp_lane = pc->this_lane;
+  }
+
+  if ((pc->model_type != WCMOD_QS_A0) && (tmp_lane >= 4)) {
+    printf ("%s FATAL: Internal. Bad lane:%d\n", FUNCTION_NAME(), tmp_lane);
+    return SOC_E_ERROR;
+  }
+
+  if (pc->model_type == WCMOD_QS_A0) {
+      if (cntl & 0x2000000) { /* set main override */
+        mask = CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_MASK >>
+               CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_SHIFT ;
+        main_tap = (((cntl & 0xff00)>>8) & mask) ;
+      }
+      if (cntl & 0x4000000) { /* set post override */
+        mask = CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_MASK >>
+               CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_SHIFT;
+        post = (((cntl & 0xff0000)>>16) & mask);
+      }
+
+      MODIFY_WC40_TX0_ANATXACONTROL2r(pc->unit, pc,  main_tap << 10, 0x7c00);
+      MODIFY_WC40_TX0_ANATXACONTROL2r(pc->unit, pc, (post & 0x1) << 15, 0x8000);
+      MODIFY_WC40_TX0_TX_DRIVERr(pc->unit, pc, (post & 0x1e) >> 1, 0xf);
+      pc->this_lane = tmp_lane;
+} else {
+      if (cntl & 0x8000000) {
+        MODIFY_WC40_CL72_USERB0_CL72_TX_FIR_TAP_REGISTERr(pc->unit, pc,
+                0, CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK );
+        return SOC_E_NONE;
+      }
+      if (cntl & 0x1000000) { /* set pre override */
+        mask_cntl |= CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_PRE_MASK;
+        mask = CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_PRE_MASK >>
+               CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_PRE_SHIFT;
+        val = ((cntl & 0xff)  & mask)
+               << CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_PRE_SHIFT;
+
+      }
+      if (cntl & 0x2000000) { /* set main override */
+       mask_cntl |= CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_MASK;
+        mask = CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_MASK >>
+               CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_SHIFT ;
+        val |= (((cntl & 0xff00)>>8) & mask)
+                << CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_SHIFT;
+      }
+
+      if (cntl & 0x4000000) { /* set post override */
+        mask_cntl |= CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_MASK;
+        mask = CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_MASK >>
+               CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_SHIFT;
+        val |= (((cntl & 0xff0000)>>16) & mask)
+                << CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_SHIFT;
+      }
+
+      if (cntl & 0x7000000) {  /* was using || */
+        MODIFY_WC40_CL72_USERB0_CL72_TX_FIR_TAP_REGISTERr(pc->unit, pc,
+          (val | CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK),
+          (mask_cntl | CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK));
+      }
   }
   return SOC_E_NONE;
 }

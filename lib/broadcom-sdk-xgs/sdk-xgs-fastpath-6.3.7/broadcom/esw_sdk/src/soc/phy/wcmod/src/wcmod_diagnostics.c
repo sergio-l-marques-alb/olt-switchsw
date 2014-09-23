@@ -3570,7 +3570,57 @@ int wcmod_diag_slicers(wcmod_st *ws)
 
 int wcmod_diag_tx_amps(wcmod_st *ws)
 {
-  uint16 dt, idrv, predrv, p2_cf;
+   uint16 dt, idrv, predrv, p2_cf, tmp_lane;
+
+   if (ws->model_type == WCMOD_QS_A0) {
+     tmp_lane = ws->this_lane;
+     ws->this_lane = (tmp_lane / 4) * 4;
+   } else {
+     tmp_lane = ws->this_lane;
+   }
+
+   if ((ws->model_type != WCMOD_QS_A0) && (tmp_lane >= 4)) {
+     printf ("%s FATAL: Internal. Bad lane:%d\n", FUNCTION_NAME(), tmp_lane);
+     return SOC_E_ERROR;
+   }
+
+
+  if (ws->model_type == WCMOD_QS_A0) {
+     READ_WC40_TX0_TX_DRIVERr(ws->unit, ws, &dt);
+  } else {
+      if (ws->this_lane % 4 == 0)  {
+        READ_WC40_TX0_TX_DRIVERr(ws->unit, ws, &dt);
+      } else if (ws->this_lane % 4 == 1) {
+        READ_WC40_TX1_TX_DRIVERr(ws->unit, ws, &dt);
+      } else if (ws->this_lane % 4 == 2) {
+        READ_WC40_TX2_TX_DRIVERr(ws->unit, ws, &dt);
+      } else {
+        READ_WC40_TX3_TX_DRIVERr(ws->unit, ws, &dt);
+      }
+   }
+
+   idrv  =(dt & TX0_TX_DRIVER_IDRIVER_MASK) >> TX0_TX_DRIVER_IDRIVER_SHIFT;
+   predrv=(dt & TX0_TX_DRIVER_IPREDRIVER_MASK) >> TX0_TX_DRIVER_IPREDRIVER_SHIFT;
+   p2_cf =(dt & TX0_TX_DRIVER_POST2_COEFF_MASK) >> TX0_TX_DRIVER_POST2_COEFF_SHIFT;
+printf ("Tx Amps. Lane %d: IDriver:%d PreDriver:%d P2_Coeff:%d\n",
+                                               tmp_lane,idrv,predrv,p2_cf);
+
+   if ((ws->accData) == 0x1)        {
+     ws->accData = predrv;
+   } else if ((ws->accData) == 0x2) {
+     ws->accData = idrv;
+   } else if ((ws->accData) == 0x3) {
+     ws->accData = p2_cf;
+   }
+   ws->this_lane = tmp_lane;
+   return SOC_E_NONE;
+
+
+
+
+#if 0
+  uint16 dt, idrv, predrv, p2_cf, temp_lane;
+
 
   if (ws->this_lane == 0) {
     READ_WC40_TX0_TX_DRIVERr(ws->unit, ws, &dt);
@@ -3598,6 +3648,7 @@ int wcmod_diag_tx_amps(wcmod_st *ws)
     ws->accData = p2_cf;
   }
   return SOC_E_NONE;
+#endif
 }
 
 int wcmod_diag_prbs(wcmod_st* ws)
@@ -3706,7 +3757,8 @@ int wcmod_diag_prbs_decouple_rx(wcmod_st* ws)
 /* WCMOD_DIAG_TX_TAPS */
 int wcmod_diag_tx_taps(wcmod_st *ws)
 {
-  uint16 dt, pre, mn, post;
+#if 0
+uint16 dt, pre, mn, post;
   SOC_IF_ERROR_RETURN
       (READ_WC40_CL72_USERB0_CL72_TX_FIR_TAP_REGISTERr(ws->unit,ws, &dt));
 
@@ -3721,6 +3773,49 @@ int wcmod_diag_tx_taps(wcmod_st *ws)
 
   printf ("Tx_Taps, Lane:%d: Pre:0x%02x Main:0x%02x Post:0x%02x\n",
   ws->this_lane, pre,mn  ,post);
+#endif
+
+
+  uint16 dt, pre, mn, post, tmp_lane;
+
+  if (ws->model_type == WCMOD_QS_A0) {
+    tmp_lane = ws->this_lane;
+    ws->this_lane = (tmp_lane / 4) * 4;
+  } else {
+    tmp_lane = ws->this_lane;
+  }
+
+  if ((ws->model_type != WCMOD_QS_A0) && (tmp_lane >= 4)) {
+    printf ("%s FATAL: Internal. Bad lane:%d\n", FUNCTION_NAME(), tmp_lane);
+    return SOC_E_ERROR;
+  }
+
+  if (ws->model_type == WCMOD_QS_A0) {
+          SOC_IF_ERROR_RETURN
+              (READ_WC40_TX0_ANATXACONTROL2r(ws->unit,ws, &dt));
+          pre = (dt & 0x8000) >> 15;
+          mn =  (dt & 0x7c00) >> 10;
+          SOC_IF_ERROR_RETURN
+              (READ_WC40_TX0_TX_DRIVERr(ws->unit,ws, &dt));
+          post = (dt & 0xf) << 1 | pre;
+          pre = 0;
+          ws->this_lane = tmp_lane;
+  } else {
+      SOC_IF_ERROR_RETURN
+          (READ_WC40_CL72_USERB0_CL72_TX_FIR_TAP_REGISTERr(ws->unit,ws, &dt));
+
+      ws->accData = dt & (~CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_FORCE_MASK);
+      /* using mask of lane 0. only */
+      pre = (dt & CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_PRE_MASK)
+               >> CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_PRE_SHIFT;
+      mn  = (dt & CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_MASK)
+               >> CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_MAIN_SHIFT;
+      post= (dt & CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_MASK)
+               >> CL72_USERB0_CL72_TX_FIR_TAP_REGISTER_TX_FIR_TAP_POST_SHIFT;
+  }
+  printf ("Tx_Taps, Lane:%d: Pre:0x%02x Main:0x%02x Post:0x%02x\n",
+  tmp_lane, pre,mn  ,post);
+
   return SOC_E_NONE;
 }
 
