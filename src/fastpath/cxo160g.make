@@ -29,11 +29,7 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH	= /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/kernel_3_0_51-e500mc
-#/home/devtools/dev-QorIQ/dev-P204x/cxo160g/kernel_3_0_51
-#export KERNEL_PATH      = /home/tiago/kernel/linux-3.0.51
-#/home/devtools/dev-QorIQ/dev-P204x/cxo160g/
-#$(OLT_DIR)/../lib/kernel/official/kernel_3_0_51
+export KERNEL_PATH	= $(OLT_DIR)/../lib/kernel/linux-3.0.51-smp-e500mc
 
 #CC='${COMPILER}gcc'
 #AS='${COMPILER}as'  
