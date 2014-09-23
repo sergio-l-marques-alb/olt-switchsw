@@ -1,0 +1,1 @@
+cmd_drivers/rtc/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/rtc/built-in.o drivers/rtc/rtc-lib.o drivers/rtc/hctosys.o drivers/rtc/rtc-core.o drivers/rtc/rtc-ds1305.o drivers/rtc/rtc-ds1307.o drivers/rtc/rtc-ds1374.o drivers/rtc/rtc-ds1390.o drivers/rtc/rtc-ds1672.o drivers/rtc/rtc-ds3232.o 
