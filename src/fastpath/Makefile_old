@@ -1,6 +1,0 @@
-# makefile generated for /projects/ccstgloc-fstpth4/viewstore/lvl7build/build/RELEASE_6.3.0.2-FastPath-Ent-esw-xgs4-gto-LR-CSxw-IQH
-# Common top-level makefile to get things started.
-#
-include make_configure
--include $(OUTPATH)/Makefile
-include src/l7tools/build/make.configure

@@ -1,8 +1,0 @@
-<?xml version='1.0'?>
-<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
-
-<FastPathXML>
-    <misc version="1.0">
-        <feature YesOrNo="yes" name="L7_DVLAN_PACKAGE"/>
-    </misc>
-</FastPathXML>
