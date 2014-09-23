@@ -1,0 +1,5 @@
+liodn.c:60:13:set_liodn	8	static
+liodn.c:307:13:fdt_fixup_liodn_tbl	40	static
+liodn.c:33:5:get_dpaa_liodn	16	static
+liodn.c:181:6:set_liodns	16	static
+liodn.c:334:6:fdt_fixup_liodn	168	static
