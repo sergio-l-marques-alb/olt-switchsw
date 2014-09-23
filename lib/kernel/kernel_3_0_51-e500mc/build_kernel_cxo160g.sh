@@ -20,11 +20,13 @@ CPPFLAGS=" -m32 -mhard-float  -mcpu=e500mc --sysroot=/opt/fsl/1.2/sysroots/ppce5
 
 export CC AS CPPFLAGS LD  CROSS_COMPILE ARCH RANLIB NM CONFIGURE_FLAGS CFLAGS LDFLAGS CXXFLAGS
 
-if [ $1 = "distclean" ]; then
+if [ $# -ge 1 ]; then
+ if [ $1 = "distclean" ]; then
   make clean
   make distclean mrproper
   make cxo160g_defconfig
   exit;
+ fi
 fi
 
 make clean
