@@ -1,0 +1,78 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>MLD Snooping Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=MLD_interface></a>Help for MLD Snooping Interface Configuration</h2>
+
+<h3>Selection Criteria</h3>
+   <ul type=disc>
+     <ul type=circle>
+        <li><b>Interface</b> 
+         - The single select box lists all physical ,VLAN and LAG interfaces.
+         Select the interface you want to configure.
+       </li>
+     </ul>
+   </ul>
+
+<h3>Configurable Data</h3>
+ <ul type=disc>
+ <ul type=circle>
+   <li><b>Admin Mode</b>
+       - Select the interface mode for the selected interface for MLD Snooping for the switch from the pull-down menu.
+        The default is Disable.
+       </li>
+   <li><b>Group Membership Interval(secs)</b>
+       - Specify the amount of time you want the switch to wait for a report for a particular
+         group on a particular interface before it deletes that interface from the group.
+         The valid range is from
+                  <EMWEB_STRING C='
+                          return usmWebIntegerRangeHelp( L7_MLD_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL, L7_MLD_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL);
+                        ' >
+                 seconds. The configured value must be greater than Max Response Time. The default is 260 seconds.
+          </li>
+  <li><b>Max Response Time(secs)(Less Than Group Membership Interval)</b>
+       - Specify the amount of time you want the switch to wait after sending a
+         query on an interface because it did not receive a report for a particular group on that
+         interface. Enter a value greater or equal to 1 and less than the Group Membership Interval in seconds.
+         The default is 10 seconds.
+         The configured value must be less than the Group Membership Interval.
+      </li>
+  <li><b>Multicast Router Present Expiration Time(secs)</b>
+       - Specify the amount of time you want the switch to wait to receive
+        a query  on an interface before removing it
+          from the list of interfaces with multicast routers attached.
+        Enter a value between 0 and 3600 seconds.  The default is 0 seconds.
+         A value of zero indicates an infinite timeout, i.e. no expiration.
+      </li>
+     <li><b>Fast Leave Admin mode</b>
+       - Select the Fast Leave mode for the a particular interface from the pull-down menu.
+   The default is Disable.
+       </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.
+  If you want the switch to retain the new values across a power cycle you must perform a save.
+  You will only see this button if you have Read/Write access privileges.</li>
+ </ul>
+</ul>
+<hr size=4 width="100%" align=center>
+</body>
+</html>
+

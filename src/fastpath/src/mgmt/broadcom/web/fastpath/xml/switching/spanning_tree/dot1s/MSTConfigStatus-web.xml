@@ -1,0 +1,124 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" java-script="range_type" name="MSTConfigStatus" title="Spanning Tree MST Configuration/Status">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" level="ReadWriteUser" properties="list,filter,iterate" obj-name="SwitchingStpMstConfig_MstIdWithOutCST" id="1" name="MST">
+                    <action type="value" value="valMapEmptyString" disable="1_13_2|1_13_3|1_13_4|1_13_6|1_13_5|1_3|1_5|1_7|1_8|1_6|1_9|1_10|1_11|1_12|1_15_1" hide="1_13_2|1_13_3|1_13_4|1_13_6|1_13_5|1_3|1_5_1|1_5_20|1_7|1_9|1_8|1_6|1_10|1_11|1_12|1_15_1" show="1_13_1|1_2" enable="1_13_1|1_2" setval_ids="1_5_1|1_5_20" setval_args="valMap_dash|L7_ENABLE"/>
+                    <action type="extn" value="Create" disable="1_13_2|1_13_3|1_13_4|1_13_5|1_13_6|1_3|1_5|1_7|1_8|1_6|1_9|1_10|1_11|1_12|1_15_1" hide="1_13_2|1_13_3|1_13_4|1_13_5|1_13_6|1_3|1_5_1|1_5_20|1_7|1_9|1_8|1_6|1_10|1_11|1_12|1_15_1" show="1_13_1|1_2" enable="1_13_1|1_2" setval_ids="1_5_1|1_5_20" setval_args="valMap_dash|L7_ENABLE"/>
+                    <action type="default" hide="1_2|1_13_1|1_5_20" disable="1_2|1_13_1" enable="1_13_2|1_13_3|1_13_4|1_13_5|1_13_6" show="1_13_2|1_13_3|1_13_4|1_13_5|1_13_6" setval_ids="1_5_20" setval_args="L7_DISABLE"/>
+                </element>
+            </node>
+            
+            <node id="20">
+                <element control="combo" level="ReadWriteUser" properties="hidden" obj-name="SwitchingStpMstConfig_MstId" cpval="SwitchingStpMstConfig_MstIdWithOutCST" id="1" name="MST">
+                </element>
+            </node>
+
+            <node id="2">
+                <element control="textbox" level="ReadWriteUser" value="" arghelp="HELP_FORMAT_FP" properties="filter,iterate,write-only" obj-name="SwitchingStpMstConfig_MstId" id="1" maxLength="4" name="MST ID"/>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP" level="ReadWriteUser" obj-name="SwitchingStpMstConfig_StpMstBridgePriority" id="1" maxLength="5" name="Priority"/>
+            </node>         
+            <node id="5">
+                <element control="combo" level="ReadWriteUser" properties="edit,collate,list" obj-name="SwitchingStpMstConfig_StpMstVlanIndex" id="1" name="Associated VLANs">
+                    <action type="extn" value="-----" disable="1_15_1|1_13_1|1_13_2|1_13_3" hide="1_15_1|1_13_1|1_13_2|1_13_3" enable="1_13_5|1_13_6|1_13_4" show="1_13_5|1_13_6|1_13_4"/>
+                    <action type="extn" value="Add" enable="1_15_1|1_13_2|1_13_4" show="1_15_1|1_13_2|1_13_4" disable="1_13_3|1_13_1|1_13_5|1_13_6" hide="1_13_3|1_13_1|1_13_5|1_13_6"/>
+                    <action type="extn" value="Delete" enable="1_15_1|1_13_3|1_13_4" show="1_15_1|1_13_3|1_13_4" disable="1_13_2|1_13_1|1_13_5|1_13_6" hide="1_13_2|1_13_1|1_13_5|1_13_6"/>
+                    <action type="default" disable="1_15_1|1_13_3|1_13_1|1_13_2" hide="1_15_1|1_13_3|1_13_1|1_13_2" enable="1_13_6|1_13_4|1_13_5" show="1_13_6|1_13_4|1_13_5"/>
+                </element>
+                <element level="ReadWriteUser" uienum="enable_t" control="combo" obj-name="xLibObjects_dummy" id="20" name="" >
+                    <action type="enum" disable="1_13_2|1_13_3|1_13_4|1_13_5|1_13_6|1_3|1_5|1_7|1_8|1_6|1_9|1_10|1_11|1_12|1_15_1" hide="1_13_2|1_13_3|1_13_4|1_13_5|1_13_6|1_3|1_5_1|1_5_20|1_7|1_9|1_8|1_6|1_10|1_11|1_12|1_15_1" show="1_13_1|1_2" enable="1_13_1|1_2"/>
+                    <action type="enum" />
+                </element>
+
+            </node>
+            <node id="15">
+                <element control="textbox" level="ReadWriteUser" value="" arghelp="HELP_FORMAT_VLAN_RANGE" properties="edit,collate,write-only" obj-name="SwitchingStpMstConfig_StpMstVlanIndex" id="1" maxLength="10" name="VLAN ID-Individual/Range" validation="vlan_range_check"/>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstBridgeIdentifier" id="1" name="Bridge Identifier"/>
+            </node>
+            <node id="7">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstTimeSinceTopologyChange" id="1" name="Time Since Topology Change"/>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstTopologyChangeCount" id="1" name="Topology Change Count"/>
+            </node>
+            <node id="9">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstTopologyChangeParm" id="1" name="Topology Change"/>
+            </node>
+            <node id="10">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstDesignatedRootId" id="1" name="Designated Root"/>
+            </node>
+            <node id="11">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstRootPathCost" id="1" name="Root Path Cost"/>
+            </node>
+            <node id="12">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstRootPortId" id="1" name="Root Port"/>
+            </node>
+            <node id="13">
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Add" obj-name="SwitchingStpMstConfig_StpMstRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                  <action type="button" disable="1_13_2|1_13_3|1_13_5|1_13_6"/>
+                </button>
+         				<button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Add" obj-name="SwitchingStpMstConfig_StpMstVlanRowStatus" help="Submits the form on this page to the Switch" id="2" name="Submit" >
+                   <action type="button" disable="1_13_1|1_13_3|1_13_5|1_13_6"/>
+                </button>
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Delete" obj-name="SwitchingStpMstConfig_StpMstVlanRowStatus" help="Submits the form on this page to the Switch" id="3" name="Submit" >
+                  <action type="button" disable="1_13_1|1_13_2|1_13_5|1_13_6"/>
+                </button>
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" help="Submits the form on this page to the Switch" id="6" name="Submit">
+                   <action type="button" disable="1_13_1|1_13_3|1_13_2|1_13_5"/>
+                </button>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="4" name="Refresh"/>
+        				<button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Delete" obj-name="SwitchingStpMstConfig_StpMstRowStatus" help="Submits the form on this page to the Switch" id="5" name="Delete">
+                  <action type="button" disable="1_13_1|1_13_3|1_13_2|1_13_6|1_3|1_5_1|1_5_20|1_7|1_8|1_6|1_9|1_10|1_11|1_12|1_15_1"/>
+                </button>
+            </node>
+        </group>
+        <group id="2" heading=" " level="ReadOnlyUser">
+            <node id="14">
+                <element control="combo" level="ReadOnlyUser" properties="filter,iterate" obj-name="SwitchingStpMstConfig_MstId" id="1" name="MST ID">
+                </element>
+            </node>
+            <node id="4">
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="SwitchingStpMstConfig_StpMstBridgePriority" id="1" name="Priority"/>
+            </node>
+            <node id="5">
+                <element control="combo" properties="edit,collate,list" obj-name="SwitchingStpMstConfig_StpMstVlanIndex" id="2" name="Associated VLANs">
+                    <action type="extn" value="-----" disable="1_15_1|1_13_3" hide="1_15_1|1_13_3"/>
+                    <action type="default" disable="1_15_1|1_13_3" hide="1_15_1|1_13_3" enable="1_13_2" show="1_13_2"/>
+                </element>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstBridgeIdentifier" id="1" name="Bridge Identifier"/>
+            </node>
+            <node id="7">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstTimeSinceTopologyChange" id="1" name="Time Since Topology Change"/>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstTopologyChangeCount" id="1" name="Topology Change Count"/>
+            </node>
+            <node id="9">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstTopologyChangeParm" id="1" name="Topology Change"/>
+            </node>
+            <node id="10">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstDesignatedRootId" id="1" name="Designated Root"/>
+            </node>
+            <node id="11">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstRootPathCost" id="1" name="Root Path Cost"/>
+            </node>
+            <node id="12">
+                <element control="label" obj-name="SwitchingStpMstConfig_StpMstRootPortId" id="1" name="Root Port"/>
+            </node>
+            <node id="13">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="4" name="Refresh"/>
+            </node>
+        </group>
+   </webxml>
+</FastPathXML>

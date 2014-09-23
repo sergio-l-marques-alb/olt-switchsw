@@ -1,0 +1,151 @@
+-- LIEBRT_C.MIB Version:  v0.4
+--
+--  This MIB defines the objects for the Liebert DESKTOP SNMP Agent.
+--
+--  Some objects are defined in lgh.my, which contains the environmental MIB.
+--
+
+LIEBERT-DESKTOP-MIB DEFINITIONS ::= BEGIN
+
+        IMPORTS
+            enterprises		            FROM RFC1155-SMI
+	    TruthValue                      FROM RFC1253-MIB
+            OBJECT-TYPE                     FROM RFC-1212
+            DisplayString		    FROM RFC1213-MIB
+	    TRAP-TYPE                       FROM RFC-1215;
+
+
+	emerson OBJECT IDENTIFIER ::= { enterprises 476 }
+
+--
+-- Divisions of Emerson
+--
+
+        liebertCorp OBJECT IDENTIFIER ::= { emerson 1 }
+
+--
+-- Areas of Liebert Corporation
+--
+        liebertUps OBJECT IDENTIFIER ::= { liebertCorp 1 }
+
+	liebertEnvironment OBJECT IDENTIFIER ::= { liebertCorp  2 }
+
+--
+-- UPS Extensions
+--
+	luExtensions OBJECT IDENTIFIER ::= { liebertUps 1 }
+
+	luExternal OBJECT IDENTIFIER ::= { luExtensions 6 }
+	-- sysObjID of luExternal
+
+--
+-- Environment Extensions
+--
+
+	leExtensions OBJECT IDENTIFIER ::= { liebertEnvironment  1 }
+
+	leSiteNet01 OBJECT IDENTIFIER ::= { leExtensions  1 }
+
+	envMIB OBJECT IDENTIFIER ::= { leSiteNet01 1 }
+
+          --
+          -- The Output group.
+          --
+
+	  envOutputs OBJECT IDENTIFIER ::= { envMIB  4 }
+
+
+	  envTimerOutput1 OBJECT IDENTIFIER ::= { envOutputs  5 }
+
+	  envTimerOutput1State OBJECT-TYPE
+    	      SYNTAX  INTEGER { on(1), off(2) }
+    	      ACCESS  read-only
+    	      STATUS  mandatory
+    	      DESCRIPTION
+           	      "The state of Output Number 1.
+
+		       When Output Number 1 is activated State is on(1).
+		       When Output Number 1 is deactivated State is off(2)."
+    	      ::= { envTimerOutput1  1 }
+
+	  envTimerOutput1Label OBJECT-TYPE
+    	      SYNTAX  DisplayString (SIZE (64))
+    	      ACCESS  read-write
+    	      STATUS  mandatory
+    	      DESCRIPTION
+           	      "A user-defined text string associated with Timer
+                       Output Number 1.  The text string is stored
+                       in non-volatile memory."
+    	      ::= { envTimerOutput1  2 }
+
+	  envTimerOutput1OffDelay OBJECT-TYPE
+              SYNTAX  INTEGER (0..2147483647)
+    	      ACCESS  read-write
+    	      STATUS  mandatory
+    	      DESCRIPTION
+                      "Setting this object causes the agent to turn off the
+		       output after the indicated number of seconds.  The agent
+		       counts down the number of seconds until the event will
+		       take place."
+    	      ::= { envTimerOutput1  3 }
+
+	  envTimerOutput1OnDelay OBJECT-TYPE
+              SYNTAX  INTEGER (0..2147483647)
+    	      ACCESS  read-write
+    	      STATUS  mandatory
+    	      DESCRIPTION
+                      "Setting this object causes the agent to turn on the
+		       output after the indicated number of seconds.  The agent
+		       counts down the number of seconds until the event will
+		       take place."
+    	      ::= { envTimerOutput1  4 }
+
+	  envTimerOutput1OffTrapDelay OBJECT-TYPE
+              SYNTAX  INTEGER (0..2147483647)
+    	      ACCESS  read-write
+    	      STATUS  mandatory
+    	      DESCRIPTION
+                      "When 'envTimerOutput1OffDelay' reaches a value
+                       less than or equal to this object's value, an
+		       envOutput1OffWarningTrap will be produced and this
+		       object will be reset to 0."
+    	      ::= { envTimerOutput1  5 }
+
+	  envTimerOutput1OnTrapDelay OBJECT-TYPE
+              SYNTAX  INTEGER (0..2147483647)
+    	      ACCESS  read-write
+    	      STATUS  mandatory
+    	      DESCRIPTION
+                      "When 'envTimerOutput1OnDelay' reaches a value
+                       less than or equal to this object's value, an
+		       envOutput1OnWarningTrap will be produced and this
+		       object will be reset to 0."
+    	      ::= { envTimerOutput1  6 }
+
+
+
+--
+--  The Desktop SNMP traps
+--
+	envTraps OBJECT IDENTIFIER ::= { envMIB  11 }
+
+          envOutput1OffWarningTrap   TRAP-TYPE
+    	      ENTERPRISE  { envTraps }
+	      DESCRIPTION
+		      "An envOutput1OffWarningTrap is sent when the
+		       envTimerOutput1OffDelay reaches the value of
+		       envTimerOutput1OffTrapDelay."
+	      ::= 37
+
+          envOutput1OnWarningTrap   TRAP-TYPE
+    	      ENTERPRISE  { envTraps }
+	      DESCRIPTION
+		      "An envOutput1OnWarningTrap is sent when the
+		       envTimerOutput1OnDelay reaches the value of
+		       envTimerOutput1OnTrapDelay."
+	      ::= 38
+
+
+END
+
+

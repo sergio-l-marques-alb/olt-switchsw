@@ -1,0 +1,2072 @@
+/*******************************************************************************
+*
+* (C) Copyright Broadcom Corporation 2000-2007
+*
+********************************************************************************
+*
+* @filename fpobj_qosDiffServPolicyPerfOutStats.c
+*
+* @purpose
+*
+* @component object handlers
+*
+* @comments  Refer to diffserv-object.xml
+*
+* @create  1 February 2008
+*
+* @author  Rama Sasthri, Kristipati
+* @end
+*
+********************************************************************************/
+#include "fpobj_util.h"
+#include "_xe_qosDiffServPolicyPerfOutStats_obj.h"
+#include "usmdb_mib_diffserv_private_api.h"
+#include "usmdb_common.h"
+#include "usmdb_util_api.h"
+
+#ifdef RADHA
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_PolicyIndex_PolicyInstIndex_ifIndex
+*
+* @purpose Get 'PolicyIndex + PolicyInstIndex + ifIndex +'
+*
+* @description [PolicyIndex]: The identifier for DiffServ Policy table entry.
+*              
+*              [PolicyInstIndex]: The identifier for policy-class Instance
+*              table entry within a policy. 
+*              [ifIndex]: A unique value for each interface. Its value ranges
+*              between 1 and the value of ifNumber. The value for each
+*              interface must remain constant at least from one re-initialization
+*              of the entity's network management 
+*
+* @note  This is KEY Object
+*
+* @return
+*******************************************************************************/
+xLibRC_t
+fpObjGet_qosDiffServPolicyPerfOutStats_PolicyIndex_PolicyInstIndex_ifIndex (void
+                                                                            *wap,
+                                                                            void
+                                                                            *bufp
+                                                                            [],
+                                                                            xLibU16_t
+                                                                            keyCount)
+{
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  fpObjWa_t owaPolicyIndex = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objPolicyIndexValue, nextObjPolicyIndexValue;
+  fpObjWa_t owaPolicyInstIndex = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objPolicyInstIndexValue, nextObjPolicyInstIndexValue;
+  fpObjWa_t owaifIndex = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objifIndexValue, nextObjifIndexValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempNextIntIfIndexValue;
+
+  L7_RC_t rc = L7_FAILURE;
+  void *outPolicyIndex = (void *) bufp[--keyCount];
+  void *outPolicyInstIndex = (void *) bufp[--keyCount];
+  void *outifIndex = (void *) bufp[--keyCount];
+  FPOBJ_TRACE_ENTER (outPolicyIndex);
+  FPOBJ_TRACE_ENTER (outPolicyInstIndex);
+  FPOBJ_TRACE_ENTER (outifIndex);
+
+  /* retrieve key: PolicyIndex */
+  owaPolicyIndex.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                   (xLibU8_t *) & objPolicyIndexValue, &owaPolicyIndex.len);
+  if (owaPolicyIndex.rc == XLIBRC_SUCCESS)
+  {
+    /* retrieve key: PolicyInstIndex */
+    owaPolicyInstIndex.rc =
+      xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                     (xLibU8_t *) & objPolicyInstIndexValue,
+                     &owaPolicyInstIndex.len);
+    if (owaPolicyInstIndex.rc == XLIBRC_SUCCESS)
+    {
+      /* retrieve key: ifIndex */
+      owaifIndex.rc =
+        xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                       (xLibU8_t *) & objifIndexValue, &owaifIndex.len);
+    }
+  }
+  else
+  {
+     objPolicyIndexValue = 0;
+     objPolicyInstIndexValue = 0;
+     tempIntIfIndexValue = 0;
+    tempNextIntIfIndexValue = 0;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (outPolicyIndex, &objPolicyIndexValue,
+                           owaPolicyIndex.len);
+  FPOBJ_TRACE_CURRENT_KEY (outPolicyInstIndex, &objPolicyInstIndexValue,
+                           owaPolicyInstIndex.len);
+  FPOBJ_TRACE_CURRENT_KEY (outifIndex, &objifIndexValue, owaifIndex.len);
+
+  if( usmDbIntIfNumFromExtIfNum(objifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;
+    FPOBJ_TRACE_EXIT (outPolicyIndex, owaPolicyIndex);
+    FPOBJ_TRACE_EXIT (outPolicyInstIndex, owaPolicyInstIndex);
+    FPOBJ_TRACE_EXIT (outifIndex, owaifIndex);
+    return owa.rc;
+  }
+
+  while( (usmDbDiffServPolicyPerfOutGetNext (L7_UNIT_CURRENT, objPolicyIndexValue,
+                         objPolicyInstIndexValue, tempIntIfIndexValue,
+                         &nextObjPolicyIndexValue, &nextObjPolicyInstIndexValue,
+                         &tempNextIntIfIndexValue) == L7_SUCCESS) &&
+                ( usmDbExtIfNumFromIntIfNum(tempNextIntIfIndexValue, &nextObjifIndexValue) == L7_SUCCESS) )
+  {
+      if(usmDbDiffServPolicyPerfOutGet(USMDB_UNIT_CURRENT, 
+                                    nextObjPolicyIndexValue, 
+                                    nextObjPolicyInstIndexValue, 
+                                    tempNextIntIfIndexValue) == L7_SUCCESS)
+  	{
+  	   rc = L7_SUCCESS;
+          break;
+      	}
+  }
+
+  if(rc == L7_SUCCESS )
+  {
+     owa.rc = L7_FAILURE;
+  }
+  else
+  {
+     owa.rc = L7_SUCCESS;
+  }
+
+  if (owa.rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;
+    FPOBJ_TRACE_EXIT (outPolicyIndex, owaPolicyIndex);
+    FPOBJ_TRACE_EXIT (outPolicyInstIndex, owaPolicyInstIndex);
+    FPOBJ_TRACE_EXIT (outifIndex, owaifIndex);
+    return owa.rc;
+  }
+
+  if( usmDbExtIfNumFromIntIfNum(tempNextIntIfIndexValue,&nextObjifIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;
+    FPOBJ_TRACE_EXIT (outPolicyIndex, owaPolicyIndex);
+    FPOBJ_TRACE_EXIT (outPolicyInstIndex, owaPolicyInstIndex);
+    FPOBJ_TRACE_EXIT (outifIndex, owaifIndex);
+    return owa.rc;
+  }
+  
+  FPOBJ_TRACE_CURRENT_KEY (outPolicyIndex, &nextObjPolicyIndexValue,
+                           owaPolicyIndex.len);
+  FPOBJ_TRACE_CURRENT_KEY (outPolicyInstIndex, &nextObjPolicyInstIndexValue,
+                           owaPolicyInstIndex.len);
+  FPOBJ_TRACE_CURRENT_KEY (outifIndex, &nextObjifIndexValue, owaifIndex.len);
+
+  /* return the object value: PolicyIndex */
+  xLibBufDataSet (outPolicyIndex,
+                  (xLibU8_t *) & nextObjPolicyIndexValue,
+                  sizeof (nextObjPolicyIndexValue));
+
+  /* return the object value: PolicyInstIndex */
+  xLibBufDataSet (outPolicyInstIndex,
+                  (xLibU8_t *) & nextObjPolicyInstIndexValue,
+                  sizeof (nextObjPolicyInstIndexValue));
+
+  /* return the object value: ifIndex */
+  xLibBufDataSet (outifIndex,
+                  (xLibU8_t *) & nextObjifIndexValue,
+                  sizeof (nextObjifIndexValue));
+  FPOBJ_TRACE_EXIT (outPolicyIndex, owaPolicyIndex);
+  FPOBJ_TRACE_EXIT (outPolicyInstIndex, owaPolicyInstIndex);
+  FPOBJ_TRACE_EXIT (outifIndex, owaifIndex);
+  return XLIBRC_SUCCESS;
+}
+#endif
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_PolicyIndex
+*
+* @purpose Get 'PolicyIndex'
+*
+* @description [PolicyIndex] The identifier for DiffServ Policy table entry.
+*
+* @notes  
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_PolicyIndex (void *wap, void *bufp)
+{
+
+  xLibU32_t objPolicyIndexValue;
+  xLibU32_t nextObjPolicyIndexValue;
+  xLibU32_t objPolicyInstIndexValue;
+  xLibU32_t nextObjPolicyInstIndexValue;
+  xLibU32_t objifIndexValue;
+  xLibU32_t nextObjifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  owa.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                          (xLibU8_t *) & objPolicyIndexValue, &owa.len);
+  if (owa.rc != XLIBRC_SUCCESS)
+  {
+    FPOBJ_TRACE_CURRENT_KEY (bufp, NULL, 0);
+    objPolicyIndexValue = objPolicyInstIndexValue = objifIndexValue = 0;
+    owa.l7rc = usmDbDiffServPolicyPerfOutGetNext(L7_UNIT_CURRENT,
+                                     objPolicyIndexValue,
+                                     objPolicyInstIndexValue,
+                                     objifIndexValue, &nextObjPolicyIndexValue,
+                                     &nextObjPolicyInstIndexValue, &nextObjifIndexValue);
+  }
+  else
+  {
+    FPOBJ_TRACE_CURRENT_KEY (bufp, &objPolicyIndexValue, owa.len);
+    objPolicyInstIndexValue = objifIndexValue = 0;
+    do
+    {
+      owa.l7rc = usmDbDiffServPolicyPerfOutGetNext (L7_UNIT_CURRENT,
+                                      objPolicyIndexValue,
+                                      objPolicyInstIndexValue,
+                                      objifIndexValue, &nextObjPolicyIndexValue,
+                                      &nextObjPolicyInstIndexValue, &nextObjifIndexValue);
+    }
+    while ((objPolicyIndexValue == nextObjPolicyIndexValue) && (owa.l7rc == L7_SUCCESS));
+  }
+
+  if ((owa.l7rc != L7_SUCCESS))
+  {
+    owa.rc = XLIBRC_ENDOF_TABLE;
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  FPOBJ_TRACE_NEW_KEY (bufp, &nextObjPolicyIndexValue, owa.len);
+
+  /* return the object value: PolicyIndex */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & nextObjPolicyIndexValue,
+                           sizeof (objPolicyIndexValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+
+}
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_PolicyInstIndex
+*
+* @purpose Get 'PolicyInstIndex'
+*
+* @description [PolicyInstIndex] The identifier for policy-class Instance table entry within a policy.
+*
+* @notes  
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_PolicyInstIndex (void *wap, void *bufp)
+{
+
+  xLibU32_t objPolicyIndexValue;
+  xLibU32_t nextObjPolicyIndexValue;
+  xLibU32_t objPolicyInstIndexValue;
+  xLibU32_t nextObjPolicyInstIndexValue;
+  xLibU32_t objifIndexValue;
+  xLibU32_t nextObjifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  owa.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                          (xLibU8_t *) & objPolicyIndexValue, &owa.len);
+  if (owa.rc != XLIBRC_SUCCESS)
+  {
+    owa.rc = XLIBRC_FILTER_MISSING;
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &objPolicyIndexValue, owa.len);
+
+  /* retrieve key: PolicyInstIndex */
+  owa.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                          (xLibU8_t *) & objPolicyInstIndexValue, &owa.len);
+  if (owa.rc != XLIBRC_SUCCESS)
+  {
+    FPOBJ_TRACE_CURRENT_KEY (bufp, NULL, 0);
+    objPolicyInstIndexValue = objifIndexValue = 0;
+    owa.l7rc = usmDbDiffServPolicyPerfOutGetNext (L7_UNIT_CURRENT,
+                                     objPolicyIndexValue,
+                                     objPolicyInstIndexValue,
+                                     objifIndexValue, &nextObjPolicyIndexValue,
+                                     &nextObjPolicyInstIndexValue, &nextObjifIndexValue);
+  }
+  else
+  {
+    FPOBJ_TRACE_CURRENT_KEY (bufp, &objPolicyInstIndexValue, owa.len);
+    objifIndexValue = 0;
+    do
+    {
+      owa.l7rc = usmDbDiffServPolicyPerfOutGetNext (L7_UNIT_CURRENT,
+                                      objPolicyIndexValue,
+                                      objPolicyInstIndexValue,
+                                      objifIndexValue, &nextObjPolicyIndexValue,
+                                      &nextObjPolicyInstIndexValue, &nextObjifIndexValue);
+    }
+    while ((objPolicyIndexValue == nextObjPolicyIndexValue)
+           && (objPolicyInstIndexValue == nextObjPolicyInstIndexValue) && (owa.l7rc == L7_SUCCESS));
+  }
+
+  if ((objPolicyIndexValue != nextObjPolicyIndexValue) || (owa.l7rc != L7_SUCCESS))
+  {
+    owa.rc = XLIBRC_ENDOF_TABLE;
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  FPOBJ_TRACE_NEW_KEY (bufp, &nextObjPolicyInstIndexValue, owa.len);
+
+  /* return the object value: PolicyInstIndex */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & nextObjPolicyInstIndexValue,
+                           sizeof (objPolicyInstIndexValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+
+}
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_ifIndex
+*
+* @purpose Get 'ifIndex'
+*
+* @description [ifIndex] A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity's network management
+*
+* @notes  
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_ifIndex (void *wap, void *bufp)
+{
+
+  xLibU32_t objPolicyIndexValue;
+  xLibU32_t nextObjPolicyIndexValue;
+  xLibU32_t objPolicyInstIndexValue;
+  xLibU32_t nextObjPolicyInstIndexValue;
+  xLibU32_t objifIndexValue;
+  xLibU32_t nextObjifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  owa.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                          (xLibU8_t *) & objPolicyIndexValue, &owa.len);
+  if (owa.rc != XLIBRC_SUCCESS)
+  {
+    owa.rc = XLIBRC_FILTER_MISSING;
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &objPolicyIndexValue, owa.len);
+
+  /* retrieve key: PolicyInstIndex */
+  owa.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                          (xLibU8_t *) & objPolicyInstIndexValue, &owa.len);
+  if (owa.rc != XLIBRC_SUCCESS)
+  {
+    owa.rc = XLIBRC_FILTER_MISSING;
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &objPolicyInstIndexValue, owa.len);
+
+  /* retrieve key: ifIndex */
+  owa.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                          (xLibU8_t *) & objifIndexValue, &owa.len);
+  if (owa.rc != XLIBRC_SUCCESS)
+  {
+    FPOBJ_TRACE_CURRENT_KEY (bufp, NULL, 0);
+    objifIndexValue = 0;
+    owa.l7rc = usmDbDiffServPolicyPerfOutGetNext (L7_UNIT_CURRENT,
+                                     objPolicyIndexValue,
+                                     objPolicyInstIndexValue,
+                                     objifIndexValue, &nextObjPolicyIndexValue,
+                                     &nextObjPolicyInstIndexValue, &nextObjifIndexValue);
+  }
+  else
+  {
+    FPOBJ_TRACE_CURRENT_KEY (bufp, &objifIndexValue, owa.len);
+
+    owa.l7rc = usmDbDiffServPolicyPerfOutGetNext (L7_UNIT_CURRENT,
+                                    objPolicyIndexValue,
+                                    objPolicyInstIndexValue,
+                                    objifIndexValue, &nextObjPolicyIndexValue,
+                                    &nextObjPolicyInstIndexValue, &nextObjifIndexValue);
+
+  }
+
+  if ((objPolicyIndexValue != nextObjPolicyIndexValue)
+      || (objPolicyInstIndexValue != nextObjPolicyInstIndexValue) || (owa.l7rc != L7_SUCCESS))
+  {
+    owa.rc = XLIBRC_ENDOF_TABLE;
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  FPOBJ_TRACE_NEW_KEY (bufp, &nextObjifIndexValue, owa.len);
+
+  /* return the object value: ifIndex */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & nextObjifIndexValue, sizeof (objifIndexValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+
+}
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_OfferedOctets
+*
+* @purpose Get 'OfferedOctets'
+*
+* @description [OfferedOctets]: Offered octets count for the outbound policy-class instance 
+*              performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_OfferedOctets (void *wap,
+                                                                   void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objOfferedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutOfferedOctetsGet (L7_UNIT_CURRENT,
+                                                    keyPolicyIndexValue,
+                                                    keyPolicyInstIndexValue,
+                                                    tempIntIfIndexValue,
+                                                    &tempHighValue,&objOfferedOctetsValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: OfferedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objOfferedOctetsValue,
+                           sizeof (objOfferedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_OfferedPackets
+*
+* @purpose Get 'OfferedPackets'
+*
+* @description [OfferedPackets]: Offered packets count for the outbound
+*              policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_OfferedPackets (void *wap,
+                                                                    void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objOfferedPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutOfferedPacketsGet (L7_UNIT_CURRENT,
+                                                     keyPolicyIndexValue,
+                                                     keyPolicyInstIndexValue,
+                                                     tempIntIfIndexValue,      
+                                                     &tempHighValue,
+                                                     &objOfferedPacketsValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: OfferedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objOfferedPacketsValue,
+                           sizeof (objOfferedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_DiscardedOctets
+*
+* @purpose Get 'DiscardedOctets'
+*
+* @description [DiscardedOctets]: Discarded octets count for the
+*              outbound policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_DiscardedOctets (void *wap,
+                                                                     void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objDiscardedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutDiscardedOctetsGet (L7_UNIT_CURRENT,
+                                                      keyPolicyIndexValue,
+                                                      keyPolicyInstIndexValue,
+                                                      tempIntIfIndexValue,
+                                                      &tempHighValue,
+                                                      &objDiscardedOctetsValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: DiscardedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objDiscardedOctetsValue,
+                           sizeof (objDiscardedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_DiscardedPackets
+*
+* @purpose Get 'DiscardedPackets'
+*
+* @description [DiscardedPackets]: Discarded packets count for the
+*              outbound policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_DiscardedPackets (void *wap,
+                                                                      void
+                                                                      *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objDiscardedPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutDiscardedPacketsGet (L7_UNIT_CURRENT,
+                                                       keyPolicyIndexValue,
+                                                       keyPolicyInstIndexValue,
+                                                       tempIntIfIndexValue,
+                                                       &tempHighValue,
+                                                       &objDiscardedPacketsValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: DiscardedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objDiscardedPacketsValue,
+                           sizeof (objDiscardedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCOfferedOctets
+*
+* @purpose Get 'HCOfferedOctets'
+*
+* @description [HCOfferedOctets]: Offered octets high capacity for the outbound
+*              policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCOfferedOctets (void *wap,
+                                                                    void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (L7_ulong64));
+  L7_ulong64 objHCOfferedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutOfferedOctetsGet (L7_UNIT_CURRENT,
+                                                     keyPolicyIndexValue,
+                                                     keyPolicyInstIndexValue,
+                                                     tempIntIfIndexValue,
+                                                     &objHCOfferedOctetsValue.high,
+                                                     &objHCOfferedOctetsValue.low);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCOfferedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCOfferedOctetsValue,
+                           sizeof (objHCOfferedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCOfferedPackets
+*
+* @purpose Get 'HCOfferedPackets'
+*
+* @description [HCOfferedPackets]: Offered packets high capacity for the
+*              outbound policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCOfferedPackets (void *wap,
+                                                                     void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (L7_ulong64));
+  L7_ulong64 objHCOfferedPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutOfferedPacketsGet (L7_UNIT_CURRENT,
+                                                      keyPolicyIndexValue,
+                                                      keyPolicyInstIndexValue,
+                                                      tempIntIfIndexValue,
+                                                     &objHCOfferedPacketsValue.high,
+                                                     &objHCOfferedPacketsValue.low);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCOfferedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCOfferedPacketsValue,
+                           sizeof (objHCOfferedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCDiscardedOctets
+*
+* @purpose Get 'HCDiscardedOctets'
+*
+* @description [HCDiscardedOctets]: Sent octets count for the outbound policy-class
+*              instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCDiscardedOctets (void *wap,
+                                                            void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (L7_ulong64));
+  L7_ulong64 objHCDiscardedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutDiscardedOctetsGet (L7_UNIT_CURRENT,
+                                             keyPolicyIndexValue,
+                                             keyPolicyInstIndexValue,
+                                             tempIntIfIndexValue,
+                                             &objHCDiscardedOctetsValue.high,
+                                             &objHCDiscardedOctetsValue.low);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCDiscardedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCDiscardedOctetsValue,
+                           sizeof (objHCDiscardedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCDiscardedPackets
+*
+* @purpose Get 'HCDiscardedPackets'
+*
+* @description [HCDiscardedPackets]: Sent packets count for the outbound policy-class
+*              instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCDiscardedPackets (void *wap,
+                                                             void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (L7_ulong64));
+  L7_ulong64 objHCDiscardedPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutDiscardedPacketsGet (L7_UNIT_CURRENT,
+                                              keyPolicyIndexValue,
+                                              keyPolicyInstIndexValue,
+                                              tempIntIfIndexValue,
+                                             &objHCDiscardedPacketsValue.high,
+                                             &objHCDiscardedPacketsValue.low);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCDiscardedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCDiscardedPacketsValue,
+                           sizeof (objHCDiscardedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+#if 0
+/* ObjectRemoved */
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCTailDroppedOctets
+*
+* @purpose Get 'HCTailDroppedOctets'
+*
+* @description [HCTailDroppedOctets]: Tail-dropped octets high capacity count
+*              for the outbound policy-class instance performance entry.
+*              
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCTailDroppedOctets (void *wap,
+                                                                     void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCTailDroppedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutTailDroppedOctetsGet (L7_UNIT_CURRENT,
+                                                    keyPolicyIndexValue,
+                                                    keyPolicyInstIndexValue,
+                                                    tempIntIfIndexValue,
+                                                    &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCTailDroppedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCTailDroppedOctetsValue,
+                           sizeof (objHCTailDroppedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCTailDroppedPackets
+*
+* @purpose Get 'HCTailDroppedPackets'
+*
+* @description [HCTailDroppedPackets]: Tail-dropped packets high capacity
+*              count for the outbound policy-class instance performance entry.
+*              
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCTailDroppedPackets (void *wap,
+                                                                      void
+                                                                      *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCTailDroppedPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+
+ 
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutTailDroppedPacketsGet (L7_UNIT_CURRENT,
+                                                     keyPolicyIndexValue,
+                                                     keyPolicyInstIndexValue,
+                                                     tempIntIfIndexValue,
+                                                      &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCTailDroppedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCTailDroppedPacketsValue,
+                           sizeof (objHCTailDroppedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCRandomDroppedOctets
+*
+* @purpose Get 'HCRandomDroppedOctets'
+*
+* @description [HCRandomDroppedOctets]: Random-dropped octets high capacity
+*              count for the outbound policy-class instance performance
+*              entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCRandomDroppedOctets (void
+                                                                       *wap,
+                                                                       void
+                                                                       *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCRandomDroppedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutRandomDroppedOctetsGet (L7_UNIT_CURRENT,
+                                                      keyPolicyIndexValue,
+                                                      keyPolicyInstIndexValue,
+                                                      tempIntIfIndexValue,
+                                                      &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCRandomDroppedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCRandomDroppedOctetsValue,
+                           sizeof (objHCRandomDroppedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCRandomDroppedPackets
+*
+* @purpose Get 'HCRandomDroppedPackets'
+*
+* @description [HCRandomDroppedPackets]: Random-dropped packets high capacity
+*              count for the outbound policy-class instance performance
+*              entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCRandomDroppedPackets (void
+                                                                        *wap,
+                                                                        void
+                                                                        *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCRandomDroppedPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutRandomDroppedPacketsGet (L7_UNIT_CURRENT,
+                                                       keyPolicyIndexValue,
+                                                       keyPolicyInstIndexValue,
+                                                       tempIntIfIndexValue,
+                                                      &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCRandomDroppedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCRandomDroppedPacketsValue,
+                           sizeof (objHCRandomDroppedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCShapeDelayedOctets
+*
+* @purpose Get 'HCShapeDelayedOctets'
+*
+* @description [HCShapeDelayedOctets]: Shape-delayed octets high capacity
+*              count for the outbound policy-class instance performance entry.
+*              
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCShapeDelayedOctets (void *wap,
+                                                                      void
+                                                                      *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCShapeDelayedOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutShapeDelayedOctetsGet (L7_UNIT_CURRENT,
+                                                     keyPolicyIndexValue,
+                                                     keyPolicyInstIndexValue,
+                                                     tempIntIfIndexValue,
+                                                     &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCShapeDelayedOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCShapeDelayedOctetsValue,
+                           sizeof (objHCShapeDelayedOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCShapeDelayedPackets
+*
+* @purpose Get 'HCShapeDelayedPackets'
+*
+* @description [HCShapeDelayedPackets]: Shape-delayed packets high capacity
+*              count for the outbound policy-class instance performance
+*              entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCShapeDelayedPackets (void
+                                                                       *wap,
+                                                                       void
+                                                                       *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCShapeDelayedPacketsValue;
+  
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutShapeDelayedPacketsGet (L7_UNIT_CURRENT,
+                                                      keyPolicyIndexValue,
+                                                      keyPolicyInstIndexValue,
+                                                      tempIntIfIndexValue,
+                                                      &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCShapeDelayedPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCShapeDelayedPacketsValue,
+                           sizeof (objHCShapeDelayedPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCSentOctets
+*
+* @purpose Get 'HCSentOctets'
+*
+* @description [HCSentOctets]: Sent octets high capacity count for the outbound
+*              policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCSentOctets (void *wap,
+                                                              void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCSentOctetsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutSentOctetsGet (L7_UNIT_CURRENT,
+                                             keyPolicyIndexValue,
+                                             keyPolicyInstIndexValue,
+                                             tempIntIfIndexValue,
+                                            &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCSentOctets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCSentOctetsValue,
+                           sizeof (objHCSentOctetsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_HCSentPackets
+*
+* @purpose Get 'HCSentPackets'
+*
+* @description [HCSentPackets]: Sent packets high capacity count for the outbound
+*              policy-class instance performance entry. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_HCSentPackets (void *wap,
+                                                               void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objHCSentPacketsValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  xLibU32_t tempLowValue;
+  xLibU32_t tempHighValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutSentPacketsGet (L7_UNIT_CURRENT,
+                                              keyPolicyIndexValue,
+                                              keyPolicyInstIndexValue,
+                                              tempIntIfIndexValue,
+                                             &tempLowValue,&tempHighValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: HCSentPackets */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objHCSentPacketsValue,
+                           sizeof (objHCSentPacketsValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+#endif
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_StorageType
+*
+* @purpose Get 'StorageType'
+*
+* @description [StorageType]: Storage-type for this conceptual row. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_StorageType (void *wap,
+                                                             void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objStorageTypeValue;
+
+  xLibU32_t tempIntIfIndexValue;
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutStorageTypeGet (L7_UNIT_CURRENT,
+                                              keyPolicyIndexValue,
+                                              keyPolicyInstIndexValue,
+                                              tempIntIfIndexValue,
+                                             &objStorageTypeValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: StorageType */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objStorageTypeValue,
+                           sizeof (objStorageTypeValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}
+
+
+/*******************************************************************************
+* @function fpObjGet_qosDiffServPolicyPerfOutStats_RowStatus
+*
+* @purpose Get 'RowStatus'
+*
+* @description [RowStatus]: The status of this conceptual row. 
+*
+* @return
+*******************************************************************************/
+xLibRC_t fpObjGet_qosDiffServPolicyPerfOutStats_RowStatus (void *wap,
+                                                           void *bufp)
+{
+  fpObjWa_t kwa1 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyIndexValue;
+  fpObjWa_t kwa2 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyPolicyInstIndexValue;
+  fpObjWa_t kwa3 = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t keyifIndexValue;
+  fpObjWa_t owa = FPOBJ_INIT_WA (sizeof (xLibU32_t));
+  xLibU32_t objRowStatusValue;
+
+  xLibU32_t tempIntIfIndexValue;
+
+  
+  FPOBJ_TRACE_ENTER (bufp);
+
+  /* retrieve key: PolicyIndex */
+  kwa1.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyIndex,
+                           (xLibU8_t *) & keyPolicyIndexValue, &kwa1.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyIndexValue, kwa1.len);
+
+  /* retrieve key: PolicyInstIndex */
+  kwa2.rc =
+    xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_PolicyInstIndex,
+                   (xLibU8_t *) & keyPolicyInstIndexValue, &kwa2.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyPolicyInstIndexValue, kwa2.len);
+
+  /* retrieve key: ifIndex */
+  kwa3.rc = xLibFilterGet (wap, XOBJ_qosDiffServPolicyPerfOutStats_ifIndex,
+                           (xLibU8_t *) & keyifIndexValue, &kwa3.len);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  FPOBJ_TRACE_CURRENT_KEY (bufp, &keyifIndexValue, kwa3.len);
+
+  if( usmDbIntIfNumFromExtIfNum(keyifIndexValue,&tempIntIfIndexValue) != L7_SUCCESS )
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+  
+
+  /* get the value from application */
+  owa.l7rc =
+    usmDbDiffServPolicyPerfOutRowStatusGet (L7_UNIT_CURRENT,
+                                            keyPolicyIndexValue,
+                                            keyPolicyInstIndexValue,
+                                            tempIntIfIndexValue,
+                                           &objRowStatusValue);
+  if (owa.l7rc != L7_SUCCESS)
+  {
+    owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
+    FPOBJ_TRACE_EXIT (bufp, owa);
+    return owa.rc;
+  }
+
+  /* return the object value: RowStatus */
+  owa.rc = xLibBufDataSet (bufp, (xLibU8_t *) & objRowStatusValue,
+                           sizeof (objRowStatusValue));
+  FPOBJ_TRACE_EXIT (bufp, owa);
+  return owa.rc;
+}

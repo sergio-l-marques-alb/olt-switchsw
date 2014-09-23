@@ -1,0 +1,147 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>SNMP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=snmpcomm></a>Help for SNMP Community Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<p><br>
+By default, two SNMP Communities exist:
+<UL TYPE=disc>
+ <li>private, with 'Read/Write' privileges and status set to enable</LI>
+ <li>public, with 'Read Only' privileges and status set to enable</LI>
+</UL>
+
+<P>These are well-known communities, you can use this menu to change the defaults or to add 
+other communities.
+Only the communities that you define using this menu will
+have access to the switch using the SNMPv1 and SNMPv2c protocols. 
+Only those communities
+with read-write level access will have access to this menu via SNMP. </P>
+
+<p>
+You should use this menu when you are using the SNMPv1 and SNMPv2c protocol: if you want to use
+SNMP v3 you should use the User Accounts menu.</P>
+
+
+<ul type=disc>
+ <ul type=circle>
+   <LI><B>Community Selector</B> -
+     Displays default and configured SNMP community configuration. 
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li ><b>Community</b>
+      - You can use this screen to reconfigure an existing community, or to create a new one. 
+      Use this pull down menu to select one of the existing community names,
+      or select 'Create' to add a new one.
+      A valid entry
+      is a case-sensitive string of up to 16 characters. 
+       </li>
+  <li><b>Client IP Address</b>
+      - Taken together, the Client IP Address and Client IP Mask denote a range of 
+      IP addresses from which SNMP clients may use that community to access this 
+      device. If either (IP Address or IP Mask) value is 0.0.0.0, access is allowed from any IP address. 
+      Otherwise, every client's IP address is ANDed (AND operation) with the mask, as is the Client 
+      IP Address, and, if the values are equal, access is allowed.  For example, 
+      if the Client IP Address and Client IP Mask parameters are 192.168.1.0/255.255.255.0, 
+      then any client whose IP address is 192.168.1.0 through 192.168.1.255 (inclusive) 
+      will be allowed access.  To allow access from only one station, use a Client IP 
+      Mask value of 255.255.255.255, and use that machine's IP address for Client IP Address.
+      </li>
+  <li><b>Client IP Mask</b>
+      - Taken together, the Client IP Address and Client IP Mask denote a range of 
+      IP addresses from which SNMP clients may use that community to access this 
+      device. If either (IP Address or IP Mask) value is 0.0.0.0, access is allowed from any IP address. 
+      Otherwise, every client's IP address is ANDed (AND operation) with the mask, as is the Client 
+      IP Address, and, if the values are equal, access is allowed.  For example, 
+      if the Client IP Address and Client IP Mask parameters are 192.168.1.0/255.255.255.0, 
+      then any client whose IP address is 192.168.1.0 through 192.168.1.255 (inclusive) 
+      will be allowed access.  To allow access from only one station, use a Client IP 
+      Mask value of 255.255.255.255, and use that machine's IP address for Client IP Address.
+      </li>
+  <li><b>Access Mode</b> -
+      Specify the access level for this community by selecting
+      Read/Write or Read Only from the pull down menu.  </li>
+  <li><b>Status</b> - Specify the status of this community by selecting
+      Enable or Disable from the pull down menu.
+      If you select enable, 
+      the Community Name must be unique among all valid Community Names or the
+      set request will be rejected. 
+      If you select disable, the Community Name will become invalid.
+      </li>
+ </ul>
+</ul>
+<EMWEB_ELSE>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li ><b>Community</b>
+      - Community name for this entry. </li>
+  <li><b>Client IP Address</b>
+      - Taken together, the Client IP Address and Client IP Mask denote a range of
+      IP addresses from which SNMP clients may use that community to access this
+      device. If either (IP Address or IP Mask) value is 0.0.0.0, access is allowed from any IP address.
+      Otherwise, every client's IP address is ANDed with the mask, as is the Client
+      IP Address, and, if the values are equal, access is allowed.  For example,
+      if the Client IP Address and Client IP Mask parameters are 192.168.1.0/255.255.255.0,
+      then any client whose IP address is 192.168.1.0 through 192.168.1.255 (inclusive)
+      will be allowed access. To allow access from only one station, a Client IP
+      Mask value of 255.255.255.255 is used, and that machine's IP address is used for Client IP Address.
+      </li>
+  <li><b>Client IP Mask</b>
+      - Taken together, the Client IP Address and Client IP Mask denote a range of
+      IP addresses from which SNMP clients may use that community to access this
+      device. If either (IP Address or IP Mask) value is 0.0.0.0, access is allowed from any IP address.
+      Otherwise, every client's IP address is ANDed with the mask, as is the Client
+      IP Address, and, if the values are equal, access is allowed.  For example,
+      if the Client IP Address and Client IP Mask parameters are 192.168.1.0/255.255.255.0,
+      then any client whose IP address is 192.168.1.0 through 192.168.1.255 (inclusive)
+      will be allowed access. To allow access from only one station, a Client IP
+      Mask value of 255.255.255.255 is used, and that machine's IP address is used for Client IP Address.
+      </li>
+  <li><b>Access Mode</b> 
+      - Specifies the access level for this community. The value is either Read/Write or Read Only.  </li>
+  <li><b>Status</b> - Specifies the status of this community. The value is either Enable or Disable.
+      If the Status is Enable, the Community Name will be unique among all valid Community Names.
+      If the Status is Disable, the Community Name will become invalid.
+      </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Delete</b> - Delete the currently selected Community Name.
+      If you want the switch to retain the new values across a power cycle, you must perform a save.
+ </ul>
+</ul>
+
+</EMWEB_IF>
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>

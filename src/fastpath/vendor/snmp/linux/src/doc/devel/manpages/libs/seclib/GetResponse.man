@@ -1,0 +1,92 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.TH GetResponse SR_CLIBMAN "27 May 1996"
+.SH NAME
+.HP 10
+GetResponse, SendRequest \- receive/send a SNMP packet
+.SH SYNOPSIS
+.LP
+.BI "int GetResponse" (\|)
+.br
+.LP
+.BI "int SendRequest" " (sock, auth_pointer) "
+.br
+.B int sock; 
+.br
+.B struct AuthHeader \(**auth_pointer;
+.LP
+.SH DESCRIPTION
+.\" BR is bold then roman
+.IR GetResponse (\|) 
+retrieves a SNMP packet and places it in a global variable,
+.I packet.
+.PP
+.IR SendRequest (\|)
+sends a SNMP packet (\(**auth_pointer\->packlet) to the appropriate
+destination.  If HAVE_SOCKET is defined at compile-time,
+.I sock
+is used as the socket for the message.
+.HP 5
+The parameter
+.I sock
+is an integer value specifying the socket to use for the message.  Used
+only if HAVE_SOCKET is defined at compile time. 
+.HP 5
+The parameter
+.I auth_pointer
+is a pointer to a authorization header of a packet.  The field
+\(**auth_pointer\->packlet points to the packet to be sent.
+.SH RETURN VALUES
+.LP
+.B GetResponse(\|)
+returns:
+.TP 15
+SR_RECEIVED
+on success.
+.TP 15
+SR_TIMEOUT
+on failure.
+.LP
+.B SendRequest(\|)
+returns:
+.TP 15
+TRUE
+on success.
+.TP 15
+FALSE
+on failure.

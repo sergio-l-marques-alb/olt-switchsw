@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_XUI_TIMERANGE_STATUS_t">
+      <option macro="TIMERANGE_STATUS_ACTIVE" name="Active"> </option>
+      <option macro="TIMERANGE_STATUS_INACTIVE" name="Inactive"> </option>
+      <option macro="TIMERANGE_STATUS_NON_EXISTENT" name="Non Existant"> </option>
+    </enum>
+
+    <enum name="L7_XUI_TIMERANGE_ENTRY_TYPE_t">
+      <option macro="TIMERANGE_PERIODIC_ENTRY" name="Periodic"> </option>
+      <option macro="TIMERANGE_ABSOLUTE_ENTRY" name="Absolute"> </option>
+    </enum>
+
+    <enum name="L7_XUI_ABSOLUTE_ENTRY_EXISTS_t">
+      <option macro="L7_TRUE" name="Exists"> </option>
+      <option macro="L7_FALSE" name="Does not exist"> </option>
+    </enum>
+
+  </data-types>
+</FastPathXML>

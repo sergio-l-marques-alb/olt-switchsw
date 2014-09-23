@@ -1,0 +1,130 @@
+--
+--
+-- Copyright (C) 1996-2006 by SNMP Research, Incorporated.
+--
+-- This software is furnished under a license and may be used and copied
+-- only in accordance with the terms of such license and with the
+-- inclusion of the above copyright notice. This software or any other
+-- copies thereof may not be provided or otherwise made available to any
+-- other person. No title to and ownership of the software is hereby
+-- transferred.
+--
+-- The information in this software is subject to change without notice
+-- and should not be construed as a commitment by SNMP Research, Incorporated.
+--
+-- Restricted Rights Legend:
+--  Use, duplication, or disclosure by the Government is subject to
+--  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+--  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+--  subparagraphs (c)(4) and (d) of the Commercial Computer
+--  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+--  clauses in the NASA FAR Supplement and other corresponding
+--  governmental regulations.
+--
+--
+
+--
+--                PROPRIETARY NOTICE
+--
+-- This software is an unpublished work subject to a confidentiality agreement
+-- and is protected by copyright and trade secret law.  Unauthorized copying,
+-- redistribution or other use of this work is prohibited.
+--
+-- The above notice of copyright on this source code product does not indicate
+-- any actual or intended publication of such source code.
+--
+
+DPRINTF-TC DEFINITIONS ::= BEGIN
+
+IMPORTS
+       TEXTUAL-CONVENTION, BITS
+           FROM SNMPv2-TC;
+
+   SeclibLogLevel ::= TEXTUAL-CONVENTION
+       STATUS  current
+       DESCRIPTION
+               "Most of these bits represent the severity of an
+	        SNMP Research DPRINTF log message."
+       SYNTAX  BITS {
+                      bughalt(1),    -- BUGHALT     0x0000 0001
+                                     --      (Packaged Agent only)
+                                     --      on a gross applications
+                                     --      level error that is detected
+                                     --      in the network code
+                      dump(2),       -- DUMP        0x0000 0002
+                                     --      (Packaged Agent only)
+                                     --      Works in conjuction with
+                                     --      other options:
+                                     --          BUGHALT: Dump all arriving
+                                     --                   packets
+                                     --          PROTERR: Dump header for
+                                     --                   level of error
+                                     --          NETTRACE, etc.:  Dump
+                                     --                   headers at trace
+                                     --                   level
+                      infomsg(3),    -- INFOMSG     0x0000 0004
+                                     --      (Packaged Agent only)
+                                     --      Print informational messages
+                                     --      such as packet received, etc.
+                      neterr(4),     -- NETERR      0x0000 0008
+                                     --      (Packaged Agent only)
+                                     --      Display net interface error
+                                     --      messages
+                      proterr(5),    -- PROTERR     0x0000 0010
+                                     --      (Packaged Agent only)
+                                     --      Display protocol level error
+                                     --      messages
+                      netrace(6),    -- NETRACE     0x0000 0020
+                                     --      (Packaged Agent only)
+                                     --      Trace packet in link level net
+                                     --      layer
+                      tmo(7),        -- TMO         0x0000 0040
+                                     --      (Packaged Agent only)
+                                     --      Print message on timeout
+                      aptrace(8),    -- APTRACE     0x0000 0080
+                                     --      Generic Trace
+                      tptrace(9),    -- TPTRACE     0x0000 0100
+                                     --      (Packaged Agent only)
+                                     --      Transport protocol
+                                     --      (UDP/TCP/RVD) trace
+                      iptrace(10),   -- IPTRACE     0x0000 0200
+                                     --      (Packaged Agent only)
+                                     --      Trace packet in internet layer
+                      arptrace(11),  -- ARPTRACE    0x0000 0400
+                                     --      (Packaged Agent only)
+                                     --      Trace the arp code
+                      testtrace(12), -- TESTTRACE   0x0000 0800
+                                     --      (Packaged Agent only)
+                                     --      Generic debugging trace
+                      apwarn(13),    -- APWARN      0x0000 1000
+                                     --      Generic warning message
+                      aperror(14),   -- APERROR     0x0000 2000
+                                     --      Generic error message
+                      apthread(15),  -- APTHREAD    0x0000 4000
+                                     --      (EMANATE agents only)
+                                     -- TASKTRACE   0x0000 4000
+                                     --      (Packaged Agent only)
+                                     --      Trace thread execution
+                      aptimer(16),   -- APTIMER     0x0000 8000
+                                     --      (EMANATE agents only)
+                                     -- TIMERTRACE  0x0000 8000
+                                     --      (Packaged Agent only)
+                                     --      Trace timer processing
+                      apconfig(17),  -- APCONFIG    0x0001 0000
+                                     --      Trace config file input/output
+                      appacket(18),  -- APPACKET    0x0002 0000
+                                     --      Trace SNMP packet parse/builds
+                      aptrap(19),    -- APTRAP      0x0004 0000
+                                     --      Trace trap/inform messages
+                      apaccess(20),  -- APACCESS    0x0008 0000
+                                     --      Trace access control processing
+                      apemanate(21), -- APEMANATE   0x0010 0000
+                                     --      (EMANATE Master/Subagent only)
+                                     --      EMANATE Master/Subagent tracing
+                      apverbose(22), -- APVERBOSE   0x0020 0000
+                                     --      Extra debugging tracing
+                      apuser(23)     -- APUSER      0x0040 0000
+                                     --      User debug trace
+               }
+
+END

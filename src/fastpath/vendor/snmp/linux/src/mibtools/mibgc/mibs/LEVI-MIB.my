@@ -1,0 +1,70 @@
+          LEVI-MIB DEFINITIONS ::= BEGIN
+
+          IMPORTS
+              OBJECT-TYPE, NOTIFICATION-TYPE, experimental,
+              Integer32, IpAddress, Counter32, Gauge32, TimeTicks, NsapAddress,
+              Counter64, UInteger32,
+              snmpModules
+                  FROM SNMPv2-SMI
+              DisplayString, TestAndIncr, RowStatus
+                  FROM SNMPv2-TC;
+
+          leviMIB MODULE-IDENTITY
+              LAST-UPDATED "9310150000Z"
+              ORGANIZATION "SNMP Research, Inc."
+              CONTACT-INFO ""
+              DESCRIPTION ""
+              ::= { experimental 765 }
+
+          -- leviPortTable
+
+          leviPortTable OBJECT-TYPE
+              SYNTAX      SEQUENCE OF LeviPortEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION ""
+              ::= { leviMIB 1 }
+
+          leviPortEntry OBJECT-TYPE
+              SYNTAX      LeviPortEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION ""
+              INDEX   { leviPortGroupIndex, leviPortIndex }
+              ::= { leviPortTable 1 }
+
+          LeviPortEntry ::=
+              SEQUENCE {
+                  leviPortGroupIndex
+                      INTEGER,
+                  leviPortIndex
+                      INTEGER,
+                  leviPortStatus
+                      INTEGER
+              }
+
+          leviPortGroupIndex OBJECT-TYPE
+              SYNTAX      INTEGER (1..1024)
+              MAX-ACCESS  read-only
+              STATUS      current
+              DESCRIPTION ""
+              ::= { leviPortEntry 1 }
+
+          leviPortIndex OBJECT-TYPE
+              SYNTAX      INTEGER (1..1024)
+              MAX-ACCESS  read-only
+              STATUS      current
+              DESCRIPTION ""
+              ::= { leviPortEntry 2 }
+
+          leviPortStatus OBJECT-TYPE
+              SYNTAX      INTEGER {
+				goodLink(1),
+				noGoodLink(2)
+			  }
+              MAX-ACCESS  read-only
+              STATUS      current
+              DESCRIPTION ""
+              ::= { leviPortEntry 3 }
+
+END

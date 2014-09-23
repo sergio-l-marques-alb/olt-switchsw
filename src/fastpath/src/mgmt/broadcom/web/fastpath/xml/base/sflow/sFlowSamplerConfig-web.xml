@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="sFlowSamplerConfig" title="sFlow Sampler Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,list" obj-name="basesFlowFsTable_FsDataSource" id="1" name="Sampler Datasource"/>
+                     
+            </node>
+            <node id="2">
+                <element properties="filter,iterate,hidden" obj-name="basesFlowFsTable_FsInstance" id="1" name="FsInstance"/>
+            </node>
+            <node id="3">
+                <element arghelp="SFLOW_RCVR_HELP" maxLength="1" control="textbox" obj-name="basesFlowFsTable_FsReceiver" id="1" name="Receiver Index"/>
+            </node>
+            <node id="4">
+                <element arghelp="SFLOW_SAMPLER_RATE_HELP" maxLength="5" control="textbox" obj-name="basesFlowFsTable_FsPacketSamplingRate" id="1" name="Sampling Rate"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" control="textbox" obj-name="basesFlowFsTable_FsMaximumHeaderSize" id="1" name="Maximum Header Size"/>
+	    </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+
+	<group id="2" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="basesFlowFsTable_FsDataSource" id="1" name="Sampler Datasource"/>
+                <element properties="filter,iterate,hidden" obj-name="basesFlowFsTable_FsInstance" id="2"/>
+                <element control="label" properties="edit,read-only" obj-name="basesFlowFsTable_FsReceiver" id="3" name="Receiver Index"/>
+                <element control="label" properties="edit,read-only" obj-name="basesFlowFsTable_FsPacketSamplingRate" id="4" name="Sampling Rate"/>
+                <element control="label" properties="edit,read-only" obj-name="basesFlowFsTable_FsMaximumHeaderSize" id="5" name="Maximum Header Size"/>
+            </repeat>
+	    <node id="2">
+              <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+	</group>
+    </webxml>
+</FastPathXML>

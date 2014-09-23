@@ -1,0 +1,1019 @@
+            
+            
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            
+            
+            
+                             Definitions of Managed Objects
+                              for Xyplex Parameter Clients
+            
+                                     18 October 1991
+            
+                            Xyplex Document Number 420-0544-A
+            
+                                       Xyplex, Inc.
+                                  330 Codman Hill Road
+                                  Boxborough, MA 01719
+                                     (508) 264-9900
+            
+                                   support@xyplex.com
+            
+            
+            1.  Status of this Memo
+            
+            This document is submitted to the Internet MIB repository 
+            and to Xyplex users as a Xyplex private extension to the 
+            SNMP MIB.  Distribution of this memo is unlimited.  Please 
+            express comments to Xyplex.
+            
+            2.  Abstract
+            
+            This memo defines a private portion of the Management 
+            Information Base (MIB), within the Xyplex branch, for use 
+            with SNMP over various transport services, such as UDP or 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   1]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            Ethernet.  In particular, it defines objects for managing a 
+            client of Xyplex parameter service.
+            
+            This memo does not specify a standard for the Internet 
+            community.  It describes a standard for Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   2]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            3.  Historical Perspective
+            
+            As reported in RFC 1052, IAB Recommendations for the 
+            Development of Internet Network Management Standards [1], a 
+            two-prong strategy for network management of TCP/IP-based 
+            internets was undertaken.  In the short-term, the Simple 
+            Network Management Protocol (SNMP), defined in RFC 1067, was 
+            to be used to manage nodes in the Internet community.  In 
+            the long-term, the use of the OSI network management 
+            framework was to be examined.  Two documents were produced 
+            to define the management information: RFC 1065, which 
+            defined the Structure of Management Information (SMI), and 
+            RFC 1066, which defined the Management Information Base 
+            (MIB).  Both of these documents were designed so as to be 
+            compatible with both the SNMP and the OSI network management 
+            framework.
+            
+            This strategy was quite successful in the short-term: 
+            Internet-based network management technology was fielded, by 
+            both the research and commercial communities, within a few 
+            months.  As a result of this, portions of the Internet 
+            community became network manageable in a timely fashion.
+            
+            As reported in RFC 1109, Report of the Second Ad Hoc Network 
+            Management Review Group [2], the requirements of the SNMP 
+            and the OSI network management frameworks were more 
+            different than anticipated.  As such, the requirement for 
+            compatibility between the SMI/MIB and both frameworks was 
+            suspended.  This action permitted the operational network 
+            management framework, based on the SNMP, to respond to new 
+            operational needs in the Internet community by producing 
+            MIB-II.
+            
+            In May of 1990, the core documents were elevated to 
+            "Standard Protocols" with "Recommended" status.  As such, 
+            the Internet- standard network management framework consists 
+            of: Structure and Identification of Management Information 
+            for TCP/IP-based internets, RFC 1155 [4], which describes 
+            how managed objects contained in the MIB are defined; 
+            Management Information Base for Network Management of 
+            TCP/IP-based internets, which describes the managed objects 
+            contained in the MIB, RFC 1156 [5]; and, the Simple Network 
+            Management Protocol, RFC 1157 [6], which defines the 
+            protocol used to manage these objects.
+            
+            Consistent with the IAB directive to produce simple, 
+
+            
+            
+                                                               [Page   3]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            workable systems in the short-term, the list of managed 
+            objects defined in the Internet-standard MIB was derived by 
+            taking only those elements which are considered essential.  
+            However, the SMI defined three extensibility mechanisms: 
+            one, the addition of new standard objects through the 
+            definitions of new versions of the MIB; two, the addition of 
+            widely-available but non- standard objects through the 
+            experimental subtree; and three, the addition of private 
+            objects through the enterprises subtree.  Such additional 
+            objects can not only be used for vendor-specific elements, 
+            but also for experimentation as required to further the 
+            knowledge of which other objects are essential.
+            
+            This memo defines extensions to the MIB using the third 
+            method.  It contains definitions of managed objects in 
+            various Xyplex products, using ASN.1 conventions specified 
+            in [10].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   4]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            4.  Objects
+            
+            Managed objects are accessed via a virtual information 
+            store, termed the Management Information Base or MIB.  
+            Objects in the MIB are defined using the subset of Abstract 
+            Syntax Notation One (ASN.1) [7] defined in the SMI.  In 
+            particular, each object has a name, a syntax, and an 
+            encoding.  The name is an object identifier, an 
+            administratively assigned name, which specifies an object 
+            type.  The object type together with an object instance 
+            serves to uniquely identify a specific instantiation of the 
+            object.  For human convenience, we often use a textual 
+            string, termed the OBJECT DESCRIPTOR, to also refer to the 
+            object type.
+            
+            The syntax of an object type defines the abstract data 
+            structure corresponding to that object type.  The ASN.1 
+            language is used for this purpose.  However, the SMI [4] 
+            purposely restricts the ASN.1 constructs which may be used. 
+            These restrictions are explicitly made for simplicity.
+            
+            The encoding of an object type is simply how that object 
+            type is represented using the object type's syntax.  
+            Implicitly tied to the notion of an object type's syntax and 
+            encoding is how the object type is represented when being 
+            transmitted on the network.
+            
+            The SMI specifies the use of the basic encoding rules of 
+            ASN.1 [8], subject to the additional requirements imposed by 
+            the SNMP.
+            
+            
+            4.1.  Format of Definitions
+            
+            Section 6 contains the specification of all object types 
+            contained in this MIB module.  The object types are defined 
+            using the conventions defined in the SMI, as amended by the 
+            extensions specified in [9].
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   5]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            5.  Overview
+            
+            The Parameter Client MIB applies to Xyplex systems that use 
+            the Xyplex parameter service for storage and retrieval of 
+            their permanent parameters, whether locally or remotely.
+            
+            The Parameter Client MIB is mandatory for all Xyplex systems 
+            that use the parameter service.
+            
+            The MIB comprises several base objects and one table, 
+            detailed in the following sections.  The table contains the 
+            list of parameter servers believed to support the system 
+            implementing the Parameter Client MIB.
+            
+            As a convenience to the reader, the base objects are:
+            
+                paramClientLoaderName
+                paramClientLoaderAddressType
+                paramClientLoaderAddress
+                paramClientParameterVersion
+                paramClientUpdateTime
+                paramClientServerCheck
+                paramClientCheckInterval
+                paramClientCheckNow
+                paramClientServerLimit
+                paramClientRetransmitInterval
+                paramClientRetransmitLimit
+                paramClientState
+                paramClientProtocolErrors
+                paramClientServerRejects
+                paramClientServerNumber
+            
+            The objects making up a server table entry are:
+            
+                paramServerName
+                paramServerEntryStatus
+                paramServerAddressType
+                paramServerAddress
+                paramServerStoredVersion
+                paramServerStoredTime
+                paramServerStoredStatus
+                paramServerStoredFailure
+            
+
+
+
+
+            
+            
+                                                               [Page   6]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            6.  Definitions
+            
+                    XYPLEX-PARAM-CLIENT-MIB DEFINITIONS ::= BEGIN
+            
+                    IMPORTS
+                            enterprises, Counter
+                                    FROM RFC1155-SMI
+                            DisplayString
+                                    FROM RFC1158-MIB
+                            OBJECT-TYPE
+                                    FROM RFC1212-CONCISE-MIB
+                            DateTime, AddressType
+                                    FROM XYPLEX-SYSTEM-MIB;
+            
+            xyplex         OBJECT IDENTIFIER ::= { enterprises 33 }
+            paramClient    OBJECT IDENTIFIER ::= { xyplex 7 }
+            
+            --  This MIB module uses the extended OBJECT-TYPE macro as
+            --  defined in [9]
+            
+            --  this is the MIB module for clients of Xyplex parameter
+            --  service
+            
+            -- Textual Conventions, duplicated from the Xyplex System
+            -- MIB to satisfy MIB compilers
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   7]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            -- the Parameter Client group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that use the Xyplex parameter service
+            
+            paramClientLoaderName OBJECT-TYPE
+                SYNTAX DisplayString
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The name of the system that most recently provided 
+                    this system's stored parameters.  Corresponds 
+                    directly to the name value labeled 'Loaded From:' in 
+                    the PARAMETER SERVER display."
+                ::= { paramClient 1 }
+            
+            paramClientLoaderAddressType OBJECT-TYPE
+                SYNTAX AddressType
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of network address contained in 
+                    paramClientLoaderAddress.  'unknown' means no 
+                    address has been defined.  'other' means no other 
+                    type value applies.  'local' means there is no 
+                    address and parameters were loaded from local 
+                    storage.  'ip' is an Internet IP address.  
+                    'ethernet' is an 802.3 MAC address.  Corresponds 
+                    indirectly to the address value labeled 'Loaded 
+                    From:' in the PARAMETER SERVER display."
+                ::= { paramClient 2 }
+            
+            paramClientLoaderAddress OBJECT-TYPE
+                SYNTAX OCTET STRING
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The network address of the system that most 
+                    recently provided this system's stored parameters.  
+                    Corresponds directly to the address value labeled 
+                    'Loaded From:' in the PARAMETER SERVER display."
+                ::= { paramClient 3 }
+            
+            paramClientParameterVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-write
+
+            
+            
+                                                               [Page   8]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "The version number of the parameters as stored in 
+                    this system's local memory.  Corresponds directly to 
+                    SERVER PARAMETER VERSION and the value labeled 'Last 
+                    Update Version:' in the PARAMETER SERVER display."
+                ::= { paramClient 4 }
+            
+            paramClientUpdateTime OBJECT-TYPE
+                SYNTAX DateTime
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "This system's local date and time when it last 
+                    attempted to store parameters with a parameter 
+                    server.  Corresponds directly to the values labeled 
+                    'Last Update Date:' and 'Last Update Time:' in the 
+                    PARAMETER SERVER display."
+                ::= { paramClient 5 }
+            
+            paramClientServerCheck OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control over whether or not this system is allowed 
+                    to check for additional parameter servers.  
+                    'enabled' allows checking.  Corresponds directly to 
+                    PARAMETER SERVER CHECK and the presence of PARAMETER 
+                    POLLING under the label 'Enabled Characteristics' in 
+                    the SERVER CHARACTERISTICS display."
+                ::= { paramClient 6 }
+            
+            paramClientCheckInterval OBJECT-TYPE
+                SYNTAX INTEGER (1..120)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of minutes between checks for additional 
+                    parameter servers.  Corresponds directly to 
+                    PARAMETER SERVER CHECK TIMER and the value labeled 
+                    'Check Timer:' in the PARAMETER SERVER display."
+                ::= { paramClient 7 }
+            
+            paramClientCheckNow OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), execute(2) }
+
+            
+            
+                                                               [Page   9]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause this system to immediately check 
+                    for additional parameter servers.  The agent always 
+                    returns 'ready' for this value.  Setting the value 
+                    to 'ready' has no effect.  Setting it to 'execute' 
+                    causes a check to be started.  Corresponds to the 
+                    CHECK PARAMETER SERVER command."
+                ::= { paramClient 8 }
+            
+            paramClientServerLimit OBJECT-TYPE
+                SYNTAX INTEGER (1..8)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The maximum number of parameter servers this system 
+                    is allowed to remember at the same time.  
+                    Corresponds directly to PARAMETER SERVER LIMIT and 
+                    the value labeled 'Parameter Server Limit:' in the 
+                    PARAMETER SERVER display."
+                ::= { paramClient 9 }
+            
+            paramClientRetransmitInterval OBJECT-TYPE
+                SYNTAX INTEGER (1..30)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of minutes between this system's 
+                    attempts to store new parameters with a server that 
+                    has not acknowledged previous attempts.  Corresponds 
+                    directly to PARAMETER SERVER RETRANSMIT TIMER and 
+                    the value labeled 'Retransmit Timer: in the 
+                    PARAMETER SERVER display."
+                ::= { paramClient 10 }
+            
+            paramClientRetransmitLimit OBJECT-TYPE
+                SYNTAX INTEGER (1..100)
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The maximum number of attempts by this system to 
+                    store new parameters with a server that has not 
+                    acknowledged previous attempts.  Corresponds 
+                    directly to PARAMETER SERVER RETRANSMIT LIMIT and 
+                    the value labeled 'Retransmit Limit:' in the 
+
+            
+            
+                                                               [Page  10]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+                            PARAMETER SERVER display."
+                ::= { paramClient 11 }
+            
+            paramClientState OBJECT-TYPE
+                SYNTAX INTEGER { other(1), idle(2), internal1(3),
+                                 internal2(4), internal3(5),
+                                 internal4(6), internal5(7),
+                                 internal6(8), internal7(9),
+                                 internal8(10), hold(11),  retry(12)}
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "This system's state with regard to update attempts.  
+                    The value meanings are:
+            
+                    other       none of the following
+                    idle        no update in progress
+                    internal    internal state of no meaning to manager
+                    hold        holding to keep from updating too often
+                    retry       waiting to retry after failure
+            
+                    Corresponds directly to the value labeled 'Storage 
+                    State:' in the PARAMETER SERVER display."
+                ::= { paramClient 12 }
+            
+            paramClientProtocolErrors OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of invalid parameter service protocol 
+                    messages received by this system.  Corresponds 
+                    directly to the value labeled 'Bad Parameter 
+                    Messages:' in the PARAMETER SERVER display."
+                ::= { paramClient 13 }
+            
+            paramClientServerRejects OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of parameter servers this system 
+                    rejected due to exceeding paramClientServerLimit.  
+                    Corresponds directly to the value labeled 'Rejected 
+                    Servers:' in the PARAMETER SERVER display."
+                ::= { paramClient 14 }
+
+            
+            
+                                                               [Page  11]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            
+            paramClientServerNumber OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of parameter servers known to this 
+                    system, indicating the number of entries in 
+                    serverTable.  Corresponds directly to the value 
+                    labeled 'Parameter Servers:' in the PARAMETER SERVER 
+                    display."
+                ::= { paramClient 15 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  12]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            -- the Parameter Server table
+            
+            paramServerTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF ParamServerEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of parameter server entries.  The number of 
+                    entries is given by the value of 
+                    paramClientServerNumber."
+                ::= { paramClient 16 }
+            
+            paramServerEntry OBJECT-TYPE
+                SYNTAX ParamServerEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Status and parameter values for a parameter 
+                    server."
+                INDEX { paramServerName }
+                ::= { paramServerTable 1 }
+            
+            ParamServerEntry ::=
+                SEQUENCE {
+                    paramServerName
+                        DisplayString,
+                    paramServerEntryStatus
+                        INTEGER,
+                    paramServerAddressType
+                        INTEGER,
+                    paramServerAddress
+                        OCTET STRING,
+                    paramServerStoredVersion
+                        INTEGER,
+                    paramServerStoredTime
+                        DateTime,
+                    paramServerStoredStatus
+                        INTEGER,
+                    paramServerStoredFailure
+                        INTEGER
+                }
+            
+            paramServerName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (16))
+                ACCESS read-write
+                STATUS mandatory
+
+            
+            
+                                                               [Page  13]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+                DESCRIPTION
+                    "The server's name, unique within this system.  
+                    Always 16 characters, null padded on the end.  
+                    Corresponds directly to the name used to create the 
+                    entry and the value labeled 'Name' in the PARAMETER 
+                    SERVER display."
+                ::= { paramServerEntry 1 }
+            
+            paramServerEntryStatus OBJECT-TYPE
+                SYNTAX INTEGER { invalid(1), valid(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The status of the entry.  Set to 'invalid' to 
+                    remove the entry, which corresponds directly to the 
+                    CLEAR/PURGE PARAMETER SERVER command.  Actual 
+                    removal of the entry is implementation specific."
+                DEFVAL { valid }
+                ::= { paramServerEntry 2 }
+            
+            paramServerAddressType OBJECT-TYPE
+                SYNTAX AddressType
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The type of network address contained in 
+                    paramServerAddress.  'unknown' means no address has 
+                    been defined.  'other' means no other type value 
+                    applies.  'local' means there is no address and 
+                    parameters were loaded from local storage.  'ip' is 
+                    an Internet IP address.  'ethernet' is an 802.3 MAC 
+                    address.  Corresponds indirectly to the value 
+                    labeled 'Address' in the PARAMETER SERVER display."
+                DEFVAL { unknown }
+                ::= { paramServerEntry 3 }
+            
+            paramServerAddress OBJECT-TYPE
+                SYNTAX OCTET STRING
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "The server's network address.  Corresponds directly 
+                    to the value labeled 'Address' in the PARAMETER 
+                    SERVER display."
+                DEFVAL { null }  -- 'null' indicates zero length
+                ::= { paramServerEntry 4 }
+
+            
+            
+                                                               [Page  14]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            
+            paramServerStoredVersion OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter version number currently stored at the 
+                    server.  Corresponds directly to the value labeled 
+                    'Version' in the PARAMETER SERVER display."
+                DEFVAL { 0 }
+                ::= { paramServerEntry 5 }
+            
+            paramServerStoredTime OBJECT-TYPE
+                SYNTAX DateTime
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The server's date and time when it stored the 
+                    parameters of version paramServerStoredVersion.  
+                    Corresponds directly to the value labeled 'Date' in 
+                    the PARAMETER SERVER display."
+                DEFVAL { 0 }
+                ::= { paramServerEntry 6 }
+            
+            paramServerStoredStatus OBJECT-TYPE
+                SYNTAX INTEGER { unknown (1), current(2), ahead(3),
+                                 behind(4), failing(5), failed(6),
+                                 query(7) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Status of this system's parameters with respect to 
+                    the server.  Corresponds directly to the value 
+                    labeled 'Status' in the PARAMETER SERVER display.  
+                    The value meanings are:
+            
+                    ahead     server version newer than system's
+                    behind    server version older than system's
+                    current   up to date
+                    failed    system no longer attempting update
+                    failing   system trying to update but failing
+                    query     attempting to determine version
+                    unknown   version not known
+                    "
+                DEFVAL { unknown }
+                ::= { paramServerEntry 7 }
+
+            
+            
+                                                               [Page  15]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            
+            paramServerStoredFailure OBJECT-TYPE
+                SYNTAX INTEGER { other(1), none(2), protocolOut(3),
+                                 open(4), read(5), write(6), 
+            resource(7),
+                                 protocolIn(8), response(9),
+                                 close(10), delete(11), rename(12),
+                                 fileData(13) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "When paramServerStoredStatus is 'failed' or 
+                    'failing', the reason for the most recent failure.  
+                    Corresponds directly to the value labeled 'Reason' 
+                    in the PARAMETER SERVER display.  The value meanings 
+                    are:
+            
+                    other        none of the following
+                    none         no failure
+                    protocolOut  invalid protocol message to server
+                    open         file open error at server
+                    read         file read error at server
+                    write        file write error at server
+                    resource     resource lack at server (e.g. disk)
+                    protocolIn   invalid protocol message from server
+                    response     no response from server
+                    close        file close error at server
+                    delete       file delete error at server
+                    rename       file rename error at server
+                    fileData     bad parameter data stored at server
+                    "
+                DEFVAL { none }
+                ::= { paramServerEntry 8 }
+            
+            END
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  16]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            7.  References
+            
+            [1]  V. Cerf, IAB Recommendations for the Development of 
+            Internet Network Management Standards.  Internet Working 
+            Group Request for Comments 1052.  Network Information 
+            Center, SRI International, Menlo Park, California, (April, 
+            1988).
+            
+            [2]  V. Cerf, Report of the Second Ad Hoc Network Management 
+            Review Group, Internet Working Group Request for Comments 
+            1109.  Network Information Center, SRI International, Menlo 
+            Park, California, (August, 1989).
+            
+            [3]  M.T. Rose (editor), Management Information Base for 
+            Network Management of TCP/IP-based internets, Internet 
+            Working Group Request for Comments 1158.  Network 
+            Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [4]  M.T. Rose and K. McCloghrie, Structure and 
+            Identification of Management Information for TCP/IP-based 
+            internets, Internet Working Group Request for Comments 1155. 
+            Network Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [5]  K. McCloghrie and M.T. Rose, Management Information 
+            Base for Network Management of TCP/IP-based 
+            internets:MIB-II, Internet Working Group Request for 
+            Comments 1213. Network Information Center, SRI 
+            International, Menlo Park, California, (March 1991).
+            
+            [6]  J.D. Case, M.S. Fedor, M.L. Schoffstall, and J.R. 
+            Davin, Simple Network Management Protocol, Internet Working 
+            Group Request for Comments 1157.  Network Information 
+            Center, SRI International, Menlo Park, California, (May, 
+            1990).
+            
+            [7]  Information processing systems - Open Systems 
+            Interconnection - Specification of Abstract Syntax Notation 
+            One (ASN.1), International Organization for Standardization.  
+            International Standard 8824, (December, 1987).
+            
+            [8]  Information processing systems - Open Systems 
+            Interconnection - Specification of Basic Encoding Rules for 
+            Abstract Notation One (ASN.1), International Organization 
+            for Standardization.  International Standard 8825, 
+
+            
+            
+                                                               [Page  17]
+
+
+            
+                            XYPLEX PARAMETER CLIENT MIB       18 Oct 91
+            
+            
+            
+            (December, 1987).
+            
+            [9] M.T. Rose, K. McCloghrie (editors), Towards Concise MIB 
+            Definitions, Internet Working Group Request for Comments 
+            1212. Network Information Center, SRI International, Menlo 
+            Park, California, (March, 1991).
+            
+            [10] Definitions of Managed Objects for Xyplex Systems, 
+            Xyplex document number 420-0545, (August, 1991).
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  18]
+

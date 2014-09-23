@@ -1,0 +1,40 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2004-2007
+ *
+ * *********************************************************************
+ *
+ * @filename            dllqueue.ext
+ *
+ * @purpose             Provides external API for the DLL Queue
+ *
+ * @component           Routing Utils Component
+ *
+ * @comments
+ *
+ * @create              12/29/2004
+ *
+ * @author              Ed Vartanian
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef _dll_queue_ext
+#define _dll_queue_ext
+
+#include "dllqueue.h"
+
+/* Functions for manipulating a double linked list queue.
+ */
+void  DLLQ_Init(t_DLLQHdr *q, unsigned short offset, unsigned short user_data);
+void  DLLQ_PutTail(t_DLLQHdr *q, t_DLLQEntry *newEntry);
+void  DLLQ_PutHead(t_DLLQHdr *q, t_DLLQEntry *newEntry);
+void *DLLQ_GetHead(t_DLLQHdr *q);
+void *DLLQ_GetTail(t_DLLQHdr *q);
+void  DLLQ_RemoveEntry(t_DLLQEntry *entry);
+void  DLLQ_InsertBefore(t_DLLQEntry *entry, t_DLLQEntry *newEntry);
+void  DLLQ_InsertAfter(t_DLLQEntry *entry, t_DLLQEntry *newEntry);
+void  DLLQ_Splice(t_DLLQHdr *p, t_DLLQHdr *q);
+void  DLLQ_FreeList(t_DLLQHdr *p);
+
+#endif /*_dll_queue_ext */

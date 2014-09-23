@@ -1,0 +1,55 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CoSInterfaceQueueStatus" title="CoS Interface Queue Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIntfIndex" id="1" name="Interface">
+                   <action type="extn" value="Global" position="0" enable="1_3" disable="1_2" show="1_3" hide="1_2"/>
+                   <action type="default" enable="1_2" disable="1_3" show="1_2" hide="1_3"/>
+                </element>
+                <element obj-name="xLibObjects_dummy" control="textbox" id="2" properties="hidden" name="HoldIntfIndexGlobal">
+                   <action type="value" value="Global" setval_ids="1_1_1" setval_args="valmapGlobal" />
+                </element>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID"/>
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidth" id="2" name="Minimum Bandwidth"/>
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueSchedulerType" id="3" name="Scheduler Type">
+                   <action type="enum" web_name="strict"/>
+                   <action type="enum" web_name="weighted"/>
+                </element>
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtType" id="4" name="Queue Management Type">
+                   <action type="enum" web_name="taildrop"/>
+                   <action type="enum" web_name="wred"/>
+                </element>
+            </repeat>
+             <repeat present="vtable" edit="no" heading=" " id="3">
+                <element properties="iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID"/>
+                <element properties="edit,read-only" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidth" id="2" name="Minimum Bandwidth"/>
+                <element properties="edit,read-only" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueSchedulerType" id="3" name="Scheduler Type">
+                  <action type="enum" web_name="strict"/>
+                   <action type="enum" web_name="weighted"/>
+                </element>
+                <element properties="edit,read-only" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtType" id="4" name="Queue Management Type">
+                   <action type="enum" web_name="taildrop"/>
+                   <action type="enum" web_name="wred"/>
+                </element>
+            </repeat>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh">
+                    <action type="button" copy_from="1_1_1" copy_to="1_1_2"/>
+                </button>
+            </node>
+            <!-- added for actions -->
+            <node id="5">
+                <element obj-name="xLibObjects_dummy" control="textbox" properties="hidden" id="1">
+                    <action type="mandate" setval_ids="1_1_2" setval_args="None"/>
+                </element>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

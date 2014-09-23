@@ -1,0 +1,77 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="iSCSI_Global_Config" title="iSCSI Global Configuration">
+      
+        <group id="2" heading="" level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" obj-name="fastPathQOSIscsi_adminMode" id="1" name="iSCSI Status"/>
+            </node>
+            <!-- comment or uncomment some fields if needed -->
+            <node id="2">
+               <element control="radio" value="trust dot1p" obj-name="fastPathQOSIscsi_TagField" id="1" name="QoS Profile">
+                  <action type="enum" discard="yes" disable="2_3_1|2_4_1|2_5_1" web_name="UN Trusted"/>
+                  <action type="enum" discard="no" enable="2_5_1" disable="2_3_1|2_4_1" web_name="VLAN Priority Tag"/>
+                  <action type="enum" discard="yes" enable="2_3_1" disable="2_4_1|2_5_1" web_name="IP Precedence"/>
+                  <action type="enum" discard="no" enable="2_4_1" disable="2_3_1|2_5_1" web_name="DSCP"/>
+                </element>
+            </node>
+<!--
+            <node id="3">
+                <element control="combo" properties="list" obj-name="fastPathQOSIscsi_IpPresedence" id="1" name="IP Precedence"/>
+            </node>
+-->
+            <node id="4">
+                <element control="combo" properties="list" obj-name="fastPathQOSIscsi_Dscp" id="1" name="DSCP"/>
+            </node>
+            <node id="5">
+                <element control="combo" properties="list" obj-name="fastPathQOSIscsi_vlanPriority" id="1" name="VLAN Priority Tag"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="fastPathQOSIscsi_markingMode" id="1" name="Remark"/>
+            </node>
+            <node id="7">
+                <element control="textbox" maxLength="5" obj-name="fastPathQOSIscsi_TimeoutInterval" arghelp="HELP_FORMAT_ISCSI_AGEING_TIME" id="1" name="iSCSI Aging Time"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submit the page" id="1" name="Submit"/>
+            </node>
+        </group>
+
+        <group id="4" heading="  " level="ReadOnlyUser">
+            <node id="1">
+                <element control="label" obj-name="fastPathQOSIscsi_adminMode" id="1" name="iSCSI Status"/>
+            </node>
+           <!-- comment some fields if not needed -->
+            <node id="2">
+              <element control="label" obj-name="fastPathQOSIscsi_TagField" id="1" name="QoS Profile">
+                  <action type="enum" discard="yes" web_name="UN Trusted"/>
+                  <action type="enum" discard="no"  web_name="VLAN Priority Tag"/>
+                  <action type="enum" discard="yes" web_name="IP Precedence"/>
+                  <action type="enum" discard="no"  web_name="DSCP"/>
+              </element>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="fastPathQOSIscsi_vlanPriority" id="1" name="VLAN Priority Tag"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="fastPathQOSIscsi_Dscp" id="1" name="DSCP"/>
+            </node>
+<!--
+            <node id="5">
+                <element control="label" obj-name="fastPathQOSIscsi_IpPresedence" id="1" name="IP Precedence"/>
+            </node>
+-->
+             <node id="6">
+                <element control="label" obj-name="fastPathQOSIscsi_markingMode" id="1" name="Remark"/>
+            </node>
+            <node id="7">
+                <element control="label" obj-name="fastPathQOSIscsi_TimeoutInterval" id="1" name="iSCSI Aging Time"/>
+            </node>
+        </group>
+
+    </webxml>
+</FastPathXML>

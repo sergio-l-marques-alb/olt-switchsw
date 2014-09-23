@@ -1,0 +1,315 @@
+# Local source path abbreviations (for convenience)
+#
+src_base           := src/application/base
+src_system_support := src/system_support
+src_trapmgr        := src/trapmgr
+src_usmdb_base     := src/usmdb/base
+vendor_sdk         := vendor/broadcom/esw_sdk
+ifeq (1,$(BLD_L7_PRODUCT_SMARTPATH))
+src_stats_base     := base/services/cstats
+else
+src_stats_base     := base/services/stats
+endif
+
+
+# Note: This make file is comprised of two sets of BASE source files,
+#       one that is distributed in object form for a linkable object
+#       build and the other distributed in source form.  Both sets are
+#       used for normal builds, but only the object set is built for
+#       linkable object creation.
+#
+# Note: The corresponding make.pkg.srcdist file will overwrite
+#       this file when a linkable object view is generated.
+#
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+#  - Note:  src/application/base/ipv6_provisioning is no longer used in the build
+#
+MASTERSRC += \
+	$(src_base)/dos \
+	$(src_base)/dot1ab/core \
+	$(src_base)/dot1ab/dot1ab_sid \
+	$(src_base)/cmd_logger \
+	$(src_base)/asf \
+	$(src_base)/link_dependency \
+	$(src_base)/policy \
+	src/application/ipstats/base \
+	src/dtl/base \
+	$(src_system_support)/base/infrastructure/cable_status \
+	$(src_system_support)/base/infrastructure/cardmgr \
+	$(src_system_support)/base/infrastructure/clustering \
+	$(src_system_support)/base/infrastructure/cnfgr/base \
+	$(src_system_support)/base/infrastructure/cnfgr/cnfgr_sid \
+	$(src_system_support)/base/infrastructure/edb \
+	$(src_system_support)/base/infrastructure/log \
+	$(src_system_support)/base/infrastructure/nim \
+	$(src_system_support)/base/infrastructure/sim/core \
+	$(src_system_support)/base/infrastructure/types \
+	$(src_system_support)/base/infrastructure/box_services \
+	$(src_system_support)/base/l7util/async_event \
+	$(src_system_support)/base/l7util/aes \
+	$(src_system_support)/base/l7util/avl \
+	$(src_system_support)/base/l7util/buff \
+	$(src_system_support)/base/l7util/dll \
+	$(src_system_support)/base/l7util/hl \
+	$(src_system_support)/base/l7util/l7apptimer \
+	$(src_system_support)/base/l7util/l7handle \
+	$(src_system_support)/base/l7util/l7sll \
+	$(src_system_support)/base/l7util/md5 \
+	$(src_system_support)/base/l7util/pw_scramble \
+	$(src_system_support)/base/l7util/radix \
+	$(src_system_support)/base/l7util/rng \
+	$(src_system_support)/base/l7util/tlv \
+	$(src_system_support)/base/l7util/trace \
+	$(src_system_support)/base/network/bootp \
+	$(src_system_support)/base/network/dhcp \
+	$(src_system_support)/base/network/dns \
+	$(src_system_support)/base/network/dns/dns_sid \
+	$(src_system_support)/base/network/ping \
+	$(src_system_support)/base/network/sntp \
+	$(src_system_support)/base/network/sysnet \
+	$(src_system_support)/base/network/tftp \
+	$(src_system_support)/base/network/traceroute \
+	$(src_system_support)/base/services/mirroring \
+	$(src_system_support)/base/system/base \
+	$(src_system_support)/$(src_stats_base) \
+	$(src_system_support)/$(L7_CUSTOMER) \
+	$(src_usmdb_base)/cmd_logger \
+	$(src_usmdb_base)/dhcpclient \
+	$(src_usmdb_base)/dos \
+	$(src_usmdb_base)/dot1ab \
+	$(src_usmdb_base)/ipv6_provisioning \
+	$(src_usmdb_base)/link_dependency \
+	$(src_usmdb_base)/policy \
+	$(src_usmdb_base)/snmp \
+	$(src_usmdb_base)/timezone \
+	src/usmdb/mgmt_support \
+	src/usmdb/system_support/base \
+	src/usmdb/system_support/stacking/core
+
+ifneq ($(L7_TARGETOS_VARIANT),5.5)
+MASTERSRC += \
+	$(src_system_support)/base/l7util/regex
+endif
+# List here individual source files to be selectively EXCLUDED from the build
+#
+MASTERSRC_FILE_EXCLUDE += \
+	$(src_system_support)/base/infrastructure/cardmgr/cardmgr_stubs.c \
+	$(src_system_support)/base/network/ping/pingdebug.c \
+	$(src_system_support)/base/l7util/regex/main.c \
+	$(src_system_support)/base/l7util/regex/debug.c \
+	$(src_system_support)/base/l7util/regex/split.c \
+	$(src_system_support)/base/l7util/regex/engine.c \
+	$(src_usmdb_base)/ipv6_provisioning/usmdb_ipv6_provisioning.c
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC += \
+	$(src_base)/dot1ab/core/include \
+	$(src_base)/cmd_logger/include \
+	src/dtl/base/include \
+	$(src_system_support)/base/infrastructure/cnfgr/include \
+	$(src_system_support)/base/network/dns/include \
+	$(src_system_support)/base/network/sysnet/include \
+  $(src_system_support)/base/system/include \
+	$(src_system_support)/$(src_stats_base)/include \
+	$(vendor_sdk)/include
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	andl/dapi
+
+
+# These header search paths are included based on ROUTING package presence.
+#
+ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+  SRCINCPATHS += \
+	src/dtl/routing/include
+else
+  SRCINCPATHS += \
+	src/dtl/switching_binds/include
+endif
+
+# This section is common to IPV6 and IPV6_MGMT packages.
+#
+
+ifeq (1,$(BLD_L7_FLEX_HAS_COMMON_IPV6))
+MASTERSRC += \
+  src/usmdb/system_support/ipv6
+endif  # BLD_L7_FLEX_HAS_COMMON_IPV6
+
+# These header search paths are included based on EMWEB package presence.
+#
+ifeq (1,$(BLD_L7_UI_HAS_WEB))
+  SRCINCPATHS += \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/web/base \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/websrc/server
+else
+ifeq (0,$(BLD_L7_UI_HAS_CLI))
+  SRCINCPATHS += \
+	src/mgmt/emweb_binds
+endif
+endif
+
+
+# Additional compiler flags.
+#
+CFLAGSEXTRA += \
+	-DOPENSSL_SYSNAME_$(CONFIG_UPPER) \
+	-DOPENSSL_NO_KRB5 \
+	-DOPENSSL_NO_ASM
+
+
+# Conditional source inclusion.
+#
+
+# These sources are included only if SMARTPATH product NOT being built.
+#
+ifeq (0,$(BLD_L7_PRODUCT_SMARTPATH))
+  MASTERSRC += \
+	$(src_system_support)/base/system/support
+endif
+
+# These source files are included only if DHCPS flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DHCPS))
+
+  MASTERSRC += \
+	$(src_base)/dhcps \
+	$(src_usmdb_base)/dhcps
+
+  MASTERINC +=
+
+endif
+
+
+# These source files are included only if DVLAN flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DVLAN))
+
+  MASTERSRC += \
+	$(src_base)/doublevlantag \
+	$(src_usmdb_base)/doublevlantag
+
+  MASTERINC += \
+	$(src_base)/doublevlantag/include
+
+endif
+
+
+# These source files are included only if ISDP component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_ISDP))
+
+  MASTERSRC += \
+	$(src_base)/isdp \
+	$(src_usmdb_base)/isdp
+
+  MASTERINC += \
+	$(src_base)/isdp/include
+
+endif
+
+
+# These source files are included only if OUTBOUND_TELNET flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_OUTBOUND_TELNET))
+
+  MASTERSRC += \
+	$(src_base)/telnet \
+	$(src_usmdb_base)/telnet 
+
+endif
+
+# These source files are included only if SFLOW flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_SFLOW))
+
+  MASTERSRC += \
+        $(src_base)/sflow \
+        $(src_usmdb_base)/sflow
+
+  MASTERINC += \
+	$(src_base)/sflow/include
+
+endif
+
+# These source files are included only if RMON component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_RMON))
+
+  MASTERSRC += \
+	$(src_base)/rmon \
+	$(src_usmdb_base)/rmon
+
+endif
+
+# These source files are included only if AUTO_INSTALL flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_AUTO_INSTALL))
+
+  MASTERSRC += \
+	$(src_system_support)/base/network/auto_install \
+	$(src_usmdb_base)/auto_install
+
+  MASTERINC += \
+	$(src_system_support)/base/network/auto_install/include
+endif
+# These source files are included only if POE flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_POE))
+
+  MASTERSRC += \
+	$(src_base)/poe \
+	$(src_usmdb_base)/poe 
+
+  MASTERINC += \
+	$(src_base)/poe/include
+
+endif
+
+# These source files are included only if NSF flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_NSF))
+
+  MASTERSRC += \
+	$(src_system_support)/base/infrastructure/sim/nsf \
+	$(src_base)/dot1ab/nsf \
+	src/usmdb/system_support/stacking/nsf
+
+  MASTERINC += \
+        $(src_base)/dot1ab/nsf
+endif
+
+# These source files are included only if LLPF flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_LLPF))
+
+  MASTERSRC += \
+	$(src_base)/llpf \
+	$(src_usmdb_base)/llpf
+
+  MASTERINC += \
+	$(src_base)/llpf/include
+endif
+
+# These source files are included only if TIMERANGES flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_TIMERANGES))
+
+  MASTERSRC += \
+	$(src_system_support)/base/infrastructure/timeranges \
+	$(src_usmdb_base)/timeranges
+
+endif
+
+# Pick up files designated for source code distribution.
+#
+include $(FP_ROOT)/$(src_base)/make/make.pkg.srcdist

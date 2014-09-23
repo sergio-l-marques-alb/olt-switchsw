@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPServerResetConfig" title="DHCP Server Reset Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" uienum="dhcpServerResetConfigSelector_t" value="All Dynamic Bindings" obj-name="xLibObjects_dummy" id="1" name="Clear">
+                  <action type="enum" hide="1_2_1|1_4_1|1_5_1|1_6_1|1_7_1" disable="1_2_1|1_4_1|1_5_1|1_6_1|1_7_1" show="1_3_1" enable="1_3_1"/>
+                  <action type="enum" show="1_7_1|1_5_1" hide="1_2_1|1_3_1|1_4_1|1_6_1" disable="1_2_1|1_3_1|1_4_1|1_6_1" enable="1_5_1|1_7_1"/>
+                  <action type="enum" show="1_4_1" hide="1_2_1|1_3_1|1_5_1|1_6_1|1_7_1" disable="1_2_1|1_3_1|1_5_1|1_6_1|1_7_1" enable="1_4_1"/>
+                  <action type="enum" show="1_2_1|1_6_1" hide="1_3_1|1_4_1|1_5_1|1_7_1" disable="1_3_1|1_4_1|1_5_1|1_7_1" enable="1_2_1|1_6_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="textbox" properties="filter,iterate" arghelp="IP_Address" maxLength="15" obj-name="baseDhcpServerAddressConflict_IPAddr" id="1" name="IP Address"/>
+            </node>
+			<node id="7">
+                <element control="textbox" properties="filter,iterate" arghelp="IP_Address" maxLength="15" obj-name="baseDhcpServerLease_IPAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" value="Enable" obj-name="baseDhcpServerGlobal_DhcpServerLeaseClearAllBindings" help="Submits the form on this page to the Switch" id="1" name="Clear All Bindings"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" value="TRUE" obj-name="baseDhcpServerAddressConflict_DhcpServerClearAllAddressConflicts" help="Submits the form on this page to the Switch" id="1" name="Clear All Conflicts"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="baseDhcpServerLease_Status" help="Submits the form on this page to the Switch" id="1" name="Clear Specific Binding"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="baseDhcpServerAddressConflict_Status" help="Submits the form on this page to the Switch" id="1" name="Clear Specific Conflict"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,89 @@
+##############################################################################
+#
+# make.footer
+#
+# Purpose:  
+#      Defines primary build targets used by all package-level makefiles.
+#
+##############################################################################
+
+# The BLDLIB_PKG variable is used to insert local build rules that are executed
+# prior to building the LIBOBJS.
+#
+ifneq (,$(strip $(BLDLIB_PKG)))
+  $(LIBOBJS): $(BLDLIB_PKG)
+endif
+
+# Rule to pre-link a package library.
+#
+# The PREREQ variable lists any prerequisite files needed by the package library.
+# These prerequisites are assumed to be built and updated by their appropriate
+# (sub)makefile beforehand, since this rule does not explicitly update them here.
+#
+# Note: LIBOBJS is defined in user makefiles.
+#
+$(PKGLIB): $(LIBOBJS) $(LIBARCS)
+ifeq (0,$(CMD_LOCAL_DIR_OR_FILE))
+  ifneq (,$(strip $(LIBOBJS)))
+	+@[ -d $(FP_BASE)/$(OUT_LIBS) ] || mkdir -p $(FP_BASE)/$(OUT_LIBS)
+	- @ $(RM) $@
+	- @ $(RM) $(@:.lib=.map)
+	$(PRELINKING_MSG)
+	$(DBG) $(LD) -r -o $@ -Map $(@:.lib=.map) $(LIBOBJS) $(PREREQ) \
+		--start-group \
+			$(LIBARCS) \
+		--end-group
+	$(DBG) sleep $(TOUCH_SLEEP)
+	$(DBG) touch $@
+  endif
+endif
+
+# Rule to create an archive file.
+#
+$(FPLIB): $(LIBOBJS)
+	$(ARCHIVING_MSG)
+	$(DBG) $(AR) rcs $(FPLIB) $(LIBOBJS)
+	$(DBG) sleep $(TOUCH_SLEEP)
+	$(DBG) touch $@
+
+
+# The bldlib target is used to build the package libraries from their 
+# component source files.
+#
+bldlib:: $(FPLIB) $(PKGLIB)
+	@:
+
+# This installexe target is not invoked since make.footer is not
+# used for the final link steps.
+#
+installexe::
+	@:
+
+# General package library cleanup rule.
+#
+clean::
+	$(CLEANING_MSG)
+ifneq (,$(strip $(PKGLIB)))	
+	-$(DBG) $(RM) $(QT)$(PKGLIB:.lib=.map)$(QT)
+	-$(DBG) $(RM) $(QT)$(PKGLIB)$(QT)
+endif	
+	-$(DBG) $(RM) $(QT)$(OBJDIR)/*.o$(QT)
+	-$(DBG) $(RM) $(QT)$(OBJDIR)/*.d$(QT)
+	-$(DBG) $(RM) $(QT)$(OBJDIR)/fp_*.a$(QT)
+
+
+# Generating dependencies.
+#
+arc_dep_files = $(wildcard $(addprefix $(OBJDIR)/,$(addsuffix /*.d,$(ARC_DIRLIST))))
+
+ifneq (clean,$(MAKECMDGOALS))
+  ifneq (splint,$(MAKECMDGOALS))
+    ifneq (,$(strip $(LIBOBJS)))
+      -include $(addprefix $(OBJDIR)/,$(LIBOBJS:.o=.d))
+    endif
+    ifneq (,$(strip $(arc_dep_files)))
+      -include $(arc_dep_files)
+    endif
+  endif
+endif
+

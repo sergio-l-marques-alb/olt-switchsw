@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPSnoopingBindingsConfig" title="DHCP Snooping Binding Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+		    <element control="combo" properties="list" obj-name="SwitchingDHCPSnooping_intIfNumber" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+                <element control="textbox" properties="filter,iterate,write-only" value="00:00:00:00:00:00" obj-name="SwitchingDHCPSnooping_MACAddress" id="1" name="MAC Address"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="list" obj-name="SwitchingDHCPSnooping_Vlan" id="1" name="VLAN ID"/>
+            </node>
+            <node id="4">
+                <element control="textbox" properties="write-only" value="0.0.0.0" obj-name="SwitchingDHCPSnooping_IPAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="5">
+                <button scope="group" type="buttonSubmit" value="Add" obj-name="SwitchingDHCPSnooping_RowStatus" help="Submits the form on this page to the Switch" id="1" name="Add"/>
+            </node>
+        </group>
+        
+        <group id="3" heading=" ">
+            <repeat present="vtable" edit="inline" heading="Static Binding List" id="1">
+                <element properties="filter,iterate,hidden" obj-name="SwitchingDHCPSnooping_MACAddress" id="1" name="MAC Address"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_intIfNumber" id="2" name="Interface"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_MACAddress" id="3" name="MAC Address"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_Vlan" id="4" name="VLAN ID"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_IPAddress" id="5" name="IP Address"/>
+                <element level="ReadWriteUser" control="checkbox-neg" obj-name="SwitchingDHCPSnooping_RowStatus" id="6" name="Remove">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                </element>
+            </repeat>
+
+            <node id="2">
+                <element properties="noname,hidden" control="combo" obj-name="xLibObjects_dummy" id="1" name="Page" uienum="xui_page_t"/>
+            </node>		
+
+            <node id="3">
+                <button scope="group" type="buttonSubmit" level="ReadWriteUser" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="1_1|1_2|1_3|1_4|1_5|5"/>
+                </button>
+            </node>
+        </group>
+        
+        <group id="5" heading=" ">
+            <repeat present="vtable" edit="no" heading="Dynamic Binding List" id="1">
+                <element properties="filter,iterate,hidden" obj-name="SwitchingDHCPSnooping_DynMACAddress" id="1" name="MAC Address"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_DynintIfNumber" id="2" name="Interface"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_DynMACAddress" id="3" name="MAC Address"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_DynVlan" id="4" name="VLAN ID"/>
+                <element control="label" obj-name="SwitchingDHCPSnooping_DynIPAddress" id="5" name="IP Address"/>
+                <element control="label" properties="" obj-name="SwitchingDHCPSnooping_LeaseTime" id="6" name="Lease Time"/>
+            </repeat>
+			 <node id="2">
+                <element properties="noname,hidden" control="combo" obj-name="xLibObjects_dummy" id="1" name="Page" uienum="xui_page_t"/>
+            </node>			
+			
+            <node id="3">
+                <element properties="filter,iterate,hidden" obj-name="SwitchingDHCPSnooping_Interface" id="1"/>
+                <button scope="group" type="buttonSubmit" level="ReadWriteUser" value="FALSE" obj-name="SwitchingDHCPSnooping_ClearBindings" help="Submits the form on this page to the Switch" id="2" name="Clear All">
+                    <action type="button" disable="1_1|1_2|1_3|1_4|1_5|3"/>
+                </button>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonClear" level="ReadWriteUser" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonClear" level="ReadOnlyUser" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

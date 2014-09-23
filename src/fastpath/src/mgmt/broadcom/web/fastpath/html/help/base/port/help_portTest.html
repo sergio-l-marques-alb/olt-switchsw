@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Loopback Test Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2>Help for Loopback Test</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+          Unit/Slot/Port
+         <EMWEB_ELSE>
+          Slot/Port
+         </EMWEB_IF>
+     </b> -
+      This field indicates the interface to which the Loopback(MAC/PHY) to be tested.  
+      </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> 
+      - Lists the interfaces to be tested in the
+        <EMWEB_IF ID=XUI_IF_STACKING_PRESENT> 
+        Unit/Slot/Port
+        <EMWEB_ELSE>
+         Slot/Port
+        </EMWEB_IF>notation.
+      </li>
+  <li><b>Loopback Test Type</b> 
+      - This Lists the Loopback Test type to be tested on the Port. 
+        User can select PHY-Loop to test Physical Layer level Loopback test on the port.
+        User can select MAC-Loop to test MAC Layer level Loopback test on the port.
+        User can also select No-Loop to avoid port is Looped.
+      </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Run </b>
+      - Perform a Loopback test on the selected interface. The Loopback test may take up 
+      to 5 seconds to complete. If the port has an active link then the link is 
+      taken down. The command returns a statistics information like Data TX, RX, Errored TX, RX etc.
+      Note that if the link is down still user can able to do Loopback test on the port. 
+      </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>

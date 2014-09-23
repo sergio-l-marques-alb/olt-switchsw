@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPACLRuleSrcIp" title="IP ACL Rule Configuration" help-file="help_IPACLRuleConfig.html">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element  properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIndex" id="1" name="IP ACL"/>
+            </node>
+            <node id="2">
+                <element  obj-name="fastPathQOSACLQOSACL_aclIPNamedIndex" id="2" name="IP ACL"/>
+            </node>
+            <node id="3">
+                <element obj-name="fastPathQOSACLQOSACL_aclRuleIndex" id="1" name="Rule"/>
+            </node>
+            <node id="4">
+                <element maxLength="15" obj-name="fastPathQOSACLQOSACL_aclRuleSrcIpAddress" id="1" name="Source IP Address"/>
+            </node>
+            <node id="5" run_if="QOS_ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+                <element maxLength="15" obj-name="fastPathQOSACLQOSACL_aclRuleSrcIpMask" id="1" name="Source IP wildcard mask "/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" target-page="IPACLRuleConfig.html" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" target-page="IPACLRuleConfig.html" help="Executes the associated actions if any." id="2" name="Cancel"/>
+            </node>
+
+        </group>
+    </webxml>
+</FastPathXML>

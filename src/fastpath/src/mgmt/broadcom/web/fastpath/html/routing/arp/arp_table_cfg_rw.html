@@ -1,0 +1,308 @@
+<EMWEB_HEAD C='
+#include "usmdb_ip_api.h"
+#include "usmdb_sim_api.h"
+'>
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename file_download.html
+*
+* @purpose html content  
+*
+* @comments
+*
+* @create 01-Mar-2001
+*
+* @author gaunce
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+<HEAD>
+<META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=emweb:/USMWEB_ROUTING_GET_NLS_STRING?1;">
+   <TITLE>emweb:/USMWEB_ROUTING_GET_NLS_STRING?1590;</TITLE>
+
+   <LINK REL=stylesheet HREF="/css/style.css" TYPE="text/css">
+
+<script type='text/javascript' language='JavaScript'>
+var agetime;
+var dynmcRenw;
+
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+    alert(document.forms[0].err_msg.value);
+}
+
+function CheckError()
+{
+   if (document.forms[0].err_flag.value == 1) {
+      DisplayErrorMsg();
+   }
+   agetime   = document.forms[0].agetime.value;
+   dynmcRenw = document.forms[0].dynmc_rnw.value;
+}
+function screen_refresh()
+{
+   document.forms[0].submit();
+}
+
+function checkAgeTime()
+{
+  if(document.forms[0].isStacking.value==1)
+  {
+    if ((agetime != document.forms[0].agetime.value) ||
+        (dynmcRenw != document.forms[0].dynmc_rnw.value))
+    {
+      if(document.forms[0].dynmc_rnw.value == "Disable")
+      {
+        if(document.forms[0].agetime.value<360)
+        {
+          if(confirm("ARP AgeTime less than 6 minutes on a stacking system with Dynamic Renew Mode disabled can load CPU with software forwarding. Do you want to continue?") == false)
+          {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+</script>
+
+</HEAD>
+
+<BODY class ="bodyframeattributes" ONLOAD = 'CheckError()'>
+
+
+<form method="post" EMWEB_NAME=arp_table_cfg onSubmit="return checkAgeTime()">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+ emweb:/USMWEB_ROUTING_PAGE_HEADER_1ST_GET?1201;   <!-- Includes page title          -->
+ emweb:/USMWEB_ROUTING_PAGE_HEADER_2ND_GET?1281;   <!-- Includes help page link      -->
+
+
+
+<table CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+<TR></TR>
+<TR></TR>
+<TR></TR>
+
+<TR>
+ <TD class = "rowidentifierattributes">emweb:/USMWEB_ROUTING_GET_NLS_STRING?1696; </TD> <!--Age Time (secs) -->
+ <TD><INPUT class="inputfield" TYPE="text" NAME="agetime" SIZE="5" MAXLENGTH="5"  EMWEB_TYPE=DECIMAL_UINT>
+    <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_IP_ARP_AGE_TIME_MIN, L7_IP_ARP_AGE_TIME_MAX);
+    ' >
+    </TD>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes">emweb:/USMWEB_ROUTING_GET_NLS_STRING?1592; </TD> <!-- Response Time -->
+ <TD><INPUT class="inputfield" TYPE="text" NAME="resptime" SIZE="5" MAXLENGTH="2" EMWEB_TYPE=DECIMAL_UINT>
+    <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_IP_ARP_RESP_TIME_MIN, L7_IP_ARP_RESP_TIME_MAX);
+    ' >
+    </TD>
+ </td>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes">emweb:/USMWEB_ROUTING_GET_NLS_STRING?1593; </TD> <!-- Retries -->
+ <TD><INPUT class="inputfield" TYPE="text" NAME="retries" SIZE="5" MAXLENGTH="2" EMWEB_TYPE=DECIMAL_UINT>
+    <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_IP_ARP_RETRIES_MIN, L7_IP_ARP_RETRIES_MAX);
+    ' >
+    </TD>
+ </td>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes">emweb:/USMWEB_ROUTING_GET_NLS_STRING?1594; </TD> <!-- Cache Size -->
+ <TD><INPUT class="inputfield" TYPE="text" NAME="cachesize" SIZE="5" MAXLENGTH="4" EMWEB_TYPE=DECIMAL_UINT>
+    <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_IP_ARP_CACHE_SIZE_MIN, platRtrArpMaxEntriesGet());
+    ' >
+    </TD>
+ </td>
+</TR>
+
+
+<TR>
+<TD CLASS = "rowidentifierattributes" NOWRAP>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16256;</TD>
+<TD><SELECT class="selectfield" NAME = "dynmc_rnw" SIZE = "1" EMWEB_TYPE=DECIMAL_UINT id="dyn_rnw">
+  <OPTION VALUE = "Disable">emweb:/USMWEB_ROUTING_GET_NLS_STRING?4001;</OPTION>
+  <OPTION VALUE = "Enable">emweb:/USMWEB_ROUTING_GET_NLS_STRING?4002;</OPTION>
+</SELECT></TD>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes" >Total Entry Count </TD>
+ <TD ALIGN=left><INPUT TYPE="text" NAME="tot_entry_cnt" SIZE="16" class = "rowvalue" READONLY MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT></TD>
+ </td>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes" >Peak Total Entries </TD>
+ <TD ALIGN=left><INPUT TYPE="text" NAME="peak_tot_entry" SIZE="16" class = "rowvalue" READONLY MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT></TD>
+ </td>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes" >Active Static Entries </TD>
+ <TD ALIGN=left><INPUT TYPE="text" NAME="static_entry_cnt_active" SIZE="16" class = "rowvalue" READONLY MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT></TD>
+ </td>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes" >Configured Static Entries </TD>
+ <TD ALIGN=left><INPUT TYPE="text" NAME="static_entry_cnt_cfg" SIZE="16" class = "rowvalue" READONLY MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT></TD>
+ </td>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes" >Maximum Static Entries </TD>
+ <TD ALIGN=left><INPUT TYPE="text" NAME="max_static_entry" SIZE="16" class = "rowvalue" READONLY MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT></TD>
+ </td>
+</TR>
+
+
+
+<TR>
+<TD CLASS = "rowidentifierattributes" NOWRAP>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16261;</TD>
+<TD><SELECT class="selectfield" NAME = "clear" SIZE = "1" ONCHANGE='screen_refresh()' EMWEB_TYPE=DECIMAL_UINT>
+  <OPTION VALUE = 'All_Dynmc' selected>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16262;</OPTION>
+  <OPTION VALUE = 'All_Dynmc_Gtwy'>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16263;</OPTION>
+  <OPTION VALUE = 'Specific_Dynmc_Gtwy'>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16264;</OPTION>
+  <OPTION VALUE = 'Specific_Static'>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16267;</OPTION>
+  <OPTION VALUE = 'None'>emweb:/USMWEB_ROUTING_GET_NLS_STRING?16266;</OPTION>
+</SELECT></TD>
+</TR>
+
+<EMWEB_IF ID=USMWEB_IF_REMOVE_SPECIFIC_IP>
+<TR>
+ <TD class = "rowidentifierattributes" >emweb:/USMWEB_ROUTING_GET_NLS_STRING?16265; </TD>
+ <TD><INPUT class="inputfield" TYPE="text" NAME="clr_ipaddr" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DOTTED_IP></TD>
+</TR>
+</EMWEB_IF>
+
+<TR></TR>
+<TR></TR>
+
+<TR><td colspan=2 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+<input class="buttonattributes" type="Submit" name="Submit" VALUE="Submit"> 
+<input class="buttonattributes" type="Submit" name="Refresh" VALUE="Refresh"></TD>
+</TR>
+
+<TR></TR>
+<TR></TR>
+<TR></TR>
+
+<TR><TD COLSPAN=4>
+<TABLE class="datatableattributes"  emweb:/USMWEB_DATA_TABLE_ALIGN;>
+
+<THEAD>
+
+<TR>
+ <TH class = "datatableheading" >emweb:/USMWEB_ROUTING_GET_NLS_STRING?1610; </TH> <!--IP Address-->
+ <TH class = "datatableheading" >emweb:/USMWEB_ROUTING_GET_NLS_STRING?1004; </TH> <!--MAC Address-->
+ <TH class = "datatableheading" >emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;  </TH> <!--Slot.Port-->
+ <TH class = "datatableheading" >emweb:/USMWEB_ROUTING_GET_NLS_STRING?1538; </TH> <!--Type-->
+ <TH class = "datatableheading" >emweb:/USMWEB_ROUTING_GET_NLS_STRING?16260; </TH><!-- Age -->
+</TR>
+</THEAD>
+
+<TR></TR>
+<TR></TR>
+<TR></TR>
+
+<EMWEB_ITERATE
+ C='
+   static L7_arpEntry_t arpEntry;
+   static L7_uint32 ipaddr = 0;
+   static L7_uint32 intIfNum = 0;
+   L7_RC_t rc;
+   L7_uint32  unit;
+   unit = usmDbThisUnitGet();
+
+   if (ewsContextIterator(ewsContext) == NULL)
+   {
+     memset(&arpEntry, 0x00, sizeof(L7_arpEntry_t));
+     ipaddr = 0;
+     intIfNum = 0;
+   }
+   rc = usmDbIpArpEntryNext(unit, ipaddr,intIfNum, &arpEntry); 
+   ipaddr = arpEntry.ipAddr;
+   intIfNum = arpEntry.intIfNum;   
+
+   if (rc == L7_SUCCESS)
+   {
+     return (const void *) &arpEntry;
+   }
+   else
+   {
+     return NULL;
+   }
+   '>
+
+   <EMWEB_STRING C='
+
+   L7_arpEntry_t arpEntry_itr;
+   L7_uint32  unit;
+   unit = usmDbThisUnitGet();
+
+   if (ewsContextIterator(ewsContext) == NULL)
+   {
+     memset(&arpEntry_itr, 0x00, sizeof(L7_arpEntry_t));
+   }
+   else
+   {
+     memcpy(&arpEntry_itr, (L7_arpEntry_t *) ewsContextIterator(ewsContext), sizeof(L7_arpEntry_t));
+   }
+
+   return usmWebArpInfoGet(L7_FALSE, unit, arpEntry_itr);
+   '>
+
+</EMWEB_ITERATE>
+</TABLE>
+
+<TR></TR>
+<TR></TR>
+<TR></TR>
+
+
+<TR><TD COLSPAN=2>
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="80" MAXLENGTH="79" >
+<INPUT TYPE="hidden" NAME="isStacking" SIZE="2" MAXLENGTH="1" EMWEB_TYPE=DECIMAL_UINT>
+</TD></TR>
+
+</TABLE>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</form>
+
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+
+<HEAD>
+
+   <META http-equiv="Pragma" content="no-cache">
+
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+   <TITLE>Network Connectivity Configuration Help</TITLE>
+
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+</HEAD>
+
+
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=netcon></a>Help for Network Connectivity Configuration</h2>
+
+<p><br>
+
+The network interface is the logical interface used for in-band connectivity 
+
+with the switch via any of the switch's front panel ports.  The configuration 
+
+parameters associated with the switch's network interface do not affect the 
+
+configuration of the front panel ports through which traffic is switched 
+
+or routed </p>
+
+<p>
+
+To access the switch over a network you must first configure it with IP
+
+information (IP address, subnet mask, and default gateway). You can
+
+configure the IP information using any of the following: </p>
+
+
+
+<ul type=disc>
+ 
+ <li>Terminal interface via the
+
+     EIA-232 port </li>
+
+ <li >BOOTP </li>
+
+ <li >DHCP </li>
+
+ 
+</ul>
+
+
+
+<p>Once you have established in-band connectivity, you can change the IP information
+
+using any of the following: </p>
+
+
+
+<ul type=disc>
+
+ <li >Terminal interface via the
+
+     EIA-232 port </li>
+
+ <li>Terminal interface via telnet
+
+     </li>
+
+ <li>SNMP-based management </li>
+
+ <li>Web-based management </li>
+
+</ul>
+
+
+
+<h3>Selection Criteria for IPv4</h3>
+
+<ul type=disc>
+
+ <ul type=circle>
+   <li><b>Network Configuration Protocol</b> - Specify what the switch should do following power-up:
+
+      transmit a Bootp request, transmit a DHCP request, or do nothing (None). The
+
+      factory default is None. 
+
+
+
+   </li>
+   
+   
+  
+   <li><b>MAC Address type</b>
+
+      - Specify whether the burned in or the locally administered MAC address
+
+      should be used for in-band connectivity. None signifies that no MAC address has been configured. The
+
+      factory default is to use the burned in MAC address </li>
+    
+  
+  <li><b>Web Mode</b> - Enable/Disable Web Mode on the switch. </li>
+
+  <li><b>Java Mode</b> - Enable/Disable Java mode on the switch. </li>
+  
+</ul>
+
+</ul>  
+
+<h3>IPv4 Configurable Data</h3>
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>IP Address</b> -
+
+      The IP address of the interface. The factory default value is 0.0.0.0 </li>
+
+  <li><b>Subnet Mask</b> -
+
+      The IP subnet mask for the interface. The factory default value is
+
+      0.0.0.0 </li>
+
+  <li><b>Default Gateway</b>
+
+      - The default gateway for the IP interface. The factory default value is
+
+      0.0.0.0 </li>
+    
+
+  <li><b>Locally
+
+      Administered MAC Address</b> - You may configure a locally administered MAC
+
+      address for in-band connectivity instead of using the burned in universally 
+
+      administered MAC address. In addition to entering an address in this 
+
+      field, you must also set the MAC address type to locally administered.
+
+      Enter the address as
+
+      twelve hexadecimal digits (6 bytes) with a colon between each byte. Bit 6
+
+      of byte 0 must be set to 1 and bit 0 to 0, i.e. byte 0 must have a value of
+      
+      2, 6, A or E for its second digit.
+
+      </li>
+  
+  
+  <li><b>Management VLAN ID</b> - Specifies the management VLAN ID of the switch.
+
+       It may be configured to any value in the range of 
+
+        (1 to 4093).
+
+       The management VLAN is used for 
+
+       management of the switch. The default management VLAN ID is 1. This field is configurable for administrative users and read-only 
+
+       for other users.   </li> 
+
+  </ul>
+
+</ul>
+
+<h3>IPv4 Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Burned In MAC
+      Address</b> - The burned in MAC address used for in-band connectivity if you choose not to    
+      configure a locally administered address. </li>
+ </ul>
+</ul>
+
+
+
+<h3>Selection Criteria for IPv6</h3>
+
+<ul type=disc>
+ <ul type=circle>
+    <li><b>IPv6 Mode</b> -
+
+      Enable/Disable IPv6 Admin Mode. </li>
+
+  <li><b>Network Configuration Protocol</b> -
+
+      Enable or Disable DHCPv6 Client protocol on the management port. The factory default is None. </li>
+
+  <li><b>IPv6 Stateless Address AutoConfig Mode</b> -
+
+      Enable or Disable the IPv6 stateless address autoconfiguration on the management port. By default it is disabled.</li>
+
+
+  <li><b>Add/Delete IPv6 Addresses</b> -
+      To Add or Delete the IPv6 Addresses, select Add or Remove from the drop-down menu. The fields "New IPv6 Address" and "EUI Flag" are visible when we select the "Add" from this menu.</li>
+
+  <li><b>EUI Flag</b> -
+      To set the EUI flag while configuring "New IPv6 Address" select TRUE from the drop down menu. Default is FALSE.</li>
+
+
+
+  <li><b>Change IPv6 Gateway</b> -
+     Select the checkbox to configure/change IPv6 Gateway Addresses. </li>
+
+ 
+ </ul>
+</ul>
+
+<h3>IPv6 Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+ 
+ <li><b>DHCPv6 Client DUID</b> -
+
+      Displays the Client Identifier used by DHCPv6 Client when sending messages to the DHCPv6 Server.
+      This entry is visible to user only if IPv6 Network Configuration Protocol is set to DHCP. </li>
+      
+
+  
+  <li><b>New IPv6 Address</b> -
+      To configure the field, select Add from the "Add/Delete IPv6 Addresses" drop down menu. </li>
+
+       
+  <li><b>IPv6 Address to Delete</b> -
+      To configure the field, select Remove from the "Add/Delete IPv6 Addresses" drop down menu. </li>       
+  
+
+<li><b>IPv6 Gateway</b> -
+      The default gateway for the IPv6 Interface. </li>
+ </ul>
+</ul>
+
+<h3>IPv6 Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>IPv6 Addresses</b> - List of configured IPv6 Addresses. </li>
+  <li><b>Default IPv6 Routers</b> - Default IPv6 Router Addresses. </li>
+ </ul>
+</ul>
+
+
+
+
+
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.</li>
+  <li><b>Renew DHCP IPv4 Address</b> - Renews IPv4 Address learned from DHCP server on Network port. </li>
+ </ul>
+ </ul>
+</ul>
+
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+    <error name="LEAVE_JOIN_TIME_COND_FAILURE" output="\nError! Failed to set '$$objName$$'. GARP Leave Timer must be greater than or equal to three times the GARP Join Timer."/>
+    <error name="LEAVE_LEAVEALL_TIME_COND_FAILURE" output="\nError! Failed to set '$$objName$$'. GARP LeaveAll Timer must be greater than the GARP Leave Timer."/>
+  </misc>
+</FastPathXML>
+

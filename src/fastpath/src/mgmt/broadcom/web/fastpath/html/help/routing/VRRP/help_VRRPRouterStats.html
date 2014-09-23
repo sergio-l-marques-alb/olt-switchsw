@@ -1,0 +1,211 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>VRRP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2>Help For VRRP Virtual Router Statistics</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF></b> -
+      Select the existing Virtual Router Interface number for which you want to display statistical information. </li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VRID</b> -
+      Select the VRID for Selected Virtual Router Interface number, for which you want to display statistical information. </li>
+ </ul>
+</ul>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Router Checksum Errors</b> - The total number of VRRP packets received with an invalid
+    VRRP checksum value. </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Router Version Errors </b>- The total number of VRRP packets received with an unknown
+    or unsupported version number. </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Router VRID Errors</b> - The total number of VRRP packets received with an invalid
+    VRID for this virtual router. </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Up Time</b> - The time, in days, hours, minutes and seconds, that has
+   elapsed since the virtual router transitioned to the initialized state. </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>State Transitioned to Master</b> - The total number of times that this virtual router's state
+    has transitioned to Master. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Advertisement Received</b> - The total number of VRRP advertisements received by this
+    virtual router. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Advertisement Interval Errors</b> - The total number of VRRP advertisement packets received
+    for which the advertisement interval was different than the one configured for
+    the local virtual router
+    . </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Authentication Failure</b> - The total number of VRRP packets received that did not pass
+    the authentication check. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP TTL Errors</b> - The total number of VRRP packets received by the virtual
+    router with IP TTL (Time-To-Live) not equal to 255. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Zero Priority Packets Received</b> - The total number of VRRP packets received by the virtual
+    router with a priority of '0'. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Zero Priority Packets Sent</b> - The total number of VRRP packets sent by the virtual router
+    with a priority of '0'. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Invalid Type Packets Received</b> - The number of VRRP packets received by the virtual router
+    with an invalid value in the 'type' field. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Address List Errors</b> - The total number of packets received for which the address
+    list does not match the locally configured list for the virtual router. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Invalid Authentication Type</b> - The total number of packets received with an unknown
+    authentication type. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Authentication Type Mismatch</b> - The total number of packets received with
+  an authentication type different to
+     the locally configured authentication method. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Packet Length Errors</b> - The total number of packets received with a packet length
+    less than the length of the VRRP header. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Data Packets Sent From Primary VRRP address</b> - The total number of packets sent from primary VRRP address.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Data Packets Sent From Secondary VRRP address</b> - The total number of packets sent from secondary VRRP address.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Data Packets recieved From Primary VRRP address</b> - The total number of packets recieved from primary VRRP address.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Data Packets recieved From Primary VRRP address</b> - The total number of packets recieved from primary VRRP address.</li>
+ </ul>
+</ul>
+
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+

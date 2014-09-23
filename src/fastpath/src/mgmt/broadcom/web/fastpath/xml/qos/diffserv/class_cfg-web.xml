@@ -1,0 +1,43 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+  <webxml version="1.0" name="class_cfg" title="DiffServ Class Rule Match Class of Service">
+    <group id="1" heading="">
+      <node id="1">
+        <element obj-name="qosDiffServClassRule_ClassIndex"  id="1" name="Class Index" properties="hidden"/>
+      </node>
+      <node id="2">
+        <element obj-name="qosDiffServClassRule_ClassRuleIndex" id="1" name="Class Rule Index" properties="hidden"/>
+      </node>
+      <node id="3">
+        <element obj-name="qosDiffServClassRule_Name" id="1" name="Class Name" control="label" />                
+      </node>
+      <node id="4">
+        <element obj-name="qosDiffServClassRule_Type" id="1" name="Class Type" control="label"/>
+      </node>
+      <node id="5">
+        <element obj-name="qosDiffServClassRule_ProtoType" id="1" name="Class layer 3 Protocol" control="label"/>
+      </node>
+      <node id="8">
+        <element obj-name="qosDiffServClassRule_MatchEntryType" id="1" name="Entry type" control="textbox" properties="hidden,write-only" value="Class of Service"/>
+        <element control="combo" properties="hidden" obj-name="qosDiffServClassRule_MatchExcludeFlag" id="2" name="Exclude" value="False" run_if="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE"/>
+      </node> 
+      <node id="6" >
+        <element obj-name="qosDiffServClassRule_MatchCos" id="1" name="Class Of Service" control="combo" properties="list" arghelp="cosvalue"/>
+        <element control="checkbox" uienum="TrueFalse_t" obj-name="xLibObjects_dummy" id="2" name="Exclude" run_if="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+          <action type="enum" discard="no" setval_args="TRUTH_VALUE_TRUE" setval_ids="1_8_2"/>
+          <action type="enum" discard="no" setval_args="TRUTH_VALUE_FALSE" setval_ids="1_8_2"/>
+        </element>
+      </node> 
+      <node id="7">
+        <button scope="page" type="buttonSubmit" value="Add" obj-name="qosDiffServClassRule_RowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit" target-page="DiffservClassConfig.html">
+          <action type="button" disable="1_3_1|1_4_1|1_5_1"/>
+        </button>
+        <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Cancel" target-page="DiffservClassConfig.html" />
+      </node>
+    </group>
+  </webxml>
+</FastPathXML>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="dot1xInterfaceCapable_t">
+      <option macro="L7_DOT1X_PAE_PORT_AUTH_CAPABLE" name="Authenticator"/>
+      <option macro="L7_DOT1X_PAE_PORT_SUPP_CAPABLE" name="Supplicant"/>
+    </enum>
+    <enum name="L7_DOT1X_TERMINATION_ACTION_t">
+      <option macro="L7_DOT1X_TERMINATION_ACTION_DEFAULT" name="Default"/>
+      <option macro="L7_DOT1X_TERMINATION_ACTION_RADIUS" name="Reauthenticate"/>
+    </enum>
+  </data-types>
+</FastPathXML>
+

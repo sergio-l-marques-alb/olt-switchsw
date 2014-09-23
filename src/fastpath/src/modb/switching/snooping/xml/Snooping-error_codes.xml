@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+    <error name="SNOOPING_BRIDGE_MCAST_NOT_ENABLED" output="\n Enable Bridge Multicast filtering before enabling IGMP Snooping."/>
+  </misc>
+</FastPathXML>

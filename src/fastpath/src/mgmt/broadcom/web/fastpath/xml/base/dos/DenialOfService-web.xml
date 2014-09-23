@@ -1,0 +1,130 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DenialOfService" title="Denial of Service Configuration">
+        <group level="ReadOnlyUser" id="1" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceFirstFragMode" id="1" name="Denial of Service First Fragment" run_if="DOS_CONTROL_FIRSTFRAG_FEATURE"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPHdrSize" id="1" name="Denial of Service Min TCP Hdr Size" run_if="DOS_CONTROL_FIRSTFRAG_FEATURE"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceICMPMode" id="1" name="Denial of Service ICMP"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceICMPSize" id="1" name="Denial of Service Max ICMP Size" run_if="DOS_CONTROL_ICMPSIZE_FEATURE"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceICMPv4Size" id="1" name="Denial of Service Max ICMPv4 Size" run_if="DOS_CONTROL_ICMPV4_FEATURE"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceICMPV6MaxSize" id="1" name="Denial of Service Max ICMPv6 Size" run_if="DOS_CONTROL_ICMPV6_FEATURE"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceICMPFragMode" id="1" name="Denial of Service ICMP Fragment" run_if="DOS_CONTROL_ICMPFRAG_FEATURE"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceL4PortMode" id="1" name="Denial of Service L4 Port" run_if="DOS_CONTROL_L4PORT_MODE_FEATURE"/>
+            </node>
+            <node id="16">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPPortMode" id="1" name="Denial of Service TCP Port" run_if="DOS_CONTROL_TCPPORT_FEATURE"/>
+            </node>
+            <node id="19">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceUDPPortMode" id="1" name="Denial of Service UDP Port" run_if="DOS_CONTROL_UDPPORT_FEATURE"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceSIPDIPMode" id="1" name="Denial of Service SIP=DIP"/>
+            </node>
+            <node id="11">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceSMACDMACMode" id="1" name="Denial of Service SMAC=DMAC" run_if="DOS_CONTROL_SMACDMAC_FEATURE"/>
+            </node>
+            <node id="10">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPFlagMode" id="1" name="Denial of Service TCP Flag" run_if="DOS_CONTROL_TCPFLAG_FEATURE"/>
+            </node>
+            <node id="12">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPFinUrgPshMode" id="1" name="Denial of Service TCP FIN and URG and PSH" run_if="DOS_CONTROL_TCPFINURGPSH_FEATURE"/>
+            </node>
+            <node id="13">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPFlagSeqMode" id="1" name="Denial of Service TCP Flag and Sequence" run_if="DOS_CONTROL_TCPFLAGSEQ_FEATURE"/>
+            </node>
+            <node id="17">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPSyncMode" id="1" name="Denial of Service TCP SYN" run_if="DOS_CONTROL_TCPSYN_FEATURE"/>
+            </node>
+            <node id="18">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPSynFinMode" id="1" name="Denial of Service TCP SYN and FIN" run_if="DOS_CONTROL_TCPSYNFIN_FEATURE"/>
+            </node>
+            <node id="14">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPFragMode" id="1" name="Denial of Service TCP Fragment"/>
+            </node>
+            <node id="15">
+                <element control="label" properties="read-only" obj-name="securitydos_DenialOfServiceTCPOffsetMode" id="1" name="Denial of Service TCP Offset" run_if="DOS_CONTROL_TCPOFFSET_FEATURE"/>
+            </node>
+        </group>
+        <group level="ReadWriteUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo" obj-name="securitydos_DenialOfServiceFirstFragMode" id="1" name="Denial of Service First Fragment" run_if="DOS_CONTROL_FIRSTFRAG_FEATURE"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" obj-name="securitydos_DenialOfServiceTCPHdrSize" id="1" name="Denial of Service Min TCP Hdr Size" run_if="DOS_CONTROL_FIRSTFRAG_FEATURE" maxLength="3"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="securitydos_DenialOfServiceICMPMode" id="1" name="Denial of Service ICMP"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" obj-name="securitydos_DenialOfServiceICMPSize" id="1" name="Denial of Service Max ICMP Size" run_if="DOS_CONTROL_ICMPSIZE_FEATURE"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" obj-name="securitydos_DenialOfServiceICMPv4Size" id="1" name="Denial of Service Max ICMPv4 Size" run_if="DOS_CONTROL_ICMPV4_FEATURE" maxLength="5"/>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" obj-name="securitydos_DenialOfServiceICMPV6MaxSize" id="1" name="Denial of Service Max ICMPv6 Size" run_if="DOS_CONTROL_ICMPV6_FEATURE" maxLength="5"/>
+            </node>
+            <node id="7">
+                <element control="combo" obj-name="securitydos_DenialOfServiceICMPFragMode" id="1" name="Denial of Service ICMP Fragment" run_if="DOS_CONTROL_ICMPFRAG_FEATURE"/>
+            </node>
+            <node id="8">
+                <element control="combo" obj-name="securitydos_DenialOfServiceL4PortMode" id="1" name="Denial of Service L4 Port" run_if="DOS_CONTROL_L4PORT_MODE_FEATURE"/>
+            </node>
+            <node id="16">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPPortMode" id="1" name="Denial of Service TCP Port" run_if="DOS_CONTROL_TCPPORT_FEATURE"/>
+            </node>
+            <node id="19">
+                <element control="combo" obj-name="securitydos_DenialOfServiceUDPPortMode" id="1" name="Denial of Service UDP Port" run_if="DOS_CONTROL_UDPPORT_FEATURE"/>
+            </node>
+            <node id="9">
+                <element control="combo" obj-name="securitydos_DenialOfServiceSIPDIPMode" id="1" name="Denial of Service SIP=DIP"/>
+            </node>
+            <node id="11">
+                <element control="combo" obj-name="securitydos_DenialOfServiceSMACDMACMode" id="1" name="Denial of Service SMAC=DMAC" run_if="DOS_CONTROL_SMACDMAC_FEATURE"/>
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPFlagMode" id="1" name="Denial of Service TCP Flag" run_if="DOS_CONTROL_TCPFLAG_FEATURE"/>
+            </node>
+            <node id="12">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPFinUrgPshMode" id="1" name="Denial of Service TCP FIN and URG and PSH" run_if="DOS_CONTROL_TCPFINURGPSH_FEATURE"/>
+            </node>
+            <node id="13">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPFlagSeqMode" id="1" name="Denial of Service TCP Flag and Sequence" run_if="DOS_CONTROL_TCPFLAGSEQ_FEATURE"/>
+            </node>
+            <node id="17">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPSyncMode" id="1" name="Denial of Service TCP SYN" run_if="DOS_CONTROL_TCPSYN_FEATURE"/>
+            </node>
+            <node id="18">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPSynFinMode" id="1" name="Denial of Service TCP SYN and FIN" run_if="DOS_CONTROL_TCPSYNFIN_FEATURE"/>
+            </node>
+            <node id="14">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPFragMode" id="1" name="Denial of Service TCP Fragment"/>
+            </node>
+            <node id="15">
+                <element control="combo" obj-name="securitydos_DenialOfServiceTCPOffsetMode" id="1" name="Denial of Service TCP Offset" run_if="DOS_CONTROL_TCPOFFSET_FEATURE"/>
+            </node>
+            <node id="20">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

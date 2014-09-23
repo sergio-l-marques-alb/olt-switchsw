@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDSnoopingQuerierVLANConfigurationSummary" title="MLD Snooping Querier VLAN Configuration Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_dot1qVlanIndex" id="1" name="VLAN ID"/>
+                <element properties="write-only,hidden" value="MLDSnooping" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_SnoopingProtocol" id="2"/>
+                <element properties="read-only" control="label" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierElectionParticipateMode" id="3" name="Querier Election Participate Mode"/>
+                <element properties="read-only" control="label" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierVlanAddress" id="4" name="Snooping Querier VLAN Address"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

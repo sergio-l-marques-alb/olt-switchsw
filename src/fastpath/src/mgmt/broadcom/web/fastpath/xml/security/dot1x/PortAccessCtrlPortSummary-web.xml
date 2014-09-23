@@ -1,0 +1,20 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortAccessCtrlPortSummary" title="Port Access Control Port Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="securitydot1x_dot1xPaePortNumber" id="1"/>
+                <element control="label" properties="" obj-name="securitydot1x_Dot1xPortOperControlMode" id="2"/>
+                <element control="label" properties="edit" obj-name="securitydot1x_Dot1xPortReAuthEnabled" id="3"/>
+                <element control="label" properties="" obj-name="securitydot1x_Dot1xPortAuthControlledPortStatus" id="4"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

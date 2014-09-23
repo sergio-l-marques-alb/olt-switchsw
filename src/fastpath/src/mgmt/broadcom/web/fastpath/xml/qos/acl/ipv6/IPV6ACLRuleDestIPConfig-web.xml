@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPV6ACLRuleDestIPConfig" java-script="IPV6ACLRuleDestIPConfig" title="IPv6 ACL Rule Configuration" help-file="help_IPV6ACLRuleConfig.html">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element  properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIpv6Index" id="1" name="IPV6 ACL"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclIpv6Name" id="2" name="IPv6 ACL Name"/>
+            </node>
+            <node id="3">
+                <element obj-name="fastPathQOSACLQOSACL_aclIpv6RuleIndex" id="1" name="Rule"/>
+            </node>            
+            <node id="4">
+                <element maxLength="49" control="textbox" validation="validate_prefix_prefixLength" obj-name="xLibObjects_dummy" id="1" name="Destination Prefix/ DestinationPrefix Length"/>
+                <element maxLength="39" properties="hidden" obj-name="fastPathQOSACLQOSACL_aclRuleDstIpv6Prefix" id="2" name="Destination Prefix"/>
+                <element maxLength="10" properties="hidden" obj-name="fastPathQOSACLQOSACL_aclRuleDstIpv6PrefixLength" id="3" name="Destination Prefix Length"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" target-page="IPV6ACLRuleConfig.html" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" target-page="IPV6ACLRuleConfig.html" help="Executes the associated actions if any." id="2" name="Cancel"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
