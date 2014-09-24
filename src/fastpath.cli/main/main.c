@@ -110,7 +110,7 @@ void help_oltBuga(void)
         "m 2001 - Get MAC Learning aging time\r\n"
         "--- NEW COMMANDS FP6.3 ---------------------------------------------------------------------------------------------------------------\r\n"
         "m 1600 EVC#[0-64] - Read EVC config\r\n"
-        "m 1601 EVC#[0-64] Type[0:P2MP/1:P2P/2:Q] Stacked[0/1] MacLearn[0/1] Mask[010h:CPUtrap;100h:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
+        "m 1601 EVC#[0-64] Type[0:P2MP/1:P2P/2:Q] Stacked[0/1] MacLearn[0/1] Mask[0x010:CPUtrap;0x100:DHCP] MCFlood[0-All;1-Unknown;2-None]\r\n"
         "       type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Create EVC\r\n"
         "m 1602 EVC#[0-64] - Delete EVC\r\n"
         "m 1603 EVC#[0-64] type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Add ports to EVC\r\n"
@@ -1986,8 +1986,8 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->client.inner_vlan = (uint16) valued;
-            ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+            ptr->client.outer_vlan = (uint16) valued;
+            ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
 
             ptr->client.intf.intf_type = ptr->intf.intf_type;
             ptr->client.intf.intf_id   = ptr->intf.intf_id;
