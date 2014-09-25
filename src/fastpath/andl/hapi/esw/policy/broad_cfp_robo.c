@@ -91,7 +91,8 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyDstTrunk,       /* DstTrunk, PTin added: FP */
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
-    bcmFieldQualifyL2DestHit       /* L2 Destination hit, PTin added: FP */
+    bcmFieldQualifyL2DestHit,      /* L2 Destination hit, PTin added: FP */
+    bcmFieldQualifyIntPriority     /* Internal priority, PTin added: FP */
 };
 
 typedef struct custom_field_qset_t {
@@ -202,6 +203,13 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
         { bcmFieldActionNewTc, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* PTin added */
+    /* SET_USERPRIO_INNERTAG */
+    {
+        { bcmFieldActionInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_DROPPREC */
     {
@@ -328,6 +336,13 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* PTin added */
+    /* SET_USERPRIO_INNERTAG */
+    {
+        { bcmFieldActionInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
     /* SET_DROPPREC */
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -447,6 +462,13 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { bcmFieldActionRpDscpNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_USERPRIO */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* PTin added */
+    /* SET_USERPRIO_INNERTAG */
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -1775,6 +1797,9 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_L2_DSTHIT:
         rv = bcm_field_qualify_L2DestHit(unit,eid,*((uint8*)value), 1);
+        break;
+    case BROAD_FIELD_INT_PRIO:
+        rv = bcm_field_qualify_IntPriority(unit,eid,*((uint8*)value), *((uint8*)mask));
         break;
     // PTin end
     default:

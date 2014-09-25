@@ -258,6 +258,24 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       }
       break;
 
+    /* PTin added */
+    #if 1
+    case BROAD_ACTION_SET_USERPRIO_INNERTAG:
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.set_userprio_innertag[action_scope] = param0;
+      }
+      else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+      {
+        actionPtr->u.efp_parms.set_userprio_innertag[action_scope] = param0;
+      }
+      else
+      {
+        actionPtr->u.ifp_parms.set_userprio_innertag[action_scope] = param0;
+      }
+      break;
+    #endif
+
     case BROAD_ACTION_SET_DROPPREC:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
@@ -2370,6 +2388,7 @@ void hapiBroadPolicyDebugAction(BROAD_ACTION_ENTRY_t       *actionPtr,
   case BROAD_ACTION_SET_DSCP:
   case BROAD_ACTION_SET_TOS:
   case BROAD_ACTION_SET_USERPRIO:
+  case BROAD_ACTION_SET_USERPRIO_INNERTAG:  /* PTin added */
   case BROAD_ACTION_SET_OUTER_VID:
   case BROAD_ACTION_SET_INNER_VID:
   case BROAD_ACTION_ADD_OUTER_VID:
