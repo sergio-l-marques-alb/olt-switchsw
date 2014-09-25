@@ -8,8 +8,15 @@ typedef struct {
   L7_uint16 innerVlanId;
   L7_uint16 newOuterVlanId;
   L7_uint16 newInnerVlanId;
-  ptin_vlanXlate_action_enum outerAction;
-  ptin_vlanXlate_action_enum innerAction;
+  ptin_vlanXlate_action_enum outerVlanAction;
+  ptin_vlanXlate_action_enum innerVlanAction;
+
+  L7_uint8  outerPrio;
+  L7_uint8  innerPrio;
+  L7_uint8  newOuterPrio;
+  L7_uint8  newInnerPrio;
+  ptin_vlanXlate_action_enum outerPrioAction;
+  ptin_vlanXlate_action_enum innerPrioAction;
 } ptin_hapi_xlate_t;
 
 /**

@@ -1018,11 +1018,19 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   /* Extract new outer vlan */
   xlate->newOuterVlanId = action.new_outer_vlan;
   xlate->newInnerVlanId = action.new_inner_vlan;
-  xlate->outerAction = (xlate->innerVlanId!=0) ? action.dt_outer : action.ot_outer;
-  xlate->innerAction = (xlate->innerVlanId!=0) ? action.dt_inner : action.ot_inner;
+  xlate->outerVlanAction = (xlate->innerVlanId!=0) ? action.dt_outer : action.ot_outer;
+  xlate->innerVlanAction = (xlate->innerVlanId!=0) ? action.dt_inner : action.ot_inner;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOVid=%u (OAction=%u), newIVid=%u (IAction=%u)",
-            xlate->newOuterVlanId,xlate->outerAction,xlate->newInnerVlanId,xlate->innerAction);
+  xlate->newOuterPrio   = action.priority;
+  xlate->newInnerPrio   = action.new_inner_pkt_prio;
+  xlate->outerPrioAction = (xlate->innerVlanId!=0) ? action.dt_outer_prio : action.ot_outer_prio;
+  xlate->innerPrioAction = (xlate->innerVlanId!=0) ? action.dt_inner_prio : action.ot_inner_pkt_prio;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOVid=%u.%u (OAction=%u.%u), newIVid=%u.%u (IAction=%u.%u)",
+            xlate->newOuterVlanId , xlate->newOuterPrio,
+            xlate->outerVlanAction, xlate->outerPrioAction,
+            xlate->newInnerVlanId , xlate->newInnerPrio,
+            xlate->innerVlanAction, xlate->innerPrioAction);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -1046,7 +1054,7 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"dapiPort={%d,%d,%d} oVlanId=%u iVlanId=%u newOVlanId=%u (%u) newIVlanId=%u (%u)",
             dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port,
             xlate->outerVlanId, xlate->innerVlanId,
-            xlate->newOuterVlanId, xlate->outerAction, xlate->newInnerVlanId, xlate->innerAction);
+            xlate->newOuterVlanId, xlate->outerVlanAction, xlate->newInnerVlanId, xlate->innerVlanAction);
 
   /* Validate dapiPort */
   if (dapiPort->usp->unit<0 || dapiPort->usp->slot<0 || dapiPort->usp->port<0)
@@ -1083,20 +1091,54 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   }
 
   bcm_vlan_action_set_t_init(&action);
-  action.dt_outer      = (xlate->outerAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
-  action.dt_inner      = (xlate->innerAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
-  action.dt_outer_prio = bcmVlanActionNone;
-  action.dt_inner_prio = bcmVlanActionNone;
 
-  action.ot_outer      = (xlate->outerAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
-  action.ot_inner      = (xlate->innerAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
-  action.ot_outer_prio = bcmVlanActionNone;
+  /* VLAN actions */
+  /* If it already exists, does not make sense to add: do not allow addition for double tagged packets */
+  action.dt_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
+  action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
+  action.dt_outer_prio      = xlate->outerPrioAction;
+  action.dt_outer_pkt_prio  = xlate->outerPrioAction;
+  action.dt_inner_prio      = xlate->innerPrioAction;
+  action.dt_inner_pkt_prio  = xlate->innerPrioAction;
 
-  action.new_outer_vlan = xlate->newOuterVlanId;
-  action.new_inner_vlan = xlate->newInnerVlanId;
+  action.ot_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
+  action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
+  action.ot_outer_prio      = xlate->outerPrioAction;
+  action.ot_outer_pkt_prio  = xlate->outerPrioAction;
+  action.ot_inner_pkt_prio  = xlate->innerPrioAction;
+
+  action.new_outer_vlan     = xlate->newOuterVlanId;
+  action.new_inner_vlan     = xlate->newInnerVlanId;
+  action.priority           = xlate->newOuterPrio;
+  action.new_inner_pkt_prio = xlate->newInnerPrio;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_outer_vlan     = %u", action.new_outer_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_vlan     = %u", action.new_inner_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.priority           = %u", action.priority);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_pkt_prio = %u", action.new_inner_pkt_prio);
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer           = %u", action.dt_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner           = %u", action.dt_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_prio      = %u", action.dt_outer_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_pkt_prio  = %u", action.dt_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_prio      = %u", action.dt_inner_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_pkt_prio  = %u", action.dt_inner_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer           = %u", action.ot_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner           = %u", action.ot_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_prio      = %u", action.ot_outer_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_pkt_prio  = %u", action.ot_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner_pkt_prio  = %u", action.ot_inner_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer           = %u", action.it_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner           = %u", action.it_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer_prio      = %u", action.it_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner_pkt_prio  = %u", action.it_inner_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer           = %u", action.ut_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner           = %u", action.ut_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
@@ -1113,8 +1155,11 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
       resources_xlate_ingress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOuterVlan=%u (%u) newInnerVlan=%u (%u)",
-            xlate->newOuterVlanId,xlate->outerAction, xlate->newInnerVlanId,xlate->innerAction);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
+            xlate->newOuterVlanId , xlate->newOuterPrio,
+            xlate->outerVlanAction, xlate->outerPrioAction,
+            xlate->newInnerVlanId , xlate->newInnerPrio,
+            xlate->innerVlanAction, xlate->innerPrioAction);
 
   return L7_SUCCESS;
 }
@@ -1242,11 +1287,19 @@ L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   /* Extract data */
   xlate->newOuterVlanId = action.new_outer_vlan;
   xlate->newInnerVlanId = action.new_inner_vlan;
-  xlate->outerAction = (xlate->innerVlanId!=0) ? action.dt_outer : action.ot_outer;
-  xlate->innerAction = (xlate->innerVlanId!=0) ? action.dt_inner : action.ot_inner;
+  xlate->outerVlanAction = (xlate->innerVlanId!=0) ? action.dt_outer : action.ot_outer;
+  xlate->innerVlanAction = (xlate->innerVlanId!=0) ? action.dt_inner : action.ot_inner;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOuterVlan=%u (%u) newInnerVlan=%u (%u)",
-            xlate->newOuterVlanId,xlate->outerAction, xlate->newInnerVlanId,xlate->innerAction);
+  xlate->newOuterPrio   = action.priority;
+  xlate->newInnerPrio   = action.new_inner_pkt_prio;
+  xlate->outerPrioAction = (xlate->innerVlanId!=0) ? action.dt_outer_prio : action.ot_outer_prio;
+  xlate->innerPrioAction = (xlate->innerVlanId!=0) ? action.dt_inner_prio : action.ot_inner_pkt_prio;
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry read successfully: newOuterVlan=%u.%u (Oaction %u.%u) newInnerVlan=%u.%u (Iaction %u.%u)",
+            xlate->newOuterVlanId , xlate->newOuterPrio,
+            xlate->outerVlanAction, xlate->outerPrioAction,
+            xlate->newInnerVlanId , xlate->newInnerPrio,
+            xlate->innerVlanAction, xlate->innerPrioAction);
 
   return L7_SUCCESS;
 }
@@ -1267,8 +1320,8 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "portgroup=%u oVlanId=%u iVlanId=%u newOVlanId=%u(%u) newIVlanId=%u(%u)",portgroup,
             xlate->outerVlanId,xlate->innerVlanId,
-            xlate->newOuterVlanId,xlate->outerAction,
-            xlate->newInnerVlanId,xlate->innerAction);
+            xlate->newOuterVlanId,xlate->outerVlanAction,
+            xlate->newInnerVlanId,xlate->innerVlanAction);
 
   /* Do not allow ADD operation for double-tagged packets */
 //if (xlate->innerVlanId!=0 &&
@@ -1280,19 +1333,52 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
-  action.dt_outer      = (xlate->outerAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
-  action.dt_inner      = (xlate->innerAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
-  action.dt_outer_prio = bcmVlanActionNone;
-  action.dt_inner_prio = bcmVlanActionNone;
+  action.dt_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
+  action.dt_inner      = (xlate->innerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add. Instead replace */
+  action.dt_outer_prio      = xlate->outerPrioAction;
+  action.dt_outer_pkt_prio  = xlate->outerPrioAction;
+  action.dt_inner_prio      = xlate->innerPrioAction;
+  action.dt_inner_pkt_prio  = xlate->innerPrioAction;
 
-  action.ot_outer      = (xlate->outerAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
-  action.ot_inner      = (xlate->innerAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
-  action.ot_outer_prio = bcmVlanActionNone;
+  action.ot_outer      = (xlate->outerVlanAction!=PTIN_XLATE_ACTION_ADD) ? xlate->outerVlanAction : bcmVlanActionNone;  /* If it already exists, does not make sense to add */
+  action.ot_inner      = (xlate->innerVlanAction==PTIN_XLATE_ACTION_ADD) ? xlate->innerVlanAction : bcmVlanActionNone;  /* If it does not exist, it only make sense to add */
+  action.ot_outer_prio      = xlate->outerPrioAction;
+  action.ot_outer_pkt_prio  = xlate->outerPrioAction;
+  action.ot_inner_pkt_prio  = xlate->innerPrioAction;
 
-  action.new_outer_vlan = xlate->newOuterVlanId;
-  action.new_inner_vlan = xlate->newInnerVlanId;
+  action.new_outer_vlan     = xlate->newOuterVlanId;
+  action.new_inner_vlan     = xlate->newInnerVlanId;
+  action.priority           = xlate->newOuterPrio;
+  action.new_inner_pkt_prio = xlate->newInnerPrio;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u, %u, &action)", portgroup, xlate->outerVlanId, xlate->innerVlanId);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "bcm_vlan_translate_egress_action_add(0, %d, %u.%u, %u.%u, &action)", portgroup,
+            xlate->outerVlanId, xlate->outerPrio,
+            xlate->innerVlanId, xlate->innerPrio);
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_outer_vlan     = %d", action.new_outer_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_vlan     = %d", action.new_inner_vlan);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.priority           = %d", action.priority);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.new_inner_pkt_prio = %d", action.new_inner_pkt_prio);
+
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer           = %d", action.dt_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner           = %d", action.dt_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_prio      = %d", action.dt_outer_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_outer_pkt_prio  = %d", action.dt_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_prio      = %d", action.dt_inner_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.dt_inner_pkt_prio  = %d", action.dt_inner_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer           = %d", action.ot_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner           = %d", action.ot_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_prio      = %d", action.ot_outer_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_outer_pkt_prio  = %d", action.ot_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ot_inner_pkt_prio  = %d", action.ot_inner_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer           = %u", action.it_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner           = %u", action.it_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_outer_prio      = %u", action.it_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.it_inner_pkt_prio  = %u", action.it_inner_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer           = %u", action.ut_outer);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner           = %u", action.ut_inner);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_outer_prio      = %u", action.ut_outer_pkt_prio);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI,"action.ut_inner_pkt_prio  = %u", action.ut_inner_pkt_prio);
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
 
@@ -1309,9 +1395,11 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
       resources_xlate_egress++;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOVlanId=%u(%u) newIVlanId=%u(%u)",
-            xlate->newOuterVlanId,xlate->outerAction,
-            xlate->newInnerVlanId,xlate->innerAction);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
+            xlate->newOuterVlanId , xlate->newOuterPrio,
+            xlate->outerVlanAction, xlate->outerPrioAction,
+            xlate->newInnerVlanId , xlate->newInnerPrio,
+            xlate->innerVlanAction, xlate->innerPrioAction);
 
   return L7_SUCCESS;
 }
