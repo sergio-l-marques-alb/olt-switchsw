@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.17.14
- * Thu Sep 25 01:52:51 2014
+ * Thu Sep 25 02:22:43 2014
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_MMU 1
