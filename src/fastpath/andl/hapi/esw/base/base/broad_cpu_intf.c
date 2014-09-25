@@ -2262,7 +2262,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 
   /* Check if packet needs to be printed out */
-  ptin_debug_trap_packets_show(bcm_pkt->rx_port, bcm_pkt->vlan, bcm_pkt->inner_vlan, bcm_pkt->pkt_data->data);
+  ptin_debug_trap_packets_show(bcm_pkt->rx_port, bcm_pkt);
 
   memset(&cmdInfo, 0, sizeof(cmdInfo));
 

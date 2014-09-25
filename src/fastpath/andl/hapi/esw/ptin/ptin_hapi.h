@@ -6,6 +6,7 @@
 #include "ptin_globaldefs.h"
 #include "dapi_struct.h"
 #include "broad_common.h"
+#include <bcm/pkt.h>
 
 /********************************************************************
  * TYPES DEFINITION
@@ -321,6 +322,15 @@ extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PO
 extern L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 innerVlan, DAPI_t *dapi_g);
 
 /**
+ * System Default rules applied for PTIn 
+ * 
+ * @author mruas (9/21/2014)
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t hapiBroadSystemInstallPtin(void);
+
+/**
  * Show trapped packets (to CPU) according to the configured 
  * trap rule 
  * 
@@ -330,7 +340,7 @@ extern L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uchar8 *packet_data );
+extern L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt );
 
 #endif /*_PTIN_HAPI_H */
 

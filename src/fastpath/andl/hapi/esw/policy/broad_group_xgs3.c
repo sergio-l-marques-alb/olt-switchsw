@@ -97,7 +97,8 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
 #endif
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
-    bcmFieldQualifyL2DestHit       /* L2 Destination hit, PTin added: FP */
+    bcmFieldQualifyL2DestHit,      /* L2 Destination hit, PTin added: FP */
+    bcmFieldQualifyIntPriority     /* Internal priority, PTin added: FP */
 };
 
 /* Action Map */
@@ -123,9 +124,9 @@ static action_map_entry_t xgs4_ingress_set_cosq_action_map =
     /* SET_COSQ */
     {
       /* PTin modified: CoS */
-        { bcmFieldActionGpPrioPktAndIntNew /*bcmFieldActionGpPrioIntNew*/, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpPrioPktAndIntNew /*bcmFieldActionYpPrioIntNew*/, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionRpPrioPktAndIntNew /*bcmFieldActionRpPrioIntNew*/, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionGpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionYpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionRpPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
     };
 
 static action_map_entry_t xgs4_ingress_set_userprio_action_map =
@@ -134,6 +135,15 @@ static action_map_entry_t xgs4_ingress_set_userprio_action_map =
         { bcmFieldActionGpPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { bcmFieldActionYpPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { bcmFieldActionRpPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+    };
+
+/* PTin added */
+static action_map_entry_t xgs4_ingress_set_userprio_innertag_action_map =
+    /* SET_USERPRIO_INNERTAG */
+    {
+        { bcmFieldActionGpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionYpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { bcmFieldActionRpInnerVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
     };
 
 static action_map_entry_t xgs4_ingress_set_userprio_as_cos2_action_map =
@@ -213,7 +223,7 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
     /* SET_COSQ */
     {
         /* PTin modified: QOS */
-        { bcmFieldActionPrioPktAndIntNew /*bcmFieldActionPrioIntNew*/, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -234,6 +244,13 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
         { bcmFieldActionPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* PTin added */
+    /* SET_USERPRIO_INNERTAG */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_DROPPREC */
     {
@@ -362,6 +379,13 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
     /* SET_USERPRIO */
     {
         { bcmFieldActionOuterVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* PTin added */
+    /* SET_USERPRIO_INNERTAG */
+    {
+        { bcmFieldActionInnerVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -495,6 +519,13 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { bcmFieldActionGpOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
         { bcmFieldActionYpOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
         { bcmFieldActionRpOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+    },
+    /* PTin added */
+    /* SET_USERPRIO_INNERTAG */
+    {
+        { bcmFieldActionGpInnerVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionYpInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionRpInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_DROPPREC */
     {
@@ -1585,8 +1616,10 @@ static int _policy_action_map_init(int unit)
       (SOC_IS_TRIUMPH3(unit)) )     /* PTin added: new switch 5664x (Triumph3) */
   {
     /* Modify action maps for certain actions. */
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],     &xgs4_ingress_set_cosq_action_map,     sizeof(action_map_entry_t));
-    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO], &xgs4_ingress_set_userprio_action_map, sizeof(action_map_entry_t));
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_COSQ],              &xgs4_ingress_set_cosq_action_map,              sizeof(action_map_entry_t));
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO],          &xgs4_ingress_set_userprio_action_map,          sizeof(action_map_entry_t));
+    /* PTin added */
+    memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO_INNERTAG], &xgs4_ingress_set_userprio_innertag_action_map, sizeof(action_map_entry_t));
 
     memcpy(&ingress_action_map[BROAD_ACTION_SET_USERPRIO_AS_COS2], 
            &xgs4_ingress_set_userprio_as_cos2_action_map,
@@ -2902,6 +2935,9 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_L2_DSTHIT:
         rv = bcm_field_qualify_L2DestHit(unit,eid,*((uint8*)value), 1);
+        break;
+    case BROAD_FIELD_INT_PRIO:
+        rv = bcm_field_qualify_IntPriority(unit,eid,*((uint8*)value), *((uint8*)mask));
         break;
     // PTin end
     default:

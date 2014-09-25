@@ -154,6 +154,7 @@ typedef enum
     BROAD_FIELD_DROP,             /* PTin added: FP */
     BROAD_FIELD_L2_SRCHIT,        /* PTin added: FP */
     BROAD_FIELD_L2_DSTHIT,        /* PTin added: FP */
+    BROAD_FIELD_INT_PRIO,         /* PTin added: FP */
     BROAD_FIELD_LAST,
 
     /* special bit fields */
@@ -178,29 +179,29 @@ typedef unsigned char BROAD_POLICY_RULE_PRIORITY_t;
 /* Policy Actions */
 typedef enum
 {
- /* Action                         Param0    Param1  Param2   Description                              */
-    BROAD_ACTION_SOFT_DROP,     /* n/a       n/a     n/a      drop (affects switched traffic only)     */
-    BROAD_ACTION_HARD_DROP,     /* n/a       n/a     n/a      drop all (overrides all other rules)     */
-    BROAD_ACTION_PERMIT,        /* n/a       n/a     n/a      permit unless another rule drops         */
-    BROAD_ACTION_REDIRECT,      /* unit      slot    port     override switching decision              */
-    BROAD_ACTION_MIRROR,        /* unit      slot    port     mirror to lport                          */
-    BROAD_ACTION_TRAP_TO_CPU,   /* n/a       n/a     n/a      unconditional trap to cpu, no switching  */
-    BROAD_ACTION_COPY_TO_CPU,   /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
-    BROAD_ACTION_TS_TO_CPU,     /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
-    BROAD_ACTION_SET_COSQ,      /* cosq      n/a     n/a      set cos queue of switched traffic only   */
-    BROAD_ACTION_SET_DSCP,      /* dscp      n/a     n/a      set ip dscp in l3 packet                 */
-    BROAD_ACTION_SET_TOS,       /* tos       n/a     n/a      set tos in l3 packet                     */
-    BROAD_ACTION_SET_USERPRIO,  /* userprio  n/a     n/a      set dot1p in l2 packet                   */
-    BROAD_ACTION_SET_DROPPREC,  /* conf      exceed  non-conf set color for different meter output     */
-    BROAD_ACTION_SET_OUTER_VID, /* vid       n/a     n/a      set the outer VLAN ID (LOOKUP and EGRESS only) */
-    BROAD_ACTION_SET_INNER_VID, /* vid       n/a     n/a      set the inner VLAN ID (EGRESS only)      */
-    BROAD_ACTION_ADD_OUTER_VID, /* vid       n/a     n/a      add a new outer VLAN ID (LOOKUP only)    */
-    BROAD_ACTION_ADD_INNER_VID, /* vid       n/a     n/a      add a new inner VLAN ID (LOOKUP only)    */
-    BROAD_ACTION_DO_NOT_LEARN,  /* n/a       n/a     n/a      do not learn the MAC SA (LOOKUP only)    */
-    BROAD_ACTION_SET_CLASS_ID,  /* class id  n/a     n/a      set a class ID to be used by IFP (LOOKUP only) */
-    BROAD_ACTION_SET_REASON_CODE,/* reason   n/a     n/a      set a reason for RX */
-    BROAD_ACTION_SET_USERPRIO_AS_COS2, /* n/a n/a n/a Copy inner TAG priority as dot1p priority in 
-                                                  outgoing L2 frame */
+ /* Action                                   Param0    Param1  Param2   Description                              */
+    BROAD_ACTION_SOFT_DROP,               /* n/a       n/a     n/a      drop (affects switched traffic only)     */
+    BROAD_ACTION_HARD_DROP,               /* n/a       n/a     n/a      drop all (overrides all other rules)     */
+    BROAD_ACTION_PERMIT,                  /* n/a       n/a     n/a      permit unless another rule drops         */
+    BROAD_ACTION_REDIRECT,                /* unit      slot    port     override switching decision              */
+    BROAD_ACTION_MIRROR,                  /* unit      slot    port     mirror to lport                          */
+    BROAD_ACTION_TRAP_TO_CPU,             /* n/a       n/a     n/a      unconditional trap to cpu, no switching  */
+    BROAD_ACTION_COPY_TO_CPU,             /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
+    BROAD_ACTION_TS_TO_CPU,               /* cosq      n/a     n/a      copy to cpu in addition to switching (1) */
+    BROAD_ACTION_SET_COSQ,                /* cosq      n/a     n/a      set cos queue of switched traffic only   */
+    BROAD_ACTION_SET_DSCP,                /* dscp      n/a     n/a      set ip dscp in l3 packet                 */
+    BROAD_ACTION_SET_TOS,                 /* tos       n/a     n/a      set tos in l3 packet                     */
+    BROAD_ACTION_SET_USERPRIO,            /* userprio  n/a     n/a      set dot1p in l2 packet                   */
+    BROAD_ACTION_SET_USERPRIO_INNERTAG,   /* userprio  n/a     n/a      set innertag priority in l2 packet       */
+    BROAD_ACTION_SET_DROPPREC,            /* conf      exceed  non-conf set color for different meter output     */
+    BROAD_ACTION_SET_OUTER_VID,           /* vid       n/a     n/a      set the outer VLAN ID (LOOKUP and EGRESS only) */
+    BROAD_ACTION_SET_INNER_VID,           /* vid       n/a     n/a      set the inner VLAN ID (EGRESS only)      */
+    BROAD_ACTION_ADD_OUTER_VID,           /* vid       n/a     n/a      add a new outer VLAN ID (LOOKUP only)    */
+    BROAD_ACTION_ADD_INNER_VID,           /* vid       n/a     n/a      add a new inner VLAN ID (LOOKUP only)    */
+    BROAD_ACTION_DO_NOT_LEARN,            /* n/a       n/a     n/a      do not learn the MAC SA (LOOKUP only)    */
+    BROAD_ACTION_SET_CLASS_ID,            /* class id  n/a     n/a      set a class ID to be used by IFP (LOOKUP only) */
+    BROAD_ACTION_SET_REASON_CODE,         /* reason    n/a     n/a      set a reason for RX */
+    BROAD_ACTION_SET_USERPRIO_AS_COS2,    /* n/a n/a n/a Copy inner TAG priority as dot1p priority in outgoing L2 frame */
  /* etc... */
     BROAD_ACTION_LAST
 
@@ -235,6 +236,7 @@ typedef struct
       struct
       {
         L7_uchar8 set_userprio[BROAD_POLICY_ACTION_LAST];
+        L7_uchar8 set_userprio_innertag[BROAD_POLICY_ACTION_LAST];
 
         L7_ushort16 set_ovid;
         L7_ushort16 set_ivid;
@@ -254,6 +256,7 @@ typedef struct
         L7_uchar8 set_cosq[BROAD_POLICY_ACTION_LAST];
         L7_uchar8 set_dscp[BROAD_POLICY_ACTION_LAST];    /* For DSCP/ToS */
         L7_uchar8 set_userprio[BROAD_POLICY_ACTION_LAST];
+        L7_uchar8 set_userprio_innertag[BROAD_POLICY_ACTION_LAST];
 
         struct
         {
@@ -270,6 +273,7 @@ typedef struct
       {
         L7_uchar8 set_dscp[BROAD_POLICY_ACTION_LAST];   /* For DSCP/ToS */
         L7_uchar8 set_userprio[BROAD_POLICY_ACTION_LAST];
+        L7_uchar8 set_userprio_innertag[BROAD_POLICY_ACTION_LAST];
 
         L7_ushort16 set_ovid;
         L7_ushort16 set_ivid;
@@ -383,6 +387,7 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_DROP_SIZE                      1    /* PTin added: FP */
 #define BROAD_FIELD_L2_SRCHIT_SIZE                 1    /* PTin added: FP */
 #define BROAD_FIELD_L2_DSTHIT_SIZE                 1    /* PTin added: FP */
+#define BROAD_FIELD_INT_PRIO_SIZE                  1    /* PTin added: FP */
 
 typedef struct 
 {
@@ -599,6 +604,12 @@ typedef struct
   {
     L7_uchar8  value[BROAD_FIELD_L2_DSTHIT_SIZE];
   } fieldL2DstHit;
+
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_INT_PRIO_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_INT_PRIO_SIZE];
+  } fieldIntPrio;
   // PTin end
 
 } BROAD_FIELD_ENTRY_t;

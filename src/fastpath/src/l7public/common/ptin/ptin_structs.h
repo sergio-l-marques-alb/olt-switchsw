@@ -308,23 +308,34 @@ typedef enum
 /* Vlan translation operation */
 typedef enum
 {
-  PTIN_XLATE_ACTION_NONE = 0,
-  PTIN_XLATE_ACTION_ADD,
-  PTIN_XLATE_ACTION_REPLACE,
-  PTIN_XLATE_ACTION_DELETE
+  PTIN_XLATE_ACTION_NONE,        /* = bcmVlanActionNone,    */
+  PTIN_XLATE_ACTION_ADD,         /* = bcmVlanActionAdd,     */
+  PTIN_XLATE_ACTION_REPLACE,     /* = bcmVlanActionReplace, */
+  PTIN_XLATE_ACTION_DELETE,      /* = bcmVlanActionDelete,  */
+  PTIN_XLATE_ACTION_COPY,        /* = bcmVlanActionCopy,    */
 } ptin_vlanXlate_action_enum;
+
 
 /* Structure used to configure translation entries */
 typedef struct {
   DAPI_CMD_GET_SET_t oper;                  // Operation: DAPI_CMD_SET add, DAPI_CMD_CLEAR remove, and DAPI_CMD_GET reads.
   L7_uint32                   portgroup;    // Group of ports
   ptin_vlanXlate_stage_enum   stage;        // Translation stage
-  ptin_vlanXlate_action_enum  outerAction;  // Action associated to outer vlan
-  ptin_vlanXlate_action_enum  innerAction;  // Action associated to outer vlan
-  L7_uint16 outerVlan;                      // Outer vlan id [1..4095]
-  L7_uint16 innerVlan;                      // Inner vlan id [0..4095]: 0 means to not use this field
-  L7_uint16 outerVlan_new;                  // New outer vlan [1..4095]
-  L7_uint16 innerVlan_new;                  // New inner vlan [0..4095]: 0 means to not translate this field
+
+  L7_uint16 outerVlan;                          // Outer vlan id [1..4095]
+  L7_uint16 innerVlan;                          // Inner vlan id [0..4095]: 0 means to not use this field
+  L7_uint16 outerVlan_new;                      // New outer vlan [1..4095]
+  L7_uint16 innerVlan_new;                      // New inner vlan [0..4095]: 0 means to not translate this field
+  ptin_vlanXlate_action_enum  outerVlanAction;  // Action associated to outer vlan
+  ptin_vlanXlate_action_enum  innerVlanAction;  // Action associated to outer vlan
+
+  L7_uint16 outerPrio;                          // Outer prio [0..7]
+  L7_uint16 innerPrio;                          // Inner prio [0..7]: 0 means to not use this field
+  L7_uint16 outerPrio_new;                      // New outer prio [1..7]
+  L7_uint16 innerPrio_new;                      // New inner prio [0..7]: 0 means to not translate this field
+  ptin_vlanXlate_action_enum  outerPrioAction;  // Action associated to outer prio
+  ptin_vlanXlate_action_enum  innerPrioAction;  // Action associated to outer prio
+
   L7_BOOL   remove_VLANs;                   // Should VLANs be removed?
 } ptin_vlanXlate_t;
 

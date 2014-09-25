@@ -587,6 +587,7 @@ bcm_field_qualify_t l2QsetEgress[] =    /* l2 */
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyDstIp,         /* PTin added: FP */
     bcmFieldQualifyDrop,          /* PTin added: FP */
+    bcmFieldQualifyIntPriority,   /* PTin added: FP */
     bcmFieldQualifyStageEgress
 };
 #define l2QsetEgressSize (sizeof(l2QsetEgress) / sizeof(bcm_field_qualify_t))
@@ -610,6 +611,7 @@ bcm_field_qualify_t l3l4QsetEgress[] =    /* l3/l4 */
     bcmFieldQualifyIp4,
     bcmFieldQualifyVlanFormat,
     bcmFieldQualifyDrop,          /* PTin added: FP */
+    bcmFieldQualifyIntPriority,   /* PTin added: FP */
     bcmFieldQualifyStageEgress
 };
 #define l3l4QsetEgressSize (sizeof(l3l4QsetEgress) / sizeof(bcm_field_qualify_t))
@@ -633,6 +635,7 @@ bcm_field_qualify_t ipv6L3L4QsetEgress[] =  /* includes VLAN ID */
     bcmFieldQualifyOutPort,
     bcmFieldQualifyIp6,
     bcmFieldQualifyDrop,          /* PTin added: FP */
+    bcmFieldQualifyIntPriority,   /* PTin added: FP */
     bcmFieldQualifyStageEgress
 };
 #define ipv6L3L4QsetEgressSize (sizeof(ipv6L3L4QsetEgress) / sizeof(bcm_field_qualify_t))
