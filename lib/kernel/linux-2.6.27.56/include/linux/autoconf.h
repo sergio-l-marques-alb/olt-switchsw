@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.27.56
- * Thu Jan 10 17:51:02 2013
+ * Tue Sep 23 18:50:58 2014
  */
 #define AUTOCONF_INCLUDED
 #define CONFIG_FSL_ULI1575 1
@@ -97,7 +97,6 @@
 #define CONFIG_VFAT_FS 1
 #define CONFIG_SERIAL_8250_PCI 1
 #define CONFIG_MPIC 1
-#define CONFIG_LOCALVERSION_AUTO 1
 #define CONFIG_FSL_SOC 1
 #define CONFIG_EMBEDDED 1
 #define CONFIG_NFSD 1

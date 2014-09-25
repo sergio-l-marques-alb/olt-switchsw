@@ -1,13 +1,13 @@
 # 1 "arch/powerpc/kernel/systbl_chk.c"
-# 1 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56//"
+# 1 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56//"
 # 1 "<built-in>"
 # 1 "<command-line>"
 # 1 "./include/linux/autoconf.h" 1
 # 1 "<command-line>" 2
 # 1 "arch/powerpc/kernel/systbl_chk.c"
 # 16 "arch/powerpc/kernel/systbl_chk.c"
-# 1 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h" 1
-# 354 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h"
+# 1 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h" 1
+# 354 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h"
 # 1 "include/linux/types.h" 1
 # 11 "include/linux/types.h"
 # 1 "include/linux/posix_types.h" 1
@@ -48,8 +48,8 @@ typedef void (*__kernel_sighandler_t)(int);
 typedef int __kernel_key_t;
 typedef int __kernel_mqd_t;
 
-# 1 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h" 1
-# 10 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h"
+# 1 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h" 1
+# 10 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h"
 typedef unsigned long __kernel_ino_t;
 typedef unsigned int __kernel_mode_t;
 typedef long __kernel_off_t;
@@ -70,7 +70,7 @@ typedef unsigned int __kernel_uid32_t;
 typedef unsigned int __kernel_gid32_t;
 typedef unsigned int __kernel_old_uid_t;
 typedef unsigned int __kernel_old_gid_t;
-# 38 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h"
+# 38 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h"
 typedef unsigned short __kernel_nlink_t;
 typedef short __kernel_ipc_pid_t;
 typedef unsigned int __kernel_size_t;
@@ -89,7 +89,7 @@ typedef long long __kernel_loff_t;
 typedef struct {
  int val[2];
 } __kernel_fsid_t;
-# 71 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h"
+# 71 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/posix_types.h"
 static __inline__ __attribute__((always_inline)) void __FD_SET(unsigned long fd, __kernel_fd_set *fdsetp)
 {
  unsigned long _tmp = fd / (8 * sizeof(unsigned long));
@@ -146,7 +146,7 @@ static __inline__ __attribute__((always_inline)) void __FD_ZERO(__kernel_fd_set 
 }
 # 48 "include/linux/posix_types.h" 2
 # 12 "include/linux/types.h" 2
-# 1 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h" 1
+# 1 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h" 1
 
 
 
@@ -179,15 +179,15 @@ typedef unsigned int u32;
 
 typedef signed long long s64;
 typedef unsigned long long u64;
-# 8 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h" 2
-# 28 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h"
+# 8 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h" 2
+# 28 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h"
 typedef unsigned short umode_t;
 
 
 typedef struct {
  __u32 u[4];
 } __attribute__((aligned(16))) __vector128;
-# 49 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h"
+# 49 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/types.h"
 typedef __vector128 vector128;
 
 
@@ -332,20 +332,20 @@ struct ustat {
  char f_fname[6];
  char f_fpack[6];
 };
-# 355 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h" 2
+# 355 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h" 2
 
 # 1 "include/linux/linkage.h" 1
 
 
 
 
-# 1 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/linkage.h" 1
+# 1 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/linkage.h" 1
 # 6 "include/linux/linkage.h" 2
-# 357 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h" 2
+# 357 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/unistd.h" 2
 # 17 "arch/powerpc/kernel/systbl_chk.c" 2
 # 56 "arch/powerpc/kernel/systbl_chk.c"
 START_TABLE
-# 1 "/home/gpon/Fastpath/trunk/lib/kernel/linux-2.6.27.56/arch/powerpc/include/asm/systbl.h" 1
+# 1 "/home/olt/svnrepo/olt-switchsw/trunk/lib_new/kernel/linux-2.6.27.56/arch/powerpc/include/asm/systbl.h" 1
 
 
 

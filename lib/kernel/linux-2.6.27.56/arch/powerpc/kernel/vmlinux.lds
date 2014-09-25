@@ -3,7 +3,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux kernel version: 2.6.27.56
- * Thu Jan 10 17:51:02 2013
+ * Tue Sep 23 18:50:58 2014
  */
 /*
  * Copyright (C) 2001,2005 IBM Corporation.
