@@ -1308,14 +1308,14 @@ L7_RC_t hpcBoardWCinit_bcm56846(void)
     if (invPol & 1)
     {
       sprintf(param_name,  "%s_%u", spn_PHY_XAUI_RX_POLARITY_FLIP, bcm_port);
-      sprintf(param_value, "%u", (speedG<=10) ? ((L7_uint16) 0x000f << (wc_lane*4)) : 0xffff);
+      sprintf(param_value, "%u", /*(speedG<=10) ? ((L7_uint16) 0x000f << (wc_lane*4)) :*/ 0xffff);
       if (sal_config_set(param_name, param_value) != 0)  return(L7_FAILURE);
     }
     /* Invert TX polarity? */
     if (invPol & 2)
     {
       sprintf(param_name,  "%s_%u", spn_PHY_XAUI_TX_POLARITY_FLIP, bcm_port);
-      sprintf(param_value, "%u", (speedG<=10) ? ((L7_uint16) 0x000f << (wc_lane*4)) : 0xffff);
+      sprintf(param_value, "%u", /*(speedG<=10) ? ((L7_uint16) 0x000f << (wc_lane*4)) :*/ 0xffff);
       if (sal_config_set(param_name, param_value) != 0)  return(L7_FAILURE);
     }
   }
