@@ -4020,6 +4020,186 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
   return L7_SUCCESS;
 }
 
+/**
+ * System Default rules applied for PTIn 
+ * 
+ * @author mruas (9/21/2014)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadSystemInstallPtin(void)
+{
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+  L7_int port;
+  bcm_port_t bcm_port;
+  bcmx_lport_t lport;
+
+  L7_uint8 prio, prio_mask = 0x7;
+  L7_uint8 vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
+  L7_uint8 vlanFormat_mask  = 0xff;
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  /* Multicast services */
+  L7_uint16 vlanId_value;
+  L7_uint16 vlanId_mask;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /** INGRESS STAGE **/
+
+  /* Multicast services */
+  vlanId_value = PTIN_SYSTEM_EVC_BCAST_VLAN_MIN;
+  vlanId_mask  = PTIN_SYSTEM_EVC_BCAST_VLAN_MASK;
+
+  /* Create Policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+
+  /* Run all 8 priorities */
+  for (prio = 0; prio < 8; prio++)
+  {
+    /* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Multicast EVCs */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId_value, (L7_uchar8 *) &vlanId_mask);
+    if (rc != L7_SUCCESS)  break;
+    /* Priority */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Set COS equal to packet priority */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, prio, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+    /* Change packet priority to 0 */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
+    /* Change inner tag priority to prio */
+    //rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO_INNERTAG, prio, 0, 0);
+
+    if (rc != L7_SUCCESS)  break;
+  }
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule for priority %u", prio);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Apply rules */
+  rc = hapiBroadPolicyCommit(&policyId);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Add Upklink ports */
+  for (port = 0; port < ptin_sys_number_of_ports; port++)
+  {
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
+    {
+      lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+      if ((PTIN_SYSTEM_10G_PORTS_MASK >> port) & 1)
+      {
+        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
+          hapiBroadPolicyDelete(policyId);
+          return L7_FAILURE;
+        }
+      }
+    }
+  }
+
+  /** EGRESS STAGE **/
+
+  /* Create Policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+
+  rc = hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_EGRESS);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+
+  /* Run all 8 priorities */
+  for (prio = 0; prio < 8; prio++)
+  {
+    /* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Priority */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Change inner tag priority to prio */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO_INNERTAG, prio, 0, 0);
+
+    if (rc != L7_SUCCESS)  break;
+  }
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule for priority %u", prio);
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  /* Apply rules */
+  rc = hapiBroadPolicyCommit(&policyId);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
+  #if 0
+  /* Add PON ports */
+  for (port = 0; port < ptin_sys_number_of_ports; port++)
+  {
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
+    {
+      lport = bcmx_unit_port_to_lport(0, bcm_port);
+
+      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
+      {
+        if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_STARTUP, "Error adding port %u", port);
+          hapiBroadPolicyDelete(policyId);
+          return L7_FAILURE;
+        }
+      }
+    }
+  }
+  #endif
+#endif
+
+  return L7_SUCCESS;
+}
+
+
+
 /* VCAP rules for Default VLAN */
 static BROAD_POLICY_t policyId_pvid[PTIN_SYSTEM_N_PORTS]  = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
 static BROAD_POLICY_t ruleId_pvid[PTIN_SYSTEM_N_PORTS]    = {[0 ... PTIN_SYSTEM_N_PORTS-1] = BROAD_POLICY_INVALID};
@@ -4862,13 +5042,13 @@ L7_RC_t ptin_debug_trap_packets_mirror(L7_int dst_port, L7_int port, L7_uint16 o
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint16 ivlan, L7_uchar8 *packet_data )
+L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt )
 {
   int i;
   int trap_bcm_port;
 
   /* Validate arguments */
-  if ( bcm_port < 0 || packet_data == L7_NULLPTR )
+  if ( bcm_port < 0 || bcm_pkt == L7_NULLPTR )
   {
     return L7_SUCCESS;
   }
@@ -4893,18 +5073,22 @@ L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint1
   }
   if (trap_ovlan>0 && trap_ovlan<4096)
   {
-    if (ovlan != trap_ovlan)
+    if (bcm_pkt->vlan != trap_ovlan)
       return L7_SUCCESS;
   }
   if (trap_ivlan>0 && trap_ivlan<4096)
   {
-    if (ivlan != trap_ivlan)
+    if (bcm_pkt->inner_vlan != trap_ivlan)
       return L7_SUCCESS;
   }
 
-  printf("Packet received on port %u (bcm_port %u), oVlan=%u, iVlan=%u:\r\n",
-         trap_port, bcm_port, trap_ovlan, trap_ivlan);
-  for (i=0; i<64; i++)
+  printf("Packet received on port %u (bcm_port %u), oVlan=%u.%d, iVlan=%u.%d (int.prio=%d cos=%d):\r\n",
+         trap_port, bcm_port,
+         bcm_pkt->vlan, bcm_pkt->vlan_pri,
+         bcm_pkt->inner_vlan, bcm_pkt->inner_vlan_pri,
+         bcm_pkt->prio_int, bcm_pkt->cos);
+
+  for (i=0; i<bcm_pkt->pkt_data->len && i < 128; i++)
   {
     if (i%16==0)
     {
@@ -4912,7 +5096,7 @@ L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, L7_uint16 ovlan, L7_uint1
         printf("\r\n");
       printf(" 0x%02x:",i);
     }
-    printf(" %02x",packet_data[i]);
+    printf(" %02x",bcm_pkt->pkt_data->data[i]);
   }
   printf("\r\n");
   fflush(stdout);

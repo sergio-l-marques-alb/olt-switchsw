@@ -406,8 +406,8 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}, Stage=%u, operation=%u, group=%u, oVlanId=%u, iVlanId=%u, newOVlanId=%u(%u), newIVlanId=%u(%u), rem_VLANs=%u",
             usp->unit, usp->slot, usp->port, xlate->stage, xlate->oper, xlate->portgroup,
             xlate->outerVlan, xlate->innerVlan,
-            xlate->outerVlan_new,xlate->outerAction,
-            xlate->innerVlan_new,xlate->innerAction,
+            xlate->outerVlan_new,xlate->outerVlanAction,
+            xlate->innerVlan_new,xlate->innerVlanAction,
             xlate->remove_VLANs);
 
   /* Validate interface */
@@ -422,12 +422,19 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   DAPIPORT_SET(&dapiPort,usp,dapi_g);
 
   /* Copy vlan and action information */
-  hapi_xlate.outerVlanId    = xlate->outerVlan;
-  hapi_xlate.innerVlanId    = xlate->innerVlan;
-  hapi_xlate.newOuterVlanId = xlate->outerVlan_new;
-  hapi_xlate.newInnerVlanId = xlate->innerVlan_new;
-  hapi_xlate.outerAction    = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->outerAction;
-  hapi_xlate.innerAction    = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->innerAction;
+  hapi_xlate.outerVlanId      = xlate->outerVlan;
+  hapi_xlate.innerVlanId      = xlate->innerVlan;
+  hapi_xlate.newOuterVlanId   = xlate->outerVlan_new;
+  hapi_xlate.newInnerVlanId   = xlate->innerVlan_new;
+  hapi_xlate.outerVlanAction  = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->outerVlanAction;
+  hapi_xlate.innerVlanAction  = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->innerVlanAction;
+
+  hapi_xlate.outerPrio        = xlate->outerPrio;
+  hapi_xlate.innerPrio        = xlate->innerPrio;
+  hapi_xlate.newOuterPrio     = xlate->outerPrio_new;
+  hapi_xlate.newInnerPrio     = xlate->innerPrio_new;
+  hapi_xlate.outerPrioAction  = xlate->outerPrioAction;
+  hapi_xlate.innerPrioAction  = xlate->innerPrioAction;
 
   switch ((L7_int) xlate->stage)
   {

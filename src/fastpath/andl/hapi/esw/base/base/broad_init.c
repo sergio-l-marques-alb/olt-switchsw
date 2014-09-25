@@ -128,6 +128,7 @@ extern void osapiDebugStackTrace (L7_uint32 task_id, FILE *filePtr);
 
 /* PTin added: packet trap */
 #include "logger.h"
+#include "ptin_hapi.h"
 
 /* Max time to wait for a unit to be discovered by lower stacking layer */
 #define BROAD_UNIT_DISCOVER_TIMEOUT   (7000) /* 5 sec */
@@ -946,6 +947,15 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     return result;
   }
 #endif
+
+  /* PTin added */
+  #if 1
+  result = hapiBroadSystemInstallPtin();
+  if(L7_SUCCESS != result)
+  {
+    return result;
+  }
+  #endif
 
   LOG_INFO(LOG_CTX_STARTUP,"Default rules initialization finished! (result=%d)",result);
 
