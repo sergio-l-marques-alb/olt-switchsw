@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Linux/powerpc 2.6.38-rc5 Kernel Configuration
- * Thu Jan 10 17:41:39 2013
+ * Tue Sep 23 19:50:54 2014
  */
 #define CONFIG_NLS_CODEPAGE_861 1
 #define CONFIG_SCSI_DMA 1
