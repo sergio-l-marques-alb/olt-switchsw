@@ -664,7 +664,7 @@ L7_RC_t ptin_oam_eth_init(void)
 
   oam_eth_TaskId = osapiTaskCreate("ptin_oam_eth_task", ptin_oam_eth_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
-                                L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                                L7_TASK_PRIORITY_LEVEL(0),
                                 L7_DEFAULT_TASK_SLICE);
 
   if (oam_eth_TaskId == L7_ERROR) {
