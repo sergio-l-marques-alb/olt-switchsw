@@ -1,4 +1,4 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -18,6 +18,7 @@ uint8 ptin_board_slotId = 0;
 
 static int g_iInterfaceSW  = -1;      // Canal de dados com as aplicacoes cliente
 static int g_iInterfaceHW  = -1;      // Canal de dados com as aplicacoes firmware
+static int g_iInterfaceCX  = -1;      // Canal de dados com as aplicacoes firmware
 static int g_iInterfaceMan = -1;      // Canal de dados com as aplicacoes firmware
 
 static  int g_iCCounter   = 0;      //
@@ -68,39 +69,36 @@ static void ipc_server_ipaddr_init(void);
       /* Initialize server ip */
       ipc_server_ipaddr_init();
 
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
       LOG_INFO(LOG_CTX_IPC,
                   "Vai iniciar o modulo de comunicacoes IPC."); 
       init_ipc_lib ();
 
-//      if ((res=open_ipc (IPC_CCMSG_PORT, &CCMessageHandler, IPC_CC_TIMEOUT, &g_iInterfaceSW))!=S_OK)
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY, "Nao foi possivel abrir o canal de comunicacoes com as aplicacoes cliente (%08X).", res);
-//         return res;
-//      }
-
       if ((res=open_ipc (IPC_HW_FASTPATH_PORT, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceHW))!=S_OK)
       {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
         LOG_CRITICAL(LOG_CTX_IPC,
                      "Nao foi possivel abrir o canal de comunicacoes para atendimento de mensagens (%08X).", res);
-//         close_ipc (g_iInterfaceSW);
-         return res;
+        return res;
       }
      
+      if ((res=open_ipc (IPC_HW_FP_CTRL_PORT, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceCX))!=S_OK)
+      {
+        LOG_CRITICAL(LOG_CTX_IPC,
+                     "Nao foi possivel abrir o canal de comunicacoes para atendimento de mensagens (%08X).", res);
+        close_ipc(g_iInterfaceHW);
+        return res;
+      }
+
       if ((res=open_ipc (0, 0, NULL, IPC_CM_TIMEOUT, &g_iInterfaceSW))!=S_OK)
       {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_EMERGENCY,
         LOG_INFO(LOG_CTX_IPC,
                  "Nao foi possivel abrir o canal para o envio de mensagens (%08X).", res);
-//         close_ipc (g_iInterfaceSW);
-         close_ipc (g_iInterfaceHW);
-         return res;
+        close_ipc (g_iInterfaceHW);
+        close_ipc (g_iInterfaceCX);
+        return res;
       }
 
       pid = (int)getpid();
       g_iCCounter = (pid&0x0000FFFF)<<16;
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
       LOG_INFO(LOG_CTX_IPC,
                   "Modulo de comunicacoes IPC iniciado com sucesso."); 
       return S_OK;
@@ -108,27 +106,24 @@ static void ipc_server_ipaddr_init(void);
 
    void CloseIPC	(void)
    {
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
      LOG_INFO(LOG_CTX_IPC,
               "Vai fechar o modulo de comunicacoes IPC."); 
       if (g_iInterfaceSW>=0)
          close_ipc (g_iInterfaceSW);
       if (g_iInterfaceHW>=0)
          close_ipc (g_iInterfaceHW);
+      if (g_iInterfaceCX>=0)
+         close_ipc (g_iInterfaceCX);
       if (g_iInterfaceMan>=0)
          close_ipc (g_iInterfaceMan);
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
       LOG_INFO(LOG_CTX_IPC,
                "Modulo de comunicacoes IPC fechado com sucesso."); 
    } // CloseIPC (V1.0.0.060622)
 
    void EnableHandling (BOOLEAN enable)
    {
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
      LOG_INFO(LOG_CTX_IPC,
               "(Des)activacao do processamento de mensagens do modulo de comunicacoes IPC (%d).", enable); 
-//      g_CCHandlingEnabled = enable;
-//      g_CHHandlingEnabled = enable;
    } // EnableHandling (V1.0.0.060622)
 
    // --------------------------------------------------------------
@@ -157,7 +152,6 @@ static void ipc_server_ipaddr_init(void);
       outbuffer->flags = IPCLIB_FLAGS_NACK;
       outbuffer->infoDim = sizeof (UINT);
       *(unsigned int*)outbuffer->info = res;
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR, "Erro no atendimento da mensagem, retorno de NACK (%08X).", res);
    } // SetIPCNACK (V1.0.0.060622)
 
 
@@ -429,8 +423,6 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
 
 
 
-
-
 int send_trap_ETH_OAM(void *param, int param_size)
 {
   ipc_msg	comando;
@@ -459,585 +451,6 @@ int send_trap_ETH_OAM(void *param, int param_size)
       LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, ret);
   return(ret);
 }
-
-
-
-//// --------------------------------------------------------------
-//// Função:		int SendSetMessage ([in]int msg,
-////				[in]void *data, [in/out]int* num)
-////
-//// Parametros:	msg	  - identificador da mensagem a enviar
-////				data  - buffer com os dados a enviar na mensagem.
-////				num   - à entrada indica o número bytes que se
-////						vai enviar; à saída indica o código
-////						da resposta (para erro ou sucesso).
-////
-//// Retorno:		S_OK  - o pedido/resposta correu normalmente
-////				outro - indica o tipo de erro ocorrido
-////
-//// Descrição:	Executa um pedido de dados à aplicação remota.
-//// --------------------------------------------------------------
-//int SendSetMessage (UINT msg, void *data, int* num)
-//{
-// int     res;
-// ipc_msg comando,
-//          resposta;
-//
-// // 1 - Preparar mensagem a enviar ao modulo de controlo
-// DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,  "Vai enviar mensagem %08X (SET) para o modulo de FW.", msg);
-// comando.protocolId  = SIR_IPCPROTOCOL_ID;
-// comando.srcId          = IPC_CCMSG_PORT;
-// //comando.pageSize     = 0;
-// comando.dstId          = IPC_AGENT_PORT;
-// comando.flags       = IPCLIB_FLAGS_CMD;
-// comando.counter     = GetMsgCounter ();
-// comando.msgId       = msg;
-// comando.infoDim     = *num;
-// memcpy (comando.info, data, *num);
-// // 2 - enviar mensagem e receber resposta
-// res = send_data (g_iInterfaceSW, IPC_AGENT_PORT, &comando, &resposta);
-// *num = 0;
-// if (res==S_OK)
-// {
-//    // 3 - validar resposta (em termos protocolares
-//      *num = *((int*)resposta.info);
-//      if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//      {
-//       res = *((int*)resposta.info);
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com NACK (%08X).", res);
-//      }
-// }
-//   else
-//   {
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//   }
-// return res;
-//} // SendSetMessage (V1.0.0.060622)
-//
-
-
-//
-//   int SendGetStructMessage   (UINT msg, void *data, int  num)
-//   {
-//      int 		res;
-//	   ipc_msg	comando,
-//				   resposta;
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (GET) para o modulo de FW (idx=%d).", msg);
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CCMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_AGENT_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter ();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= num;
-//      memcpy (comando.info, data, num);
-//
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceSW, IPC_AGENT_PORT, &comando, &resposta);
-//	   if (res==S_OK)
-//	   {
-//		   // 3 - validar resposta (em termos protocolares)
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//			   res = *((int*)resposta.info);
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com NACK (%08X).", res);
-//         }
-//         else
-//         {
-//            if (resposta.infoDim!=num)
-//            {
-//               DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com tamanho diferente (%d!=%d).", resposta.infoDim, num);
-//               res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
-//            }
-//            else
-//            {
-//			      memcpy (data, resposta.info, num);
-//               DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Mensagem enviada, resposta com ACK");
-//            }
-//         }
-//	   }
-//      else
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      }
-//	   return res;
-//   } // SendGetStructMessage (V1.0.0.060622)
-//
-//   int SendNotifyMessage (UINT msg, void *data, int* num)
-//   {
-//	   int 		res;
-//	   ipc_msg	comando;
-//
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,  "Vai enviar mensagem %08X (SET) para o modulo de Agente.", msg);
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CCMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_AGENT_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter ();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= *num;
-//	   memcpy (comando.info, data, *num);
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceSW, IPC_AGENT_PORT, &comando, NULL);
-//	   if (res!=S_OK)
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//	   return res;
-//   } // SendNotifyMessage (V1.0.0.060622)
-//
-//   // --------------------------------------------------------------
-//   // Função:	int SendHWGetMessage ([in]int index, [in]int msg,
-//   //				                    [out]void *data, [in/out]int* num)
-//   //
-//   // Parametros:	index - valor inteiro enviado no corpo da mensagem
-//   //				   msg   - identificador da mensagem a enviar
-//   //				   data  - buffer com os dados recebidos na resposta
-//   //				   num   - à entrada indica o número máximo de bytes
-//   //					   	que se espera receber; à saída indica o
-//   //					   	número de bytes válidos no campo data
-//   //					   	ou o código detalhado do erro da resposta.
-//   //
-//   // Retorno:		S_OK  - o pedido/resposta correu normalmente
-//   //				outro - indica o tipo de erro ocorrido
-//   //
-//   // Descrição:	Executa um pedido de dados à aplicação remota.
-//   // --------------------------------------------------------------
-//   int SendHWGetMessage (int index, UINT msg, void *data, size_t* num)
-//   {
-//	   int 		res, menor;
-//	   ipc_msg	comando, resposta;
-//
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "{%s(inbuffer[%08X], msg[%04X], num[%d])", __FUNCTION__, index, msg, *num);
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_HARDWARE_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= sizeof(UINT);
-//	   *(int*)comando.info	= index;
-//
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceHW, IPC_HARDWARE_PORT, &comando, &resposta);
-//	   if (res==S_OK)
-//	   {
-//		   // 3 - validar resposta (em termos protocolares)
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//            *num = 0;
-//			   res = *((int*)resposta.info);
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "}%s(%08X - Receive NACK)", __FUNCTION__, res);
-//         }
-//         else
-//         {
-//            menor = (*num>resposta.infoDim) ? resposta.infoDim : *num;
-//			   memcpy (data, resposta.info, menor);
-//			   *num = menor;
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "}%s(%08X - Receive ACK, return %d bytes of %d read)", __FUNCTION__, res, *num, resposta.infoDim);
-//         }
-//	   }
-//      else
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "}%s(%08X - Fail sending message[%04X])", __FUNCTION__, res, msg);
-//      }
-//	   return res;
-//   }// SendHWGetMessage
-//
-//   int SendHWGetStructMessage (UINT msg, void *data, int num)
-//   {
-//      int 		res;
-//	   ipc_msg	comando,
-//				   resposta;
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (GET) para o modulo de FW.", msg);
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_HARDWARE_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter ();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= num;
-//      memcpy (comando.info, data, num);
-//
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceHW, IPC_HARDWARE_PORT, &comando, &resposta);
-//	   if (res==S_OK)
-//	   {
-//		   // 3 - validar resposta (em termos protocolares)
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//			   res = *((int*)resposta.info);
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com NACK (%08X).", res);
-//         }
-//         else
-//         {
-//            if (resposta.infoDim!=num)
-//            {
-//               DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com tamanho diferente (%d!=%d).", resposta.infoDim, num);
-//               res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
-//            }
-//            else
-//            {
-//			      memcpy (data, resposta.info, num);
-//               DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Mensagem enviada, resposta com ACK");
-//            }
-//         }
-//	   }
-//      else
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      }
-//	   return res;
-//   } // SendHWGetStructMessage (V1.0.0.060622)
-//
-//   int SendHWGetStructMessageEx (UINT msg, void *data, int *num)
-//   {
-//      int 		res;
-//      int      menor;
-//      ipc_msg	comando = {0},
-//               resposta;
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (GET) para o modulo de FW.", msg);
-//      // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//      comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//      comando.dstId 		   = IPC_HARDWARE_PORT;
-//      comando.flags		   = IPCLIB_FLAGS_CMD;
-//      comando.counter		= GetMsgCounter ();
-//      comando.msgId		   = msg;
-//      comando.infoDim		= (*num);
-//      memcpy (comando.info, data, (*num));
-//
-//      // 2 - enviar mensagem e receber resposta
-//      res = send_data (g_iInterfaceHW, IPC_HARDWARE_PORT, &comando, &resposta);
-//      if (res==S_OK)
-//      {
-//         // 3 - validar resposta (em termos protocolares)
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//            res = *((int*)resposta.info);
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com NACK (%08X).", res);
-//         }
-//         else
-//         {
-//            menor = (*num>resposta.infoDim) ? resposta.infoDim : *num;
-//            memcpy (data, resposta.info, menor);
-//            *num = menor;
-//         }
-//      }
-//      else
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      }
-//      return res;
-//   } // SendHWGetStructMessageEx (V1.0.0.060622)
-//
-//   int SendHwPortGetMessage (UINT dest, UINT index, UINT msg, void *data, int* num)
-//   {
-//   	int 		res, menor;
-//   	ipc_msg	comando = {0},
-//   				resposta;
-//
-//   	// 1 - Preparar mensagem a enviar ao modulo de controlo
-//   	comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//   	comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//   	comando.dstId 		   = dest;
-//   	comando.flags		   = IPCLIB_FLAGS_CMD;
-//   	comando.counter		= GetMsgCounter ();
-//   	comando.msgId		   = msg;
-//   	comando.infoDim		= sizeof(UINT);
-//   	*(int*)comando.info	= index;
-//
-//   	// 2 - enviar mensagem e receber resposta
-//   	res = send_data (g_iInterfaceHW, dest, &comando, &resposta);
-//   	if (res==S_OK)
-//   	{
-//         //LOGTRACE (LOG_MASKBIT_IPC, ERROR_SEVERITY_INFORMATIONAL, "Enviou o comando %08X para HW.", msg);
-//   		// 3 - validar resposta (em termos protocolares)
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//            //LOGTRACE (LOG_MASKBIT_IPC, ERROR_SEVERITY_ERROR, "IPCLIB_FLAGS_NACK (%08X)", resposta.flags);
-//            *num = 0;
-//   			res = *((int*)resposta.info);
-//         }
-//         else
-//         {
-//            menor = (*num>resposta.infoDim) ? resposta.infoDim : *num;
-//   			memcpy (data, resposta.info, menor);
-//   			*num = menor;
-//         }
-//   	}
-//      else
-//      {
-//         res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, res);
-//         //LOGTRACE (LOG_MASKBIT_IPC, ERROR_SEVERITY_ERROR, "Falhou o envio de comando %08X para o Porto (%08X).", res);
-//      }
-//   	return res;
-//   } // SendHwPortGetMessage
-//
-//   // --------------------------------------------------------------
-//   // Função:		int SendHWSetMessage ([in]int msg,
-//   //				[in]void *data, [in/out]int* num)
-//   //
-//   // Parametros:	msg	  - identificador da mensagem a enviar
-//   //				data  - buffer com os dados a enviar na mensagem.
-//   //				num   - à entrada indica o número bytes que se
-//   //						vai enviar; à saída indica o código
-//   //						da resposta (para erro ou sucesso).
-//   //
-//   // Retorno:		S_OK  - o pedido/resposta correu normalmente
-//   //				outro - indica o tipo de erro ocorrido
-//   //
-//   // Descrição:	Executa um pedido de dados à aplicação remota.
-//   // --------------------------------------------------------------
-//   int SendHWSetMessage (UINT msg, void *data, size_t *num)
-//   {
-//	   int 		res;
-//	   ipc_msg	comando = {0},
-//				   resposta;
-//
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "{%s(message[%08X], size[%u]", __FUNCTION__, msg, *num);
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_HARDWARE_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter ();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= *num;
-//	   memcpy (comando.info, data, *num);
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceHW, IPC_HARDWARE_PORT, &comando, &resposta);
-//	   *num = 0;
-//	   if (res==S_OK)
-//	   {
-//		   // 3 - validar resposta (em termos protocolares
-//         *num = *((int*)resposta.info);
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//			   res = *((int*)resposta.info);
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "}%s(%08X - Message send, but received NACK)", __FUNCTION__, res);
-//         }
-//	   }
-//      else
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "}%s(%08X - Error sending message)", __FUNCTION__, res);
-//         return res;
-//      }
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "}%s(%08X - Success sending message)", __FUNCTION__, res);
-//	   return res;
-//   } // SendHWSetMessage (V1.0.0.060622)
-//
-//   int SendHWNotifyMessage (UINT msg, void *data, int* num)
-//   {
-//	   int 		res;
-//	   ipc_msg	comando;
-//
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (SET) para o modulo de FW.", msg);
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_HARDWARE_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter ();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= *num;
-//	   memcpy (comando.info, data, *num);
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceSW, IPC_HARDWARE_PORT, &comando, NULL);
-//	   if (res!=S_OK)
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//	   return res;
-//   } // SendHWNotifyMessage (V1.0.0.060622)
-//
-//   int SendHWSetExMessage (UINT msg, void *input, int num, int *output, int* outnum)
-//   {
-//	   int 		res;
-//      int      menor;
-//	   ipc_msg	comando,
-//				   resposta;
-//
-//	   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (SET) para o modulo de FW.", msg);
-//	   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	   comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//	   comando.dstId 		   = IPC_HARDWARE_PORT;
-//	   comando.flags		   = IPCLIB_FLAGS_CMD;
-//	   comando.counter		= GetMsgCounter ();
-//	   comando.msgId		   = msg;
-//	   comando.infoDim		= num;
-//	   memcpy (comando.info, input, num);
-//	   // 2 - enviar mensagem e receber resposta
-//	   res = send_data (g_iInterfaceHW, IPC_HARDWARE_PORT, &comando, &resposta);
-//	   if (res==S_OK)
-//	   {
-//		   // 3 - validar resposta (em termos protocolares
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//			   res = *((int*)resposta.info);
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com NACK (%08X).", res);
-//         }
-//         else
-//         {
-//            menor = (*outnum>resposta.infoDim) ? resposta.infoDim : *outnum;
-//			   memcpy (output, resposta.info, menor);
-//			   *outnum = menor;
-//            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Mensagem enviada, resposta com ACK, recebidos %d bytes, devolvidos %d.", resposta.infoDim, *outnum);
-//         }
-//	   }
-//      else
-//      {
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      }
-//	   return res;
-//   } // SendHWSetExMessage (V1.0.0.060622)
-//
-//   int SendPortGetStructMessage (UINT dest, UINT msg, void *data, int num, int uid)
-//   {
-//      int 		res;
-//      ipc_msg	comando, resposta;
-//
-//      uid = uid & 0x0000000F;
-//      // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//   	comando.srcId 		   = IPC_CCMSG_PORT;
-//	   //comando.pageSize     = 0;
-//   	comando.dstId 		   = dest;
-//   	comando.flags		   = 0;
-//   	comando.counter		= GetMsgCounter ();
-//   	comando.msgId		   = msg;
-//      comando.infoDim		= num;
-//      memcpy (comando.info, data, num);
-//
-//   	// 2 - enviar mensagem e receber resposta
-//      res = send_data (g_iInterfaceMan, dest, &comando, &resposta);
-//      if (res==S_OK)
-//      {
-//   		// 3 - validar resposta (em termos protocolares)
-//         if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//         {
-//   			res = *((int*)resposta.info);
-//            DEBUGTRACE (ERROR_FAMILY_IPC | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com NACK (%08X).", res);
-//         }
-//         else
-//         {
-//            if (resposta.infoDim!=num)
-//            {
-//               DEBUGTRACE (ERROR_FAMILY_IPC | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com tamanho diferente (%d!=%d).", resposta.infoDim, num);
-//               res = SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE);
-//            }
-//            else
-//            {
-//   			   memcpy (data, resposta.info, num);
-//               DEBUGTRACE (ERROR_FAMILY_IPC | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Mensagem enviada, resposta com ACK");
-//            }
-//         }
-//   	}
-//      else
-//      {
-//         DEBUGTRACE (ERROR_FAMILY_IPC | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      }
-//   	return res;
-//   } // SendPortGetStructMessage
-//
-//   int SendHwPortNotifyMessage (UINT dest, UINT msg, void *data, int* num)
-//   {
-//      int 		res;
-//      ipc_msg	comando;
-//
-//      // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (SET) para o modulo de FW.", msg);
-//      comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//      comando.srcId 		   = IPC_CHMSG_PORT;
-//	   //comando.pageSize     = 0;
-//      comando.dstId 		   = dest;
-//      comando.flags		   = IPCLIB_FLAGS_CMD;
-//      comando.counter		= GetMsgCounter ();
-//      comando.msgId		   = msg;
-//      comando.infoDim		= *num;
-//      memcpy (comando.info, data, *num);
-//      // 2 - enviar mensagem e receber resposta
-//      res = send_data (g_iInterfaceSW, IPC_HARDWARE_PORT, &comando, NULL);
-//      if (res!=S_OK)
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      return res;
-//   } // SendHWNotifyMessage (V1.0.0.060622)
-//
-//   HRES SendPortNotifyMessage (UINT dest, UINT msg, void *data, int* num)
-//   {
-//      int 		res;
-//      ipc_msg	comando;
-//
-//      // 1 - Preparar mensagem a enviar ao modulo de controlo
-//      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "Vai enviar mensagem %08X (SET) para o modulo de FW.", msg);
-//      comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//      comando.srcId 		   = IPC_CHMSG_PORT;
-//      //comando.pageSize     = 0;
-//      comando.dstId 		   = dest;
-//      comando.flags		   = IPCLIB_FLAGS_CMD;
-//      comando.counter		= GetMsgCounter ();
-//      comando.msgId		   = msg;
-//      comando.infoDim		= *num;
-//      memcpy (comando.info, data, *num);
-//      // 2 - enviar mensagem e receber resposta
-//      res = send_data (g_iInterfaceSW, IPC_HARDWARE_PORT, &comando, NULL);
-//      if (res!=S_OK)
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "Nao foi possivel enviar a mensagem (%08X).", res);
-//      return res;
-//   } // SendHWNotifyMessage (V1.0.0.060622)
-//
-//HRES SendHwStructMessage (void *input, size_t inSize, UINT msg, void *output, size_t *outSize)
-//{
-//   ipc_msg	comando, resposta;
-//   BYTE     *p = (BYTE*)input;
-//   HRES 		res = S_OK;
-//   int      menor;
-//
-//   // 1 - Preparar mensagem a enviar ao modulo de controlo
-//   comando.protocolId	= SIR_IPCPROTOCOL_ID;
-//	comando.srcId 		   = IPC_CHMSG_PORT;
-//	comando.dstId 		   = IPC_CCMSG_PORT;
-//	comando.flags		   = IPCLIB_FLAGS_CMD;
-//	comando.counter		= GetMsgCounter();
-//	comando.msgId		   = msg;
-//   comando.infoDim		= inSize;
-//   memcpy(comando.info, input, inSize);
-//
-//	// 2 - enviar mensagem e receber resposta
-//   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "{%s(message[%08X], input[%02X%02X%02X%02X], inSize[%u])", __FUNCTION__, msg, p[0], p[1], p[2], p[3], inSize);
-//   if ( S_OK == (res = send_data(g_iInterfaceSW, IPC_HARDWARE_PORT, &comando, &resposta)) )
-//   {
-//      // 3 - validar resposta (em termos protocolares)
-//      if ((resposta.flags & IPCLIB_FLAGS_NACK)==IPCLIB_FLAGS_NACK)
-//      {
-//         *outSize = 0;
-//         res = *((HRES*)resposta.info);
-//         DEBUGTRACE (ERROR_FAMILY_IPC | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "}%s(%08X - Message send, but received NACK)", __FUNCTION__, res);
-//      }
-//      else
-//      {
-//         menor = MIN(resposta.infoDim, *outSize);
-//         memcpy (output, resposta.info, menor);
-//         *outSize = menor;
-//         DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, "}%s(%08X - Receive ACK, return %d bytes of %d read)", __FUNCTION__, res, *outSize, resposta.infoDim);
-//      }
-//	}
-//   else
-//   {
-//      DEBUGTRACE (ERROR_FAMILY_IPC | TRACE_LAYER_IPC, TRACE_SEVERITY_WARNING, "}%s(%08X - Fail sending message[%04X])", __FUNCTION__, res, msg);
-//   }
-//	return res;
-//}// SendHwStructMessage
 
 
 // ----------------------------------------------------
