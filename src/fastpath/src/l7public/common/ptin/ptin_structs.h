@@ -715,6 +715,7 @@ typedef struct {
 #define PTIN_STORMCONTROL_MASK_BCAST  0x0001
 #define PTIN_STORMCONTROL_MASK_MCAST  0x0002
 #define PTIN_STORMCONTROL_MASK_UCUNK  0x0004
+#define PTIN_STORMCONTROL_MASK_CPU    0x0008
 #define PTIN_STORMCONTROL_MASK_ALL    0x000f
 #if 0
 typedef struct {
@@ -733,6 +734,7 @@ typedef struct {
   L7_uint32 bcast_rate;         /* [flags=0x0001] in bps */
   L7_uint32 mcast_rate;         /* [flags=0x0002] in bps */
   L7_uint32 ucunk_rate;         /* [flags=0x0004] in bps */
+  L7_uint32 cpu_rate;           /* [flags=0x0008] in bps */
 } ptin_stormControl_t;
 
 /* Network Connectivity (inBand) structs **************************************/
