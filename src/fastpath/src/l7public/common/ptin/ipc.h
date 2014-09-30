@@ -59,6 +59,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
    #define IPC_HARDWARE_PORT     6000
    #define IPC_HW_OSI_PORT       6030
    #define IPC_HW_FASTPATH_PORT  6006
+   #define IPC_HW_FP_CTRL_PORT   6007
 
    #define IPC_CC_TIMEOUT        30
    #define IPC_CH_TIMEOUT        20
