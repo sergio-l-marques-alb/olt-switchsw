@@ -4735,7 +4735,7 @@ L7_RC_t ptin_stormControl_init(void)
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
 
   /* Initialize storm control for all EVCs, and all traffic types */
-  stormControl.flags =  PTIN_STORMCONTROL_MASK_BCAST | PTIN_STORMCONTROL_MASK_MCAST | PTIN_STORMCONTROL_MASK_UCUNK;
+  stormControl.flags =  PTIN_STORMCONTROL_MASK_BCAST | PTIN_STORMCONTROL_MASK_MCAST /*| PTIN_STORMCONTROL_MASK_UCUNK*/ | PTIN_STORMCONTROL_MASK_CPU;
 
   return ptin_evc_stormControl_reset(&stormControl);
 }
@@ -4792,6 +4792,7 @@ L7_RC_t ptin_evc_stormControl_set(L7_BOOL enable, ptin_stormControl_t *stormCont
   stormControl_out.bcast_rate = stormControl->bcast_rate / 1000;
   stormControl_out.mcast_rate = stormControl->mcast_rate / 1000;
   stormControl_out.ucunk_rate = stormControl->ucunk_rate / 1000;
+  stormControl_out.cpu_rate   = stormControl->cpu_rate   / 1000;
 
   if (ptin_stormControl_config(enable, &stormControl_out) != L7_SUCCESS)
   {
@@ -4823,6 +4824,7 @@ L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl)
   stormControl->bcast_rate = (L7_uint32) RATE_LIMIT_BCAST * 1000;
   stormControl->mcast_rate = (L7_uint32) RATE_LIMIT_MCAST * 1000;
   stormControl->ucunk_rate = (L7_uint32) RATE_LIMIT_UCUNK * 1000;
+  stormControl->cpu_rate   = (L7_uint32) RATE_LIMIT_CPU   * 1000;
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "Use default rate limits");
 
@@ -8291,8 +8293,6 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
 {
   L7_uint   evc_id;
   L7_RC_t   rc = L7_SUCCESS;
-  L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
-  L7_uint   n_intf, l;
 
   /* Validate arguments */
   if (int_vlan>=4096)
@@ -8329,6 +8329,10 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
     rc = L7_FAILURE;
   }
 
+  /* Leaf ports use the same internal VLAN. No need to run them. */
+  #if 0
+  L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
+  L7_uint   n_intf, l;
 
   /* Get all leaf interfaces... */
   ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
@@ -8338,17 +8342,19 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
   /* On all leaf interfaces, removes the root port */
   for (l=0; l<n_intf; l++)
   {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Flushing leaf Int.VID=%04u",
+    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Flushing leaf Int.VID=%04u (leaf_intf=%u)",
               evc_id,
-              evcs[evc_id].intf[intf_list[l]].int_vlan); /* Vl */
+              evcs[evc_id].intf[intf_list[l]].int_vlan,
+              intf_list[l]); /* Vl */
 
     /* Flush FDB on this Leaf VLAN */
     if (fdbFlushByVlan(evcs[evc_id].intf[intf_list[l]].int_vlan) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Root Int.VLAN %u (rc=%d)", evcs[evc_id].intf[intf_list[l]].int_vlan, rc);
+      LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Leaf Int.VLAN %u (rc=%d)", evcs[evc_id].intf[intf_list[l]].int_vlan, rc);
       rc = L7_FAILURE;
     }
   }
+  #endif
 
   return rc;
 }
