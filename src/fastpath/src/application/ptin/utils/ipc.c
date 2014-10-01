@@ -80,6 +80,7 @@ static void ipc_server_ipaddr_init(void);
         return res;
       }
      
+#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) )
       if ((res=open_ipc (IPC_HW_FP_CTRL_PORT, INADDR_ANY, &CHMessageHandler, IPC_CH_TIMEOUT, &g_iInterfaceCX))!=S_OK)
       {
         LOG_CRITICAL(LOG_CTX_IPC,
@@ -87,6 +88,7 @@ static void ipc_server_ipaddr_init(void);
         close_ipc(g_iInterfaceHW);
         return res;
       }
+#endif
 
       if ((res=open_ipc (0, 0, NULL, IPC_CM_TIMEOUT, &g_iInterfaceSW))!=S_OK)
       {
