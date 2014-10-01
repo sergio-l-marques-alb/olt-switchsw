@@ -378,7 +378,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   /* insertion action */
   if (msg->type == 0x03)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
+    LOG_INFO(LOG_CTX_PTIN_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
 
     rc = ptin_slot_action_insert(msg->generic_id, msg->param);
     if ( rc != L7_SUCCESS)
@@ -393,7 +393,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
   /* Board removed */
   else if (msg->type == 0x00)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Remotion detected (slot %u)", msg->generic_id);
+    LOG_INFO(LOG_CTX_PTIN_MSG,"Remotion detected (slot %u)", msg->generic_id);
 
     rc = ptin_slot_action_remove(msg->generic_id);
     if ( rc != L7_SUCCESS)

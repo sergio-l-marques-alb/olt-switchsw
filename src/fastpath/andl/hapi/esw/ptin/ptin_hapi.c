@@ -3791,7 +3791,7 @@ void ptin_stormcontrol_dump_debug(void)
   }
 
   /* CPU storm control */
-  printf("   CPU traffic : ");
+  printf("   CPU traffic: ");
   if (policyId_storm_cpu != BROAD_POLICY_INVALID &&
       l7_bcm_policy_hwInfo_get(0, policyId_storm_cpu, 0, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
   {
