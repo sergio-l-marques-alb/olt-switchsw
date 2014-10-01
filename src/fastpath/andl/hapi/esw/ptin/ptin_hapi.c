@@ -3577,7 +3577,7 @@ L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort, PORT_EGRESS_
     /* Change port of all storm control policys */
     for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
     {
-      if (policyId_storm[egress_type][policy] != 0 ||
+      if (policyId_storm[egress_type][policy] != 0 &&
           policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
       {
         rc = hapiBroadPolicyApplyToIface(policyId_storm[egress_type][policy], hapiPortPtr->bcmx_lport);
@@ -3615,7 +3615,7 @@ L7_RC_t hapi_ptin_stormControl_port_add(ptin_dapi_port_t *dapiPort, PORT_EGRESS_
       /* Add physical port to all storm control policys */
       for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
       {
-        if (policyId_storm[egress_type][policy] != 0 ||
+        if (policyId_storm[egress_type][policy] != 0 &&
             policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
         {
           rc = hapiBroadPolicyApplyToIface(policyId_storm[egress_type][policy], hapiPortPtr_member->bcmx_lport);
@@ -3688,7 +3688,7 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PORT_EGRE
     /* Change port of all storm control policys */
     for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
     {
-      if (policyId_storm[egress_type][policy] != 0 ||
+      if (policyId_storm[egress_type][policy] != 0 &&
           policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
       {
         rc = hapiBroadPolicyRemoveFromIface(policyId_storm[egress_type][policy], hapiPortPtr->bcmx_lport); 
@@ -3726,7 +3726,7 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PORT_EGRE
       /* Add physical port to all storm control policys */
       for (policy = 0; policy < STORM_CONTROL_TRAFFIC_MAX; policy++)
       {
-        if (policyId_storm[egress_type][policy] != 0 ||
+        if (policyId_storm[egress_type][policy] != 0 &&
             policyId_storm[egress_type][policy] != BROAD_POLICY_INVALID)
         {
           rc = hapiBroadPolicyRemoveFromIface(policyId_storm[egress_type][policy], hapiPortPtr_member->bcmx_lport);
