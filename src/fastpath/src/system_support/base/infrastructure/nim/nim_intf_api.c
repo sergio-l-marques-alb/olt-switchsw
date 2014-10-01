@@ -268,8 +268,11 @@ L7_RC_t nimSetIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
         case L7_IANA_GIGABIT_ETHERNET:
           rc = nimGetIntfPhyCapability(intIfNum, &portCapability);
 
-          if (((portCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG) &&
-              (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX) && (rc != L7_SUCCESS))
+          /* PTin modified: autoneg */
+          if (((portCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG)
+              && (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX)
+              && (intfSpeed != L7_PORTCTRL_PORTSPEED_AUTO_NEG)
+              && (rc != L7_SUCCESS))
           {
             rc = (L7_FAILURE);
           }
@@ -446,8 +449,10 @@ L7_RC_t nimSetDefaultIntfSpeed(L7_uint32 intIfNum, L7_uint32 intfSpeed)
         case L7_IANA_GIGABIT_ETHERNET:
           rc = nimGetIntfPhyCapability(intIfNum, &phyCapability);
 
-          if ((rc != L7_SUCCESS) && (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX) &&
-              ((phyCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG))
+          if ((rc != L7_SUCCESS)
+              && (intfSpeed != L7_PORTCTRL_PORTSPEED_FULL_1000SX)
+              && (intfSpeed != L7_PORTCTRL_PORTSPEED_AUTO_NEG)      /* PTin added: 1G w/AN supported */
+              && ((phyCapability & L7_PHY_CAP_PORTSPEED_AUTO_NEG) != L7_PHY_CAP_PORTSPEED_AUTO_NEG))
           {
             rc = (L7_FAILURE);
           }
