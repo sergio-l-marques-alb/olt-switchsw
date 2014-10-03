@@ -18,6 +18,7 @@
 #include "usmdb_1213_api.h"
 #include "usmdb_ping_api.h"
 #include "usmdb_traceroute_api.h"
+#include "usmdb_nim_api.h"
 #include "ping_exports.h"
 #include "traceroute_exports.h"
 #include <errno.h>
@@ -645,7 +646,9 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
 L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFamily, L7_uint32 ipAddr, L7_uint32 subnetMask)
 {
   char           ipAddrStr[IPV6_DISP_ADDR_LEN];
+  char           ipSubnetStr[IPV6_DISP_ADDR_LEN];
   L7_inet_addr_t inetIpAddr;
+  L7_inet_addr_t inetIpSubnet;
   L7_uint32      intfNum;
   L7_RC_t        rc;
 
@@ -663,10 +666,47 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
 
   /* Configure the routing interface with the given IP address */
   inetAddressSet(ipFamily, &ipAddr, &inetIpAddr);
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %s%u IP address to %s", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr));
+  inetAddressSet(ipFamily, &subnetMask, &inetIpSubnet);
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %u IP address to %s/%s", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr));
   if((rc = usmDbIpRtrIntfIPAddressSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %s%u IP address to %s (rc = %u)", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, inetAddrPrint(&inetIpAddr, ipAddrStr), rc);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %s%u IP address to %s/%s (rc = %u)", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr), rc);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set routing interface's MTU.
+ * 
+ * @param routingIntf : Routing interface
+ * @param mtu         : MTU
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_intf_mtu_set(ptin_intf_t* routingIntf, L7_uint32 mtu)
+{
+  L7_uint32 intfNum;
+  L7_RC_t   rc;
+
+  if( (routingIntf == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    return L7_ERROR;
+  }
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &intfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Configure the routing interface with the given MTU */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %u MTU to %d", intfNum, mtu);
+  if((rc = usmDbIntfIpMtuSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, mtu)) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %u MTU to %d (rc = %u)", intfNum, mtu, rc);
     return L7_FAILURE;
   }
 
