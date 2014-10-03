@@ -134,7 +134,7 @@ void help_oltBuga(void)
         "m 1700 type[0-Phy;1-Lag]/intf# enable[0/1] - Enable/Disable IP Source Guard on Ptin Port\n\r"
         "m 1701 idType[1-eEVCId; 2-rootVLAN] iD[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] removeOrAdd[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
         "--- Routing --------------------------------------------------------------------------------------------------------------------------\n\r"
-        "m 1810 routingIntf[2-Rtr]/[intf#] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] - Create new routing interface\r\n"
+        "m 1810 routingIntf[2-Rtr]/[intf#] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] mtu[xxx]- Create new routing interface\r\n"
         "m 1811 intf[2-Rtr]/[intf#] - Remove routing interface\r\n"
         "m 1820 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
         "m 1821 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
@@ -3046,6 +3046,13 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->subnetMask = valued;
+
+          // MTU
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->mtu = valued;
 
           ptr->mask = CCMSG_ROUTING_INTF_MASK_INTF | CCMSG_ROUTING_INTF_MASK_EVCID | CCMSG_ROUTING_INTF_MASK_IPADDR | CCMSG_ROUTING_INTF_MASK_SUBNETMASK;
 

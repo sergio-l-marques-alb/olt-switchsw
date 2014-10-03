@@ -9263,6 +9263,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIpv4Intf* data)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evcId         = %u",    data->evcId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mtu           = %u",    data->mtu);
 
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
@@ -9273,16 +9274,28 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIpv4Intf* data)
     return L7_FAILURE;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Creating routing interface");
   if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, internalVlan))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new routing interface");
     return L7_FAILURE;
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface IP Address");
   if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
     return L7_FAILURE;
+  }
+
+  if(data->mask & CCMSG_ROUTING_INTF_MASK_MTU)
+  {
+     LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface MTU");
+     if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
+     {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface MTU");
+       return L7_FAILURE;
+     }
   }
 
   return L7_SUCCESS;
@@ -9306,14 +9319,28 @@ L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIpv4Intf* data)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  evcId         = %u",    data->evcId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  ipAddress     = %08X",  data->ipAddress);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "  mtu           = %u",    data->mtu);
 
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
 
-  if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
+  if( (data->mask & CCMSG_ROUTING_INTF_MASK_IPADDR) || (data->mask & CCMSG_ROUTING_INTF_MASK_SUBNETMASK) )
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
-    return L7_FAILURE;
+     if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
+     {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface IP address");
+       return L7_FAILURE;
+     }
+  }
+
+  if(data->mask & CCMSG_ROUTING_INTF_MASK_MTU)
+  {
+     LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface MTU");
+     if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
+     {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface MTU");
+       return L7_FAILURE;
+     }
   }
 
   return L7_SUCCESS;

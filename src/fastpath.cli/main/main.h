@@ -533,10 +533,11 @@ typedef struct {
  ****************************************************/
 
 // Message CCMSG_ROUTING_INTF_CREATE / CCMSG_ROUTING_INTF_MODIFY / CCMSG_ROUTING_INTF_REMOVE
-#define CCMSG_ROUTING_INTF_MASK_INTF            0x000000001
-#define CCMSG_ROUTING_INTF_MASK_EVCID           0x000000002
-#define CCMSG_ROUTING_INTF_MASK_IPADDR          0x000000004
-#define CCMSG_ROUTING_INTF_MASK_SUBNETMASK      0x000000008
+#define CCMSG_ROUTING_INTF_MASK_INTF                0x000000001
+#define CCMSG_ROUTING_INTF_MASK_EVCID               0x000000002
+#define CCMSG_ROUTING_INTF_MASK_IPADDR              0x000000004
+#define CCMSG_ROUTING_INTF_MASK_SUBNETMASK          0x000000008
+#define CCMSG_ROUTING_INTF_MASK_MTU                 0x000000010
 typedef struct
 {
    L7_uint8             slotId;
@@ -545,6 +546,7 @@ typedef struct
    L7_uint32            evcId;
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
+   L7_uint32            mtu;
 } __attribute__((packed)) msg_RoutingIpv4Intf;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET

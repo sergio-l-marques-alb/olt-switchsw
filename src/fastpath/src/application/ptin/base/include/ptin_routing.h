@@ -77,6 +77,16 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf);
 L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFamily, L7_uint32 ipAddr, L7_uint32 subnetMask);
 
 /**
+ * Set routing interface's MTU.
+ * 
+ * @param routingIntf : Routing interface
+ * @param mtu         : MTU
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_intf_mtu_set(ptin_intf_t* routingIntf, L7_uint32 mtu);
+
+/**
  * Get the physical interface currently associated with the requested routing interface.
  * 
  * @param routingIntfNum  : Routing interface
