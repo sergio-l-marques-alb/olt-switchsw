@@ -593,7 +593,6 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
     return L7_FAILURE;
   }
 
-
 #if PTIN_BOARD_IS_MATRIX
   /* Disable IP/ARP packets through dtl0 for this vlan */
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, (L7_uint16)-1, intfNum, L7_FALSE))
@@ -631,6 +630,31 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
   memset(&__routing_interfaces[routingIntf->intf_id], 0x00, sizeof(ptin_routing_intf_t));
 
   return L7_SUCCESS;
+}
+
+/**
+ * Remove all routing interfaces.
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+void ptin_routing_intf_remove_all(void)
+{
+   L7_uint32   i;
+   ptin_intf_t intf;
+
+   intf.intf_type = PTIN_EVC_INTF_ROUTING;
+   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "Removing all routing interfaces");
+   for(i=0; i<__routing_interfaces_max; ++i)
+   {
+      if(__routing_interfaces[i].type != PTIN_ROUTING_INTF_TYPE_UNKNOWN)
+      {
+         intf.intf_id = i;
+         if(L7_SUCCESS != ptin_routing_intf_remove(&intf))
+         {
+            LOG_WARNING(LOG_CTX_PTIN_ROUTING, "Unable to remove routing interface %u. Continuing", i);
+         }
+      }
+   }
 }
 
 /**
@@ -1130,7 +1154,6 @@ L7_RC_t ptin_routing_pingsession_freeall()
   /* Free all existing sessions */
   for(i=0; i<__ping_sessions_max; ++i)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Freeing all existing ping sessions");
     ptin_routing_pingsession_free(i);
   }
 
@@ -1405,15 +1428,29 @@ static L7_int __ioctl_dtl0_enable(void)
   struct ifreq request; 
   L7_int       res = 0;
 
+  /* Enable DTL0 */
   memset(&request, 0x00, sizeof(request));
-
   strncpy(&request.ifr_name[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, IFNAMSIZ);
   request.ifr_flags |= IFF_UP;
-
   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFFLAGS");
   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name  = %s",     request.ifr_name);
   LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_flags = 0x%04X", request.ifr_flags);
   if((res = ioctl(__ioctl_socket_fd, SIOCSIFFLAGS, &request)) < 0)
+  {
+    return res;
+  }
+
+  /*
+  * If we allow routing interfaces to configure an MTU value equal to the MAX allowed by the FP, we need tp ensure that dtl0 interface is also configured with this value.
+  * Linux prevents the configuration of n MTU value higher than that of the physical interface.
+  */
+  memset(&request, 0x00, sizeof(request));
+  strncpy(&request.ifr_name[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, IFNAMSIZ);
+  request.ifr_mtu = L7_MAX_FRAME_SIZE;
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFMTU");
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name = %s",     request.ifr_name);
+  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_mtu  = 0x%04X", request.ifr_mtu);
+  if((res = ioctl(__ioctl_socket_fd, SIOCSIFMTU, &request)) < 0)
   {
     return res;
   }
