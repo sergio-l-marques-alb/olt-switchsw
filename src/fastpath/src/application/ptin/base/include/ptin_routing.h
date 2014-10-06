@@ -65,6 +65,11 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf);
 
 /**
+ * Remove all routing interfaces.
+ */
+void ptin_routing_intf_remove_all(void);
+
+/**
  * Set routing interface's ip address.
  * 
  * @param routingIntf : Routing interface

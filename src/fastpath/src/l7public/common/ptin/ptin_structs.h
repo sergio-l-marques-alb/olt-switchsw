@@ -37,7 +37,7 @@ typedef struct chmessage_ip_addr_s {
 
 /* PTin Interface */
 typedef struct {
-  L7_uint8  intf_type;                          /* Interface type: { 0-Physical, 1-Logical (LAG) } */
+  L7_uint8  intf_type;                          /* Interface type: { 0-Physical, 1-Logical (LAG), 2-Routing } */
   L7_uint8  intf_id;                            /* Interface Id# (phy ports / LAGs) */
 } ptin_intf_t;
 
