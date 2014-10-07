@@ -710,11 +710,13 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
         LOG_TRACE(LOG_CTX_ERPS,"APS packet received: intIfNum %d, vlanId %d, innerVlanId %d, payloadLen %d", msg.intIfNum, msg.vlanId, msg.innerVlanId, msg.payloadLen);
 
         if ( msg.payloadLen < 128 ) {
-          L7_uint8 buf[512];
+          L7_uint8 buf[512], buf2[4];
 
-          for (i=0; i<msg.payloadLen; i++) {
-            sprintf(buf, "%.2x ", msg.payload[i]);
+          for (i=0, buf[0]=0; i<msg.payloadLen; i++) {
+            sprintf(buf2, "%.2x ", msg.payload[i]);     buf2[3]=0;
+            strcat(buf, buf2);
           }
+          buf[511]=0;
           LOG_TRACE(LOG_CTX_ERPS,"Payload: %s", buf);
         }
       }
