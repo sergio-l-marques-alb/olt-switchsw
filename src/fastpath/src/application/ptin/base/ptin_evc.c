@@ -3274,8 +3274,18 @@ L7_RC_t ptin_evc_destroy_all(void)
 
   /* Start with index 1 because PTIN_EVC_INBAND=0 */
   for (i=1; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
+  {
+    /* Do not destroy this EVC */
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    if (i == PTIN_EVC_BL2CPU)
+    {
+      continue;
+    }
+    #endif
+
     if (IS_eEVC_IN_USE(i))
       ptin_evc_destroy(i);
+  }
 
   return L7_SUCCESS;
 }
