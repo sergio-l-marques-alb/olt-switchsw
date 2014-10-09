@@ -1732,9 +1732,9 @@ L7_RC_t dsDHCPv6FrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
 L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uchar8 *frame, L7_ushort16 innerVlanId, L7_uint client_idx)
 {
    L7_uchar8 frame_copy[DS_DHCP_PACKET_SIZE_MAX] = { 0 }, *ipv6_copy_header_ptr, *udp_copy_header_ptr, *dhcp_copy_header_ptr;
-   L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr;
+   L7_uchar8 *eth_header_ptr, *ipv6_header_ptr, *udp_header_ptr, *dhcp_header_ptr, *relay_op_header_ptr;
    L7_dhcp6_relay_agent_packet_t relay_agent_header = { 0 };
-   L7_uint32 frame_copy_len;
+   L7_uint32 frame_len, frame_copy_len;
    L7_BOOL isActiveOp37, isActiveOp18;
    L7_ip6Header_t *ipv6_header, *ipv6_copy_header;
    L7_udp_header_t *udp_header, *udp_copy_header;
@@ -1743,6 +1743,8 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_enetHeader_t *mac_header = 0;
    L7_ushort16 ethHdrLen;
    L7_uint8 dhcp_msg_type;
+   L7_dhcp6_packet_t* dhcp_msg_hdr_ptr = 0;
+   L7_dhcp6_option_packet_t *dhcp_op_header = 0;
 
    LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Processing client request");
 
@@ -1756,15 +1758,15 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
 
    //Parse the received frame
-   eth_header_ptr    = frame;
-   mac_header        = (L7_enetHeader_t*) frame;
-   ethHdrLen         = sysNetDataOffsetGet(frame);
-   ipv6_header_ptr   = eth_header_ptr + ethHdrLen;
-   ipv6_header       = (L7_ip6Header_t*) ipv6_header_ptr;
-   udp_header_ptr    = ipv6_header_ptr + L7_IP6_HEADER_LEN;
-   udp_header        = (L7_udp_header_t *) udp_header_ptr;
-   dhcp_header_ptr   = udp_header_ptr + sizeof(L7_udp_header_t);
-   dhcp_msg_type     = *((L7_uint8*)dhcp_header_ptr); //@note(DFF): Do NOT convert this field to HOST! It is a single byte.
+   eth_header_ptr  = frame;
+   mac_header      = (L7_enetHeader_t*) frame;
+   ethHdrLen       = sysNetDataOffsetGet(frame);
+   ipv6_header_ptr = eth_header_ptr + ethHdrLen;
+   ipv6_header     = (L7_ip6Header_t*) ipv6_header_ptr;
+   udp_header_ptr  = ipv6_header_ptr + L7_IP6_HEADER_LEN;
+   udp_header      = (L7_udp_header_t *) udp_header_ptr;
+   dhcp_header_ptr = udp_header_ptr + sizeof(L7_udp_header_t);
+   dhcp_msg_type   = *((L7_uint8*)dhcp_header_ptr); //@note(DFF): Do NOT convert this field to HOST! It is a single byte.
 
    //Copy received frame up to the end of the UDP header
    memcpy(frame_copy, frame, ethHdrLen + L7_IP6_HEADER_LEN + sizeof(L7_udp_header_t));
@@ -1801,6 +1803,55 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    }
    LOG_TRACE(LOG_CTX_PTIN_DHCP, "DHCPv6 Relay-Agent: Determined client options [op18:%u op37:%u]", isActiveOp18, isActiveOp37);
    
+   //Parse the client packet to discover the original message type
+   if(dhcp_msg_type != L7_DHCP6_RELAY_FORW)
+   {
+      dhcp_msg_hdr_ptr = (L7_dhcp6_packet_t*)dhcp_header_ptr;
+   }
+   else
+   {
+      relay_op_header_ptr = dhcp_header_ptr + sizeof(L7_dhcp6_relay_agent_packet_t);
+      frame_len           = osapiNtohs(udp_header->length) - sizeof(L7_udp_header_t) - sizeof(L7_dhcp6_relay_agent_packet_t);
+      while (frame_len > 0)
+      {
+        dhcp_op_header = (L7_dhcp6_option_packet_t*) relay_op_header_ptr;
+
+        //Check for an invalid length
+        if ((osapiNtohs(dhcp_op_header->option_len) == 0) || 
+            (frame_len < (sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len))))
+        {
+           LOG_ERR(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received message with an invalid frame length %d/%d", frame_len, sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len));
+           return L7_SUCCESS;
+        }
+
+        switch (osapiNtohs(dhcp_op_header->option_code))
+        {
+           case L7_DHCP6_OPT_RELAY_MSG:
+           {
+              frame_len           -= sizeof(L7_dhcp6_option_packet_t);
+              relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t);
+
+              if(*((L7_uint8*)relay_op_header_ptr) == L7_DHCP6_RELAY_FORW) //@note(DFF): Do NOT convert this field to HOST! It is a single byte.
+              {
+                 frame_len           -= sizeof(L7_dhcp6_relay_agent_packet_t);
+                 relay_op_header_ptr += sizeof(L7_dhcp6_relay_agent_packet_t);
+              }
+              else
+              {
+                 dhcp_msg_hdr_ptr     = (L7_dhcp6_packet_t*)relay_op_header_ptr;
+                 frame_len           -= sizeof(L7_dhcp6_packet_t);
+                 relay_op_header_ptr += sizeof(L7_dhcp6_packet_t);
+              }
+
+              break;
+           }        
+           default:
+              frame_len           -= sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
+              relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
+              break; 
+        }
+      }
+   }
 
    //@note (Daniel): Currently, statistics for DHCP are broken. They are to be rewritten in v4.0.
    ptin_dhcp_stat_increment_field(intIfNum, vlanId, client_idx, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTIONS);
@@ -1861,7 +1912,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Add or update an existing entry in the binding table
    dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, client_ip_addr, vlanId, innerVlanId, intIfNum);
-   dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)dhcp_header_ptr);
+   dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type);
 
    return L7_SUCCESS;
 }
@@ -1896,7 +1947,8 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
    L7_enetHeader_t *mac_header = 0;
    dhcpSnoopBinding_t dhcp_binding;
    L7_ushort16 ethHdrLen;
-   L7_uint8  ethPrty, *frameEthPrty;
+   L7_uint8 ethPrty, *frameEthPrty;
+   L7_dhcp6_packet_t *dhcp_msg_hdr_ptr = 0;
 
    LOG_DEBUG(LOG_CTX_PTIN_DHCP, "DHCP Relay-Agent: Received server reply");
 
@@ -2008,8 +2060,6 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         }
         case L7_DHCP6_OPT_RELAY_MSG:
         {
-           L7_dhcp6_relay_agent_packet_t *relay_message;
-
            //Find the first relay message option and save a pointer to it
            if(op_relaymsg_ptr == L7_NULLPTR)
            {
@@ -2017,17 +2067,17 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
            }
            frame_len           -= sizeof(L7_dhcp6_option_packet_t);
            relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t);
-           relay_message        = (L7_dhcp6_relay_agent_packet_t*)relay_op_header_ptr;
 
-           if(relay_message->msg_type == L7_DHCP6_RELAY_REPL) //@note(DFF): Do NOT convert this field to HOST! It is a single byte.
+           if(*((L7_uint8*)relay_op_header_ptr) == L7_DHCP6_RELAY_REPL) //@note(DFF): Do NOT convert this field to HOST! It is a single byte.
            {
               frame_len           -= sizeof(L7_dhcp6_relay_agent_packet_t);
               relay_op_header_ptr += sizeof(L7_dhcp6_relay_agent_packet_t);
            }
            else
            {
-              frame_len           -= sizeof(L7_dhcp6_option_packet_t);
-              relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t);
+              dhcp_msg_hdr_ptr     = (L7_dhcp6_packet_t*)relay_op_header_ptr;
+              frame_len           -= sizeof(L7_dhcp6_packet_t);
+              relay_op_header_ptr += sizeof(L7_dhcp6_packet_t);
            }
 
            break;
@@ -2141,7 +2191,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      key.ipType = L7_AF_INET6;
      dsv6BindingIpAddrSet(&client_mac_addr, client_ip_addr);
      dsBindingLeaseSet(&key, lease_time);
-     dsv6LeaseStatusUpdate(&client_mac_addr, *(L7_uint8*)(op_relaymsg_ptr + sizeof(L7_dhcp6_option_packet_t)));
+     dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type);
    }
 
    return L7_SUCCESS;
