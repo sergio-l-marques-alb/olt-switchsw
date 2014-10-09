@@ -1464,7 +1464,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     L7_uint8 aux;
     L7_uint8 aux2[PROT_ERPS_MAC_SIZE] = {0};
 
-    remoteRequest = APS_GET_REQ(apsReqRx);
+    remoteRequest = apsReqRx;
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
 

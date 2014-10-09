@@ -33,12 +33,14 @@ typedef struct {
 
   L7_uint32 apsPacketsTxReqEvent[2];
   L7_uint32 apsPacketsTxReqFS[2];
+  L7_uint32 apsPacketsTxReqSF[2];
   L7_uint32 apsPacketsTxReqMS[2];
   L7_uint32 apsPacketsTxReqNR[2];
 
   L7_uint32 apsPacketsRx[2];
   L7_uint32 apsPacketsRxReqEvent[2];
   L7_uint32 apsPacketsRxReqFS[2];
+  L7_uint32 apsPacketsRxReqSF[2];
   L7_uint32 apsPacketsRxReqMS[2];
   L7_uint32 apsPacketsRxReqNR[2];
 

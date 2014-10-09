@@ -107,11 +107,13 @@ L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
     printf("Fw         [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsFw[port]);
     printf("Tx Event   [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port]);
     printf("Tx FS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port]);
+    printf("Tx SF      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port]);
     printf("Tx MS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port]);
     printf("Tx NR      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port]);
     printf("Rx         [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRx[port]);
     printf("Rx Event   [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port]);
     printf("Rx FS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port]);
+    printf("Rx SF      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port]);
     printf("Rx MS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port]);
     printf("Rx NR      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port]);
     printf("Dropped    [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port]);
@@ -139,11 +141,13 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
     tbl_halErps[erps_idx].statistics.apsPacketsFw[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsRx[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port] = 0;
@@ -165,22 +169,22 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   
   if (req == RReq_EVENT)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_EVENT");
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port] += units;
   }
   else if (req == RReq_FS)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_FS");
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port] += units;
+  }
+  else if (req == RReq_SF)
+  {
+    tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port] += units;
   }
   else if (req == RReq_MS)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_MS");
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port] += units;
   }
   else if (req == RReq_NR)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_NR");
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port] += units;
   }
   else
@@ -201,7 +205,6 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
  */
 L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req)
 {
-  LOG_TRACE(LOG_CTX_ERPS,"");
   tbl_halErps[erps_idx].statistics.apsPacketsFw[port] += 1;
 
   return L7_SUCCESS;
@@ -221,22 +224,22 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   
   if (req == RReq_EVENT)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_EVENT");
     tbl_halErps[erps_idx].statistics.apsPacketsRxReqEvent[port] += 1; 
   }
   else if (req == RReq_FS)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_FS");
     tbl_halErps[erps_idx].statistics.apsPacketsRxReqFS[port] += 1; 
+  }
+  else if (req == RReq_SF)
+  {
+    tbl_halErps[erps_idx].statistics.apsPacketsRxReqSF[port] += 1; 
   }
   else if (req == RReq_MS)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_MS");
     tbl_halErps[erps_idx].statistics.apsPacketsRxReqMS[port] += 1;
   }
   else if (req == RReq_NR)
   {
-    LOG_TRACE(LOG_CTX_ERPS,"RReq_NR");
     tbl_halErps[erps_idx].statistics.apsPacketsRxReqNR[port] += 1;
   }
   else
@@ -257,7 +260,6 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
  */
 L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port)
 {
-  LOG_TRACE(LOG_CTX_ERPS,"");
   tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port] += 1;
 
   return L7_SUCCESS;
