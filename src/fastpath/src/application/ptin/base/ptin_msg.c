@@ -171,6 +171,9 @@ void ptin_msg_defaults_reset(L7_char8 mode)
   /* Reset MGMD */
   ptin_igmp_mgmd_resetdefaults();
 
+  /* Routing */
+  ptin_routing_intf_remove_all();
+
   /* EVCs */
   ptin_evc_destroy_all();
 

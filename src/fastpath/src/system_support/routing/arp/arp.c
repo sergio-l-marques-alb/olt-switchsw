@@ -659,13 +659,19 @@ e_Err ARP_DelLocAddr(t_Handle Id, t_IPAddr *ipAddr, word flags)
 
         /* delete the local address entry from the ARP cache */
         e = ipMapArpExtenCacheFind(p_A->arpCacheId, (byte *)&netIpAddr, flags, &p_Adr);
-        ASSERT(e == E_OK);
-        ASSERT(p_Adr);
-        e = _deleteAddrEntry(p_A, p_Adr);
-        ASSERT(e == E_OK);
+//      ASSERT(e == E_OK);
+//      ASSERT(p_Adr);
+        if((e == E_OK) && (p_Adr))
+        {
+           e = _deleteAddrEntry(p_A, p_Adr);
+        }
 
-        XX_DelFromDLList(addrEnt, p_A->addrEnt);
-        XX_Free(addrEnt);
+//      ASSERT(e == E_OK);
+        if(e == E_OK)
+        {
+           XX_DelFromDLList(addrEnt, p_A->addrEnt);
+           XX_Free(addrEnt);
+        }
     }
 
     /* set the overall ARP state to disabled when last intf deleted */
