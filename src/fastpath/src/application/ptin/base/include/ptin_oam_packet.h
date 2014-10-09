@@ -23,7 +23,7 @@ typedef struct aps_pdu_s {
   L7_uchar8         opCode;
   L7_uchar8         flags;
   L7_uchar8         tlvOffset;
-  L7_uchar8         req_state_subcode;
+  L7_uchar8         req_subcode;
   L7_uchar8         status;
   L7_uchar8         nodeid[6];
   L7_uchar8         reseved2[24];
@@ -188,7 +188,7 @@ extern void ptin_oam_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 
  * @param req_state 
  * @param status 
  */
-extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status);
+extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqs_subcode, L7_uint8 status);
 
 /**
  * Process received APS packet on specified interface and VLAN
@@ -197,7 +197,7 @@ extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport);
+extern L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport);
 
 
 

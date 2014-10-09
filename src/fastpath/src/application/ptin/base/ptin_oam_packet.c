@@ -449,20 +449,15 @@ L7_RC_t ptin_aps_checkOwnNodeId(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   }
 
   // Check Node ID
-  if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {
-
-    // Own packet! Drop it.
-    // Refresh Rx Dropped counter
-    tbl_halErps[erps_idx].apsPacketsRxDropped[rxport] += 1;
-
+  if ( memcmp(aps_frame->aspmsg.nodeid, srcMacAddr, L7_MAC_ADDR_LEN) == 0 ) {   
     if (ptin_oam_packet_debug_enable)
       LOG_TRACE(LOG_CTX_ERPS,"Own APS Packet! Dropped.");
 
+    // Own packet! Drop it.
+    ptin_hal_erps_counters_rxdrop(erps_idx, rxport);
+
     return L7_FAILURE;
   }
-
-  // Refresh Rx counter
-  tbl_halErps[erps_idx].apsPacketsRxGood[rxport] += 1;
  
   return L7_SUCCESS;
 }
@@ -530,7 +525,7 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
     msg.bufHandle   = bufHandle;
 
     /* Validate Node ID before processing and forwarding packet*/
-    if (ptin_aps_checkOwnNodeId(erpsIdx_from_controlVidInternal[vlanId], &msg) != L7_SUCCESS) {    
+    if (ptin_aps_checkOwnNodeId(erpsIdx_from_controlVidInternal[vlanId], &msg) != L7_SUCCESS) {      
       return L7_FAILURE;
     }      
 
@@ -686,7 +681,7 @@ L7_RC_t common_aps_ccm_packetRx_callback_register(void) {
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 #ifdef PTIN_ENABLE_ERPS
-L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport)
+L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport)
 {
   L7_uint32           status;
   ptin_APS_PDU_Msg_t  msg;
@@ -723,7 +718,7 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_reqstate, L7
 
       aps_frame = (aps_frame_t*) msg.payload;
 
-      *aps_reqstate       = aps_frame->aspmsg.req_state_subcode;
+      *aps_req            = (aps_frame->aspmsg.req_subcode >> 4) & 0x0F; /* Ignoring subcode */
       *aps_status         = aps_frame->aspmsg.status;
       memcpy(aps_nodeid,  aps_frame->aspmsg.nodeid, L7_ENET_MAC_ADDR_LEN);
       *aps_rxport         = msg.intIfNum;
@@ -807,7 +802,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
  * @param status 
  */
 #ifdef PTIN_ENABLE_ERPS
-void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8 status)
+void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 req_subcode, L7_uint8 status)
 {
   aps_frame_t aps_frame;
   L7_uchar8   apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
@@ -828,14 +823,11 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8
   aps_frame.aspmsg.opCode             = 40;
   aps_frame.aspmsg.flags              = 0x00;
   aps_frame.aspmsg.tlvOffset          = 0x20;
-  aps_frame.aspmsg.req_state_subcode  = reqstate_subcode;
+  aps_frame.aspmsg.req_subcode        = req_subcode;
   aps_frame.aspmsg.status             = status;
   memcpy(aps_frame.aspmsg.nodeid,     srcMacAddr, L7_ENET_MAC_ADDR_LEN);
   memset(aps_frame.aspmsg.reseved2,   0, 24);
   aps_frame.aspmsg.endTlv             = 0x00;
-
-  tbl_halErps[erps_idx].apsPacketsTx[0] += 1;
-  tbl_halErps[erps_idx].apsPacketsTx[1] += 1;
 
   ptin_oam_packet_send(L7_ALL_INTERFACES,
                        tbl_halErps[erps_idx].controlVidInternal,
@@ -858,7 +850,7 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqstate_subcode, L7_uint8
 L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 {
   L7_uint32   txintport;
-  L7_uint8    txport;
+  L7_uint8    txport, req=0;
   aps_frame_t *aps_frame;
 
   aps_frame = (aps_frame_t*) pktMsg->payload;
@@ -886,7 +878,7 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
   }
 
   // Refresh Tx counter
-  tbl_halErps[erps_idx].apsPacketsTx[txport] += 1;
+  ptin_hal_erps_counters_fw(erps_idx, txport, req);
 
   // Packet arrives with internal VLAN ID. write back the control VID.
   aps_frame->vlan_tag[2] = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
