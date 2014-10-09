@@ -1456,11 +1456,11 @@ void dsBindingTableShow(void)
       remainingLease = 0;
     }
 
-    printf("%17s  %-45s  %6u  %9u  %10s %11s %18s %13u %02X\n",
+    printf("%17s  %-45s  %6u  %9u  %11s %11s %18s %13u\n",
            macStr, ipAddrStr, binding->vlanId, binding->innerVlanId, ifName,
-           dsBindingTypeNames[binding->bindingType], 
-           dsLeaseStatusNames[binding->leaseStatus], 
-           remainingLease / 60, flags);
+           dsBindingTypeNames[binding->bindingType],
+           dsLeaseStatusNames[binding->leaseStatus],
+           remainingLease / 60);
   }
   printf("\n\n");
 }
