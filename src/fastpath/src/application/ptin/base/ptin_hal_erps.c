@@ -274,17 +274,17 @@ L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port)
  */
 L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
 {
-  printf("ERPS#%d", erps_idx);
+  printf("ERPS#%d\n", erps_idx);
   
   // Print some Debug
-  printf("used             %d", tbl_halErps[erps_idx].used);
-  printf("port0.idx %d --> %d", tbl_erps[erps_idx].protParam.port0.idx,   tbl_halErps[erps_idx].port0intfNum);
-  printf("port1.idx %d --> %d", tbl_erps[erps_idx].protParam.port1.idx,   tbl_halErps[erps_idx].port1intfNum);
-  printf("vid       %d --> %d", tbl_erps[erps_idx].protParam.controlVid,  tbl_halErps[erps_idx].controlVidInternal);
-  printf("apsReqStatusRx   0x%x", tbl_halErps[erps_idx].apsReqStatusRx);
-  printf("apsReqStatusTx   0x%x", tbl_halErps[erps_idx].apsReqStatusTx);
-  printf("hwSync           %d", tbl_halErps[erps_idx].hwSync);
-  printf("hwFdbFlush       %d", tbl_halErps[erps_idx].hwFdbFlush);
+  printf("used             %d\n", tbl_halErps[erps_idx].used);
+  printf("port0.idx %d --> %d\n", tbl_erps[erps_idx].protParam.port0.idx,   tbl_halErps[erps_idx].port0intfNum);
+  printf("port1.idx %d --> %d\n", tbl_erps[erps_idx].protParam.port1.idx,   tbl_halErps[erps_idx].port1intfNum);
+  printf("vid       %d --> %d\n", tbl_erps[erps_idx].protParam.controlVid,  tbl_halErps[erps_idx].controlVidInternal);
+  printf("apsReqStatusRx   0x%02X\n", tbl_halErps[erps_idx].apsReqStatusRx);
+  printf("apsReqStatusTx   0x%02X\n", tbl_halErps[erps_idx].apsReqStatusTx);
+  printf("hwSync           %d\n", tbl_halErps[erps_idx].hwSync);
+  printf("hwFdbFlush       %d\n", tbl_halErps[erps_idx].hwFdbFlush);
   
   return L7_SUCCESS;
 }
