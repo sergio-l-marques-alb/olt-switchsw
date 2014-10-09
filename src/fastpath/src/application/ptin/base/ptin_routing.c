@@ -1440,21 +1440,6 @@ static L7_int __ioctl_dtl0_enable(void)
     return res;
   }
 
-  /*
-  * If we allow routing interfaces to configure an MTU value equal to the MAX allowed by the FP, we need tp ensure that dtl0 interface is also configured with this value.
-  * Linux prevents the configuration of n MTU value higher than that of the physical interface.
-  */
-  memset(&request, 0x00, sizeof(request));
-  strncpy(&request.ifr_name[0], PTIN_ROUTING_DTL0_INTERFACE_NAME, IFNAMSIZ);
-  request.ifr_mtu = L7_MAX_FRAME_SIZE;
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "ioctl request -> SIOCSIFMTU");
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_name = %s",     request.ifr_name);
-  LOG_TRACE(LOG_CTX_PTIN_ROUTING, "  ifr_mtu  = 0x%04X", request.ifr_mtu);
-  if((res = ioctl(__ioctl_socket_fd, SIOCSIFMTU, &request)) < 0)
-  {
-    return res;
-  }
-
   return res;
 }
 
