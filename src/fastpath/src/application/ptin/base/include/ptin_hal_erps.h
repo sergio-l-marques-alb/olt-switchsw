@@ -25,7 +25,28 @@ extern L7_uchar8 srcMacAddr[L7_MAC_ADDR_LEN];
 
 
 /// Hardware Abstraction Layer
-typedef struct _ptinHalErps_t {
+
+typedef struct {
+  // Statistics
+  L7_uint32 apsPacketsTx[2];
+  L7_uint32 apsPacketsFw[2];
+
+  L7_uint32 apsPacketsTxReqEvent[2];
+  L7_uint32 apsPacketsTxReqFS[2];
+  L7_uint32 apsPacketsTxReqMS[2];
+  L7_uint32 apsPacketsTxReqNR[2];
+
+  L7_uint32 apsPacketsRx[2];
+  L7_uint32 apsPacketsRxReqEvent[2];
+  L7_uint32 apsPacketsRxReqFS[2];
+  L7_uint32 apsPacketsRxReqMS[2];
+  L7_uint32 apsPacketsRxReqNR[2];
+
+  L7_uint32 apsPacketsRxDropped[2];
+
+} ptinHalErpsStatistics_t;
+
+typedef struct {
 
   L7_BOOL   used;                   ///< ENTRY_FREE/ENTRY_BUSY
 
@@ -39,10 +60,8 @@ typedef struct _ptinHalErps_t {
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
 
-  // Packets
-  L7_uint32 apsPacketsTx[2];
-  L7_uint32 apsPacketsRxGood[2];
-  L7_uint32 apsPacketsRxDropped[2];
+  // Statistics
+  ptinHalErpsStatistics_t statistics;
 
   L7_uint8 hwSync;                  ///< configures VLAN on switch
   L7_uint8 hwFdbFlush;              ///< FDB Flush by VLAN
@@ -83,6 +102,24 @@ extern L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx);
  * @param erps_idx 
  */
 extern L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx);
+
+/**
+ * APS Counters
+ * 
+ * @author joaom (7/09/2013)
+ * 
+ * @param erps_idx 
+ */
+extern L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req);
+
+/**
+ * APS Counters
+ * 
+ * @author joaom (7/09/2013)
+ * 
+ * @param erps_idx 
+ */
+extern L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port);
 
 /**
  * Initialize ERPS# HW abstraction layer
@@ -140,10 +177,10 @@ extern L7_RC_t ptin_hal_erps_deinit(void);
  * @param slot 
  * @param index 
  * @param apsvid 
- * @param req_state 
+ * @param req 
  * @param status 
  */
-extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
+extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
 
 
 /**
@@ -154,10 +191,10 @@ extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req_state, L7_u
  * @param slot 
  * @param index 
  * @param apsvid 
- * @param req_state 
+ * @param req 
  * @param status 
  */
-extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
+extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
 
 /**
  * Receives an APS packet on a specified interface and VLAN 
@@ -169,7 +206,7 @@ extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req_state, L7
  * @param nodeid 
  * @param rxport 
  */
-extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
+extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
 
 /**
  * Block or unblock ERP Port and/or Flush FDB

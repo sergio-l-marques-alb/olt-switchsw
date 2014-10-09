@@ -52,12 +52,12 @@ int rd_alarms_dummy(L7_uint8 slot, L7_uint32 index)
   return(0);
 }
 
-L7_RC_t aps_rxdummy(L7_uint8 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
+L7_RC_t aps_rxdummy(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport)
 {
   return(0);
 }
 
-L7_RC_t aps_txdummy(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status)
+L7_RC_t aps_txdummy(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
 {
   return(0);
 }
@@ -70,7 +70,7 @@ int prot_proc_dummy(L7_uint8 prot_id)
 
 int ptin_prot_erps_instance_proc(L7_uint8 erps_idx);
 
-int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int line_callback);
+int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status, int line_callback);
 
 int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 portState, int line_callback);
 
@@ -1206,7 +1206,7 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
  * 
  * @return int 
  */
-int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int line_callback)
+int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status, int line_callback)
 {
   int ret = PROT_ERPS_EXIT_OK;
   L7_uint16 apsTx;
@@ -1217,13 +1217,13 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int 
     status |= RReq_STAT_BPR_SET(PROT_ERPS_PORT1);
   }
 
-  apsTx = ((reqstate << 12) & 0xF000) | (status & 0x00FF);
+  apsTx = ((req << 12) & 0xF000) | (status & 0x00FF);
 
   if (tbl_erps[erps_idx].apsReqStatusTx != apsTx) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x = %s(0x%x) (line_callback %d)",  erps_idx, reqstate, remReqToString[reqstate], status, line_callback);
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x = %s(0x%x) (line_callback %d)",  erps_idx, req, remReqToString[req], status, line_callback);
   }
 
-  tbl_erps[erps_idx].hal.aps_txfields(erps_idx, reqstate, status);
+  tbl_erps[erps_idx].hal.aps_txfields(erps_idx, req, status);
 
   tbl_erps[erps_idx].apsReqStatusTx = apsTx;
 
@@ -1244,13 +1244,13 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 reqstate, L7_uint8 status, int 
  * 
  * @return int 
  */
-int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *reqstate, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport, int line_callback)
+int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport, int line_callback)
 {
   int ret;
 
   //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d (line_callback %d)", erps_idx, line_callback);
 
-  ret = tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, reqstate, status, nodeid, rxport);
+  ret = tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, req, status, nodeid, rxport);
 
   return(ret);
 }
@@ -1353,7 +1353,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_uint8  localRequest                      = LReq_NONE;
   L7_uint8  remoteRequest                     = RReq_NONE;
   L7_uint16 apsReqStatusRx                    = 0;
-  L7_uint8  apsReqStateRx                     = 0;
+  L7_uint8  apsReqRx                          = 0;
   L7_uint8  apsStatusRx                       = 0;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE]   = {0};
   L7_uint32 apsRxPort                         = 0;
@@ -1460,15 +1460,15 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
   //--------------------------------------------------------------------------------------------
   // R-APS request (Rx check)
-  if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqStateRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
+  if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
     L7_uint8 aux;
     L7_uint8 aux2[PROT_ERPS_MAC_SIZE] = {0};
 
-    remoteRequest = APS_GET_REQ(apsReqStateRx);
+    remoteRequest = APS_GET_REQ(apsReqRx);
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
 
-    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqStateRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
+    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
 
     // The flush logic retains for each ring port the information of node ID and blocked port reference 
     // (BPR) of the last R-APS message received over that ring port.
