@@ -4745,7 +4745,7 @@ L7_RC_t ptin_stormControl_init(void)
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
 
   /* Initialize storm control for all EVCs, and all traffic types */
-  stormControl.flags =  PTIN_STORMCONTROL_MASK_BCAST | PTIN_STORMCONTROL_MASK_MCAST /*| PTIN_STORMCONTROL_MASK_UCUNK*/ | PTIN_STORMCONTROL_MASK_CPU;
+  stormControl.flags =  PTIN_STORMCONTROL_MASK_BCAST | PTIN_STORMCONTROL_MASK_MCAST | PTIN_STORMCONTROL_MASK_UCUNK | PTIN_STORMCONTROL_MASK_CPU;
 
   return ptin_evc_stormControl_reset(&stormControl);
 }
