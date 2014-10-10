@@ -79,9 +79,6 @@ static L7_RC_t hapi_ptin_portMap_init(void);
 
 L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 
-L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port);
-L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port);
-
 L7_RC_t ptin_hapi_phy_init_matrix(void);
 L7_RC_t ptin_hapi_phy_init_olt1t0(void);
 L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void);
@@ -2942,7 +2939,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"CPU stormcontrol destroyed");
   }
 
-  if (!enable || cir == (L7_uint32)-1)
+  if (!enable || cir == 0 || cir == (L7_uint32)-1)
   {
     LOG_WARNING(LOG_CTX_PTIN_HAPI,"Nothing done: enable=%u cir=%u cbs=%u", enable, cir, cbs);
     return L7_SUCCESS;
@@ -3117,7 +3114,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     }
 
     /* Create rules */
-    if (enable)
+    if (enable && control->bcast_rate > 0)
     {
       /* Rate Limit */
       meterInfo.cir       = control->bcast_rate;
@@ -3242,7 +3239,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     }
 
     /* Create rules */
-    if (enable)
+    if (enable && control->mcast_rate > 0)
     {
       /* Rate Limit */
       meterInfo.cir       = control->mcast_rate;
@@ -3367,7 +3364,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
     }
 
     /* Create rules */
-    if (enable)
+    if (enable && control->ucunk_rate > 0)
     {
       /* Rate Limit */
       meterInfo.cir       = control->ucunk_rate;

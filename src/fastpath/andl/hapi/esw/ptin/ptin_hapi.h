@@ -56,6 +56,12 @@ extern L7_int bcm_unit;
  * EXTERNAL FUNCTIONS PROTOTYPES
  ********************************************************************/
 
+
+extern L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port);
+
+extern L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port);
+
+
 /**
  * Initializes PTin HAPI data structures
  * 
