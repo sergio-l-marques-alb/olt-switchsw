@@ -27,7 +27,7 @@
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
 /* Global to all platforms */
-#define PTIN_SYSTEM_MAX_N_FULLSLOTS     18
+#define PTIN_SYSTEM_MAX_N_FULLSLOTS     20
 #define PTIN_SYSTEM_MAX_N_PORTS         64
 #define PTIN_SYSTEM_MAX_N_LAGS          PTIN_SYSTEM_MAX_N_PORTS
 #define PTIN_SYSTEM_ETH_MTU_SIZE        9600
@@ -162,10 +162,10 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_IGMP     512
 #define RATE_LIMIT_DHCP     512
 #define RATE_LIMIT_PPPoE    512
-#define RATE_LIMIT_BCAST    1024
-#define RATE_LIMIT_MCAST    1024
-#define RATE_LIMIT_UCUNK    1024
-#define RATE_LIMIT_CPU      1024
+#define RATE_LIMIT_BCAST    1024    /* 1 Mbps by default */
+#define RATE_LIMIT_MCAST    1024    /* 1 Mbps by default */
+#define RATE_LIMIT_UCUNK    1024    /* 1 Mbps by default */
+#define RATE_LIMIT_CPU      1024    /* 1 Mbps by default */
 #define RATE_LIMIT_APS      512
 #define RATE_LIMIT_CCM      512
 #define RATE_LIMIT_IPDTL0   512
