@@ -545,6 +545,7 @@ typedef struct
    L7_uint32            evcId;
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
+   L7_uint32            mtu;
 } __attribute__((packed)) msg_RoutingIpv4Intf;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET
