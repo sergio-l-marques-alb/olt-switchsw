@@ -3922,7 +3922,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
     }
 
-    /* Set PRBS mode */
+        /* Set PRBS mode */
     case CCMSG_ETH_PCS_PRBS_ENABLE:
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
@@ -3978,6 +3978,68 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       outbuffer->infoDim = sizeof(msg_ptin_pcs_prbs)*n;
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Set PRBS mode */
+    case CCMSG_ETH_PRBS_ENABLE:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PRBS_ENABLE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_ptin_prbs_enable);
+
+      msg_ptin_prbs_enable *ptr;
+      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_prbs_enable);
+
+      ptr = (msg_ptin_prbs_enable *) inbuffer->info;
+
+      /* Execute command */
+      rc  = ptin_msg_prbs_enable(ptr,n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Get PRBS status */
+    case CCMSG_ETH_PRBS_STATUS:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PRBS_STATUS (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_ptin_prbs_request);
+
+      msg_ptin_prbs_request *ptr_in;
+      msg_ptin_prbs_status  *ptr_out;
+      L7_int n = inbuffer->infoDim/sizeof(msg_ptin_prbs_request);
+
+      ptr_in  = (msg_ptin_prbs_request *) inbuffer->info;
+      ptr_out = (msg_ptin_prbs_status  *) outbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_prbs_status(ptr_in, ptr_out, &n);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_ptin_prbs_status)*n;
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim);
     }

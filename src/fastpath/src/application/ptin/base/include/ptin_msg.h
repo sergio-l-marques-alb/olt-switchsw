@@ -1022,6 +1022,26 @@ extern L7_RC_t ptin_msg_pcs_prbs_enable(msg_ptin_pcs_prbs *msg, L7_int n_msg);
 extern L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg);
 
 /**
+ * Enable PRBS tx/rx
+ * 
+ * @param msg : PRBS configuration
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg);
+
+/**
+ * Read PRBS errors
+ * 
+ * @param msg_in : PRBS input
+ * @param msg_out : PRBS results 
+ * @param n_msg : Number of structures 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status *msg_out, L7_int *n_msg);
+
+/**
  * Used to create a new MEP
  * 
  * @author joaom (5/31/2013)

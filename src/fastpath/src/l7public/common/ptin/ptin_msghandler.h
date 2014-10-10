@@ -170,6 +170,8 @@
 
 #define CCMSG_ETH_PCS_PRBS_ENABLE           0x9080  // Enable PRBS tx/rx
 #define CCMSG_ETH_PCS_PRBS_STATUS           0x9081  // PRBS lock and number of errors
+#define CCMSG_ETH_PRBS_ENABLE               0x0530  // Enable PRBS tx/rx
+#define CCMSG_ETH_PRBS_STATUS               0x0531  // PRBS lock and number of errors
                                                     
 #define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9082  // struct msg_IgmpAdmissionControl_t
 
@@ -1820,6 +1822,24 @@ typedef struct
   msg_ptin_hw_resources resources;
 } __attribute__((packed)) msg_hw_resources;
 
+
+typedef struct
+{
+  L7_uint8 SlotId;
+  L7_uint8 intf;
+  L7_uint8 enable;
+} __attribute__((packed)) msg_ptin_prbs_enable;
+
+typedef struct
+{
+  L7_uint8 SlotId;
+  L7_uint8 intf;
+} __attribute__((packed)) msg_ptin_prbs_request;
+
+typedef struct
+{
+  L7_int32 rxErrors;
+} __attribute__((packed)) msg_ptin_prbs_status;
 
 
 /************************************************************************** 

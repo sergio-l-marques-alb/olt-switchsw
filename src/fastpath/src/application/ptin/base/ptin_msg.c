@@ -3383,13 +3383,11 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
     msgStormControl->ucast_unknown_rate = stormControl.ucunk_rate;
     msgStormControl->mask = MSG_STORMCONTROL_MASK_UCUNK;
   }
-  #if 0
   if (stormControl.flags & PTIN_STORMCONTROL_MASK_CPU)
   {
     msgStormControl->ucast_unknown_rate = stormControl.cpu_rate;
     msgStormControl->mask = MSG_STORMCONTROL_MASK_CPU;
   }
-  #endif
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
   return rc;
@@ -3437,20 +3435,16 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
     stormControl.mcast_rate = msgStormControl->mcast_rate;
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  #if 0
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
   {
     stormControl.ucunk_rate = msgStormControl->ucast_unknown_rate;
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  #endif
-  #if 0
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
   {
     stormControl.cpu_rate = msgStormControl->ucast_unknown_rate;
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
-  #endif
 
   /* Add bandwidth profile */
   if ((rc=ptin_evc_stormControl_set(L7_ENABLE, &stormControl))!=L7_SUCCESS)
@@ -3503,18 +3497,14 @@ L7_RC_t ptin_msg_stormControl_clear(msg_HwEthStormControl_t *msgStormControl)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  #if 0
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  #endif
-  #if 0
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
-  #endif
 
   /* Add bandwidth profile */
   if ((rc=ptin_evc_stormControl_set(L7_DISABLE, &stormControl))!=L7_SUCCESS)
@@ -3564,18 +3554,14 @@ L7_RC_t ptin_msg_stormControl_reset(msg_HwEthStormControl_t *msgStormControl)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_MCAST;
   }
-  #if 0
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_UCUNK;
   }
-  #endif
-  #if 0
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_CPU)
   {
     stormControl.flags |= PTIN_STORMCONTROL_MASK_CPU;
   }
-  #endif
 
   /* Add bandwidth profile */
   if ((rc=ptin_evc_stormControl_reset(&stormControl))!=L7_SUCCESS)
@@ -7082,6 +7068,227 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
       msg[i].rxStatus.lock = L7_TRUE;
       msg[i].rxStatus.rxErrors = rxStatus;
     }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Enable PRBS tx/rx
+ * 
+ * @param msg : PRBS configuration
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
+{
+  L7_uint8  enable;
+  L7_uint32 i, intIfNum, port;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  if (n_msg == 0)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Apply to all ports */
+  if (msg->intf == 0xff)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS configuration:");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg->SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg->intf);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u",msg->enable);
+
+    enable = msg->enable;
+
+    /* Run all ports */
+    for (port = 0; port < ptin_sys_number_of_ports; port++)
+    {
+      /* Skip non backplane ports */
+      if (!(PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port)))
+      {
+        continue;
+      }
+
+      /* Get intIfNum */
+      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      rc = ptin_pcs_prbs_enable(intIfNum, enable);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
+        rc_global = rc;
+        continue;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "Success setting PRBS enable of port %u to %u", port, enable);
+    }
+  }
+  /* Apply to each port */
+  else
+  {
+    for (i=0; i<n_msg; i++)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS configuration:");
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg[i].SlotId);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg[i].intf);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u",msg[i].enable);
+
+      port = msg[i].intf;
+      enable = msg[i].enable;
+
+      /* Validate port */
+      if (port >= ptin_sys_number_of_ports)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      /* Get intIfNum */
+      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      rc = ptin_pcs_prbs_enable(intIfNum, enable);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error settings PRBS enable of port %u to %u", port, enable);
+        rc_global = rc;
+        continue;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "Success setting PRBS enable of port %u to %u", port, enable); 
+    }
+  }
+
+  /* Total success? */
+  if (rc_global == L7_SUCCESS)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Success setting PRBS enable of all ports"); 
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read PRBS errors
+ * 
+ * @param msg_in : PRBS inputs 
+ * @param msg_out : PRBS results 
+ * @param n_msg : Number of structures
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status *msg_out, L7_int *n_msg)
+{
+  L7_uint32 i, port, intIfNum, rxStatus;
+  L7_RC_t   rc, rc_global = L7_SUCCESS;
+
+  if (*n_msg == 0)
+  {
+    return L7_SUCCESS;
+  }
+
+  if (msg_in->intf == 0xff)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS status:");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg_in->SlotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg_in->intf);
+
+    /* Run all ports */
+    for (port = 0, i = 0; port < ptin_sys_number_of_ports; port++)
+    {
+      /* Skip non backplane ports */
+      if (!(PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port)))
+      {
+        continue;
+      }
+
+      /* Get intIfNum */
+      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      /* Read number of PRBS errors */
+      rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting PRBS errors from port %u/%u", port);
+        rc_global = rc;
+        continue;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u", port);
+
+      /* Store result */
+      msg_out[i++].rxErrors = rxStatus;
+    }
+
+    /* Update number of results */
+    *n_msg = i;
+  }
+  else
+  {
+    /* Run all messages */
+    for (i=0; i<*n_msg; i++)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_MSG,"PRBS status:");
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u",msg_in[i].SlotId);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG," Port   = %u",msg_in[i].intf);
+
+      /* Init output as -1 (error) */
+      msg_out[i].rxErrors = -1;
+
+      port = msg_in[i].intf;
+
+      /* Validate port */
+      if (port >= ptin_sys_number_of_ports)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      /* Get intIfNum */
+      if (ptin_intf_port2intIfNum(port, &intIfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port %u", port);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      /* Read number of PRBS errors */
+      rc = ptin_pcs_prbs_errors_get(intIfNum, &rxStatus);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting PRBS errors from port %u/%u", port);
+        rc_global = rc;
+        continue;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u", port);
+
+      /* Store result */
+      msg_out[i].rxErrors = rxStatus;
+    }
+
+    /* Do not modify number of results */
+  }
+
+  /* Total success? */
+  if (rc_global == L7_SUCCESS)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Success getting PRBS errors for all ports");
   }
 
   return L7_SUCCESS;
