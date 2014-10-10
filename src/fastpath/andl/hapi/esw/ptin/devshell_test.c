@@ -1771,11 +1771,11 @@ extern int  send_data       (int canal_id,
                                ipc_msg *sendbuffer,
                                ipc_msg *receivebuffer);
 
-#define N_SLOTS_MAX   18
+#define N_SLOTS_MAX   (PTIN_SYSTEM_MAX_N_FULLSLOTS-2)
 #define N_GROUPS_MAX  7
 #define N_LANES_MAX   PTIN_SYS_INTFS_PER_SLOT_MAX
 
-int xe_slot_map[2][PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
+int bcm_slot_map[2][PTIN_SYS_SLOTS_MAX+1][PTIN_SYS_INTFS_PER_SLOT_MAX];
 
 /* To save BER results */
 struct ber_t {
@@ -1787,6 +1787,8 @@ struct ber_t {
 
 struct ber_t results_tx[N_SLOTS_MAX][N_LANES_MAX][1024]; /* slot, port, results */
 struct ber_t results_rx[N_SLOTS_MAX][N_LANES_MAX][1024]; /* slot, port, results */
+
+unsigned int ip_addr_slot[PTIN_SYSTEM_MAX_N_FULLSLOTS + 1];
 
 struct params {
   char file[128];
@@ -1853,8 +1855,9 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x531;
-  txmsg.infoDim      = 1;
-  txmsg.info[0]      = mx;  /* First byte will contain the source matrix */
+  txmsg.infoDim      = 2;
+  txmsg.info[0]      = mx;    /* First byte will contain the source matrix */
+  txmsg.info[1]      = 0xff;  /* All 4 ports */
 
   /* Do stuff... */
   do {
@@ -1940,7 +1943,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
                   port = p_tx.port_list[slot][port_idx];
                   if ( port < 0 )  continue;
                 
-                  bcm_port_phy_control_set(0, port+1, BCM_PORT_PHY_CONTROL_PREEMPHASIS, reg);
+                  bcm_port_phy_control_set(0, port, BCM_PORT_PHY_CONTROL_PREEMPHASIS, reg);
                 }
               }
             }
@@ -2136,7 +2139,7 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
                 port = p_tx.port_list[slot][port_idx];
                 if ( port < 0 )  continue;
 
-                fprintf(fd, " xe%-2d=%-5u", port, results_iter[slot][port_idx]);
+                fprintf(fd, " bcm_%-2d=%-5u", port, results_iter[slot][port_idx]);
               }
               fprintf(fd, "\n");
             }
@@ -2186,9 +2189,9 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
       fprintf(fd, "\n\nFinal Report:\n");
 
       /* Print a first table with the port mapping */
-      fprintf(fd, "+-------+---------------+---------+-----------------+\n");
-      fprintf(fd, "| SLOT  | BCM PORT      | LC PORT | LC IP           |\n");
-      fprintf(fd, "+-------+---------------+---------+-----------------+\n");
+      fprintf(fd, "+-------+-------------+---------+-----------------+\n");
+      fprintf(fd, "| SLOT  | BCM PORT    | LC PORT | LC IP           |\n");
+      fprintf(fd, "+-------+-------------+---------+-----------------+\n");
       //           | i=N  | xeXX (lane=K) | port=P  | 192.168.200.xxx |
 
       for (slot=0; slot<p_tx.n_slots; slot++) {
@@ -2196,11 +2199,11 @@ void ptin_ber_tx_task(L7_uint32 numArgs, void *unit)
           port = p_tx.port_list[slot][port_idx];
           if ( port < 0 )  continue;
 
-          fprintf(fd, "| i=%-2u  | xe%-2d (lane=%d) | port=%d  | 192.168.200.%-3u |\n",
+          fprintf(fd, "| i=%-2u  | %-2d (lane=%d) | port=%d  | 192.168.200.%-3u |\n",
                   p_tx.slot[slot], port, port_idx, port_idx, p_tx.ip_addr[slot] & 0xFF);
         }
       }
-      fprintf(fd, "+-------+---------------+---------+-----------------+\n");
+      fprintf(fd, "+-------+-------------+---------+-----------------+\n");
 
       /* Print a second table with all results from all slots */
 
@@ -2390,7 +2393,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 port = p_rx.port_list[slot][port_idx];
                 if ( port < 0 )  continue;
 
-                rc = bcm_port_control_get(0, port+1, bcmPortControlPrbsRxStatus, &rx_ber);
+                rc = bcm_port_control_get(0, port, bcmPortControlPrbsRxStatus, &rx_ber);
                 if (rc != L7_SUCCESS) {
                   fprintf(fd, "ERROR reading rx status from port %u\n", port);
                   //fclose(fd);
@@ -2430,7 +2433,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 port = p_rx.port_list[slot][port_idx];
                 if ( port < 0 )  continue;
 
-                rc = bcm_port_control_get(0, port+1, bcmPortControlPrbsRxStatus, &rx_ber);
+                rc = bcm_port_control_get(0, port, bcmPortControlPrbsRxStatus, &rx_ber);
                 if (rc != L7_SUCCESS) {
                   fprintf(fd, "ERROR reading rx status from port %u\n", port);
                   //fclose(fd);
@@ -2454,7 +2457,7 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
                 port = p_rx.port_list[slot][port_idx];
                 if ( port < 0 )  continue;
 
-                fprintf(fd, " xe%-2d=%-5u", port, results_iter[slot][port_idx]);
+                fprintf(fd, " bcm:%-2d=%-5u", port, results_iter[slot][port_idx]);
               }
               fprintf(fd, "\n");
             }
@@ -2504,9 +2507,9 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
       fprintf(fd, "\n\nFinal Report:\n");
 
       /* Print a first table with the port mapping */
-      fprintf(fd, "+-------+---------------+---------+-----------------+\n");
-      fprintf(fd, "| SLOT  | BCM PORT      | LC PORT | LC IP           |\n");
-      fprintf(fd, "+-------+---------------+---------+-----------------+\n");
+      fprintf(fd, "+-------+-------------+---------+-----------------+\n");
+      fprintf(fd, "| SLOT  | BCM PORT    | LC PORT | LC IP           |\n");
+      fprintf(fd, "+-------+-------------+---------+-----------------+\n");
       //           | i=NN  | xeXX (lane=K) | port=P  | 192.168.200.xxx |
 
       for (slot=0; slot<p_rx.n_slots; slot++) {
@@ -2514,11 +2517,11 @@ void ptin_ber_rx_task(L7_uint32 numArgs, void *unit)
           port = p_rx.port_list[slot][port_idx];
           if ( port < 0 )  continue;
 
-          fprintf(fd, "|  %-2u  | xe%-2d (lane=%d) | port=%d  | 192.168.200.%-3u |\n",
+          fprintf(fd, "|  %-2u  | %-2d (lane=%d) | port=%d  | 192.168.200.%-3u |\n",
                   p_rx.slot[slot], port, port_idx, port_idx, p_rx.ip_addr[slot] & 0xFF);
         }
       }
-      fprintf(fd, "+-------+---------------+---------+-----------------+\n");
+      fprintf(fd, "+-------+-------------+---------+-----------------+\n");
 
       /* Print a second table with all results from all slots */
 
@@ -2581,7 +2584,7 @@ int ber_init(void)
   int slot, lane;
   int ret;
   int matrix;
-  int port, xe_port;
+  int port, bcm_port;
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
@@ -2614,33 +2617,57 @@ int ber_init(void)
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
   /* Fill xe_slot_map */
-  memset(xe_slot_map, 0xff, sizeof(xe_slot_map));   /* -1 for all values */
+  memset(bcm_slot_map, 0xff, sizeof(bcm_slot_map));   /* -1 for all values */
 
   for (port=0; port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; port++)
   {
     slot = hapiWCMapPtr[port].slotNum;
     lane = hapiWCMapPtr[port].wcLane;
-    xe_port = hapiSlotMapPtr[port].bcm_port-1;
+    bcm_port = hapiSlotMapPtr[port].bcm_port;
 
     /* Update xe port map (only 10/40/100Gbps) */
     if ( hapiWCMapPtr[port].wcSpeedG > 1 )
     {
       if (slot<=PTIN_SYS_SLOTS_MAX && lane<PTIN_SYS_INTFS_PER_SLOT_MAX)
-        xe_slot_map[mx][slot][lane] = xe_port;
+        bcm_slot_map[mx][slot][lane] = bcm_port;
     }
   }
 
-  printf("xe_slot_map:");
+  /* Clear IP addresses */
+  memset(ip_addr_slot, 0x00, sizeof(ip_addr_slot));
+
+  printf("bcm_slot_map:");
   for (slot=1; slot<=PTIN_SYS_SLOTS_MAX; slot++)
   {
     printf("\n Slot %02u: ",slot);
+    /* BCM port table */
     for (lane=0; lane<PTIN_SYS_INTFS_PER_SLOT_MAX; lane++)
     {
-      if (xe_slot_map[mx][slot][lane] >= 0)
-        printf(" xe%-2d", xe_slot_map[mx][slot][lane]);
+      if (bcm_slot_map[mx][slot][lane] >= 0)
+        printf("  %2d", bcm_slot_map[mx][slot][lane]);
       else
-        printf("  -- ");
+        printf("  --");
     }
+
+    /* IP list */
+    if (slot == PTIN_SYS_MX1_SLOT)
+    {
+      ip_addr_slot[slot] = (192<<24) + (168<<16) + (200<<8) + ((PTIN_BOARD == PTIN_BOARD_CXO160G) ? 101 : 1);
+    }
+    else if (slot == PTIN_SYS_MX2_SLOT)
+    {
+      ip_addr_slot[slot] = (192<<24) + (168<<16) + (200<<8) + ((PTIN_BOARD == PTIN_BOARD_CXO160G) ? 102 : 2);
+    }
+    else
+    {
+      /* OLT1T1 has IP addresses inverted */
+    #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      ip_addr_slot[slot] = (192<<24)+(168<<16)+(200<<8) + PTIN_SYS_SLOTS_MAX + 1 - slot + 1;
+    #else
+      ip_addr_slot[slot] = (192<<24)+(168<<16)+(200<<8) + slot + 1;
+    #endif
+    }
+    printf("\t\tIP=%d.%d.%d.%d", ip_addr_slot[slot]>>24 & 0xff, ip_addr_slot[slot]>>16 & 0xff, ip_addr_slot[slot]>>8 & 0xff, ip_addr_slot[slot] & 0xff);
   }
   printf("\n");
 
@@ -2832,7 +2859,7 @@ int get_tx_ber(char *file,
   for (i=0; i<p_tx.n_slots; i++) {
     for (j=0; j<N_LANES_MAX; j++)
     {
-      p_tx.port_list[i][j] = xe_slot_map[mx][p_tx.slot[i]][j];
+      p_tx.port_list[i][j] = bcm_slot_map[mx][p_tx.slot[i]][j];
     }
     /* Check if this slot has a valid  mapping */
     for (j=0; j<N_LANES_MAX && p_tx.port_list[i][j] < 0; j++);
@@ -2840,7 +2867,8 @@ int get_tx_ber(char *file,
       printf("Slot %u is not mapped internally!\n", p_tx.slot[i]);
       return -1;
     }
-    p_tx.ip_addr[i]   = (192<<24)+(168<<16)+(200<<8) + p_tx.slot[i] + 1;
+
+    p_tx.ip_addr[i] = ip_addr_slot[p_tx.slot[i]];
   }
 
   ber_tx_running = 1;
@@ -2962,14 +2990,15 @@ int get_rx_ber(char *file,
   for (i=0; i<p_rx.n_slots; i++) {
     for ( j=0; j<N_LANES_MAX; j++)
     {
-      p_rx.port_list[i][j] = xe_slot_map[mx][p_rx.slot[i]][j];
+      p_rx.port_list[i][j] = bcm_slot_map[mx][p_rx.slot[i]][j];
     }
     for ( j=0; j<N_LANES_MAX && p_rx.port_list[i][j]<0; j++);
     if ( j >= N_LANES_MAX ) {
       printf("Slot %u is not mapped internally!\n", p_rx.slot[i]);
       return -1;
     }
-    p_rx.ip_addr[i]   = (192<<24)+(168<<16)+(200<<8) + p_rx.slot[i] + 1;
+
+    p_rx.ip_addr[i] = ip_addr_slot[p_rx.slot[i]];
   }
 
   ber_rx_running = 1;
@@ -3057,8 +3086,9 @@ int init_remote_ber(int enable,
     return -1;
   }
 
-  for (i=0; i<n_slots; i++) {
-    ip_addr[i] = (192<<24)+(168<<16)+(200<<8) + slot[i] + 1;
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
   }
 
   /* Compose TX message */
@@ -3088,9 +3118,10 @@ int init_remote_ber(int enable,
       printf("Request not acknowledged in slot %u\n", slot[i]);
       continue;
     }
-    printf("Success %s BER tx/rx in slot %u\n",
+    printf("Success %s BER tx/rx in slot %u (IP %u.%u.%u.%u)\n",
            ((enable) ? "enabling" : "disabling"),
-           slot[i]);
+           slot[i],
+           (ip_addr[i]>>24) & 0xff, (ip_addr[i]>>16) & 0xff, (ip_addr[i]>>8) & 0xff, ip_addr[i] & 0xff);
     usleep(1*1000);
   }
 
@@ -3260,8 +3291,9 @@ int get_remote_ber( int n_groups,
     return -1;
   }
 
-  for (i=0; i<n_slots; i++) {
-    ip_addr[i] = (192<<24)+(168<<16)+(200<<8) + slot[i] + 1;
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
   }
 
   /* Compose TX message */
@@ -3271,14 +3303,16 @@ int get_remote_ber( int n_groups,
   txmsg.flags        = 0;
   txmsg.counter      = rand ();
   txmsg.msgId        = 0x531;
-  txmsg.infoDim      = 1;
+  txmsg.infoDim      = 2;
   txmsg.info[0]      = mx;
+  txmsg.info[1]      = 0xff;  /* All 4 ports */
 
   memset(results, 0xff, sizeof(results));
 
   printf("Reading BER results in remote linecards (n_slots=%u)\n",n_slots);
 
-  for (i=0; i<n_slots; i++) {
+  for (i=0; i<n_slots; i++)
+  {
     printf(" slot = %-2u  IP = 0x%08X\n", slot[i], ip_addr[i]);
   }
 
@@ -3673,8 +3707,9 @@ int get_remote_reg(int mmd, int addr,
     return -1;
   }
 
-  for (i=0; i<n_slots; i++) {
-    ip_addr[i] = (192<<24)+(168<<16)+(200<<8) + slot[i] + 1;
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
   }
 
   printf("Reading remote register\n");
@@ -3802,8 +3837,9 @@ int set_remote_reg(int mmd, int addr, int value,
     return -1;
   }
 
-  for (i=0; i<n_slots; i++) {
-    ip_addr[i] = (192<<24)+(168<<16)+(200<<8) + slot[i] + 1;
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
   }
 
   printf("Writing remote register\n");
@@ -3917,8 +3953,9 @@ int get_remote_var(int mmd, int addr,
     return -1;
   }
 
-  for (i=0; i<n_slots; i++) {
-    ip_addr[i] = (192<<24)+(168<<16)+(200<<8) + slot[i] + 1;
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
   }
 
   printf("Reading remote fw variable\n");
@@ -4042,8 +4079,9 @@ int set_remote_var(int mmd, int addr, int value,
     return -1;
   }
 
-  for (i=0; i<n_slots; i++) {
-    ip_addr[i] = (192<<24)+(168<<16)+(200<<8) + slot[i] + 1;
+  for (i=0; i<n_slots; i++)
+  {
+    ip_addr[i] = ip_addr_slot[slot[i]];
   }
 
   printf("Writing remote fw variable\n");
