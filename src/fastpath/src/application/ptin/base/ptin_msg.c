@@ -4988,100 +4988,125 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource)
  * 
  * @param msg_IPSG_static_entry_t Structure with config 
  *                                parameters
+ * @param n_msg : number of structs 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEntry)
+L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEntry, L7_uint16 n_msg)
 {  
+  L7_uint16         i;
   ptin_intf_t       ptin_intf;
   L7_uint32         intIfNum;
   L7_uint16         vlanId;
   L7_inet_addr_t    ipAddr;
   L7_uchar8         ipAddrStr[IPV6_DISP_ADDR_LEN]; 
   L7_enetMacAddr_t  macAddr;
+  L7_RC_t           rc, rc_global = L7_SUCCESS;
   
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "slotId        = %u"  , msgIpsgStaticEntry->slotId);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "iDType        = %u"  , msgIpsgStaticEntry->idType);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "iD            = %u"  , msgIpsgStaticEntry->id);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinP         = %u/%u", msgIpsgStaticEntry->intf.intf_type,msgIpsgStaticEntry->intf.intf_id);  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "action        = %s"  , msgIpsgStaticEntry->action==L7_FALSE?"Remove":"Add");  
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "MAC Addr      = %02X:%02X:%02X:%02X:%02X:%02X",msgIpsgStaticEntry->macAddr[0],msgIpsgStaticEntry->macAddr[1],
-            msgIpsgStaticEntry->macAddr[2],msgIpsgStaticEntry->macAddr[3],msgIpsgStaticEntry->macAddr[4],msgIpsgStaticEntry->macAddr[5]);
-  
-  if (ptin_to_fp_ip_notation(&msgIpsgStaticEntry->ipAddr,&ipAddr) != L7_SUCCESS)
-  {
-    return L7_FAILURE;
-  }
-
-  memcpy(&macAddr, msgIpsgStaticEntry->macAddr, sizeof(macAddr));
-  
-  inetAddrPrint(&ipAddr, ipAddrStr);    
-
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "IP Address    = %s",ipAddrStr);
-   
-  /* Get intIfNum */
-  ptin_intf.intf_id   = msgIpsgStaticEntry->intf.intf_id;
-  ptin_intf.intf_type = msgIpsgStaticEntry->intf.intf_type;
-
-  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum)!= L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
-    return L7_FAILURE;
-  }
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
-
-  if( (msgIpsgStaticEntry->idType & IPSG_ID_ALL) == IPSG_EVC_ID)
-  {
-    /* Get Internal root vlan */
-    if (ptin_evc_intRootVlan_get(msgIpsgStaticEntry->id, &vlanId)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting internal root vlan for eEVCId=%u", msgIpsgStaticEntry->id);
-      return L7_NOT_EXIST;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",msgIpsgStaticEntry->id,vlanId);
-  }
-  else
-  {
-    if ( (msgIpsgStaticEntry->idType & IPSG_ID_ALL) == IPSG_ROOT_VLAN )
-    {
-#if 0
-      L7_uint32         eEVCId;
-#endif
-      if ((vlanId = (0x0000FFFF & msgIpsgStaticEntry->id)) != msgIpsgStaticEntry->id && vlanId >= 4096)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid root vlan given:%u", msgIpsgStaticEntry->id);
-        return L7_FAILURE;
-      }
-/*Disabled this verification to support MAC Bridge Services*/
-#if 0
-      if (ptin_evc_get_evcIdfromIntVlan(vlanId, &eEVCId) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid root VLAN:%u", vlanId);
-        return L7_NOT_EXIST;
-      }
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",eEVCId, vlanId);
-#endif
-    }
-    else
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid IdType:%u", msgIpsgStaticEntry->idType);
-      return L7_FAILURE;
-    }
-  }
-
-#ifdef L7_IPSG_PACKAGE
-  if ((msgIpsgStaticEntry->action&IPSG_ACTION_ADD) == IPSG_ACTION_ADD)
-  {
-    return (ipsgStaticEntryAdd(intIfNum, vlanId, &macAddr, &ipAddr));
-  }
-  else
-  {
-    return (ipsgStaticEntryRemove(intIfNum, vlanId, &macAddr, &ipAddr));  
-  }   
-#else
+#ifndef L7_IPSG_PACKAGE
   LOG_ERR(LOG_CTX_IPSG, "IP Source Guard not Supported!");
   return L7_FAILURE;
 #endif
+
+  /* Run all structs */
+  for (i = 0; i < n_msg; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "slotId        = %u"   , msgIpsgStaticEntry[i].slotId);  
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "iDType        = %u"   , msgIpsgStaticEntry[i].idType);  
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "iD            = %u"   , msgIpsgStaticEntry[i].id);  
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptinP         = %u/%u", msgIpsgStaticEntry[i].intf.intf_type,msgIpsgStaticEntry[i].intf.intf_id);  
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "action        = %s"   , msgIpsgStaticEntry[i].action==L7_FALSE?"Remove":"Add");  
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "MAC Addr      = %02X:%02X:%02X:%02X:%02X:%02X",msgIpsgStaticEntry[i].macAddr[0],msgIpsgStaticEntry[i].macAddr[1],
+              msgIpsgStaticEntry[i].macAddr[2],msgIpsgStaticEntry[i].macAddr[3],msgIpsgStaticEntry[i].macAddr[4],msgIpsgStaticEntry[i].macAddr[5]);
+    
+    rc = ptin_to_fp_ip_notation(&msgIpsgStaticEntry[i].ipAddr,&ipAddr);
+    if ( rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+      continue;
+    }
+
+    memcpy(&macAddr, msgIpsgStaticEntry[i].macAddr, sizeof(macAddr));
+    
+    inetAddrPrint(&ipAddr, ipAddrStr);    
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "IP Address    = %s",ipAddrStr);
+     
+    /* Get intIfNum */
+    ptin_intf.intf_id   = msgIpsgStaticEntry[i].intf.intf_id;
+    ptin_intf.intf_type = msgIpsgStaticEntry[i].intf.intf_type;
+
+    rc = ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum);
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error converting port %u/%u to intIfNum",ptin_intf.intf_type, ptin_intf.intf_id);
+      continue;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Port# %u/%u: intIfNum# %2u", ptin_intf.intf_type, ptin_intf.intf_id, intIfNum);
+
+    if( (msgIpsgStaticEntry[i].idType & IPSG_ID_ALL) == IPSG_EVC_ID)
+    {
+      /* Get Internal root vlan */
+      rc = ptin_evc_intRootVlan_get(msgIpsgStaticEntry[i].id, &vlanId);
+      if (rc != L7_SUCCESS)
+      {
+        rc_global = L7_NOT_EXIST;
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting internal root vlan for eEVCId=%u", msgIpsgStaticEntry[i].id);
+        continue;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",msgIpsgStaticEntry[i].id,vlanId);
+    }
+    else
+    {
+      if ( (msgIpsgStaticEntry[i].idType & IPSG_ID_ALL) == IPSG_ROOT_VLAN )
+      {
+  #if 0
+        L7_uint32         eEVCId;
+  #endif
+        if ((vlanId = (0x0000FFFF & msgIpsgStaticEntry[i].id)) != msgIpsgStaticEntry[i].id && vlanId >= 4096)
+        {
+          rc_global = L7_FAILURE;
+          LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid root vlan given:%u", msgIpsgStaticEntry[i].id);
+          continue;
+        }
+  /*Disabled this verification to support MAC Bridge Services*/
+  #if 0
+        if (ptin_evc_get_evcIdfromIntVlan(vlanId, &eEVCId) != L7_SUCCESS)
+        {
+          rc_global = L7_NOT_EXIST;
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid root VLAN:%u", vlanId);
+          continue;
+        }
+        LOG_TRACE(LOG_CTX_PTIN_MSG, "EVCidx# %u: internalRootVlan# %u",eEVCId, vlanId);
+  #endif
+      }
+      else
+      {
+        rc_global = L7_FAILURE;
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid IdType:%u", msgIpsgStaticEntry[i].idType);
+        continue;
+      }
+    }
+
+    /* IPSG entry add/remove */
+    if ((msgIpsgStaticEntry[i].action & IPSG_ACTION_ADD) == IPSG_ACTION_ADD)
+    {
+      rc = ipsgStaticEntryAdd(intIfNum, vlanId, &macAddr, &ipAddr);
+    }
+    else
+    {
+      rc = ipsgStaticEntryRemove(intIfNum, vlanId, &macAddr, &ipAddr);
+    }
+    /* Check for errors */
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+      continue;
+    }
+  }
+
+  return rc_global;
 }
 
 /**
@@ -8797,19 +8822,20 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
  * 
  * @author joaom (11/01/2013)
  * 
- * @param ptr 
+ * @param msgAcl : Pointer to beginning of data
+ * @param msgId : operation 
+ * @param msgDim : Dimension of data 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId)
+L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
 {
   L7_uint8        *msg;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
-  L7_RC_t         rc = L7_FAILURE;
+  L7_RC_t         rc, rc_global = L7_SUCCESS;
 
-  msg = (L7_uint8 *) msgAcl;  
-
-  if (msgId == CCMSG_ACL_RULE_ADD)
+  /* Type of operation */
+  if (msgId == CCMSG_ACL_RULE_ADD) 
   {
     operation = ACL_OPERATION_CREATE;
   }
@@ -8817,21 +8843,58 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId)
   {
     operation = ACL_OPERATION_REMOVE;
   }
-
-  if (msg[1] == ACL_TYPE_MAC)
+  else
   {
-    rc = ptin_msg_mac_acl_rule_config((msg_mac_acl_t*) msgAcl, operation);
-  }
-  else if ( (msg[1] == ACL_TYPE_IP_STANDARD) || (msg[1] == ACL_TYPE_IP_EXTENDED) || (msg[1] == ACL_TYPE_IP_NAMED) )
-  {
-    rc = ptin_msg_ip_acl_rule_config((msg_ip_acl_t*) msgAcl, operation);
-  }
-  else if (msg[1] == ACL_TYPE_IPv6_EXTENDED)
-  {
-    rc = ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msgAcl, operation);
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid msgId: %u", msgId);
+    return L7_FAILURE;
   }
 
-  return rc;
+  /* msg pointer starts pointing to the beginning of array */
+  msg = (L7_uint8 *) msgAcl;  
+
+  /* Run all entries, byte to byte */
+  while (((L7_uint8 *) msg) < ((L7_uint8 *) msgAcl + msgDim))
+  {
+    rc = L7_SUCCESS;
+
+    /* Type of entry */
+    if (msg[1] == ACL_TYPE_MAC)
+    {
+      rc = ptin_msg_mac_acl_rule_config((msg_mac_acl_t*) msg, operation);
+      msg += sizeof(msg_mac_acl_t);
+    }
+    else if ( (msg[1] == ACL_TYPE_IP_STANDARD) || (msg[1] == ACL_TYPE_IP_EXTENDED) || (msg[1] == ACL_TYPE_IP_NAMED) )
+    {
+      rc = ptin_msg_ip_acl_rule_config((msg_ip_acl_t*) msg, operation);
+      msg += sizeof(msg_ip_acl_t);
+    }
+    else if (msg[1] == ACL_TYPE_IPv6_EXTENDED)
+    {
+      rc = ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msg, operation);
+      msg += sizeof(msg_ipv6_acl_t);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid struct type: %u", msg[1]);
+      return L7_FAILURE;
+    }
+    /* Update global result */
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+    }
+
+    /* msg pointer was updated to the next entry */
+  }
+
+  /* Check if pointer is not out of position */
+  if (msg != ((L7_uint8 *) msgAcl + msgDim))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Message pointer is out of the expected place... returning error");
+    return L7_FAILURE;
+  }
+
+  return rc_global;
 }
 
 
@@ -8957,19 +9020,20 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
  * 
  * @author joaom (11/01/2013)
  * 
- * @param ptr 
+ * @param msgAcl : Pointer to data 
+ * @param msgId : Operation 
+ * @param n_msg : Number of structs
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
+L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_msg)
 {
-  L7_uint8        *msg;
+  L7_uint         i;
   L7_uint8        aclType;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
-  L7_RC_t         rc = L7_FAILURE;
+  L7_RC_t         rc, rc_global = L7_FAILURE;
 
-  msg = (L7_uint8 *) msgAcl;  
-
+  /* Operation */
   if (msgId == CCMSG_ACL_APPLY)
   {
     operation = ACL_OPERATION_CREATE;
@@ -8979,22 +9043,40 @@ L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
     operation = ACL_OPERATION_REMOVE;
   }
 
-  aclType = msg[1];
+  /* Run all entries */
+  for (i = 0; i < n_msg; i++)
+  {
+    rc = L7_SUCCESS;
 
-  if (aclType == ACL_TYPE_MAC)
-  {
-    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
-  }
-  else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
-  {
-    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
-  }
-  else if (aclType == ACL_TYPE_IPv6_EXTENDED)
-  {
-    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
+    aclType = msgAcl[i].aclType; 
+
+    if (aclType == ACL_TYPE_MAC)
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else if (aclType == ACL_TYPE_IPv6_EXTENDED)
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "invalid entry type (i=%u): %d", i, aclType);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Update final result */
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+    }
   }
 
-  return rc;
+  return rc_global;
 }
 
 /* ************************* MSG Debug Routines **************************** */
@@ -9020,7 +9102,7 @@ L7_RC_t ptin_msg_DEBUG_ip_acl_rule_config(L7_uint8 operation, L7_uchar8 protocol
   usmDbInetAton("192.1.1.2", &msgIpAcl.srcIpAddr);
   usmDbInetAton("255.255.255.255", &msgIpAcl.srcIpMask);
 
-  ptin_msg_acl_rule_config(&msgIpAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+  ptin_msg_acl_rule_config(&msgIpAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL, sizeof(msg_ip_acl_t));
 
   return L7_SUCCESS;
 }
@@ -9042,7 +9124,7 @@ L7_RC_t ptin_msg_DEBUG_ip_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_uin
   msgAcl.evcId =        evcId;
   msgAcl.direction =    ACL_DIRECTION_IN;
 
-  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY, 1);
 
   return L7_SUCCESS;
 }
@@ -9089,7 +9171,7 @@ L7_RC_t ptin_msg_DEBUG_ipv6_acl_rule_config(L7_uint8 operation, L7_uchar8 protoc
   
   msgIpv6Acl.src6PrefixLen = 64;
 
-  ptin_msg_acl_rule_config(&msgIpv6Acl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+  ptin_msg_acl_rule_config(&msgIpv6Acl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL, sizeof(msg_ipv6_acl_t));
 
   return L7_SUCCESS;
 }
@@ -9111,7 +9193,7 @@ L7_RC_t ptin_msg_DEBUG_ipv6_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_u
   msgAcl.evcId =        evcId;
   msgAcl.direction =    ACL_DIRECTION_IN;
 
-  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY, 1);
 
   return L7_SUCCESS;
 }
@@ -9156,7 +9238,7 @@ L7_RC_t ptin_msg_DEBUG_mac_acl_rule_config(L7_uint8 operation)
   msgMacAcl.endVlan =   0;
   msgMacAcl.cosVal =    0;
 
-  ptin_msg_acl_rule_config(&msgMacAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+  ptin_msg_acl_rule_config(&msgMacAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL, sizeof(msg_mac_acl_t));
 
 
   /* Rule #2 */
@@ -9192,7 +9274,7 @@ L7_RC_t ptin_msg_DEBUG_mac_acl_rule_config(L7_uint8 operation)
   msgMacAcl.endVlan =   0;
   msgMacAcl.cosVal =    0;
 
-  ptin_msg_acl_rule_config(&msgMacAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL);
+  ptin_msg_acl_rule_config(&msgMacAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_RULE_ADD : CCMSG_ACL_RULE_DEL, sizeof(msg_mac_acl_t));
 
   return L7_SUCCESS;
 }
@@ -9214,7 +9296,7 @@ L7_RC_t ptin_msg_DEBUG_mac_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_ui
   msgAcl.evcId =        evcId;
   msgAcl.direction =    ACL_DIRECTION_IN;
 
-  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY, 1);
 
   return L7_SUCCESS;
 }
