@@ -754,10 +754,11 @@ L7_RC_t ptin_msg_ipsg_verify_source_set(msg_IPSG_set_t* msgIpsgVerifySource);
  * 
  * @param msg_IPSG_static_entry_t Structure with config 
  *                                parameters
- * 
+ * @param n_msg : number of structs 
+ *  
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEntry);
+L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEntry, L7_uint16 n_msg);
 
 /**
  * Get IP Source Guard binding table
@@ -1212,13 +1213,13 @@ extern L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd);
 /**
  * ACL Rule Configuration
  * 
- * @author joaom (11/01/2013)
- * 
- * @param ptr 
+ * @param msgAcl : Pointer to beginning of data
+ * @param msgId : operation 
+ * @param msgDim : Dimension of data 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId);
+L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim);
 
 /**
  * ACL Enable/Disable

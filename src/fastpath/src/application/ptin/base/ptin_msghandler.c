@@ -2759,13 +2759,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ETH_IPSG_VERIFY_SOURCE (0x%04X)", CCMSG_ETH_IPSG_ENABLE);
 
-      CHECK_INFO_SIZE(msg_IPSG_static_entry_t);
+      CHECK_INFO_SIZE_MOD(msg_IPSG_static_entry_t);
 
+      L7_uint16 n_msg;
       msg_IPSG_static_entry_t *ptr;
       ptr = (msg_IPSG_static_entry_t *) inbuffer->info;
+      n_msg = inbuffer->infoDim / sizeof(msg_IPSG_static_entry_t);
 
       /* Execute command */
-      rc = ptin_msg_ipsg_static_entry_set(ptr);
+      rc = ptin_msg_ipsg_static_entry_set(ptr, n_msg);
 
       if (L7_SUCCESS != rc)
       {
@@ -4526,6 +4528,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_ACL_RULE_ADD/DEL (0x%04X)", inbuffer->msgId);
     
+      #if 0
       if (inbuffer->info[1] == ACL_TYPE_MAC)
       {
         CHECK_INFO_SIZE_MOD(msg_mac_acl_t);
@@ -4541,9 +4544,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         CHECK_INFO_SIZE_MOD(msg_ipv6_acl_t);
         memcpy(outbuffer->info, inbuffer->info, sizeof(msg_ipv6_acl_t)); 
       }
+      #endif
 
       /* Execute command */
-      rc = ptin_msg_acl_rule_config((void *) inbuffer->info, inbuffer->msgId);
+      rc = ptin_msg_acl_rule_config((void *) inbuffer->info, inbuffer->msgId, inbuffer->infoDim);
 
       if (L7_SUCCESS != rc)
       {
