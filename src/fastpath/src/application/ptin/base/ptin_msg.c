@@ -8834,25 +8834,28 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
   L7_RC_t         rc, rc_global = L7_SUCCESS;
 
+  /* Type of operation */
+  if (msgId == CCMSG_ACL_RULE_ADD) 
+  {
+    operation = ACL_OPERATION_CREATE;
+  }
+  else if (msgId == CCMSG_ACL_RULE_DEL)
+  {
+    operation = ACL_OPERATION_REMOVE;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid msgId: %u", msgId);
+    return L7_FAILURE;
+  }
+
   /* msg pointer starts pointing to the beginning of array */
   msg = (L7_uint8 *) msgAcl;  
 
-  while (((L7_uint8 *) msg) < ((L7_uint8 *) msg + msgDim))
+  /* Run all entries, byte to byte */
+  while (((L7_uint8 *) msg) < ((L7_uint8 *) msgAcl + msgDim))
   {
-    /* Type of operation */
-    if (msgId == CCMSG_ACL_RULE_ADD) 
-    {
-      operation = ACL_OPERATION_CREATE;
-    }
-    else if (msgId == CCMSG_ACL_RULE_DEL)
-    {
-      operation = ACL_OPERATION_REMOVE;
-    }
-    else
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid msgId: %u", msgId);
-      return L7_FAILURE;
-    }
+    rc = L7_SUCCESS;
 
     /* Type of entry */
     if (msg[1] == ACL_TYPE_MAC)
@@ -8882,6 +8885,13 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
     }
 
     /* msg pointer was updated to the next entry */
+  }
+
+  /* Check if pointer is not out of position */
+  if (msg != ((L7_uint8 *) msgAcl + msgDim))
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Message pointer is out of the expected place... returning error");
+    return L7_FAILURE;
   }
 
   return rc_global;
@@ -9010,19 +9020,20 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
  * 
  * @author joaom (11/01/2013)
  * 
- * @param ptr 
+ * @param msgAcl : Pointer to data 
+ * @param msgId : Operation 
+ * @param n_msg : Number of structs
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
+L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_msg)
 {
-  L7_uint8        *msg;
+  L7_uint         i;
   L7_uint8        aclType;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
-  L7_RC_t         rc = L7_FAILURE;
+  L7_RC_t         rc, rc_global = L7_FAILURE;
 
-  msg = (L7_uint8 *) msgAcl;  
-
+  /* Operation */
   if (msgId == CCMSG_ACL_APPLY)
   {
     operation = ACL_OPERATION_CREATE;
@@ -9032,22 +9043,40 @@ L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId)
     operation = ACL_OPERATION_REMOVE;
   }
 
-  aclType = msg[1];
+  /* Run all entries */
+  for (i = 0; i < n_msg; i++)
+  {
+    rc = L7_SUCCESS;
 
-  if (aclType == ACL_TYPE_MAC)
-  {
-    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
-  }
-  else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
-  {
-    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
-  }
-  else if (aclType == ACL_TYPE_IPv6_EXTENDED)
-  {
-    rc = ptin_msg_acl_apply(msgAcl, operation, aclType);
+    aclType = msgAcl[i].aclType; 
+
+    if (aclType == ACL_TYPE_MAC)
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else if ( (aclType == ACL_TYPE_IP_STANDARD) || (aclType == ACL_TYPE_IP_EXTENDED) || (aclType == ACL_TYPE_IP_NAMED) )
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else if (aclType == ACL_TYPE_IPv6_EXTENDED)
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "invalid entry type (i=%u): %d", i, aclType);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Update final result */
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = rc;
+    }
   }
 
-  return rc;
+  return rc_global;
 }
 
 /* ************************* MSG Debug Routines **************************** */
@@ -9095,7 +9124,7 @@ L7_RC_t ptin_msg_DEBUG_ip_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_uin
   msgAcl.evcId =        evcId;
   msgAcl.direction =    ACL_DIRECTION_IN;
 
-  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY, 1);
 
   return L7_SUCCESS;
 }
@@ -9164,7 +9193,7 @@ L7_RC_t ptin_msg_DEBUG_ipv6_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_u
   msgAcl.evcId =        evcId;
   msgAcl.direction =    ACL_DIRECTION_IN;
 
-  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY, 1);
 
   return L7_SUCCESS;
 }
@@ -9267,7 +9296,7 @@ L7_RC_t ptin_msg_DEBUG_mac_acl_apply(L7_uint32 interface, L7_uint32 evcId, L7_ui
   msgAcl.evcId =        evcId;
   msgAcl.direction =    ACL_DIRECTION_IN;
 
-  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY);
+  ptin_msg_acl_enable(&msgAcl, (operation==ACL_OPERATION_CREATE)? CCMSG_ACL_APPLY : CCMSG_ACL_UNAPPLY, 1);
 
   return L7_SUCCESS;
 }

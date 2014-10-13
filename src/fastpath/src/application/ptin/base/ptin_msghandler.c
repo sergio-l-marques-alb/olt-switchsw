@@ -4571,10 +4571,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       CHECK_INFO_SIZE_MOD(msg_apply_acl_t);
 
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_apply_acl_t));
-
       /* Execute command */
-      rc = ptin_msg_acl_enable((void *) inbuffer->info, inbuffer->msgId);
+      rc = ptin_msg_acl_enable((msg_apply_acl_t *) inbuffer->info, inbuffer->msgId, inbuffer->infoDim/sizeof(msg_apply_acl_t));
 
       if (L7_SUCCESS != rc)
       {

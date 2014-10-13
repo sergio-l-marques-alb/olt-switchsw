@@ -1226,11 +1226,13 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim);
  * 
  * @author joaom (11/01/2013)
  * 
- * @param ptr 
+ * @param msgAcl : Pointer to data 
+ * @param msgId : Operation 
+ * @param n_msg : Number of structs
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_acl_enable(void *msgAcl, L7_uint msgId);
+L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_msg);
 
 
 extern int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i);
