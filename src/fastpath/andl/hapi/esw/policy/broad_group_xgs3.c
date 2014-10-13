@@ -1792,8 +1792,8 @@ static int _policy_group_find_first(int                  unit,
                                     BROAD_POLICY_TYPE_t  type, 
                                     BROAD_GROUP_t       *group)
 {
-  group_alloc_block_t block, used_block;
-  group_alloc_dir_t   dir,   used_dir;
+  group_alloc_block_t block/*, used_block*/;
+  group_alloc_dir_t   dir/*,   used_dir*/;
   group_table_t      *groupPtr;
   super_qset_entry_t  sqsetInfo;
 
@@ -1824,6 +1824,9 @@ static int _policy_group_find_first(int                  unit,
         sysapiPrintf("- Incompatible group types (%u VS %u)\n", type, groupPtr->type);
       return BCM_E_FAIL;
     }
+
+    /* PTin removed: excess validations */
+    #if 0
     _policy_group_alloc_type(groupPtr->type, &used_block, &used_dir);
     if (block != used_block)
     {
@@ -1831,6 +1834,7 @@ static int _policy_group_find_first(int                  unit,
         sysapiPrintf("- Different blocks (%u VS %u)\n", block, used_block);
       return BCM_E_FAIL;
     }
+    #endif
   }
 
   return BCM_E_NONE;
@@ -1842,8 +1846,8 @@ static int _policy_group_decrement(int                   unit,
                                    group_alloc_block_t   block, 
                                    BROAD_POLICY_TYPE_t   type)
 {
-  group_alloc_block_t used_block;
-  group_alloc_dir_t   used_dir;
+  //group_alloc_block_t used_block;
+  //group_alloc_dir_t   used_dir;
   group_table_t      *groupPtr;
   super_qset_entry_t  sqsetInfo;
 
@@ -1879,11 +1883,14 @@ static int _policy_group_decrement(int                   unit,
       {
         return BCM_E_FAIL;
       }
+      /* PTin removed: excess validations */
+      #if 0
       _policy_group_alloc_type(groupPtr->type, &used_block, &used_dir);
       if (block != used_block)
       {
         return BCM_E_FAIL;
       }
+      #endif
     }
 
     return BCM_E_NONE;
@@ -1898,8 +1905,8 @@ static int _policy_group_increment(int                   unit,
                                    group_alloc_block_t   block, 
                                    BROAD_POLICY_TYPE_t   type)
 {
-  group_alloc_block_t used_block;
-  group_alloc_dir_t   used_dir;
+  //group_alloc_block_t used_block;
+  //group_alloc_dir_t   used_dir;
   group_table_t      *groupPtr;
   super_qset_entry_t  sqsetInfo;
 
@@ -1930,11 +1937,14 @@ static int _policy_group_increment(int                   unit,
       {
         return BCM_E_FAIL;
       }
+      /* PTin removed: excess validations */
+      #if 0
       _policy_group_alloc_type(groupPtr->type, &used_block, &used_dir);
       if (block != used_block)
       {
         return BCM_E_FAIL;
       }
+      #endif
     }
 
     return BCM_E_NONE;

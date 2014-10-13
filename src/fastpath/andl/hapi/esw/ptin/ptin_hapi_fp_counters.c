@@ -459,18 +459,8 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)
       {
-        /* Physical port */
-        if (portDescriptor.bcm_port>=0)
-        {
-          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uint8 *)&portDescriptor.bcm_port, (L7_uint8 *) mask))!=L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OUTPORT)");
-            break;
-          }
-          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OutPort qualifier added");
-        }
         /* Class port */
-        else if (portDescriptor.class_port>0)
+        if (portDescriptor.class_port>0)
         {
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
           {
@@ -478,6 +468,16 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
             break;
           }
           LOG_TRACE(LOG_CTX_PTIN_HAPI,"Port class qualifier added");
+        }
+        /* Physical port */
+        else if (portDescriptor.bcm_port>=0)
+        {
+          if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uint8 *)&portDescriptor.bcm_port, (L7_uint8 *) mask))!=L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OUTPORT)");
+            break;
+          }
+          LOG_TRACE(LOG_CTX_PTIN_HAPI,"OutPort qualifier added");
         }
       }
 
