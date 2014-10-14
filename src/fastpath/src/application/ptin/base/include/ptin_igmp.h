@@ -669,17 +669,19 @@ extern L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client
  * Get list of clients, watching a specific channel 
  * 
  * @param McastEvcId         : (in) Multicast EVC id
- * @param channel            : (in) IP Channel
+ * @param groupAddr          : (in) Group Address
+ * @param sourceAddr          : (in) Source Address
  * @param client_index       : (in) First client index
  * @param number_of_clients  : (in) Maximum number of clients 
  *                             (out) Number of clients 
  * @param client_list        : (out) Clients array 
- * @param extendedEvcId      : (out) Extended EVC Id
- * @param total_clients      : (out) Total number of clients
+ * @param evc_id             : (out) Extended EVC Id 
+ * @param total_clients      : (out) Total number of clients 
+ *  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *ipv4_channel,
+extern L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, L7_in_addr_t *sourceAddr,
                                  L7_uint16 client_index, L7_uint16 *number_of_clients, ptin_client_id_t *client_list,L7_uint32 *extendedEvcId, 
                                  L7_uint16 *total_clients);
 
@@ -1376,15 +1378,18 @@ extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_groupcli
  * @purpose Get the bandwidth requested by a given 
  * channel
  * 
- * @param group: L7_inet_addr_t 
+ * @param channel_group:  
+ * @param channel_source:  
+ * @param channelBandwidth: 
  *  
- * @return channelBandwidth: L7_uint32 
+ * @return SUCCESS/FAILURE 
  *
  * @notes Channel bandwidth is given in kbps. If the channel 
- *        does not exist, zero is returned.
+ *        does not exist or a null pointer is given, FAILURE is
+ *        returned.
  *  
  */
-extern L7_uint32 ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* group);
+extern L7_RC_t ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* channel_group, L7_inet_addr_t* channel_source, L7_uint32 *channel_bandwidth);
 
 /**
  * @purpose Verifies if a given client Id has available 
