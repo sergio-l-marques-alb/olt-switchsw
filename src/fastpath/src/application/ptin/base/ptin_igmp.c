@@ -7161,6 +7161,13 @@ static L7_RC_t ptin_igmp_clientGroup_find(ptin_client_id_t *client_ref, ptinIgmp
   L7_uint32 ptin_port;
   #endif
 
+  /*Input Arguments Validation*/
+  if (client_ref == L7_NULLPTR || client_info == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid Input Arguments client_ref:[%p] client_info[%p]", client_ref, client_info);
+    return L7_FAILURE;
+  }
+
   /* Get ptin_port value */
   #if (MC_CLIENT_INTERF_SUPPORTED)
   ptin_port = 0;
@@ -7248,11 +7255,8 @@ static L7_RC_t ptin_igmp_clientGroup_find(ptin_client_id_t *client_ref, ptinIgmp
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
-  /* Return client info */
-  if (client_info!=L7_NULLPTR)
-  {
-    *client_info = clientInfo;
-  }
+  /* Return client info */  
+  *client_info = clientInfo;
 
   return L7_SUCCESS;
 }
