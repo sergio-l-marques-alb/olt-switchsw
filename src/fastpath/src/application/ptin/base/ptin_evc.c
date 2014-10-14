@@ -8371,6 +8371,44 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
 
 #endif
 
+/**
+ * Flushes all VLANs' FDB associated to this ptin_port
+ * 
+ * @param ptin_port  Port to Flush
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t switching_fdbFlushVlanByPort(L7_uint8 ptin_port)
+{
+  L7_int  evc_id;
+  L7_RC_t rc = L7_SUCCESS;
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC,"(ptin_port=%u)", ptin_port);
+
+  /* Run all EVCs */
+  for (evc_id=0; evc_id < PTIN_SYSTEM_N_EVCS; evc_id++)
+  {
+    /* Skip not used EVCs */
+    if (!evcs[evc_id].in_use)
+      continue;
+
+    /* If EVC is using this interface, flush Root VLAN immediately and continues to next EVC ID*/
+    if (evcs[evc_id].intf[ptin_port].in_use)
+    {
+      /* Flush FDB on Root VLAN */
+      LOG_DEBUG(LOG_CTX_PTIN_EVC,"vlan=%u", evcs[evc_id].rvlan);
+      if ((rc = fdbFlushByVlan(evcs[evc_id].rvlan)) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error Flushing Root Int.VLAN %u (rc=%d)", evcs[evc_id].rvlan, rc);
+        rc = L7_FAILURE;
+      }
+      continue;
+    }
+  }
+
+  return rc;
+}
+
 #if PTIN_IGMP_STATS_IN_EVCS
 /**
  * Get a pointer to IGMP stats
