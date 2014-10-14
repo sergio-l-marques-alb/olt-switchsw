@@ -465,6 +465,15 @@ extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
  */
 extern L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan);
 
+/**
+ * Flushes all VLANs' FDB associated to this ptin_port
+ * 
+ * @param ptin_port  Port to Flush
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t switching_fdbFlushVlanByPort(L7_uint8 ptin_port);
+
 #if PTIN_IGMP_STATS_IN_EVCS
 /**
  * Get a pointer to IGMP stats

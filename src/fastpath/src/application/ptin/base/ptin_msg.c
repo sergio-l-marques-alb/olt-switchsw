@@ -325,10 +325,10 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 {
   L7_RC_t   rc = L7_SUCCESS;
 #if (PTIN_BOARD_IS_MATRIX)
-  L7_uint32 lag_idx;
   L7_uint32 intIfNum;
+  L7_uint32 lag_idx;
 
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d)", msg->slot);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
 
   rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
   if (rc==L7_SUCCESS)
@@ -339,7 +339,29 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
       rc = fdbFlushByPort(intIfNum);
     }
   }
-  #endif
+#endif
+
+#if (PTIN_BOARD_OLT1T0)
+  ptin_intf_t ptin_intf;
+  L7_uint32 ptin_port;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
+
+  ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+  ptin_intf.intf_id = msg->port;
+
+  ptin_intf_ptintf2port(&ptin_intf, &ptin_port);
+
+  if (rc==L7_SUCCESS)
+  {
+    rc = switching_fdbFlushVlanByPort(ptin_port);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Non existent port");
+  }
+#endif
+
 
 #if PTIN_BOARD_IS_LINECARD
   /* Reset MGMD General Querier state */
