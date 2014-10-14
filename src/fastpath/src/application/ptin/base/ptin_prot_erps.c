@@ -1347,7 +1347,6 @@ int ptin_erps_startTimer(L7_uint8 erps_idx, L7_uint8 timer, L7_uint8 timerCmd, i
  */
 int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 {
-
   L7_uint8  SF[2];
 
   L7_uint8  localRequest                      = LReq_NONE;
@@ -1468,7 +1467,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
 
-    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 8) & 0xFF00) | (apsStatusRx & 0x00FF);
+    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
 
     // The flush logic retains for each ring port the information of node ID and blocked port reference 
     // (BPR) of the last R-APS message received over that ring port.
