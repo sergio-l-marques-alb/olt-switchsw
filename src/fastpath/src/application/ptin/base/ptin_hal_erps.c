@@ -111,11 +111,11 @@ L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
     printf("Tx MS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port]);
     printf("Tx NR      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port]);
     printf("Rx         [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRx[port]);
-    printf("Rx Event   [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port]);
-    printf("Rx FS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port]);
-    printf("Rx SF      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port]);
-    printf("Rx MS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port]);
-    printf("Rx NR      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port]);
+    printf("Rx Event   [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxReqEvent[port]);
+    printf("Rx FS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxReqFS[port]);
+    printf("Rx SF      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxReqSF[port]);
+    printf("Rx MS      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxReqMS[port]);
+    printf("Rx NR      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxReqNR[port]);
     printf("Dropped    [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port]);
   }
 
@@ -145,11 +145,11 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsRx[port] = 0;
-    tbl_halErps[erps_idx].statistics.apsPacketsTxReqEvent[port] = 0;
-    tbl_halErps[erps_idx].statistics.apsPacketsTxReqFS[port] = 0;
-    tbl_halErps[erps_idx].statistics.apsPacketsTxReqSF[port] = 0;
-    tbl_halErps[erps_idx].statistics.apsPacketsTxReqMS[port] = 0;
-    tbl_halErps[erps_idx].statistics.apsPacketsTxReqNR[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsRxReqEvent[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsRxReqFS[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsRxReqSF[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsRxReqMS[port] = 0;
+    tbl_halErps[erps_idx].statistics.apsPacketsRxReqNR[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port] = 0;
   }
   return L7_SUCCESS;
@@ -189,7 +189,7 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   }
   else
   {
-    LOG_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X", req);
+    LOG_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X, erps_idx %d, port %d", req, erps_idx, port);
   }
 
   return L7_SUCCESS;
@@ -244,7 +244,7 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
   }
   else
   {
-    LOG_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X", req);
+    LOG_TRACE(LOG_CTX_ERPS,"Unknown Req: 0x%02X, erps_idx %d, port %d", req, erps_idx, port);
   }
 
   return L7_SUCCESS;

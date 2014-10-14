@@ -119,11 +119,11 @@
 //The fields of R-APS specific information:
 //  a)  Request/State (4 bits) - This field represents a request or state, and is encoded as described
 #define RReq_NONE                       15
-#define RReq_EVENT                      14    //1110 Event
-#define RReq_FS                         13    //1101 Forced Switch
-#define RReq_SF                         11    //1011 Signal Fail (SF)
-#define RReq_MS                         7     //0111 Manual Switch (MS)
-#define RReq_NR                         0     //0000 No Request (NR)
+#define RReq_EVENT                      14    /* 1110 Event              */
+#define RReq_FS                         13    /* 1101 Forced Switch      */
+#define RReq_SF                         11    /* 1011 Signal Fail (SF)   */
+#define RReq_MS                         7     /* 0111 Manual Switch (MS) */
+#define RReq_NR                         0     /* 0000 No Request (NR)    */
 
 #define RReq_STAT_RB                    0x80
 #define RReq_STAT_DNF                   0x40
@@ -131,7 +131,7 @@
 #define RReq_STAT_ZEROS                 0x00
 
 #define RReq_STAT_BPR_SET(port)        (port==1? 0x20 : 0x00)
-#define APS_GET_STATUS(aspReqStatusRx) ( (aspReqStatusRx    ) & 0xE0 )
+#define APS_GET_STATUS(apsReqStatusRx) ( apsReqStatusRx & 0x00E0 )
 
 //-------------------------------------------------------------------------
 //  Node state - The current state of the Ethernet Ring Node
@@ -199,8 +199,8 @@ typedef struct _erpsProtParam_t {
 /// Hardware Abstraction Layer
 typedef struct _erpsHAL_t {
     int     (*rd_alarms)            (L7_uint8 slot, L7_uint32 index);
-    L7_RC_t (*aps_rxfields)         (L7_uint8 erps_idx, L7_uint8 *req_state, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
-    L7_RC_t (*aps_txfields)         (L7_uint8 erps_idx, L7_uint8 req_state, L7_uint8 status);
+    L7_RC_t (*aps_rxfields)         (L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
+    L7_RC_t (*aps_txfields)         (L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
     int     (*prot_proc)            (L7_uint8 prot_id);
 } erpsHAL_t;
 
