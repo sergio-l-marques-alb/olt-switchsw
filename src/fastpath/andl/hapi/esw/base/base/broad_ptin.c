@@ -13,8 +13,13 @@
 #include "broad_l2_vlan.h"
 #include "broad_l2_std.h"
 
+#include <bcm/port.h>
+
 #include <dapi_db.h>
 #include <hpc_db.h>
+
+static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes);
+static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes, L7_BOOL force);
 
 /**
  * Initialize HAPI PTin data structures
@@ -1245,6 +1250,10 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
   HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
   L7_int        port;
   bcm_port_t    bcm_port;
+  int           speed, autoneg, duplex, tries;
+  bcm_port_if_t if_type;
+  L7_uint16     preemphasys[4] = {0, 0, 0, 0};
+  L7_RC_t       rc = L7_SUCCESS;
 
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
@@ -1263,33 +1272,74 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
   bcm_port = hapiSlotMapPtr[port].bcm_port;
 
   /* If intf type is KR4, special proceedings are necessary */
-  if (enable
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-      && dapiCardPtr->wcPortMap[port].wcSpeedG == 40
-  #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-      && (PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port))
-  #endif
-     )
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  if (dapiCardPtr->wcPortMap[port].wcSpeedG == 40)
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  if (PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port))
+#else
+  if (0)
+#endif
   {
-    /* If PRBS is to be enabled, disable AN */
-    if (bcm_port_autoneg_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
+    /* Read current preemphasys value */
+    rc = hapiBroadPTinPrbsPreemphasisGet(usp, preemphasys, 4);
+    if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading preemphasys from bcm_port %u", bcm_port);
     }
-    /* Full duplex */
-    if (bcm_port_duplex_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
+
+    /* Enable */
+    if (enable)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
-    }
-    /* Set speed again */
-    if (bcm_port_speed_set(0, bcm_port, 40000) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
-    }
-    /* Set if again */
-    if (bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_KR4) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+      /* If PRBS is to be enabled, disable AN */
+      if (bcm_port_autoneg_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+      }
+      /* Full duplex */
+      if (bcm_port_duplex_set(0, bcm_port, L7_ENABLE) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+      }
+      /* Set speed again */
+      if (bcm_port_speed_set(0, bcm_port, 40000) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+      }
+      /* Set if again */
+      if (bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_KR4) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error initializing bcm_port %u", bcm_port);
+      }
+
+      /* Wait for KR4 establishment */
+      tries = 0;
+      do
+      {
+        osapiSleepMSec(50);
+      } while (((tries++) < 10) &&
+               (bcm_port_speed_get    (0, bcm_port, &speed  ) != BCM_E_NONE || speed   != 40000 ||
+                bcm_port_autoneg_get  (0, bcm_port, &autoneg) != BCM_E_NONE || autoneg != L7_DISABLE ||
+                bcm_port_duplex_get   (0, bcm_port, &duplex ) != BCM_E_NONE || duplex  != L7_TRUE ||
+                bcm_port_interface_get(0, bcm_port, &if_type) != BCM_E_NONE || if_type != BCM_PORT_IF_KR4));
+
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Needed %u tries to wait for KR4 reestablishment (bcm_port %u)", bcm_port);
+
+      /* Force previous tap settings */
+      if (rc == L7_SUCCESS)
+      {
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "Going to force original preemphasys (1:0x%08x, 2:0x%08x, 3:0x%08x, 4:0x%08x) to bcm_port %u",
+                 preemphasys[0], preemphasys[1], preemphasys[2], preemphasys[3], bcm_port);
+
+        rc = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, L7_TRUE);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_HAPI, "Error forcing preemphasys to bcm_port %u", bcm_port);
+        }
+        else
+        {
+          LOG_INFO(LOG_CTX_PTIN_HAPI, "Success forcing preemphasys to bcm_port %u", bcm_port);
+        }
+      }
     }
   }
 
@@ -1325,17 +1375,32 @@ L7_RC_t hapiBroadPTinPrbsEnable(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
   }
 
   /* Restore KR4 mode */
-  if (!enable
-  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-      && dapiCardPtr->wcPortMap[port].wcSpeedG == 40
-  #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-      && (PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port))
-  #endif
-     )
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  if (dapiCardPtr->wcPortMap[port].wcSpeedG == 40)
+#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  if (PTIN_SYSTEM_10G_PORTS_MASK & (1ULL << port))
+#else
+  if (0)
+#endif
   {
-    if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+    if (!enable)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring KR4 mode at bcm_port %u", bcm_port);
+      /* Restore tap settings */
+      rc = hapiBroadPTinPrbsPreemphasisSet(usp, preemphasys, 4, L7_FALSE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring preemphasys to bcm_port %u", bcm_port);
+      }
+      else
+      {
+        LOG_INFO(LOG_CTX_PTIN_HAPI, "Success restoring preemphasys to bcm_port %u", bcm_port);
+      }
+
+      /* KR4 mode again */
+      if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring KR4 mode at bcm_port %u", bcm_port);
+      }
     }
   }
 
@@ -1392,6 +1457,342 @@ L7_RC_t hapiBroadPTinPrbsRxStatus(DAPI_USP_t *usp, L7_uint32 *rxErrors, DAPI_t *
   return L7_SUCCESS;
 }
 
+/**
+ * Get preemphasys data
+ * 
+ * @param usp 
+ * @param preemphasys 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes)
+{
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  bcm_port_t  bcm_port;
+  L7_int linkscan;
+  L7_int lane;
+  L7_uint32 phy_data, saved_data;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiSlotMapPtr       = dapiCardPtr->slotMap;
+
+  /* Validate usp reference */
+  if ( usp->unit != 1 ||
+       usp->slot != 0 ||
+       usp->port >= dapiCardPtr->numOfSlotMapEntries )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    return L7_FAILURE;
+  }
+
+  bcm_port = hapiSlotMapPtr[usp->port].bcm_port;
+
+  /* Disable linkscan */
+  if (bcm_linkscan_enable_get(0, &linkscan) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading linkscan mode");
+    return L7_FAILURE;
+  }
+  if (bcm_linkscan_enable_set(0, 0) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disablink linkscan to all ports");
+    return L7_FAILURE;
+  }
+
+  /* Run all lanes */
+  for (lane = 0; lane < number_of_lanes; lane++)
+  {
+    preemphasys[lane] = 0;
+
+    /* Going to select lane */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
+    if (rc != BCM_E_NONE) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+    /* AER + lane */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, lane);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+    /* Block 0x8060 */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0x8060);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      return L7_FAILURE;
+    }
+    /* Select Tap settings (0x8063:14) */
+    rc = bcm_port_phy_get(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x13, &saved_data);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading register from port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x13, saved_data | (1<<14));
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      return L7_FAILURE;
+    }
+    /* Read preemphasys */
+    rc = bcm_port_phy_get(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x10, &phy_data);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading register from port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+
+    /* Restore 0x8063 register */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x13, saved_data);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      return L7_FAILURE;
+    }
+
+    /* Save preemphasys for this lane */
+    preemphasys[lane] = phy_data & 0xffff;
+
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Port %-2u (bcm_port %-2u) lane %u: preemphasys=0x%04x", usp->port, bcm_port, lane, preemphasys[lane]);
+  }
+
+  /* Reset lane */
+  rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
+  if (rc != BCM_E_NONE) 
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+    rc_global = rc;
+  }
+  else
+  {
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, 0); 
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+    }
+  }
+
+  /* Restore linkscan mode */
+  rc = bcm_linkscan_enable_set(0, linkscan);
+  if (rc != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring linkscan mode to all ports");
+    rc_global = rc;
+  }
+
+  return rc_global;
+}
+
+/**
+ * Set preemphasys data
+ * 
+ * @param usp 
+ * @param preemphasys 
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes, L7_BOOL force)
+{
+  SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
+  DAPI_CARD_ENTRY_t            *dapiCardPtr;
+  HAPI_CARD_SLOT_MAP_t         *hapiSlotMapPtr;
+  bcm_port_t  bcm_port;
+  L7_int linkscan;
+  L7_int lane;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+  hapiSlotMapPtr       = dapiCardPtr->slotMap;
+
+  /* Validate usp reference */
+  if ( usp->unit != 1 ||
+       usp->slot != 0 ||
+       usp->port >= dapiCardPtr->numOfSlotMapEntries )
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "ERROR: Invalid port reference {%d,%d,%d}",usp->unit,usp->slot,usp->port);
+    return L7_FAILURE;
+  }
+
+  bcm_port = hapiSlotMapPtr[usp->port].bcm_port;
+
+  /* Disable linkscan */
+  if (bcm_linkscan_enable_get(0, &linkscan) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error reading linkscan mode");
+    return L7_FAILURE;
+  }
+  if (bcm_linkscan_enable_set(0, 0) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disablink linkscan to all ports");
+    return L7_FAILURE;
+  }
+
+  /* Run all lanes */
+  for (lane = 0; lane < number_of_lanes; lane++)
+  {
+    /* Set or clear bit 15 */
+    preemphasys[lane] = (preemphasys[lane] & 0x7fff) | ((force & 1)<<15);
+
+    /* Going to select lane */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
+    if (rc != BCM_E_NONE) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+    /* AER + lane */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, lane);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+    /* Block 0x8060 */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0x82e0);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      return L7_FAILURE;
+    }
+    /* Set preemphasys */
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x12, preemphasys[lane]);
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+      continue;
+    }
+
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Port %-2u (bcm_port %-2u) lane %u: preemphasys=0x%04x", usp->port, bcm_port, lane, preemphasys[lane]);
+  }
+
+  /* Reset lane */
+  rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1f, 0xffd0);
+  if (rc != BCM_E_NONE) 
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+    rc_global = rc;
+  }
+  else
+  {
+    rc = bcm_port_phy_set(0, bcm_port, BCM_PORT_PHY_INTERNAL, 0x1e, 0); 
+    if (rc != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error modifying register to port %u (bcm_port %u)", usp->port, bcm_port);
+      rc_global = rc;
+    }
+  }
+
+  /* Restore linkscan mode */
+  rc = bcm_linkscan_enable_set(0, linkscan);
+  if (rc != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error restoring linkscan mode to all ports");
+    rc_global = rc;
+  }
+
+  return rc_global;
+}
+
+/**
+ * Debug tool to dump current tap settings
+ * 
+ * @param port 
+ */
+void ptin_tapsettings_dump(L7_uint port)
+{
+  DAPI_USP_t usp;
+  L7_uint   i;
+  L7_uint16 preemphasys[4] = {0, 0, 0, 0};
+
+  if (port >= ptin_sys_number_of_ports)
+  {
+    printf("Invalid port %u\r\n", port);
+    return;
+  }
+
+  usp.unit = 1;
+  usp.slot = 0;
+  usp.port = port;
+
+  if (hapiBroadPTinPrbsPreemphasisGet(&usp, preemphasys, 4) != L7_SUCCESS)
+  {
+    printf("Error reading current tap settings of port %u\r\n", port);
+    return;
+  }
+
+  printf("Preemphasys for port %u (0x8060 with 0x8063:14=1):\r\n", port);
+  for (i = 0; i < 4; i++)
+  {
+    printf(" Lane %u: 0x%08x (pre=%2u main=%2u post=%2u)\r\n", i, preemphasys[i],
+           preemphasys[i] & 0xf, (preemphasys[i]>>4) & 0x3f, (preemphasys[i]>>10) & 0x1f);
+  }
+
+  fflush(stdout);
+}
+
+/**
+ * Debug tool to set new tap settings
+ * 
+ * @param port 
+ * @param data 
+ * @param force 
+ */
+void ptin_tapsettings_set(L7_uint port, L7_uint16 pre, L7_uint16 main, L7_uint16 post, L7_uint force)
+{
+  DAPI_USP_t usp;
+  L7_uint   i;
+  L7_uint16 preemphasys[4] = {0, 0, 0, 0};
+
+  if (port >= ptin_sys_number_of_ports)
+  {
+    printf("Invalid port %u\r\n", port);
+    return;
+  }
+
+  printf("New preemphasys for port %u (0x82e2):\r\n", port);
+  for (i = 0; i < 4; i++)
+  {
+    preemphasys[i] = (pre & 0xf) | ((main & 0x3f)<<4) | ((post & 0x1f)<<10) | ((force & 1)<<15);
+
+    printf(" Lane %u: 0x%08x (pre=%2u main=%2u post=%2u force=%u)\r\n", i, preemphasys[i],
+           preemphasys[i] & 0xf, (preemphasys[i]>>4) & 0x3f, (preemphasys[i]>>10) & 0x1f, (preemphasys[i]>>15) & 1);
+  }
+
+  usp.unit = 1;
+  usp.slot = 0;
+  usp.port = port;
+
+  if (hapiBroadPTinPrbsPreemphasisSet(&usp, preemphasys, 4, force) != L7_SUCCESS)
+  {
+    printf("Error setting new tap settings of port %u\r\n", port);
+    return;
+  }
+
+  printf("Done!\r\n");
+
+  fflush(stdout);
+}
 
 /**
  * Get system resources
