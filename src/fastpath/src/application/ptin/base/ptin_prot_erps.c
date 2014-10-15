@@ -1270,14 +1270,21 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Changing state from (0x%x) %s:%s to (0x%x) %s:%s (line_callback %d)", 
-            erps_idx, 
-            tbl_erps[erps_idx].state_machine, stateToString[ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)], ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R", 
-            state_machine, stateToString[ERPS_STATE_GetState(state_machine)], ERPS_STATE_IsLocal(state_machine)? "L":"R", 
-            line_callback);
+  if (tbl_erps[erps_idx].state_machine != state_machine)
+  {
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Changing state from (0x%x) %s:%s to (0x%x) %s:%s (line_callback %d)", 
+              erps_idx, 
+              tbl_erps[erps_idx].state_machine, stateToString[ERPS_STATE_GetState(tbl_erps[erps_idx].state_machine)], ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R", 
+              state_machine, stateToString[ERPS_STATE_GetState(state_machine)], ERPS_STATE_IsLocal(state_machine)? "L":"R", 
+              line_callback);
 
-  tbl_erps[erps_idx].state_machine_h  = tbl_erps[erps_idx].state_machine;
-  tbl_erps[erps_idx].state_machine    = state_machine;
+    tbl_erps[erps_idx].state_machine_h  = tbl_erps[erps_idx].state_machine;
+    tbl_erps[erps_idx].state_machine    = state_machine;
+
+    tbl_erps[erps_idx].localRequest                     = LReq_NONE;
+    tbl_erps[erps_idx].localReqPort                     = PROT_ERPS_PORT0;
+    tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
+  }
 
   return(ret);
 }
@@ -1461,7 +1468,6 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
     L7_uint8 aux;
-    L7_uint8 aux2[PROT_ERPS_MAC_SIZE] = {0};
 
     remoteRequest = apsReqRx;
 
@@ -1487,17 +1493,25 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     } else {
 
       // extracts the (node ID, BPR) pair ...
-      aux = tbl_erps[erps_idx].apsBprRx[apsRxPort];
-      tbl_erps[erps_idx].apsBprRx[apsRxPort] = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
+      aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
 
-      if ( memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux) ) { // ...and compares it with the previous (node ID, BPR)
-
+      // ...and compares it with the previous (node ID, BPR)
+      if (memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux))
+      {
+        // If it is different from the previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
+        // stored for that ring port;
         memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+        tbl_erps[erps_idx].apsBprRx[apsRxPort] = aux;
 
-        if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], aux2, PROT_ERPS_MAC_SIZE)) && (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], aux2, PROT_ERPS_MAC_SIZE)) ) {
-          if ( (memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE)) && 
-              !((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)) ) {
-
+        // and if it is different from the (node ID, BPR) pair already stored at the
+        // other ring port, then a flush FDB action is triggered
+        if ((memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE)) || 
+            (tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0] != tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]))
+        {
+          // except when the new R-APS message has DNF
+          // or the receiving Ethernet ring node's node ID.
+          if (!((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)))
+          {
             ptin_erps_FlushFDB(erps_idx, __LINE__);
           }
         }
@@ -1784,7 +1798,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
       LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Guard Timer %d (ms)", erps_idx, tbl_erps[erps_idx].guard_timer);
 
-      remoteRequest = RReq_NONE;
+      tbl_erps[erps_idx].remoteRequest = remoteRequest = RReq_NONE; /* Ignore Remote Request */
     } else {
       tbl_erps[erps_idx].guard_CMD = TIMER_CMD_STOP;
       tbl_erps[erps_idx].guard_timer = 0;
@@ -2509,6 +2523,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
         //Start WTR
         ptin_erps_startTimer(erps_idx, WTR_TIMER_CMD, TIMER_CMD_START, __LINE__);
+
+        #ifdef SM_PTIN_MODS
+        // Stop Tx APS otherwise BAD stuff happen
+        ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
+        #endif
       }
       
       // Next node state: E
