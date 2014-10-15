@@ -1511,6 +1511,46 @@ L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_uint8 *
 }
 
 /**
+ * Check if the given interface is of type ROOT. 
+ * 
+ * @param intVlan  : Internal vlan 
+ * @param intIfNum : Interface
+ * 
+ * @return L7_BOOL : L7_TRUE/L7_FALSE
+ */
+L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 intIfNum)
+{
+  L7_uint8 intf_type;
+
+  /* Validate arguments */
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
+      (intVlan != 0 && (intVlan < PTIN_VLAN_MIN || intVlan > PTIN_VLAN_MAX)) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid arguments: intIfNum=%u intVlan=%u", intIfNum, intVlan);
+    return L7_FALSE;
+  }
+
+  /* If VLAN is null, return general trusted state */
+  if (intVlan == 0)
+  {
+    return L7_TRUE;
+  }
+
+  /* Get interface configuration */
+  if (ptin_evc_intf_type_get(intVlan, intIfNum, &intf_type)!=L7_SUCCESS)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_DHCP, "Error acquiring interface %u/%u type from internalVid %u and intIfNum %u", intVlan, intIfNum);
+    return L7_FALSE;
+  }
+  if(intf_type == PTIN_EVC_INTF_ROOT)
+  {
+     return L7_TRUE;
+  }
+
+  return L7_FALSE;
+}
+
+/**
  * Get the list of interfaces associated to a internal vlan
  * 
  * @param intVlan  : Internal vlan 
@@ -4749,6 +4789,7 @@ L7_RC_t ptin_stormControl_init(void)
 
   return ptin_evc_stormControl_reset(&stormControl);
 }
+
 
 /**
  * Get storm control configurations
