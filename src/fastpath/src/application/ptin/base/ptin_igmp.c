@@ -6611,14 +6611,12 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
       memcpy(&avl_key.channel_source, &source, sizeof(L7_inet_addr_t));
       #endif
 
-      #if 0
       /* Find associated MC service */
       if (igmp_assoc_pair_get( evc_uc, &group, &source, &evc_mc )!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_IGMP,"No MC EVC associated with UC EVC %u",evc_uc);
         rc = L7_FAILURE;
       }    
-      #endif  
 
       #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT      
       ptin_igmp_channel_bandwidth_cache_unset(&avl_key);
@@ -6654,7 +6652,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
    //Only IPv4 is supported!
    if(channel_group->family==L7_AF_INET && channel_source->family!=L7_AF_INET)
    {
-     LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC]",evc_uc,evc_mc);
+     LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC=%u]", evc_uc, evc_mc);
      return FAILURE;                       
    }
    ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask);   
