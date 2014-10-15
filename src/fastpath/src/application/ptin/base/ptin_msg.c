@@ -8938,7 +8938,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
 
   L7_uint32 evc_ext_id;
   L7_uint16 intRootVlan;
-  L7_RC_t   rc = L7_FAILURE;
+  L7_RC_t   rc = L7_SUCCESS;
 
   if (msgAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
   {
@@ -8951,8 +8951,6 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     LOG_ERR(LOG_CTX_PTIN_MSG, "direction Invalid (%d)", msgAcl->direction);
     return L7_FAILURE;
   }
-
-
   
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %u",                              msgAcl->slotId);
@@ -8968,7 +8966,9 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Operation      %s",                              operationStr[operation]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
 
-  if ( (msgAcl->interface == L7_ACL_INVALID_IFACE_ID) && (msgAcl->evcId == L7_ACL_INVALID_EVC_ID) )
+  if ( (msgAcl->interface == L7_ACL_INVALID_IFACE_ID) &&
+       (msgAcl->evcId == L7_ACL_INVALID_EVC_ID) &&
+       (msgAcl->vlanId == L7_ACL_INVALID_VLAN_ID) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Neither interface neither evcId is valid");
     return L7_FAILURE;
@@ -8980,7 +8980,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     if (ptin_evc_get_evcId_fromNNIvlan(msgAcl->vlanId, &evc_ext_id) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "ACL FAILURE: Unable to get extEVCid from NNI VLAN %u", msgAcl->vlanId);
-      return L7_FAILURE;
+      return L7_NOT_EXIST;
     }
     /* Internal VLAN */
     if (ptin_evc_intRootVlan_get(evc_ext_id, &intRootVlan) != L7_SUCCESS)
@@ -9017,7 +9017,6 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Converting Interface %d to intIfNum %d", msgAcl->interface, intIfNum);
     msgAcl->interface = intIfNum;
   }
-
   
   if (aclType == ACL_TYPE_MAC)
   {
@@ -9030,6 +9029,16 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   else if (aclType == ACL_TYPE_IPv6_EXTENDED)
   {
     rc = ptin_aclIpv6Apply(msgAcl, operation);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL type: %d", aclType);
+    return L7_FAILURE;
+  }
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error occurred: rc=%d", rc);
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "rc=%d", rc);
@@ -9053,7 +9062,7 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
   L7_uint         i;
   L7_uint8        aclType;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
-  L7_RC_t         rc, rc_global = L7_FAILURE;
+  L7_RC_t         rc, rc_global = L7_SUCCESS;
 
   /* Operation */
   if (msgId == CCMSG_ACL_APPLY)
@@ -9063,6 +9072,11 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
   else if (msgId == CCMSG_ACL_UNAPPLY)
   {
     operation = ACL_OPERATION_REMOVE;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid msgId %u", msgId);
+    return L7_FAILURE;
   }
 
   /* Run all entries */
@@ -9094,6 +9108,7 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
     /* Update final result */
     if (rc != L7_SUCCESS)
     {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error occurred at i=%u (rc=%d)", i, rc);
       rc_global = rc;
     }
   }
