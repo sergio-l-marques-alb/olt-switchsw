@@ -929,6 +929,27 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     return rc;
   }
 
+#if PTIN_BOARD_IS_LINECARD
+  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+#endif
+
+  /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme*/
+  if (
+  #if PTIN_BOARD_IS_MATRIX
+  !ptin_fgpa_mx_is_matrixactive() 
+  #elif PTIN_BOARD_IS_LINECARD
+  protTypebIntfConfig.status != L7_ENABLE
+  #else
+  0
+  #endif
+  && ptin_igmp_port_close_flag == 0 )
+  {
+	if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is inactive [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
+    return rc;
+  }
+  
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
@@ -963,10 +984,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     __matrix_mfdbport_sync(L7_DISABLE, 0, serviceId, portId, groupAddr, sourceAddr, L7_FALSE);
   }
 #elif PTIN_BOARD_IS_LINECARD
-  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
-
-  /* Sync the status of this switch port on the backup type-b protection port, if it exists */
-  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+  /* Sync the status of this switch port on the backup type-b protection port, if it exists */ 
   if(protTypebIntfConfig.status == L7_ENABLE)
   {
     __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr, sourceAddr, L7_FALSE);

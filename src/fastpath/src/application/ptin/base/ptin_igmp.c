@@ -51,6 +51,8 @@ L7_BOOL ptin_debug_igmp_snooping = 0;
 
 L7_BOOL ptin_debug_igmp_packet_trace = 0;
 
+L7_BOOL ptin_igmp_port_close_flag = 0;
+
 void ptin_debug_igmp_enable(L7_BOOL enable)
 {
   ptin_debug_igmp_snooping = enable;
@@ -1500,7 +1502,7 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   if (ptin_igmp_instance_find_free(&igmp_idx)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"There is no free instances to be used");
-    return L7_FAILURE;
+    return L7_TABLE_IS_FULL;
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Using free index %u",igmp_idx);
@@ -11509,7 +11511,13 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   else if(admin == L7_DISABLE)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId);
+ 
+           
+    ptin_igmp_port_close_flag = 1;
+   
     rc = snooping_port_close(serviceId, portId, groupAddr, sourceAddr);
+    ptin_igmp_port_close_flag = 0;
+
     return rc;
   }
   else

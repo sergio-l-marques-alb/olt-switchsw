@@ -115,7 +115,7 @@
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MAX    (PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN + PTIN_SYSTEM_EVC_ETREE_BS_VLAN_BLOCKS*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK - 1)
 
 
-# define PTIN_SYSTEM_N_IGMP_INSTANCES               16    /* Maximum nr of IGMP instances */
+# define PTIN_SYSTEM_N_IGMP_INSTANCES               40    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP        (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF          1     /* 1 client per frontal port */
 # define PTIN_SYSTEM_IGMP_MAXONUS                   (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)
