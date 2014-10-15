@@ -868,6 +868,15 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
     return L7_SUCCESS;
   }
 
+  // If local State machine has a TxReq then FW is not done
+  req = (tbl_halErps[erps_idx].apsReqStatusTx >> 12) & 0xF;
+  if (req != RReq_NONE) {
+    if (ptin_oam_packet_debug_enable)
+      LOG_TRACE(LOG_CTX_ERPS,"Local Req! Do not forward APS packet.");
+
+    return L7_SUCCESS;
+  }
+
   // Tx packet to the other Ring port
   if ( pktMsg->intIfNum == tbl_halErps[erps_idx].port0intfNum ) {
     txintport = tbl_halErps[erps_idx].port1intfNum;
