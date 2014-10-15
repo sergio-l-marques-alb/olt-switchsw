@@ -175,6 +175,7 @@ void ptin_debug(void)
   printf("  dump_uplinkprot_traps                                     - info about ports/MEPs with uplink protection port traps triggered\r\n");
   printf("\r\n");
   printf("  mgmd.cli                                                  - Show MGMD help\r\n");
+  printf("  ber_help                                                  - Show BER/PRBS help\r\n");
   printf("\r\n");
 
   fflush(stdout);
