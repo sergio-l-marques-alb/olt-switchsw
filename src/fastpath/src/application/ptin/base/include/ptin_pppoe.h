@@ -474,7 +474,7 @@ void ptin_pppoe_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted);
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_pppoe_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
+L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId);
 
 /**
  * Get the list of trusted interfaces associated to a internal 

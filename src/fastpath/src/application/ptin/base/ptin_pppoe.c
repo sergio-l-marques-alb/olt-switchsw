@@ -2460,87 +2460,9 @@ void ptin_pppoe_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted)
  * 
  * @return L7_BOOL : L7_TRUE/L7_FALSE
  */
-L7_BOOL ptin_pppoe_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
+L7_BOOL ptin_pppoe_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId)
 {
-  L7_uint pppoe_idx;
-  L7_uint32 evc_id_ext;
-  ptin_intf_t ptin_intf;
-  ptin_evc_intfCfg_t intfCfg;
-  st_PppoeInstCfg_t *pppoeInst;
-
-  /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
-      (intVlanId != 0 && (intVlanId < PTIN_VLAN_MIN || intVlanId > PTIN_VLAN_MAX)) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
-    return L7_FALSE;
-  }
-
-  /* Mask with list of trusted ports */
-  if (!L7_INTF_ISMASKBITSET(pppoe_intIfNum_trusted, intIfNum))
-  {
-    return L7_FALSE;
-  }
-
-  /* If VLAN is null, return general trusted state */
-  if (intVlanId == 0)
-  {
-    return L7_TRUE;
-  }
-
-  /* Proceed to vlan validation */
-
-  /* Convert interface to ptin_port */
-  if (ptin_intf_intIfNum2ptintf(intIfNum, &ptin_intf)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid intIfNum %u", intIfNum);
-    return L7_FALSE;
-  }
-
-  /* PPPOE instance, from internal vlan */
-  if (ptin_pppoe_inst_get_fromIntVlan(intVlanId, &pppoeInst, &pppoe_idx)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"No PPPOE instance associated to intVlan %u", intVlanId);
-    return L7_FALSE;
-  }
-
-  /* PPPOE instance, from internal vlan */
-  if (ptin_evc_get_evcIdfromIntVlan(intVlanId, &evc_id_ext) != L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"No EVC id associated to intVlan %u", intVlanId);
-    return L7_FALSE;
-  }
-
-  /* Check if EVCs are in use */
-  if (!ptin_evc_is_in_use(evc_id_ext))
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Inconsistency: eEVCid=%u (Vlan %u) not in use", evc_id_ext, intVlanId);
-    return L7_FAILURE;
-  }
-
-  /* Get interface configuration */
-  if (ptin_evc_intfCfg_get(evc_id_ext, &ptin_intf, &intfCfg)!=L7_SUCCESS)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error acquiring interface %u/%u configuarion from eEVC id %u",
-              ptin_intf.intf_type, ptin_intf.intf_id, evc_id_ext);
-    return L7_FALSE;
-  }
-
-  /* Interface must be in use */
-  if (!intfCfg.in_use)
-  {
-    if (ptin_debug_pppoe_snooping)
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Interface %u/%u (intIfNum=%u) is not in use for eEVC %u",
-              ptin_intf.intf_type, ptin_intf.intf_id, intIfNum, evc_id_ext);
-    return L7_FALSE;
-  }
-
-  return L7_TRUE;
+  return ptin_evc_intf_isRoot(intVlanId, intIfNum);
 }
 
 /**

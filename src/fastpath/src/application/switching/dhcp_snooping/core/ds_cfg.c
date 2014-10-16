@@ -36,6 +36,7 @@
 
 /* PTin added: DHCP snooping */
 #include "ptin_dhcp.h"
+#include "ptin_evc.h"
 /* PTin end */
 
 extern dsCfgData_t *dsCfgData;
@@ -492,7 +493,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
-  return ptin_dhcp_is_intfRoot(intIfNum,vlanId);
+  return ptin_evc_intf_isRoot(intIfNum,vlanId);
 }
 
 /*********************************************************************

@@ -405,6 +405,16 @@ extern L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 
 extern L7_RC_t ptin_evc_intf_type_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_uint8 *type);
 
 /**
+ * Check if the given interface is of type ROOT. 
+ * 
+ * @param intVlan  : Internal vlan 
+ * @param intIfNum : Interface
+ * 
+ * @return L7_BOOL : L7_TRUE/L7_FALSE
+ */
+extern L7_BOOL ptin_evc_intf_isRoot(L7_uint16 intVlan, L7_uint32 intIfNum);
+
+/**
  * Get the list of interfaces associated to a internal vlan
  * 
  * @param intVlan  : Internal vlan 

@@ -2734,47 +2734,6 @@ L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId)
 }
 
 /**
- * Check if a particular interface of one EVC is root
- * 
- * @param intIfNum    : interface
- * @param intVlanId   : internal vlan
- * 
- * @return L7_BOOL : L7_TRUE/L7_FALSE
- */
-L7_BOOL ptin_dhcp_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId)
-{
-  L7_uint8 intf_type;
-
-  /* Validate arguments */
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT ||
-      (intVlanId != 0 && (intVlanId < PTIN_VLAN_MIN || intVlanId > PTIN_VLAN_MAX)) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments: intIfNum=%u intVlan=%u",intIfNum,intVlanId);
-    return L7_FALSE;
-  }
-
-  /* If VLAN is null, return general trusted state */
-  if (intVlanId == 0)
-  {
-    return L7_TRUE;
-  }
-
-  /* Get interface configuration */
-  if (ptin_evc_intf_type_get(intVlanId, intIfNum, &intf_type)!=L7_SUCCESS)
-  {
-    if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring interface %u/%u type from internalVid %u and intIfNum %u", intVlanId, intIfNum);
-    return L7_FALSE;
-  }
-  if(intf_type != PTIN_EVC_INTF_ROOT)
-  {
-     return L7_FALSE;
-  }
-
-  return L7_TRUE;
-}
-
-/**
  * Get the list of trusted interfaces associated to a internal 
  * vlan 
  * 

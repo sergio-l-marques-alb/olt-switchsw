@@ -536,16 +536,6 @@ void ptin_dhcp_intfTrusted_set(L7_uint32 intIfNum, L7_BOOL trusted);
 L7_BOOL ptin_dhcp_is_intfTrusted(L7_uint32 intIfNum, L7_uint16 intVlanId);
 
 /**
- * Check if a particular interface of one EVC is root
- * 
- * @param intIfNum    : interface
- * @param intVlanId   : internal vlan
- * 
- * @return L7_BOOL : L7_TRUE/L7_FALSE
- */
-L7_BOOL ptin_dhcp_is_intfRoot(L7_uint32 intIfNum, L7_uint16 intVlanId);
-
-/**
  * Get the list of trusted interfaces associated to a internal 
  * vlan 
  * 

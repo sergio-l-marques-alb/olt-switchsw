@@ -4124,7 +4124,9 @@ L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
       /* If the interface is trusted Snooping interface, then the database
          related validations are not needed as the binding database is updated
          only for untrusted interfaces. */
-      return L7_FALSE;
+      if (ptin_debug_dhcp_snooping)
+       LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP packet dropped here: Received client request on root interface");
+      return L7_TRUE;
     }
     dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
     if ((dhcpPktType == L7_DHCP_RELEASE) || (dhcpPktType == L7_DHCP_DECLINE))

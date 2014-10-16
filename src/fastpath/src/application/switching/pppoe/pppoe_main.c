@@ -32,6 +32,7 @@
 
 #include "ptin_evc.h"
 #include "ptin_pppoe.h"
+#include "ptin_intf.h"
 
 #include "dot1q_api.h"
 #include "dot3ad_api.h"
@@ -428,7 +429,7 @@ L7_RC_t pppoeFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
    if (ptin_debug_pppoe_snooping)
      LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "PPPoE: Received new message");
 
-   if(ptin_pppoe_is_intfTrusted(intIfNum, vlanId) == L7_TRUE)
+   if(ptin_pppoe_is_intfRoot(intIfNum, vlanId) == L7_TRUE)
    {
       pppoeProcessServerFrame(frame, intIfNum, vlanId, innerVlanId, client_idx);
    }
@@ -666,34 +667,32 @@ L7_RC_t pppoeCommonErrorFrameCreate(L7_uchar8 *originalFramePtr, L7_uchar8 *newF
 ***********************************************************************/
 L7_RC_t pppoeServerInterfaceGet(L7_uint32 *intIfNum, L7_ushort16 vlanId)
 {
-  NIM_INTF_MASK_t portMask;
-
+  L7_uint32 link_state = 0;
+  L7_uint32 ptinPort;
+     
   if(intIfNum == L7_NULLPTR)
   {
      return L7_FAILURE;
   }
 
-  /* Get list of trusted ports */
-  if (ptin_pppoe_intfTrusted_getList(vlanId, &portMask) == L7_SUCCESS)
+  /* Return only the first LINK_UP root interface found */
+  for (ptinPort = 0; ptinPort < PTIN_SYSTEM_N_INTERF; ++ptinPort)
   {
-    for (*intIfNum = 1; *intIfNum < L7_MAX_INTERFACE_COUNT; ++(*intIfNum))
+    if(L7_SUCCESS != ptin_intf_port2intIfNum(ptinPort, intIfNum))
     {
-      /* The API dot1qVlanEgressPortsGet returns both LAG interface as
-         well as its particpating interfaces. So exclude the participating
-         interfaces so that the underlying layer takes care of forwarding
-         to participating interfaces. */
-      if (dot3adIsLagActiveMember(*intIfNum) == L7_TRUE)
-      {
-        continue;
-      }
+       return L7_FAILURE;
+    }
 
-      if (L7_INTF_ISMASKBITSET(portMask, *intIfNum))
-      {
-         return L7_SUCCESS;
-      }
+    if(L7_TRUE == ptin_pppoe_is_intfRoot(*intIfNum, vlanId))
+    {
+       if( (L7_SUCCESS == nimGetIntfLinkState(*intIfNum, &link_state)) && (link_state == L7_UP) )
+       {
+          return L7_SUCCESS;
+       }
     }
   }
 
+  LOG_ERR(LOG_CTX_PTIN_PPPOE, "Unable to find a valid ROOT interface for vlan %u", vlanId);
   return L7_FAILURE;
 }
 
@@ -828,6 +827,8 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   /* Get uplink interface */
   if(L7_SUCCESS != pppoeServerInterfaceGet(&intIfNum, vlanId))
   {
+     if (ptin_debug_pppoe_snooping)
+       LOG_ERR(LOG_CTX_PTIN_PPPOE, "Unable to determine server interface for vlanId %u", vlanId);
      return L7_FAILURE;
   }
 
@@ -835,14 +836,16 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
       (sysIntfType == L7_CPU_INTF))
   {
+    if (ptin_debug_pppoe_snooping)
+      LOG_ERR(LOG_CTX_PTIN_PPPOE, "Invalid outgoing interface intIfNum %u with type %u", intIfNum, sysIntfType);
     return L7_SUCCESS;
   }
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
-    /* Don't bother logging this. mbuf alloc failures happen occasionally. DHCP
-     * should recover. */
+    if (ptin_debug_pppoe_snooping)
+      LOG_ERR(LOG_CTX_PTIN_PPPOE, "Unable to get new bufHanddle");
     return L7_FAILURE;
   }
 
