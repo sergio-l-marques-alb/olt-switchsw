@@ -6483,6 +6483,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
       break;
   }
 
+#if 0 /*MGMD is not prepared for Default MC Service*/
  if (rc==L7_SUCCESS)
  {
    //Only IPv4 is supported!
@@ -6497,6 +6498,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
      return L7_FAILURE;
    }
  }
+#endif
 
  return rc; 
 }
@@ -6642,6 +6644,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
       break;
   }
 
+#if 0 /*MGMD is not prepared for Default MC Service*/
  if (rc==L7_SUCCESS)
  {
    //Only IPv4 is supported!
@@ -6650,9 +6653,9 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
      LOG_ERR(LOG_CTX_PTIN_IGMP,"IPv6 not supported for MGMD [UC_EVC=%u MC_EVC=%u]", evc_uc, evc_mc);
      return FAILURE;                       
    }
-   ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask, 0);
-   
+   ptin_igmp_mgmd_whitelist_remove(evc_mc,channel_group->addr.ipv4.s_addr,channel_grpMask,channel_source->addr.ipv4.s_addr,channel_srcMask, 0);   
  }
+#endif
 
   return L7_SUCCESS;
 }
