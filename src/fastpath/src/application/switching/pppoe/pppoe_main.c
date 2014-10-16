@@ -217,12 +217,19 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   if ( ptin_pppoe_rootVlan_get( pduInfo->vlanId, &vlanId ) != L7_SUCCESS )
   {
      if (ptin_debug_pppoe_snooping)
-       LOG_ERR(LOG_CTX_PTIN_DHCP,"Root vlan not found! (intIfNum=%u, vlanId=%u)",
-               pduInfo->intIfNum, pduInfo->vlanId);
+       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Root vlan not found! (intIfNum=%u, vlanId=%u)", pduInfo->intIfNum, pduInfo->vlanId);
   }
   else
   {
      pduInfo->vlanId = vlanId;
+  }
+
+  /* If no PPPoE instance is configured for this internal vlan, ignore the packet */
+  if(L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
+  {
+     if (ptin_debug_pppoe_snooping)
+       LOG_NOTICE(LOG_CTX_PTIN_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
+     return L7_FAILURE;
   }
 
   /* This is used only when the packet comes double tagged.*/
@@ -241,7 +248,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     if (innerVlanId==0 || innerVlanId>=4095)
     {
       if (ptin_debug_pppoe_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
+        LOG_ERR(LOG_CTX_PTIN_PPPOE,"Client not referenced! (intIfNum=%u, innerVlanId=%u, intVlanId=%u)",
               pduInfo->intIfNum, innerVlanId, vlanId);
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
       ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
@@ -298,7 +305,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 //  dsInfo->debugStats.msgsIntercepted++;
 //  dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
 //  if (ptin_debug_pppoe_snooping)
-//    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
+//    LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Incremented DHCP_STAT_FIELD_RX_FILTERED");
 //  ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, DHCP_STAT_FIELD_RX_FILTERED);
 //  SYSAPI_NET_MBUF_FREE(bufHandle);
 //  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
@@ -378,7 +385,7 @@ L7_RC_t pppoePacketQueue(L7_uchar8 *frame, L7_uint32 dataLen,
 //   dsInfo->debugStats.msgsFiltered++;
 //
 //   if (ptin_debug_pppoe_snooping)
-//      LOG_TRACE(LOG_CTX_PTIN_DHCP, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
+//      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "Incremented DHCP_STAT_FIELD_RX_FILTERED");
 //   //ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX_FILTERED);
 //   return L7_REQUEST_DENIED;
 //}
@@ -463,7 +470,7 @@ L7_BOOL pppoeFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 //if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
 //{
 //  if (ptin_debug_pppoe_snooping)
-//    LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet dropped here: server filter");
+//    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Packet dropped here: server filter");
 //  return L7_TRUE;
 //}
 //
@@ -471,7 +478,7 @@ L7_BOOL pppoeFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 //if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId, client_idx))    /* PTin modified: DHCP snooping */
 //{
 //  if (ptin_debug_pppoe_snooping)
-//    LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet dropped here: client filter");
+//    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Packet dropped here: client filter");
 //   return L7_TRUE;
 //}
 //
@@ -479,7 +486,7 @@ L7_BOOL pppoeFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 //if (dsFilterVerifyMac(intIfNum, vlanId, frame, ipHeader))
 //{
 //  if (ptin_debug_pppoe_snooping)
-//    LOG_ERR(LOG_CTX_PTIN_DHCP,"Packet dropped here: verify MAC");
+//    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Packet dropped here: verify MAC");
 //  return L7_TRUE;
 //}
 
@@ -862,7 +869,7 @@ L7_RC_t pppoeServerFrameSend(L7_uchar8* frame, L7_ushort16 vlanId, L7_ushort16 i
     if (ptin_evc_check_is_stacked_fromIntVlan(vlanId,&is_vlan_stacked)!=L7_SUCCESS)
     {
       if (ptin_debug_pppoe_snooping)
-        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
+        LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error checking if vlan %u belongs to a stacked EVC",vlanId);
       is_vlan_stacked = L7_TRUE;
     }
     #endif
