@@ -124,7 +124,7 @@
 #define     PROD_MAX_NUM_WIRELESS_INTF                    64
 #define     PROD_MAX_NUM_L2TUNNEL_VLANS                   64
 #define     PROD_IPV6_NHRES_MAX                           32
-#define     PROD_MAX_NUM_VLAN_PORT_INTF                   (4 * 1024)       /* PTin added: virtual ports */
+#define     PROD_MAX_NUM_VLAN_PORT_INTF                   (8 * 1024)       /* PTin added: virtual ports */
 /*********************************************************************
 **  End of L3 paramters 
 **********************************************************************/
