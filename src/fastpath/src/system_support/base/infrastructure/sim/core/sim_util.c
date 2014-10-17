@@ -1909,7 +1909,9 @@ void simNetworkPortStatusUpdate(void)
   {
     if (simOperInfo->networkPortStatus != L7_DISABLE)
     {
+      #if 0 /* PTIN Modified: When physical interface goes down, FP puts the Linux IP interface down and, therefore, Linux deletes IP Routes. This behavior is not desired */
       simNetworkPortDisable();
+      #endif
     }
   }
 }
