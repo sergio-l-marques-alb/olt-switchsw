@@ -36,7 +36,7 @@
  ***********************************************************/
 #define PTIN_ROUTING_USMDB_UNITINDEX        1
 #define PTIN_ROUTING_DTL0_INTERFACE_NAME    "dtl0"
-#define PTIN_ROUTING_DTL0_MTU_DEFAULT       2500
+#define PTIN_ROUTING_DTL0_MTU_DEFAULT       L7_MAX_FRAME_SIZE
 #define PTIN_ROUTING_INTERFACE_NAME_PREFIX  "rt1_2_"  /* This is derived from rt$UNIT_$SLOT_ */
 #define PTIN_ROUTING_TRACEROUTE_MAX_HOPS    (TRACEROUTE_DEFAULT_MAX_TTL - TRACEROUTE_DEFAULT_INIT_TTL)  /* This is a copy from traceroute.h, which I'm not able to include here */
 
