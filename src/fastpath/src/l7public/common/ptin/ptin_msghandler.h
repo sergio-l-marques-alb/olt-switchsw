@@ -1428,9 +1428,9 @@ typedef struct _msg_MCAssocChannel_t
   L7_uint32            evcid_mc;                   // index: EVCid (MC)      /* L7_uint32 */
   L7_uint16            entry_idx;                  // Entry index: only for readings
   chmessage_ip_addr_t  channel_dstIp;    // IP do canal a adicionar/remover
-  L7_uint8             channel_dstmask;  // MAscara do canal em numero de bits (LSB)
+  L7_uint8             channel_dstmask;  // Mascara do canal em numero de bits (LSB)
   chmessage_ip_addr_t  channel_srcIp;    // IP source 
-  L7_uint8             channel_srcmask;  // MAscara do IP source em numero de bits (LSB)
+  L7_uint8             channel_srcmask;  // Mascara do IP source em numero de bits (LSB)
   L7_uint64            channelBandwidth;  // bit/s 
 } __attribute__((packed)) msg_MCAssocChannel_t;
 

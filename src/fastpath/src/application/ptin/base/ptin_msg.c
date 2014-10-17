@@ -68,6 +68,9 @@ static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPo
 static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile);
 static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_evcStats_profile_t *evcStats_profile);
 
+L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr);
+L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr);
+
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  ********************************************************/
@@ -146,6 +149,49 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
   osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "FASTPATH 6.3.0.2", 20);
 
   return L7_SUCCESS;
+}
+
+L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr)
+{
+   if ( fpIpAddr->family == L7_AF_INET)
+   {
+      ptinIpAddr->family = PTIN_AF_INET;
+      ptinIpAddr->addr.ipv4 = fpIpAddr->addr.ipv4.s_addr;      
+
+      return L7_SUCCESS;
+   }
+   else if ( fpIpAddr->family == L7_AF_INET6)
+   {
+      ptinIpAddr->family = PTIN_AF_INET6;
+      memcpy(ptinIpAddr->addr.ipv6, fpIpAddr->addr.ipv6.in6.addr8, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));
+
+      return L7_SUCCESS;
+   }
+   else
+   {
+     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of FP not Supported:%u",fpIpAddr->family);
+     return L7_NOT_SUPPORTED;
+   }   
+}
+
+L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr)
+{
+   if ( ptinIpAddr->family == PTIN_AF_INET )
+   {      
+     inetAddressSet(L7_AF_INET, &ptinIpAddr->addr.ipv4, fpIpAddr);          
+     return L7_SUCCESS;
+   }
+   else if ( ptinIpAddr->family == PTIN_AF_INET6 )
+   { 
+     fpIpAddr->family = L7_AF_INET6;
+     memcpy(fpIpAddr->addr.ipv6.in6.addr8, ptinIpAddr->addr.ipv6, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));               
+     return L7_SUCCESS;
+   }
+   else
+   {
+     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of PTIN not Supported:%u",fpIpAddr->family);
+     return L7_NOT_SUPPORTED;
+   }   
 }
 
 /* Reset Functions ************************************************************/
@@ -4909,49 +4955,6 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCPv4v6_bind_table_t *table)
 
 /*IP Source Guard Management Functions **************************************************/
 
-L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr)
-{
-   if ( fpIpAddr->family == L7_AF_INET)
-   {
-      ptinIpAddr->family = PTIN_AF_INET;
-      ptinIpAddr->addr.ipv4 = fpIpAddr->addr.ipv4.s_addr;      
-
-      return L7_SUCCESS;
-   }
-   else if ( fpIpAddr->family == L7_AF_INET6)
-   {
-      ptinIpAddr->family = PTIN_AF_INET6;
-      memcpy(ptinIpAddr->addr.ipv6, fpIpAddr->addr.ipv6.in6.addr8, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));
-
-      return L7_SUCCESS;
-   }
-   else
-   {
-     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of FP not Supported:%u",fpIpAddr->family);
-     return L7_NOT_SUPPORTED;
-   }   
-}
-
-L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr)
-{
-   if ( ptinIpAddr->family == PTIN_AF_INET )
-   {      
-     inetAddressSet(L7_AF_INET, &ptinIpAddr->addr.ipv4, fpIpAddr);          
-     return L7_SUCCESS;
-   }
-   else if ( ptinIpAddr->family == PTIN_AF_INET6 )
-   { 
-     fpIpAddr->family = L7_AF_INET6;
-     memcpy(fpIpAddr->addr.ipv6.in6.addr8, ptinIpAddr->addr.ipv6, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));               
-     return L7_SUCCESS;
-   }
-   else
-   {
-     LOG_ERR(LOG_CTX_PTIN_MSG, "IP Family Address of PTIN not Supported:%u",fpIpAddr->family);
-     return L7_NOT_SUPPORTED;
-   }   
-}
-
 /**
  * Configure IP Source Guard on Ptin Port
  * 
@@ -5668,7 +5671,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
-  //Short Fix to Support Mac Bridge Services and Unicast Services
+  //Short Fix to Support Mac Bridge Services and Unicast Services 
   #if PTIN_BOARD_IS_LINECARD
   {
     #if 0
@@ -5679,10 +5682,10 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     #endif
     {      
       igmp_stats->client.outer_vlan=igmp_stats->client.inner_vlan;      
-    }
+    }    
     igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;    
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask,igmp_stats->client.outer_vlan);
-  }
+  }  
   #endif
 
   /* Evaluate provided data */
@@ -6217,8 +6220,8 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," group_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," source_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
     LOG_DEBUG(LOG_CTX_PTIN_MSG," channelBandwidth = %llu bits/s", channel_list[i].channelBandwidth);
@@ -6241,18 +6244,31 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
       groupAddr.family = L7_AF_INET;
       groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
     }
+
+    if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+      return L7_FAILURE;
+    }
+
     /* Prepare source address */
     memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
     if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
     {
       sourceAddr.family = L7_AF_INET6;
-      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);
+      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);     
     }
     else
     {
       sourceAddr.family = L7_AF_INET;
       sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
     }
+
+    if ( channel_list[i].channel_srcmask == 0 && inetIsAddressZero(&sourceAddr) != L7_TRUE)
+    {
+      channel_list[i].channel_srcmask = 32;
+    }
+    
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
@@ -6319,6 +6335,13 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
       groupAddr.family = L7_AF_INET;
       groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
     }
+
+    if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
+      return L7_FAILURE;
+    }
+
     /* Prepare source address */
     memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
     if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
@@ -6330,6 +6353,11 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
     {
       sourceAddr.family = L7_AF_INET;
       sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+    }
+
+    if ( channel_list[i].channel_srcmask == 0 && inetIsAddressZero(&sourceAddr) != L7_TRUE)
+    {
+      channel_list[i].channel_srcmask = 32;
     }
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
@@ -6592,7 +6620,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",inputPtr->client.mask,inputPtr->client.outer_vlan);
   }
   #endif
-  
+    
   /* Client info */
   memset(&client,0x00,sizeof(ptin_client_id_t));
   if (inputPtr->client.mask & MSG_CLIENT_INTF_MASK)
@@ -6837,7 +6865,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
  */
 L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
 {
-  L7_in_addr_t     channelIp;
+  L7_in_addr_t     channelIp, sourceIp;
   ptin_client_id_t clist[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX];
   L7_uint32        extended_evc_id[MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX];
   L7_uint16        i, number_of_clients, total_clients;
@@ -6846,14 +6874,17 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClients_t *client_list)
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Going to retrieve list of clients");
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId     =%u",client_list->SlotId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId      =%u",client_list->evc_id);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," IPv4Channel=%u.%u.%u.%u",(client_list->channelIp.s_addr>>24) & 0xff,(client_list->channelIp.s_addr>>16) & 0xff,(client_list->channelIp.s_addr>>8) & 0xff,client_list->channelIp.s_addr & 0xff);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," groupAddr=%u.%u.%u.%u",(client_list->channelIp.s_addr>>24) & 0xff,(client_list->channelIp.s_addr>>16) & 0xff,(client_list->channelIp.s_addr>>8) & 0xff,client_list->channelIp.s_addr & 0xff);
+  
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," sourceAddr=%u.%u.%u.%u",(client_list->sourceIp.s_addr>>24) & 0xff,(client_list->sourceIp.s_addr>>16) & 0xff,(client_list->sourceIp.s_addr>>8) & 0xff,client_list->sourceIp.s_addr & 0xff);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Page_idx=%u",client_list->page_index);
 
-  /* Get list of channels */
+  /* Get list of channels */      
   channelIp.s_addr    = client_list->channelIp.s_addr;
+  sourceIp.s_addr     = client_list->sourceIp.s_addr;
   number_of_clients   = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
 
-  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
+  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, &sourceIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
   if (rc==L7_SUCCESS)
   {

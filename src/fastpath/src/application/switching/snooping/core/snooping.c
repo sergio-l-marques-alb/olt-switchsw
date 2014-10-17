@@ -528,12 +528,16 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     /* Point to the start of ethernet payload */
     buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
 
+#if 0 /*The Source Address of the client is not used.*/
     /* Source address */
     srcAddr.family = L7_AF_INET;
     srcAddr.addr.ipv4.s_addr = *((L7_uint32 *) &buffPtr[12]);
 
     //Convert to Little Endian
     srcAddr.addr.ipv4.s_addr = osapiNtohl(srcAddr.addr.ipv4.s_addr);
+#else
+    inetAddressZeroSet(L7_AF_INET, &srcAddr);
+#endif
 
     ipHdrLen = (buffPtr[0] & 0x0f)*4;
     if ( ipHdrLen < L7_IP_HDR_LEN)
@@ -581,14 +585,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
     }
 
-    //Ignore All IGMP Packets which have an Reserved Group Address equal to one of those: 224.0.0.1 (All Multicast Routers, 224.0.0.2 (All Multicast Hosts), and 224.0.0.22 (All Multicast Hosts IGMPv3 )
-    if(grpAddr.addr.ipv4.s_addr == L7_IP_ALL_RTRS_ADDR || grpAddr.addr.ipv4.s_addr == L7_IP_IGMPV3_REPORT_ADDR || grpAddr.addr.ipv4.s_addr == L7_IP_ALL_HOSTS_ADDR)    
+     
+    /*RFC5771 - Local Network Control Block (224.0.0.0 - 224.0.0.255 (224.0.0/24)) 
+    The range of addresses between 224.0.0.0 and 224.0.0.255, inclusive, is reserved for the use of routing protocols and other low-level topology discovery or maintenance protocols, such as gateway discovery
+    and group membership reporting.  Multicast routers should not forward any multicast datagram with destination addresses in this range, regardless of its TTL.*/
+    
+    if(grpAddr.addr.ipv4.s_addr >= L7_IP_MCAST_BASE_ADDR && grpAddr.addr.ipv4.s_addr <= L7_IP_MAX_LOCAL_MULTICAST)    
     {
       if(ptin_debug_igmp_snooping)
         LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u grpAddr=%s srcAddr=%s]: Packet Silently ignored...",
                 pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));  
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);    
-      return L7_FAILURE;
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID);    
+      return L7_SUCCESS;
     }
   }
   else
