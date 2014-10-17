@@ -63,6 +63,9 @@
 #include "ptin_evc.h"
 #include "ptin_intf.h"
 #include "logger.h"
+
+extern L7_uint64 hapiBroadReceice_dhcpv4_count;
+extern L7_uint64 hapiBroadReceice_dhcpv6_count;
 #endif
 
 extern dsCfgData_t *dsCfgData;
@@ -746,6 +749,9 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
   if (((ipHeader->iph_versLen & 0xF0) == (L7_IP_VERSION << 4)) &&
       (ipHeader->iph_prot == IP_PROT_UDP))
   {
+    /* Increment packets counter */
+    hapiBroadReceice_dhcpv4_count++;
+
     /* If either DHCP snooping or the L2 Relay is not enabled on
        rx interface, ignore packet. */
     if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
@@ -1077,6 +1083,8 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
   if (((osapiNtohl(ipv6Header->ver_class_flow) & 0xF0000000) == (L7_IP6_VERSION << 28)) &&
       (ipv6Header->next == IP_PROT_UDP))
   {
+    hapiBroadReceice_dhcpv6_count++;
+
     /* If either DHCP snooping or the L2 Relay is not enabled on
        rx interface, ignore packet. */
     if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */

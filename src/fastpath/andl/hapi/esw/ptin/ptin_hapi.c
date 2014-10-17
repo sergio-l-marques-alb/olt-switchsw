@@ -41,6 +41,15 @@
  * GLOBAL VARIABLES
  ********************************************************************/
 
+extern L7_uint64 hapiBroadReceive_packets_count;
+extern L7_uint64 hapiBroadReceice_igmp_count;
+extern L7_uint64 hapiBroadReceice_mld_count;
+extern L7_uint64 hapiBroadReceice_dhcpv4_count;
+extern L7_uint64 hapiBroadReceice_dhcpv6_count;
+extern L7_uint64 hapiBroadReceice_pppoe_count;
+
+BROAD_POLICY_t lacp_policyId = BROAD_POLICY_INVALID;
+
 /********************************************************************
  * INTERNAL VARIABLES
  ********************************************************************/
@@ -3015,6 +3024,14 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
     return L7_FAILURE;
   }
 
+  /* Add counter */
+  if (hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP,"Error with hapiBroadPolicyRuleCounterAdd");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+
   /* Commit rule */
   if ((rc=hapiBroadPolicyCommit(&policyId)) != L7_SUCCESS)
   {
@@ -3029,6 +3046,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
 
   return L7_SUCCESS;
 }
+
 
 /**
  * Configures storm control
@@ -3146,6 +3164,10 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
         /* Configure meter */
         result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        if (result != L7_SUCCESS)  break;
+
+        /* Add counter */
+        result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
         if (result != L7_SUCCESS)  break;
 
         /* Drop action */
@@ -3275,6 +3297,10 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
         if (result != L7_SUCCESS)  break;
 
+        /* Add counter */
+        result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+        if (result != L7_SUCCESS)  break;
+
         /* Drop action */
         result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
         if (result != L7_SUCCESS)  break;
@@ -3400,6 +3426,10 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
         /* Configure meter */
         result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        if (result != L7_SUCCESS)  break;
+
+        /* Add counter */
+        result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
         if (result != L7_SUCCESS)  break;
 
         /* Drop action */
@@ -3749,58 +3779,150 @@ L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PORT_EGRE
 /**
  * Dump list of bw policers
  */
-void ptin_stormcontrol_dump_debug(void)
+void ptin_stormcontrol_dump(void)
 {
   L7_int index, egress_type, rule;
   BROAD_GROUP_t group_id;
   BROAD_ENTRY_t entry_id;
   int policer_id, counter_id;
+  BROAD_POLICY_STATS_t stat;
 
-  printf("Listing rate limiters list...\r\n");
+  printf("Listing ingress rate limiters...\r\n");
 
   for (egress_type = 0; egress_type < PTIN_PORT_EGRESS_TYPE_MAX; egress_type++)
   {
-    printf("Egress type: ");
-    switch (egress_type)
-    {
-    case PTIN_PORT_EGRESS_TYPE_PROMISCUOUS:
-      printf("PROMISCUOUS\r\n");
-      break;
-    case PTIN_PORT_EGRESS_TYPE_COMMUNITY:
-      printf("COMMUNITY\r\n");
-      break;
-    case PTIN_PORT_EGRESS_TYPE_ISOLATED:
-      printf("ISOLATED\r\n");
-      break;
-    }
     for (index = 0; index < STORM_CONTROL_TRAFFIC_MAX; index++) 
     {
-      rule = 0;
-      while (policyId_storm[egress_type][index] != 0 && policyId_storm[egress_type][index] != BROAD_POLICY_INVALID &&
-             l7_bcm_policy_hwInfo_get(0, policyId_storm[egress_type][index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+      /* Skip not used entries */
+      if (policyId_storm[egress_type][index] == 0 || policyId_storm[egress_type][index] == BROAD_POLICY_INVALID)
       {
+        continue;
+      }
+
+      if (index == 0)
+      {
+        printf("Egress Ports type: ");
+        switch (egress_type)
+        {
+        case PTIN_PORT_EGRESS_TYPE_PROMISCUOUS:
+          printf("PROMISCUOUS\r\n");
+          break;
+        case PTIN_PORT_EGRESS_TYPE_COMMUNITY:
+          printf("COMMUNITY\r\n");
+          break;
+        case PTIN_PORT_EGRESS_TYPE_ISOLATED:
+          printf("ISOLATED\r\n");
+          break;
+        default:
+          printf("??? (%u type)\r\n", index);
+          break;
+        }
+      }
+
+      rule = 0;
+      while (l7_bcm_policy_hwInfo_get(0, policyId_storm[egress_type][index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+      {
+        switch (index)
+        {
+        case STORM_CONTROL_TRAFFIC_BCAST:
+          printf("   BROADCAST  >");
+          break;
+        case STORM_CONTROL_TRAFFIC_MCAST:
+          printf("   MULTICAST  >");
+          break;
+        case STORM_CONTROL_TRAFFIC_UNKN_UC:
+          printf("   UNKNOWN_UC >");
+          break;
+        default:
+          printf("   Traff. %2u >", egress_type);
+          break;
+        }
+
         /* Also print hw group id and entry id*/
-        printf("   TraffType %u, policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
-               index, policyId_storm[egress_type][index], rule, group_id, entry_id, policer_id, counter_id);
+        printf(" policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId=%-4d)",
+               policyId_storm[egress_type][index], rule, group_id, entry_id, policer_id, counter_id);
+
+        /* Check counter */
+        if (counter_id > 0)
+        {
+          printf(": Packets=");
+          /* Get stat data */
+          if (hapiBroadPolicyStatsGet(policyId_storm[egress_type][index], rule, &stat) != L7_SUCCESS)
+            printf("Error");
+          else
+            printf("%llu", stat.statMode.counter.count);
+        }
+        printf("\r\n");
+
         rule++;
       }
     }
   }
 
-  /* CPU storm control */
-  printf("   CPU traffic: ");
-  if (policyId_storm_cpu != BROAD_POLICY_INVALID &&
-      l7_bcm_policy_hwInfo_get(0, policyId_storm_cpu, 0, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+  printf("\r\nListing counters of CPU processed packets...\r\n");
+
+  /* LACP packets */
+  if (lacp_policyId != 0 && lacp_policyId != BROAD_POLICY_INVALID)
   {
-    /* Also print hw group id and entry id*/
-    printf("policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)\r\n",
-           policyId_storm_cpu, 0, group_id, entry_id, policer_id, counter_id);
-  }
-  else
-  {
-    printf("Not configured\r\n");
+    printf("LACPDU packets: ");
+    if (l7_bcm_policy_hwInfo_get(0, lacp_policyId, 0, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+    {
+      /* Also print hw group id and entry id*/
+      printf("policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
+             lacp_policyId, 0, group_id, entry_id, policer_id, counter_id);
+
+      /* Check counter */
+      if (counter_id > 0)
+      {
+        printf(": Packets=");
+        /* Get stat data */
+        if (hapiBroadPolicyStatsGet(lacp_policyId, 0, &stat) != L7_SUCCESS)
+          printf("Error");
+        else
+          printf("%llu", stat.statMode.counter.count);
+      }
+      printf("\r\n");
+    }
+    else
+    {
+      printf("Not configured\r\n");
+    }
   }
 
+  /* CPU storm control */
+  if (policyId_storm_cpu != 0 && policyId_storm_cpu != BROAD_POLICY_INVALID)
+  {
+    printf("L2 CPU packets: ");
+    if (l7_bcm_policy_hwInfo_get(0, policyId_storm_cpu, 0, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+    {
+      /* Also print hw group id and entry id*/
+      printf("policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
+             policyId_storm_cpu, 0, group_id, entry_id, policer_id, counter_id);
+
+      /* Check counter */
+      if (counter_id > 0)
+      {
+        printf(": Packets=");
+        /* Get stat data */
+        if (hapiBroadPolicyStatsGet(policyId_storm_cpu, 0, &stat) != L7_SUCCESS)
+          printf("Error");
+        else
+          printf("%llu", stat.statMode.counter.count);
+      }
+      printf("\r\n");
+    }
+    else
+    {
+      printf("Not configured\r\n");
+    }
+  }
+
+  printf("\r\nIntercepted CPU packets at processing level: %llu\r\n", hapiBroadReceive_packets_count);
+  printf("   IGMP   packets: %llu\r\n", hapiBroadReceice_igmp_count);
+  printf("   MLD    packets: %llu\r\n", hapiBroadReceice_mld_count);
+  printf("   DHCPv4 packets: %llu\r\n", hapiBroadReceice_dhcpv4_count);
+  printf("   DHCPv6 packets: %llu\r\n", hapiBroadReceice_dhcpv6_count);
+  printf("   PPPoE  packets: %llu\r\n", hapiBroadReceice_pppoe_count);
   printf("Done!\r\n");
   fflush(stdout);
 }
@@ -4195,6 +4317,75 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
  */
 L7_RC_t hapiBroadSystemInstallPtin(void)
 {
+  BROAD_POLICY_t      policyId;
+  BROAD_POLICY_RULE_t ruleId;
+  L7_RC_t             rc = L7_SUCCESS;
+
+  /* PTin added: packet trap - LACPdu's */
+  /* Rate limit for LACPdu's */
+  L7_ushort16 lacp_vlanId    = 1;
+  L7_ushort16 lacp_etherType = 0x8809;
+  bcm_mac_t   lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
+  L7_uchar8   exact_match[]  = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  BROAD_METER_ENTRY_t meterInfo;
+
+  meterInfo.cir       = RATE_LIMIT_LACP;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = RATE_LIMIT_LACP;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  /* Define qualifiers and actions */
+  do
+  {
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  lacp_dmac  , exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &lacp_vlanId, exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &lacp_etherType, exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+    if (rc != L7_SUCCESS)  break;
+  }
+  while (0);
+  /* Commit rule */
+  if (rc == L7_SUCCESS)
+  {
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  /* Save policy */
+  lacp_policyId = policyId;
+  LOG_NOTICE(LOG_CTX_STARTUP,"LACP rule added");
+
 #if (PTIN_BOARD == PTIN_BOARD_TG16G)
   L7_int    port;
   L7_uint8  prio, prio_mask = 0x7;
@@ -4206,9 +4397,6 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
 
   bcmx_lport_t        lport;
   bcm_port_t          bcm_port;
-  BROAD_POLICY_t      policyId;
-  BROAD_POLICY_RULE_t ruleId;
-  L7_RC_t             rc = L7_SUCCESS;
 
   /** INGRESS STAGE **/
 

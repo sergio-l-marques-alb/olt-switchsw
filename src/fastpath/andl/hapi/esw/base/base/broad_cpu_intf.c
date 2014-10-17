@@ -73,6 +73,8 @@ extern fNimSetIntfAdminState nimSetIntfAdminStatePtr;
 #include "ptin_structs.h"
 #include "logger.h"
 
+extern L7_uint64 hapiBroadReceive_packets_count;
+
 extern ptin_debug_pktTimer_t debug_pktTimer;
 #endif
 
@@ -2218,6 +2220,9 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     debug_pktTimer.first_pkt = L7_TRUE;
   }
   debug_pktTimer.pkt_cpu_counter++;
+
+  /* Increment number of received packets */
+  hapiBroadReceive_packets_count++;
   #endif
 
   // PTin

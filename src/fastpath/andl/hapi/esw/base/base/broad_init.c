@@ -501,6 +501,10 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
                                        FIELD_MASK_NONE, FIELD_MASK_NONE, 0xC0};
   L7_uchar8           res_mac_drop_mask[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                              FIELD_MASK_ALL, FIELD_MASK_ALL, FIELD_MASK_ALL};
+  BROAD_POLICY_RULE_t ruleId;
+  BROAD_METER_ENTRY_t meterInfo;
+  L7_uchar8           exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                       FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
 #endif
 
 #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
@@ -517,19 +521,8 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   L7_uchar8           bcast_macda[]   = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 #endif
 
-  L7_uchar8           exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
-                                       FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   BROAD_POLICY_t      sysId1=0, sysId2=0, arpPolicyId=0;
-  BROAD_POLICY_RULE_t ruleId;
   bcm_chip_family_t board_family;
-  BROAD_METER_ENTRY_t meterInfo;
-
-  /* PTin added: packet trap */
-  #if 1
-  L7_ushort16 lacp_vlanId    = 1;
-  L7_ushort16 lacp_etherType = 0x8809;
-  bcm_mac_t lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
-  #endif
 
   if ((hapiBroadRaptorCheck() == L7_TRUE) ||
       (hapiBroadRoboCheck()== L7_TRUE) || (hapiBroadHawkeyeCheck() == L7_TRUE) )
@@ -541,14 +534,14 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
 
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
+  /* PTin removed: Packets priority not modified */
+  #if PTIN_BROAD_INIT_TRAP_TO_CPU
   /* Install the L2 system policies that trap PDUs to the CPU first. We need these to have
      higher priority than the dot1x violation policy so that the link layer protocols
      function correctly even if a port is unauthorized. */
   /* Create policy for L2 specific information, e.g. BPDUs */
   hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);   /* Policy 2 of 2 */
 
-  /* PTin removed: Packets priority not modified */
-  #if PTIN_BROAD_INIT_TRAP_TO_CPU
   /* give dot1x EAPOL packets high priority so they reach the cpu */
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&eap_ethtype, exact_match);
@@ -569,27 +562,6 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   LOG_TRACE(LOG_CTX_STARTUP,"High priority BPDU rule added");
-  #endif
-
-  /* PTin added: packet trap - LACPdu's */
-  #if 1
-  /* Rate limit for LACPdu's */
-  meterInfo.cir       = RATE_LIMIT_LACP;
-  meterInfo.cbs       = 128;
-  meterInfo.pir       = RATE_LIMIT_LACP;
-  meterInfo.pbs       = 128;
-  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
-
-  hapiBroadPolicyRuleAdd(&ruleId);
-  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  lacp_dmac  , exact_match);
-  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &lacp_vlanId, exact_match);
-  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &lacp_etherType, exact_match);
-  hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
-  hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
-  hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-  LOG_TRACE(LOG_CTX_STARTUP,"LACP rule added");
-  #endif
 
 #ifdef L7_STACKING_PACKAGE
   hapiBroadPolicyEnableFPS(); /* Enable on FPS ports, if applicable */
@@ -597,6 +569,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   result = hapiBroadPolicyCommit(&sysId2);
   if (L7_SUCCESS != result)
     return result;
+#endif
 
 #if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
   /* Install dot1x violation policy next, as it needs to have higher priority than other system policies. For
