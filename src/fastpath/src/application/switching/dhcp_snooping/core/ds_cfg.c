@@ -493,7 +493,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
-  return ptin_evc_intf_isRoot(intIfNum,vlanId);
+  return ptin_evc_intf_isRoot(vlanId, intIfNum);
 }
 
 /*********************************************************************
