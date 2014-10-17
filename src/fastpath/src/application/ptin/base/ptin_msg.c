@@ -6605,7 +6605,7 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Max Number of Channels=%u",*numberOfChannels);
 
   //Short Fix to Support Mac Bridge Services and Unicast Services
-  #if PTIN_BOARD_IS_LINECARD
+  #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   {
     #if 0
     L7_BOOL isMacBridge;    
@@ -6616,7 +6616,10 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     {        
       inputPtr->client.outer_vlan=inputPtr->client.inner_vlan;        
     }
-    inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
+    if (inputPtr->client.mask != 0)
+    {
+      inputPtr->client.mask|=MSG_CLIENT_OVLAN_MASK;
+    }    
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",inputPtr->client.mask,inputPtr->client.outer_vlan);
   }
   #endif
