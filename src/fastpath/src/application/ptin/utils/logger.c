@@ -172,7 +172,7 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_OAM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_DARK_WHITE   },
+    {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_SDK,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
     {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT},
 };
