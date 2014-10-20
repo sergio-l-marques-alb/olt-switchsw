@@ -221,11 +221,7 @@
 #define     PLAT_MAX_NUM_L2TUNNEL_VLANS           0
 #endif
 
-#if (PTIN_BOARD_IS_GPON)
- #define     PLAT_MAX_NUM_VLAN_PORT_INTF           8192   /* PTin added: virtual ports */
-#else
- #define     PLAT_MAX_NUM_VLAN_PORT_INTF           16     /* PTin added: virtual ports */
-#endif
+#define     PLAT_MAX_NUM_VLAN_PORT_INTF           1   /* PTin added: virtual ports */
 
 #define     PLAT_RT_MAX_EQUAL_COST_ROUTES         16
 
