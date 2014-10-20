@@ -3694,7 +3694,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 
 
-#define N PROD_MAX_NUM_VLAN_PORT_INTF
+#define N L7_MAX_NUM_VLAN_PORT_INTF
 #define intIfNum_vport__2__i(IfN, M) ( ((IfN)^(IfN)<<24) % M)
 //static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
 //#define intIfNum_vport__2__i(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
