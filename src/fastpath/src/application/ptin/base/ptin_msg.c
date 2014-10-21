@@ -2473,23 +2473,6 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   }
 
   /* Copy MAC list to output message */
-  if (2==struct1or2) {
-      msg_switch_mac_table_t *p;
-
-      p= (msg_switch_mac_table_t*)mac_table;
-
-      for (i=0; i<numEntries; i++)
-      {
-        memcpy(p->entry[i].addr, entries_list[i].addr, sizeof(L7_uint8)*6);
-        p->entry[i].evcId          = entries_list[i].evcId;
-        p->entry[i].vlanId         = entries_list[i].vlanId;
-        p->entry[i].intf.intf_type = entries_list[i].intf.intf_type;
-        p->entry[i].intf.intf_id   = entries_list[i].intf.intf_id;
-        p->entry[i].gem_id         = entries_list[i].gem_id;
-        p->entry[i].static_entry   = entries_list[i].static_entry;
-      }
-  }
-  else
   for (i=0; i<numEntries; i++)
   {
     memcpy(mac_table->entry[i].addr, entries_list[i].addr, sizeof(L7_uint8)*6);
@@ -2497,6 +2480,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
     mac_table->entry[i].vlanId         = entries_list[i].vlanId;
     mac_table->entry[i].intf.intf_type = entries_list[i].intf.intf_type;
     mac_table->entry[i].intf.intf_id   = entries_list[i].intf.intf_id;
+    mac_table->entry[i].gem_id         = entries_list[i].gem_id;
     mac_table->entry[i].static_entry   = entries_list[i].static_entry;
   }
 
