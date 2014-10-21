@@ -1510,6 +1510,8 @@ typedef struct
 {
   L7_ulong32 appHandle;
 
+  L7_uint32 virtual_port;   /* PTin added: virtual ports */
+
   union
   {
     struct

@@ -344,7 +344,7 @@ static void fdbStatsUpdate(L7_uint32   intIfNum,
 *
 * @end
 *********************************************************************/
-void fdbInsert(char *mac, L7_uint32 intIfNum,
+void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port /* PTin added: virtual ports */,
                L7_uint32 vlanId, L7_ushort16 entryType)
 {
   dot1dTpFdbData_t data;
@@ -384,8 +384,9 @@ void fdbInsert(char *mac, L7_uint32 intIfNum,
     memcpy(data.dot1dTpFdbAddress,&vid,ivlLength);
   }
   memcpy(&data.dot1dTpFdbAddress[ivlLength], mac, L7_FDB_MAC_ADDR_LEN);
-  data.dot1dTpFdbPort = intIfNum;
-  data.dot1dTpFdbEntryType = entryType;
+  data.dot1dTpFdbPort         = intIfNum;
+  data.dot1dTpFdbVirtualPort  = virtual_port;  /* PTin added: virtual ports */
+  data.dot1dTpFdbEntryType    = entryType;
 
   osapiSemaTake(fdbTreeData.semId, L7_WAIT_FOREVER);
 
@@ -706,7 +707,7 @@ L7_RC_t fdbFdbIDGet(L7_uint32 vlanId, L7_uint32 *fdbId)
 *
 * @end
 *********************************************************************/
-void fdbLearnEntryCallBack(L7_uchar8 *macAddr, L7_uint32 intIfNum,
+void fdbLearnEntryCallBack(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 virtual_port, /* PTin added: virtual ports */
                            L7_uint32 vlanId, L7_uchar8 msgsType)
 {
   /* Previously, this function put a message on the fdbQueue so that
@@ -723,7 +724,8 @@ void fdbLearnEntryCallBack(L7_uchar8 *macAddr, L7_uint32 intIfNum,
 
   if (msgsType == FDB_ADD)
   {
-    fdbInsert(macAddr, intIfNum, vlanId, L7_FDB_ADDR_FLAG_LEARNED);
+    fdbInsert(macAddr, intIfNum, virtual_port, /* PTin added: virtual ports */
+              vlanId, L7_FDB_ADDR_FLAG_LEARNED);
   }
   else
   {
@@ -857,7 +859,7 @@ void fdbTask( void )
       switch (message.msgsType)
       {
         case FDB_ADD:
-          fdbInsert(message.mac_addr, message.intIfNum,
+          fdbInsert(message.mac_addr, message.intIfNum, message.virtual_port, /* PTin added: virtual ports */
                     message.vlanId,message.entryType);
           break;
 
