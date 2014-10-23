@@ -37,6 +37,8 @@
 #include <soc/drv.h>
 #include <bcm_int/control.h>
 
+#include "logger.h"
+
 extern L7_int32 hpcBroadMasterCpuModPortGet(L7_int32 *modid, L7_int32 *cpuport);
 
 
@@ -4490,8 +4492,11 @@ int policy_group_add_rule(int                        unit,
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
+                unit, policyStage, gid, eid, group_table_size[unit][policyStage]);
+
         /* Destroy rule */
-        (void) policy_group_delete_rule(unit, policyStage, gid,
+        (void) policy_group_delete_rule(unit, policyStage, group,
                                         eid, rulePtr->meterSrcEntry,  /* PTin added: Policer/Counter */
                                         rulePtr->policer.policer_id, rulePtr->counter.counter_id);
       }
