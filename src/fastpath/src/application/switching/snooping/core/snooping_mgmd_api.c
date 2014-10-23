@@ -952,10 +952,10 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
 #endif
 
-  /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme*/
+  /*Workaround to prevent MGMD from closing a port, when it is inactive and belongs to a protection scheme or it is running on a matrix card*/
   if (
   #if PTIN_BOARD_IS_MATRIX
-  (!ptin_fgpa_mx_is_matrixactive()) 
+  (1 /*!ptin_fgpa_mx_is_matrixactive()*/) 
   #elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   (protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE)  
   #else
@@ -963,7 +963,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   #endif
   && ptin_igmp_port_close_flag == 0 )
   {
-//  if (ptin_debug_igmp_snooping)
+	if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Ignoring Port Close. This port is inactive [serviceId:%u portId:%u groupAddr:%08X sourceAddr:%08X]", serviceId, portId, groupAddr, sourceAddr);
     return rc;
   }
