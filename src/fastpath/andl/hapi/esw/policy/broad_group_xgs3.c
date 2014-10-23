@@ -33,9 +33,6 @@
 #include "bcm_int/ea/tk371x/field.h"
 #endif
 
-/* PTin added: includes */
-#include "logger.h"
-
 /* used for the Higig B0 workaround */
 #include <soc/drv.h>
 #include <bcm_int/control.h>
@@ -2066,11 +2063,18 @@ int _policy_group_calc_qset(int                             unit,
       /* Determine how many counters/meters are required for the policy. */
       if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
       {
+        /* PTin removed: Stats */
+        #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
         /* meters use a counter as well */
         (resourceReq->counterCount)++;
+        #endif
         (resourceReq->meterCount)++;
       }
-      else if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
+      /* PTin modified: Stats */
+      #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
+      else
+      #endif
+      if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
       {
         (resourceReq->counterCount)++;
       }
@@ -3437,10 +3441,8 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
 {
     int                   rv = BCM_E_NONE;
     BROAD_METER_ENTRY_t   *meterPtr;
-    bcm_policer_t         src_policer_id, policer_id;
+    bcm_policer_t         policer_id;
     bcm_policer_config_t  policer_cfg;
-
-    //printf("%s(%d) I was here!",__FUNCTION__,__LINE__);
 
     meterPtr = &rulePtr->policer.policerInfo;
 
@@ -3462,17 +3464,17 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
 
     if (rulePtr->ruleFlags & BROAD_METER_SHARED)
     {
-        src_policer_id = rulePtr->src_policerId;
+        policer_id = rulePtr->src_policerId;
 
-        rv = bcm_field_entry_policer_attach(unit, eid, 0, src_policer_id);
+        rv = bcm_field_entry_policer_attach(unit, eid, 0, policer_id);
 
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! policer_id=%d, rv=%d\r\n", __FUNCTION__, __LINE__, src_policer_id, rv);
+          printf("%s(%d) We have an error! policer_id=%d, rv=%d\r\n", __FUNCTION__, __LINE__, policer_id, rv);
           return rv;
         }
 
-        rulePtr->policer.policer_id = src_policer_id;
+        rulePtr->policer.policer_id = policer_id;
     }
     else
     {
@@ -3496,8 +3498,6 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
         rulePtr->src_policerId = policer_id;
     }
 
-    //printf("%s(%d) I was here! rv=%d",__FUNCTION__,__LINE__,rv);
-
     return rv;
 }
 
@@ -3508,25 +3508,27 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
     uint64                 zero64;
     BROAD_COUNTER_ENTRY_t *counterPtr;
     bcm_field_stat_t       stat[2];
-    int                    src_stat_id, stat_id;
+    int                    stat_id;
 
-    //printf("%s(%d) gid=%u, eid=%u",__FUNCTION__,__LINE__,gid,eid);
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("%s(%d) gid=%u, eid=%u",__FUNCTION__,__LINE__,gid,eid);
 
     counterPtr = &rulePtr->counter.counterInfo;
 
     if (rulePtr->ruleFlags & BROAD_COUNTER_SHARED)
     {
-      src_stat_id = rulePtr->src_counterId;
+      stat_id = rulePtr->src_counterId;
 
-      rv = bcm_field_entry_stat_attach(unit, eid, src_stat_id);
+      rv = bcm_field_entry_stat_attach(unit, eid, stat_id);
 
       if (BCM_E_NONE != rv)
       {
-        printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
         return rv;
       }
 
-      rulePtr->counter.counter_id = src_stat_id;
+      rulePtr->counter.counter_id = stat_id;
     }
     else
     {
@@ -3543,14 +3545,16 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
       rv = bcm_field_stat_create(unit, gid, 1, stat, &stat_id);
       if (BCM_E_NONE != rv)
       {
-        printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
         return rv;
       }
 
       rv = bcm_field_entry_stat_attach(unit, eid, stat_id);
       if (BCM_E_NONE != rv)
       {
-        printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
         return rv;
       }
 
@@ -3563,11 +3567,13 @@ static int _policy_group_add_stat(int unit, bcm_field_entry_t eid, bcm_field_gro
     rv = bcm_field_stat_all_set(unit, stat_id, zero64);
     if (BCM_E_NONE != rv)
     {
-      printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+          sysapiPrintf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
       return rv;
     }
 
-    //printf("%s(%d) Success! rv=%d",__FUNCTION__,__LINE__,rv);
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("%s(%d) Success! rv=%d",__FUNCTION__,__LINE__,rv);
 
     return rv;
 }
@@ -4440,7 +4446,11 @@ int policy_group_add_rule(int                        unit,
             return rv;
           }
       }
-      else if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
+      /* PTin modified: Stats */
+      #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
+      else
+      #endif
+      if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
       {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
             sysapiPrintf("- adding a counter\n");

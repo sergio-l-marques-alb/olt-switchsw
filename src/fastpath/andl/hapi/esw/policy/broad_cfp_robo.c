@@ -1301,11 +1301,17 @@ static int _policy_group_find_group(int                   unit,
     {
         if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
         {
+            #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
             /* meters use a counter as well */
             countersReq++;
+            #endif
             metersReq++;
         }
-        else if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
+        /* PTin modified: Stats */
+        #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
+        else
+        #endif
+        if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
         {
             countersReq++;        
         }
@@ -2523,7 +2529,11 @@ int policy_cfp_group_add_rule(int                        unit,
         if (BCM_E_NONE != rv)
             return rv;
     }
-    else if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
+    /* PTin modified: Stats */
+    #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
+    else
+    #endif
+    if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
     {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
             sysapiPrintf("- adding a counter\n");

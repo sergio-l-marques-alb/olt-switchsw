@@ -836,7 +836,11 @@ L7_RC_t hapiBroadPolicyRuleCopy(BROAD_POLICY_RULE_t  oldRule,
         newRulePtr->meterSrcEntry    = oldRule;
         newRulePtr->ruleFlags |= BROAD_METER_SHARED;
     }
-    else if (oldRulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
+    /* PTin modified: Stats */
+    #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
+    else
+    #endif
+    if (oldRulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
     {
         /* indicate counter is shared with existing entry */
         newRulePtr->meterSrcEntry     = oldRule;
@@ -1217,11 +1221,14 @@ L7_RC_t hapiBroadPolicyRuleMeterAdd(BROAD_POLICY_RULE_t     rule,
       return L7_ERROR;
     }
 
+    /* PTin removed */
+    #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
     if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
     {
         /* meters and counters are mutually exclusive */
         return L7_ERROR;
     }
+    #endif
 
     rulePtr->ruleFlags |= BROAD_METER_SPECIFIED;
     memcpy(&rulePtr->policer.policerInfo, meterInfo, sizeof(*meterInfo));   /* PTin modified: SDK 6.3.0 */
@@ -1245,20 +1252,29 @@ L7_RC_t hapiBroadPolicyRuleCounterAdd(BROAD_POLICY_RULE_t  rule,
 
     if (rule >= policyInfo->ruleCount)
     {
-        return L7_ERROR;
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("%s(%d) Error adding counter!\n", __FUNCTION__,__LINE__);
+      return L7_ERROR;
     }
 
     rulePtr = hapiBroadPolicyRulePtrGet(policyInfo, rule);
     if (rulePtr == L7_NULL)
     {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("%s(%d) Error adding counter!\n", __FUNCTION__,__LINE__);
       return L7_ERROR;
     }
 
+    /* PTin removed */
+    #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
     if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
     {
-        /* meters and counters are mutually exclusive */
-        return L7_ERROR;
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("%s(%d) Error adding counter!\n", __FUNCTION__,__LINE__);
+      /* meters and counters are mutually exclusive */
+      return L7_ERROR;
     }
+    #endif
 
     rulePtr->ruleFlags               |= BROAD_COUNTER_SPECIFIED;
     rulePtr->counter.counterInfo.mode = mode;       /* PTin modified: SDK 6.3.0 */
@@ -1349,7 +1365,11 @@ L7_RC_t hapiBroadPolicyStatsGet(BROAD_POLICY_t        policy,
             stat->statMode.meter.in_prof  = 0;
             stat->statMode.meter.out_prof = 0;
         }
+        /* PTin modified: Stats */
+        #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
         else
+        #endif
+        if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
         {
             /* counted mode */
             stat->meter = L7_FALSE;
