@@ -3704,7 +3704,13 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 
 
-#define INTF_VP_MAX           PTIN_SYSTEM_N_CLIENTS
+#define INTF_VP_MAX   PTIN_SYSTEM_N_CLIENTS
+
+#define INVALID_INTF_VP(pentry)     ((pentry)->vport_id == (unsigned long) -1)
+#define EMPTY_INTF_VP               INVALID_INTF_VP
+#define INVALIDATE_INTF_VP(pentry)  {(pentry)->vport_id = (unsigned long) -1;}
+
+
 #define vportId__2__i(vp, M) ( ((vp)^(vp)<<24) % M)
 //static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
 //#define vportId__2__i(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
@@ -3758,11 +3764,12 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
      }
      break;
   case 4:
-     printf("DUMP IfN_vp_DB\n\r");
+     printf("Dumping configured virtual ports:\n\r");
      for (i=0; i<INTF_VP_MAX; i++) {
          if (EMPTY_INTF_VP(&intf_vp_table[i])) continue;
-         printf("%lu: vport_id=%lu pon=%u/%u gem_id=%u\n\r", i, intf_vp_table[i].vport_id, intf_vp_table[i].pon.intf_type, intf_vp_table[i].pon.intf_id, intf_vp_table[i].gem_id);
+         printf(" <%4lu> vport_id=%-4lu pon=%u/%-2u gem_id=%-4u\n\r", i, intf_vp_table[i].vport_id, intf_vp_table[i].pon.intf_type, intf_vp_table[i].pon.intf_id, intf_vp_table[i].gem_id);
      }
+     printf("Number of virtual ports: %lu\n\r", intf_vp_n);
      break;
   }//switch
 

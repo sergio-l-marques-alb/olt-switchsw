@@ -651,11 +651,6 @@ L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEt
 
 
 
-#define INVALID_INTF_VP(pentry)     ((pentry)->vport_id>=L7_MAX_INTERFACE_COUNT)
-//#define INVALID_INTF_VP(pentry)   (((unsigned long)(0))-1 == (pentry)->vport_id)
-#define EMPTY_INTF_VP               INVALID_INTF_VP
-#define INVALIDATE_INTF_VP(pentry)  {(pentry)->vport_id = ((unsigned long)(0))-1;}
-
 typedef struct {
     unsigned long   vport_id;
     ptin_intf_t     pon;
