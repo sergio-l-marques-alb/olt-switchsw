@@ -825,7 +825,8 @@ L7_RC_t ptin_routing_arptable_getnext(L7_uint32 intfNum, L7_uint32 firstIdx, L7_
 
   /* Copy local snapshot contents */
   firstIdx += 1;
-  while( (currentIndex < maxEntries) && (snapshotIterator != NULL) )
+  *readEntries = 0;
+  while( (*readEntries < maxEntries) && (snapshotIterator != NULL) )
   {
     if(currentIndex >= firstIdx)
     {
@@ -851,13 +852,13 @@ L7_RC_t ptin_routing_arptable_getnext(L7_uint32 intfNum, L7_uint32 firstIdx, L7_
       buffer->ipAddr         = snapshotIterator->ipAddr.addr.ipv4.s_addr;
       memcpy(&buffer->macAddr, &snapshotIterator->macAddr.addr, L7_ENET_MAC_ADDR_LEN*sizeof(L7_uchar8));
       ++buffer;
+      ++(*readEntries);
     }
 
     /* Get next entry */
     snapshotIterator = (ptin_routing_arptable_t*) dl_queue_get_next(&__arptable_snapshot, (dl_queue_elem_t*)snapshotIterator);
     ++currentIndex;
   }
-  *readEntries = currentIndex;
   
   return L7_SUCCESS;
 }
