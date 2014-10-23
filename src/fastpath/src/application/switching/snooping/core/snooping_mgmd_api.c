@@ -882,22 +882,40 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, uns
    */
   if(isStatic != L7_TRUE)
   {
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+    ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
+
+    /* Sync the status of this switch port on the backup type-b protection port, if it exists */
+    ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+#endif
+
 #if PTIN_BOARD_IS_MATRIX
     /* Sync the status of this switch port on the backup backup matrix, if it exists */
     if(ptin_fgpa_mx_is_matrixactive())
     {
       __matrix_mfdbport_sync(L7_ENABLE, 0, serviceId, portId, groupAddr, sourceAddr, isStatic);
     }
-#elif PTIN_BOARD_IS_LINECARD
-    ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
-
-    /* Sync the status of this switch port on the backup type-b protection port, if it exists */
-    ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
+#elif PTIN_BOARD_IS_LINECARD   
     if(protTypebIntfConfig.status == L7_ENABLE)
     {
       __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_ENABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr, sourceAddr, isStatic);
       __matrix_mfdbport_sync(L7_ENABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr, sourceAddr, isStatic);
     }
+#elif PTIN_BOARD_IS_STANDALONE
+    msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+
+    /* Send a Port_Open event to the FP */
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to open a protection port on the switch");
+    if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+    {
+      if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+        return L7_FAILURE;
+      }
+    }
+#else
+    #error "Not Implemented Yet!"
 #endif
   }
 
@@ -929,7 +947,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     return rc;
   }
 
-#if PTIN_BOARD_IS_LINECARD
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
   ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
 #endif
@@ -938,10 +956,10 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   if (
   #if PTIN_BOARD_IS_MATRIX
   (!ptin_fgpa_mx_is_matrixactive()) 
-  #elif PTIN_BOARD_IS_LINECARD
-  (protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE)
+  #elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  (protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE && protTypebIntfConfig.status != L7_ENABLE)  
   #else
-  (0)
+  #error "Not Implemented Yet!"
   #endif
   && ptin_igmp_port_close_flag == 0 )
   {
@@ -990,6 +1008,21 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     __remoteslot_mfdbport_sync(protTypebIntfConfig.pairSlotId, L7_DISABLE, serviceId, protTypebIntfConfig.pairIntfNum, groupAddr, sourceAddr, L7_FALSE);
     __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr, sourceAddr, L7_FALSE);
   }
+#elif PTIN_BOARD_IS_STANDALONE
+  msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+
+  /* Send a Port_Close event to the FP */
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");
+  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  {
+    if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+      return L7_FAILURE;
+    }
+  }
+#else
+    #error "Not Implemented Yet!"
 #endif
 
   return rc;
@@ -1020,8 +1053,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId );
     return SUCCESS;
   }
-#else
-#if PTIN_BOARD_IS_LINECARD
+#elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
   /* Get  the protection status of this switch port */
@@ -1032,7 +1064,8 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [portId=%u serviceId=%u]",portId, serviceId );
     return SUCCESS;
   }
-#endif
+#else
+  #error "Not Implemented Yet"
 #endif
 
   //Ignore if the port has link down
