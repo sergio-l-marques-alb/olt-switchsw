@@ -3508,7 +3508,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     {
       usp.unit = (L7_uchar8)L7_LOGICAL_UNIT;                //1;
       usp.slot = (L7_uchar8)platSlotVlanPortSlotNumGet (); //L7_VLAN_PORT_SLOT_NUM;
-      usp.port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport)-1; //BCM_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport); //pRequest->pIntfIdInfo->configSpecifier.vlanportId;
+      usp.port = 0;
       //HAPI_BROAD_LPORT_TO_USP(bcmx_l2_addr->lport,&usp); unusable: UPORTS aren't fixed in case of virtual VLAN PORTs
       L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID, "BCM_GPORT_IS_VLAN_PORT usp=(%d,%d,%d)", usp.unit, usp.slot, usp.port);
     }
@@ -3617,6 +3617,19 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[3] = bcmx_l2_addr->mac[3];
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[4] = bcmx_l2_addr->mac[4];
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[5] = bcmx_l2_addr->mac[5];
+
+      /* PTin added: virtual ports */
+      #if 1
+      /* Save virtual port */
+      if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+      {
+        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
+      }
+      else
+      {
+        macAddressInfo.virtual_port = 0;
+      }
+      #endif
 
       /* increment the learn counter regardless of failure */
       hapiMacStats.learn++;
@@ -3785,6 +3798,18 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     macAddressInfo.cmdData.unsolAgedAddress.macAddr.addr[4] = bcmx_l2_addr->mac[4];
     macAddressInfo.cmdData.unsolAgedAddress.macAddr.addr[5] = bcmx_l2_addr->mac[5];
 
+    /* PTin added: virtual ports */
+    #if 1
+    /* Save virtual port */
+    if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+    {
+      macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
+    }
+    else
+    {
+      macAddressInfo.virtual_port = 0;
+    }
+    #endif
 
     hapiBroadL3UpdateMacAge(bcmx_l2_addr->mac, bcmx_l2_addr->vid, dapi_g);
 

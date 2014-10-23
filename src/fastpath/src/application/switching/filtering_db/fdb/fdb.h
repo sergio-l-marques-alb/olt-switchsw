@@ -103,6 +103,7 @@ typedef struct fdbLearnMsg
   L7_ushort16 intIfNum; /* port interface number   */
   L7_ushort16 vlanId;
 #endif
+  L7_uint32   virtual_port; /* PTin added: virtual ports */
 } fdbLearnMsg_t;
 
 

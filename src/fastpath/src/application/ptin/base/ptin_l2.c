@@ -67,11 +67,11 @@ L7_RC_t ptin_l2_mac_table_load(void)
   dot1dTpFdbData_t  fdbEntry;
   L7_uint32         index, i;
   ptin_intf_t       ptin_intf;
-  L7_uint16         vlan;
+  L7_uint16         vlan, gem_id;
   L7_INTF_TYPES_t   intfType;
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         evc_ext_id;
-  IfN_vp_entry_t    e;
+  intf_vp_entry_t    e;
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Loading MAC table...");
 
@@ -79,6 +79,8 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
   for (i=0, index=0; i<PLAT_MAX_FDB_MAC_ENTRIES && fdbFind(keyNext, L7_MATCH_GETNEXT, &fdbEntry)==L7_SUCCESS; i++)
   {
+    gem_id = 0;
+
     memcpy(keyNext, fdbEntry.dot1dTpFdbAddress, L7_FDB_KEY_SIZE);
 
     /* Get interface type */
@@ -98,20 +100,23 @@ L7_RC_t ptin_l2_mac_table_load(void)
 
     /* Convert to ptin interface format */
     if (intfType==L7_VLAN_PORT_INTF) {
-        e.intIfNum_vport=   fdbEntry.dot1dTpFdbPort;
-        if (IfN_vp_DB(3, &e)) {
-            LOG_WARNING(LOG_CTX_PTIN_L2,"PON&GEMid for intIfNum=%lu not found",fdbEntry.dot1dTpFdbPort);
+        e.vport_id = fdbEntry.dot1dTpFdbVirtualPort;
+        if (intf_vp_DB(3, &e)) {
+            LOG_WARNING(LOG_CTX_PTIN_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
             continue;
         }
-        else LOG_TRACE(LOG_CTX_PTIN_L2,"intIfNum_vport=%lu PON=%u/%u GEMid=%u",fdbEntry.dot1dTpFdbPort, e.pon.intf_type, e.pon.intf_id, e.gem_id);
-        ptin_intf=  e.pon;
-                    //=e.gem_id;
+        else LOG_TRACE(LOG_CTX_PTIN_L2,"intIfNum %lu / vport %u, PON=%u/%u GEMid=%u",
+                       fdbEntry.dot1dTpFdbPort, fdbEntry.dot1dTpFdbVirtualPort, e.pon.intf_type, e.pon.intf_id, e.gem_id);
+        ptin_intf = e.pon;
+        gem_id    = e.gem_id;
     }
     else
-    if (ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort,&ptin_intf)!=L7_SUCCESS)
     {
-      LOG_WARNING(LOG_CTX_PTIN_L2,"Invalid intIfNum=%u",fdbEntry.dot1dTpFdbPort);
-      continue;
+      if (ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort,&ptin_intf)!=L7_SUCCESS)
+      {
+        LOG_WARNING(LOG_CTX_PTIN_L2,"Invalid intIfNum=%u",fdbEntry.dot1dTpFdbPort);
+        continue;
+      }
     }
 
     // Extract vlan and validate it
@@ -130,9 +135,18 @@ L7_RC_t ptin_l2_mac_table_load(void)
     mac_table[index].evcId        = evc_ext_id;
     mac_table[index].vlanId       = vlan;
     mac_table[index].intf         = ptin_intf;
-    mac_table[index].gem_id       = L7_VLAN_PORT_INTF==intfType?    e.gem_id:   -1;
+    mac_table[index].gem_id       = gem_id;
     mac_table[index].static_entry = (fdbEntry.dot1dTpFdbEntryType==L7_FDB_ADDR_FLAG_STATIC);
     memcpy(mac_table[index].addr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uchar8)*L7_FDB_MAC_ADDR_LEN);
+
+    LOG_TRACE(LOG_CTX_PTIN_L2, "index=%u evcId=%u vlan=%u intf=%u/%u gem=%u static=%u mac=%02u:%02u:%02u:%02u:%02u:%02u",
+              mac_table[index].entryId,
+              mac_table[index].evcId,
+              mac_table[index].vlanId,
+              mac_table[index].intf.intf_type, mac_table[index].intf.intf_id,
+              mac_table[index].gem_id,
+              mac_table[index].static_entry,
+              mac_table[index].addr[0], mac_table[index].addr[1], mac_table[index].addr[2], mac_table[index].addr[3], mac_table[index].addr[4], mac_table[index].addr[5]);
 
     index++;
   }
@@ -337,8 +351,9 @@ L7_RC_t ptin_l2_mac_table_entry_remove( ptin_switch_mac_entry *entry )
   /* Build structure to remove entry */
   fdbMemberInfo.vlanId = vlanId;
   memcpy(fdbMemberInfo.macAddr, entry->addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
-  fdbMemberInfo.intIfNum   = fdbEntry.dot1dTpFdbPort;
-  fdbMemberInfo.entryType  = fdbEntry.dot1dTpFdbEntryType;
+  fdbMemberInfo.intIfNum    = fdbEntry.dot1dTpFdbPort;
+  fdbMemberInfo.virtualPort = fdbEntry.dot1dTpFdbVirtualPort;
+  fdbMemberInfo.entryType   = fdbEntry.dot1dTpFdbEntryType;
 
   /* Remove Entry */
   if (fdbDelEntry(&fdbMemberInfo)!=L7_SUCCESS)

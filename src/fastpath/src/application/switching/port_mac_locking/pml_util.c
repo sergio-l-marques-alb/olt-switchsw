@@ -36,7 +36,7 @@
 #include "fdb_api.h"
 
 
-extern void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 vlanId, L7_ushort16 entryType);
+extern void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port, L7_uint32 vlanId, L7_ushort16 entryType);  /* PTin modified: virtual ports */
 extern void fdbDelete(char *mac, L7_uint32 vlanId);
 
 extern pmlCfgData_t     *pmlCfgData;
@@ -1056,7 +1056,7 @@ L7_RC_t pmlIntfAllStaticEntriesAdd(L7_uint32 intIfNum)
       }
 
       fdbInsert(pCfg->staticMacEntry[i].macAddr.addr,
-                intIfNum,
+                intIfNum, 0 /* Not used */,
                 pCfg->staticMacEntry[i].vlanId,
                 L7_FDB_ADDR_FLAG_STATIC);
     }

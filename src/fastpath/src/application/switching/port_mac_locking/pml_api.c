@@ -39,7 +39,7 @@
 #include "dhcp_snooping_api.h"
 #endif
 
-extern void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 vlanId, L7_ushort16 entryType);
+extern void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port, L7_uint32 vlanId, L7_ushort16 entryType);  /* PTin modified: virtual ports */
 extern void fdbDelete(char *mac, L7_uint32 vlanId);
 
 extern L7_BOOL pmlMapIntfIsAttached(L7_uint32 intIfNum);
@@ -790,7 +790,7 @@ L7_RC_t pmlIntfStaticEntryAdd(L7_uint32 intIfNum, L7_enetMacAddr_t macAddr, L7_u
   pOpr->staticCount++;
 
   /* tell FDB component about this address */
-  fdbInsert(macAddr.addr, intIfNum, vlanId, L7_FDB_ADDR_FLAG_STATIC);
+  fdbInsert(macAddr.addr, intIfNum, 0 /* Not used */, vlanId, L7_FDB_ADDR_FLAG_STATIC);
 
   /* Only modify HW if intf is attached. */
   if (pmlMapIntfIsAttached(intIfNum))
@@ -1228,7 +1228,7 @@ L7_RC_t pmlIntfDynamicToStaticMove(L7_uint32 intIfNum)
 
     /* tell FDB component about this address */
     fdbInsert(pCfg->staticMacEntry[staticCfgIndex].macAddr.addr,
-              intIfNum,
+              intIfNum, 0 /* Not used */,
               pCfg->staticMacEntry[staticCfgIndex].vlanId,
               L7_FDB_ADDR_FLAG_STATIC);
 
@@ -1512,7 +1512,7 @@ L7_RC_t pmlUnknownAddrCallBack(L7_uint32 intIfNum, L7_enetMacAddr_t macAddr, L7_
     {
       /* tell the FDB component about this address */
       fdbLearnEntryCallBack(macAddr.addr,
-                            intIfNum,
+                            intIfNum, 0 /* Not used */,
                             vlanId,
                             FDB_ADD);
     }
