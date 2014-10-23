@@ -86,6 +86,8 @@
 #include "platform_config.h"
 #include "l7_usl_port_db.h"
 
+#include "broad_group_bcm.h"
+
 /* PTin added: includes */
 #if 1
 #include "logger.h"
@@ -3232,12 +3234,15 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
 #define IGMP_TRAP_MAX_VLANS 128
 #define POLICY_VLAN_ID    0
 #define POLICY_VLAN_MASK  1
+
+/* Policies related to IGMP trap rules */
+static BROAD_POLICY_t   igmp_policyId[IGMP_TRAP_MAX_VLANS];
+static L7_uint16        igmp_vlan_list[IGMP_TRAP_MAX_VLANS][2];
+
 L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin modified: IGMP snooping */, L7_BOOL switchFrame, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, snoop_enable = L7_FALSE;
-  static BROAD_POLICY_t   igmpId[IGMP_TRAP_MAX_VLANS];
-  static L7_uint16        vlan_list[IGMP_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             ip_ethtype  = L7_ETYPE_IP;
   L7_uchar8               igmp_proto[]  = {IP_PROT_IGMP};
@@ -3254,8 +3259,8 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
 
-    memset(igmpId, 0xff, sizeof(igmpId));
-    memset(vlan_list, 0x00, sizeof(vlan_list));
+    memset(igmp_policyId, 0xff, sizeof(igmp_policyId));
+    memset(igmp_vlan_list, 0x00, sizeof(igmp_vlan_list));
 
     snoop_enable = L7_FALSE;
     first_time   = L7_FALSE;
@@ -3299,12 +3304,12 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
     for (igmp_index=0; igmp_index<IGMP_TRAP_MAX_VLANS; igmp_index++)
     {
       if ((igmp_index_free >= IGMP_TRAP_MAX_VLANS) &&
-          (vlan_list[igmp_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[igmp_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+          (igmp_vlan_list[igmp_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || igmp_vlan_list[igmp_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
       {
         igmp_index_free = igmp_index;
       }
 
-      if (vlanId == vlan_list[igmp_index][POLICY_VLAN_ID])
+      if (vlanId == igmp_vlan_list[igmp_index][POLICY_VLAN_ID])
         break;
     }
 
@@ -3325,8 +3330,8 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
           return L7_TABLE_IS_FULL;
         }
         igmp_index = igmp_index_free;
-        vlan_list[igmp_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
-        vlan_list[igmp_index][POLICY_VLAN_MASK] = vlan_match;
+        igmp_vlan_list[igmp_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        igmp_vlan_list[igmp_index][POLICY_VLAN_MASK] = vlan_match;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, igmp_index);
       }
       /* If it is to remove a vlan, and it was not found, return SUCCESS */
@@ -3341,7 +3346,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, igmp_index);
       if (!enableFilter)
       {
-        vlan_list[igmp_index][POLICY_VLAN_ID] = vlan_list[igmp_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        igmp_vlan_list[igmp_index][POLICY_VLAN_ID] = igmp_vlan_list[igmp_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, igmp_index);
       }
       else
@@ -3370,10 +3375,10 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       continue;
 
     /* Ig igmp index is being used, at this point, delete it */
-    if (igmpId[index] != BROAD_POLICY_INVALID)
+    if (igmp_policyId[index] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(igmpId[index]);
-      igmpId[index] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(igmp_policyId[index]);
+      igmp_policyId[index] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
     }
 
@@ -3382,7 +3387,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       continue;
 
     /* We must have a valid vlan at this point */
-    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
+    if (igmp_vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || igmp_vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
       continue;
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
@@ -3418,7 +3423,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       LOG_TRACE(LOG_CTX_PTIN_HAPI,"Policy of cell %u created",index);
         
       /* Rate limit */
-      if (PTIN_VLAN_IS_QUATTRO(vlan_list[index][POLICY_VLAN_ID]))
+      if (PTIN_VLAN_IS_QUATTRO(igmp_vlan_list[index][POLICY_VLAN_ID]))
       {
         meterInfo.cir       = RATE_LIMIT_QUATTRO;
         meterInfo.cbs       = 128;
@@ -3438,9 +3443,9 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
       /* give IGMP frames high priority and trap to the CPU. */
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&igmp_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &igmp_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier OVID=%u/0x%04x defined",vlan_list[index][POLICY_VLAN_ID],vlan_list[index][POLICY_VLAN_MASK]);
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier OVID=%u/0x%04x defined",igmp_vlan_list[index][POLICY_VLAN_ID],igmp_vlan_list[index][POLICY_VLAN_MASK]);
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Qualifier BROAD_FIELD_ETHTYPE defined");
@@ -3463,6 +3468,8 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
          if (result != L7_SUCCESS)  break;
          result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
          if (result != L7_SUCCESS)  break;
+         result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+         if (result != L7_SUCCESS)  break;
       }
     } while ( 0 );
 
@@ -3470,7 +3477,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
 
-      result = hapiBroadPolicyCommit(&igmpId[index]);
+      result = hapiBroadPolicyCommit(&igmp_policyId[index]);
       if (result == L7_SUCCESS)
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
       else
@@ -3480,18 +3487,18 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
     {
       hapiBroadPolicyCreateCancel();
 
-      igmpId[index] = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      igmp_policyId[index] = BROAD_POLICY_INVALID;
+      igmp_vlan_list[index][POLICY_VLAN_ID] = igmp_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
     }
 
-    if (result != L7_SUCCESS && igmpId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && igmp_policyId[index] != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(igmpId[index]);
+      (void)hapiBroadPolicyDelete(igmp_policyId[index]);
        
-      igmpId[index]    = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      igmp_policyId[index]    = BROAD_POLICY_INVALID;
+      igmp_vlan_list[index][POLICY_VLAN_ID] = igmp_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
@@ -3557,6 +3564,8 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
          if (result != L7_SUCCESS)  break;
          result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
          if (result != L7_SUCCESS)  break;
+         result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+         if (result != L7_SUCCESS)  break;
       }
     } while ( 0 );
 
@@ -3605,12 +3614,15 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
 /* PTin added: DHCP snooping */
 #if 1
 #define DHCP_TRAP_MAX_VLANS 128
+
+/* Policies related to DHCP trap rules */
+static BROAD_POLICY_t   dhcp_policyId[DHCP_TRAP_MAX_VLANS];
+static L7_uint16        dhcp_vlan_list[DHCP_TRAP_MAX_VLANS][2];
+
 L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, snoop_enable = L7_FALSE;
-  static BROAD_POLICY_t   policyId[DHCP_TRAP_MAX_VLANS];
-  static L7_uint16        vlan_list[DHCP_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             ip_ethtype  = L7_ETYPE_IP, ipv6_ethtype = L7_ETYPE_IPV6;
   L7_uchar8               udp_proto[]   = {IP_PROT_UDP};
@@ -3633,8 +3645,8 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
     
-    memset(policyId, 0xff, sizeof(policyId));
-    memset(vlan_list, 0x00, sizeof(vlan_list));
+    memset(dhcp_policyId, 0xff, sizeof(dhcp_policyId));
+    memset(dhcp_vlan_list, 0x00, sizeof(dhcp_vlan_list));
     
     snoop_enable = L7_FALSE;
     first_time   = L7_FALSE;
@@ -3676,11 +3688,11 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
     for (dhcp_index=0; dhcp_index<DHCP_TRAP_MAX_VLANS; dhcp_index++)
     {
       if (dhcp_index_free >= DHCP_TRAP_MAX_VLANS &&
-         (vlan_list[dhcp_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[dhcp_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+         (dhcp_vlan_list[dhcp_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || dhcp_vlan_list[dhcp_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
       {
         dhcp_index_free = dhcp_index;
       }
-      if (vlanId == vlan_list[dhcp_index][POLICY_VLAN_ID])
+      if (vlanId == dhcp_vlan_list[dhcp_index][POLICY_VLAN_ID])
         break;
     }
     /* Not found... */
@@ -3700,8 +3712,8 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
           return L7_TABLE_IS_FULL;
         }
         dhcp_index = dhcp_index_free;
-        vlan_list[dhcp_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
-        vlan_list[dhcp_index][POLICY_VLAN_MASK] = vlan_match;
+        dhcp_vlan_list[dhcp_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        dhcp_vlan_list[dhcp_index][POLICY_VLAN_MASK] = vlan_match;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, dhcp_index);
       }
       /* If it is to remove a vlan, and it was not found, return SUCCESS */
@@ -3716,7 +3728,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, dhcp_index);
       if (!enable)
       {
-        vlan_list[dhcp_index][POLICY_VLAN_ID] = vlan_list[dhcp_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        dhcp_vlan_list[dhcp_index][POLICY_VLAN_ID] = dhcp_vlan_list[dhcp_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, dhcp_index);
       }
       else
@@ -3745,10 +3757,10 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       continue;
 
     /* If dhcp index is being used, at this point, delete it */
-    if (policyId[index] != BROAD_POLICY_INVALID)
+    if (dhcp_policyId[index] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId[index]);
-      policyId[index] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(dhcp_policyId[index]);
+      dhcp_policyId[index] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
     }
 
@@ -3757,7 +3769,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       continue;
 
     /* We must have a valid vlan at this point */
-    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
+    if (dhcp_vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || dhcp_vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
       continue;
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
@@ -3771,7 +3783,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
       /* Rate limit */
-      if (PTIN_VLAN_IS_QUATTRO(vlan_list[index][POLICY_VLAN_ID]))
+      if (PTIN_VLAN_IS_QUATTRO(dhcp_vlan_list[index][POLICY_VLAN_ID]))
       {
         meterInfo.cir       = RATE_LIMIT_QUATTRO;
         meterInfo.cbs       = 128;
@@ -3794,7 +3806,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       ip_type = BROAD_IP_TYPE_IPV4;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&dhcp_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &dhcp_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3813,12 +3825,14 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
       /* DHCP packets from client */
       ip_type = BROAD_IP_TYPE_IPV6;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&dhcp_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &dhcp_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3837,12 +3851,14 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
       /* DHCP packets from server */
       ip_type = BROAD_IP_TYPE_IPV4;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&dhcp_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &dhcp_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3861,12 +3877,14 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
       /* DHCP packets from server */
       ip_type = BROAD_IP_TYPE_IPV6;
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&dhcp_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &dhcp_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -3885,13 +3903,15 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
     } while ( 0 );
 
     if (result == L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
-      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      if ((result=hapiBroadPolicyCommit(&dhcp_policyId[index])) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
       }
@@ -3900,18 +3920,18 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
     {
       hapiBroadPolicyCreateCancel();
 
-      policyId[index]  = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      dhcp_policyId[index]  = BROAD_POLICY_INVALID;
+      dhcp_vlan_list[index][POLICY_VLAN_ID] = dhcp_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
     }
 
-    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && dhcp_policyId[index] != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(policyId[index]);
+      (void)hapiBroadPolicyDelete(dhcp_policyId[index]);
 
-      policyId[index] = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      dhcp_policyId[index] = BROAD_POLICY_INVALID;
+      dhcp_vlan_list[index][POLICY_VLAN_ID] = dhcp_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
@@ -3960,6 +3980,8 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
       /* DHCP packets from client */
       ip_type = BROAD_IP_TYPE_IPV6;
@@ -3983,6 +4005,8 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
 
       /* DHCP packets from server */
@@ -4008,6 +4032,8 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
       /* DHCP packets from server */
       ip_type = BROAD_IP_TYPE_IPV6;
@@ -4031,6 +4057,8 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
 
     } while ( 0 );
@@ -4079,12 +4107,15 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
 /* PTin added: PPPoE */
 #if 1
 #define PPPOE_TRAP_MAX_VLANS 128
+
+/* Policies related to PPPoE trap rules */
+static BROAD_POLICY_t   pppoe_policyId[PPPOE_TRAP_MAX_VLANS];
+static L7_uint16        pppoe_vlan_list[PPPOE_TRAP_MAX_VLANS][2];
+
 L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, pppoe_enable = L7_FALSE;
-  static BROAD_POLICY_t   policyId[PPPOE_TRAP_MAX_VLANS];
-  static L7_uint16        vlan_list[PPPOE_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             pppoe_ethtype  = L7_ETYPE_PPPOE;
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
@@ -4101,8 +4132,8 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
     
-    memset(policyId, 0xff, sizeof(policyId));
-    memset(vlan_list, 0x00, sizeof(vlan_list));
+    memset(pppoe_policyId, 0xff, sizeof(pppoe_policyId));
+    memset(pppoe_vlan_list, 0x00, sizeof(pppoe_vlan_list));
     
     pppoe_enable = L7_FALSE;
     first_time   = L7_FALSE;
@@ -4131,11 +4162,11 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
     for (pppoe_index=0; pppoe_index<PPPOE_TRAP_MAX_VLANS; pppoe_index++)
     {
       if (pppoe_index_free >= DHCP_TRAP_MAX_VLANS &&
-         (vlan_list[pppoe_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[pppoe_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+         (pppoe_vlan_list[pppoe_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || pppoe_vlan_list[pppoe_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
       {
         pppoe_index_free = pppoe_index;
       }
-      if (vlanId == vlan_list[pppoe_index][POLICY_VLAN_ID])
+      if (vlanId == pppoe_vlan_list[pppoe_index][POLICY_VLAN_ID])
         break;
     }
     /* Not found... */
@@ -4155,8 +4186,8 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
           return L7_TABLE_IS_FULL;
         }
         pppoe_index = pppoe_index_free;
-        vlan_list[pppoe_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
-        vlan_list[pppoe_index][POLICY_VLAN_MASK] = vlan_match;
+        pppoe_vlan_list[pppoe_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        pppoe_vlan_list[pppoe_index][POLICY_VLAN_MASK] = vlan_match;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, pppoe_index);
       }
       /* If it is to remove a vlan, and it was not found, return SUCCESS */
@@ -4171,7 +4202,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, pppoe_index);
       if (!enable)
       {
-        vlan_list[pppoe_index][POLICY_VLAN_ID] = vlan_list[pppoe_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        pppoe_vlan_list[pppoe_index][POLICY_VLAN_ID] = pppoe_vlan_list[pppoe_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, pppoe_index);
       }
       else
@@ -4200,10 +4231,10 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       continue;
 
     /* If pppoe index is being used, at this point, delete it */
-    if (policyId[index] != BROAD_POLICY_INVALID)
+    if (pppoe_policyId[index] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId[index]);
-      policyId[index] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(pppoe_policyId[index]);
+      pppoe_policyId[index] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
     }
 
@@ -4212,7 +4243,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       continue;
 
     /* We must have a valid vlan at this point */
-    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
+    if (pppoe_vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || pppoe_vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX)
       continue;
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
@@ -4226,7 +4257,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u created", index);
 
       /* Rate limit */
-      if (PTIN_VLAN_IS_QUATTRO(vlan_list[index][POLICY_VLAN_ID]))
+      if (PTIN_VLAN_IS_QUATTRO(pppoe_vlan_list[index][POLICY_VLAN_ID]))
       {
         meterInfo.cir       = RATE_LIMIT_QUATTRO;
         meterInfo.cbs       = 128;
@@ -4248,7 +4279,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       /* PPPoE packets from client */
       result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&pppoe_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &pppoe_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&pppoe_ethtype, exact_match);
       if (result != L7_SUCCESS)  break;
@@ -4261,13 +4292,15 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
       if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
 
     } while ( 0 );
 
     if (result == L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
-      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      if ((result=hapiBroadPolicyCommit(&pppoe_policyId[index])) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
       }
@@ -4276,18 +4309,18 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
     {
       hapiBroadPolicyCreateCancel();
 
-      policyId[index]  = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      pppoe_policyId[index]  = BROAD_POLICY_INVALID;
+      pppoe_vlan_list[index][POLICY_VLAN_ID] = pppoe_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
     }
 
-    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && pppoe_policyId[index] != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(policyId[index]);
+      (void)hapiBroadPolicyDelete(pppoe_policyId[index]);
 
-      policyId[index] = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      pppoe_policyId[index] = BROAD_POLICY_INVALID;
+      pppoe_vlan_list[index][POLICY_VLAN_ID] = pppoe_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
@@ -4328,6 +4361,8 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
 
     } while ( 0 );
@@ -4376,6 +4411,11 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
 /* PTin added: APS */
 #if 1
 #define APS_TRAP_MAX_VLANS 16
+
+/* Policies related to APS trap rules */
+static BROAD_POLICY_t   aps_policyId[APS_TRAP_MAX_VLANS];
+static L7_uint16        aps_vlan_list[APS_TRAP_MAX_VLANS][2];
+
 L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId_oam_level, DAPI_t *dapi_g)
 {
 #ifdef __APS_AND_CCM_COMMON_FILTER__
@@ -4384,8 +4424,6 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
 #else
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, aps_enable = L7_TRUE;
-  static BROAD_POLICY_t   policyId[APS_TRAP_MAX_VLANS];
-  static L7_uint16        vlan_list[APS_TRAP_MAX_VLANS][2];
   static L7_uint8         ringId_list[APS_TRAP_MAX_VLANS];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             aps_ethtype  = L7_ETYPE_CFM;
@@ -4404,8 +4442,8 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
     
-    memset(policyId, 0xff, sizeof(policyId));
-    memset(vlan_list, 0x00, sizeof(vlan_list));
+    memset(aps_policyId, 0xff, sizeof(aps_policyId));
+    memset(aps_vlan_list, 0x00, sizeof(aps_vlan_list));
     memset(ringId_list, 0x00, sizeof(ringId_list));
     
     aps_enable = L7_FALSE;
@@ -4433,11 +4471,11 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
     for (aps_index=0; aps_index<APS_TRAP_MAX_VLANS; aps_index++)
     {
       if (aps_index_free >= APS_TRAP_MAX_VLANS &&
-         (vlan_list[aps_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[aps_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+         (aps_vlan_list[aps_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || aps_vlan_list[aps_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
       {
         aps_index_free = aps_index;
       }
-      if (vlanId == vlan_list[aps_index][POLICY_VLAN_ID])
+      if (vlanId == aps_vlan_list[aps_index][POLICY_VLAN_ID])
         break;
     }
     /* Not found... */
@@ -4457,8 +4495,8 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
           return L7_TABLE_IS_FULL;
         }
         aps_index = aps_index_free;
-        vlan_list[aps_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
-        vlan_list[aps_index][POLICY_VLAN_MASK] = vlan_match;
+        aps_vlan_list[aps_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        aps_vlan_list[aps_index][POLICY_VLAN_MASK] = vlan_match;
         ringId_list[aps_index] = ringId_oam_level;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, aps_index);
       }
@@ -4474,7 +4512,7 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, aps_index);
       if (!enable)
       {
-        vlan_list[aps_index][POLICY_VLAN_ID] = vlan_list[aps_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        aps_vlan_list[aps_index][POLICY_VLAN_ID] = aps_vlan_list[aps_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, aps_index);
       }
       else
@@ -4505,10 +4543,10 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
     }
 
     /* If aps index is being used, at this point, delete it */
-    if (policyId[index] != BROAD_POLICY_INVALID)
+    if (aps_policyId[index] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId[index]);
-      policyId[index] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(aps_policyId[index]);
+      aps_policyId[index] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
     }
 
@@ -4518,7 +4556,7 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
     }
 
     /* We must have a valid vlan at this point */
-    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX) {
+    if (aps_vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || aps_vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX) {
       continue;
     }
 
@@ -4542,7 +4580,7 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, aps_MacAddr, exact_match);
       if (result != L7_SUCCESS)  break;
 
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&aps_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &aps_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
 
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&aps_ethtype, exact_match);
@@ -4564,13 +4602,17 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)  {
         break;
       }
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
 
     } while ( 0 );
 
     if (result == L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
-      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      if ((result=hapiBroadPolicyCommit(&aps_policyId[index])) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
       }
@@ -4579,18 +4621,18 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
     {
       hapiBroadPolicyCreateCancel();
 
-      policyId[index]  = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      aps_policyId[index]  = BROAD_POLICY_INVALID;
+      aps_vlan_list[index][POLICY_VLAN_ID] = aps_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
     }
 
-    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && aps_policyId[index] != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(policyId[index]);
+      (void)hapiBroadPolicyDelete(aps_policyId[index]);
 
-      policyId[index] = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      aps_policyId[index] = BROAD_POLICY_INVALID;
+      aps_vlan_list[index][POLICY_VLAN_ID] = aps_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
@@ -4605,11 +4647,14 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
 /* PTin added: CCM */
 #if 1
 #define CCM_TRAP_MAX_VLANS 16
+
+/* Policies related to CCM trap rules */
+static BROAD_POLICY_t   ccm_policyId[CCM_TRAP_MAX_VLANS];
+
 L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE;
-  static BROAD_POLICY_t   policyId[CCM_TRAP_MAX_VLANS];
   static struct {
       L7_ulong32    n_using;
       L7_ushort16   vid;
@@ -4634,7 +4679,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
     
-    memset(policyId, 0xff, sizeof(policyId));
+    memset(ccm_policyId, 0xff, sizeof(ccm_policyId));
     memset(vid_lvl, 0, sizeof(vid_lvl));
     
     //ccm_enable = L7_FALSE;
@@ -4706,8 +4751,8 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
  
   //WR to HW
   if (!enable) {
-      (void)hapiBroadPolicyDelete(policyId[index]);
-      policyId[index] = BROAD_POLICY_INVALID;
+      (void)hapiBroadPolicyDelete(ccm_policyId[index]);
+      ccm_policyId[index] = BROAD_POLICY_INVALID;
       return L7_SUCCESS;
   }
 
@@ -4760,9 +4805,10 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)  {
         break;
       }
-
-
-
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
 
 #if defined (__APS_AND_CCM_COMMON_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
       {//MC DMAC can't be used for frames like LMR, DMR...
@@ -4826,7 +4872,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
     if (result == L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
-      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      if ((result=hapiBroadPolicyCommit(&ccm_policyId[index])) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
       }
@@ -4835,16 +4881,16 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
     {
       hapiBroadPolicyCreateCancel();
 
-      policyId[index]  = BROAD_POLICY_INVALID;
+      ccm_policyId[index]  = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
     }
 
-    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && ccm_policyId[index] != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(policyId[index]);
+      (void)hapiBroadPolicyDelete(ccm_policyId[index]);
 
-      policyId[index] = BROAD_POLICY_INVALID;
+      ccm_policyId[index] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
@@ -4858,12 +4904,15 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
 /* PTin added: Redirect ARP/IP packets to dtl0 */
 #if 1
 #define IPDTL0_TRAP_MAX_VLANS 128
+
+/* Policies related to IP_DTL0 trap rules */
+static BROAD_POLICY_t   dtl0_policyId[IPDTL0_TRAP_MAX_VLANS];
+static L7_uint16        dtl0_vlan_list[IPDTL0_TRAP_MAX_VLANS][2];
+
 L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 *mac_addr, DAPI_t *dapi_g)
 {
   L7_RC_t                 result = L7_SUCCESS;
   static L7_BOOL          first_time = L7_TRUE, ipdtl0_enable = L7_TRUE;
-  static BROAD_POLICY_t   policyId[IPDTL0_TRAP_MAX_VLANS];
-  static L7_uint16        vlan_list[IPDTL0_TRAP_MAX_VLANS][2];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
   L7_ushort16             ipdtl0_ethtype  = L7_ETYPE_ARP;
 
@@ -4882,8 +4931,8 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "First time processing... make some initializations");
     
-    memset(policyId, 0xff, sizeof(policyId));
-    memset(vlan_list, 0x00, sizeof(vlan_list));
+    memset(dtl0_policyId, 0xff, sizeof(dtl0_policyId));
+    memset(dtl0_vlan_list, 0x00, sizeof(dtl0_vlan_list));
     
     //ipdtl0_enable = L7_FALSE;
     first_time   = L7_FALSE;
@@ -4912,11 +4961,11 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
     for (ipdtl0_index=0; ipdtl0_index<IPDTL0_TRAP_MAX_VLANS; ipdtl0_index++)
     {
       if (ipdtl0_index_free >= IPDTL0_TRAP_MAX_VLANS &&
-         (vlan_list[ipdtl0_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[ipdtl0_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
+         (dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_ID] > PTIN_VLAN_MAX))
       {
         ipdtl0_index_free = ipdtl0_index;
       }
-      if (vlanId == vlan_list[ipdtl0_index][POLICY_VLAN_ID])
+      if (vlanId == dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_ID])
         break;
     }
     /* Not found... */
@@ -4936,8 +4985,8 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
           return L7_TABLE_IS_FULL;
         }
         ipdtl0_index = ipdtl0_index_free;
-        vlan_list[ipdtl0_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
-        vlan_list[ipdtl0_index][POLICY_VLAN_MASK] = vlan_match;
+        dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_ID] = vlanId;     /* New vlan to be added */
+        dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_MASK] = vlan_match;
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u added to table in cell %u", vlanId, ipdtl0_index);
       }
       /* If it is to remove a vlan, and it was not found, return SUCCESS */
@@ -4952,7 +5001,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u was found in cell %u", vlanId, ipdtl0_index);
       if (!enable)
       {
-        vlan_list[ipdtl0_index][POLICY_VLAN_ID] = vlan_list[ipdtl0_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
+        dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_ID] = dtl0_vlan_list[ipdtl0_index][POLICY_VLAN_MASK] = L7_NULL;    /* Vlan to be removed */
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Vlan %u removed from cell %u", vlanId, ipdtl0_index);
       }
       else
@@ -4983,10 +5032,10 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
     }
 
     /* If ipdtl0 index is being used, at this point, delete it */
-    if (policyId[index] != BROAD_POLICY_INVALID)
+    if (dtl0_policyId[index] != BROAD_POLICY_INVALID)
     {
-      hapiBroadPolicyDelete(policyId[index]);
-      policyId[index] = BROAD_POLICY_INVALID;
+      hapiBroadPolicyDelete(dtl0_policyId[index]);
+      dtl0_policyId[index] = BROAD_POLICY_INVALID;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Policy of cell %u deleted", index);
     }
 
@@ -4996,7 +5045,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
     }
 
     /* We must have a valid vlan at this point */
-    if (vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX) {
+    if (dtl0_vlan_list[index][POLICY_VLAN_ID] < PTIN_VLAN_MIN || dtl0_vlan_list[index][POLICY_VLAN_ID] > PTIN_VLAN_MAX) {
       continue;
     }
 
@@ -5019,7 +5068,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
 //    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, mac_addr, exact_match);
 //    if (result != L7_SUCCESS)  break;
 
-      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &vlan_list[index][POLICY_VLAN_MASK]);
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&dtl0_vlan_list[index][POLICY_VLAN_ID], (L7_uchar8 *) &dtl0_vlan_list[index][POLICY_VLAN_MASK]);
       if (result != L7_SUCCESS)  break;
 
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipdtl0_ethtype, exact_match);
@@ -5042,13 +5091,17 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
       if (result != L7_SUCCESS)  {
         break;
       }
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  {
+        break;
+      }
 
     } while ( 0 );
 
     if (result == L7_SUCCESS)
     {
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Commiting policy of cell %u", index);
-      if ((result=hapiBroadPolicyCommit(&policyId[index])) == L7_SUCCESS)
+      if ((result=hapiBroadPolicyCommit(&dtl0_policyId[index])) == L7_SUCCESS)
       {
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "policy of cell %u commited successfully", index);
       }
@@ -5057,18 +5110,18 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
     {
       hapiBroadPolicyCreateCancel();
 
-      policyId[index]  = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      dtl0_policyId[index]  = BROAD_POLICY_INVALID;
+      dtl0_vlan_list[index][POLICY_VLAN_ID] = dtl0_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: canceling policy of cell %u", index);
     }
 
-    if (result != L7_SUCCESS && policyId[index] != BROAD_POLICY_INVALID )
+    if (result != L7_SUCCESS && dtl0_policyId[index] != BROAD_POLICY_INVALID )
     {
       /* attempt to delete the policy in case it was created */
-      (void)hapiBroadPolicyDelete(policyId[index]);
+      (void)hapiBroadPolicyDelete(dtl0_policyId[index]);
 
-      policyId[index] = BROAD_POLICY_INVALID;
-      vlan_list[index][POLICY_VLAN_ID] = vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
+      dtl0_policyId[index] = BROAD_POLICY_INVALID;
+      dtl0_vlan_list[index][POLICY_VLAN_ID] = dtl0_vlan_list[index][POLICY_VLAN_MASK] = L7_NULL;
       LOG_TRACE(LOG_CTX_PTIN_HAPI, "Some error ocurred: deleting policy of cell %u", index);
     }
   }
@@ -5079,6 +5132,122 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
 }
 #endif
 
+
+#if 1
+/**
+ * Dump list of bw policers
+ */
+void ptin_traprules_dump(void)
+{
+  BROAD_POLICY_t *policyId;
+
+  L7_int type, index, max_index, rule;
+  L7_uint16 (*vlan_list)[2];
+  BROAD_GROUP_t group_id;
+  BROAD_ENTRY_t entry_id;
+  int policer_id, counter_id;
+  BROAD_POLICY_STATS_t stat;
+
+  for (type = 0; type < 6; type++)
+  {
+    switch (type)
+    {
+    case 0:
+      printf("Listing IGMP trap rules...\r\n");
+      policyId = igmp_policyId;
+      vlan_list = igmp_vlan_list;
+      max_index = IGMP_TRAP_MAX_VLANS;
+      break;
+    case 1:
+      printf("Listing DHCP trap rules...\r\n");
+      policyId = dhcp_policyId;
+      vlan_list = dhcp_vlan_list;
+      max_index = DHCP_TRAP_MAX_VLANS;
+      break;
+    case 2:
+      printf("Listing PPPoE trap rules...\r\n");
+      policyId = pppoe_policyId;
+      vlan_list = pppoe_vlan_list;
+      max_index = PPPOE_TRAP_MAX_VLANS;
+      break;
+    case 3:
+      printf("Listing APS trap rules...\r\n");
+      policyId = aps_policyId;
+      vlan_list = aps_vlan_list;
+      max_index = APS_TRAP_MAX_VLANS;
+      break;
+    case 4:
+      printf("Listing CCM trap rules...\r\n");
+      policyId = ccm_policyId;
+      vlan_list = L7_NULLPTR;
+      max_index = CCM_TRAP_MAX_VLANS;
+      break;
+    case 5:
+      printf("Listing IP_DTL0 trap rules...\r\n");
+      policyId = dtl0_policyId;
+      vlan_list = dtl0_vlan_list;
+      max_index = IPDTL0_TRAP_MAX_VLANS;
+      break;
+    default:
+      policyId = L7_NULLPTR;
+      vlan_list = L7_NULLPTR;
+      max_index = 0;
+      break;
+    }
+
+    /* Valid policyId? */
+    if (policyId == L7_NULLPTR)
+    {
+      continue;
+    }
+
+    /* Run all indexes */
+    for (index = 0; index < max_index; index++) 
+    {
+      /* Skip non used entries */
+      if (policyId[index] == 0 || policyId[index] == BROAD_POLICY_INVALID)
+      {
+        continue;
+      }
+
+      printf(" <%3u> ", index);
+
+      rule = 0;
+      while (l7_bcm_policy_hwInfo_get(0, policyId[index], rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+      {
+
+        if (vlan_list != L7_NULLPTR)
+        {
+          printf("VLAN %4u/%-4u: ", vlan_list[index][0], vlan_list[index][1]);
+        }
+        
+        /* Also print hw group id and entry id*/
+        printf("policyId=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId=%-4d)",
+               policyId[index], rule, group_id, entry_id, policer_id, counter_id);
+
+        /* Check counter */
+        if (counter_id > 0)
+        {
+          printf(": Packets=");
+          /* Get stat data */
+          if (hapiBroadPolicyStatsGet(policyId[index], rule, &stat) != L7_SUCCESS)
+            printf("Error");
+          else
+            printf("%llu", stat.statMode.counter.count);
+        }
+        printf("\r\n");
+
+        rule++;
+      }
+    }
+
+    printf("\r\n");
+  }
+
+  printf("Done!\r\n");
+  fflush(stdout);
+}
+#endif
 
 /*********************************************************************
 *

@@ -49,6 +49,7 @@ extern void *pppoe_Packet_Queue;
 
 ptinPppoeBindingAvlTree_t pppoeBindingTable;
 
+extern L7_uint64 hapiBroadReceice_pppoe_count;
 
 /********************************************************************* 
 *  Static Methods 
@@ -161,6 +162,8 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   L7_uint16 vlanId, innerVlanId = 0;
 
   L7_uint client_idx = (L7_uint)-1;   /* PTin added: DHCP snooping */
+
+  hapiBroadReceice_pppoe_count++;
 
   if (ptin_debug_pppoe_snooping)
     LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Packet intercepted: intIfNum=%u, vlanId=%u, innerVlanId=%u",

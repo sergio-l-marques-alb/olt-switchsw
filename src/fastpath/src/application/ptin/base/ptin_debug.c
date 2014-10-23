@@ -122,7 +122,7 @@ void ptin_debug(void)
   printf("  pdu_receive_debug_enable <enable>                         - Print all PDUs received and validated for further processing\r\n");
   printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
   printf("\r\n");
-  printf("  ptin_stormcontrol_dump_debug                              - Dump storm control configurations\r\n");
+  printf("  ptin_stormcontrol_dump                                    - Dump storm control configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug                                 - Dump configured bandwidth policers\r\n");
   printf("  ptin_fpcounters_dump_debug                                - Dump configured EVC/client counters (at request)\r\n");
   printf("  ptin_fpcounters_flush_debug                               - Flush configured EVC/client counters (at request)\r\n");
@@ -149,6 +149,7 @@ void ptin_debug(void)
   printf("  ptin_msg_runtime_init <msg_id>                            - Initialize runtime measurements for msg_id (-1 for all)\r\n");
   printf("  ptin_msg_runtime_show                                     - Show runtime measurements for all messages\r\n");
   printf("\r\n");                                                    
+  printf("  ptin_traprules_dump                                       - Dump configured trap (to CPU) rules\r\n");
   printf("  snoopDebugTraceEnable                                     - Enable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceDisable                                    - Disable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceFlagsSetAF <1/2>                           - Activate specific IGMP snoop trace messages\r\n");
@@ -185,6 +186,16 @@ void ptin_help(void)
 {
   ptin_debug();
 }
+
+/* Counter of CPU packets */
+L7_uint64 hapiBroadReceive_packets_count = 0;
+
+/* Other packets */
+L7_uint64 hapiBroadReceice_igmp_count   = 0;
+L7_uint64 hapiBroadReceice_mld_count    = 0;
+L7_uint64 hapiBroadReceice_dhcpv4_count = 0;
+L7_uint64 hapiBroadReceice_dhcpv6_count = 0;
+L7_uint64 hapiBroadReceice_pppoe_count  = 0;
 
 /* Measure of packet processing time */
 ptin_debug_pktTimer_t debug_pktTimer;

@@ -60,6 +60,8 @@
 
 
 extern ptin_debug_pktTimer_t debug_pktTimer;
+extern L7_uint64 hapiBroadReceice_igmp_count;
+extern L7_uint64 hapiBroadReceice_mld_count;
 #endif
 
 
@@ -257,13 +259,14 @@ SYSNET_PDU_RC_t snoopIGMPPktIntercept(L7_uint32 hookId,
 
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, L7_AF_INET, "snoopIGMPPktIntercept");
 
-  debug_pktTimer.pkt_intercept_counter++;
-
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
   protPtr = (data + sysNetDataOffsetGet(data)) + SNOOP_IP_HDR_NEXT_PROTO_OFFSET;
 
   if (*protPtr == IP_PROT_IGMP || *protPtr == IP_PROT_PIM)
   {
+    debug_pktTimer.pkt_intercept_counter++;
+    hapiBroadReceice_igmp_count++;
+
     if (snoopPacketHandle(bufHandle, pduInfo, L7_AF_INET) == L7_SUCCESS)
     {
       return SYSNET_PDU_RC_COPIED;
@@ -331,6 +334,8 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
   {
     return SYSNET_PDU_RC_IGNORED;
   }
+
+  hapiBroadReceice_mld_count++;
 
   if (pSnoopEB->ipv6OptionsSupport == L7_TRUE)
   {
