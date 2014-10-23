@@ -162,7 +162,7 @@ L7_RC_t vlan_port_intIfNum_create(L7_uint32 intfId, L7_uint32 *pIntIfNum)
   /* Tell the system about the interface */
   if ((rc = nimIntfCreate(&nimRequest, &nimOutput)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to create interface %u\n", intfId);
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to create interface %u", intfId);
     return L7_FAILURE;
   }
 
