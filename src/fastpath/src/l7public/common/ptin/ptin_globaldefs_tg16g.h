@@ -27,7 +27,7 @@
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
 # define PTIN_SYSTEM_N_EVCS            1024    /* Maximum nr of EVCs allowed in this equipment */
-# define PTIN_SYSTEM_N_CLIENTS         1024  /* Maximum nr of clients allowed in this equipment */
+# define PTIN_SYSTEM_N_CLIENTS         8192  /* Maximum nr of clients allowed in this equipment */
 # define PTIN_SYSTEM_N_FLOWS_MAX       8192  /* Maximum nr of flows (total) */
 
 # define PTIN_SYSTEM_MAX_BW_POLICERS   1024  /* Maximum number of BW policer */
