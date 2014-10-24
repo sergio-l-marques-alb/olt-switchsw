@@ -1009,16 +1009,19 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
     __matrix_mfdbport_sync(L7_DISABLE, 1, serviceId, protTypebIntfConfig.pairSlotId, groupAddr, sourceAddr, L7_FALSE);
   }
 #elif PTIN_BOARD_IS_STANDALONE
-  msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
-
-  /* Send a Port_Close event to the FP */
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");
-  if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
+  if(protTypebIntfConfig.status == L7_ENABLE)
   {
-    if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+    msg.intIfNum      = protTypebIntfConfig.pairIntfNum;
+
+    /* Send a Port_Close event to the FP */
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "Sending request to FP to close a protection port on the switch");
+    if(L7_SUCCESS == (rc = osapiMessageSend(pSnoopCB->snoopExec->snoopIGMPQueue, &msg, SNOOP_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM)))
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
-      return L7_FAILURE;
+      if (osapiSemaGive(pSnoopEB->snoopMsgQSema) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to unlock snooping's queue semaphore");
+        return L7_FAILURE;
+      }
     }
   }
 #else
