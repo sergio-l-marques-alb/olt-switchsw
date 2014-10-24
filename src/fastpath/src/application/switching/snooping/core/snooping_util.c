@@ -1241,7 +1241,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
   */
   if (snoopIntfCanBeEnabled(intIfNum, vlanId) != L7_TRUE)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u vlanId=%u] is down (or it is been used for routing, or even is a port mirror",intIfNum,vlanId );
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u vlanId=%u] is down (or it is been used for routing, or even is a port mirror",intIfNum,vlanId );
     return;
   }
 
@@ -1249,14 +1250,16 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
        (sysIntfType == L7_CPU_INTF) )
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is a CPU interface",intIfNum);
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is a CPU interface",intIfNum);
     return;
   }
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Buffer handle is a null pointer");
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Silently ignoring packet transmission. Buffer handle is a null pointer");
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
            "snoopPacketSend: System out of netbuffs");    
     return;
@@ -1321,20 +1324,26 @@ void snoopPacketSend(L7_uint32 intIfNum,
   ptin_timer_stop(33);
   ptin_timer_stop(32);
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u+iVlan=%u (intVlan=%u) payloadLen=%u",
-            intIfNum, extOVlan, extIVlan, vlanId, payloadLen);
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u+iVlan=%u (intVlan=%u) payloadLen=%u",
+              intIfNum, extOVlan, extIVlan, vlanId, payloadLen);
 
   if (ptin_debug_igmp_packet_trace)
   {
     if(payloadLen==0)
     {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Packet transmited intIfNum=%u, with oVlan=%u (intVlan=%u) with payloadLen=%u",intIfNum,extOVlan,vlanId,payloadLen);
+      if (ptin_debug_igmp_snooping)
+        LOG_WARNING(LOG_CTX_PTIN_IGMP,"Packet transmited intIfNum=%u, with oVlan=%u (intVlan=%u) with payloadLen=%u",intIfNum,extOVlan,vlanId,payloadLen);
     }
-    L7_uint32 i;
-    printf("Tx:PayloadLength:%d\n",payloadLen);
-    for (i=0;i<payloadLen;i++)
-      printf("%02x ",payload[i]);
-    printf("\n");
+
+    if (ptin_debug_igmp_snooping)
+    {
+      L7_uint32 i;
+      printf("Tx:PayloadLength:%d\n",payloadLen);
+      for (i=0;i<payloadLen;i++)
+        printf("%02x ",payload[i]);
+      printf("\n");
+    }
   }
 }
 
