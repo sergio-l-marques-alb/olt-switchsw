@@ -298,7 +298,6 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   L7_BOOL configuringNamedIpAcl = L7_FALSE;
 
 
-
   /* *********************** ACL_OPERATION_REMOVE *********************** */
   if (operation == ACL_OPERATION_REMOVE)
   {
@@ -446,11 +445,11 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
   {
     /* Check Src L4 Port */
     if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_srcStartPort)
-    {    
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port");
-
+    {
       if (msgAcl->srcStartPort == msgAcl->srcEndPort)
       {
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Src L4 Port");
+
         srcPortValue = msgAcl->srcStartPort;
 
         if(srcPortValue < L7_ACL_MIN_L4PORT_NUM || srcPortValue > L7_ACL_MAX_L4PORT_NUM)
@@ -506,10 +505,10 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation)
     /* Check Dst L4 Port */
     if (msgAcl->aclRuleMask & ACL_IP_RULE_MASK_dstStartPort)
     {
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port");
-
       if (msgAcl->dstStartPort == msgAcl->dstEndPort)
       {
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "Matching Dst L4 Port");
+
         dstPortValue = msgAcl->dstStartPort;
 
         if(dstPortValue < L7_ACL_MIN_L4PORT_NUM || dstPortValue > L7_ACL_MAX_L4PORT_NUM)
