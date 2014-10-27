@@ -5589,10 +5589,39 @@ L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
         if ( (ACL_RULE_FIELD_IS_SET(p->configMask, ACL_DSTSTARTPORT) == L7_TRUE) &&
              (ACL_RULE_FIELD_IS_SET(p->configMask, ACL_DSTENDPORT) == L7_TRUE) )
         {
+          /* PTIN Added Support for ranges based on possible shared mask */
+          L7_ushort16 start;
+          L7_ushort16 end;
+          L7_ushort16 new_start;
+          L7_ushort16 new_end;
+          L7_ushort16 mask;
+          int i;
+
           memset(&dstL4Port, 0, sizeof(dstL4Port));
           dstL4Port.portStart = osapiHtons(p->dstStartPort);
           dstL4Port.portEnd   = osapiHtons(p->dstEndPort);
-          dstL4Port.portMask  = osapiHtons(L7_QOS_ACL_TLV_MATCH_DSTL4PORT_MASK);
+
+          start = p->dstStartPort;
+          end = p->dstEndPort;
+
+          for (i=0; i<32;i++)
+          {
+            if (start == end)
+              break;
+
+            start >>= 1;
+            end >>= 1;
+          }
+
+          mask = L7_QOS_ACL_TLV_MATCH_DSTL4PORT_MASK & ~((1<<i)-1);
+
+          new_start = p->dstStartPort & mask;
+          new_end = new_start | (~mask);
+
+          LOG_DEBUG(LOG_CTX_PTIN_MSG, "DSTL4 Range: [%d-%d] -> [%d->%d]", p->dstStartPort, p->dstEndPort, new_start, new_end);
+
+          /* PTIN Changed: dstL4Port.portMask  = osapiHtons(L7_QOS_ACL_TLV_MATCH_DSTL4PORT_MASK); */
+          dstL4Port.portMask  = osapiHtons(mask);
           rc=tlvWrite(tlvHandle, L7_QOS_ACL_TLV_MATCH_DSTL4PORT_TYPE, L7_QOS_ACL_TLV_MATCH_DSTL4PORT_LEN, (L7_uchar8*)&dstL4Port);
         }
 
@@ -5665,10 +5694,39 @@ L7_RC_t aclTlvRuleDefBuild(L7_uint32 aclnum, L7_uint32 *ruleCount,
         if ( (ACL_RULE_FIELD_IS_SET(p->configMask, ACL_SRCSTARTPORT) == L7_TRUE) &&
              (ACL_RULE_FIELD_IS_SET(p->configMask, ACL_SRCENDPORT) == L7_TRUE) )
         {
+          /* PTIN Added Support for ranges based on possible shared mask */
+          L7_ushort16 start;
+          L7_ushort16 end;
+          L7_ushort16 new_start;
+          L7_ushort16 new_end;
+          L7_ushort16 mask;
+          int i;
+
           memset(&srcL4Port, 0, sizeof(srcL4Port));
           srcL4Port.portStart = osapiHtons(p->srcStartPort);
           srcL4Port.portEnd   = osapiHtons(p->srcEndPort);
-          srcL4Port.portMask  = osapiHtons(L7_QOS_ACL_TLV_MATCH_SRCL4PORT_MASK);
+
+          start = p->srcStartPort;
+          end = p->srcEndPort;
+
+          for (i=0; i<32;i++)
+          {
+            if (start == end)
+              break;
+
+            start >>= 1;
+            end >>= 1;
+          }
+
+          mask = L7_QOS_ACL_TLV_MATCH_SRCL4PORT_MASK & ~((1<<i)-1);
+
+          new_start = p->srcStartPort & mask;
+          new_end = new_start | (~mask);
+
+          LOG_DEBUG(LOG_CTX_PTIN_MSG, "SRCL4 Range: [%d-%d] -> [%d->%d]", p->srcStartPort, p->srcEndPort, new_start, new_end);
+
+          /* PTIN Changed: srcL4Port.portMask  = osapiHtons(L7_QOS_ACL_TLV_MATCH_SRCL4PORT_MASK); */
+          srcL4Port.portMask  = osapiHtons(mask);
           rc=tlvWrite(tlvHandle, L7_QOS_ACL_TLV_MATCH_SRCL4PORT_TYPE, L7_QOS_ACL_TLV_MATCH_SRCL4PORT_LEN, (L7_uchar8*)&srcL4Port);
         }
 
