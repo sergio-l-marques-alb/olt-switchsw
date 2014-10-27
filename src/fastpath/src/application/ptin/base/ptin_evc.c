@@ -255,7 +255,11 @@ static dl_queue_t queue_free_flows;   /* Flows (busy) queues are mapped on each 
 #if (1)   /* EVCid extended feature */
 /* Vlan Queues */
 static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
+
+/* No E-TREEs */
+#if 0
 static struct ptin_queue_s      queues_pool[PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS];
+#endif
 
 typedef enum
 {
@@ -275,8 +279,11 @@ typedef enum
 } ptin_evc_maclearn_enum_t;
 
 static dl_queue_t queue_free_vlans[PTIN_VLAN_TYPE_MAX][PTIN_VLAN_MACLEARN_MAX];
+/* No E-TREEs */
+#if 0
 static dl_queue_t queue_free_queues_etree[PTIN_VLAN_TYPE_MAX];
 static dl_queue_t queue_free_vlans_etree[PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS];
+#endif
 #endif
 
 /* List with all the ports/lags used by EVCs */
@@ -3432,6 +3439,13 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
     return L7_SUCCESS;
   }
 
+  /* Check if there is available clients */
+  if (queue_free_clients.n_elems == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: No available clients", evc_id);
+    return L7_FAILURE;
+  }
+
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: adding bridge [Root: Intf=%u IntVID=%u] <=> [Leaf: Intf=%u NEW Out.VID=%u Inn.VID=%u] ...", evc_id,
            root_intf, evcs[evc_id].rvlan, leaf_intf, evcBridge->intf.vid, evcBridge->inn_vlan);
 
@@ -3788,7 +3802,7 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
 
 
 
-void dump_intf_vp_DB(void)
+void dump_intf_vp_db(void)
 {
   intf_vp_DB(4,NULL);
 }
@@ -7486,79 +7500,81 @@ static void ptin_evc_vlan_pool_init(void)
 {
 #if (1)   /* EVCid extended feature */
   L7_uint i;
-  L7_uint block;
+  //L7_uint block;
 
   memset(queue_free_vlans, 0x00, sizeof(queue_free_vlans));
 
   /* ELAN vlans */
   /* Bitstream with no MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM][PTIN_VLAN_MACLEARN_OFF]);
-  for (i=PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM][PTIN_VLAN_MACLEARN_OFF], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"Bitstream vlans (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_VLAN_MACLEARN_OFF,
-           PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MIN, PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MAX);
+           PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MIN, i-1);
   /* Broadcast with no MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST][PTIN_VLAN_MACLEARN_OFF]);
-  for (i=PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST][PTIN_VLAN_MACLEARN_OFF], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"Broadcast vlans (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_CPU_BCAST, PTIN_VLAN_MACLEARN_OFF,
-           PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MIN, PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MAX);
+           PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MIN, i-1);
   /* Multicast with no MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST][PTIN_VLAN_MACLEARN_OFF]);
-  for (i=PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST][PTIN_VLAN_MACLEARN_OFF], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"Multicast vlans (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_VLAN_MACLEARN_OFF,
-           PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MIN, PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MAX);
+           PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MIN, i-1);
 
   /* Bitstream with MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM][PTIN_VLAN_MACLEARN_ON]);
-  for (i=PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM][PTIN_VLAN_MACLEARN_ON], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"Bitstream vlans with MACLRN (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_BITSTREAM, PTIN_VLAN_MACLEARN_ON,
-           PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN, PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MAX);
+           PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN, i-1);
   /* Broadcast with MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST][PTIN_VLAN_MACLEARN_ON]);
-  for (i=PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_BCAST][PTIN_VLAN_MACLEARN_ON], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"Broadcast vlans with MACLRN (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_CPU_BCAST, PTIN_VLAN_MACLEARN_ON,
-           PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MIN, PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MAX);
+           PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MIN, i-1);
   /* Multicast with MAC learning vlans */
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST][PTIN_VLAN_MACLEARN_ON]);
-  for (i=PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MIN; i<=PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_CPU_MCAST][PTIN_VLAN_MACLEARN_ON], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"Multicast vlans with MACLRN (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_CPU_MCAST, PTIN_VLAN_MACLEARN_ON,
-           PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MIN, PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MAX);
+           PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MIN, i-1);
 
   /* QUATTRO P2P vlans */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON]);
-  for (i=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX; i++)
+  for (i=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN; i<=PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON], (dl_queue_elem_t*)&vlans_pool[i]);
   }
   LOG_INFO(LOG_CTX_PTIN_EVC,"QUATTRO vlans (type=%u/%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_VLAN_MACLEARN_ON,
-           PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MAX);
+           PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
   #endif
 
+  /* No E-TREEs */
+  #if 0
   /* E-Tree blocks */
   for (block=0; block<PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS; block++)
   {
@@ -7574,6 +7590,7 @@ static void ptin_evc_vlan_pool_init(void)
       dl_queue_add(&queue_free_vlans_etree[block], (dl_queue_elem_t*)&vlans_pool[i]);
     }
   }
+
   /* E-Tree free vlan queues */
   memset(queue_free_queues_etree, 0x00, sizeof(queue_free_queues_etree));
   dl_queue_init(&queue_free_queues_etree[PTIN_VLAN_TYPE_CPU]);
@@ -7589,6 +7606,7 @@ static void ptin_evc_vlan_pool_init(void)
     else
       dl_queue_add(&queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&queues_pool[i]);
   }
+  #endif
 #endif
 
   /* Reset 'evcId reference from internal vlan' array*/
@@ -7803,7 +7821,7 @@ static L7_RC_t ptin_evc_matrix_vlan_free(L7_uint16 vlan)
  */
 static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_flags, dl_queue_t **freeVlan_queue)
 {
-  struct ptin_queue_s *fv_queue;
+  //struct ptin_queue_s *fv_queue;
 
   if (evc_id >= PTIN_SYSTEM_N_EVCS)
   {
@@ -7811,6 +7829,8 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
     return L7_FAILURE;
   }
 
+  /* No E-TREEs */
+  #if 0
   /* E-Tree EVCs */
   if ((evc_flags & PTIN_EVC_MASK_ETREE))
   {
@@ -7842,7 +7862,9 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
               ((L7_uint32) *freeVlan_queue - (L7_uint32) queue_free_vlans_etree)/sizeof(dl_queue_t));
   }
   /* Quattro EVCs */
-  else if (evc_flags & PTIN_EVC_MASK_QUATTRO)
+  else
+  #endif
+  if (evc_flags & PTIN_EVC_MASK_QUATTRO)
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON];
@@ -7911,7 +7933,8 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
  */
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
 {
-  L7_uint32 pool_index, i, j;
+  //L7_uint32 pool_index;
+  L7_uint32 i, j;
 
   /* No (free vlan) queue provided */
   if (freeVlan_queue == L7_NULLPTR)
@@ -7932,6 +7955,8 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
     }
   }
 
+  /* No E-TREEs */
+  #if 0
   pool_index = ((L7_uint32) freeVlan_queue - (L7_uint32) &queue_free_vlans_etree[0])/sizeof(dl_queue_t);
 
   /* Validate pointer address */
@@ -7955,6 +7980,7 @@ static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue)
     dl_queue_add_head(&queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t *) &queues_pool[pool_index]);
     LOG_TRACE(LOG_CTX_PTIN_EVC, "Freed free vlan queue index=%u (%u available)", pool_index, queue_free_queues_etree[PTIN_VLAN_TYPE_BITSTREAM].n_elems);
   }
+  #endif
 
   return L7_SUCCESS;
 }

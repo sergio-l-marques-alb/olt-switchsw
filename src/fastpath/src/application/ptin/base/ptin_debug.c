@@ -172,7 +172,7 @@ void ptin_debug(void)
   printf("  log_color_set <ctx_mask> <color>                          - use log_help for more info\r\n");
   printf("  l7_logf_enable <enable>             - Enable/disable L7_LOGF traces\r\n");
   printf("\r\n");
-  printf("  dump_IfN_vp_DB                                            - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
+  printf("  dump_intf_vp_db                                           - dumps virtual port scratchpad (ifNum, PON, GEMid)\r\n");
   printf("  dump_uplinkprot_traps                                     - info about ports/MEPs with uplink protection port traps triggered\r\n");
   printf("\r\n");
   printf("  mgmd.cli                                                  - Show MGMD help\r\n");
