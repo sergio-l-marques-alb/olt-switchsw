@@ -40,7 +40,7 @@
 # define PTIN_SYSTEM_10G_PORTS_MASK    0x0000F000
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
-# define PTIN_SYSTEM_N_EVCS            2048  /* Maximum nr of EVCs allowed in this equipment */
+# define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         8192  /* Maximum nr of clients allowed in this equipment */
 # define PTIN_SYSTEM_N_FLOWS_MAX       8192  /* Maximum nr of flows (total) */
 
@@ -53,9 +53,12 @@
 # define PTIN_SYSTEM_EVC_CPU_VLAN_BLOCKS          (PTIN_SYSTEM_EVC_CPU_BCAST_VLAN_BLOCKS + PTIN_SYSTEM_EVC_CPU_MCAST_VLAN_BLOCKS)
 # define PTIN_SYSTEM_EVC_BITSTREAM_VLAN_BLOCKS    32    /* Number of vlan blocks for Bitstream services */
 # define PTIN_SYSTEM_EVC_ELAN_VLAN_BLOCKS         (PTIN_SYSTEM_EVC_BITSTREAM_VLAN_BLOCKS + PTIN_SYSTEM_EVC_CPU_VLAN_BLOCKS)
+/* No E-TREEs */
+#if 0
 # define PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_BLOCKS    16
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_BLOCKS     15    /* Number of vlan blocks for E-Tree Bitstream services */
 # define PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS        (PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_BLOCKS + PTIN_SYSTEM_EVC_ETREE_BS_VLAN_BLOCKS)
+#endif
 
 # define PTIN_SYSTEM_EVC_MACLRN_VLAN_BLOCKS       8     /* Number of vlan blocks for CPU services with MAC learning */
 
@@ -109,6 +112,8 @@
 #  define PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK     (~(PTIN_SYSTEM_EVC_QUATTRO_VLANS-1) & 0xfff) /*0x0c00*/
 # endif
 
+/* No E-TREEs */
+#if 0
 /* E-Tree Vlans */
 # define PTIN_SYSTEM_EVC_ETREE_VLAN_MIN        3072
 # define PTIN_SYSTEM_EVC_ETREE_VLAN_MAX       (PTIN_SYSTEM_EVC_ETREE_VLAN_MIN + PTIN_SYSTEM_EVC_ETREE_VLAN_BLOCKS*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK - 1)
@@ -119,6 +124,7 @@
 
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN    (PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MAX + 1)
 # define PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MAX    (PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN + PTIN_SYSTEM_EVC_ETREE_BS_VLAN_BLOCKS*PTIN_SYSTEM_EVC_VLANS_PER_BLOCK - 1)
+#endif
 
 # define PTIN_SYSTEM_N_IGMP_INSTANCES               40    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP        (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
