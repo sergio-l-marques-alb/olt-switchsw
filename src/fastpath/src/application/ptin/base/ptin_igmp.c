@@ -2358,16 +2358,15 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
     {
       L7_uint16 noOfClientsFound=0;
 
-      for(clientId = 0; clientId<(sizeof(clientGroup->client_bmp_list)*8); ++clientId)
+      for(clientId = 0; clientId<PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
       {
         L7_uint32  groupCount;
         L7_uint32  groupCountperMsg = 0;
-
-        /*Check if this position on the Client Array is Empty*/
-        if(clientGroup->client_bmp_list[clientId] == 0)
+      
+        if(clientGroup->client_bmp_list[clientId/(sizeof(L7_uint32)*8)] == 0)
         {
           //Next Position on the Array of Clients. -1 since the for adds 1 unit.
-          clientId += (sizeof(L7_uint32) * 8) - 1;
+          clientId += (sizeof(L7_uint32)*8) - 1;
           continue;
         }
 
@@ -9531,13 +9530,13 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   if(noOfClients>0)
   {
     L7_uint16 noOfClientsFound=0;
-    for(clientId=0; clientId<(sizeof(clientInfo->client_bmp_list)*8); ++clientId)
+    for (clientId = 0; clientId < PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
     {
       /*Check if this position on the Client Array is Empty*/
-      if(clientInfo->client_bmp_list[clientId] == 0)
+      if(clientInfo->client_bmp_list[clientId/(sizeof(L7_uint32)*8)] == 0)
       {
         //Next Position on the Array of Clients. -1 since the for adds 1 unit.
-        clientId += (sizeof(clientInfo->client_bmp_list[clientId]) * 8) - 1;
+        clientId += (sizeof(L7_uint32)*8) - 1;
         continue;
       }
 
@@ -9838,13 +9837,13 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
     return L7_FAILURE;
   }
 
-  for(clientId=0; clientId<(sizeof(clientInfo->client_bmp_list)*8); ++clientId)
+  for(clientId=0; clientId<PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
   {
     /*Check if this position on the Client Array is Empty*/
-    if(clientInfo->client_bmp_list[clientId] == 0)
+    if(clientInfo->client_bmp_list[clientId/(sizeof(L7_uint32)*8)] == 0)
     {
-      //Next Position on the Array of Clients -1 since the for adds 1 unit.
-      clientId += (sizeof(clientInfo->client_bmp_list[clientId]) * 8) - 1;      
+      //Next Position on the Array of Clients. -1 since the for adds 1 unit.
+      clientId += (sizeof(L7_uint32)*8) - 1;
       continue;
     }
 
