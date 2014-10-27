@@ -3201,6 +3201,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
                   PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK);
       #endif
 
+        /* No E-TREEs */
+        #if 0
         /* E-tree range */
         vlanId = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN;
         vlan_match = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK;
@@ -3215,6 +3217,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "BC storm control -> E-TREE vlans: %u/0x%x",
                   PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN, PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK);
+        #endif
       } while ( 0 );
 
       /* Commit policy if success */
@@ -3330,6 +3333,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
                   PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK);
       #endif
 
+        /* No E-TREEs */
+        #if 0
         /* E-tree range */
         vlanId = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN;
         vlan_match = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK;
@@ -3344,6 +3349,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "MC storm control -> E-TREE vlans: %u/0x%x",
                   PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN, PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK);
+        #endif
       } while ( 0 );
 
       /* Commit policy if success */
@@ -3459,6 +3465,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC storm control -> STD BC vlans: %u/0x%x",
                   PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MIN, PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MASK);
 
+        /* No UnknownUC control for bitstream services */
+      #if 0
         /* Bitstream vlans */
         vlanId = PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN;
         vlan_match = PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MASK;
@@ -3471,6 +3479,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC storm control -> Bitstream vlans: %u/0x%x",
                   PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN, PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MASK);
+      #endif
 
       #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED)
         /* QUATTRO vlans */
@@ -3487,6 +3496,8 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
                   PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK);
       #endif
 
+        /* No E-TREEs */
+        #if 0
         /* E-tree range */
         vlanId = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN;
         vlan_match = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK;
@@ -3501,6 +3512,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
 
         LOG_TRACE(LOG_CTX_PTIN_HAPI, "Unknown UC storm control -> E-TREE vlans: %u/0x%x",
                   PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN, PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MASK);
+        #endif
       } while ( 0 );
 
       /* Commit policy if success */
