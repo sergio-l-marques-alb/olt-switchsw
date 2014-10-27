@@ -1083,6 +1083,20 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
         ipsgInfo->ipsgEntryTable.currentStaticBindings--;
       memset((L7_uchar8 *)&dsNode, 0, sizeof(dsNode));
       memcpy(&dsNode.key.macAddr, macAddr, L7_ENET_MAC_ADDR_LEN);
+      if ( ipAddr->family == L7_AF_INET )
+      {
+        dsNode.key.ipType = L7_AF_INET;
+      }
+      else if ( ipAddr->family == L7_AF_INET6 )
+      {
+          dsNode.key.ipType = L7_AF_INET6;
+      }
+      else
+      {
+        L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_LOG_COMPONENT_DEFAULT,
+            "INET_ADDR:Invalid FamilyType - %d", ipAddr->family);
+        return L7_FAILURE;
+      }
 
       /* Check if there exists an Dynamic Entry */
       if (dsBindingFind(&dsNode,L7_MATCH_EXACT) == L7_SUCCESS)
