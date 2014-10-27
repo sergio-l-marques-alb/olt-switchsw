@@ -85,7 +85,7 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
       return ERROR_CODE_INVALIDPARAM;
 
     case L7_REQUEST_DENIED:
-      return ERROR_CODE_NOTALLOWED;
+      return ERROR_CODE_USED;
 
     case L7_NOT_IMPLEMENTED_YET:
       return ERROR_CODE_NOTIMPLEMENTED;
