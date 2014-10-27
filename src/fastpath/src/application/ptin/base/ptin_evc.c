@@ -10345,6 +10345,10 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *pr
   }
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
+  /* Use internal VLAN */
+  profile->outer_vlan_in = 0;
+  profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+
   /* Apply policy */
   rc = ptin_evcStats_delete(profile);
 
