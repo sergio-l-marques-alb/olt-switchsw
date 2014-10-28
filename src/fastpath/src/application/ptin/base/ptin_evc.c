@@ -4266,7 +4266,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     evcs[evc_id].n_clients--;
 
   /* If no more flows, remove instances */
-  if (IS_EVC_P2P(evc_id) || evcs[evc_id].intf[ptin_port].clients.n_elems == 0)
+  if (IS_EVC_P2P(evc_id) || evcs[evc_id].n_clients == 0)
   {
     if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
