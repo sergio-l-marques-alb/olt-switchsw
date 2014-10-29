@@ -134,7 +134,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   BROAD_POLICY_TYPE_t  policyType = BROAD_POLICY_TYPE_PTIN;
   L7_uint8             drop = 0;
   L7_uint8             mask[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-                                   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+                                    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+  L7_uint64            profile_macAddr;
   L7_RC_t              result;
   ptin_hapi_intf_t     portDescriptor;
   pbmp_t               pbm, pbm_mask;
@@ -185,12 +186,21 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_in  =%u",profile->inner_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," IVID_out =%u",profile->inner_vlan_out);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OCOS     =%u",profile->cos);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI," MACaddr  =%02x:%02x:%02x:%02x:%02x:%02x",profile->macAddr[0],profile->macAddr[1],profile->macAddr[2],profile->macAddr[3],profile->macAddr[4],profile->macAddr[5]);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," meter: cir=%u eir=%u cbs=%u ebs=%u",profile->meter.cir,profile->meter.eir,profile->meter.cbs,profile->meter.ebs);
   }
   else
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"No provided profile!");
   }
+
+  /* Store MAC address in a more friendly way */
+  profile_macAddr = (L7_uint64) profile->macAddr[0]<<40 ||
+                    (L7_uint64) profile->macAddr[1]<<32 ||
+                    (L7_uint64) profile->macAddr[2]<<24 ||
+                    (L7_uint64) profile->macAddr[3]<<16 ||
+                    (L7_uint64) profile->macAddr[4]<<8 ||
+                    (L7_uint64) profile->macAddr[5];
 
   /* If policer is not provided, try to find in database an entry with matching inputs of profile */
   if (policer_ptr==L7_NULLPTR && profile!=L7_NULLPTR)
@@ -219,7 +229,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
         /*(profile->outer_vlan_in==0 || profile->outer_vlan_in>=4096) &&*/
         (profile->outer_vlan_internal==0 || profile->outer_vlan_internal>=4096) &&
         (profile->outer_vlan_out==0 || profile->outer_vlan_out>=4096) &&
-        (profile->inner_vlan_in==0 || profile->inner_vlan_in>=4096)) ||
+        (profile->inner_vlan_in==0 || profile->inner_vlan_in>=4096) &&
+        (profile_macAddr == 0)) ||
        (profile->meter.cir>=BW_MAX ) )
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI,"Found conflicting data");
@@ -257,6 +268,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
          ( policer_ptr->cos  != profile->cos && policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos>=L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos<L7_COS_INTF_QUEUE_MAX_COUNT) ||
          ( policer_ptr->cos<L7_COS_INTF_QUEUE_MAX_COUNT && profile->cos>=L7_COS_INTF_QUEUE_MAX_COUNT) ||
+         ( memcmp(policer_ptr->macAddr, profile->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN) != 0 ) ||
          ( policer_ptr->meter.cir != profile->meter.cir ) ||
          ( policer_ptr->meter.eir != profile->meter.eir ) ||
          ( policer_ptr->meter.cbs != profile->meter.cbs ) ||
@@ -465,6 +477,18 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
     }
   }
 
+  /* MAC address */
+  if (profile_macAddr != 0)
+  {
+    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, (L7_uint8 *) profile->macAddr, (L7_uint8 *) mask))!=L7_SUCCESS)
+    {
+      hapiBroadPolicyCreateCancel();
+      LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(BROAD_FIELD_MACDA)");
+      return result;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"BROAD_FIELD_MACDA qualifier added");
+  }
+
   if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DROP, (L7_uint8 *)&drop, (L7_uint8 *) mask))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
@@ -542,6 +566,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **p
   policer_ptr->inner_vlan_in        = profile->inner_vlan_in;
   policer_ptr->inner_vlan_out       = profile->inner_vlan_out;
   policer_ptr->cos                  = profile->cos;
+  memcpy(policer_ptr->macAddr, profile->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   policer_ptr->meter                = profile->meter;
   policer_ptr->policy_id            = policyId;
                               
@@ -677,6 +702,7 @@ static void bwPolicy_clear_data(void *policy_ptr)
   ptr->inner_vlan_in        = 0;
   ptr->inner_vlan_out       = 0;
   ptr->cos                  = -1;
+  memset(ptr->macAddr, 0x00, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
   ptr->meter.cir = ptr->meter.cbs = 0;
   ptr->meter.eir = ptr->meter.ebs = 0;
 }
@@ -716,7 +742,11 @@ static L7_BOOL bwPolicy_compare(DAPI_USP_t *usp, void *profile_ptr, const void *
   if (profile->inner_vlan_in !=ptr->inner_vlan_in )  return L7_FALSE;
   if (profile->inner_vlan_out!=ptr->inner_vlan_out)  return L7_FALSE;
 
+  /* COS */
   if (profile->cos !=ptr->cos)  return L7_FALSE;
+
+  /* MAC addr */
+  if (memcmp(profile->macAddr, ptr->macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN) != 0)  return L7_FALSE;
 
   return L7_TRUE;
 }
@@ -766,6 +796,7 @@ void ptin_bwpolicer_dump_debug(void)
     printf("  IVID_in  = %u\r\n",ptr->inner_vlan_in);
     printf("  IVID_out = %u\r\n",ptr->inner_vlan_out);
     printf("  COS      = %u\r\n",ptr->cos);
+    printf("  MAC      = %02x:%02x:%02x:%02x:%02x:%02x\r\n",ptr->macAddr[0],ptr->macAddr[1],ptr->macAddr[2],ptr->macAddr[3],ptr->macAddr[4],ptr->macAddr[5]);
     printf("  meter: cir=%u eir=%u cbs=%u ebs=%u\r\n",ptr->meter.cir,ptr->meter.eir,ptr->meter.cbs,ptr->meter.ebs);
     printf("  policy_id = %u\r\n",ptr->policy_id);
     /* Also print hw group id and entry id*/
