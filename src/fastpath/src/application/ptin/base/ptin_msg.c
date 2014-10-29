@@ -409,7 +409,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 #endif
 
 
-#if PTIN_BOARD_IS_LINECARD
+#if (PTIN_BOARD_IS_MATRIX)
   /* Reset MGMD General Querier state */
   rc = ptin_igmp_generalquerier_reset();
   if (rc!=L7_SUCCESS)
