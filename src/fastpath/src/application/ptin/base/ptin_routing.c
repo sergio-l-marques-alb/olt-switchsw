@@ -694,7 +694,7 @@ L7_RC_t ptin_routing_intf_ipaddress_set(ptin_intf_t* routingIntf, L7_uchar8 ipFa
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting routing interface %u IP address to %s/%s", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr));
   if((rc = usmDbIpRtrIntfIPAddressSet(PTIN_ROUTING_USMDB_UNITINDEX, intfNum, ipAddr, subnetMask, L7_INTF_IP_ADDR_METHOD_CONFIG)) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %s%u IP address to %s/%s (rc = %u)", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr), rc);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set routing interface %u IP address to %s/%s (rc = %u)", intfNum, inetAddrPrint(&inetIpAddr, ipAddrStr), inetAddrPrint(&inetIpSubnet, ipSubnetStr), rc);
     return L7_FAILURE;
   }
 
