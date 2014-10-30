@@ -91,7 +91,7 @@ L7_uint8 ptin_fgpa_mx_is_matrixactive_rt(void)
 *************************************************************************/
 L7_uint8 ptin_fgpa_mx_get_matrixactive(void)
 {
-  int current_state = PTIN_SLOT_UNDEF;
+  int current_state = -1;
   static int previous_state = -1;
 
   if((cpld_map->reg.mx_get_active & 0x03) == 0x02) {

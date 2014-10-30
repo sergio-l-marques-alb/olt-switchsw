@@ -31,7 +31,6 @@
 
 # define PTIN_SLOT_WORK                0
 # define PTIN_SLOT_PROT                1
-# define PTIN_SLOT_UNDEF               2
 
 # define PTIN_SYSTEM_N_PORTS           64
 # define PTIN_SYSTEM_N_PONS            0 
