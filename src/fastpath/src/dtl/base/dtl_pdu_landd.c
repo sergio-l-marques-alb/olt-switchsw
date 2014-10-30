@@ -276,11 +276,11 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   sendData.cmdData.send.flags = 0;
 
 #if PTIN_BOARD_IS_MATRIX  
-  /* Do nothing for slave matrix */
-  if (!ptin_fgpa_mx_is_matrixactive())
+  /* Do nothing for Stanby matrix */
+  if (!ptin_fgpa_mx_is_matrixactive_rt())
   {
     if (ptin_debug_dtl)
-      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission [intfNum:%u]. I'm a Slave Matrix",dtlCmdInfo->intfNum);
+      LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission [intfNum:%u]. I'm a Stanby Matrix",dtlCmdInfo->intfNum);
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
   }

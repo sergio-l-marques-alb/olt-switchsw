@@ -43,6 +43,38 @@
 *************************************************************************/
 L7_uint8 ptin_fgpa_mx_is_matrixactive(void);
 
+/**************************************************************************
+*
+* @purpose  Verify if this Matrix is Currently in Active State.
+*           (Only for Matrix board)
+*
+* @param    void
+*
+* @returns  TRUE or FALSE
+*
+* @comments 
+*
+* @end
+*
+*************************************************************************/
+L7_uint8 ptin_fgpa_mx_is_matrixactive_rt(void);
+
+/**************************************************************************
+*
+* @purpose  Verify if this Matrix is Currently in Active State.
+*           (Only for Matrix board)
+*
+* @param    void
+*
+* @returns  TRUE or FALSE
+*
+* @comments 
+*
+* @end
+*
+*************************************************************************/
+L7_uint8 ptin_fgpa_mx_get_matrixactive(void);
+
 /**
  * Check if current Matrix is the Working one (slot 1) 
  * (Only for Matrix board)
