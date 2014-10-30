@@ -1896,6 +1896,20 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
       *intIfNum = minimum + ptin_intf->intf_id;
     }
   }
+  else if(ptin_intf->intf_type == PTIN_EVC_INTF_LOOPBACK)
+  {
+    if(ptin_intf->intf_id == (L7_uint8)-1)
+    {
+      *intIfNum = (L7_uint32)-1;
+    }
+    else
+    {
+      L7_uint32 minimum, maximum;
+
+      nimIntIfNumRangeGet(L7_LOOPBACK_INTF, &minimum, &maximum);
+      *intIfNum = minimum + ptin_intf->intf_id;
+    }
+  }
   else
   {
     /* Calculate ptin_port index */
