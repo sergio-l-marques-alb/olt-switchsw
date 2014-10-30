@@ -43,6 +43,75 @@ L7_uint8 ptin_fgpa_mx_is_matrixactive(void)
   return (cpld_map->reg.mx_is_active != 0);
 }
 
+/**************************************************************************
+*
+* @purpose  Verify if this Matrix is Currently in Active State.
+*           (Only for Matrix board)
+*
+* @param    void
+*
+* @returns  TRUE or FALSE
+*
+* @comments 
+*
+* @end
+*
+*************************************************************************/
+L7_uint8 ptin_fgpa_mx_is_matrixactive_rt(void)
+{
+  if (ptin_fgpa_mx_get_matrixactive()==PTIN_SLOT_WORK && !ptin_fgpa_mx_is_matrix_in_workingslot())
+  {
+    /* Running on Stanby matrix */
+    return 0;
+  }
+  if (ptin_fgpa_mx_get_matrixactive()==PTIN_SLOT_PROT && ptin_fgpa_mx_is_matrix_in_workingslot())
+  {
+    /* Running on Stanby matrix */
+    return 0;
+  }
+
+  /* Running on Active matrix */
+  return 1;
+
+}
+
+/**************************************************************************
+*
+* @purpose  Verify if this Matrix is Currently in Active State.
+*           (Only for Matrix board)
+*
+* @param    void
+*
+* @returns  TRUE or FALSE
+*
+* @comments 
+*
+* @end
+*
+*************************************************************************/
+L7_uint8 ptin_fgpa_mx_get_matrixactive(void)
+{
+  int current_state = PTIN_SLOT_UNDEF;
+  static int previous_state = -1;
+
+  if((cpld_map->reg.mx_get_active & 0x03) == 0x02) {
+      //Master Matrix was set to active
+      current_state = PTIN_SLOT_WORK;
+  }
+  else if ((cpld_map->reg.mx_get_active & 0x03) == 0x01) {
+      // Slave Matrix was set to active
+      current_state = PTIN_SLOT_PROT;
+  }
+  else
+  {
+      current_state = previous_state;
+  }
+
+  previous_state = current_state;
+  return current_state; 
+//return PTIN_SLOT_WORK;
+}
+
 /**
  * Check if current Matrix is the Working one (slot 1) 
  * (Only for Matrix board)
