@@ -1836,6 +1836,14 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     ptin_intf->intf_type = PTIN_EVC_INTF_ROUTING;
     ptin_intf->intf_id   = intIfNum - minimum;
   }
+  else if(intfType == L7_LOOPBACK_INTF)
+  {
+    L7_uint32 minimum, maximum;
+    nimIntIfNumRangeGet(L7_LOOPBACK_INTF, &minimum, &maximum);
+
+    ptin_intf->intf_type = PTIN_EVC_INTF_LOOPBACK;
+    ptin_intf->intf_id   = intIfNum - minimum;
+  }
   else
   {
     /* Get ptin_port*/
@@ -1893,6 +1901,20 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
       L7_uint32 minimum, maximum;
 
       nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minimum, &maximum);
+      *intIfNum = minimum + ptin_intf->intf_id;
+    }
+  }
+  else if(ptin_intf->intf_type == PTIN_EVC_INTF_LOOPBACK)
+  {
+    if(ptin_intf->intf_id == (L7_uint8)-1)
+    {
+      *intIfNum = (L7_uint32)-1;
+    }
+    else
+    {
+      L7_uint32 minimum, maximum;
+
+      nimIntIfNumRangeGet(L7_LOOPBACK_INTF, &minimum, &maximum);
       *intIfNum = minimum + ptin_intf->intf_id;
     }
   }

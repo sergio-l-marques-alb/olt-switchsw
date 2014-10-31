@@ -1532,7 +1532,7 @@ typedef struct
    L7_uint32            ipAddress;
    L7_uint32            subnetMask;
    L7_uint32            mtu;
-} __attribute__((packed)) msg_RoutingIpv4Intf;
+} __attribute__((packed)) msg_RoutingIntf;
 
 // Message CCMSG_ROUTING_ARPTABLE_GET
 #define CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF        0x000000001

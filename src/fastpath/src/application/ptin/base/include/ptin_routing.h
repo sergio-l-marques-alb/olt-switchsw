@@ -23,10 +23,6 @@
 #define PTIN_ROUTING_ARPTABLE_TYPE_LOCAL    CCMSG_ROUTING_ARPTABLE_TYPE_LOCAL  
 #define PTIN_ROUTING_ARPTABLE_TYPE_GATEWAY  CCMSG_ROUTING_ARPTABLE_TYPE_GATEWAY
 
-#define PTIN_ROUTING_INTF_TYPE_UNKNOWN      0
-#define PTIN_ROUTING_INTF_TYPE_UPLINK       1
-#define PTIN_ROUTING_INTF_TYPE_LOOPBACK     2
-
 /***********************************************************
  * Typedefs
  ***********************************************************/
@@ -46,14 +42,20 @@ L7_RC_t ptin_routing_init(void);
  * Create a new routing interface.
  * 
  * @param routingIntf    : Routing interface
- * @param intfType       : Routing interface type
- * @param physicalIntf   : Physical interface
- * @param routingVlanId  : Vlan ID to which the routing interface will be associated
  * @param internalVlanId : Fastpath's internal Vlan ID for the EVC
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
 L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVlanId);
+
+/**
+ * Create a new routing loopback interface.
+ * 
+ * @param routingIntf    : Routing interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_loopback_create(ptin_intf_t* routingIntf);
 
 /**
  * Remove an existing routing interface.
@@ -99,8 +101,8 @@ L7_RC_t ptin_routing_intf_mtu_set(ptin_intf_t* routingIntf, L7_uint32 mtu);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  *  
- * @note PTIN_ROUTING_INTF_TYPE_LOOPBACK routing interfaces do not have a specific physical interface associated with them.
- *       In those cases, 'physicalIntfNum' is set to (L7_uint16)-1.
+ * @note PTIN_ROUTING_INTF_TYPE_VLAN routing interfaces do not have a specific physical interface associated with 
+ *       them. In those cases, 'physicalIntfNum' is set to (L7_uint16)-1.
  *  
  * @note If this prototype is modified, do not forget to update 'l3_intf.c' file as I was required to place an extern 
  *       prototype declaration of this method there.

@@ -9598,10 +9598,9 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIpv4Intf* data)
+L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
 {
   ptin_intf_t routingIntf;
-  L7_uint16   internalVlan;
 
   /* Debug */
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Creating new routing interface:");
@@ -9615,17 +9614,31 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIpv4Intf* data)
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
 
-  if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalVlan))
+  if(data->routingIntf.intf_type == PTIN_EVC_INTF_ROUTING)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to convert evc_id to internal root vlan");
-    return L7_FAILURE;
-  }
+     L7_uint16 internalVlan;
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Creating routing interface");
-  if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, internalVlan))
+     if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalVlan))
+     {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to convert evc_id to internal root vlan");
+       return L7_FAILURE;
+     }
+
+     LOG_TRACE(LOG_CTX_PTIN_MSG, "Creating routing interface");
+     if(L7_SUCCESS != ptin_routing_intf_create(&routingIntf, internalVlan))
+     {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new routing interface");
+       return L7_FAILURE;
+     }
+  }
+  else if(data->routingIntf.intf_type == PTIN_EVC_INTF_LOOPBACK)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new routing interface");
-    return L7_FAILURE;
+     LOG_TRACE(LOG_CTX_PTIN_MSG, "Creating loopback interface");
+     if(L7_SUCCESS != ptin_routing_loopback_create(&routingIntf))
+     {
+       LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to create a new loopback interface");
+       return L7_FAILURE;
+     }
   }
 
   LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface IP Address");
@@ -9635,11 +9648,15 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIpv4Intf* data)
     return L7_FAILURE;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface MTU");
-  if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
+  /* @note(Daniel): In v3.4.1, the loopback interfaces are not yet created in Linux. Hence, this command will fail. However, in future versions this MUST be fixed... */
+  if(data->routingIntf.intf_type != PTIN_EVC_INTF_LOOPBACK)
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface MTU");
-    return L7_FAILURE;
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring interface MTU");
+    if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to set interface MTU");
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -9652,7 +9669,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIpv4Intf* data)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIpv4Intf* data)
+L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data)
 {
   ptin_intf_t routingIntf;
 
@@ -9697,7 +9714,7 @@ L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIpv4Intf* data)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIpv4Intf* data)
+L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntf* data)
 {
   ptin_intf_t routingIntf;
 

@@ -21,6 +21,7 @@
 #include "usmdb_nim_api.h"
 #include "ping_exports.h"
 #include "traceroute_exports.h"
+#include "usmdb_rlim_api.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -39,7 +40,14 @@
 #define PTIN_ROUTING_DTL0_MTU_DEFAULT       L7_MAX_FRAME_SIZE
 #define PTIN_ROUTING_INTERFACE_NAME_PREFIX  "rt1_2_"  /* This is derived from rt$UNIT_$SLOT_ */
 #define PTIN_ROUTING_TRACEROUTE_MAX_HOPS    (TRACEROUTE_DEFAULT_MAX_TTL - TRACEROUTE_DEFAULT_INIT_TTL)  /* This is a copy from traceroute.h, which I'm not able to include here */
+#define PTIN_ROUTING_MAX_LOOPBACKID         L7_MAX_NUM_LOOPBACK_INTF - 1 /* This is a copy from clicommands_loopback.h, which I'm not able to include here */
 
+#define PTIN_ROUTING_INTF_TYPE_UNKNOWN      0
+#define PTIN_ROUTING_INTF_TYPE_PHYSICAL     1
+#define PTIN_ROUTING_INTF_TYPE_VLAN         2
+
+#define PTIN_ROUTING_LOOPBACK_ENABLED       0
+#define PTIN_ROUTING_LOOPBACK_DISABLED      1
 
 /*********************************************************** 
  * Typedefs
@@ -47,10 +55,15 @@
 typedef struct ptin_routing_intf_s
 {
   L7_uint8  type;
-  L7_uint16 routingVlanId;
-  L7_uint16 internalVlanId;
-  L7_uint16 physicalIntfNum;
+  L7_uint16 routingVlanId;    
+  L7_uint16 internalVlanId;   
+  L7_uint16 physicalIntfNum;  
 } ptin_routing_intf_t;
+
+typedef struct ptin_routing_loopback_s
+{
+  L7_uint8 enabled;
+} ptin_routing_loopback_t;
 
 typedef struct ptin_routing_arptable_s
 {
@@ -151,6 +164,8 @@ L7_uint32                         __ioctl_socket_fd = 0;
 L7_BOOL                           __is_dtl0_enabled = L7_FALSE;
 L7_uint32                         __routing_interfaces_max;
 ptin_routing_intf_t*              __routing_interfaces;
+L7_uint32                         __routing_loopbacks_max;
+ptin_routing_loopback_t*          __routing_loopbacks;
 dl_queue_t                        __arptable_pool;              //Pool that holds free elements to use in the __arptable_snapshot queue
 dl_queue_t                        __arptable_snapshot;          //Each element is of type ptin_routing_arptable_t
 L7_uint32                         __arptable_entries_max;          
@@ -226,6 +241,30 @@ static L7_int __ioctl_vlanintf_add(L7_uint16 vlanId);
  * @note This removes the routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
  */
 static L7_int __ioctl_vlanintf_remove(L7_uint16 vlanId);
+
+#if 0
+/**
+ * Create a new loopback interface. 
+ *  
+ * @param vlanId : Vlan ID to which the routing interface will be associated
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note This creates a routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
+ */
+static L7_int __ioctl_loopback_create();
+
+/**
+ * Remove an existing loopback interface.
+ *  
+ * @param vlanId : Vlan ID of the routing interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note This removes the routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
+ */
+static L7_int __ioctl_loopback_remove();
+#endif
 
 /**
  * Rename an existing interface.
@@ -343,6 +382,8 @@ L7_RC_t ptin_routing_init(void)
   LOG_INFO(LOG_CTX_PTIN_ROUTING, "Starting initialization");
   __routing_interfaces_max = maxRoutingIntfId - minRoutingIntfId + 1;
   __routing_interfaces     = (ptin_routing_intf_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, __routing_interfaces_max*sizeof(ptin_routing_intf_t));
+  __routing_loopbacks_max  = PTIN_ROUTING_MAX_LOOPBACKID;
+  __routing_loopbacks      = (ptin_routing_loopback_t*) osapiMalloc(L7_PTIN_COMPONENT_ID, __routing_loopbacks_max*sizeof(ptin_routing_loopback_t));
   if(__arptable_snapshot_init() != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to initialize arp table snapshot");
@@ -396,9 +437,6 @@ L7_RC_t ptin_routing_init(void)
  * Create a new routing interface.
  * 
  * @param routingIntf    : Routing interface
- * @param intfType       : Routing interface type
- * @param physicalIntf   : Physical interface
- * @param routingVlanId  : Vlan ID to which the routing interface will be associated
  * @param internalVlanId : Fastpath's internal Vlan ID for the EVC
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
@@ -410,7 +448,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   L7_uint32            i;
   L7_uint8             intfType = PTIN_ROUTING_INTF_TYPE_UNKNOWN;
   L7_uint16            routingVlanId;
-  ptin_intf_t          physicalIntf; //Only used for UPLINK routing interfaces 
+  ptin_intf_t          physicalIntf; //Only used for physical routing interfaces 
 
   if( (routingIntf == L7_NULLPTR) )
   {
@@ -439,10 +477,10 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   }
   for(i=0; i<evc.n_intf; ++i)
   {
-     /* If we find at least one ROOT interface, then this is an uplink routing interface. Otherwise, it is considered a loopback routing interface */
+     /* If we find at least one ROOT interface, then this is an physical routing interface. Otherwise, it is considered a vlan routing interface */
      if(evc.intf[i].mef_type == 0)
      {
-        intfType               = PTIN_ROUTING_INTF_TYPE_UPLINK;
+        intfType               = PTIN_ROUTING_INTF_TYPE_PHYSICAL;
         routingVlanId          = evc.intf[i].vid;
         physicalIntf.intf_type = evc.intf[i].intf_type;
         physicalIntf.intf_id   = evc.intf[i].intf_id;
@@ -451,7 +489,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   }
   if(intfType == PTIN_ROUTING_INTF_TYPE_UNKNOWN) //If we enter here it's because there are no ROOT interfaces in this EVC
   {
-     intfType = PTIN_ROUTING_INTF_TYPE_LOOPBACK;
+     intfType = PTIN_ROUTING_INTF_TYPE_VLAN;
      routingVlanId = evc.intf[0].vid; //There are only leaf interfaces, and they all MUST have the same external VID
   }
 
@@ -507,6 +545,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 
 #if PTIN_BOARD_IS_MATRIX //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
   {
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
@@ -515,13 +554,13 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 #endif /* PTIN_BOARD_IS_MATRIX */
 
   /* 
-     For uplink routing interfaces, set the MAC address to match the MAC address of the physical interface.
-     For loopback routing interfaces, set the MAC address to match the MAC address of the dtl0 interface.
+     For physical routing interfaces, set the MAC address to match the MAC address of the physical interface.
+     For vlan routing interfaces, set the MAC address to match the MAC address of the dtl0 interface.
   */
   __routing_interfaces[routingIntf->intf_id].type           = intfType;
   __routing_interfaces[routingIntf->intf_id].routingVlanId  = routingVlanId;
   __routing_interfaces[routingIntf->intf_id].internalVlanId = internalVlanId;
-  if(intfType == PTIN_ROUTING_INTF_TYPE_UPLINK)
+  if(intfType == PTIN_ROUTING_INTF_TYPE_PHYSICAL)
   {
     L7_enetMacAddr_t macAddr;
     L7_uint32        physicalIntfNum;
@@ -548,6 +587,106 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
     /* Save the physical interface to which we are connected so we can access it later */
     __routing_interfaces[routingIntf->intf_id].physicalIntfNum = physicalIntfNum;
   }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Create a new routing loopback interface.
+ * 
+ * @param routingIntf    : Routing interface
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_routing_loopback_create(ptin_intf_t* routingIntf)
+{
+  L7_uint32 routingIntfNum;
+
+  if( (routingIntf == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    return L7_ERROR;
+  }
+
+  if(routingIntf->intf_id >= __routing_loopbacks_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing loopback ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_loopbacks_max);
+    return L7_FAILURE;
+  }
+
+  /* Ensure the requested interface does not exist (required for flushes) */
+  if(__routing_loopbacks[routingIntf->intf_id].enabled == PTIN_ROUTING_LOOPBACK_DISABLED)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_ROUTING, "Received request to create a loopback that is already enabled. Ignored. [intf_id:%u]", routingIntf->intf_id);
+    return L7_SUCCESS;
+  }
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Ensure that the dtl0 interface is up */
+  if(__is_dtl0_enabled == L7_FALSE)
+  {
+    LOG_INFO(LOG_CTX_PTIN_ROUTING, "Enabling %s interface", PTIN_ROUTING_DTL0_INTERFACE_NAME);
+    if(__ioctl_dtl0_enable() != 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s interface", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+      return L7_FAILURE;
+    }
+    __is_dtl0_enabled = L7_TRUE;
+  }
+
+  /* 
+     If this is not loopback#0, then create a new Linux loopback interface.
+     Loopback#0 is ignored because it is permenantly associated with the EthG1 interface. Hence, only a Fastpath loopback interface is created for it.
+  */
+  if(routingIntf->intf_id != 0)
+  {
+     /* Create a new routing interface */
+//   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Adding vlan %u to interface %s", routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+//   if(__ioctl_vlanintf_add(routingVlanId) != 0)
+//   {
+//     LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to add a new vlan %u to the %s interface", errno, routingVlanId, PTIN_ROUTING_DTL0_INTERFACE_NAME);
+//     return L7_FAILURE;
+//   }
+
+     /* Rename the new routing interface */
+//   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Renaming the new routing interface from %s.%u to %s%u", PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//   if(__ioctl_intf_rename_dtl2rt(routingIntf->intf_id, routingVlanId) != 0)
+//   {
+//     LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to rename the new routing interface from %s.%u to %s%u", errno, PTIN_ROUTING_DTL0_INTERFACE_NAME, routingVlanId, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//     return L7_FAILURE;
+//   }
+
+     /* Enable the new interface */
+//   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Enabling %s%u interface", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//   if(__ioctl_vlanintf_enable(routingIntf->intf_id) != 0)
+//   {
+//     LOG_ERR(LOG_CTX_PTIN_ROUTING, "ioctl error (errno:%d). Unable to enable %s%u interface", errno, PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id);
+//     return L7_FAILURE;
+//   }
+  }
+  
+  /* Create a new loopback interface */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Creating new loopback interface %u", routingIntf->intf_id);
+  if(usmDbRlimLoopbackCreate(routingIntf->intf_id) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to create loopback %u", routingIntf->intf_id);
+    return L7_FAILURE;
+  }
+
+#if 0 //Disabled. Is this required?
+  /* Allow IP/ARP packets through dtl0 for this vlan */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
+  if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to allow IP/ARP packets through dtl0 for this vlan");
+    return L7_FAILURE;
+  }
+#endif /* PTIN_BOARD_IS_MATRIX */
 
   return L7_SUCCESS;
 }
@@ -773,7 +912,7 @@ L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *
     return L7_FAILURE;
   }
 
-  if(__routing_interfaces[routingIntf.intf_id].type == PTIN_ROUTING_INTF_TYPE_UPLINK)
+  if(__routing_interfaces[routingIntf.intf_id].type == PTIN_ROUTING_INTF_TYPE_PHYSICAL)
   {
     *physicalIntfNum = __routing_interfaces[routingIntf.intf_id].physicalIntfNum;
   }
