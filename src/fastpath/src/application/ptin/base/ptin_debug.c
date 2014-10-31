@@ -124,6 +124,7 @@ void ptin_debug(void)
   printf("\r\n");
   printf("  ptin_stormcontrol_dump                                    - Dump storm control configurations\r\n");
   printf("  ptin_bwpolicer_dump_debug                                 - Dump configured bandwidth policers\r\n");
+  printf("  ptin_bwpolicer_flush_debug                                - Flush configured EVC/client policers (at request)\r\n");
   printf("  ptin_fpcounters_dump_debug                                - Dump configured EVC/client counters (at request)\r\n");
   printf("  ptin_fpcounters_flush_debug                               - Flush configured EVC/client counters (at request)\r\n");
   printf("  ptin_vcap_defvid_dump                                     - Flush configured VCAP rules associated to defVID\r\n");

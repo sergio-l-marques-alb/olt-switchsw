@@ -574,6 +574,51 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
 
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vport=0x%x", vlan_port.vlan_port_id);
 
+  #if 0
+  /* MAC learning */
+  error = BCM_E_NONE;
+  do
+  {
+    if ((error=bcm_port_learn_set(0, vlan_port.vlan_port_id, BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL )) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_learn_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
+    if ((error=bcm_port_control_set(0, vlan_port.vlan_port_id, bcmPortControlL2Learn, BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
+    if ((error=bcm_port_control_set(0, vlan_port.vlan_port_id, bcmPortControlL2Move,  BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
+    if ((error=bcm_port_control_set(0, vlan_port.vlan_port_id, bcmPortControlLearnClassEnable, L7_ENABLE)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_port_control_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
+    if ((error=bcm_l2_learn_class_set(0, 1, 1, BCM_L2_LEARN_CLASS_MOVE)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_l2_learn_class_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
+    if ((error=bcm_l2_learn_port_class_set(0, vlan_port.vlan_port_id, 1)) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_l2_learn_port_class_set: error=%d (\"%s\")", error, bcm_errmsg(error));
+      break;
+    }
+  } while (0);
+
+  if (error != BCM_E_NONE)
+  {
+    bcm_vlan_port_destroy(0, vlan_port.vlan_port_id);
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "error=%d (\"%s\")", error, bcm_errmsg(error));
+    return L7_FAILURE;
+  }
+  #endif
+
   /* Configures the information needed to generate alarms related to MAC Limit */
   ptin_hapi_macaddr_config(match_ovid, vlan_port.vlan_port_id, hapiPortPtr->bcm_port, match_ovid);
 
@@ -594,6 +639,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
 
   if ((error=bcm_vlan_translate_egress_action_add(0, vlan_port.vlan_port_id, egress_ovid, 0, &action))!=BCM_E_NONE)
   {
+    bcm_vlan_port_destroy(0, vlan_port.vlan_port_id);
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_translate_egress_action_add(0, %d, %d, %d, &action): error=%d (\"%s\")",
            vlan_port.vlan_port_id, egress_ovid, 0, error, bcm_errmsg(error));
     return L7_FAILURE;

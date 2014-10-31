@@ -393,17 +393,38 @@ L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum2, ptin
 /**
  * Apply/Get bandwidth policer
  *  
+ * @param intIfNum : Interface 
  * @param bw_policer : Bandwidth policer 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t dtlPtinBWPolicer( ptin_bwPolicer_t *bw_policer )
+L7_RC_t dtlPtinBWPolicer( L7_uint32 intIfNum, ptin_bwPolicer_t *bw_policer )
 {
+  nimUSP_t usp;
   DAPI_USP_t ddUsp;
 
-  ddUsp.unit = -1;
-  ddUsp.slot = -1;
-  ddUsp.port = -1;
+  /* Validate arguments */
+  if (bw_policer == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  /* First interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
 
   return dapiCtl(&ddUsp, DAPI_CMD_PTIN_BW_POLICER, (void *) bw_policer);
 }

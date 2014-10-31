@@ -1131,19 +1131,19 @@ L7_RC_t hapiBroadPtinBwPolicer(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
   switch (bwPolicer->operation)  {
     case DAPI_CMD_GET:
-      status=hapi_ptin_bwPolicer_get(&bwPolicer->profile, bwPolicer->policy_ptr);
+      status=hapi_ptin_bwPolicer_get(usp, &bwPolicer->profile, dapi_g);
       break;
 
     case DAPI_CMD_SET:
-      status=hapi_ptin_bwPolicer_set(&bwPolicer->profile, &(bwPolicer->policy_ptr), dapi_g);
+      status=hapi_ptin_bwPolicer_set(usp, &bwPolicer->profile, dapi_g);
       break;
 
     case DAPI_CMD_CLEAR:
-      status=hapi_ptin_bwPolicer_delete(bwPolicer->policy_ptr);
+      status=hapi_ptin_bwPolicer_delete(usp, &bwPolicer->profile, dapi_g);
       break;
             
   case DAPI_CMD_CLEAR_ALL:
-    status=hapi_ptin_bwPolicer_deleteAll();
+    status=hapi_ptin_bwPolicer_deleteAll(usp, &bwPolicer->profile, dapi_g);
     break;
 
     default:
@@ -1182,7 +1182,7 @@ L7_RC_t hapiBroadPtinFpCounters(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
       break;
             
   case DAPI_CMD_CLEAR_ALL:
-    status=hapi_ptin_fpCounters_deleteAll(usp, &fpCounter->profile);
+    status=hapi_ptin_fpCounters_deleteAll(usp, &fpCounter->profile, dapi_g);
     break;
 
     default:

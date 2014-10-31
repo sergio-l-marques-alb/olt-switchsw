@@ -16,41 +16,47 @@ L7_RC_t hapi_ptin_bwPolicer_init(void);
 
 /**
  * Read a field processor entry properties
- * 
- * @param profile : BW profile (returned data)
- * @param policer : BW policer
+ *  
+ * @param usp   
+ * @param profile : BW profile (returned data) 
+ * @param dapi_g  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_policy_t *policer);
+L7_RC_t hapi_ptin_bwPolicer_get(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAPI_t *dapi_g);
 
 /**
  * Add a new field processor entry
- * 
- * @param profile : BW profile
- * @param policer : BW policer
+ *  
+ * @param usp    
+ * @param profile : BW profile 
+ * @param dapi_g  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **policer, DAPI_t *dapi_g);
+L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAPI_t *dapi_g);
 
 /**
  * Remove a field processor entry
- * 
- * @param policer : BW policer
- * 
+ *  
+ * @param usp     
+ * @param profile : BW profile 
+ * @param dapi_g 
+ *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_bwPolicer_delete(ptin_bw_policy_t *policer);
+L7_RC_t hapi_ptin_bwPolicer_delete(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAPI_t *dapi_g);
 
 /**
  * Remove all field processor entries
- * 
- * @param policer : BW policer
+ *  
+ * @param usp      
+ * @param profile : BW profile 
+ * @param dapi_g  
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_bwPolicer_deleteAll(void);
+L7_RC_t hapi_ptin_bwPolicer_deleteAll(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAPI_t *dapi_g);
 
 /**
  * Dump list of bw policers

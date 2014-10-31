@@ -22,39 +22,38 @@
 /**
  * Get BW policer
  * 
- * @param profile : BW profile
- * @param policer : BW policer pointer
+ * @param profile : BW policer profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_policy_t *policer);
+L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile);
 
 /**
  * Add a new BW policer
- *  
- * @param intIfNum : Interface to apply profile 
- * @param profile : BW profile
- * @param policer : BW policer pointer address
+ * 
+ * @param profile : BW policer profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_policy_t **policer);
+L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile);
 
 /**
  * Remove an existent BW policer
  *  
- * @param policer : BW policer pointer
+ * @param profile : BW policer profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_delete(ptin_bw_policy_t *policer);
+L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile);
 
 /**
  * Remove All existent BW policers
  *  
+ * @param profile : BW policer profile
+ *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_deleteAll(void);
+L7_RC_t ptin_bwPolicer_deleteAll(ptin_bw_profile_t *profile);
 
 
 /**

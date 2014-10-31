@@ -767,19 +767,19 @@ L7_RC_t hapi_ptin_fpCounters_delete(DAPI_USP_t *usp, ptin_evcStats_profile_t *pr
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t *profile)
+L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t *profile, DAPI_t *dapi_g)
 {
   L7_int stage;
   ptin_evcStats_policy_t *counter;
   L7_RC_t rc, rc_counter, rc_global=L7_SUCCESS;
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
   if (usp != L7_NULLPTR)
   {
     LOG_TRACE(LOG_CTX_PTIN_HAPI, " ddUsp     = {%d,%d,%d}", usp->unit, usp->slot, usp->port); 
   }
   if (profile != L7_NULLPTR)
   {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Profile contents:");
     LOG_TRACE(LOG_CTX_PTIN_HAPI," ptin_port = %u",profile->ptin_port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_in   = %u",profile->outer_vlan_in);
     LOG_TRACE(LOG_CTX_PTIN_HAPI," OVID_int  = %u",profile->outer_vlan_internal);
@@ -809,11 +809,10 @@ L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t 
       /* Filter parameters: only consider (port) source parameters (not destination) */
       /* Only not null values will be considered */
 
-      if (usp != L7_NULLPTR)
+      if (usp != L7_NULLPTR && (IS_SLOT_TYPE_PHYSICAL(usp, dapi_g) || IS_SLOT_TYPE_LOGICAL_LAG(usp, dapi_g)))
       {
         /* USP matches? */
-        if ((usp->unit>=0 && usp->slot>=0 && usp->port>=0) &&
-            (usp->unit!=counter->ddUsp_src.unit || usp->slot!=counter->ddUsp_src.slot || usp->port!=counter->ddUsp_src.port))
+        if (usp->unit!=counter->ddUsp_src.unit || usp->slot!=counter->ddUsp_src.slot || usp->port!=counter->ddUsp_src.port)
         {
           LOG_TRACE(LOG_CTX_PTIN_HAPI,"Different port");
           continue;
@@ -959,9 +958,10 @@ static L7_BOOL fpCounters_compare(DAPI_USP_t *usp, void *profile_ptr, const void
   if (!ptr->inUse)  return L7_FALSE;
 
   /* Verify interface */
-  if (usp->unit != ptr->ddUsp_src.unit ||
-      usp->slot != ptr->ddUsp_src.slot ||
-      usp->port != ptr->ddUsp_src.port)  return L7_FALSE;
+  if ((usp != L7_NULLPTR) &&
+      (usp->unit != ptr->ddUsp_src.unit ||
+       usp->slot != ptr->ddUsp_src.slot ||
+       usp->port != ptr->ddUsp_src.port))  return L7_FALSE;
 
   /* Verify OVID */
   if (profile->outer_vlan_in       != ptr->outer_vlan_in )      return L7_FALSE;
@@ -1086,7 +1086,7 @@ void ptin_fpcounters_flush_debug(void)
 {
   printf("Flushing all counters...\r\n");
 
-  hapi_ptin_fpCounters_deleteAll(L7_NULLPTR, L7_NULLPTR);
+  hapi_ptin_fpCounters_deleteAll(L7_NULLPTR, L7_NULLPTR, L7_NULLPTR);
 
   printf("Counters flushed!\r\n");
   fflush(stdout);
