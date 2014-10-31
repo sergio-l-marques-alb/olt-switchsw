@@ -334,7 +334,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.egress_type                  = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
   mefExt.macLearn_enable              = L7_TRUE;
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
-  mefExt.macLearn_stationMove_prio    = 1;
+  mefExt.macLearn_stationMove_prio    = 0;
   mefExt.macLearn_stationMove_samePrio= L7_TRUE;
   mefExt.maxChannels                  = 0;            /* Not defined */
   mefExt.maxBandwidth                 = 0;            /* Not defined */
@@ -352,7 +352,7 @@ L7_RC_t ptin_intf_portExt_init(void)
     #if ( !PTIN_BOARD_IS_MATRIX )
     if (port < PTIN_SYSTEM_N_PONS || port < PTIN_SYSTEM_N_ETH)
     {
-      mefExt.macLearn_stationMove_prio = 1;
+      mefExt.macLearn_stationMove_prio = 0;
       mefExt.egress_type = PTIN_PORT_EGRESS_TYPE_ISOLATED;
     }
     else

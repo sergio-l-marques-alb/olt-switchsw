@@ -176,6 +176,12 @@ L7_RC_t ptin_hapi_switch_init(void)
 {
   L7_RC_t    rc = L7_SUCCESS;
 
+  if (bcmx_switch_control_set(bcmSwitchL2DstHitEnable, 0x00)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchL2DstHitEnable switch_control to 0x00");
+    rc = L7_FAILURE;
+  }
+
   if (bcmx_switch_control_set(bcmSwitchClassBasedMoveFailPktDrop,0x01)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchClassBasedMoveFailPktDrop switch_control to 0x01");
