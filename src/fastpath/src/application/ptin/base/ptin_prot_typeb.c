@@ -169,26 +169,46 @@ L7_RC_t ptin_prottypeb_intf_config_get(L7_uint32 intfNum, ptin_prottypeb_intf_co
  */
 L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
 {
+  L7_uint8 previousStatus;
+
   /* Ensure the requested interface is valid */
-  if(intfNum==0 || intfNum>=PTIN_SYSTEM_N_INTERF)
+  if(intfNum==0 || intfNum>=PTIN_SYSTEM_N_INTERF || (status | L7_ENABLE) != L7_ENABLE)
   {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid intfNum[%u]", intfNum);
+    LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid intfNum[%u] status[%u]", intfNum, status);
     return L7_FAILURE;
   }
 
-  #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  if (status == 1 && prottypeb_interfaces[intfNum-1].status != status)
-  {
-    /* Reset MGMD General Querier state */    
-    if (ptin_igmp_generalquerier_reset()!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to reset MGMD General Queriers");
-    }
-  }
-  #endif
+  /*Save Previous Status to Further Use*/
+  previousStatus = prottypeb_interfaces[intfNum-1].status;
 
+  if (previousStatus == status)
+  {
+    return L7_SUCCESS;
+  }
+
+  /*Assign New Status*/
   prottypeb_interfaces[intfNum-1].status = status;
 
+  if (prottypeb_interfaces[intfNum-1].intfRole != PROT_TYPEB_ROLE_NONE)
+  {
+    if (status == L7_ENABLE)
+    {
+      /* Reset MGMD General Querier state */    
+      if (ptin_igmp_generalquerier_reset()!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to reset MGMD General Queriers");
+      }
+    }
+    else if (status == L7_DISABLE)
+    {
+      /* Remove Port from the the MGMD Control Plane*/    
+      if ( ptin_igmp_mgmd_port_remove(intfNum)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to remove protection port from MGMD Control Plane");
+      }     
+    }
+  }
+  
   return L7_SUCCESS;
 }
 

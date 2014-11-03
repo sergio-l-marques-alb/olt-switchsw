@@ -8769,6 +8769,32 @@ L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx)
   return ctrlResMsg.res;
 }
 
+/**
+ * Removes all groups related to this port Id
+ * 
+ * @param intfnum : Multicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 intIfNum)
+{
+  PTIN_MGMD_EVENT_t               reqMsg        = {0};
+  PTIN_MGMD_EVENT_t               resMsg        = {0};
+  PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_PORT_REMOVE_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.portId = intIfNum;
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_PORT_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_PORT_REMOVE_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+
+  return ctrlResMsg.res;
+}
+
 L7_RC_t ptin_igmp_mgmd_whitelist_add(L7_uint16 serviceId, L7_uint32 groupAddr, L7_uint8 groupMaskLen, L7_uint32 sourceAddr, L7_uint8 sourceMaskLen, L7_uint64 bw)
 {
   PTIN_MGMD_EVENT_t                 reqMsg        = {0};
