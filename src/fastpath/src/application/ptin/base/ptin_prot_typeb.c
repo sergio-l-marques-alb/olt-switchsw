@@ -11,6 +11,7 @@
 
 #include "ptin_prot_typeb.h"
 #include "ptin_msghandler.h"
+#include "ptin_igmp.h"
 
 /*********************************************************** 
  * Defines
@@ -174,6 +175,17 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
     LOG_ERR(LOG_CTX_PTIN_PROTB, "Invalid intfNum[%u]", intfNum);
     return L7_FAILURE;
   }
+
+  #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+  if (status == 1 && prottypeb_interfaces[intfNum-1].status != status)
+  {
+    /* Reset MGMD General Querier state */    
+    if (ptin_igmp_generalquerier_reset()!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to reset MGMD General Queriers");
+    }
+  }
+  #endif
 
   prottypeb_interfaces[intfNum-1].status = status;
 
