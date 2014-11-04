@@ -128,9 +128,10 @@ extern int ptin_sys_number_of_ports;
 
 
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
-#define PTIN_VLAN_MAX                 (L7_DOT1Q_MAX_VLAN_ID - 1)
-#define PTIN_VLAN_INBAND              L7_DOT1Q_MAX_VLAN_ID  /* Reserved VLAN for inBand management */
-#define PTIN_VLAN_BL2CPU              (L7_DOT1Q_MAX_VLAN_ID - 1)
+#define PTIN_VLAN_MAX                 L7_DOT1Q_MAX_VLAN_ID
+#define PTIN_RESERVED_VLANS           2
+#define PTIN_VLAN_INBAND              2047  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for inBand management */
+#define PTIN_VLAN_BL2CPU              2046  /* (L7_DOT1Q_MAX_VLAN_ID - 1) */
 #define PTIN_VLAN_BL2CPU_EXT          400
 
 #define PTIN_EVC_INBAND               0 /* inBand EVC id */
