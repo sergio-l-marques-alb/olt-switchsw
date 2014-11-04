@@ -553,6 +553,14 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   }
 #endif /* PTIN_BOARD_IS_MATRIX */
 
+  /* Disable ICMP Redirects on this routing interface. This fixes defect OLTTS-10058/OLTTS-10605 */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Disabling sending of ICMP Redirects on intfIfNum %u.", routingIntfNum);
+  if(usmDbIpMapIfICMPRedirectsModeSet(PTIN_ROUTING_USMDB_UNITINDEX, routingIntfNum, L7_DISABLE) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Error while disabling sending of ICMP Redirects on intfIfNum %u.", routingIntfNum);
+    return L7_FAILURE;
+  }
+
   /* 
      For physical routing interfaces, set the MAC address to match the MAC address of the physical interface.
      For vlan routing interfaces, set the MAC address to match the MAC address of the dtl0 interface.
