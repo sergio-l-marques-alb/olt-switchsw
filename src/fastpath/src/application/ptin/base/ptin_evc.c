@@ -2644,14 +2644,14 @@ L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf)
   if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u not existent", evc_ext_id);
-    return L7_FAILURE;
+    return L7_DEPENDENCY_NOT_MET;
   }
 
   /* EVC must be active */
   if (!evcs[evc_idx].in_use)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC %u / EVC %u not active", evc_ext_id, evc_idx);
-    return L7_FAILURE;
+    return L7_DEPENDENCY_NOT_MET;
   }
 
   /* For unstacked P2P services, don't allow ports change */
@@ -2743,7 +2743,7 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
   if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC %u not existent", evc_ext_id);
-    return L7_NOT_EXIST;
+    return L7_DEPENDENCY_NOT_MET;
   }
 
   /* For unstacked P2P services, don't allow ports change */

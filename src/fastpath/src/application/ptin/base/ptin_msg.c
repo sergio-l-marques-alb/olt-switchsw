@@ -387,7 +387,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   }
 #endif
 
-#if (PTIN_BOARD_IS_STANDALONE)
+#if (0 /*PTIN_BOARD_IS_STANDALONE*/)
   ptin_intf_t ptin_intf;
   L7_uint32 ptin_port;
 
@@ -2863,7 +2863,8 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-        rc_global = rc;
+        if (rc != L7_DEPENDENCY_NOT_MET && rc != L7_NOT_EXIST && rc != L7_ALREADY_CONFIGURED)
+          rc_global = rc;
       }
       LOG_TRACE(LOG_CTX_PTIN_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
       break;
@@ -2871,7 +2872,8 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
-        rc_global = rc;
+        if (rc != L7_DEPENDENCY_NOT_MET && rc != L7_NOT_EXIST && rc != L7_ALREADY_CONFIGURED)
+          rc_global = rc;
       }
       LOG_TRACE(LOG_CTX_PTIN_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
       break;
