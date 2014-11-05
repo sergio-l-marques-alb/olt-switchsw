@@ -417,7 +417,10 @@ extern L7_BOOL ptin_debug_igmp_snooping;
 extern L7_BOOL ptin_debug_igmp_packet_trace;
 
 /*Flag used to signal when a  port close request comes from IGMP Module*/
-extern L7_BOOL ptin_igmp_port_close_flag;
+extern L7_BOOL ptin_igmp_flag_port_close;
+
+/*Flag used to signal when a  port open request comes from IGMP Module*/
+extern L7_BOOL ptin_igmp_flag_port_open;
 
 typedef enum
 {

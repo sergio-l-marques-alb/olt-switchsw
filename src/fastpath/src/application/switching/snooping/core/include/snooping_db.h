@@ -73,9 +73,9 @@ L7_RC_t snoopChannelDelete(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
 L7_RC_t snoopChannelDeleteAll(snoopInfoData_t *snoopEntry);
 
 /// Add a new interface for a particular channel
-L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel);
+L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_BOOL isProtection);
 /// Remove an interface for a particular channel (only if there is no clients attached to that interface)
-L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel);
+L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_BOOL isProtection);
 
 
 /// Verify if a client (index) is consuming an IP channel of a Vlan+MAC group
@@ -130,10 +130,12 @@ void snoopChannelsGet(L7_uint16 vlanId,
  * @param vlanId                : Vlan id
  * @param mgmdGroupAddr         : channel IP
  * @param intIfNum              : interface 
+ * @param isStatic              : Static Entry 
+ * @param isProtection          : Protection Entry 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_uint32 intIfNum,L7_BOOL isStatic);
+L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection);
 
 /**
  * Remove IPv4 channel, and update Snoop Entry database. 
@@ -144,7 +146,7 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum);
+L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isProtection);
 
 #endif
 

@@ -1291,9 +1291,10 @@ L7_RC_t snoopChannelDeleteAll(snoopInfoData_t *snoopEntry)
 * @purpose  Add an interface to an IP channel. If the IP does not exist, it
 *           will be created.
 *
-* @param    snoopEntry @b{(input)} Snooping entry in AVL tree
-* @param    intIfNum   @b{(input)} Interface number
-* @param    IPchannel  @b{(input)} IPv4 channel
+* @param    snoopEntry    @b{(input)} Snooping entry in AVL tree
+* @param    intIfNum      @b{(input)} Interface number
+* @param    IPchannel     @b{(input)} IPv4 channel
+* @param    isProtection  @b{(input)} Protection Entry
 *
 * @returns  L7_SUCCESS/L7_FAILURE
 *
@@ -1301,7 +1302,7 @@ L7_RC_t snoopChannelDeleteAll(snoopInfoData_t *snoopEntry)
 *
 * @end
 ****************************************************************************/
-L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel)
+L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_BOOL isProtection)
 {
   L7_uint channel_index;
 
@@ -1333,6 +1334,9 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
       snoopEntry->channel_list[channel_index].ipAddr = IPchannel->addr.ipv4.s_addr;
       snoopEntry->channel_list[channel_index].number_of_ports   = 0;
       PTIN_CLEAR_ARRAY(snoopEntry->channel_list[channel_index].intIfNum_mask);
+      #if PTIN_BOARD_IS_MATRIX
+      PTIN_CLEAR_ARRAY(snoopEntry->channel_list[channel_index].protection_mask);
+      #endif
       snoopEntry->channel_list[channel_index].number_of_clients = 0;
       PTIN_CLEAR_ARRAY(snoopEntry->channel_list[channel_index].clients_list);
       PTIN_CLEAR_ARRAY(snoopEntry->channel_list[channel_index].intf_number_of_clients);
@@ -1370,6 +1374,21 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
         if (ptin_debug_igmp_snooping)
           LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already active",intIfNum);
       }
+      #if PTIN_BOARD_IS_MATRIX
+      if (isProtection == L7_TRUE)
+      {
+        if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].protection_mask,intIfNum))
+        {
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Protection Entry Add: IP channel 0x%8X intIfNum %u",IPchannel->addr.ipv4.s_addr, intIfNum);
+          PTIN_SET_MASKBIT(snoopEntry->channel_list[channel_index].protection_mask,intIfNum);        
+        }
+        else
+        {
+          if (ptin_debug_igmp_snooping)
+            LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Interface %u is already in protection",intIfNum);
+        }
+      }
+      #endif
     }
   }
 
@@ -1387,9 +1406,10 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
 *           This can only be done, if there is no clients attached to this
 *           channel and interface! Otherwise, error will be returned.
 *
-* @param    snoopEntry @b{(input)} Snooping entry in AVL tree
-* @param    intIfNum   @b{(input)} Interface number
-* @param    IPchannel  @b{(input)} IPv4 channel
+* @param    snoopEntry    @b{(input)} Snooping entry in AVL tree
+* @param    intIfNum      @b{(input)} Interface number
+* @param    IPchannel     @b{(input)} IPv4 channel
+* @param    isProtection  @b{(input)} Protection Entry
 *
 * @returns  L7_SUCCESS/L7_FAILURE
 *
@@ -1397,7 +1417,7 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
 *
 * @end
 ****************************************************************************/
-L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel)
+L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_BOOL isProtection)
 {
   L7_uint channel_index, i;
   L7_uint exist_interfaces;
@@ -1466,6 +1486,22 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
     {
       if (PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].intIfNum_mask,intIfNum))
       {
+        #if PTIN_BOARD_IS_MATRIX
+        if (PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].protection_mask,intIfNum))
+        {
+          if (isProtection == L7_TRUE || snoopEntry->channel_list[channel_index].number_of_ports == 1)
+          {
+            /* Remove interface from protection list */
+            PTIN_UNSET_MASKBIT(snoopEntry->channel_list[channel_index].protection_mask,intIfNum);        
+          }
+          else
+          {            
+            LOG_ERR(LOG_CTX_PTIN_IGMP,"Protection Entry Remove (Ignore): IP channel 0x%8X intIfNum %u",IPchannel->addr.ipv4.s_addr, intIfNum);
+            return L7_SUCCESS;
+          }
+        }
+        #endif
+
         /* If there is attached clients to to this channel and interface, interface cannot be removed */
         if (snoopEntry->channel_list[channel_index].intf_number_of_clients[intIfNum]==0)
         {
@@ -1879,7 +1915,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
       {
         if ( (L7_INTF_ISMASKBITSET(mcastClientAttached,intIfNum)) )
         {
-          if (snoopChannelIntfAdd(snoopEntry, intIfNum, mgmdGroupAddr)!=L7_SUCCESS)
+          if (snoopChannelIntfAdd(snoopEntry, intIfNum, mgmdGroupAddr, L7_FALSE)!=L7_SUCCESS)
           {
             if (ptin_debug_igmp_snooping)
               LOG_ERR(LOG_CTX_PTIN_IGMP, "Error adding intIfNum %u to channel 0x%08x",intIfNum,mgmdGroupAddr);
@@ -2130,7 +2166,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 
   ptin_timer_start(8,"snoop_client_add_procedure-snoopChannelIntfAdd");
   /* Add interface for this channel */
-  if (snoopChannelIntfAdd(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+  if (snoopChannelIntfAdd(snoopEntry,intIfNum,mgmdGroupAddr, L7_FALSE)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfAdd failed");
@@ -2271,7 +2307,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
     if (!snoopEntry->staticGroup)
     {
       /* Remove interface from this channel */
-      if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+      if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr, L7_FALSE)!=L7_SUCCESS)
       {
         if (ptin_debug_igmp_snooping)
           LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfRemove failed");
@@ -2336,10 +2372,12 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
  * @param vlanId                : Vlan id
  * @param mgmdGroupAddr         : channel IP
  * @param intIfNum              : interface 
+ * @param isStatic              : Static Entry 
+ * @param isProtection          : Protection Entry 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_uint32 intIfNum,L7_BOOL isStatic)
+L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection)
 {
   snoopInfoData_t *snoopEntry;
   char dmac[L7_ENET_MAC_ADDR_LEN];
@@ -2399,7 +2437,7 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_ui
   if(isStatic==L7_TRUE)
     snoopEntry->staticGroup=L7_FALSE;
   /* Add interface for this channel */
-  if (snoopChannelIntfAdd(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+  if (snoopChannelIntfAdd(snoopEntry,intIfNum,mgmdGroupAddr, isProtection)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfAdd failed");
@@ -2417,10 +2455,11 @@ L7_RC_t snoopGroupIntfAdd(L7_uint16 vlanId, L7_inet_addr_t* mgmdGroupAddr, L7_ui
  * @param vlanId                : Vlan id
  * @param mgmdGroupAddr         : channel IP
  * @param intIfNum              : interface 
+ * @param isProtection          : protection
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILRE
  */
-L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum)
+L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7_uint32 intIfNum, L7_BOOL isProtection)
 {
   snoopInfoData_t *snoopEntry;
   char dmac[L7_ENET_MAC_ADDR_LEN];
@@ -2470,7 +2509,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7
 
   /* Procedures when no one is watching a channel in a particular interface... */
   /* Remove interface from this channel */
-  if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr)!=L7_SUCCESS)
+  if (snoopChannelIntfRemove(snoopEntry,intIfNum,mgmdGroupAddr, isProtection)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
       LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelIntfRemove failed");
@@ -3144,6 +3183,7 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry)
  */
 void ptin_igmp_snoop_dump(L7_uint16 index)
 {
+  L7_BOOL   isProtection = 0;
   L7_uint16 intVlan;
   L7_uint32 intIfNum;
   L7_uint i, j, i_client;
@@ -3254,12 +3294,15 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
         printf("      #ports=%-5u    #clients=%u\r\n",
                avl_info->channel_list[i].number_of_ports,
                avl_info->channel_list[i].number_of_clients);
-        printf("      Port[#clients]:");
+        printf("      Port[Protection][#clients]:");
         for (intIfNum=0; intIfNum<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; intIfNum++)
         {
           if (!PTIN_IS_MASKBITSET(avl_info->channel_list[i].intIfNum_mask,intIfNum))  continue;
           if (ptin_intf_intIfNum2ptintf(intIfNum,&ptin_intf)!=L7_SUCCESS)  continue;
-          printf(" %u/%u[%u]",ptin_intf.intf_type,ptin_intf.intf_id,avl_info->channel_list[i].intf_number_of_clients[intIfNum]);
+          #if PTIN_BOARD_IS_MATRIX
+          isProtection = PTIN_IS_MASKBITSET(avl_info->channel_list[i].protection_mask,intIfNum);
+          #endif
+          printf(" %u/%u[%u][%u]",ptin_intf.intf_type,ptin_intf.intf_id, isProtection, avl_info->channel_list[i].intf_number_of_clients[intIfNum]);
         }
         printf("\r\n");
         printf("      Clients list:");

@@ -28,6 +28,7 @@
 /* Interfaces configured with Type-b Protection */
 ptin_prottypeb_intf_config_t prottypeb_interfaces[PTIN_SYSTEM_N_INTERF];
 
+L7_uint8 snoop_sync_flag = L7_TRUE;
 /*********************************************************** 
  * Static prototypes
  ***********************************************************/
@@ -97,27 +98,31 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   memcpy(&prottypeb_interfaces[intfNum-1], data, sizeof(ptin_prottypeb_intf_config_t));
 
 #if !PTIN_BOARD_IS_MATRIX
-  if(prottypeb_interfaces[intfNum-1].status==L7_ENABLE)
+  if (snoop_sync_flag == L7_TRUE)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending a Snoop Sync Request Message to Sync the  Snoop Entries. I'm a Working slotId/intfNum:%u/%u",prottypeb_interfaces[intfNum-1].slotId, prottypeb_interfaces[intfNum-1].intfNum);
-    return L7_SUCCESS;
+    if(prottypeb_interfaces[intfNum-1].status==L7_ENABLE)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_MSG, "Not sending a Snoop Sync Request Message to Sync the  Snoop Entries. I'm a Working slotId/intfNum:%u/%u",prottypeb_interfaces[intfNum-1].slotId, prottypeb_interfaces[intfNum-1].intfNum);
+      return L7_SUCCESS;
+    }
+
+    msg_SnoopSyncRequest_t   snoopSyncRequest={0};
+
+    snoopSyncRequest.portId=prottypeb_interfaces[intfNum-1].pairIntfNum;
+    
+    /* Determine the IP address of the working port/slot */
+    L7_uint32 ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((prottypeb_interfaces[intfNum-1].pairSlotId+1) & 0x000000FF); 
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X to Sync the Snoop Entries of remote slotId/intfNum:%u/%u", ipAddr,prottypeb_interfaces[intfNum-1].pairSlotId, prottypeb_interfaces[intfNum-1].pairIntfNum);
+    /*Send the snoop sync request to the protection matrix */  
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to send Snoop Sync Request Message");
+      return L7_FAILURE;
+    }
+    
+    snoop_sync_flag = L7_FALSE;
   }
-
-  msg_SnoopSyncRequest_t   snoopSyncRequest={0};
-
-  snoopSyncRequest.portId=prottypeb_interfaces[intfNum-1].pairIntfNum;
-  
-  /* Determine the IP address of the working port/slot */
-  L7_uint32 ipAddr = 0xC0A8C800 /*192.168.200.X*/ | ((prottypeb_interfaces[intfNum-1].pairSlotId+1) & 0x000000FF); 
-
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X to Sync the Snoop Entries of remote slotId/intfNum:%u/%u", ipAddr,prottypeb_interfaces[intfNum-1].pairSlotId, prottypeb_interfaces[intfNum-1].pairIntfNum);
-  /*Send the snoop sync request to the protection matrix */  
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
-  {
-    LOG_ERR(LOG_CTX_PTIN_PROTB, "Failed to send Snoop Sync Request Message");
-    return L7_FAILURE;
-  }    
-
 #endif
   return L7_SUCCESS;
 }

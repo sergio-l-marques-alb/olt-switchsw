@@ -257,10 +257,13 @@ typedef struct
   L7_BOOL   active;             /* Is channel active? */
   L7_uint32 ipAddr;             /* Channel IP address */
   L7_uint8  number_of_ports;    /* Number of interfaces being used */
-  L7_uint32 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */
+  L7_uint32 intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */  
   L7_uint16 number_of_clients;  /* Number of clients using this channel */
   L7_uint32 clients_list[PTIN_SYSTEM_IGMP_MAXCLIENTS/(sizeof(L7_uint32)*8)+1]; /* List of (index) clients */
   L7_uint16 intf_number_of_clients[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP];
+#if PTIN_BOARD_IS_MATRIX
+  L7_uint32 protection_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being in protection */
+#endif
 } ptinSnoopChannelInfo_t;
 
 /* Port information */
@@ -832,16 +835,18 @@ typedef struct snoopMgmtMsg_s
 /* Snoop PDU Message format */
 typedef struct snoopPDU_Msg_s
 {
-  L7_uint32        msgId;    /* Of type snoopMgmtMessages_t */
-  L7_uint32        intIfNum; /*Interface on which PDU was received */
-  L7_uint32        vlanId;   /*VLAN on which PDU was received */
-  L7_uint32        innerVlanId;   /*Inner VLAN if present */
-  L7_uint32        client_idx;    /* Client index */          /* PTin added: IGMP snooping */
-  L7_uint32        groupAddress;  /* Group Address IP */      /* PTin added: MGMD integration */
-  L7_uint32        sourceAddress; /* Source Address IP */     /* PTin added: MGMD integration */
-  snoop_cb_t      *cbHandle; /* Pointer to control block */
-  L7_uchar8       *snoopBuffer; /* Pointer to the received PDU */
-  L7_uint32        dataLength;  /* Length of received PDU */
+  L7_uint32        msgId;              /* Of type snoopMgmtMessages_t */
+  L7_uint32        intIfNum;           /* Interface on which PDU was received */
+  L7_uint32        vlanId;             /* VLAN on which PDU was received */
+  L7_uint32        innerVlanId;        /* Inner VLAN if present */
+  L7_uint32        client_idx;         /* Client index */          /* PTin added: IGMP snooping */
+  L7_uint32        groupAddress;       /* Group Address IP */      /* PTin added: MGMD integration */
+  L7_uint32        sourceAddress;      /* Source Address IP */     /* PTin added: MGMD integration */
+  L7_uint8         isStatic;           /* Static Entry*/           /* PTin added: MGMD integration */
+  L7_uint8         isProtection;       /* Protection Entry*/       /* PTin added: MGMD integration */
+  snoop_cb_t      *cbHandle;           /* Pointer to control block */
+  L7_uchar8       *snoopBuffer;        /* Pointer to the received PDU */
+  L7_uint32        dataLength;         /* Length of received PDU */
   L7_uint32        snoopBufferPoolId; /* Bufferpool used to make a local copy */
 } snoopPDU_Msg_t;
 #define SNOOP_PDU_MSG_SIZE     sizeof(snoopPDU_Msg_t)

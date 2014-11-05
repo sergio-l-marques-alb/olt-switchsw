@@ -51,7 +51,9 @@ L7_BOOL ptin_debug_igmp_snooping = 0;
 
 L7_BOOL ptin_debug_igmp_packet_trace = 0;
 
-L7_BOOL ptin_igmp_port_close_flag = 0;
+L7_BOOL ptin_igmp_flag_port_close = 0;
+
+L7_BOOL ptin_igmp_flag_port_open = 0;
 
 void ptin_debug_igmp_enable(L7_BOOL enable)
 {
@@ -11533,18 +11535,18 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   if(admin == L7_ENABLE)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to open port [intfNum:%u]", portId);
+    ptin_igmp_flag_port_open = 1; 
     rc = snooping_port_open(serviceId, portId, groupAddr, sourceAddr, groupType);
+    ptin_igmp_flag_port_open = 0; 
     return rc;
   }
   else if(admin == L7_DISABLE)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId);
- 
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Going to close port [intfNum:%u]", portId); 
            
-    ptin_igmp_port_close_flag = 1;
-   
+    ptin_igmp_flag_port_close = 1;   
     rc = snooping_port_close(serviceId, portId, groupAddr, sourceAddr);
-    ptin_igmp_port_close_flag = 0;
+    ptin_igmp_flag_port_close = 0;
 
     return rc;
   }
