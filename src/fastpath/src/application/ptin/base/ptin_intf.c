@@ -2490,8 +2490,10 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     }
 
     /* For Linecards, LAG 1/0 belongs to backplane... should be trusted */
-    #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+    #if (PTIN_BOARD_IS_LINECARD)
     if (lag_idx == 0)
+    #endif
+    #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
     {
       ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
       ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
@@ -2602,6 +2604,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Return to untrust state */
       #if (PTIN_BOARD_IS_LINECARD)
       if (lag_idx == 0)
+      #endif
+      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       {
         ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
         ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
@@ -2870,6 +2874,8 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       /* Return to untrust state */
       #if (PTIN_BOARD_IS_LINECARD)
       if (lag_idx == 0)
+      #endif
+      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       {
         ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
         ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
@@ -3013,6 +3019,8 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   /* For Linecards, LAG 1/0 belongs to backplane... should return to untrusted state */
   #if (PTIN_BOARD_IS_LINECARD)
   if (lag_idx == 0)
+  #endif
+  #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   {
     ptin_dhcp_intfTrusted_set(lag_intIfNum, L7_FALSE); 
     ptin_pppoe_intfTrusted_set(lag_intIfNum, L7_FALSE);
