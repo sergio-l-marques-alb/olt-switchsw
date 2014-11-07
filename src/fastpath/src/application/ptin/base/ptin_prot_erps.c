@@ -235,7 +235,6 @@ int ptin_erps_get_free_entry(void)
 int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 {
   int ret = erps_idx;
-  //int byte, bit, vid;
 
   LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
@@ -256,11 +255,14 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   memcpy( &tbl_erps[erps_idx].protParam, new_group, sizeof(erpsProtParam_t) );
   
   #if 0
-  for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
-    for (bit=0; bit<8; bit++) {
-      if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
-        vid = (byte*8)+bit;
-        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d VLAN %d", erps_idx, vid);
+  {
+    int byte, bit, vid;
+    for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
+      for (bit=0; bit<8; bit++) {
+        if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {
+          vid = (byte*8)+bit;
+          LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d VLAN %d", erps_idx, vid);
+        }
       }
     }
   }
@@ -555,6 +557,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
     LOG_NOTICE(LOG_CTX_ERPS, "Entry free.", ret);
+    return(ret);
   }
 
   ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT0, ERPS_PORT_FLUSHING, __LINE__);
@@ -563,9 +566,11 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
+  #if 0
   ptin_hal_erps_hwreconfig(erps_idx);
   
   ptin_erps_init_entry(erps_idx);
+  #endif
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);

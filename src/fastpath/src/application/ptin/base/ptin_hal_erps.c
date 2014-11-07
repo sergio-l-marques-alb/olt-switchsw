@@ -21,6 +21,7 @@
 #include "ptin_intf.h"
 
 #include "ptin_prot_oam_eth.h"
+#include "fdb_api.h"
 
 #include <unistd.h>
 
@@ -621,12 +622,19 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
  */
 int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
 {
+#if !(PTIN_BOARD_OLT1T0)
   L7_uint16 byte, bit;
   L7_uint16 vid, internalVlan;
+#endif
 
   if ( (tbl_halErps[erps_idx].hwSync == 1) || (tbl_halErps[erps_idx].hwFdbFlush == 1) )
   {
     LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);      
+
+#if (PTIN_BOARD_OLT1T0)
+    fdbFlush();
+    //ptin_l2_mac_table_flush();
+#else
 
     for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++)
     {
@@ -680,6 +688,7 @@ int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
         } //if(vid_bmp...)
       } // for(bit...)
     } // for(byte...)
+#endif
 
     tbl_halErps[erps_idx].hwSync = 0;
     tbl_halErps[erps_idx].hwFdbFlush = 0;
