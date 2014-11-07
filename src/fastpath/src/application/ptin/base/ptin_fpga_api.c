@@ -72,7 +72,6 @@ L7_uint8 ptin_fgpa_mx_is_matrixactive_rt(void)
 
   /* Running on Active matrix */
   return 1;
-
 }
 
 /**************************************************************************
