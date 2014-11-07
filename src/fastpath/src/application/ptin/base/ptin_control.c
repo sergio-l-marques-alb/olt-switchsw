@@ -806,6 +806,11 @@ void ptin_control_switchover_monitor(void)
 
   matrix_is_active = ptin_fgpa_mx_is_matrixactive();
 
+  if (ptin_fgpa_mx_is_matrixactive() != ptin_fgpa_mx_is_matrixactive_rt())
+  {
+    return;
+  }
+
   /* First time procedure (after switchover) */
   if (ptin_fgpa_mx_is_matrixactive() != matrix_is_active_h)
   {
@@ -817,7 +822,7 @@ void ptin_control_switchover_monitor(void)
     {
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
 
-      osapiSleep(10);
+      osapiSleep(30);
 
       LOG_INFO(LOG_CTX_PTIN_CONTROL, "Going to process switchover init (active=%d)", matrix_is_active);
 
@@ -900,7 +905,7 @@ void ptin_control_switchover_monitor(void)
   }
 
   /* Do nothing for active matrix */
-  if (ptin_fgpa_mx_is_matrixactive())
+  if (ptin_fgpa_mx_is_matrixactive() && ptin_fgpa_mx_is_matrixactive_rt())
   {
     return;
   }
