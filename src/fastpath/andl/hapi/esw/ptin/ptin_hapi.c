@@ -48,7 +48,8 @@ extern L7_uint64 hapiBroadReceice_dhcpv4_count;
 extern L7_uint64 hapiBroadReceice_dhcpv6_count;
 extern L7_uint64 hapiBroadReceice_pppoe_count;
 
-BROAD_POLICY_t lacp_policyId = BROAD_POLICY_INVALID;
+BROAD_POLICY_t lacp_policyId   = BROAD_POLICY_INVALID;
+BROAD_POLICY_t bl2cpu_policyId = BROAD_POLICY_INVALID;
 
 /********************************************************************
  * INTERNAL VARIABLES
@@ -176,19 +177,98 @@ L7_RC_t ptin_hapi_switch_init(void)
 {
   L7_RC_t    rc = L7_SUCCESS;
 
-  if (bcmx_switch_control_set(bcmSwitchL2DstHitEnable, 0x00)!=L7_SUCCESS)
+  if (bcm_switch_control_set(0, bcmSwitchL2DstHitEnable, 0x00) != BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchL2DstHitEnable switch_control to 0x00");
     rc = L7_FAILURE;
   }
 
-  if (bcmx_switch_control_set(bcmSwitchClassBasedMoveFailPktDrop,0x01)!=L7_SUCCESS)
+  if (bcm_switch_control_set(0, bcmSwitchClassBasedMoveFailPktDrop,0x01) != BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchClassBasedMoveFailPktDrop switch_control to 0x01");
     rc = L7_FAILURE;
   }
 
+#if (PTIN_BOARD_IS_GPON)
+  /* For Vports usage */
+  if (bcm_switch_control_set(0, bcmSwitchL3EgressMode, 1) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchL3EgressMode switch_control to 1");
+    rc = L7_FAILURE;
+  }
+
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  L7_uint32 banks;
+
+  /* Hash tables depth */
+  if (bcm_switch_control_set(0, bcmSwitchHashDualMoveDepth, 8) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchHashDualMoveDepth switch_control to 8");
+    rc = L7_FAILURE;
+  }
+  if (bcm_switch_control_set(0, bcmSwitchHashDualMoveDepthEgressVlan, 8) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchHashDualMoveDepthEgressVlan switch_control to 8");
+    rc = L7_FAILURE;
+  }
+
+  /* Ingress tranlation hash tables */
+  if (bcm_switch_hash_banks_max_get(0, bcmHashTableVlanTranslate, &banks) == BCM_E_NONE)
+  {
+    if (banks >= 2)
+    {
+      if (bcm_switch_hash_banks_config_set(0, bcmHashTableVlanTranslate, 0, BCM_HASH_CRC32U, 0) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableVlanTranslate:BCM_HASH_CRC32U attribute to 0");
+        rc = L7_FAILURE;
+      }
+      else if (bcm_switch_hash_banks_config_set(0, bcmHashTableVlanTranslate, 1, BCM_HASH_CRC32L, 0) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableVlanTranslate:BCM_HASH_CRC32L attribute to 0");
+        rc = L7_FAILURE;
+      }
+      else
+      {
+        LOG_INFO(LOG_CTX_PTIN_HAPI,"Success setting bcmHashTableVlanTranslate attributes");
+      }
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error reading max number of banks for bcmHashTableVlanTranslate table");
+    rc = L7_FAILURE;
+  }
+
+  /* Egress tranlation hash tables */
+  if (bcm_switch_hash_banks_max_get(0, bcmHashTableEgressVlanTranslate, &banks) == BCM_E_NONE)
+  {
+    if (banks >= 2)
+    {
+      if (bcm_switch_hash_banks_config_set(0, bcmHashTableEgressVlanTranslate, 0, BCM_HASH_CRC32U, 0) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableEgressVlanTranslate:BCM_HASH_CRC32U attribute to 0");
+        rc = L7_FAILURE;
+      }
+      else if (bcm_switch_hash_banks_config_set(0, bcmHashTableEgressVlanTranslate, 1, BCM_HASH_CRC32L, 0) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableEgressVlanTranslate:BCM_HASH_CRC32L attribute to 0");
+        rc = L7_FAILURE;
+      }
+      else
+      {
+        LOG_INFO(LOG_CTX_PTIN_HAPI,"Success setting bcmHashTableEgressVlanTranslate attributes");
+      }
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error reading max number of banks for bcmHashTableEgressVlanTranslate table");
+    rc = L7_FAILURE;
+  }
+
   LOG_INFO(LOG_CTX_PTIN_HAPI,"Switch %u initialized!", bcm_unit);
+#endif
+#endif
 
   return rc;
 }
@@ -4337,16 +4417,18 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
 {
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
+  L7_ushort16         vlanId;
+  BROAD_METER_ENTRY_t meterInfo;
   L7_RC_t             rc = L7_SUCCESS;
 
   /* PTin added: packet trap - LACPdu's */
   /* Rate limit for LACPdu's */
-  L7_ushort16 lacp_vlanId    = 1;
   L7_ushort16 lacp_etherType = 0x8809;
   bcm_mac_t   lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
   L7_uchar8   exact_match[]  = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                 FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
-  BROAD_METER_ENTRY_t meterInfo;
+
+  vlanId = 1;
 
   meterInfo.cir       = RATE_LIMIT_LACP;
   meterInfo.cbs       = 128;
@@ -4368,7 +4450,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  lacp_dmac  , exact_match);
     if (rc != L7_SUCCESS)  break;
-    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &lacp_vlanId, exact_match);
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &vlanId, exact_match);
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &lacp_etherType, exact_match);
     if (rc != L7_SUCCESS)  break;
@@ -4404,7 +4486,51 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   lacp_policyId = policyId;
   LOG_NOTICE(LOG_CTX_STARTUP,"LACP rule added");
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+  /* For OLT1T0 */
+#if (PTIN_BOARD_IS_STANDALONE)
+
+  /* BroadLight packets should have high priority */
+  vlanId = PTIN_VLAN_BL2CPU;
+
+  /* Create policy */
+  rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+    return L7_FAILURE;
+  }
+  /* Define qualifiers and actions */
+  do
+  {
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, exact_match);
+    if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, 7, 0, 0);
+    if (rc != L7_SUCCESS)  break;
+  }
+  while (0);
+  /* Commit rule */
+  if (rc == L7_SUCCESS)
+  {
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (L7_SUCCESS != rc)
+    {
+      LOG_ERR(LOG_CTX_STARTUP, "Error committing policy!");
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_STARTUP, "Error configurating rule.");
+    hapiBroadPolicyCreateCancel();
+    return L7_FAILURE;
+  }
+  /* Save policy */
+  bl2cpu_policyId = policyId;
+  LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added");
+
+#elif (PTIN_BOARD == PTIN_BOARD_TG16G)
   L7_int    port;
   L7_uint8  prio, prio_mask = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
