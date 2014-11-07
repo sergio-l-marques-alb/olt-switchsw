@@ -286,6 +286,10 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   }
 #endif
 
+  // Added temporary debug (To be removed)
+  if (ptin_debug_dtl)
+    LOG_NOTICE(LOG_CTX_MISC,"TX PDU");
+
   //Ignore if the port has link down (only consider valid interfaces)
   if ( (nimCheckIfNumber(dtlCmdInfo->intfNum) == L7_SUCCESS) &&
        ((nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE)) )
