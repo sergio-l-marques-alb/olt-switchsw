@@ -363,7 +363,7 @@ L7_RC_t ptin_intf_portExt_init(void)
     #endif
 
     /* Only for linecards at slot systems */
-    #if ( PTIN_BOARD_IS_LINECARD )
+    #if ( PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
     /* If is an internal/backplane port, set as trusted */
     if (!((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1) && !((PTIN_SYSTEM_ETH_PORTS_MASK >> port) & 1))
     {
@@ -2490,7 +2490,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     }
 
     /* For Linecards, LAG 1/0 belongs to backplane... should be trusted */
-    #if (PTIN_BOARD_IS_LINECARD)
+    #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
     if (lag_idx == 0)
     {
       ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
