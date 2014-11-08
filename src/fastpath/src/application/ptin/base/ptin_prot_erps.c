@@ -24,6 +24,8 @@
 #include "fdb_api.h"
 #include "ptin_intf.h"
 
+#include "ptin_debug.h"
+
 #define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
 
 #define SM_PTIN_MODS      // State machine modification due to observed incoherent situations
@@ -3614,6 +3616,8 @@ void ptin_erps_task(void)
 void *ptin_erps_task(void *_X_)
 #endif
 {
+  L7_uint64 time_ref;
+
   LOG_INFO(LOG_CTX_ERPS,"ERPS Task started");
 
 #if __USE_OSAPI_TASK__
@@ -3631,9 +3635,13 @@ void *ptin_erps_task(void *_X_)
 
   /* Infinite Loop */
   while (1) {
+    time_ref = osapiTimeMicrosecondsGet();
+    
     ptin_prot_erps_proc();
 
     usleep(PROT_ERPS_CALL_PROC_US);
+
+    proc_runtime_meter_update(PTIN_PROC_ERPS_INSTANCE, (L7_uint32) (osapiTimeMicrosecondsGet() - time_ref));
   }
 }
 

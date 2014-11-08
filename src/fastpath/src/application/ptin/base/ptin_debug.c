@@ -8,7 +8,7 @@
  * Notes: 
  */
 
-//#include "ptin_debug.h"
+#include "ptin_debug.h"
 #include "ptin_include.h"
 #include "ptin_intf.h"
 #include "ptin_evc.h"
@@ -19,6 +19,21 @@
 #include <string.h>
 
 #include <dapi_db.h>
+
+typedef struct
+{
+  uint32 number_of_calls;
+  uint32 total_runtime;
+  uint32 last_runtime;
+  uint32 min_runtime;
+  uint32 max_runtime;
+  uint32 average_runtime;
+
+  L7_uint64 time_ref;
+} struct_runtime_t;
+
+static struct_runtime_t proc_runtime[PTIN_PROC_MAX+1];
+
 
 extern L7_uint32 hpcLocalCardIdGet(int slotNum);
 
@@ -335,6 +350,134 @@ void ptin_msg_runtime_init(L7_uint msg_id)
 void ptin_msg_runtime_show(void)
 {
   CHMessage_runtime_meter_print();
+
+  fflush(stdout);
+}
+
+
+/**
+ * Start time measurement
+ * 
+ * @author mruas (11/8/2014)
+ * 
+ * @param instance 
+ */
+void proc_runtime_start(ptin_proc_instance_t instance)
+{
+  L7_uint64 time_now;
+  struct_runtime_t *proc_runtime_ptr;
+
+  if (instance >= PTIN_PROC_MAX)
+    return;
+
+  proc_runtime_ptr = &proc_runtime[instance];
+
+  time_now = osapiTimeMicrosecondsGet();
+
+  proc_runtime_ptr->time_ref = time_now;
+}
+
+/**
+ * Stop and update time measurement
+ * 
+ * @author mruas (11/8/2014)
+ * 
+ * @param instance 
+ */
+void proc_runtime_stop(ptin_proc_instance_t instance)
+{
+  L7_uint64 time_now;
+  struct_runtime_t *proc_runtime_ptr;
+
+  if (instance >= PTIN_PROC_MAX)
+    return;
+
+  proc_runtime_ptr = &proc_runtime[instance];
+
+  time_now = osapiTimeMicrosecondsGet();
+
+  proc_runtime_meter_update(instance, time_now - proc_runtime_ptr->time_ref);
+}
+
+/**
+ * Update proc runtime meter
+ * 
+ * @param msg_id : message id
+ * @param time_delta : time taken to process message
+ */
+void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_delta)
+{
+  struct_runtime_t *proc_runtime_ptr;
+
+  if (instance >= PTIN_PROC_MAX)
+    return;
+
+  proc_runtime_ptr = &proc_runtime[instance];
+
+  /* If overflow, reset all data */
+  if ( (proc_runtime_ptr->number_of_calls==(L7_uint32)-1) ||
+       (proc_runtime_ptr->total_runtime + time_delta < proc_runtime_ptr->total_runtime) )
+  {
+    proc_runtime_meter_init(instance);
+  }
+
+  /* Update database */
+  proc_runtime_ptr->number_of_calls++;
+  proc_runtime_ptr->last_runtime    = time_delta;
+  proc_runtime_ptr->total_runtime  += time_delta;
+
+  if ( (proc_runtime_ptr->number_of_calls)==1 || time_delta<(proc_runtime_ptr->min_runtime) )
+    proc_runtime_ptr->min_runtime = time_delta;
+
+  if ( time_delta > proc_runtime_ptr->max_runtime )
+    proc_runtime_ptr->max_runtime = time_delta;
+
+  proc_runtime_ptr->average_runtime = proc_runtime_ptr->total_runtime/proc_runtime_ptr->number_of_calls;
+}
+
+/**
+ * Initializes message runtime meter 
+ *  
+ * @param msg_id : message id 
+ */
+void proc_runtime_meter_init(ptin_proc_instance_t instance)
+{
+  if (instance >= PTIN_PROC_MAX)
+  {
+    memset(proc_runtime,0x00,sizeof(proc_runtime));
+  }
+  else
+  {
+    memset(&proc_runtime[instance],0x00,sizeof(struct_runtime_t));
+  }
+}
+
+/**
+ * Prints meter information
+ */
+void proc_runtime_meter_print(void)
+{
+  ptin_proc_instance_t i;
+
+  printf(" --------------------------------------------------------------------------------------------------------- \r\n");
+  printf("| Instance   |   #Calls   | Total runtime |  Last runtime |  Min. runtime |  Max. runtime | Avrg. runtime |\r\n");
+  printf("|------------|------------|---------------|---------------|---------------|---------------|---------------|\r\n");
+
+  for (i=0; i<PTIN_PROC_MAX; i++)
+  {
+    if (proc_runtime[i].number_of_calls==0)  continue;
+
+    printf("|   0x%04X   | %10u | %10u us | %10u us | %10u us | %10u us | %10u us |\r\n",
+           i,
+           proc_runtime[i].number_of_calls,
+           proc_runtime[i].total_runtime,
+           proc_runtime[i].last_runtime,
+           proc_runtime[i].min_runtime,
+           proc_runtime[i].max_runtime,
+           proc_runtime[i].average_runtime);
+  }
+
+  printf(" --------------------------------------------------------------------------------------------------------- \r\n");
 
   fflush(stdout);
 }
