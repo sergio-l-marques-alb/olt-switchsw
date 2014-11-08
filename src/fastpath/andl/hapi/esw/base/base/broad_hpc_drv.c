@@ -93,12 +93,10 @@
 #include "soc/phyreg.h"
 #endif
 
-/* PTin added: logger */
-#include "logger.h"
-
 /* PTin added: includes */
 #if 1
 #include "logger.h" /* PTin added */
+#include "ptin_hapi.h"
 #define PTIN_TRAP_TO_CPU  0
 #endif
 
@@ -1868,6 +1866,15 @@ void hpcHardwareDefaultConfigApply(void)
          }
        }
     }
+
+    /* PTin added: Hash */
+    #if 1
+    if (ptin_hapi_hash_init() != L7_SUCCESS)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI,"Error initializing hash procedures");
+      LOG_ERROR(BCM_E_INIT);
+    }
+    #endif
 
     if (SOC_IS_RAPTOR(i) || SOC_IS_HAWKEYE(i)) 
     {

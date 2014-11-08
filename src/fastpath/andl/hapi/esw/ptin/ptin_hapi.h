@@ -86,6 +86,13 @@ extern L7_RC_t hapi_ptin_config_init(void);
 extern L7_RC_t ptin_hapi_switch_init(void);
 
 /**
+ * Init hash procedures
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_hash_init(void);
+
+/**
  * Initialize PHY control parameters
  * 
  * @author asantos (07/02/2013)

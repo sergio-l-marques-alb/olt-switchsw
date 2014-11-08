@@ -196,9 +196,24 @@ L7_RC_t ptin_hapi_switch_init(void)
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchL3EgressMode switch_control to 1");
     rc = L7_FAILURE;
   }
+#endif
+
+  return rc;
+}
+
+/**
+ * Init hash procedures
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_hash_init(void)
+{
+  L7_RC_t    rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  L7_uint32 banks;
+  L7_uint32 i, banks;
+  L7_int    hash_type;
+  L7_uint32 hash_offset;
 
   /* Hash tables depth */
   if (bcm_switch_control_set(0, bcmSwitchHashDualMoveDepth, 8) != BCM_E_NONE)
@@ -215,21 +230,40 @@ L7_RC_t ptin_hapi_switch_init(void)
   /* Ingress tranlation hash tables */
   if (bcm_switch_hash_banks_max_get(0, bcmHashTableVlanTranslate, &banks) == BCM_E_NONE)
   {
-    if (banks >= 2)
+    LOG_INFO(LOG_CTX_PTIN_HAPI,"bcmHashTableVlanTranslate: number of banks=%u", banks);
+
+    for (i=0; i<banks; i++)
     {
-      if (bcm_switch_hash_banks_config_set(0, bcmHashTableVlanTranslate, 0, BCM_HASH_CRC32U, 0) != BCM_E_NONE)
+      /* Show default */
+      if (bcm_switch_hash_banks_config_get(0, bcmHashTableVlanTranslate, i, &hash_type, &hash_offset) == BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableVlanTranslate:BCM_HASH_CRC32U attribute to 0");
-        rc = L7_FAILURE;
+        LOG_INFO(LOG_CTX_PTIN_HAPI,"bcmHashTableVlanTranslate:bank%u => Default is hash_type=0x%x hash_offset=%u", i, hash_type, hash_offset);
       }
-      else if (bcm_switch_hash_banks_config_set(0, bcmHashTableVlanTranslate, 1, BCM_HASH_CRC32L, 0) != BCM_E_NONE)
+      /* Bank 0 */
+      switch (i)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableVlanTranslate:BCM_HASH_CRC32L attribute to 0");
+        case 0:
+          hash_type = BCM_HASH_CRC32U;
+          hash_offset = 0;
+          break;
+        case 1:
+          hash_type = BCM_HASH_CRC32L;
+          hash_offset = 0;
+          break;
+        default:
+          hash_type = BCM_HASH_OFFSET;
+          hash_offset = (i-2)*4+4;
+          break;
+      }
+
+      if (bcm_switch_hash_banks_config_set(0, bcmHashTableVlanTranslate, i, hash_type, hash_offset) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableVlanTranslate:bank%u attribute => hash_type=%d, hash_offset=%u", i, hash_type, hash_offset);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_INFO(LOG_CTX_PTIN_HAPI,"Success setting bcmHashTableVlanTranslate attributes");
+        LOG_INFO(LOG_CTX_PTIN_HAPI,"Success setting bcmHashTableVlanTranslate:bank%u attribute => hash_type=%d, hash_offset=%u", i, hash_type, hash_offset);
       }
     }
   }
@@ -242,21 +276,39 @@ L7_RC_t ptin_hapi_switch_init(void)
   /* Egress tranlation hash tables */
   if (bcm_switch_hash_banks_max_get(0, bcmHashTableEgressVlanTranslate, &banks) == BCM_E_NONE)
   {
-    if (banks >= 2)
+    LOG_INFO(LOG_CTX_PTIN_HAPI,"bcmHashTableEgressVlanTranslate: number of banks=%u", banks);
+    for (i=0; i<banks; i++)
     {
-      if (bcm_switch_hash_banks_config_set(0, bcmHashTableEgressVlanTranslate, 0, BCM_HASH_CRC32U, 0) != BCM_E_NONE)
+      /* Show default */
+      if (bcm_switch_hash_banks_config_get(0, bcmHashTableEgressVlanTranslate, i, &hash_type, &hash_offset) == BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableEgressVlanTranslate:BCM_HASH_CRC32U attribute to 0");
-        rc = L7_FAILURE;
+        LOG_INFO(LOG_CTX_PTIN_HAPI,"bcmHashTableEgressVlanTranslate:bank%u => Default is hash_type=0x%x hash_offset=%u", i, hash_type, hash_offset);
       }
-      else if (bcm_switch_hash_banks_config_set(0, bcmHashTableEgressVlanTranslate, 1, BCM_HASH_CRC32L, 0) != BCM_E_NONE)
+      /* Bank 0 */
+      switch (i)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableEgressVlanTranslate:BCM_HASH_CRC32L attribute to 0");
+        case 0:
+          hash_type = BCM_HASH_CRC32U;
+          hash_offset = 0;
+          break;
+        case 1:
+          hash_type = BCM_HASH_CRC32L;
+          hash_offset = 0;
+          break;
+        default:
+          hash_type = BCM_HASH_OFFSET;
+          hash_offset = (i-2)*4+4;
+          break;
+      }
+
+      if (bcm_switch_hash_banks_config_set(0, bcmHashTableEgressVlanTranslate, i, hash_type, hash_offset) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmHashTableEgressVlanTranslate:bank%u attribute => hash_type=%d, hash_offset=%u", i, hash_type, hash_offset);
         rc = L7_FAILURE;
       }
       else
       {
-        LOG_INFO(LOG_CTX_PTIN_HAPI,"Success setting bcmHashTableEgressVlanTranslate attributes");
+        LOG_INFO(LOG_CTX_PTIN_HAPI,"Success setting bcmHashTableEgressVlanTranslate:bank%u attribute => hash_type=%d, hash_offset=%u", i, hash_type, hash_offset);
       }
     }
   }
@@ -267,7 +319,6 @@ L7_RC_t ptin_hapi_switch_init(void)
   }
 
   LOG_INFO(LOG_CTX_PTIN_HAPI,"Switch %u initialized!", bcm_unit);
-#endif
 #endif
 
   return rc;
