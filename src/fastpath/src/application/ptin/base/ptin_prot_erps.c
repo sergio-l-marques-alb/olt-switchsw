@@ -3593,21 +3593,35 @@ int ptin_prot_erps_proc(void)
  * ERPS Task Init
  ******************************************************************************/
 
-L7_uint32 erps_TaskId = L7_ERROR;
+#define __USE_OSAPI_TASK__ 0
 
+#if __USE_OSAPI_TASK__
+// Task id
+L7_uint32 erps_TaskId = L7_ERROR;
+#else
+  pthread_t          erps_TaskId = L7_ERROR;
+  pthread_attr_t     erps_Task_attr;
+  pthread_mutex_t    erps_Task_lock;
+#endif
 
 
 /**
  * Task with infinite loop
  */
+#if __USE_OSAPI_TASK__
 void ptin_erps_task(void)
+#else
+void *ptin_erps_task(void *_X_)
+#endif
 {
   LOG_INFO(LOG_CTX_ERPS,"ERPS Task started");
 
+#if __USE_OSAPI_TASK__
   if (osapiTaskInitDone(L7_PTIN_ERPS_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_ERPS, "Error syncing task");
     PTIN_CRASH();
   }
+#endif
 
   LOG_INFO(LOG_CTX_ERPS,"ERPS task ready");
 
@@ -3633,6 +3647,8 @@ void ptin_erps_task(void)
  */
 L7_RC_t ptin_prot_erps_init(void)
 {
+#if __USE_OSAPI_TASK__
+
   /* Create task for ERProtection State Machine */
   erps_TaskId = osapiTaskCreate("ptin_prot_erps_task", ptin_erps_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
@@ -3650,6 +3666,43 @@ L7_RC_t ptin_prot_erps_init(void)
     return(L7_FAILURE);
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR,"Task ptin_prot_erps_task initialized");
+
+#else
+
+  struct sched_param param;
+
+  /* Set Thread Priority */
+  memset(&param, 0, sizeof(param));
+  param.sched_priority = 10;
+  pthread_attr_setschedparam(&erps_Task_attr, &param);
+
+  /* Thread setup */
+  if (0 != pthread_attr_init(&erps_Task_attr)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_attr_init");
+    return -1;
+  }
+
+  if (0 != pthread_attr_setstacksize(&erps_Task_attr, L7_DEFAULT_STACK_SIZE)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed to set thread stack size: %u",L7_DEFAULT_STACK_SIZE);
+    return -1;
+  }
+
+  if (0 != pthread_mutex_init(&erps_Task_lock, NULL)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_mutex_init");
+    return -1;
+  }
+
+  if (0 != pthread_create(&erps_TaskId, &erps_Task_attr, &ptin_erps_task, NULL) )
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_create");
+    return -1;
+  }
+  LOG_ERR(LOG_CTX_ERPS, "thread_id=%p",erps_TaskId);
+
+#endif
 
   return L7_SUCCESS;
 }
