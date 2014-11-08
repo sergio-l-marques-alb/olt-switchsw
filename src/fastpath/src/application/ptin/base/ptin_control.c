@@ -479,10 +479,6 @@ static void monitor_alarms(void)
       linkStatus[port]=link;
     }
 
-  #if ( PTIN_BOARD_IS_STANDALONE )
-    if (port<PTIN_SYSTEM_N_PORTS)  pfw_shm->intf[port].counter_state = 0; //counters_state.status_value[port];
-  #endif
-
     // Only send lag active member traps, if interface is physical
     if (port<PTIN_SYSTEM_N_PORTS)
     {
