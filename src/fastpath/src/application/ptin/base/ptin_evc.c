@@ -8390,8 +8390,10 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
   L7_uint   evc_id;
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
+  #if 0
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
+  #endif
 
   /* Validate arguments */
   if (int_vlan>=4096)
@@ -8417,7 +8419,7 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Unblocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "Unblocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
            root_intf, int_vlan, evc_id);
 
   /* Get intIfNum of ptin interface */
@@ -8438,6 +8440,7 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
 
 
   /* Get all leaf interfaces... */
+  #if 0
   ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_id, n_intf);
@@ -8457,6 +8460,7 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
       rc = L7_FAILURE;
     }   
   }
+  #endif
 
   evcs[evc_id].intf[root_intf].portState = PTIN_EVC_PORT_FORWARDING;
 
@@ -8476,8 +8480,10 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
   L7_uint   evc_id;
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
+  #if 0
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
   L7_uint   n_intf, l;
+  #endif
 
   /* Validate arguments */
   if (int_vlan>=4096)
@@ -8503,7 +8509,7 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Blocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "Blocking root intf# %u [Int.VLAN=%u] on EVC#%u...",
            root_intf, int_vlan, evc_id);
 
   /* Get intIfNum of ptin interface */
@@ -8522,6 +8528,7 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
   }
 
   /* Get all leaf interfaces... */
+  #if 0
   ptin_evc_intf_list_get(evc_id, PTIN_EVC_INTF_LEAF, intf_list, &n_intf);
 
   LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: n_intf %d", evc_id, n_intf);
@@ -8541,6 +8548,7 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
       rc = L7_FAILURE;
     }   
   }
+  #endif
 
   evcs[evc_id].intf[root_intf].portState = PTIN_EVC_PORT_BLOCKING;
 
@@ -8583,9 +8591,9 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
     return L7_FAILURE;
   }
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing EVC#%u", evc_id);
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "Flushing EVC#%u", evc_id);
 
-  LOG_INFO(LOG_CTX_PTIN_EVC, "Flushing Root Int.VLAN=%u", int_vlan);
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "Flushing Root Int.VLAN=%u", int_vlan);
 
   /* Flush FDB on Root VLAN */
   if (fdbFlushByVlan(int_vlan) != L7_SUCCESS)
@@ -8624,7 +8632,45 @@ L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan)
   return rc;
 }
 
+
+/**
+ * Returns internal VLAN and the correspondig EVC ID
+ * 
+ * @return L7_int evc_id on match condition
+ */
+L7_int switching_erps_internalVlan_get(L7_int initial_evc_id, L7_uint8 erps_ptin_port0, L7_uint8 erps_ptin_port1, L7_uint8 *vid_bmp, L7_uint16 *internalVlan)
+{
+  L7_uint16 vid;
+  L7_int    evc_id;
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC,"(initial_evc_id %d, erps_ptin_port0 %u, erps_ptin_port1 %u)", initial_evc_id, erps_ptin_port0, erps_ptin_port1);
+
+  /* Run all EVCs */
+  for (evc_id=initial_evc_id; evc_id < PTIN_SYSTEM_N_EVCS; evc_id++)
+  {
+    /* Skip not used EVCs */
+    if (!evcs[evc_id].in_use)
+      continue;
+
+    /* If EVC is using this interface, flush Root VLAN immediately and continues to next EVC ID*/
+    if ((evcs[evc_id].root_info.port == erps_ptin_port0) || (evcs[evc_id].root_info.port == erps_ptin_port1))
+    {
+      vid = evcs[evc_id].root_info.nni_ovid;
+
+      if ( (vid < 1<<12) && (vid_bmp[vid/8] & 1<<(vid%8)) ) //ERP protected VID
+      {
+        *internalVlan = evcs[evc_id].rvlan;
+        return evc_id;
+      }
+    }
+  }
+
+  *internalVlan = 0;
+  return PTIN_SYSTEM_N_EVCS;
+}
+
 #endif
+
 
 /**
  * Flushes all VLANs' FDB associated to this ptin_port

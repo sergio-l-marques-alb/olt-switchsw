@@ -24,6 +24,7 @@
 #include "fdb_api.h"
 
 #include <unistd.h>
+#include <signal.h>
 
 
 /// Mac Addr used as APS Src MAC and as ERP Node ID
@@ -38,14 +39,27 @@ L7_uint8 erpsIdx_from_controlVidInternal[4096]  = {PROT_ERPS_UNUSEDIDX};
 L7_uint8 erpsIdx_from_serviceVid[4096]          = {PROT_ERPS_UNUSEDIDX};
 
 // Task id
+#if 1
 L7_uint32 ptin_hal_apsPacketTx_TaskId = L7_ERROR;
+#else
+  pthread_t          ptin_hal_apsPacketTx_TaskId = L7_ERROR;
+  pthread_attr_t     ptin_hal_apsPacketTx_Task_attr;
+  pthread_mutex_t    ptin_hal_apsPacketTx_Task_lock;
+#endif
 
 /// Global inits
 L7_uint8 ptin_hal_initdone = 0x00;
 
 // Task to process Tx messages
+#if 1
 void ptin_hal_apsPacketTx_task(void);
+#else
+void *ptin_hal_apsPacketTx_task(void *_X_);
+#endif
 
+#define PTIN_ERPS_WAKE_UP_SIGNAL 41
+
+static void __ptin_hal_erps_signal_handler (int sig);
 
 /********************************************************************************** 
  *                                Initialize
@@ -62,12 +76,12 @@ L7_RC_t ptin_hal_erps_init(void)
   // struct init
   memset(tbl_halErps, 0, MAX_PROT_PROT_ERPS*sizeof(ptinHalErps_t));
 
-
+#if 1
   // Create task for Tx packets
   ptin_hal_apsPacketTx_TaskId = osapiTaskCreate("ptin_hal_apsPacketTx_task", ptin_hal_apsPacketTx_task, 0, 0,
                                            L7_DEFAULT_STACK_SIZE,
-                                           L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
-                                           L7_DEFAULT_TASK_SLICE);
+                                           L7_TASK_PRIORITY_LEVEL(L7_MEDIUM_TASK_PRIORITY-1),
+                                           L7_DEFAULT_TASK_SLICE);  
 
   if (ptin_hal_apsPacketTx_TaskId == L7_ERROR) {
     LOG_FATAL(LOG_CTX_ERPS, "Could not create task ptin_hal_apsPacketTx_task");
@@ -80,6 +94,35 @@ L7_RC_t ptin_hal_erps_init(void)
     return(L7_FAILURE);
   }
   LOG_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task initialized");
+#else
+
+  /* Thread setup */
+  if (0 != pthread_attr_init(&ptin_hal_apsPacketTx_Task_attr)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_attr_init");
+    return -1;
+  }
+
+  if (0 != pthread_attr_setstacksize(&ptin_hal_apsPacketTx_Task_attr, L7_DEFAULT_STACK_SIZE)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed to set thread stack size: %u",L7_DEFAULT_STACK_SIZE);
+    return -1;
+  }
+
+  if (0 != pthread_mutex_init(&ptin_hal_apsPacketTx_Task_lock, NULL)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_mutex_init");
+    return -1;
+  }
+
+  if (0 != pthread_create(&ptin_hal_apsPacketTx_TaskId, &ptin_hal_apsPacketTx_Task_attr, &ptin_hal_apsPacketTx_task, NULL) )
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_create");
+    return -1;
+  }
+  LOG_ERR(LOG_CTX_ERPS, "thread_id=%p",ptin_hal_apsPacketTx_TaskId);
+
+#endif
 
   // Get base MAC address and use it as Src MAC and Node ID
   if (bspapiMacAddrGet(srcMacAddr) != L7_SUCCESS) {
@@ -382,6 +425,13 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   ptin_aps_packet_init(erps_idx);
 #endif
 
+  tbl_halErps[erps_idx].apsReqTxRemainingCounter = 0;
+  tbl_halErps[erps_idx].apsReqStatusTx = 0;
+  tbl_halErps[erps_idx].apsReqStatusTx_h = 0;
+  tbl_halErps[erps_idx].apsReqStatusRx = 0;
+
+  ptin_hal_erps_countersClear(erps_idx);
+
   // HW Sync init
   tbl_halErps[erps_idx].hwSync     = 0;
   tbl_halErps[erps_idx].hwFdbFlush = 0;  
@@ -390,8 +440,6 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 
   // Print some Debug
   ptin_hal_erps_entry_print(erps_idx);
-
-  ptin_hal_erps_countersClear(erps_idx);
 
   return L7_SUCCESS;
 }
@@ -507,6 +555,21 @@ L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status
 
 
 /**
+ * Signal handler. This method is registered in __controlblock_handler. 
+ */
+void __ptin_hal_erps_signal_handler (int sig) 
+{
+  switch (sig) 
+    {
+      case PTIN_ERPS_WAKE_UP_SIGNAL:
+        //LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS WAKE UP SIGNAL Handler!");
+        break;
+      default:
+        break;
+    }
+}
+
+/**
  * Send an APS packet on both ring interfaces
  * 
  * @author joaom (6/11/2013)
@@ -523,15 +586,12 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
 
   apsTx = ((req << 12) & 0xF000) | (status & 0x00FF);
 
-  if ((tbl_halErps[erps_idx].apsReqStatusTx != apsTx) && (req != RReq_NONE)) {
-    //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req, status);
-    ptin_hal_erps_sendapsX3(erps_idx, req, status);
-
-    ptin_hal_erps_counters_tx(erps_idx, 0, req, 3);
-    ptin_hal_erps_counters_tx(erps_idx, 1, req, 3);
-  }
-
   tbl_halErps[erps_idx].apsReqStatusTx = apsTx;
+
+  tbl_halErps[erps_idx].apsReqTxRemainingCounter = 3; // Send 3 consecutive R-APS
+
+  osapiTaskSignal(ptin_hal_apsPacketTx_TaskId, PTIN_ERPS_WAKE_UP_SIGNAL);
+  //LOG_ERR(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS WAKE UP SIGNAL Sent!", erps_idx);
 
   return L7_SUCCESS;
 }
@@ -542,27 +602,98 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
  * 
  * @author joaom (6/17/2013)
  */
+#if 1
 void ptin_hal_apsPacketTx_task(void)
+#else
+void *ptin_hal_apsPacketTx_task(void *_X_)
+#endif
 {
-  L7_uint8 erps_idx, req;
+  L7_uint8 erps_idx, req, status;
+
+  struct timespec requiredSleepTime;
+  struct timespec remainingSleepTime;
+
+  signal(PTIN_ERPS_WAKE_UP_SIGNAL, __ptin_hal_erps_signal_handler);
+
+  /* Sleep Thread for 5s */
+  requiredSleepTime.tv_sec  = 5;
+  requiredSleepTime.tv_nsec = 0;
   
   LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
 
+#if 1
   if (osapiTaskInitDone(L7_PTIN_APS_PACKET_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
     PTIN_CRASH();
   }
+#endif
 
   LOG_INFO(LOG_CTX_ERPS,"PTin APS packet task ready to process events");
 
   /* Loop */
   while (1) {
-    sleep(5);
+    
+//  LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS PROC!");
+// 
+//  if(pthread_equal(ptin_hal_apsPacketTx_TaskId, pthread_self()) == 0)
+//  {
+//    LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS Thread ID MATCH!");
+//  }
+//  else
+//  {
+//    LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS Thread ID NOT MATCH");
+//  }
+
+    /* Sleep Thread for 5s */
+    if(nanosleep(&requiredSleepTime, &remainingSleepTime) == 0)
+    {
+      /* Next time Sleep Thread for 5s */
+      requiredSleepTime.tv_sec  = 5;
+      requiredSleepTime.tv_nsec = 0;
+    }
+    else
+    {
+      /* We were interrupted. Next time Sleep Thread for Remaining Sleep Time + 5s */
+      memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
+      requiredSleepTime.tv_sec  += 5;
+    }
 
     for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
     {
+      if (!tbl_halErps[erps_idx].used)
+      {
+        continue;
+      }
+
       req = (tbl_halErps[erps_idx].apsReqStatusTx >> 12) & 0xF;
-      if ( (tbl_halErps[erps_idx].used) && (req != RReq_NONE) )
+      status = (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF);
+
+      if ((tbl_halErps[erps_idx].apsReqTxRemainingCounter > 0) && (req != RReq_NONE))
+      {
+        ptin_aps_packet_send(erps_idx, ((tbl_halErps[erps_idx].apsReqStatusTx >> 8) & 0xFF), (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF) );
+        //ptin_hal_erps_sendapsX3(erps_idx, req, status);
+
+        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req, status);
+        
+        tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
+
+        if (tbl_halErps[erps_idx].apsReqTxRemainingCounter > 0)
+        {
+          /* 3 R-APS should be sent with a period of 3.33ms */
+          memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
+          requiredSleepTime.tv_sec  = 0;
+          requiredSleepTime.tv_nsec = 3;
+        }
+
+        tbl_halErps[erps_idx].apsReqStatusTx_h = tbl_halErps[erps_idx].apsReqStatusTx;
+
+        ptin_hal_erps_counters_tx(erps_idx, 0, req, 1);
+        ptin_hal_erps_counters_tx(erps_idx, 1, req, 1);
+
+        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS done!",  erps_idx);
+      }
+
+      else if (req != RReq_NONE)
       {
         ptin_aps_packet_send(erps_idx, ((tbl_halErps[erps_idx].apsReqStatusTx >> 8) & 0xFF), (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF) );
 
@@ -612,9 +743,9 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
  **********************************************************************************/
 
 /**
- * Block or unblock ERP Port and/or Flush FDB
+ * Block or unblock ERP Port
  * 
- * @author joaom (6/25/2013)
+ * @author joaom (6/25/2013) / Last edit (11/06/2014)
  * 
  * @param erps_idx
  * 
@@ -622,80 +753,54 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
  */
 int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx)
 {
-#if !(PTIN_BOARD_OLT1T0)
-  L7_uint16 byte, bit;
-  L7_uint16 vid, internalVlan;
-#endif
+  L7_uint16 internalVlan;
+  L7_int initial_evc_id = 0;
 
-  if ( (tbl_halErps[erps_idx].hwSync == 1) || (tbl_halErps[erps_idx].hwFdbFlush == 1) )
+  if (tbl_halErps[erps_idx].hwSync == 1)
   {
-    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);      
+    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
 
-#if (PTIN_BOARD_OLT1T0)
-    fdbFlush();
-    //ptin_l2_mac_table_flush();
-#else
-
-    for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++)
+    while (initial_evc_id < PTIN_SYSTEM_N_EVCS)
     {
-      for (bit=0; bit<8; bit++)
+      initial_evc_id = switching_erps_internalVlan_get(initial_evc_id, 
+                                                       tbl_erps[erps_idx].protParam.port0.idx, tbl_erps[erps_idx].protParam.port1.idx, tbl_erps[erps_idx].protParam.vid_bmp, 
+                                                       &internalVlan);
+
+      if (internalVlan != 0)
       {
-        if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1)
+        if (tbl_halErps[erps_idx].hwSync)
         {
-          vid = (byte*8)+bit;
-
-          // Convert to internal VLAN ID
-          if ( L7_SUCCESS == ptin_xlate_ingress_get( tbl_halErps[erps_idx].port0intfNum, vid, PTIN_XLATE_NOT_DEFINED, &internalVlan, L7_NULLPTR) )
+          if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING)
           {
-            LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: VLAN %d, intVlan %d", erps_idx, vid, internalVlan);
-
-            if (internalVlan != 0) {
-              if (tbl_halErps[erps_idx].hwSync)
-              {
-                if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_FLUSHING)
-                {
-                  switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
-                }
-                else
-                {
-                  switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
-                }
-
-                if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING)
-                {
-                  switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
-                }
-                else
-                {
-                  switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
-                }
-              }
-
-              if ( (tbl_halErps[erps_idx].hwFdbFlush) || (tbl_halErps[erps_idx].hwSync) )
-              {
-                switching_fdbFlushByVlan(internalVlan);
-              }
-            }
-            else
-            {
-              LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: EVC with VLAN %d does not exist", erps_idx, vid);
-            }
+            switching_root_unblock(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
           }
           else
           {
-            LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: EVC with VLAN %d does not exist", erps_idx, vid);
+            switching_root_block(tbl_erps[erps_idx].protParam.port0.idx, internalVlan);
           }
-        } //if(vid_bmp...)
-      } // for(bit...)
-    } // for(byte...)
-#endif
+
+          if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_FLUSHING)
+          {
+            switching_root_unblock(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+          }
+          else
+          {
+            switching_root_block(tbl_erps[erps_idx].protParam.port1.idx, internalVlan);
+          }
+        }
+      }
+
+      initial_evc_id++;
+    }
+
+    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync done!", erps_idx);
 
     tbl_halErps[erps_idx].hwSync = 0;
-    tbl_halErps[erps_idx].hwFdbFlush = 0;
   }
 
   return L7_SUCCESS;
 }
+
 
 /**
  * Block or unblock ERP Port and/or Flush FDB
@@ -763,7 +868,13 @@ int ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan)
  * @return int    SF or No SF
  */
 int ptin_hal_erps_rd_alarms(L7_uint8 slot, L7_uint32 index)
-{  
+{
+
+//if (nimGetIntfLinkState(intf, &linkState)==L7_SUCCESS)
+//  {
+//    link = (linkState==L7_UP);
+//  }
+
   return MEP_is_in_LOC(index, 0xffff, &oam);
 }
 

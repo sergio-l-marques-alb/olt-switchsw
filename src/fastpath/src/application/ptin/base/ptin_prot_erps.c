@@ -21,6 +21,8 @@
 #include "ptin_hal_erps.h"
 #include "logger.h"
 #include "ptin_cnfgr.h"
+#include "fdb_api.h"
+#include "ptin_intf.h"
 
 #define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
 
@@ -1107,7 +1109,7 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
 
   #ifdef SM_PTIN_MODS
   // If both ports were in Flushing State and now changing to Blocking, force a Flush FDB
@@ -1180,22 +1182,37 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
     return(force_erps_SF[erps_idx][port] & 1);
   }
 
-  if ( (port == PROT_ERPS_PORT0) && (tbl_erps[erps_idx].protParam.port0CfmIdx != 255) ) {
-    return tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx);
+  if ( (port == PROT_ERPS_PORT0) && (tbl_erps[erps_idx].protParam.port0CfmIdx != 255) )
+  {
+    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (!ptin_intf_link_get(tbl_erps[erps_idx].protParam.port0.idx)) );
   }
 
-  else if ( (port == PROT_ERPS_PORT1) && (tbl_erps[erps_idx].protParam.port1CfmIdx != 255) ) {
-    return tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx);
+  else if ( (port == PROT_ERPS_PORT1) && (tbl_erps[erps_idx].protParam.port1CfmIdx != 255) )
+  {
+    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (!ptin_intf_link_get(tbl_erps[erps_idx].protParam.port1.idx)) );
   }
 
-  // CFM Not defined; could use Port link Down; For now just return SF
-  else {
-    return 1;
+  // CFM Not defined; use Port link Down
+  else if (port == PROT_ERPS_PORT0) {
+    ptin_intf_link_get(tbl_erps[erps_idx].protParam.port0.idx);
   }
-
-  
+  else if (port == PROT_ERPS_PORT1) {
+    ptin_intf_link_get(tbl_erps[erps_idx].protParam.port1.idx);
+  }
 
   return(ret);
+}
+
+int ptin_erps_rd_alarms_test(L7_uint8 ptin_port)
+{
+  L7_uint8 alarm;
+
+  alarm = ptin_intf_link_get(ptin_port);
+
+  LOG_ERR(LOG_CTX_ERPS,"\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm);
+  printf("\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm); fflush(stdout);
+
+  return(0);
 }
 
 
@@ -1275,7 +1292,7 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  if (tbl_erps[erps_idx].state_machine != state_machine)
+  if (ERPS_STATE_IgnoreLocal(tbl_erps[erps_idx].state_machine) != ERPS_STATE_IgnoreLocal(state_machine))
   {
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Changing state from (0x%x) %s:%s to (0x%x) %s:%s (line_callback %d)", 
               erps_idx, 
@@ -1286,9 +1303,15 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
     tbl_erps[erps_idx].state_machine_h  = tbl_erps[erps_idx].state_machine;
     tbl_erps[erps_idx].state_machine    = state_machine;
 
-    tbl_erps[erps_idx].localRequest                     = LReq_NONE;
-    tbl_erps[erps_idx].localReqPort                     = PROT_ERPS_PORT0;
-    tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
+    if (ERPS_STATE_IsLocal(state_machine))
+    {
+      tbl_erps[erps_idx].remoteRequest = RReq_NONE;
+    }
+    else
+    {
+      tbl_erps[erps_idx].localRequest = LReq_NONE;
+      tbl_erps[erps_idx].localReqPort = PROT_ERPS_PORT0;
+    }
   }
 
   return(ret);
@@ -1472,7 +1495,6 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   //--------------------------------------------------------------------------------------------
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
-    L7_uint8 aux;
 
     remoteRequest = apsReqRx;
 
@@ -1492,11 +1514,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
     // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
 
+#if 0
     if (remoteRequest == RReq_NR) {
       memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
     } else {
 
+      L7_uint8 aux;
       // extracts the (node ID, BPR) pair ...
       aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
 
@@ -1522,6 +1546,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         }
       }
     }
+#endif
 
     //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
     //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
@@ -1862,16 +1887,49 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     return(PROT_ERPS_EXIT_OK);
   }
 
+  if (remoteRequest == RReq_NR) {
+    memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
+    tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
+  }
+  else {
+    L7_uint8 aux;
+
+    // extracts the (node ID, BPR) pair ...
+    aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
+
+    // ...and compares it with the previous (node ID, BPR)
+    if (memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux))
+    {
+      // If it is different from the previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
+      // stored for that ring port;
+      memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = aux;
+
+      // and if it is different from the (node ID, BPR) pair already stored at the
+      // other ring port, then a flush FDB action is triggered
+      if ((memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE)) || 
+          (tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0] != tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]))
+      {
+        // except when the new R-APS message has DNF
+        // or the receiving Ethernet ring node's node ID.
+        if (!((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)))
+        {
+          ptin_erps_FlushFDB(erps_idx, __LINE__);
+        }
+      }
+    }
+  }
+
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Processing Changes...", erps_idx);
   if (topPriorityRequest>100) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
+    LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
 
     #ifdef SM_PTIN_MODS
     tbl_erps[erps_idx].remoteRequest = RReq_NONE;
     #endif
   } else {
     reqPort = apsRxPort;
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
+    LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
   }
 
 
@@ -3495,6 +3553,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 int ptin_prot_erps_proc(void)
 {
   L7_uint8 erps_idx;
+  L7_uint8 flush_pending = 0;
 
   // CONTROL
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
@@ -3516,6 +3575,14 @@ int ptin_prot_erps_proc(void)
     }
 
     ptin_hal_erps_hwreconfig(erps_idx);
+
+    flush_pending |= tbl_halErps[erps_idx].hwFdbFlush;
+    tbl_halErps[erps_idx].hwFdbFlush = 0;
+  }
+
+  if (flush_pending) {
+    LOG_TRACE(LOG_CTX_ERPS, "Flushing!\n");
+    fdbFlush();
   }
 
   return(PROT_ERPS_EXIT_OK);
@@ -3569,7 +3636,7 @@ L7_RC_t ptin_prot_erps_init(void)
   /* Create task for ERProtection State Machine */
   erps_TaskId = osapiTaskCreate("ptin_prot_erps_task", ptin_erps_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
-                                L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                                L7_TASK_PRIORITY_LEVEL(L7_MEDIUM_TASK_PRIORITY-2),
                                 L7_DEFAULT_TASK_SLICE);
 
   if (erps_TaskId == L7_ERROR) {

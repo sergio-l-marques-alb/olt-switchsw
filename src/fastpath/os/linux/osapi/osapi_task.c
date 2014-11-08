@@ -832,6 +832,32 @@ void osapiTaskDelete( L7_int32 task_id)
 
 }
 
+
+/**************************************************************************
+*
+* @purpose  Send a Signal to a task.
+*
+* @param    task_id @b{(input)}    handle for the task to be deleted.
+* @param    signal_id @b{(input)}  Signal code
+*
+* @returns  none.
+*
+* @comments    none.
+*
+* @end
+*
+*************************************************************************/
+
+void osapiTaskSignal( L7_int32 task_id, int signal_id)
+{
+  osapi_task_t *osapiTask = (osapi_task_t *)task_id;
+
+  pthread_kill(osapiTask->thread, signal_id);
+  
+  /* need task scheduling unlock? */
+
+}
+
 /**************************************************************************
 *
 * @purpose  Signals to a waiting task that this task has completed initialization

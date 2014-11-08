@@ -58,7 +58,9 @@ typedef struct {
   L7_uint32 port1intfNum;
 
   // APS
+  L7_uint16 apsReqTxRemainingCounter;
   L7_uint16 apsReqStatusTx;
+  L7_uint16 apsReqStatusTx_h;
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
 

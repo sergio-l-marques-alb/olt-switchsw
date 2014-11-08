@@ -476,6 +476,13 @@ extern L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan);
 extern L7_RC_t switching_fdbFlushByVlan(L7_uint16 int_vlan);
 
 /**
+ * Returns internal VLAN and the correspondig EVC ID
+ * 
+ * @return L7_int evc_id on match condition
+ */
+extern L7_int switching_erps_internalVlan_get(L7_int initial_evc_id, L7_uint8 erps_ptin_port0, L7_uint8 erps_ptin_port1, L7_uint8 *vid_bmp, L7_uint16 *internalVlan);
+
+/**
  * Flushes all VLANs' FDB associated to this ptin_port
  * 
  * @param ptin_port  Port to Flush

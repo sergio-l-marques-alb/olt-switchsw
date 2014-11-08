@@ -145,6 +145,7 @@
 #define ERPS_STATE_E_Pending            0x6
 
 
+#define ERPS_STATE_IgnoreLocal(state)   ((state & 0x0F))
 #define ERPS_STATE_GetState(state)      ((state & 0x0F))
 #define ERPS_STATE_SetLocal(state)      ((state & 0x0F))
 #define ERPS_STATE_SetRemote(state)     ((state | 0x10))
@@ -317,6 +318,7 @@ extern erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
 //  Functions to export
 //-------------------------------------------------------------------------
 
+extern int ptin_erps_rd_alarms_test(L7_uint8 ptin_port);
 
 /**
  * @addtogroup functions ERPS (G.8032) Module functions
