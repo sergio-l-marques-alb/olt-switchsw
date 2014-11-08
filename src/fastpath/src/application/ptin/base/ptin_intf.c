@@ -5161,7 +5161,7 @@ L7_BOOL ptin_intf_los_get(L7_uint32 ptin_port)
   }
 
   #if (PTIN_BOARD_IS_STANDALONE)
-  los = !(pfw_shm->intf[ptin_port].port_state & 1);
+  los = pfw_shm->intf[ptin_port].port_state & 1;
   #endif
 
   return los;
