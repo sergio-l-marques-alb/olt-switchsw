@@ -1184,20 +1184,20 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
 
   if ( (port == PROT_ERPS_PORT0) && (tbl_erps[erps_idx].protParam.port0CfmIdx != 255) )
   {
-    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (!ptin_intf_link_get(tbl_erps[erps_idx].protParam.port0.idx)) );
+    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx)) );
   }
 
   else if ( (port == PROT_ERPS_PORT1) && (tbl_erps[erps_idx].protParam.port1CfmIdx != 255) )
   {
-    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (!ptin_intf_link_get(tbl_erps[erps_idx].protParam.port1.idx)) );
+    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx)) );
   }
 
   // CFM Not defined; use Port link Down
   else if (port == PROT_ERPS_PORT0) {
-    ptin_intf_link_get(tbl_erps[erps_idx].protParam.port0.idx);
+    ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
   }
   else if (port == PROT_ERPS_PORT1) {
-    ptin_intf_link_get(tbl_erps[erps_idx].protParam.port1.idx);
+    ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
   }
 
   return(ret);
@@ -1207,7 +1207,7 @@ int ptin_erps_rd_alarms_test(L7_uint8 ptin_port)
 {
   L7_uint8 alarm;
 
-  alarm = ptin_intf_link_get(ptin_port);
+  alarm = ptin_intf_los_get(ptin_port);
 
   LOG_ERR(LOG_CTX_ERPS,"\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm);
   printf("\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm); fflush(stdout);

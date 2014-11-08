@@ -5140,6 +5140,32 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
   return L7_SUCCESS;
 }
 
+/**
+ * Get LOS state of a given ptin_port 
+ *  
+ * @param ptin_intf : interface (input)
+ * @param los       : LOS state (out)
+ * 
+ * @return L7_RC_t : L7_TRUE / L7_FALSE 
+ * 
+ * @author joaom (11/6/2014)
+ */
+L7_BOOL ptin_intf_los_get(L7_uint32 ptin_port)
+{
+  L7_BOOL los = L7_FALSE;
+
+  /* Validate arguments */
+  if (ptin_port > PTIN_SYSTEM_N_PORTS)
+  {
+    return L7_FALSE;
+  }
+
+  #if (PTIN_BOARD_IS_STANDALONE)
+  los = !(pfw_shm->intf[ptin_port].port_state & 1);
+  #endif
+
+  return los;
+}
 
 /**
  * Get Link Down of a given ptin_port 
@@ -5153,21 +5179,15 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
  */
 L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port)
 {
+  L7_uint32 intIfNum;
+  L7_uint32 adminState, linkState;
   L7_BOOL link = L7_FALSE;
 
   /* Validate arguments */
   if (ptin_port > PTIN_SYSTEM_N_PORTS)
   {
-    return link;
+    return L7_FALSE;
   }
-
-  #if (PTIN_BOARD_IS_STANDALONE)
-
-  link = !(pfw_shm->intf[ptin_port].counter_state & 1);
-
-  #else
-  L7_uint32 intIfNum;
-  L7_uint32 adminState, linkState;
 
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS || nimGetIntfAdminState(intIfNum, &adminState)!=L7_SUCCESS)
   {
@@ -5183,7 +5203,6 @@ L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port)
   }
 
   link = (linkState == L7_UP);
-  #endif
 
   return link;
 }

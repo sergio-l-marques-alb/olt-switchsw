@@ -34,7 +34,7 @@ Bit 0: Rx activity
 typedef struct {
   L7_uint32     admin;          // Estado administrativo: 0=Down , 1=Up
   L7_uint32     link;		    //
-  L7_uint32     counter_state;  // Uso futuro (exemplo: indicacao de actividade/trafego)
+  L7_uint32     port_state;  // Uso futuro (exemplo: indicacao de actividade/trafego)
 
  #ifdef SYNC_SSM_IS_SUPPORTED
   L7_uint32     ssm_rx;         /* bit 16 -> enable; bits 7:0 -> ssm code */

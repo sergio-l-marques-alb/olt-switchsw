@@ -683,6 +683,18 @@ extern L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes);
 extern L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_uint16 *link, L7_uint16 *board_type);
 
 /**
+ * Get LOS state of a given ptin_port 
+ *  
+ * @param ptin_intf : interface (input)
+ * @param los       : LOS state (out)
+ * 
+ * @return L7_RC_t : L7_TRUE / L7_FALSE 
+ * 
+ * @author joaom (11/6/2014)
+ */
+extern L7_BOOL ptin_intf_los_get(L7_uint32 ptin_port);
+
+/**
  * Get Link Down of a given ptin_port 
  *  
  * @param ptin_intf : interface (input)
