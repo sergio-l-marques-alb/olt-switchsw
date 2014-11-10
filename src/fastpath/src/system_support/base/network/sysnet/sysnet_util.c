@@ -162,6 +162,14 @@ L7_RC_t sysNetRegisterPduReceive(sysnetNotifyEntry_t *snEntry)
 
   if (i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS)
   {
+    //PTIn added: force common_aps_ccm_packetRx_callback() into 1st position to reduce its latency
+    //if (common_aps_ccm_packetRx_callback==snEntry->notify_pdu_receive)
+    if (L7_ETYPE_CFM==snEntry->u.protocol_type && SYSNET_ETHERTYPE_ENTRY==snEntry->type) {
+        memcpy((L7_char8 *)&sysnetNotifyList.sysnetNotifyEntries[i], (L7_char8 *)&sysnetNotifyList.sysnetNotifyEntries[0],
+               sizeof(sysnetNotifyEntry_t));
+        i=0;
+    }
+
     bzero((L7_char8 *)&sysnetNotifyList.sysnetNotifyEntries[i],
           sizeof(sysnetNotifyEntry_t));
 
