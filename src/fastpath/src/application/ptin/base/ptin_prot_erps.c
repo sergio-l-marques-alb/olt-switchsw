@@ -257,6 +257,8 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   memcpy( &tbl_erps[erps_idx].protParam, new_group, sizeof(erpsProtParam_t) );
+
+  ptin_hal_erps_internal_vlans_used_sync(erps_idx);
   
   #if 0
   {
@@ -411,8 +413,12 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
   //tbl_erps[erps_idx].protParam.continualTxInterval    = conf->continualTxInterval;
   //tbl_erps[erps_idx].protParam.rapidTxInterval        = conf->rapidTxInterval;
 
-  if (mask & ERPS_CONF_MASK_BIT_VIDBMP) {
+  if (mask & ERPS_CONF_MASK_BIT_VIDBMP)
+  {
     memcpy( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
+
+    ptin_hal_erps_internal_vlans_used_sync(erps_idx);
+
     #if 0
     for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
       for (bit=0; bit<8; bit++) {
@@ -570,11 +576,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
-  #if 0
-  ptin_hal_erps_hwreconfig(erps_idx);
-  
-  ptin_erps_init_entry(erps_idx);
-  #endif
+  ptin_hal_erps_queue_vlans_used_clear(erps_idx);
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -3555,36 +3557,41 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 int ptin_prot_erps_proc(void)
 {
   L7_uint8 erps_idx;
-  L7_uint8 flush_pending = 0;
+//L7_uint8 flush_pending = 0;
 
   // CONTROL
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
 
-    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
       continue;
-    }
 
-    #if 1
     tbl_erps[erps_idx].hal.prot_proc(erps_idx);
-    #endif
   }
 
   // HW Sync
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
 
-    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
       continue;
-    }
 
-    ptin_hal_erps_hwreconfig(erps_idx);
+    ptin_hal_erps_hwSync(erps_idx);
 
-    flush_pending |= tbl_halErps[erps_idx].hwFdbFlush;
-    tbl_halErps[erps_idx].hwFdbFlush = 0;
+//  flush_pending |= tbl_halErps[erps_idx].hwFdbFlush;
+//  tbl_halErps[erps_idx].hwFdbFlush = 0;
   }
 
-  if (flush_pending) {
-    LOG_TRACE(LOG_CTX_ERPS, "Flushing!\n");
-    fdbFlush();
+//if (flush_pending) {
+//  LOG_TRACE(LOG_CTX_ERPS, "Flushing!\n");
+//  fdbFlush();
+//}
+
+  // HW FDB Flush
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  {
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+      continue;
+
+    ptin_hal_erps_hwFdbFlush(erps_idx);
   }
 
   return(PROT_ERPS_EXIT_OK);

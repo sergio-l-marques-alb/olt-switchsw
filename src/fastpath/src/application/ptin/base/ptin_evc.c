@@ -8273,7 +8273,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   }
 
   #ifdef PTIN_ERPS_EVC
-  if (ptin_hal_erps_evcIsProtected(root_intf, out_vlan) != L7_SUCCESS)
+  if (ptin_hal_erps_evcIsProtected(root_intf, out_vlan, int_vlan) != L7_TRUE)
   {
   #endif
     /* Associate root internal vlan to the root intf */
@@ -8286,7 +8286,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   #ifdef PTIN_ERPS_EVC
   }
   else {
-    LOG_INFO(LOG_CTX_PTIN_EVC, "Associating of root Int.VLAN %u to root intIfNum# %u will be done later by ERPS", int_vlan, intIfNum);
+    LOG_INFO(LOG_CTX_PTIN_EVC, "Association of root Int.VLAN %u to root intIfNum# %u will be done later by ERPS", int_vlan, intIfNum);
   }
   #endif
 
@@ -8369,6 +8369,10 @@ static L7_RC_t switching_root_remove(L7_uint root_intf, L7_uint16 out_vlan, L7_u
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
     return L7_FAILURE;
   }
+
+  #ifdef PTIN_ERPS_EVC
+  ptin_hal_erps_evcProtectedRemove(root_intf, out_vlan, int_vlan);
+  #endif
 
   return L7_SUCCESS;
 }

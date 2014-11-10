@@ -848,11 +848,11 @@ void osapiTaskDelete( L7_int32 task_id)
 *
 *************************************************************************/
 
-void osapiTaskSignal( L7_int32 task_id, int signal_id)
+void osapiTaskSignal( L7_int32 task_id, int sig)
 {
   osapi_task_t *osapiTask = (osapi_task_t *)task_id;
 
-  pthread_kill(osapiTask->thread, signal_id);
+  pthread_kill(osapiTask->thread, sig);
   
   /* need task scheduling unlock? */
 

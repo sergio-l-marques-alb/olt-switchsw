@@ -491,7 +491,7 @@ EXT_API void osapiTaskDelete( L7_int32 task_id);
 * @end
 *
 *************************************************************************/
-EXT_API void osapiTaskSignal( L7_int32 task_id, int signal_id);
+EXT_API void osapiTaskSignal( L7_int32 task_id, int sig);
 
 /**************************************************************************
 *
