@@ -8207,9 +8207,7 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error Creating ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
-  }
-
-  ptin_hal_erps_entry_init(msgErpsConf->idx);
+  } 
 
 #endif  // PTIN_ENABLE_ERPS
 
@@ -8308,9 +8306,7 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
-  }
-
-  ptin_hal_erps_convert_vid_init(msgErpsConf->idx);
+  }  
 
 #endif  // PTIN_ENABLE_ERPS
 

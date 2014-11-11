@@ -260,8 +260,6 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 
   memcpy( &tbl_erps[erps_idx].protParam, new_group, sizeof(erpsProtParam_t) );
 
-  ptin_hal_erps_internal_vlans_used_sync(erps_idx);
-  
   #if 0
   {
     int byte, bit, vid;
@@ -363,6 +361,10 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 
   tbl_erps[erps_idx].admin                      = PROT_ERPS_ENTRY_BUSY;
 
+  ptin_hal_erps_entry_init(erps_idx);
+
+  ptin_hal_erps_internal_vlans_used_sync(erps_idx);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -418,6 +420,8 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
   if (mask & ERPS_CONF_MASK_BIT_VIDBMP)
   {
     memcpy( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
+
+    ptin_hal_erps_convert_vid_init(erps_idx);
 
     ptin_hal_erps_internal_vlans_used_sync(erps_idx);
 
@@ -3769,5 +3773,11 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
   }
 }
 
-#endif  // PTIN_ENABLE_ERPS
+void crash(void)
+{
+  int *p=NULL;
 
+  p=(int*) 1;
+}
+
+#endif  // PTIN_ENABLE_ERPS

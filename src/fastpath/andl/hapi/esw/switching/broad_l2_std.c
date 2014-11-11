@@ -3466,7 +3466,8 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "MacUpdateLearn: New MAC with VID %d, GPORT 0x%08X, flags 0x%x",
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "MacUpdateLearn: New MAC [%02X:%02X:%02X:%02X:%02X:%02X] with VID %d, GPORT 0x%08X, flags 0x%x",
+            bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
             bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
   /* only process learns on Native(front panel) ports */
@@ -3696,7 +3697,8 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     return;
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: Aged MAC with VID %d, GPORT 0x%08X, flags 0x%x",
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "hapiBroadAddrMacUpdateAge: Aged MAC [%02X:%02X:%02X:%02X:%02X:%02X] with VID %d, GPORT 0x%08X, flags 0x%x",
+            bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
             bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
 
   /* If move, it will be handled in the Learn Callback */

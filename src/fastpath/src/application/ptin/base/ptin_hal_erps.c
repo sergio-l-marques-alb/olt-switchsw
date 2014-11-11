@@ -392,11 +392,10 @@ L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx)
         LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d", erps_idx, vid);
         erpsIdx_from_serviceVid[vid] = erps_idx;
       }
-
-      else {
+      else if (erpsIdx_from_serviceVid[vid] == erps_idx)
+      {
         erpsIdx_from_serviceVid[vid] = PROT_ERPS_UNUSEDIDX;
       }
-
     } // for(bit...)
   } // for(byte...)
 
@@ -860,7 +859,7 @@ struct vlan_entry_s *ptin_hal_erps_queue_vlan_used_find(int erps_idx, L7_uint16 
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "VLANs queue %d is empty", erps_idx);
+    LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
     return L7_NULLPTR;
   }
 
@@ -888,6 +887,8 @@ static L7_RC_t ptin_hal_erps_queue_vlan_used_add(int erps_idx, L7_uint16 interna
   vlan_entry_t *vlan_entry = vlan_entry_pool;
   L7_uint16 free_entry;
 
+  LOG_TRACE(LOG_CTX_ERPS, "VLAN %d added to queue %d", internalVlan, erps_idx);
+
   /* Add the internal vlan to the queue */
   free_entry = ptin_hal_erps_free_vlan_entry_get();
   vlan_entry[free_entry].used = L7_TRUE;
@@ -911,6 +912,14 @@ static L7_RC_t ptin_hal_erps_queue_vlan_used_remove(int erps_idx, L7_uint16 inte
 
   /* Remove the internal vlan to the queue */
   vlan_entry = ptin_hal_erps_queue_vlan_used_find(erps_idx, internalVlan);
+
+  if (vlan_entry == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_ERPS, "VLANs %d not found on queue %d", internalVlan, erps_idx);
+    return L7_SUCCESS;
+  }
+
+  LOG_TRACE(LOG_CTX_ERPS, "VLANs %d added to queue %d", internalVlan, erps_idx);
 
   vlan_entry->used = L7_FALSE;
   vlan_entry->vid = 0;
@@ -937,7 +946,7 @@ L7_RC_t ptin_hal_erps_queue_vlans_used_print(int erps_idx)
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
   {
-    LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "VLANs queue %d is empty", erps_idx);
+    LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
     return L7_FAILURE;
   }
 
@@ -963,6 +972,37 @@ L7_RC_t ptin_hal_erps_queue_vlans_used_print(int erps_idx)
 
 
 /**
+ * Debug Function to print Service VLANs pool
+ * 
+ * @author joaom (11/9/2014)
+ * 
+ * @param erps_idx
+ * 
+ * @return L7_RC_t
+ */
+L7_RC_t ptin_hal_erpsIdx_from_serviceVid_print(void)
+{
+  L7_uint16 i;
+
+  /* print contents */
+  printf("\nServices in used: ERPS#, VLAN\n");
+  for (i=0; i<4096; i++)
+  {
+    if (erpsIdx_from_serviceVid[i] == PROT_ERPS_UNUSEDIDX)
+      continue;
+
+    printf("                   %02d, %03d\n", erpsIdx_from_serviceVid[i], i); 
+  }
+
+  printf("\n");
+
+  return L7_SUCCESS;
+}
+
+
+
+
+/**
  * Set internal VLANs
  * 
  * @author joaom (11/9/2014)
@@ -974,8 +1014,10 @@ L7_RC_t ptin_hal_erps_queue_vlans_used_print(int erps_idx)
 L7_RC_t ptin_hal_erps_internal_vlans_used_sync(L7_uint8 erps_idx)
 {
   L7_int initial_evc_id = 0;
-  L7_uint16 internalVlan;
+  L7_uint16 internalVlan = 0;
   
+  LOG_TRACE(LOG_CTX_ERPS, "Adding VLANs to queue %d", erps_idx);
+
   while (initial_evc_id < PTIN_SYSTEM_N_EVCS)
   {
     initial_evc_id = switching_erps_internalVlan_get(initial_evc_id, 
@@ -1032,7 +1074,8 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
     /* Get pointer to the first element */
     if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "VLANs queue is empty");
+      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
+      tbl_halErps[erps_idx].hwSync = 0;
       return L7_FAILURE;
     }
 
@@ -1098,7 +1141,8 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
     /* Get pointer to the first element */
     if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
     {
-      LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "VLANs queue is empty");
+      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
+      tbl_halErps[erps_idx].hwFdbFlush = 0;
       return L7_FAILURE;
     }
 
@@ -1159,19 +1203,24 @@ L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint1
   L7_uint8 erps_idx = erpsIdx_from_serviceVid[vlan];
 
   // Reference of erps_idx using internal vlan as reference
-  if (erps_idx != PROT_ERPS_UNUSEDIDX) {
+  if (erps_idx != PROT_ERPS_UNUSEDIDX)
+  {
+    if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) )
+    {
+      if ( (vlan < 1<<12) && (tbl_erps[erps_idx].protParam.vid_bmp[vlan/8] & 1<<(vlan%8)) ) //ERP protected VID
+      {
+        LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
 
-    if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) ) {
+        /* Add the internal vlan to the queue */
+        ptin_hal_erps_queue_vlan_used_add(erps_idx, internalVlan);
 
-      LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
+        ptin_hal_erps_forceHwReconfig(erps_idx);
 
-      /* Add the internal vlan to the queue */
-      ptin_hal_erps_queue_vlan_used_add(erps_idx, internalVlan);
-
-      ptin_hal_erps_forceHwReconfig(erps_idx);
-
-      return L7_TRUE;
+        return L7_TRUE;
+      }
     }
+    LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by ERPS#%d", root_intf, vlan, erps_idx);
+    return L7_FALSE;
   }
 
   LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
