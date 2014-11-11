@@ -1478,7 +1478,7 @@ L7_RC_t ipMapIntfChangeProcess (L7_uint32 intIfNum, L7_uint32 event,
     case (L7_ATTACH):
     case (L7_DETACH):
       case (L7_ACTIVE):
-      case (L7_INACTIVE):
+//    case (L7_INACTIVE):
       case (L7_LAG_ACQUIRE):
       case (L7_PROBE_SETUP):
       case (L7_LAG_RELEASE):
