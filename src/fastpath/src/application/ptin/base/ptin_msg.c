@@ -9878,6 +9878,8 @@ L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, 
  */
 L7_RC_t ptin_msg_routing_staticroute_add(msg_RoutingStaticRoute* data)
 {
+  L7_RC_t rc;
+
   if( (data == L7_NULLPTR) )
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "Abnormal context [data=%p]", data);
@@ -9892,9 +9894,10 @@ L7_RC_t ptin_msg_routing_staticroute_add(msg_RoutingStaticRoute* data)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  pref        = %u",   data->pref);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "  isNullRoute = %u",   data->isNullRoute);
 
-  if(L7_SUCCESS != ptin_routing_staticroute_add(data->dstIpAddr, data->subnetMask, data->nextHopRtr, data->pref, (L7_BOOL)data->isNullRoute))
+  rc = ptin_routing_staticroute_add(data->dstIpAddr, data->subnetMask, data->nextHopRtr, data->pref, (L7_BOOL)data->isNullRoute);
+  if((rc != L7_SUCCESS) && (rc != L7_NOT_EXIST))
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to configure static route");
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Unable to configure static route [rc:%u]", rc);
     return L7_FAILURE;
   }
 
