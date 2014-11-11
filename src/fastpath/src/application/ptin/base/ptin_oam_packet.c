@@ -811,7 +811,6 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 req_subcode, L7_uint8 stat
   apsMacAddr[5] = tbl_erps[erps_idx].protParam.ringId;
 
   memcpy(aps_frame.dmac,              apsMacAddr, L7_ENET_MAC_ADDR_LEN);
-  memcpy(aps_frame.smac,              srcMacAddr, L7_ENET_MAC_ADDR_LEN);
 
   aps_frame.vlan_tag[0]               = 0x81;
   aps_frame.vlan_tag[1]               = 0x00;
@@ -829,7 +828,14 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 req_subcode, L7_uint8 stat
   memset(aps_frame.aspmsg.reseved2,   0, 24);
   aps_frame.aspmsg.endTlv             = 0x00;
 
-  ptin_oam_packet_send(L7_ALL_INTERFACES,
+  nimGetIntfAddress(tbl_halErps[erps_idx].port0intfNum, L7_SYSMAC_BIA, aps_frame.smac);
+  ptin_oam_packet_send(tbl_halErps[erps_idx].port0intfNum,
+                       tbl_halErps[erps_idx].controlVidInternal,
+                       (L7_uchar8 *) &aps_frame,
+                       sizeof(aps_frame_t));
+
+  nimGetIntfAddress(tbl_halErps[erps_idx].port1intfNum, L7_SYSMAC_BIA, aps_frame.smac);
+  ptin_oam_packet_send(tbl_halErps[erps_idx].port1intfNum,
                        tbl_halErps[erps_idx].controlVidInternal,
                        (L7_uchar8 *) &aps_frame,
                        sizeof(aps_frame_t));
