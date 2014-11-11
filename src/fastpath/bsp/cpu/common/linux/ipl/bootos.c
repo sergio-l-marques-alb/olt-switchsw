@@ -912,8 +912,7 @@ int main(int argc, char *argv[], char *envp[])
 #endif
   sigset_t  BlockedSigs;
 
-//#ifndef PC_LINUX_HOST
-#if 0
+#ifndef PC_LINUX_HOST
   struct sigaction sig_act;
   int rc;
   stack_t sig_stack;
@@ -933,8 +932,7 @@ int main(int argc, char *argv[], char *envp[])
 
   sigemptyset(&BlockedSigs);
 
-//#ifndef PC_LINUX_HOST
-#if 0
+#ifndef PC_LINUX_HOST
   /* Set up handler for segmentation faults.
   */
   sig_act.sa_sigaction = sigsegv_handler;
