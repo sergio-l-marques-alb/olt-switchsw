@@ -2278,11 +2278,11 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
       ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
       
-      LOG_INFO(LOG_CTX_PTIN_IGMP, "Response");
-      LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X",      ctrlResMsg.msgCode);
-      LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X",      ctrlResMsg.msgId);
-      LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
-      LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X",      ctrlResMsg.msgCode);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X",      ctrlResMsg.msgId);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
       
 
       if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
@@ -2402,11 +2402,11 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
             ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
             ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
 
-            LOG_INFO(LOG_CTX_PTIN_IGMP, "Response");
-            LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X",      ctrlResMsg.msgCode);
-            LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X",      ctrlResMsg.msgId);
-            LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
-            LOG_INFO(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X",      ctrlResMsg.msgCode);
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X",      ctrlResMsg.msgId);
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
           
             if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
             { 
@@ -2619,17 +2619,17 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
                   return L7_FAILURE;
                 }
                 newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-                LOG_INFO(LOG_CTX_PTIN_IGMP, "Port: %u", clientGroup->ptin_port);
+                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port: %u", clientGroup->ptin_port);
           #endif
           #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
                 newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
                 newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-                LOG_INFO(LOG_CTX_PTIN_IGMP, "oVlan: %u", newClientEntry.outerVlan);
+                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "oVlan: %u", newClientEntry.outerVlan);
           #endif
           #if (MC_CLIENT_INNERVLAN_SUPPORTED)
                 newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
                 newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-                LOG_INFO(LOG_CTX_PTIN_IGMP, "iVlan: %u", newClientEntry.innerVlan);
+                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "iVlan: %u", newClientEntry.innerVlan);
           #endif
           #if 0
           #if (MC_CLIENT_IPADDR_SUPPORTED)
