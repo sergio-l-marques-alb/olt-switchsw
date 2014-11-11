@@ -703,7 +703,6 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   BROAD_PORT_t *hapiPortPtr;
   bcm_multicast_t encap_id;
   bcm_error_t error;
-  L7_RC_t rc = L7_SUCCESS;
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "port={%d,%d,%d}, oVlanId=%u iVlanId=%u",
             dapiPort->usp->unit,dapiPort->usp->slot,dapiPort->usp->port,
