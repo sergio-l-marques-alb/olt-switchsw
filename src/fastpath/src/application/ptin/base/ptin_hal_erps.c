@@ -26,6 +26,8 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <pthread.h>
+#include <linux/sched.h>
 
 
 /// Mac Addr used as APS Src MAC and as ERP Node ID

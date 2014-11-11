@@ -16,6 +16,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <linux/sched.h>
 
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
