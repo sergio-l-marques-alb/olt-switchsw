@@ -2479,6 +2479,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     /* QoS initialization */
     ptin_intf.intf_type = PTIN_EVC_INTF_LOGICAL;
     ptin_intf.intf_id   = lag_idx;
+
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error initializing QoS definitions", lag_idx);
@@ -2489,15 +2490,39 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u: Success initializing QoS definitions", lag_idx);
     }
 
+    /* Set MAC learn attributes */
+    #if (PTIN_BOARD_IS_MATRIX)
+    if (lag_idx < PTIN_SYSTEM_N_LAGS_EXTERNAL)
+    {
+      ptin_HWPortExt_t port_ext;
+
+      memset(&port_ext, 0x00, sizeof(ptin_HWPortExt_t));
+
+      port_ext.macLearn_enable                = L7_TRUE;
+      port_ext.macLearn_stationMove_enable    = L7_TRUE;
+      port_ext.macLearn_stationMove_samePrio  = L7_TRUE;
+      port_ext.macLearn_stationMove_prio      = 2;
+      port_ext.Mask = PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE |
+                      PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE |
+                      PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO |
+                      PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO;
+
+      if (ptin_intf_portExt_set(&ptin_intf, &port_ext) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "LAG# %u: Error setting MAC learning attributes", lag_idx);
+      }
+    }
+    #else
     /* For Linecards, LAG 1/0 belongs to backplane... should be trusted */
     #if (PTIN_BOARD_IS_LINECARD)
     if (lag_idx == 0)
     #endif
-    #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
     {
+      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
       ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
       LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+      #endif
     }
     #endif
   }
@@ -2605,13 +2630,13 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
       #if (PTIN_BOARD_IS_LINECARD)
       if (lag_idx == 0)
       #endif
-      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       {
+        #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
         ptin_dhcp_intfTrusted_set(lag_intf, L7_FALSE); 
         ptin_pppoe_intfTrusted_set(lag_intf, L7_FALSE);
         LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u goes back to untrusted", lag_idx);
+        #endif
       }
-      #endif
 
       CLEAR_LAG_CONF(lag_idx);
       CLEAR_LAG_MAP(lag_idx);
