@@ -114,7 +114,7 @@ elif [ $mode = "boot" ]; then
     while [ 1 ]
     do
         # Query application to determine if it is running or not
-        $cli ping 20 6 > /dev/null
+        $cli ping 10 12 > /dev/null
         if [ "$?" -ne "0" ]; then
             if [ $ntry = 0 ]; then
                 startup;

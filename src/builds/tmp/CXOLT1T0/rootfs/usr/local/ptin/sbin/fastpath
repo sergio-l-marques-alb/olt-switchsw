@@ -133,7 +133,7 @@ elif [ $mode = "boot" ]; then
     while [ 1 ]
     do
         # Query application to determine if it is running or not
-        $cli ping 20 6 > /dev/null
+        $cli ping 10 12 > /dev/null
         if [ "$?" -ne "0" ]; then
 	    echo "No reply"
             if [ $ntry = 0 ]; then
@@ -142,7 +142,7 @@ elif [ $mode = "boot" ]; then
                 signalcxp   # Signal CXP FW that Fastpath is launched
             else
 		# Compress log files
-		#/bin/sh /usr/local/ptin/scripts/transfer_logs.sh
+		/bin/sh /usr/local/ptin/scripts/transfer_logs.sh
 		echo "Going to reboot"
                 /sbin/reboot;
                 exit;
