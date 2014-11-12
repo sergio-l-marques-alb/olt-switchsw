@@ -47,7 +47,7 @@ startup()
     $app_path 0>/dev/null &
 
     # Wait 200 seconds for FP to boot up
-    $cli ping 6 30
+    $cli ping 10 20
 
     # Redirect output to the default pipes
     exec 1>&- 2>&-
@@ -133,7 +133,7 @@ elif [ $mode = "boot" ]; then
     while [ 1 ]
     do
         # Query application to determine if it is running or not
-        $cli ping 3 5 > /dev/null
+        $cli ping 20 6 > /dev/null
         if [ "$?" -ne "0" ]; then
 	    echo "No reply"
             if [ $ntry = 0 ]; then
@@ -141,6 +141,8 @@ elif [ $mode = "boot" ]; then
                 startup;
                 signalcxp   # Signal CXP FW that Fastpath is launched
             else
+		# Compress log files
+		#/bin/sh /usr/local/ptin/scripts/transfer_logs.sh
 		echo "Going to reboot"
                 /sbin/reboot;
                 exit;
@@ -184,3 +186,4 @@ else
 
     signalcxp;
 fi
+
