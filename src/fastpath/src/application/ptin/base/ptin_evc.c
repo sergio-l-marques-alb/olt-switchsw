@@ -8440,6 +8440,10 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating root Int.VLAN %u to root intIfNum# %u (rc=%d)", int_vlan, intIfNum, rc);
     rc = L7_FAILURE;
   }
+    /* Wait until all requests are attended */
+  while (!dot1qQueueIsEmpty())
+    osapiSleepUSec(10);
+  osapiSleepUSec(10);
 
 
 
@@ -8530,6 +8534,10 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
     LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
     rc = L7_FAILURE;
   }
+  /* Wait until all requests are attended */
+  while (!dot1qQueueIsEmpty())
+    osapiSleepUSec(10);
+  osapiSleepUSec(10);
 
   /* Get all leaf interfaces... */
   #if 0

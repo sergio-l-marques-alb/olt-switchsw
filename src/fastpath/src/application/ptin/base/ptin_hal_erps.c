@@ -1152,8 +1152,9 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
 
       if (internalVlan != 0)
       {
-        if (tbl_halErps[erps_idx].hwSync)
+        if (tbl_halErps[erps_idx].hwFdbFlush)
         {
+          LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: Flushing VLAN ID %d", erps_idx, internalVlan);
           fdbFlushByVlan(internalVlan);
         }
 
@@ -1162,7 +1163,7 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
       }
     }
 
-    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync done!", erps_idx);
+    LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Flush done!", erps_idx);
 
     tbl_halErps[erps_idx].hwFdbFlush = 0;
   }

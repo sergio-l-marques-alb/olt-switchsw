@@ -584,6 +584,8 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   ptin_hal_erps_queue_vlans_used_clear(erps_idx);
 
+  tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_REMOVE_PENDING;
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -3592,13 +3594,18 @@ int ptin_prot_erps_proc(void)
 //}
 
   // HW FDB Flush
+#if 1
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
   {
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
       continue;
 
     ptin_hal_erps_hwFdbFlush(erps_idx);
+
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_REMOVE_PENDING)
+      tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_FREE;
   }
+#endif
 
   return(PROT_ERPS_EXIT_OK);
 }
@@ -3771,13 +3778,6 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
                           "  Test 1: Rem prot\n"
                           "  Test 2: Port State\n");
   }
-}
-
-void crash(void)
-{
-  int *p=NULL;
-
-  p=(int*) 1;
 }
 
 #endif  // PTIN_ENABLE_ERPS

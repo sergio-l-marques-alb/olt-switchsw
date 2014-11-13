@@ -32,6 +32,7 @@
 
 #define PROT_ERPS_ENTRY_FREE                  0
 #define PROT_ERPS_ENTRY_BUSY                  1
+#define PROT_ERPS_ENTRY_REMOVE_PENDING        2
 
 #define PROT_ERPS_NON_REVERTIVE_OPERATION     0
 #define PROT_ERPS_REVERTIVE_OPERATION         1
