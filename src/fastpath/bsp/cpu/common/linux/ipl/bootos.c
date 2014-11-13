@@ -37,6 +37,8 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include <execinfo.h>
+
 #include "l7_common.h"
 #include "log.h"
 #include "osapi.h"
@@ -480,6 +482,24 @@ int fp_main(int argc, char *argv[])
 ** of the offending pid which received a fatal signal
 ** Processor architecture specific.
 *****************************************************************/
+
+#ifdef __arm__
+void print_backtrace(FILE *logfd)
+{
+  int i, nptrs;
+#define SIZE 100
+  void *buffer[SIZE];
+
+  nptrs = backtrace(buffer, SIZE);
+  printf("backtrace() returned %d addresses\n", nptrs);
+
+  BT_PRINT(logfd, "ARM Backtrace\n");
+  for (i=0; i<nptrs; i++) {
+    BT_PRINT(logfd, "0x%08X\n", (unsigned int)buffer[i]);
+  }
+}
+#endif
+
 #ifdef __powerpc__
 void print_backtrace(siginfo_t *info, unsigned int *raw_stack_pointer, FILE *logfd)
 {
@@ -857,6 +877,11 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   pid_stack = sigsegv_stack; /*get the stack pointer*/
   print_backtrace(info, pid_stack, bfd);
 #endif /* __powerpc__ || __mips__ */
+
+#if defined (__arm__)
+  print_backtrace(bfd);
+#endif
+
 
   BT_PRINT(bfd, "\n\n************************************************************\n");
   BT_PRINT(bfd, "*                 End LVL7 Stack Information               *\n");
