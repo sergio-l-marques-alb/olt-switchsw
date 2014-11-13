@@ -487,6 +487,8 @@ static ptinIgmpClientGroupInfoData_t* ptin_igmp_clientgroup_lookup_table_entry_g
 
 static void ptin_igmp_clientgroup_lookup_table_entry_remove(L7_uint32 ptinPort, L7_uint32 clientId);
 
+static void ptin_igmp_admission_control_reset_allocation(void);
+
 #endif
 /*******************End IGMP Admission Control Feature***********************************************/
 
@@ -1252,6 +1254,15 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
       && igmpProxyCfg.admin != igmpProxy->admin)
   {
     igmpProxyCfg.admin = igmpProxy->admin;
+
+    #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+    if (igmpProxyCfg.admin == L7_DISABLE)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Resetting Admission Control Allocation Parameters");
+      //Reset Allocation Values of Admisssion Control Parameters
+      ptin_igmp_admission_control_reset_allocation();    
+    }
+    #endif
   }
 
   osapiSemaGive(igmp_sem);
@@ -12046,6 +12057,9 @@ void ptin_igmp_admission_control_groupclients_reset_all(void)
   osapiSemaGive(ptin_igmp_clients_sem);
 }
 
+/************IGMP Admission Control Feature****************************************************/ 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+
 /**
  * Reset Allocation  Admission Control GroupClients 
  *  
@@ -12075,9 +12089,6 @@ void ptin_igmp_admission_control_groupclients_reset_allocation(void)
 
   osapiSemaGive(ptin_igmp_clients_sem);
 }
-
-/************IGMP Admission Control Feature****************************************************/ 
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
 /**
  * @purpose Verify if this device client has any other device on
@@ -14155,6 +14166,24 @@ RC_t ptin_igmp_client_resources_release(L7_uint32 ptin_port, L7_uint32 clientId,
 
   osapiSemaGive(ptin_igmp_clients_sem);
   return rc;
+}
+
+void ptin_igmp_admission_control_reset_allocation(void)
+{
+  ptin_igmp_admission_control_groupclients_reset_allocation();
+
+  ptin_igmp_admission_control_port_reset_allocation();
+
+  ptin_igmp_admission_control_multicast_service_reset_allocation();
+}
+
+void ptin_igmp_admission_control_reset_all(void)
+{
+  ptin_igmp_admission_control_groupclients_reset_all();
+
+  ptin_igmp_admission_control_port_reset_all();
+
+  ptin_igmp_admission_control_multicast_service_reset_all();
 }
 
 #endif
