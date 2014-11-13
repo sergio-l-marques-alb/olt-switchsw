@@ -1121,6 +1121,18 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 {
   int ret = PROT_ERPS_EXIT_OK;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
 
   #ifdef SM_PTIN_MODS
@@ -1407,6 +1419,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_BOOL   haveChanges                       = L7_FALSE;
   L7_uint8  reqPort                           = 0;          // Request or Failed Port
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
 
@@ -1507,6 +1525,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   //--------------------------------------------------------------------------------------------
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
+
+    if (apsRxPort >= 2)
+    {
+      LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not: apsRxPort %d not valid", erps_idx, apsRxPort);
+      return PROT_ERPS_INDEX_VIOLATION;
+    }
 
     remoteRequest = apsReqRx;
 
@@ -1694,6 +1718,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
     }
 
+    /* Validate */
+    if (reqPort >= 2)
+    {
+      LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
+      return PROT_ERPS_INDEX_VIOLATION;
+    }
 
     // 4.   Local Signal Fail (OAM / control-plane / server indication)
     if (localRequest == LReq_SF) {
@@ -1942,6 +1972,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   } else {
     reqPort = apsRxPort;
     LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
+  }
+
+  /* Validate */
+  if (reqPort >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
+    return PROT_ERPS_INDEX_VIOLATION;
   }
 
 

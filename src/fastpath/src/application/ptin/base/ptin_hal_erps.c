@@ -179,6 +179,13 @@ L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
 {
   L7_uint8 port;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   printf("\nERPS#%d APS Statistics\n", erps_idx);
   
   for (port=0; port<2; port++) {
@@ -213,6 +220,13 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
 {
   L7_uint8 port;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   printf("\nERPS#%d Reset APS Statistics\n", erps_idx);
   
   for (port=0; port<2; port++) {
@@ -244,6 +258,18 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req, L7_uint8 units)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   tbl_halErps[erps_idx].statistics.apsPacketsTx[port] += units;
   
   if (req == RReq_EVENT)
@@ -284,6 +310,18 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
  */
 L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   tbl_halErps[erps_idx].statistics.apsPacketsFw[port] += 1;
 
   return L7_SUCCESS;
@@ -299,6 +337,18 @@ L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
  */
 L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   tbl_halErps[erps_idx].statistics.apsPacketsRx[port] += 1;
   
   if (req == RReq_EVENT)
@@ -339,6 +389,18 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
  */
 L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port] += 1;
 
   return L7_SUCCESS;
@@ -354,6 +416,13 @@ L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port)
  */
 L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   printf("ERPS#%d\n", erps_idx);
   
   // Print some Debug
@@ -412,6 +481,13 @@ L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
   if (tbl_halErps[erps_idx].used == L7_TRUE) {
@@ -487,6 +563,13 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
   if (tbl_halErps[erps_idx].used == L7_FALSE) {
@@ -620,6 +703,13 @@ void __ptin_hal_erps_signal_handler (int sig)
 L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
 {
   L7_uint16 apsTx;
+
+    /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
@@ -765,6 +855,13 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
 {
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
   L7_uint32 rxintport;
+
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   if (ptin_aps_packetRx_process(erps_idx, req, status, nodeid, &rxintport)==L7_SUCCESS)
   {
@@ -1067,6 +1164,13 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
   L7_uint16 internalVlan;
   vlan_entry_t *vlan_entry;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   if (tbl_halErps[erps_idx].hwSync == 1)
   {
     LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
@@ -1134,6 +1238,13 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
   L7_uint16 internalVlan;
   vlan_entry_t *vlan_entry;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   if (tbl_halErps[erps_idx].hwFdbFlush == 1)
   {
     LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW FdbFlush in progress...", erps_idx);
@@ -1183,6 +1294,13 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   tbl_halErps[erps_idx].hwSync = 1;
   tbl_halErps[erps_idx].hwFdbFlush = 1;
 
@@ -1201,7 +1319,23 @@ L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx)
  */
 L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint16 internalVlan)
 {
-  L7_uint8 erps_idx = erpsIdx_from_serviceVid[vlan];
+  L7_uint8 erps_idx;
+
+  /* Validate arguments */
+  if (vlan >= 4096)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"VLAN %u not valid", vlan);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
+  erps_idx = erpsIdx_from_serviceVid[vlan];
+
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   // Reference of erps_idx using internal vlan as reference
   if (erps_idx != PROT_ERPS_UNUSEDIDX)
@@ -1241,7 +1375,23 @@ L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint1
  */
 L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_uint16 internalVlan)
 {
-  L7_uint8 erps_idx = erpsIdx_from_serviceVid[vlan];
+  L7_uint8 erps_idx;
+
+  /* Validate arguments */
+  if (vlan >= 4096)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"VLAN %u not valid", vlan);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
+  erps_idx = erpsIdx_from_serviceVid[vlan];
+
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   // Reference of erps_idx using internal vlan as reference
   if (erps_idx != PROT_ERPS_UNUSEDIDX) {
