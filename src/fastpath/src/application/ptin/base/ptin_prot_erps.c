@@ -1177,6 +1177,18 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
 {
   int ret = PROT_ERPS_EXIT_OK;  
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d, SF %d", erps_idx, port, sf&1);
 
   force_erps_SF[erps_idx][port] = sf;
@@ -1201,6 +1213,18 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
   int ret = PROT_ERPS_EXIT_OK;
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d", erps_idx, port);
+
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   if (force_erps_SF[erps_idx][port]) {
     return(force_erps_SF[erps_idx][port] & 1);
@@ -1257,6 +1281,13 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status, int line_
   int ret = PROT_ERPS_EXIT_OK;
   L7_uint16 apsTx;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) {
     status |= RReq_STAT_BPR_SET(PROT_ERPS_PORT0);
   } else if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) {
@@ -1294,6 +1325,13 @@ int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint
 {
   int ret;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d (line_callback %d)", erps_idx, line_callback);
 
   ret = tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, req, status, nodeid, rxport);
@@ -1315,6 +1353,13 @@ int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint
 int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line_callback)
 {
   int ret = PROT_ERPS_EXIT_OK;
+
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   if (ERPS_STATE_IgnoreLocal(tbl_erps[erps_idx].state_machine) != ERPS_STATE_IgnoreLocal(state_machine))
   {
@@ -1354,6 +1399,13 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
  */
 int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
 
   tbl_halErps[erps_idx].hwFdbFlush = 1;
@@ -1374,6 +1426,13 @@ int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
  */
 int ptin_erps_startTimer(L7_uint8 erps_idx, L7_uint8 timer, L7_uint8 timerCmd, int line_callback)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   switch (timer) {
   case WTR_TIMER_CMD:
     tbl_erps[erps_idx].wtr_CMD = timerCmd;
