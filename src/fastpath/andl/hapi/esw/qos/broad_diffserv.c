@@ -1040,7 +1040,7 @@ static L7_RC_t hapiBroadQosDiffServClassAdd(DAPI_USP_t         *usp,
 
             if (L7_SUCCESS == result)
             {
-                result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterDef);
+                result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterDef, L7_NULL);
             }
             break;
 

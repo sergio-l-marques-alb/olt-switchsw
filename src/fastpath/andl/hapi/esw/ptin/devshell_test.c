@@ -768,6 +768,68 @@ int ptin_vlan_egress_translate_action_delete(int classId, bcm_vlan_t oVlanId, bc
   return error;
 }
 
+int vport_create(int bcm_port, int ovid, int new_ovid)
+{
+  bcm_vlan_port_t vlan_port;
+  int rc;
+  
+  bcm_vlan_port_t_init(&vlan_port);
+
+  vlan_port.flags = BCM_VLAN_PORT_INNER_VLAN_ADD;
+
+  vlan_port.match_vlan = ovid;
+  vlan_port.match_inner_vlan = 1000;
+  vlan_port.criteria = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+  vlan_port.egress_vlan = new_ovid;
+  vlan_port.egress_inner_vlan = 1000;
+  BCM_GPORT_LOCAL_SET(vlan_port.port, bcm_port);
+
+  rc=bcm_vlan_port_create(0, &vlan_port);
+  printf("vlan_port.vlan_port_id=0x%x, rc=%d (%s)\r\n",vlan_port.vlan_port_id,rc,bcm_errmsg(rc));
+
+  if (rc == BCM_E_NONE)
+  {
+    bcm_vlan_action_set_t action;
+    bcm_vlan_action_set_t_init(&action);
+
+    /* for outer tagged packet => outer tag replaced with gem_id */
+    action.ot_outer = bcmVlanActionReplace;
+    action.dt_outer = bcmVlanActionReplace;
+    action.new_outer_vlan = ovid;
+
+    /* for outer tagged packet => inner tag added with cvid */
+    action.ot_inner = bcmVlanActionAdd;
+    action.dt_inner = bcmVlanActionReplace;
+    action.new_inner_vlan = 1000;
+
+    rc=bcm_vlan_translate_egress_action_add(0, vlan_port.vlan_port_id, ovid, 0, &action);
+    printf("vlan_port.vlan_port_id=0x%x, new_ovid=%u, rc=%d (%s)\r\n",vlan_port.vlan_port_id,new_ovid,rc,bcm_errmsg(rc));
+  }
+
+  return rc;
+}
+
+int vport_create_iterative(int bcm_port, int vlan_start, int vlan_end)
+{
+  int i, j, rc=0;
+    
+  for (i=vlan_start; i<=vlan_end; i++)
+  {
+    for (j=0; j<1000; j++);
+
+    rc = vport_create(bcm_port, i, i);
+    if (rc != BCM_E_NONE)
+    {
+      printf("Error rc=%d at vlan %u (%s)\r\n",rc,i,bcm_errmsg(rc));
+      break;
+    }
+  }
+  
+  printf("End of function\r\n");
+  return rc;
+}
+
+
 // Cross connections (single tagged packets)
 
 int ptin_vlan_single_cross_connect_add(int port1, int port2, bcm_vlan_t oVlanId)
@@ -1106,7 +1168,7 @@ int ptin_L2StationMove_to_CPU(void)
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_LOW_PRIORITY_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
 
   result=hapiBroadPolicyCommit(&policyId);
 
@@ -1636,7 +1698,7 @@ L7_RC_t ptin_cpu_traffic_limit( L7_uint16 cir )
   printf("hard_drop action added\r\n");
 
   /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
   if (rc != L7_SUCCESS)
   {
     printf("Error adding rate limit\r\n");
@@ -4413,6 +4475,12 @@ int ber_help(void)
   return ptin_ber_help();
 }
 
+void ptin_crash(void)
+{
+  int *p = L7_NULLPTR;
+
+  *p = 1;
+}
 
 #if 1
 
