@@ -12339,6 +12339,8 @@ void ptin_igmp_clientgroup_lookup_table_dump(void)
         printf("clientGroupLookUpTable[ptin_port:%u][clientId:%u][onuId:%u]\n",ptin_port, clientId, clientGroupLookUpTable[ptin_port][clientId].clientGroupPtr->onuId);
     }
   }
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 
 /************End IGMP Look Up Table Feature****************************************************/ 
@@ -12521,6 +12523,9 @@ void ptin_igmp_admission_control_port_dump_active(void)
            igmpPortAdmissionControl[ptin_port].admissionControl.allocatedChannels,
            igmpPortAdmissionControl[ptin_port].admissionControl.allocatedBandwidth);
   }  
+
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 
 /**
@@ -12543,6 +12548,9 @@ void ptin_igmp_admission_control_port_dump(void)
            igmpPortAdmissionControl[ptin_port].admissionControl.allocatedChannels,
            igmpPortAdmissionControl[ptin_port].admissionControl.allocatedBandwidth);
   }  
+
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 
 /**
@@ -12665,6 +12673,9 @@ void ptin_igmp_admission_multicast_external_service_id_dump(void)
     if (ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1)
       printf("internalServiceId:%u serviceId:%u\n",internalServiceId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId]);
   }
+
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 
 void ptin_igmp_admission_multicast_external_service_id_dump_all(void)
@@ -12675,6 +12686,9 @@ void ptin_igmp_admission_multicast_external_service_id_dump_all(void)
   {    
     printf("internalServiceId:%u serviceId:%u\n",internalServiceId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId]);
   }
+
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 
 void ptin_igmp_admission_multicast_internal_service_id_dump(void)
@@ -12686,6 +12700,9 @@ void ptin_igmp_admission_multicast_internal_service_id_dump(void)
     if (ptinIgmpAdmissionControlMulticastInternalServiceId[externalServiceId] != (L7_uint8) -1)
       printf("externalServiceId:%u internalServiceId:%u\n",externalServiceId, ptinIgmpAdmissionControlMulticastInternalServiceId[externalServiceId]);
   }
+
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 
 void ptin_igmp_admission_multicast_internal_service_id_dump_all(void)
@@ -12696,6 +12713,9 @@ void ptin_igmp_admission_multicast_internal_service_id_dump_all(void)
   {
     printf("externalServiceId:%u internalServiceId:%u\n",externalServiceId, ptinIgmpAdmissionControlMulticastInternalServiceId[externalServiceId]);
   }
+
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);
 }
 /*$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$*/
 
@@ -12895,7 +12915,10 @@ void ptin_igmp_admission_control_multicast_service_dump_active(void)
         }
       }
     }
-  }  
+  }
+  
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout);  
 }
 
 /**
@@ -12929,7 +12952,10 @@ void ptin_igmp_admission_control_multicast_service_dump(void)
         }
       }
     }
-  }  
+  } 
+  
+  /*It is Required for OLT1T0 and OLT1T1*/
+  fflush(stdout); 
 }
 
 /**
