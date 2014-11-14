@@ -951,13 +951,13 @@ static L7_RC_t ptin_hal_erps_queue_vlans_used_init(void)
  */
 struct vlan_entry_s *ptin_hal_erps_queue_vlan_used_find(int erps_idx, L7_uint16 internalVlan)
 {
-  vlan_entry_t *vlan_entry;
+  vlan_entry_t *vlan_entry = NULL;
 
   /* Get pointer to the first element */
   if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
   {
     LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue %d is empty", erps_idx);
-    return L7_NULLPTR;
+    return NULL;
   }
 
   while(vlan_entry != NULL)
@@ -981,16 +981,25 @@ struct vlan_entry_s *ptin_hal_erps_queue_vlan_used_find(int erps_idx, L7_uint16 
  */
 static L7_RC_t ptin_hal_erps_queue_vlan_used_add(int erps_idx, L7_uint16 internalVlan)
 {
+  vlan_entry_t *vlan_entry_find;
   vlan_entry_t *vlan_entry = vlan_entry_pool;
   L7_uint16 free_entry;
 
-  LOG_TRACE(LOG_CTX_ERPS, "VLAN %d added to queue %d", internalVlan, erps_idx);
+  /* Check if the internal vlan exists on the queue */
+  vlan_entry_find = ptin_hal_erps_queue_vlan_used_find(erps_idx, internalVlan);
+  if (vlan_entry_find != NULL)
+  {
+    LOG_TRACE(LOG_CTX_ERPS, "VLAN %d already exists on queue %d", internalVlan, erps_idx);
+    return L7_SUCCESS;
+  }
 
   /* Add the internal vlan to the queue */
   free_entry = ptin_hal_erps_free_vlan_entry_get();
   vlan_entry[free_entry].used = L7_TRUE;
   vlan_entry[free_entry].vid = internalVlan;
   dl_queue_add(&queue_vlans_used[erps_idx], (dl_queue_elem_t*) &vlan_entry[free_entry]);
+
+  LOG_TRACE(LOG_CTX_ERPS, "VLAN %d added to queue %d", internalVlan, erps_idx);
 
   return L7_SUCCESS;
 }
