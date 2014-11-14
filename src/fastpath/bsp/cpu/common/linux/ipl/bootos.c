@@ -56,6 +56,7 @@
 #include "logger.h"
 #include "addrmap.h"
 #include "ptin_globaldefs.h"
+#include <sys/resource.h>
 /* PTin end */
 
 #ifdef L7_CLI_PACKAGE
@@ -351,9 +352,6 @@ int fp_main(int argc, char *argv[])
   L7_int32 startupStatusTaskID;
   L7_RC_t rc;
 
-  /* Initialize logger */
-  log_init(LOG_OUTPUT_FILE);
-
   /* PTin added: Clock */
   #if 1
   extern pthread_cond_t osapiTimerCond;
@@ -377,8 +375,6 @@ int fp_main(int argc, char *argv[])
   {
     printf("Dual Image Manager Initialization failed. \n\n");
   }
-
-  LOG_NOTICE(LOG_CTX_STARTUP,"FASTPATH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
 
   /* PTin added: CPLD and FPGA mapping */
   rc = hapi_ptin_fpga_map();
@@ -943,6 +939,12 @@ int main(int argc, char *argv[], char *envp[])
   stack_t sig_stack;
 #endif
 
+  /* Initialize logger */
+  log_init(LOG_OUTPUT_FILE);
+
+  LOG_NOTICE(LOG_CTX_STARTUP,"--------------------------------------");
+  LOG_NOTICE(LOG_CTX_STARTUP,"FASTPATH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
+
   environ = envp;
 
   if (chdir (CONFIG_PATH) != 0) {
@@ -954,6 +956,19 @@ int main(int argc, char *argv[], char *envp[])
   if ((argc <= 1) || (strcmp(argv[1], "boot") != 0)) {
     sprintf (ServicePortName, "eth%d:", bspapiServicePortUnitGet());
   }
+
+#if 1
+  int res;
+  struct rlimit coreLimit;
+  coreLimit.rlim_cur = RLIM_INFINITY;
+  coreLimit.rlim_max = RLIM_INFINITY;
+
+  res = setrlimit(RLIMIT_CORE, (const struct rlimit*)&coreLimit);
+  LOG_INFO(LOG_CTX_STARTUP,"set core limit %d", res);
+
+  res = getrlimit(RLIMIT_CORE, &coreLimit);
+  LOG_INFO(LOG_CTX_STARTUP,"core size limits : cur %d max %d", (int)coreLimit.rlim_cur, (int)coreLimit.rlim_max);
+#endif
 
   sigemptyset(&BlockedSigs);
 
