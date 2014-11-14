@@ -71,6 +71,8 @@
 
 #include <sal/core/memlog.h>
 
+#include "logger.h"
+
 cm_device_t                     soc_cm_device[SOC_MAX_NUM_DEVICES];
 int                             soc_cm_device_count;
 
@@ -5579,6 +5581,11 @@ soc_cm_sfree(int dev, void *ptr)
     p = (shared_block_t *) (((char*)ptr) -
         ( (((char*)&(((shared_block_t*)0)->user_data[0]))) - ((char*)(shared_block_t*)0) ));
 
+    if (p == NULL)
+    {
+      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+    }
+
     assert(SHARED_GOOD_START(p));      
     assert(SHARED_GOOD_END(p));
     size_words = (p->size + 3) / 4;
@@ -5592,6 +5599,10 @@ soc_cm_sfree(int dev, void *ptr)
              head->prev = NULL;
         }
     } else {
+        if (p->prev == NULL)
+        {
+          LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+        }
         p->prev->next = p->next;
         if (p->next != NULL) {
             p->next->prev = p->prev;
