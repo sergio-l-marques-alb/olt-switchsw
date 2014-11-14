@@ -1523,13 +1523,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 #if (PTIN_BOARD_IS_MATRIX)
     case CCMSG_ETH_LACP_MATRIXES_SYNC2:
     {
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+        LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
                  "Message received: CCMSG_ETH_LACP_MATRIXES_SYNC2 (0x%04X)", CCMSG_ETH_LACP_MATRIXES_SYNC2);
 
         rx_dot3ad_matrix_sync2_t(inbuffer->info, inbuffer->infoDim);
 
         outbuffer->infoDim = 1;
-        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+        LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
                  "Message processed: response with %d bytes", outbuffer->infoDim);
       break;
     }
