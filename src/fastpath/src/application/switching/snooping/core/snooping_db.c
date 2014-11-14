@@ -1379,7 +1379,7 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
       {
         if (!PTIN_IS_MASKBITSET(snoopEntry->channel_list[channel_index].protection_mask,intIfNum))
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP,"Protection Entry Add: IP channel 0x%8X intIfNum %u",IPchannel->addr.ipv4.s_addr, intIfNum);
+          LOG_TRACE(LOG_CTX_PTIN_IGMP,"Protection Entry Add: IP channel 0x%8X intIfNum %u",IPchannel->addr.ipv4.s_addr, intIfNum);
           PTIN_SET_MASKBIT(snoopEntry->channel_list[channel_index].protection_mask,intIfNum);        
         }
         else
