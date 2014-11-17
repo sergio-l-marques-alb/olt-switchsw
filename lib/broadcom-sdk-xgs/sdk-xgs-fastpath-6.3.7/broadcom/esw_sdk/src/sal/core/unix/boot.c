@@ -60,6 +60,10 @@
 #include <sal/core/dpc.h>
 #include <sal/core/sync.h>
 
+#include <bcm/init.h>
+#include <soc/drv.h>
+#include <bcm/error.h>
+
 #ifdef PLISIM
 #define DEFAULT_BOOT_FLAGS (BOOT_F_PLISIM | BOOT_F_NO_PROBE)
 #else
@@ -102,6 +106,14 @@ void sal_core_term(void)
 {
   sal_dpc_term();
   sal_thread_exit(0);
+}
+
+/* PTin added: application control */
+void sdk_term(int unit)
+{
+  //(void) bcm_detach(unit);
+  (void) _bcm_shutdown(unit);
+  (void) soc_shutdown(unit);
 }
 
 /*
