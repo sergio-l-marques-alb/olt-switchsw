@@ -48,6 +48,9 @@ static const char *strTimer[]       = { "WTR Timer", "WTB Timer", "GUARD Timer" 
 
 static L7_uint8 force_erps_SF[MAX_PROT_PROT_ERPS][2];
 
+/* Semaphore to control concurrent accesses */
+void *ptin_prot_erps_sem = L7_NULLPTR;
+
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
 /* *******************************************************************************/
@@ -250,8 +253,11 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_BUSY) {
     //ret = PROT_ERPS_INDEX_IN_USE;
+    osapiSemaGive(ptin_prot_erps_sem);
     LOG_WARNING(LOG_CTX_ERPS, "ret:%d, ENTRY_BUSY done.", ret);
     return(ret);
   }
@@ -365,6 +371,8 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 
   ptin_hal_erps_internal_vlans_used_sync(erps_idx);
 
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -394,7 +402,10 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_WARNING(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -465,6 +476,8 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
     }
   }
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -492,7 +505,10 @@ int ptin_erps_reinit_entry( L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin != PROT_ERPS_ENTRY_BUSY) {
+    osapiSemaGive(ptin_prot_erps_sem);
     //ret = PROT_ERPS_INDEX_IN_USE;
     LOG_WARNING(LOG_CTX_ERPS, "ret:%d, ENTRY_FREE done.", ret);
     return(ret);
@@ -545,6 +561,8 @@ int ptin_erps_reinit_entry( L7_uint8 erps_idx)
 
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -571,7 +589,10 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     LOG_NOTICE(LOG_CTX_ERPS, "Entry free.", ret);
     return(ret);
   }
@@ -583,6 +604,8 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);  
 
   tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_REMOVE_PENDING;
+
+  osapiSemaGive(ptin_prot_erps_sem);
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -636,7 +659,10 @@ int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -644,6 +670,8 @@ int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group)
 
   memcpy(group, &tbl_erps[erps_idx].protParam, sizeof(erpsProtParam_t));
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -665,13 +693,17 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: %d", erps_idx, cmd_port);
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_INDEX_VIOLATION;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -680,6 +712,8 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_FS;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -701,20 +735,24 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: %d", erps_idx, cmd_port);
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_INDEX_VIOLATION;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
 
   if (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_FS) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_EXIT_NOK1;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -722,6 +760,8 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_MS;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
+
+  osapiSemaGive(ptin_prot_erps_sem);
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -749,7 +789,10 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -762,6 +805,7 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   #if 1
   if ( (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_NR) && (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_OC) && 
        (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_FS) && (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_MS)     ){
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_EXIT_NOK1;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -771,6 +815,8 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_OC;
   tbl_erps[erps_idx].operator_cmd_port  = PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -797,7 +843,10 @@ int ptin_erps_cmd_lockout(L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -806,6 +855,8 @@ int ptin_erps_cmd_lockout(L7_uint8 erps_idx)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_LO;
   tbl_erps[erps_idx].operator_cmd_port  = PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -833,7 +884,10 @@ int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -842,6 +896,8 @@ int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ReplaceRPL;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -869,7 +925,10 @@ int ptin_erps_cmd_exercise(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -879,6 +938,8 @@ int ptin_erps_cmd_exercise(L7_uint8 erps_idx, L7_uint8 cmd_port)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ExeSignal;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -903,7 +964,10 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     return(ret);
   }
@@ -927,6 +991,8 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
   status->wtr_timer          = tbl_erps[erps_idx].wtr_timer;
   status->wtb_timer          = tbl_erps[erps_idx].wtb_timer;
   status->holdoff_timer      = tbl_erps[erps_idx].holdoff_timer;
+
+  osapiSemaGive(ptin_prot_erps_sem);
 
   return(ret);
 }
@@ -958,6 +1024,8 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
+
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
   printf("\n-----------------------------------------");
   printf("\n  admin               %d",                      tbl_erps[erps_idx].admin);
@@ -1027,6 +1095,8 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
                                                             ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R");
   printf("\n-----------------------------------------\n\r");
 
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -1048,7 +1118,13 @@ int ptin_erps_rd_allentry(void)
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
 
-    if ( tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) continue;
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
+    if ( tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
+      continue;
+    }
 
     printf("\n-----------------------------------------");
     printf("\n ERPS#%d Protection Parameters:",              erps_idx);
@@ -1063,6 +1139,9 @@ int ptin_erps_rd_allentry(void)
         }
       }
     }
+
+    osapiSemaGive(ptin_prot_erps_sem);
+
     printf("\n");
   }
 
@@ -3662,24 +3741,38 @@ int ptin_prot_erps_proc(void)
 //L7_uint8 flush_pending = 0;
 
   // CONTROL
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
       continue;
+    }
 
     tbl_erps[erps_idx].hal.prot_proc(erps_idx);
+
+    osapiSemaGive(ptin_prot_erps_sem);
   }
 
   // HW Sync
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
       continue;
+    }
 
     ptin_hal_erps_hwSync(erps_idx);
 
 //  flush_pending |= tbl_halErps[erps_idx].hwFdbFlush;
 //  tbl_halErps[erps_idx].hwFdbFlush = 0;
+
+    osapiSemaGive(ptin_prot_erps_sem);
   }
 
 //if (flush_pending) {
@@ -3691,8 +3784,13 @@ int ptin_prot_erps_proc(void)
 #if 1
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
   {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
       continue;
+    }
 
     ptin_hal_erps_hwFdbFlush(erps_idx);
 
@@ -3701,6 +3799,8 @@ int ptin_prot_erps_proc(void)
       ptin_hal_erps_queue_vlans_used_clear(erps_idx);
       tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_FREE;
     }
+
+    osapiSemaGive(ptin_prot_erps_sem);
   }
 #endif
 
@@ -3712,7 +3812,7 @@ int ptin_prot_erps_proc(void)
  * ERPS Task Init
  ******************************************************************************/
 
-#define __USE_OSAPI_TASK__ 0
+#define __USE_OSAPI_TASK__ 1
 
 #if __USE_OSAPI_TASK__
 // Task id
@@ -3772,6 +3872,14 @@ void *ptin_erps_task(void *_X_)
  */
 L7_RC_t ptin_prot_erps_init(void)
 {
+  /* Create semaphore to control concurrent accesses */
+  ptin_prot_erps_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (ptin_prot_erps_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_prot_erps_sem semaphore!");
+    return L7_FAILURE;
+  }
+
 #if __USE_OSAPI_TASK__
 
   /* Create task for ERProtection State Machine */
