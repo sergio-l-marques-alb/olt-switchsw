@@ -580,9 +580,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
   ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_FLUSHING, __LINE__);
   ptin_erps_FlushFDB(erps_idx, __LINE__);
 
-  ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
-
-  ptin_hal_erps_queue_vlans_used_clear(erps_idx);
+  ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);  
 
   tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_REMOVE_PENDING;
 
@@ -3699,7 +3697,10 @@ int ptin_prot_erps_proc(void)
     ptin_hal_erps_hwFdbFlush(erps_idx);
 
     if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_REMOVE_PENDING)
+    {
+      ptin_hal_erps_queue_vlans_used_clear(erps_idx);
       tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_FREE;
+    }
   }
 #endif
 
