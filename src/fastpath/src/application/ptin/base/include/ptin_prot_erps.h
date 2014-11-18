@@ -312,6 +312,9 @@ extern tblErps_t tbl_erps[MAX_PROT_PROT_ERPS];
 /// SW Data Base VLANs Inclusion List
 extern erpsVlanInclusionList_t tbl_erps_vlanList[MAX_PROT_PROT_ERPS];
 
+/* Semaphore to control concurrent accesses */
+extern void *ptin_prot_erps_sem;
+
 //-------------------------------------------------------------------------
 
 

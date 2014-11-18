@@ -41,6 +41,9 @@ L7_uint8 erpsIdx_from_controlVidInternal[4096]  = {PROT_ERPS_UNUSEDIDX};
 /// Reference of erps_idx using Service VLAN ID as reference
 L7_uint8 erpsIdx_from_serviceVid[4096]          = {PROT_ERPS_UNUSEDIDX};
 
+/* Semaphore to control concurrent accesses */
+void *ptin_hal_erps_sem = L7_NULLPTR;
+
 
 /* Client indexes pool */
 typedef struct vlan_entry_s
@@ -99,6 +102,14 @@ L7_RC_t ptin_hal_erps_init(void)
 {
   // struct init
   memset(tbl_halErps, 0, MAX_PROT_PROT_ERPS*sizeof(ptinHalErps_t));
+
+  /* Create semaphore to control concurrent accesses */
+  ptin_hal_erps_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (ptin_hal_erps_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_hal_erps_sem semaphore!");
+    return L7_FAILURE;
+  }
 
 #if __USE_OSAPI_TASK__
 
@@ -188,6 +199,8 @@ L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
 
   printf("\nERPS#%d APS Statistics\n", erps_idx);
   
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   for (port=0; port<2; port++) {
     printf("Tx         [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsTx[port]); 
     printf("Fw         [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsFw[port]);
@@ -204,6 +217,8 @@ L7_RC_t ptin_hal_erps_counters(L7_uint8 erps_idx)
     printf("Rx NR      [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxReqNR[port]);
     printf("Dropped    [P%d] %d\n", port, tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port]);
   }
+
+  osapiSemaGive(ptin_hal_erps_sem);
 
   return L7_SUCCESS;
 }
@@ -229,6 +244,8 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
 
   printf("\nERPS#%d Reset APS Statistics\n", erps_idx);
   
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   for (port=0; port<2; port++) {
     tbl_halErps[erps_idx].statistics.apsPacketsTx[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsFw[port] = 0;
@@ -245,6 +262,9 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
     tbl_halErps[erps_idx].statistics.apsPacketsRxReqNR[port] = 0;
     tbl_halErps[erps_idx].statistics.apsPacketsRxDropped[port] = 0;
   }
+
+  osapiSemaGive(ptin_hal_erps_sem);
+
   return L7_SUCCESS;
 }
 
@@ -322,7 +342,11 @@ L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   tbl_halErps[erps_idx].statistics.apsPacketsFw[port] += 1;
+
+  osapiSemaGive(ptin_hal_erps_sem);
 
   return L7_SUCCESS;
 }
@@ -425,6 +449,8 @@ L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
 
   printf("ERPS#%d\n", erps_idx);
   
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   // Print some Debug
   printf("used             %d\n", tbl_halErps[erps_idx].used);
   printf("port0.idx %d --> %d\n", tbl_erps[erps_idx].protParam.port0.idx,   tbl_halErps[erps_idx].port0intfNum);
@@ -434,7 +460,9 @@ L7_RC_t ptin_hal_erps_entry_print(L7_uint8 erps_idx)
   printf("apsReqStatusTx   0x%02X\n", tbl_halErps[erps_idx].apsReqStatusTx);
   printf("hwSync           %d\n", tbl_halErps[erps_idx].hwSync);
   printf("hwFdbFlush       %d\n", tbl_halErps[erps_idx].hwFdbFlush);
-  
+
+  osapiSemaGive(ptin_hal_erps_sem);
+
   return L7_SUCCESS;
 }
 
@@ -490,7 +518,10 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_halErps[erps_idx].used == L7_TRUE) {
+    osapiSemaGive(ptin_hal_erps_sem);
     // Print some Debug
     ptin_hal_erps_entry_print(erps_idx);
     return L7_SUCCESS;
@@ -539,13 +570,15 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   tbl_halErps[erps_idx].apsReqStatusTx_h = 0;
   tbl_halErps[erps_idx].apsReqStatusRx = 0;
 
-  ptin_hal_erps_countersClear(erps_idx);
-
   // HW Sync init
   tbl_halErps[erps_idx].hwSync     = 0;
   tbl_halErps[erps_idx].hwFdbFlush = 0;  
 
   tbl_halErps[erps_idx].used = L7_TRUE;
+
+  osapiSemaGive(ptin_hal_erps_sem);
+
+  ptin_hal_erps_countersClear(erps_idx);
 
   // Print some Debug
   ptin_hal_erps_entry_print(erps_idx);
@@ -572,7 +605,10 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
 
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d", erps_idx);
 
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_halErps[erps_idx].used == L7_FALSE) {
+    osapiSemaGive(ptin_hal_erps_sem);
     return L7_SUCCESS;
   }
 
@@ -593,6 +629,8 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
   memset(&tbl_halErps[erps_idx], 0, sizeof(ptinHalErps_t));
 
   tbl_halErps[erps_idx].used = L7_FALSE;
+
+  osapiSemaGive(ptin_hal_erps_sem);
 
   return L7_SUCCESS;
 }
@@ -640,6 +678,13 @@ L7_RC_t ptin_hal_erps_deinit(void)
     pthread_cancel(ptin_hal_apsPacketTx_TaskId);
     pthread_join(ptin_hal_apsPacketTx_TaskId, (void **)NULL);
   #endif
+
+  /* Create semaphore to control concurrent accesses */
+  if (osapiSemaDelete(ptin_hal_erps_sem) != L7_SUCCESS)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to delete ptin_hal_erps_sem semaphore!");
+    return L7_FAILURE;
+  }
 
   // struct init
   memset(tbl_halErps, 0, MAX_PROT_PROT_ERPS*sizeof(ptinHalErps_t));
@@ -715,9 +760,12 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
 
   apsTx = ((req << 12) & 0xF000) | (status & 0x00FF);
 
-  tbl_halErps[erps_idx].apsReqStatusTx = apsTx;
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
 
+  tbl_halErps[erps_idx].apsReqStatusTx = apsTx;
   tbl_halErps[erps_idx].apsReqTxRemainingCounter = 3; // Send 3 consecutive R-APS
+
+  osapiSemaGive(ptin_hal_erps_sem);
 
   #if __USE_OSAPI_TASK__
   osapiTaskSignal(ptin_hal_apsPacketTx_TaskId, PTIN_ERPS_WAKE_UP_SIGNAL);
@@ -796,8 +844,11 @@ void *ptin_hal_apsPacketTx_task(void *_X_)
 
     for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
     {
+      osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
       if (!tbl_halErps[erps_idx].used)
       {
+        osapiSemaGive(ptin_hal_erps_sem);
         continue;
       }
 
@@ -836,6 +887,8 @@ void *ptin_hal_apsPacketTx_task(void *_X_)
         ptin_hal_erps_counters_tx(erps_idx, 0, req, 1);
         ptin_hal_erps_counters_tx(erps_idx, 1, req, 1);
       }
+
+      osapiSemaGive(ptin_hal_erps_sem);
     }
   }
 }
@@ -865,6 +918,7 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
 
   if (ptin_aps_packetRx_process(erps_idx, req, status, nodeid, &rxintport)==L7_SUCCESS)
   {
+    osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
     if ( rxintport == tbl_halErps[erps_idx].port0intfNum ) {
       *rxport = 0;
     } else {
@@ -872,6 +926,8 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
     }
 
     ptin_hal_erps_counters_rx(erps_idx, *rxport, *req);
+
+    osapiSemaGive(ptin_hal_erps_sem);
 
     return L7_SUCCESS;
   }
@@ -1180,6 +1236,8 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_halErps[erps_idx].hwSync == 1)
   {
     LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW Sync in progress...", erps_idx);
@@ -1187,8 +1245,9 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
     /* Get pointer to the first element */
     if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
     {
-      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
       tbl_halErps[erps_idx].hwSync = 0;
+      osapiSemaGive(ptin_hal_erps_sem);
+      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
       return L7_FAILURE;
     }
 
@@ -1229,6 +1288,8 @@ L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx)
     tbl_halErps[erps_idx].hwSync = 0;
   }
 
+  osapiSemaGive(ptin_hal_erps_sem);
+
   return L7_SUCCESS;
 }
 
@@ -1254,6 +1315,8 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_halErps[erps_idx].hwFdbFlush == 1)
   {
     LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: HW FdbFlush in progress...", erps_idx);
@@ -1261,8 +1324,9 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
     /* Get pointer to the first element */
     if(NOERR != dl_queue_get_head(&queue_vlans_used[erps_idx], (dl_queue_elem_t**)&vlan_entry))
     {
-      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
       tbl_halErps[erps_idx].hwFdbFlush = 0;
+      osapiSemaGive(ptin_hal_erps_sem);
+      LOG_DEBUG(LOG_CTX_ERPS, "VLANs queue is empty");
       return L7_FAILURE;
     }
 
@@ -1288,6 +1352,8 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
     tbl_halErps[erps_idx].hwFdbFlush = 0;
   }
 
+  osapiSemaGive(ptin_hal_erps_sem);
+
   return L7_SUCCESS;
 }
 
@@ -1310,8 +1376,12 @@ L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx)
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
+  osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+
   tbl_halErps[erps_idx].hwSync = 1;
   tbl_halErps[erps_idx].hwFdbFlush = 1;
+
+  osapiSemaGive(ptin_hal_erps_sem);
 
   return L7_SUCCESS;
 }
@@ -1349,10 +1419,14 @@ L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint1
   // Reference of erps_idx using internal vlan as reference
   if (erps_idx != PROT_ERPS_UNUSEDIDX)
   {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
     if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) )
     {
       if ( (vlan < 1<<12) && (tbl_erps[erps_idx].protParam.vid_bmp[vlan/8] & 1<<(vlan%8)) ) //ERP protected VID
       {
+        osapiSemaGive(ptin_prot_erps_sem);
+
         LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
 
         /* Add the internal vlan to the queue */
@@ -1363,6 +1437,9 @@ L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint1
         return L7_TRUE;
       }
     }
+
+    osapiSemaGive(ptin_prot_erps_sem);
+
     LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by ERPS#%d", root_intf, vlan, erps_idx);
     return L7_FALSE;
   }
@@ -1403,9 +1480,13 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
   }
 
   // Reference of erps_idx using internal vlan as reference
-  if (erps_idx != PROT_ERPS_UNUSEDIDX) {
+  if (erps_idx != PROT_ERPS_UNUSEDIDX)
+  {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
-    if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) ) {
+    if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) )
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
 
       LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
 
@@ -1416,6 +1497,8 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
 
       return L7_TRUE;
     }
+
+    osapiSemaGive(ptin_prot_erps_sem);
   }
 
   LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is NOT protected by any ERPS", root_intf, vlan);
