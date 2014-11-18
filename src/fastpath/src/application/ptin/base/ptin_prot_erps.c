@@ -735,14 +735,13 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: %d", erps_idx, cmd_port);
 
-  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
-
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
-    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_INDEX_VIOLATION;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
+
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
     osapiSemaGive(ptin_prot_erps_sem);
