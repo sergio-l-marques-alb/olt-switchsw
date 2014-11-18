@@ -61,7 +61,7 @@ struct vlan_entry_s vlan_entry_pool[4096];
 static dl_queue_t queue_vlans_used[MAX_PROT_PROT_ERPS];
 
 
-#define __USE_OSAPI_TASK__ 0
+#define __USE_OSAPI_TASK__ 1
 
 #if __USE_OSAPI_TASK__
 // Task id
