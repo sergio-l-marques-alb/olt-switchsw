@@ -5031,12 +5031,13 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan)
 /**
  * Get the list of root interfaces associated to a internal vlan
  * 
- * @param intVlan  : Internal vlan
- * @param intfList : List of interfaces
+ * @param intVlan        : Internal vlan
+ * @param intfList       : List of interfaces 
+ * @param noOfInterfaces : Number of interfaces 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
+L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces)
 {
   st_IgmpInstCfg_t *igmpInst;
   ptin_HwEthMef10Evc_t evcCfg;
@@ -5063,13 +5064,15 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
   }
 
   /* interface list pointer must not be null */
-  if (intfList==L7_NULLPTR)
+  if (intfList==L7_NULLPTR || noOfInterfaces==L7_NULLPTR)
   {
     return L7_SUCCESS;
   }
 
   /* clear interface list */
   memset(intfList,0x00,sizeof(L7_INTF_MASK_t));
+
+  *noOfInterfaces = 0;
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
@@ -5082,6 +5085,7 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
       if (ptin_intf_ptintf2intIfNum(&ptin_intf,&intIfNum)==L7_SUCCESS)
       {
         L7_INTF_SETMASKBIT(*intfList,intIfNum);
+        (*noOfInterfaces)++;
       }
       else
       {
@@ -5102,7 +5106,7 @@ L7_RC_t ptin_igmp_rootIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList)
+L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfList, L7_uint32 *noOfInterfaces)
 {
   ptin_HwEthMef10Evc_t evcCfg;
   L7_uint     intf_idx;
@@ -5151,13 +5155,15 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
   }
 
   /* interface list pointer must not be null */
-  if (intfList==L7_NULLPTR)
+  if (intfList==L7_NULLPTR || noOfInterfaces == L7_NULLPTR)
   {
     return L7_SUCCESS;
   }
 
   /* clear interface list */
   memset(intfList,0x00,sizeof(L7_INTF_MASK_t));
+
+  *noOfInterfaces = 0;
 
   /* Run all interfaces */
   for (intf_idx=0; intf_idx<evcCfg.n_intf; intf_idx++)
@@ -5187,6 +5193,7 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
         if (ptin_debug_igmp_snooping)
           LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Port bitmap set intIfNum:%u",intIfNum);
         L7_INTF_SETMASKBIT(*intfList,intIfNum);
+        (*noOfInterfaces)++;
       }
     }
   }

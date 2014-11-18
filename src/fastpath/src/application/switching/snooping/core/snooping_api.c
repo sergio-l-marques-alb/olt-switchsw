@@ -293,7 +293,8 @@ L7_RC_t ptin_snoop_client_remove(L7_uint16 sVlanId, L7_uint16 client_index, L7_u
  */
 L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
 {  
-  L7_uint8     igmp_network_version;
+  L7_uint8       igmp_network_version;
+  L7_uint32      noOfInterfaces = 0;
 
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
@@ -314,7 +315,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
   {
     L7_uint32 intIfNum;
     L7_INTF_MASK_t mcastClientAttached;
-    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached)!=L7_SUCCESS)
+    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;
@@ -369,6 +370,7 @@ L7_RC_t ptin_snoop_static_channel_add(L7_uint16 vlanId, L7_inet_addr_t *channel)
 L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
 {  
   L7_uint8     igmp_network_version;
+  L7_uint32    noOfInterfaces = 0;
 
   /* Validate arguments */
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channel==L7_NULLPTR)
@@ -389,7 +391,7 @@ L7_RC_t ptin_snoop_channel_remove(L7_uint16 vlanId, L7_inet_addr_t *channel)
   { 
     L7_uint32 intIfNum;
     L7_INTF_MASK_t mcastClientAttached;
-    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached)!=L7_SUCCESS)
+    if (ptin_igmp_clientIntfs_getList(vlanId, &mcastClientAttached, &noOfInterfaces)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Error getting client interfaces of vlan %u",vlanId);
       return L7_SUCCESS;

@@ -659,7 +659,8 @@ static L7_uchar8* snoopPTinGroupRecordV3Build(L7_uint32 vlanId, L7_inet_addr_t* 
 //bufferOut=dataPtr;
 
   L7_INTF_MASK_t mcastRtrAttached;  
-  if (ptin_igmp_rootIntfs_getList(vlanId, &mcastRtrAttached)==L7_SUCCESS)
+  L7_uint32      noOfInterfaces = 0;
+  if (ptin_igmp_rootIntfs_getList(vlanId, &mcastRtrAttached, &noOfInterfaces)==L7_SUCCESS)
   {
     L7_uint32         intf; /* Loop through internal interface numbers */
     /* Increment Counter on all root interfaces in this VLAN with multicast routers attached */
@@ -1275,6 +1276,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
   char                debug_buf[IPV6_DISP_ADDR_LEN];
 
   L7_INTF_MASK_t mcastRtrAttached;
+  L7_uint32      noOfInterfaces = 0;
   L7_uint8 intIfList[L7_MAX_INTERFACE_COUNT];
 
 
@@ -1286,7 +1288,7 @@ static snoopPTinProxyGroup_t* snoopPTinGroupRecordIncrementTransmissions(L7_uint
     return L7_NULLPTR;
   }
 
-  if (ptin_igmp_rootIntfs_getList(groupPtrAux->key.vlanId, &mcastRtrAttached)!=L7_SUCCESS)
+  if (ptin_igmp_rootIntfs_getList(groupPtrAux->key.vlanId, &mcastRtrAttached, &noOfInterfaces)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed ptin_igmp_rootIntfs_getList()");
     return L7_NULLPTR;
