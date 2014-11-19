@@ -1425,12 +1425,12 @@ L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint1
     {
       if ( (vlan < 1<<12) && (tbl_erps[erps_idx].protParam.vid_bmp[vlan/8] & 1<<(vlan%8)) ) //ERP protected VID
       {
-        osapiSemaGive(ptin_prot_erps_sem);
-
-        LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
-
         /* Add the internal vlan to the queue */
         ptin_hal_erps_queue_vlan_used_add(erps_idx, internalVlan);
+
+        osapiSemaGive(ptin_prot_erps_sem);
+
+        LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);      
 
         ptin_hal_erps_forceHwReconfig(erps_idx);
 
@@ -1486,12 +1486,12 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
 
     if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) || (root_intf == tbl_erps[erps_idx].protParam.port1.idx) )
     {
-      osapiSemaGive(ptin_prot_erps_sem);
-
-      LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);
-
       /* Remove the internal vlan to the queue */
       ptin_hal_erps_queue_vlan_used_remove(erps_idx, internalVlan);
+
+      osapiSemaGive(ptin_prot_erps_sem);
+
+      LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);      
 
       ptin_hal_erps_forceHwReconfig(erps_idx);
 
