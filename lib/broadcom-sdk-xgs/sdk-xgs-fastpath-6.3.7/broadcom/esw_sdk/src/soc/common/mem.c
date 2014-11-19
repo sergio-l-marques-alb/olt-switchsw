@@ -109,6 +109,10 @@
 #include <soc/katana2.h>
 #endif /* BCM_KATANA2_SUPPORT */
 
+/* PTin added: Segmentation fault for OLT1T0 */
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#undef BROADCOM_DEBUG
+#endif
 
 #define LPM_INDEX_4K_ENTRIES 4096
 #define LPM_INDEX_2K_ENTRIES 2048

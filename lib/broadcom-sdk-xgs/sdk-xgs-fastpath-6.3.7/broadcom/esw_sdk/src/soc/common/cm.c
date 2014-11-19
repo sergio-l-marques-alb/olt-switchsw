@@ -73,6 +73,11 @@
 
 #include "logger.h"
 
+/* PTin added: Segmentation fault for OLT1T0 */
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#undef BROADCOM_DEBUG
+#endif
+
 cm_device_t                     soc_cm_device[SOC_MAX_NUM_DEVICES];
 int                             soc_cm_device_count;
 
