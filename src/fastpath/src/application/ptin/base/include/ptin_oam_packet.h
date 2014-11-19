@@ -185,10 +185,12 @@ extern void ptin_oam_packet_send(L7_uint32 intfNum, L7_uint32 vlanId, L7_uchar8 
  * @author joaom (6/17/2013)
  * 
  * @param erps_idx 
+ * @param vid 
+ * @param megLevel 
  * @param req_state 
  * @param status 
  */
-extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 reqs_subcode, L7_uint8 status);
+extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint16 vid, L7_uint8 megLevel, L7_uint8 req_subcode, L7_uint8 status);
 
 /**
  * Process received APS packet on specified interface and VLAN

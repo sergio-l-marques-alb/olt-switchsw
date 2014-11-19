@@ -1317,10 +1317,10 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
 
   // CFM Not defined; use Port link Down
   else if (port == PROT_ERPS_PORT0) {
-    ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
+    return ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
   }
   else if (port == PROT_ERPS_PORT1) {
-    ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
+    return ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
   }
 
   return(ret);

@@ -284,7 +284,7 @@ L7_RC_t ptin_hal_erps_counters_tx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -336,7 +336,7 @@ L7_RC_t ptin_hal_erps_counters_fw(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -367,7 +367,7 @@ L7_RC_t ptin_hal_erps_counters_rx(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 req
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -419,7 +419,7 @@ L7_RC_t ptin_hal_erps_counters_rxdrop(L7_uint8 erps_idx, L7_uint8 port)
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: port %d not valid", erps_idx, port);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -567,7 +567,6 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
 
   tbl_halErps[erps_idx].apsReqTxRemainingCounter = 0;
   tbl_halErps[erps_idx].apsReqStatusTx = 0;
-  tbl_halErps[erps_idx].apsReqStatusTx_h = 0;
   tbl_halErps[erps_idx].apsReqStatusRx = 0;
 
   // HW Sync init
@@ -698,29 +697,6 @@ L7_RC_t ptin_hal_erps_deinit(void)
  **********************************************************************************/
 
 /**
- * Send 3 consecutives APS packets on ring interfaces
- * 
- * @author joaom (6/11/2013)
- * 
- * @param slot 
- * @param index 
- * @param apsvid 
- * @param req 
- * @param status 
- */
-L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
-{
-  ptin_aps_packet_send(erps_idx, ((req<<4) & 0xF0), status);
-  usleep(3000);
-  ptin_aps_packet_send(erps_idx, ((req<<4) & 0xF0), status);
-  usleep(3000);
-  ptin_aps_packet_send(erps_idx, ((req<<4) & 0xF0), status);
-
-  return L7_SUCCESS;
-}
-
-
-/**
  * Signal handler. This method is registered in __controlblock_handler. 
  */
 void __ptin_hal_erps_signal_handler (int sig) 
@@ -789,7 +765,9 @@ void ptin_hal_apsPacketTx_task(void)
 void *ptin_hal_apsPacketTx_task(void *_X_)
 #endif
 {
-  L7_uint8 erps_idx, req, status;
+  L7_uint8  erps_idx, req;
+  L7_uint16 counter, reqStatus, vid;
+  L7_uint8  megLevel;
 
   struct timespec requiredSleepTime;
   struct timespec remainingSleepTime;
@@ -816,17 +794,6 @@ void *ptin_hal_apsPacketTx_task(void *_X_)
 
   /* Loop */
   while (1) {
-    
-//  LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS PROC!");
-// 
-//  if(pthread_equal(ptin_hal_apsPacketTx_TaskId, pthread_self()) == 0)
-//  {
-//    LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS Thread ID MATCH!");
-//  }
-//  else
-//  {
-//    LOG_ERR(LOG_CTX_ERPS, "ERPS: Tx R-APS Thread ID NOT MATCH");
-//  }
 
     /* Sleep Thread for 5s */
     if(nanosleep(&requiredSleepTime, &remainingSleepTime) == 0)
@@ -852,43 +819,37 @@ void *ptin_hal_apsPacketTx_task(void *_X_)
         continue;
       }
 
+      counter = tbl_halErps[erps_idx].apsReqTxRemainingCounter;
+
       req = (tbl_halErps[erps_idx].apsReqStatusTx >> 12) & 0xF;
-      status = (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF);
-
-      if ((tbl_halErps[erps_idx].apsReqTxRemainingCounter > 0) && (req != RReq_NONE))
-      {
-        ptin_aps_packet_send(erps_idx, ((tbl_halErps[erps_idx].apsReqStatusTx >> 8) & 0xFF), (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF) );
-        //ptin_hal_erps_sendapsX3(erps_idx, req, status);
-
-        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Request 0x%x(0x%x)",  erps_idx, req, status);
-        
-        tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
-
-        if (tbl_halErps[erps_idx].apsReqTxRemainingCounter > 0)
-        {
-          /* 3 R-APS should be sent with a period of 3.33ms */
-          memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
-          requiredSleepTime.tv_sec  = 0;
-          requiredSleepTime.tv_nsec = 3;
-        }
-
-        tbl_halErps[erps_idx].apsReqStatusTx_h = tbl_halErps[erps_idx].apsReqStatusTx;
-
-        ptin_hal_erps_counters_tx(erps_idx, 0, req, 1);
-        ptin_hal_erps_counters_tx(erps_idx, 1, req, 1);
-
-        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS done!",  erps_idx);
-      }
-
-      else if (req != RReq_NONE)
-      {
-        ptin_aps_packet_send(erps_idx, ((tbl_halErps[erps_idx].apsReqStatusTx >> 8) & 0xFF), (tbl_halErps[erps_idx].apsReqStatusTx & 0xFF) );
-
-        ptin_hal_erps_counters_tx(erps_idx, 0, req, 1);
-        ptin_hal_erps_counters_tx(erps_idx, 1, req, 1);
-      }
+      reqStatus = tbl_halErps[erps_idx].apsReqStatusTx;
+      vid = tbl_erps[erps_idx].protParam.controlVid;
+      megLevel = tbl_erps[erps_idx].protParam.megLevel;
 
       osapiSemaGive(ptin_hal_erps_sem);
+
+      if (req != RReq_NONE)
+      {
+        ptin_aps_packet_send(erps_idx, vid, megLevel, ((reqStatus >> 8) & 0xFF), (reqStatus & 0xFF));
+
+        osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+        ptin_hal_erps_counters_tx(erps_idx, PROT_ERPS_PORT0, req, 1);
+        ptin_hal_erps_counters_tx(erps_idx, PROT_ERPS_PORT1, req, 1);
+        osapiSemaGive(ptin_hal_erps_sem);
+      }
+
+      if (counter > 0)
+      {
+        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS (Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
+        osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+        tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
+        osapiSemaGive(ptin_hal_erps_sem);
+
+        /* 3 R-APS should be sent with a period of 3.33ms */
+        memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
+        requiredSleepTime.tv_sec  = 0;
+        requiredSleepTime.tv_nsec = 3;
+      }
     }
   }
 }
@@ -920,9 +881,9 @@ L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status,
   {
     osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
     if ( rxintport == tbl_halErps[erps_idx].port0intfNum ) {
-      *rxport = 0;
+      *rxport = PROT_ERPS_PORT0;
     } else {
-      *rxport = 1;
+      *rxport = PROT_ERPS_PORT1;
     }
 
     ptin_hal_erps_counters_rx(erps_idx, *rxport, *req);

@@ -60,7 +60,6 @@ typedef struct {
   // APS
   L7_uint16 apsReqTxRemainingCounter;
   L7_uint16 apsReqStatusTx;
-  L7_uint16 apsReqStatusTx_h;
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
 
@@ -185,20 +184,6 @@ extern L7_RC_t ptin_hal_erps_deinit(void);
  * @param status 
  */
 extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
-
-
-/**
- * Send 3 consecutives APS packets on ring interfaces
- * 
- * @author joaom (6/11/2013)
- * 
- * @param slot 
- * @param index 
- * @param apsvid 
- * @param req 
- * @param status 
- */
-extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
 
 /**
  * Receives an APS packet on a specified interface and VLAN 
