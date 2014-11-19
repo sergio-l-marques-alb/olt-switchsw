@@ -434,6 +434,28 @@ int MEP_is_in_LOC(L7_ulong32 i_mep, L7_ulong32 i_rmep, T_ETH_SRV_OAM *p) {
 
 
 
+
+int MEP_is_in_RDI(L7_ulong32 i_mep, L7_ulong32 i_rmep, T_ETH_SRV_OAM *p) {
+    if (i_mep>=N_MEPs) return 0;
+
+    if (i_rmep<N_MAX_MEs_PER_MEP) return p->db[i_mep].mep.ME[i_rmep].RDI?1:0;
+
+    for (i_rmep=0; i_rmep<N_MAX_MEs_PER_MEP; i_rmep++) {
+        if (p->db[i_mep].mep.ME[i_rmep].mep_id > HIGHEST_MEP) continue;
+        if (p->db[i_mep].mep.ME[i_rmep].RDI) return 1;
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
 /****************************************************************************** 
  * Task Init
  ******************************************************************************/
