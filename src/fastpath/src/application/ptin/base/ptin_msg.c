@@ -2823,7 +2823,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
 {
   L7_uint i;
   ptin_HwEthMef10Intf_t ptinEvcPort;
-  L7_RC_t rc, rc_global = L7_SUCCESS;
+  L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
   /* Validate arguments */
   if (msgEvcPort == L7_NULLPTR)
@@ -2863,25 +2863,36 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       if ((rc=ptin_evc_port_add(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        rc_global = rc;
         if (rc != L7_DEPENDENCY_NOT_MET && rc != L7_NOT_EXIST && rc != L7_ALREADY_CONFIGURED)
-          rc_global = rc;
+          rc_global_failure = rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_MSG, "Added port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      }
       break;
     case PTIN_MSG_OPER_REMOVE:
       if ((rc=ptin_evc_port_remove(msgEvcPort[i].evcId, &ptinEvcPort)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing port %u/%u to EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+        rc_global = rc;
         if (rc != L7_DEPENDENCY_NOT_MET && rc != L7_NOT_EXIST && rc != L7_ALREADY_CONFIGURED)
-          rc_global = rc;
+          rc_global_failure = rc;
       }
-      LOG_TRACE(LOG_CTX_PTIN_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_MSG, "Removed port %u/%u from EVC# %u", ptinEvcPort.intf_type, ptinEvcPort.intf_id, msgEvcPort[i].evcId);
+      }
       break;
     default:
       LOG_ERR(LOG_CTX_PTIN_MSG, "Unknown operation %u", oper);
       rc_global = L7_FAILURE;
     }
   }
+
+  if (rc_global_failure != L7_SUCCESS)
+    return rc_global_failure;
 
   return rc_global;
 }
