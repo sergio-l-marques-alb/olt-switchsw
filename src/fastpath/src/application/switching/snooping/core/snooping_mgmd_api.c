@@ -300,13 +300,22 @@ unsigned int snooping_cos_set(unsigned char cos)
   return SUCCESS;
 }
 
-unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList)
+unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList, unsigned int *noOfPorts)
 {
   L7_INTF_MASK_t interfaceBitmap = {{0}};
+  L7_uint32      noOfInterfaces = 0;
   L7_uint16      mcastRootVlan;
   L7_RC_t        res = SUCCESS;  
 
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p]", serviceId, portType, portList);
+  LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p noOfPorts:%p]", serviceId, portType, portList, noOfPorts);
+
+  if ( portList == L7_NULLPTR || noOfPorts == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portType:%u portList:%p noOfPorts:%p]", serviceId, portType, portList, noOfPorts);
+    return FAILURE;
+  }
+
+  *noOfPorts = 0;
 
   if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {
@@ -318,11 +327,11 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
   /* Request portList to FP */
   if(PTIN_MGMD_PORT_TYPE_LEAF == portType)
   {
-    res = ptin_igmp_clientIntfs_getList(mcastRootVlan, &interfaceBitmap);
+    res = ptin_igmp_clientIntfs_getList(mcastRootVlan, &interfaceBitmap, &noOfInterfaces);
   }
   else if(PTIN_MGMD_PORT_TYPE_ROOT == portType)
   {
-    res = ptin_igmp_rootIntfs_getList(mcastRootVlan, &interfaceBitmap);
+    res = ptin_igmp_rootIntfs_getList(mcastRootVlan, &interfaceBitmap, &noOfInterfaces);
   }
   else
   {   
@@ -360,6 +369,7 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
   }
 
   memcpy(portList, &interfaceBitmap.value, PTIN_MGMD_PORT_MASK_INDICES*sizeof(uchar8));
+  *noOfPorts = noOfInterfaces;
 
   return SUCCESS;
 }
