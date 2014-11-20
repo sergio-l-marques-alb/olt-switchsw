@@ -802,7 +802,7 @@ void ptin_oam_packet_send(L7_uint32 intfNum,
  * @param status 
  */
 #ifdef PTIN_ENABLE_ERPS
-void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 req_subcode, L7_uint8 status)
+void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint16 vid, L7_uint8 megLevel, L7_uint8 req_subcode, L7_uint8 status)
 {
   aps_frame_t aps_frame;
   L7_uchar8   apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
@@ -811,15 +811,14 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 req_subcode, L7_uint8 stat
   apsMacAddr[5] = tbl_erps[erps_idx].protParam.ringId;
 
   memcpy(aps_frame.dmac,              apsMacAddr, L7_ENET_MAC_ADDR_LEN);
-  memcpy(aps_frame.smac,              srcMacAddr, L7_ENET_MAC_ADDR_LEN);
 
   aps_frame.vlan_tag[0]               = 0x81;
   aps_frame.vlan_tag[1]               = 0x00;
-  aps_frame.vlan_tag[2]               = 0xE0 | ((tbl_erps[erps_idx].protParam.controlVid>>8) & 0xF);
-  aps_frame.vlan_tag[3]               = tbl_erps[erps_idx].protParam.controlVid & 0x0FF;
+  aps_frame.vlan_tag[2]               = 0xE0 | ((vid>>8) & 0xF);
+  aps_frame.vlan_tag[3]               = vid & 0x0FF;
   aps_frame.etherType                 = htons(L7_ETYPE_CFM);
 
-  aps_frame.aspmsg.mel_version        = 1 | tbl_erps[erps_idx].protParam.megLevel<<5;//0x21;  // MEG Level 1; Version 1
+  aps_frame.aspmsg.mel_version        = 1 | megLevel<<5;//0x21;  // MEG Level 1; Version 1
   aps_frame.aspmsg.opCode             = 40;
   aps_frame.aspmsg.flags              = 0x00;
   aps_frame.aspmsg.tlvOffset          = 0x20;
@@ -829,7 +828,14 @@ void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint8 req_subcode, L7_uint8 stat
   memset(aps_frame.aspmsg.reseved2,   0, 24);
   aps_frame.aspmsg.endTlv             = 0x00;
 
-  ptin_oam_packet_send(L7_ALL_INTERFACES,
+  nimGetIntfAddress(tbl_halErps[erps_idx].port0intfNum, L7_SYSMAC_BIA, aps_frame.smac);
+  ptin_oam_packet_send(tbl_halErps[erps_idx].port0intfNum,
+                       tbl_halErps[erps_idx].controlVidInternal,
+                       (L7_uchar8 *) &aps_frame,
+                       sizeof(aps_frame_t));
+
+  nimGetIntfAddress(tbl_halErps[erps_idx].port1intfNum, L7_SYSMAC_BIA, aps_frame.smac);
+  ptin_oam_packet_send(tbl_halErps[erps_idx].port1intfNum,
                        tbl_halErps[erps_idx].controlVidInternal,
                        (L7_uchar8 *) &aps_frame,
                        sizeof(aps_frame_t));

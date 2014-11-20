@@ -4413,3 +4413,204 @@ int ber_help(void)
   return ptin_ber_help();
 }
 
+
+#if 1
+
+void ptin_ring_set(int unit, uint32 flags, uint16 vlan, bcm_port_t port0, bcm_port_t port1)
+{
+#if 0
+  typedef struct bcm_failover_element_s {
+      uint32 flags;               /* flags */
+      bcm_gport_t port;           /* MPLS/MiM/VLAN gport */
+      bcm_failover_t failover_id; /* Failover Object Index. */
+      bcm_if_t intf;              /* Egress Object index. */
+  } bcm_failover_element_t;
+
+  /* Failover Ring Structure. */
+  typedef struct bcm_failover_ring_s {
+      uint32 flags;                   /* flags */
+      bcm_vlan_vector_t vlan_vector;  /* List of Vlans. */
+      bcm_gport_t port0;              /* VLAN gport */
+      bcm_gport_t port1;              /* VLAN gport */
+  } bcm_failover_ring_t;
+
+
+  /* L2 ring structure. */
+  typedef struct bcm_l2_ring_s {
+      uint32 flags;                   /* flags */
+      bcm_vlan_vector_t vlan_vector;  /* List of Vlans. */
+      bcm_gport_t port0;              /* VLAN gport */
+      bcm_gport_t port1;              /* VLAN gport */
+  } bcm_l2_ring_t;
+
+  bcm_gport_t gport;
+
+  // Calculate gport
+  BCM_GPORT_LOCAL_SET(gport,53);  //xe3
+  BCM_GPORT_LOCAL_SET(gport,50);  //xe0
+
+
+
+  bcm_failover_element_t ring_elem;
+  bcm_failover_ring_t_init(&ring_elem);
+
+  ring_elem.flags = BCM_FAILOVER_CLEAR | BCM_FAILOVER_LEARN_DISABLE;
+
+  ring_elem.port = ;
+
+  typedef uint32 bcm_vlan_vector_t[_SHR_BITDCLSIZE(BCM_VLAN_COUNT)];
+
+  #define BCM_VLAN_VEC_GET(vec, n)  SHR_BITGET(vec, n)
+  #define BCM_VLAN_VEC_SET(vec, n)  SHR_BITSET(vec, n)
+  #define BCM_VLAN_VEC_CLR(vec, n)  SHR_BITCLR(vec, n)
+  #define BCM_VLAN_VEC_ZERO(vec)
+
+#endif
+
+  bcm_failover_ring_t failover_ring;
+  bcm_gport_t gport0;
+  bcm_gport_t gport1;
+  bcm_error_t rv;
+
+  bcm_failover_ring_t_init(&failover_ring);
+
+  failover_ring.flags = flags;
+
+  // Calculate gport
+  BCM_GPORT_LOCAL_SET(gport0, port0);
+  BCM_GPORT_LOCAL_SET(gport1, port1);
+
+  failover_ring.port0 = gport0;
+  failover_ring.port1 = gport1;
+
+  BCM_VLAN_VEC_SET(failover_ring.vlan_vector, vlan);
+
+  rv = bcm_failover_ring_config_set(unit, &failover_ring);
+  printf("%s(%d) rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+//bcm_failover_ring_t_init(&failover_ring);
+//rv = bcm_failover_ring_config_set(unit, &failover_ring);
+//printf("%s(%d) rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+
+#if 0
+bcm_failover_ring_t fr;
+bcm_failover_ring_t_init(&fr);
+fr.flags = BCM_FAILOVER_LOOKUP_DISABLE | BCM_FAILOVER_LEARN_DISABLE;
+fr.vlan_vector[0] = 4;
+print bcm_port_gport_get(0, 0, &fr.port0);
+print bcm_port_gport_get(0, 5, &fr.port1);
+print bcm_failover_ring_config_set(0, &fr);
+bcm_failover_ring_t_init(&fr);
+print bcm_failover_ring_config_set(0, &fr);
+#endif
+
+}
+
+void ptin_ring_get(int unit)
+{
+#if 0
+  typedef struct bcm_failover_element_s {
+      uint32 flags;               /* flags */
+      bcm_gport_t port;           /* MPLS/MiM/VLAN gport */
+      bcm_failover_t failover_id; /* Failover Object Index. */
+      bcm_if_t intf;              /* Egress Object index. */
+  } bcm_failover_element_t;
+
+  /* Failover Ring Structure. */
+  typedef struct bcm_failover_ring_s {
+      uint32 flags;                   /* flags */
+      bcm_vlan_vector_t vlan_vector;  /* List of Vlans. */
+      bcm_gport_t port0;              /* VLAN gport */
+      bcm_gport_t port1;              /* VLAN gport */
+  } bcm_failover_ring_t;
+
+
+  /* L2 ring structure. */
+  typedef struct bcm_l2_ring_s {
+      uint32 flags;                   /* flags */
+      bcm_vlan_vector_t vlan_vector;  /* List of Vlans. */
+      bcm_gport_t port0;              /* VLAN gport */
+      bcm_gport_t port1;              /* VLAN gport */
+  } bcm_l2_ring_t;
+
+  bcm_gport_t gport;
+
+  // Calculate gport
+  BCM_GPORT_LOCAL_SET(gport,53);  //xe3
+  BCM_GPORT_LOCAL_SET(gport,50);  //xe0
+
+
+
+  bcm_failover_element_t ring_elem;
+  bcm_failover_ring_t_init(&ring_elem);
+
+  ring_elem.flags = BCM_FAILOVER_CLEAR | BCM_FAILOVER_LEARN_DISABLE;
+
+  ring_elem.port = ;
+
+  typedef uint32 bcm_vlan_vector_t[_SHR_BITDCLSIZE(BCM_VLAN_COUNT)];
+
+  #define BCM_VLAN_VEC_GET(vec, n)  SHR_BITGET(vec, n)
+  #define BCM_VLAN_VEC_SET(vec, n)  SHR_BITSET(vec, n)
+  #define BCM_VLAN_VEC_CLR(vec, n)  SHR_BITCLR(vec, n)
+  #define BCM_VLAN_VEC_ZERO(vec)
+
+#endif
+
+  bcm_failover_ring_t failover_ring;
+  bcm_error_t rv;
+
+  rv = bcm_failover_ring_config_get(unit, &failover_ring);
+  printf("%s(%d) rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+
+  printf("\nflags %Xh, gport0 %d, gport1 %d", failover_ring.flags, failover_ring.port0, failover_ring.port1);
+
+}
+
+void ptin_ring_replace(int unit, uint32 flags, uint16 vlan, bcm_port_t port0, bcm_port_t port1)
+{
+#if 0
+  /* L2 ring structure. */
+  typedef struct bcm_l2_ring_s {
+      uint32 flags;                   /* flags */
+      bcm_vlan_vector_t vlan_vector;  /* List of Vlans. */
+      bcm_gport_t port0;              /* VLAN gport */
+      bcm_gport_t port1;              /* VLAN gport */
+  } bcm_l2_ring_t;
+#endif
+
+  bcm_l2_ring_t l2_ring;
+  bcm_gport_t gport0;
+  bcm_gport_t gport1;
+  bcm_error_t rv;
+
+
+  bcm_l2_ring_t_init(&l2_ring);
+
+   // Calculate gport
+  BCM_GPORT_LOCAL_SET(gport0, port0);
+  BCM_GPORT_LOCAL_SET(gport1, port1);
+
+  l2_ring.port0 = gport0;
+  l2_ring.port1 = gport1;
+
+  l2_ring.flags = flags; //BCM_L2_REPLACE_PROTECTION_RING;
+
+  BCM_VLAN_VEC_SET(l2_ring.vlan_vector, vlan);
+
+  rv = bcm_l2_ring_replace(unit, &l2_ring);
+
+  printf("%s(%d) rv=%u (\"%s\")\r\n", __FUNCTION__, __LINE__, rv, bcm_errmsg(rv));
+
+#if 0
+bcm_l2_ring_t l2r;
+bcm_l2_ring_t_init(&l2r);
+l2r.flags = BCM_L2_REPLACE_PROTECTION_RING;
+l2r.vlan_vector[0] = 4;
+print bcm_port_gport_get(0, 0, &l2r.port0);
+print bcm_port_gport_get(0, 5, &l2r.port1);
+print bcm_l2_ring_replace(0, &l2r);
+#endif
+
+}
+
+#endif

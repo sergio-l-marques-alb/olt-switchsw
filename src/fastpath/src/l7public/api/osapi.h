@@ -479,6 +479,22 @@ EXT_API void osapiTaskDelete( L7_int32 task_id);
 
 /**************************************************************************
 *
+* @purpose  Send a Signal to a task.
+*
+* @param    task_id @b{(input)}    handle for the task to be deleted.
+* @param    signal_id @b{(input)}  Signal code
+*
+* @returns  none.
+*
+* @comments    none.
+*
+* @end
+*
+*************************************************************************/
+EXT_API void osapiTaskSignal( L7_int32 task_id, int sig);
+
+/**************************************************************************
+*
 * @purpose  Show all active tasks in system
 *
 * @param    none.

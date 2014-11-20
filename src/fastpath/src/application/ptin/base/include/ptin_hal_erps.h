@@ -58,6 +58,7 @@ typedef struct {
   L7_uint32 port1intfNum;
 
   // APS
+  L7_uint16 apsReqTxRemainingCounter;
   L7_uint16 apsReqStatusTx;
   L7_uint16 apsReqStatusRx;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE];
@@ -184,20 +185,6 @@ extern L7_RC_t ptin_hal_erps_deinit(void);
  */
 extern L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
 
-
-/**
- * Send 3 consecutives APS packets on ring interfaces
- * 
- * @author joaom (6/11/2013)
- * 
- * @param slot 
- * @param index 
- * @param apsvid 
- * @param req 
- * @param status 
- */
-extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status);
-
 /**
  * Receives an APS packet on a specified interface and VLAN 
  * 
@@ -211,15 +198,46 @@ extern L7_RC_t ptin_hal_erps_sendapsX3(L7_uint8 erps_idx, L7_uint8 req, L7_uint8
 extern L7_RC_t ptin_hal_erps_rcvaps(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint8 *nodeid, L7_uint32 *rxport);
 
 /**
- * Block or unblock ERP Port and/or Flush FDB
+ * Set internal VLANs
  * 
- * @author joaom (6/25/2013)
+ * @author joaom (11/9/2014)
  * 
  * @param erps_idx
  * 
- * @return int 
+ * @return L7_RC_t
  */
-extern int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx);
+extern L7_RC_t ptin_hal_erps_internal_vlans_used_sync(L7_uint8 erps_idx);
+
+/**
+ * Initialise VLANs entries and VLAN queues
+ * 
+ * @author joaom (11/9/2014)
+ *  
+ * @return L7_RC_t
+ */
+extern L7_RC_t ptin_hal_erps_queue_vlans_used_clear(L7_uint8 erps_idx);
+
+/**
+ * Block or unblock ERP Port
+ * 
+ * @author joaom (6/25/2013) / Last edit (11/06/2014)
+ * 
+ * @param erps_idx
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hal_erps_hwSync(L7_uint8 erps_idx);
+
+/**
+ * Perform a FDB Flush
+ * 
+ * @author joaom (6/25/2013) / Last edit (11/06/2014)
+ * 
+ * @param erps_idx
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx);
 
 /**
  * Block or unblock ERP Port and/or Flush FDB
@@ -228,9 +246,9 @@ extern int ptin_hal_erps_hwreconfig(L7_uint8 erps_idx);
  * 
  * @param erps_idx
  * 
- * @return int 
+ * @return L7_RC_t 
  */
-extern int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx);
+extern L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx);
 
 /**
  * If the VLAN is protected force HW reconfiguration
@@ -239,9 +257,20 @@ extern int ptin_hal_erps_forceHwreconfig(L7_uint8 erps_idx);
  * 
  * @param erps_idx
  * 
- * @return int 
+ * @return L7_BOOL 
  */
-extern int ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 int_vlan);
+extern L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 int_vlan, L7_uint16 internalVlan);
+
+/**
+ * If the VLAN is protected force HW reconfiguration
+ * 
+ * @author joaom (07/04/2013)
+ * 
+ * @param erps_idx
+ * 
+ * @return L7_BOOL 
+ */
+extern L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_uint16 internalVlan);
 
 /**
  * Get MEP alarm

@@ -5133,6 +5133,73 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
 }
 
 /**
+ * Get LOS state of a given ptin_port 
+ *  
+ * @param ptin_intf : interface (input)
+ * @param los       : LOS state (out)
+ * 
+ * @return L7_RC_t : L7_TRUE / L7_FALSE 
+ * 
+ * @author joaom (11/6/2014)
+ */
+L7_BOOL ptin_intf_los_get(L7_uint32 ptin_port)
+{
+  L7_BOOL los = L7_FALSE;
+
+  /* Validate arguments */
+  if (ptin_port > PTIN_SYSTEM_N_PORTS)
+  {
+    return L7_FALSE;
+  }
+
+  #if (PTIN_BOARD_IS_STANDALONE)
+  los = pfw_shm->intf[ptin_port].port_state & 1;
+  #endif
+
+  return los;
+}
+
+/**
+ * Get Link Down of a given ptin_port 
+ *  
+ * @param ptin_intf : interface (input)
+ * @param link      : link state (out)
+ * 
+ * @return L7_RC_t : L7_TRUE / L7_FALSE 
+ * 
+ * @author joaom (11/6/2014)
+ */
+L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port)
+{
+  L7_uint32 intIfNum;
+  L7_uint32 adminState, linkState;
+  L7_BOOL link = L7_FALSE;
+
+  /* Validate arguments */
+  if (ptin_port > PTIN_SYSTEM_N_PORTS)
+  {
+    return L7_FALSE;
+  }
+
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum)!=L7_SUCCESS || nimGetIntfAdminState(intIfNum, &adminState)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error getting admin state for ptin_port %d", ptin_port);
+    return link;
+  }
+
+  /* Link state */
+  if (nimGetIntfLinkState(intIfNum, &linkState) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Error getting link state for ptin_port %d", ptin_port);
+    return link;
+  }
+
+  link = (linkState == L7_UP);
+
+  return link;
+}
+
+/**
  * Get slot mode list
  *  
  * @param slotmodes 

@@ -16,11 +16,17 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <linux/sched.h>
 
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
 #include "logger.h"
 #include "ptin_cnfgr.h"
+#include "fdb_api.h"
+#include "ptin_intf.h"
+
+#include "ptin_debug.h"
 
 #define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
 
@@ -41,6 +47,9 @@ static const char *strTimerCmd[]    = { "STOP", "START" };
 static const char *strTimer[]       = { "WTR Timer", "WTB Timer", "GUARD Timer" };
 
 static L7_uint8 force_erps_SF[MAX_PROT_PROT_ERPS][2];
+
+/* Semaphore to control concurrent accesses */
+void *ptin_prot_erps_sem = L7_NULLPTR;
 
 /* *******************************************************************************/
 /*                                   FUNCTIONS                                   */
@@ -244,8 +253,11 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_BUSY) {
     //ret = PROT_ERPS_INDEX_IN_USE;
+    osapiSemaGive(ptin_prot_erps_sem);
     LOG_WARNING(LOG_CTX_ERPS, "ret:%d, ENTRY_BUSY done.", ret);
     return(ret);
   }
@@ -253,7 +265,7 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
   //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   memcpy( &tbl_erps[erps_idx].protParam, new_group, sizeof(erpsProtParam_t) );
-  
+
   #if 0
   {
     int byte, bit, vid;
@@ -355,6 +367,12 @@ int ptin_erps_add_entry( L7_uint8 erps_idx, erpsProtParam_t *new_group)
 
   tbl_erps[erps_idx].admin                      = PROT_ERPS_ENTRY_BUSY;
 
+  ptin_hal_erps_entry_init(erps_idx);
+
+  ptin_hal_erps_internal_vlans_used_sync(erps_idx);
+
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -384,7 +402,10 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_WARNING(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -407,8 +428,14 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
   //tbl_erps[erps_idx].protParam.continualTxInterval    = conf->continualTxInterval;
   //tbl_erps[erps_idx].protParam.rapidTxInterval        = conf->rapidTxInterval;
 
-  if (mask & ERPS_CONF_MASK_BIT_VIDBMP) {
+  if (mask & ERPS_CONF_MASK_BIT_VIDBMP)
+  {
     memcpy( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
+
+    ptin_hal_erps_convert_vid_init(erps_idx);
+
+    ptin_hal_erps_internal_vlans_used_sync(erps_idx);
+
     #if 0
     for (byte=0; byte<(sizeof(tbl_erps[erps_idx].protParam.vid_bmp)); byte++) {
       for (bit=0; bit<8; bit++) {
@@ -449,6 +476,8 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
     }
   }
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -476,7 +505,10 @@ int ptin_erps_reinit_entry( L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin != PROT_ERPS_ENTRY_BUSY) {
+    osapiSemaGive(ptin_prot_erps_sem);
     //ret = PROT_ERPS_INDEX_IN_USE;
     LOG_WARNING(LOG_CTX_ERPS, "ret:%d, ENTRY_FREE done.", ret);
     return(ret);
@@ -529,6 +561,8 @@ int ptin_erps_reinit_entry( L7_uint8 erps_idx)
 
   ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
 
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -555,7 +589,10 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     LOG_NOTICE(LOG_CTX_ERPS, "Entry free.", ret);
     return(ret);
   }
@@ -564,13 +601,11 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
   ptin_erps_blockOrUnblockPort(erps_idx, PROT_ERPS_PORT1, ERPS_PORT_FLUSHING, __LINE__);
   ptin_erps_FlushFDB(erps_idx, __LINE__);
 
-  ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
+  ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);  
 
-  #if 0
-  ptin_hal_erps_hwreconfig(erps_idx);
-  
-  ptin_erps_init_entry(erps_idx);
-  #endif
+  tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_REMOVE_PENDING;
+
+  osapiSemaGive(ptin_prot_erps_sem);
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -624,7 +659,10 @@ int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -632,6 +670,8 @@ int ptin_erps_get_entry(L7_uint8 erps_idx, erpsProtParam_t *group)
 
   memcpy(group, &tbl_erps[erps_idx].protParam, sizeof(erpsProtParam_t));
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -659,7 +699,10 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -668,6 +711,8 @@ int ptin_erps_cmd_force(L7_uint8 erps_idx, L7_uint8 cmd_port)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_FS;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -689,20 +734,23 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: %d", erps_idx, cmd_port);
 
-
   if (erps_idx>=MAX_PROT_PROT_ERPS) {
     ret = PROT_ERPS_INDEX_VIOLATION;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
 
   if (tbl_erps[erps_idx].operator_cmd == PROT_ERPS_OPCMD_FS) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_EXIT_NOK1;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -710,6 +758,8 @@ int ptin_erps_cmd_manual(L7_uint8 erps_idx, L7_uint8 cmd_port)
 
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_MS;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
+
+  osapiSemaGive(ptin_prot_erps_sem);
 
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
@@ -737,7 +787,10 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -750,6 +803,7 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   #if 1
   if ( (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_NR) && (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_OC) && 
        (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_FS) && (tbl_erps[erps_idx].operator_cmd != PROT_ERPS_OPCMD_MS)     ){
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_EXIT_NOK1;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -759,6 +813,8 @@ int ptin_erps_cmd_clear(L7_uint8 erps_idx)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_OC;
   tbl_erps[erps_idx].operator_cmd_port  = PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -785,7 +841,10 @@ int ptin_erps_cmd_lockout(L7_uint8 erps_idx)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -794,6 +853,8 @@ int ptin_erps_cmd_lockout(L7_uint8 erps_idx)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_LO;
   tbl_erps[erps_idx].operator_cmd_port  = PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -821,7 +882,10 @@ int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -830,6 +894,8 @@ int ptin_erps_cmd_replaceRpl(L7_uint8 erps_idx, L7_uint8 cmd_port)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ReplaceRPL;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -857,7 +923,10 @@ int ptin_erps_cmd_exercise(L7_uint8 erps_idx, L7_uint8 cmd_port)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
@@ -867,6 +936,8 @@ int ptin_erps_cmd_exercise(L7_uint8 erps_idx, L7_uint8 cmd_port)
   tbl_erps[erps_idx].operator_cmd       = PROT_ERPS_OPCMD_ExeSignal;
   tbl_erps[erps_idx].operator_cmd_port  = cmd_port==1? PROT_ERPS_PORT1:PROT_ERPS_PORT0;
   
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -891,7 +962,10 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
     return(ret);
   }
 
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
   if (tbl_erps[erps_idx].admin==PROT_ERPS_ENTRY_FREE) {
+    osapiSemaGive(ptin_prot_erps_sem);
     ret = PROT_ERPS_UNAVAILABLE;
     return(ret);
   }
@@ -915,6 +989,8 @@ int ptin_erps_get_status(L7_uint8 erps_idx, erpsStatus_t *status)
   status->wtr_timer          = tbl_erps[erps_idx].wtr_timer;
   status->wtb_timer          = tbl_erps[erps_idx].wtb_timer;
   status->holdoff_timer      = tbl_erps[erps_idx].holdoff_timer;
+
+  osapiSemaGive(ptin_prot_erps_sem);
 
   return(ret);
 }
@@ -946,6 +1022,8 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
     LOG_ERR(LOG_CTX_ERPS, "ret:%d, done.", ret);
     return(ret);
   }
+
+  osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
   printf("\n-----------------------------------------");
   printf("\n  admin               %d",                      tbl_erps[erps_idx].admin);
@@ -1015,6 +1093,8 @@ int ptin_erps_rd_entry(L7_uint8 erps_idx)
                                                             ERPS_STATE_IsLocal(tbl_erps[erps_idx].state_machine)? "L":"R");
   printf("\n-----------------------------------------\n\r");
 
+  osapiSemaGive(ptin_prot_erps_sem);
+
   //LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
@@ -1036,7 +1116,13 @@ int ptin_erps_rd_allentry(void)
 
   for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
 
-    if ( tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) continue;
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
+    if ( tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
+      continue;
+    }
 
     printf("\n-----------------------------------------");
     printf("\n ERPS#%d Protection Parameters:",              erps_idx);
@@ -1051,6 +1137,9 @@ int ptin_erps_rd_allentry(void)
         }
       }
     }
+
+    osapiSemaGive(ptin_prot_erps_sem);
+
     printf("\n");
   }
 
@@ -1107,7 +1196,19 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
+  LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: port %d, portState %s (line_callback %d)", erps_idx, port, strPortState[portState], line_callback);
 
   #ifdef SM_PTIN_MODS
   // If both ports were in Flushing State and now changing to Blocking, force a Flush FDB
@@ -1151,6 +1252,18 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
 {
   int ret = PROT_ERPS_EXIT_OK;  
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d, SF %d", erps_idx, port, sf&1);
 
   force_erps_SF[erps_idx][port] = sf;
@@ -1176,26 +1289,53 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d", erps_idx, port);
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+  if (port >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   if (force_erps_SF[erps_idx][port]) {
     return(force_erps_SF[erps_idx][port] & 1);
   }
 
-  if ( (port == PROT_ERPS_PORT0) && (tbl_erps[erps_idx].protParam.port0CfmIdx != 255) ) {
-    return tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx);
+  if ( (port == PROT_ERPS_PORT0) && (tbl_erps[erps_idx].protParam.port0CfmIdx != 255) )
+  {
+    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx)) );
   }
 
-  else if ( (port == PROT_ERPS_PORT1) && (tbl_erps[erps_idx].protParam.port1CfmIdx != 255) ) {
-    return tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx);
+  else if ( (port == PROT_ERPS_PORT1) && (tbl_erps[erps_idx].protParam.port1CfmIdx != 255) )
+  {
+    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx)) );
   }
 
-  // CFM Not defined; could use Port link Down; For now just return SF
-  else {
-    return 1;
+  // CFM Not defined; use Port link Down
+  else if (port == PROT_ERPS_PORT0) {
+    return ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
   }
-
-  
+  else if (port == PROT_ERPS_PORT1) {
+    return ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
+  }
 
   return(ret);
+}
+
+int ptin_erps_rd_alarms_test(L7_uint8 ptin_port)
+{
+  L7_uint8 alarm;
+
+  alarm = ptin_intf_los_get(ptin_port);
+
+  LOG_ERR(LOG_CTX_ERPS,"\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm);
+  printf("\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm); fflush(stdout);
+
+  return(0);
 }
 
 
@@ -1215,6 +1355,13 @@ int ptin_erps_aps_tx(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status, int line_
 {
   int ret = PROT_ERPS_EXIT_OK;
   L7_uint16 apsTx;
+
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   if (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) {
     status |= RReq_STAT_BPR_SET(PROT_ERPS_PORT0);
@@ -1253,6 +1400,13 @@ int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint
 {
   int ret;
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d (line_callback %d)", erps_idx, line_callback);
 
   ret = tbl_erps[erps_idx].hal.aps_rxfields(erps_idx, req, status, nodeid, rxport);
@@ -1275,7 +1429,14 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
 {
   int ret = PROT_ERPS_EXIT_OK;
 
-  if (tbl_erps[erps_idx].state_machine != state_machine)
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
+  if (ERPS_STATE_IgnoreLocal(tbl_erps[erps_idx].state_machine) != ERPS_STATE_IgnoreLocal(state_machine))
   {
     LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Changing state from (0x%x) %s:%s to (0x%x) %s:%s (line_callback %d)", 
               erps_idx, 
@@ -1286,9 +1447,15 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
     tbl_erps[erps_idx].state_machine_h  = tbl_erps[erps_idx].state_machine;
     tbl_erps[erps_idx].state_machine    = state_machine;
 
-    tbl_erps[erps_idx].localRequest                     = LReq_NONE;
-    tbl_erps[erps_idx].localReqPort                     = PROT_ERPS_PORT0;
-    tbl_erps[erps_idx].remoteRequest                    = RReq_NONE;
+    if (ERPS_STATE_IsLocal(state_machine))
+    {
+      tbl_erps[erps_idx].remoteRequest = RReq_NONE;
+    }
+    else
+    {
+      tbl_erps[erps_idx].localRequest = LReq_NONE;
+      tbl_erps[erps_idx].localReqPort = PROT_ERPS_PORT0;
+    }
   }
 
   return(ret);
@@ -1307,6 +1474,13 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
  */
 int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Flushing FDB (line_callback %d)", erps_idx, line_callback);
 
   tbl_halErps[erps_idx].hwFdbFlush = 1;
@@ -1327,6 +1501,13 @@ int ptin_erps_FlushFDB(L7_uint8 erps_idx, int line_callback)
  */
 int ptin_erps_startTimer(L7_uint8 erps_idx, L7_uint8 timer, L7_uint8 timerCmd, int line_callback)
 {
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
+
   switch (timer) {
   case WTR_TIMER_CMD:
     tbl_erps[erps_idx].wtr_CMD = timerCmd;
@@ -1372,6 +1553,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_BOOL   haveChanges                       = L7_FALSE;
   L7_uint8  reqPort                           = 0;          // Request or Failed Port
 
+  /* Validate arguments */
+  if (erps_idx >= MAX_PROT_PROT_ERPS)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
+    return PROT_ERPS_INDEX_VIOLATION;
+  }
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: admin %d", erps_idx, tbl_erps[erps_idx].admin);
 
@@ -1472,7 +1659,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   //--------------------------------------------------------------------------------------------
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
-    L7_uint8 aux;
+
+    if (apsRxPort >= 2)
+    {
+      LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not: apsRxPort %d not valid", erps_idx, apsRxPort);
+      return PROT_ERPS_INDEX_VIOLATION;
+    }
 
     remoteRequest = apsReqRx;
 
@@ -1492,11 +1684,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
     // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
 
+#if 0
     if (remoteRequest == RReq_NR) {
       memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
       tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
     } else {
 
+      L7_uint8 aux;
       // extracts the (node ID, BPR) pair ...
       aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
 
@@ -1522,6 +1716,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         }
       }
     }
+#endif
 
     //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
     //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
@@ -1657,6 +1852,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       }
     }
 
+    /* Validate */
+    if (reqPort >= 2)
+    {
+      LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
+      return PROT_ERPS_INDEX_VIOLATION;
+    }
 
     // 4.   Local Signal Fail (OAM / control-plane / server indication)
     if (localRequest == LReq_SF) {
@@ -1862,16 +2063,56 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     return(PROT_ERPS_EXIT_OK);
   }
 
+  if (remoteRequest == RReq_NR) {
+    memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
+    tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
+  }
+  else {
+    L7_uint8 aux;
+
+    // extracts the (node ID, BPR) pair ...
+    aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
+
+    // ...and compares it with the previous (node ID, BPR)
+    if (memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux))
+    {
+      // If it is different from the previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
+      // stored for that ring port;
+      memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = aux;
+
+      // and if it is different from the (node ID, BPR) pair already stored at the
+      // other ring port, then a flush FDB action is triggered
+      if ((memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE)) || 
+          (tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0] != tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]))
+      {
+        // except when the new R-APS message has DNF
+        // or the receiving Ethernet ring node's node ID.
+        if (!((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)))
+        {
+          ptin_erps_FlushFDB(erps_idx, __LINE__);
+        }
+      }
+    }
+  }
+
   LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Processing Changes...", erps_idx);
   if (topPriorityRequest>100) {
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
+    LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:L), request port %d", erps_idx, topPriorityRequest, locReqToString[topPriorityRequest-100], reqPort);
 
     #ifdef SM_PTIN_MODS
     tbl_erps[erps_idx].remoteRequest = RReq_NONE;
     #endif
   } else {
     reqPort = apsRxPort;
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
+    LOG_INFO(LOG_CTX_ERPS, "ERPS#%d: topPriorityRequest (0x%x) %s(:R), request port %d", erps_idx, topPriorityRequest, remReqToString[topPriorityRequest], reqPort);
+  }
+
+  /* Validate */
+  if (reqPort >= 2)
+  {
+    LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
+    return PROT_ERPS_INDEX_VIOLATION;
   }
 
 
@@ -3495,28 +3736,71 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 int ptin_prot_erps_proc(void)
 {
   L7_uint8 erps_idx;
+//L7_uint8 flush_pending = 0;
 
   // CONTROL
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
-    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
       continue;
     }
 
-    #if 1
     tbl_erps[erps_idx].hal.prot_proc(erps_idx);
-    #endif
+
+    osapiSemaGive(ptin_prot_erps_sem);
   }
 
   // HW Sync
-  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
 
-    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
       continue;
     }
 
-    ptin_hal_erps_hwreconfig(erps_idx);
+    ptin_hal_erps_hwSync(erps_idx);
+
+//  flush_pending |= tbl_halErps[erps_idx].hwFdbFlush;
+//  tbl_halErps[erps_idx].hwFdbFlush = 0;
+
+    osapiSemaGive(ptin_prot_erps_sem);
   }
+
+//if (flush_pending) {
+//  LOG_TRACE(LOG_CTX_ERPS, "Flushing!\n");
+//  fdbFlush();
+//}
+
+  // HW FDB Flush
+#if 1
+  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++)
+  {
+    osapiSemaTake(ptin_prot_erps_sem, L7_WAIT_FOREVER);
+
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE)
+    {
+      osapiSemaGive(ptin_prot_erps_sem);
+      continue;
+    }
+
+    ptin_hal_erps_hwFdbFlush(erps_idx);
+
+    if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_REMOVE_PENDING)
+    {
+      ptin_hal_erps_queue_vlans_used_clear(erps_idx);
+      tbl_erps[erps_idx].admin = PROT_ERPS_ENTRY_FREE;
+    }
+
+    osapiSemaGive(ptin_prot_erps_sem);
+  }
+#endif
 
   return(PROT_ERPS_EXIT_OK);
 }
@@ -3526,21 +3810,37 @@ int ptin_prot_erps_proc(void)
  * ERPS Task Init
  ******************************************************************************/
 
-L7_uint32 erps_TaskId = L7_ERROR;
+#define __USE_OSAPI_TASK__ 1
 
+#if __USE_OSAPI_TASK__
+// Task id
+L7_uint32 erps_TaskId = L7_ERROR;
+#else
+  pthread_t          erps_TaskId = L7_ERROR;
+  pthread_attr_t     erps_Task_attr;
+  pthread_mutex_t    erps_Task_lock;
+#endif
 
 
 /**
  * Task with infinite loop
  */
+#if __USE_OSAPI_TASK__
 void ptin_erps_task(void)
+#else
+void *ptin_erps_task(void *_X_)
+#endif
 {
+  L7_uint64 time_ref;
+
   LOG_INFO(LOG_CTX_ERPS,"ERPS Task started");
 
+#if __USE_OSAPI_TASK__
   if (osapiTaskInitDone(L7_PTIN_ERPS_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_ERPS, "Error syncing task");
     PTIN_CRASH();
   }
+#endif
 
   LOG_INFO(LOG_CTX_ERPS,"ERPS task ready");
 
@@ -3550,9 +3850,13 @@ void ptin_erps_task(void)
 
   /* Infinite Loop */
   while (1) {
+    time_ref = osapiTimeMicrosecondsGet();
+    
     ptin_prot_erps_proc();
 
     usleep(PROT_ERPS_CALL_PROC_US);
+
+    proc_runtime_meter_update(PTIN_PROC_ERPS_INSTANCE, (L7_uint32) (osapiTimeMicrosecondsGet() - time_ref));
   }
 }
 
@@ -3566,10 +3870,20 @@ void ptin_erps_task(void)
  */
 L7_RC_t ptin_prot_erps_init(void)
 {
+  /* Create semaphore to control concurrent accesses */
+  ptin_prot_erps_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
+  if (ptin_prot_erps_sem == L7_NULLPTR)
+  {
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_prot_erps_sem semaphore!");
+    return L7_FAILURE;
+  }
+
+#if __USE_OSAPI_TASK__
+
   /* Create task for ERProtection State Machine */
   erps_TaskId = osapiTaskCreate("ptin_prot_erps_task", ptin_erps_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
-                                L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                                L7_TASK_PRIORITY_LEVEL(L7_MEDIUM_TASK_PRIORITY-2),
                                 L7_DEFAULT_TASK_SLICE);
 
   if (erps_TaskId == L7_ERROR) {
@@ -3583,6 +3897,43 @@ L7_RC_t ptin_prot_erps_init(void)
     return(L7_FAILURE);
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR,"Task ptin_prot_erps_task initialized");
+
+#else
+
+  struct sched_param param;
+
+  /* Set Thread Priority */
+  memset(&param, 0, sizeof(param));
+  param.sched_priority = 10;
+  pthread_attr_setschedparam(&erps_Task_attr, &param);
+
+  /* Thread setup */
+  if (0 != pthread_attr_init(&erps_Task_attr)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_attr_init");
+    return -1;
+  }
+
+  if (0 != pthread_attr_setstacksize(&erps_Task_attr, L7_DEFAULT_STACK_SIZE)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed to set thread stack size: %u",L7_DEFAULT_STACK_SIZE);
+    return -1;
+  }
+
+  if (0 != pthread_mutex_init(&erps_Task_lock, NULL)) 
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_mutex_init");
+    return -1;
+  }
+
+  if (0 != pthread_create(&erps_TaskId, &erps_Task_attr, &ptin_erps_task, NULL) )
+  {
+    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_create");
+    return -1;
+  }
+  LOG_ERR(LOG_CTX_ERPS, "thread_id=%p",erps_TaskId);
+
+#endif
 
   return L7_SUCCESS;
 }
@@ -3633,4 +3984,3 @@ void ptin_prot_erps_test(int test, int param1, int param2, int param3, int param
 }
 
 #endif  // PTIN_ENABLE_ERPS
-
