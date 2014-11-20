@@ -3153,7 +3153,7 @@ L7_RC_t hapi_ptin_stormControl_cpu_set(L7_BOOL enable, L7_uint32 cir, L7_uint32 
   }
 
   /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
   if (rc != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_STARTUP, "Error adding rate limit\r\n");
@@ -3300,7 +3300,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         if (result != L7_SUCCESS)  break;
 
         /* Configure meter */
-        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
         if (result != L7_SUCCESS)  break;
 
         /* Add counter */
@@ -3434,7 +3434,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         if (result != L7_SUCCESS)  break;
 
         /* Configure meter */
-        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
         if (result != L7_SUCCESS)  break;
 
         /* Add counter */
@@ -3568,7 +3568,7 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
         if (result != L7_SUCCESS)  break;
 
         /* Configure meter */
-        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+        result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
         if (result != L7_SUCCESS)  break;
 
         /* Add counter */
@@ -4511,7 +4511,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     if (rc != L7_SUCCESS)  break;
-    rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
     if (rc != L7_SUCCESS)  break;
@@ -5152,7 +5152,7 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   #endif
 
   /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
   if (rc != L7_SUCCESS)
   {
     printf("Error adding rate limit\r\n");
@@ -5355,7 +5355,7 @@ L7_RC_t ptin_debug_trap_packets_egress( L7_int port, L7_uint16 ovlan, L7_uint16 
   #endif
 
   /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
   if (rc != L7_SUCCESS)
   {
     printf("Error adding rate limit\r\n");

@@ -3466,7 +3466,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin
          if (result != L7_SUCCESS)  break;
          result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
          if (result != L7_SUCCESS)  break;
-         result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+         result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
          if (result != L7_SUCCESS)  break;
          result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
          if (result != L7_SUCCESS)  break;
@@ -3823,7 +3823,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
@@ -3849,7 +3849,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
@@ -3875,7 +3875,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
@@ -3901,7 +3901,7 @@ L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
@@ -4290,7 +4290,7 @@ L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dap
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
       if (result != L7_SUCCESS)  break;
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  break;
       result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
       if (result != L7_SUCCESS)  break;
@@ -4598,7 +4598,7 @@ L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)  {
         break;
       }
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  {
         break;
       }
@@ -4801,7 +4801,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)  {
         break;
       }
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  {
         break;
       }
@@ -5087,7 +5087,7 @@ L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 
       if (result != L7_SUCCESS)  {
         break;
       }
-      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
       if (result != L7_SUCCESS)  {
         break;
       }
@@ -5972,7 +5972,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
       hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_PROTO,   icmp_proto,  exact_match);
       hapiBroadPolicyRuleActionAdd(rule_id, BROAD_ACTION_PERMIT,   0, 0, 0);
       hapiBroadPolicyRuleNonConfActionAdd(rule_id,BROAD_ACTION_HARD_DROP,0,0,0);
-      hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef);      
+      hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef, L7_NULL);
 
       result = hapiBroadPolicyCommit(&pingFlood_id);
       if (L7_SUCCESS == result)
@@ -6005,7 +6005,7 @@ L7_RC_t hapiBroadSystemDosPingFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, vo
         result = hapiBroadPolicyUpdateStart(pingFlood_id);
         if(result == L7_SUCCESS)
         {
-          hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef);
+          hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef, L7_NULL);
           result = hapiBroadPolicyUpdateFinish();
         }
         if(result != L7_SUCCESS)
@@ -6270,7 +6270,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
 
       hapiBroadPolicyRuleQualifierAdd(rule_id, BROAD_FIELD_TCP_CONTROL,   tcp_synack ,  tcp_synack_mask );
 
-      hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef);      
+      hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef, L7_NULL);
       hapiBroadPolicyRuleActionAdd(rule_id, BROAD_ACTION_PERMIT,   0, 0, 0);
       hapiBroadPolicyRuleNonConfActionAdd(rule_id,BROAD_ACTION_HARD_DROP,0,0,0);
       result = hapiBroadPolicyCommit(&synFlood_id );
@@ -6304,7 +6304,7 @@ L7_RC_t hapiBroadSystemDosSynAckFloodingFilter(DAPI_USP_t *usp, DAPI_t *dapi_g, 
         result = hapiBroadPolicyUpdateStart(synFlood_id);
         if(result == L7_SUCCESS)
         {
-          hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef);
+          hapiBroadPolicyRuleMeterAdd(rule_id, &meterDef, L7_NULL);
           result = hapiBroadPolicyUpdateFinish();
         }
         if(result != L7_SUCCESS)
