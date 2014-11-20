@@ -759,25 +759,28 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
     return L7_FAILURE;
   }
 
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "gport=%d, bcm_port=%d => vlan_port.port=%d vport=%d",
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "gport=0x%x, bcm_port=%d => vlan_port.port=%d vport=%d",
              virtual_gport, hapiPortPtr->bcm_port, vlan_port.port, vlan_port.vlan_port_id);
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags=0x%08x criteria=0x%08x match_vlan=%u match_ivlan=%u egress_vlan=%u egress_ivlan=%u",
              vlan_port.flags, vlan_port.criteria, vlan_port.match_vlan, vlan_port.match_inner_vlan, vlan_port.egress_vlan, vlan_port.egress_inner_vlan);
 
   /* Remove virtual port from multicast group */
-  if ((error=bcm_multicast_vlan_encap_get(0, mcast_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id))!=BCM_E_NONE)
+  error = bcm_multicast_vlan_encap_get(0, mcast_group, vlan_port.port, vlan_port.vlan_port_id, &encap_id);
+  if (error != BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_vlan_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
-  if ((error=bcm_multicast_egress_delete(0, mcast_group, vlan_port.port, encap_id))!=BCM_E_NONE)
+  error = bcm_multicast_egress_delete(0, mcast_group, vlan_port.port, encap_id);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   /* Remove egress translation entries */
-  if ((error=bcm_vlan_translate_egress_action_delete(0, vlan_port.vlan_port_id, vlan_port.egress_vlan, 0))!=BCM_E_NONE)
+  error = bcm_vlan_translate_egress_action_delete(0, vlan_port.vlan_port_id, vlan_port.egress_vlan, 0);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcmx_vlan_translate_egress_action_delete(%d, %d, %d, &action): error=%d (\"%s\")",
             vlan_port.vlan_port_id, vlan_port.egress_vlan, 0, error, bcm_errmsg(error));
@@ -785,14 +788,16 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
   }
 
   /* Destroy virtual port */
-  if ((error=bcm_vlan_port_destroy(0, vlan_port.vlan_port_id)) != BCM_E_NONE)
+  error = bcm_vlan_port_destroy(0, vlan_port.vlan_port_id);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_port_destroy: error=%d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
   }
 
   /* Remove MAC addresses related to this virtual port */
-  if ((error=bcm_l2_addr_delete_by_port(0, -1, vlan_port.vlan_port_id, 0)) != BCM_E_NONE)
+  error = bcm_l2_addr_delete_by_port(0, -1, vlan_port.vlan_port_id, 0);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error removing MAC addresses related to this vport: error=%d (\"%s\")", error, bcm_errmsg(error));
   }
@@ -922,12 +927,14 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, ptin_dapi_por
   }
 
   /* add network port to multicast group as L2 member */
-  if ((error=bcm_multicast_l2_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id))!=BCM_E_NONE)
+  error = bcm_multicast_l2_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id);
+  if (error != BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
   }
-  if ((error=bcm_multicast_egress_delete(0, mcast_group, hapiPortPtr->bcmx_lport, encap_id))!=BCM_E_NONE)
+  error = bcm_multicast_egress_delete(0, mcast_group, hapiPortPtr->bcmx_lport, encap_id);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -959,7 +966,8 @@ L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcg
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "mcast_group=%d", mcast_group);
 
-  if ((error=bcm_multicast_egress_delete_all(0, mcast_group))!=BCM_E_NONE)
+  error = bcm_multicast_egress_delete_all(0, mcast_group);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_delete_all: error=%d (\"%s\")",error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -968,7 +976,8 @@ L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcg
   /* Destroy MC group */
   if (destroy_mcgroup)
   {
-    if ((error=bcm_multicast_destroy(0, mcast_group)) != BCM_E_NONE)
+    error = bcm_multicast_destroy(0, mcast_group);
+    if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
               BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
@@ -1593,7 +1602,7 @@ void ptin_maclimit_dump(void)
   {
     if (macLearn_info_flow[i].mac_maximum != (L7_uint8)-1)
     {
-      printf(" GPORT=%.4u  %u of %u (total: %u)\n", i, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_maximum, macLearn_info_flow[i].mac_total);
+      printf(" GPORT=0x%.4x  %u of %u (total: %u)\n", i, macLearn_info_flow[i].mac_counter, macLearn_info_flow[i].mac_maximum, macLearn_info_flow[i].mac_total);
     }
   }
 
