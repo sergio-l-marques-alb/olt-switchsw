@@ -7511,8 +7511,6 @@ static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPo
 static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile)
 {
   L7_int    ptin_port;
-  L7_uint32 intIfNum;
-  nimUSP_t  usp;
 
   /* Validate arguments */
   if (msgBwProfile==L7_NULLPTR || profile==L7_NULLPTR)
@@ -7534,7 +7532,6 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   memset(profile->macAddr, 0x00, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
   /* Source interface */
-  profile->ddUsp_src.unit = profile->ddUsp_src.slot = profile->ddUsp_src.port = -1;
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
   {
     /* SVID */
@@ -7559,27 +7556,14 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid port reference");
       return L7_FAILURE;
     }
-    /* Get intIfNum */
-    if (ptin_intf_port2intIfNum(ptin_port,&intIfNum)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port");
-      return L7_FAILURE;
-    }
-    /* Get USP */
-    if (nimGetUnitSlotPort(intIfNum,&usp)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting USP reference");
-      return L7_FAILURE;
-    }
+
     /* Calculate ddUSP */
-    profile->ddUsp_src.unit = usp.unit;
-    profile->ddUsp_src.slot = usp.slot;
-    profile->ddUsp_src.port = usp.port - 1;
+    profile->ptin_port = ptin_port;
+
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIntf extracted!");
   }
 
   /* Destination interface */
-  profile->ddUsp_dst.unit = profile->ddUsp_dst.slot = profile->ddUsp_dst.port = -1;
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
   {
     /* SVID */
@@ -7604,22 +7588,10 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid port reference");
       return L7_FAILURE;
     }
-    /* Get intIfNum */
-    if (ptin_intf_port2intIfNum(ptin_port,&intIfNum)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Non existent port");
-      return L7_FAILURE;
-    }
-    /* Get USP */
-    if (nimGetUnitSlotPort(intIfNum,&usp)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error getting USP reference");
-      return L7_FAILURE;
-    }
+
     /* Calculate ddUSP */
-    profile->ddUsp_dst.unit = usp.unit;
-    profile->ddUsp_dst.slot = usp.slot;
-    profile->ddUsp_dst.port = usp.port - 1;
+    profile->ptin_port = ptin_port;
+
     LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIntf extracted!");
   }
 

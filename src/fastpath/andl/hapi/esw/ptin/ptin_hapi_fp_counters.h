@@ -56,6 +56,6 @@ extern L7_RC_t hapi_ptin_fpCounters_delete(DAPI_USP_t *usp, ptin_evcStats_profil
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t *profile);
+extern L7_RC_t hapi_ptin_fpCounters_deleteAll(DAPI_USP_t *usp, ptin_evcStats_profile_t *profile, DAPI_t *dapi_g);
 
 #endif /* _PTIN_HAPI_FP_COUNTERS__H */

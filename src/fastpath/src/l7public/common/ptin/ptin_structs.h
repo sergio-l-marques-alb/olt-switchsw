@@ -618,7 +618,7 @@ typedef struct {
 typedef struct {
   L7_uint8   inUse;                     // This entry is in use (TRUE to be in use)
   DAPI_USP_t ddUsp_src;                 // Source interface (have precedence over port_bmp_src)
-  DAPI_USP_t ddUsp_dst;                 // Destination interface (have precedence over port_bmp_dst)
+  L7_uint16  outer_vlan_in;             // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_internal;       // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
   L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)
@@ -630,8 +630,7 @@ typedef struct {
 } ptin_bw_policy_t;
 
 typedef struct {
-  DAPI_USP_t ddUsp_src;                 // Source interface (have precedence over port_bmp_src)
-  DAPI_USP_t ddUsp_dst;                 // Destination interface (have precedence over port_bmp_dst)
+  L7_int     ptin_port;                 // Interface
   L7_uint16  outer_vlan_in;             // SVlan (0 value means no appliance)               
   L7_uint16  outer_vlan_internal;       // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)

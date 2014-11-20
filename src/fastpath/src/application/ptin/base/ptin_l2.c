@@ -24,8 +24,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
                             L7_uint32 vlanId, L7_uchar8 msgsType)
 {
   L7_uint32         ext_evc_id;
-  nimUSP_t          usp;
-  L7_uint32         pon_intIfNum;
+  L7_uint32         pon_port;
   L7_INTF_TYPES_t   intf_type;
   intf_vp_entry_t   vp_entry;
   ptin_bw_profile_t profile;
@@ -76,22 +75,15 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   }
 
   /* Get USP of PON port */
-  if (ptin_intf_ptintf2intIfNum(&vp_entry.pon, &pon_intIfNum) != L7_SUCCESS)
+  if (ptin_intf_ptintf2port(&vp_entry.pon, &pon_port) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain intIfNum from port %u/%u", vp_entry.pon.intf_type, vp_entry.pon.intf_id);
-    return L7_FAILURE;
-  }
-  if (nimGetUnitSlotPort(pon_intIfNum, &usp) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain USP from intIfNum %u or port %u/%u", pon_intIfNum, vp_entry.pon.intf_type, vp_entry.pon.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain ptin_port from port %u/%u", vp_entry.pon.intf_type, vp_entry.pon.intf_id);
     return L7_FAILURE;
   }
 
   /* Fill structure for policer */
   memset(&profile, 0x00, sizeof(profile));
-  profile.ddUsp_src.unit = usp.unit;
-  profile.ddUsp_src.slot = usp.slot;
-  profile.ddUsp_src.port = usp.port-1;
+  profile.ptin_port      = pon_port;
   profile.outer_vlan_out = vp_entry.gem_id;
   memcpy(profile.macAddr, macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
@@ -114,8 +106,8 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     /* Remove policer */
     profile.meter.cir = (L7_uint32) -1;
     profile.meter.eir = (L7_uint32) -1;
-    profile.meter.cbs = 0;
-    profile.meter.ebs = 0;
+    profile.meter.cbs = (L7_uint32) -1;
+    profile.meter.ebs = (L7_uint32) -1;
   }
   else
   {

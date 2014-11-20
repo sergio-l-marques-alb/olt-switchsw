@@ -129,16 +129,17 @@ extern L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum
 /**
  * Apply/Get bandwidth policer
  *  
+ * @param intIfNum : Interface
  * @param bw_policer : Bandwidth policer 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t dtlPtinBWPolicer( ptin_bwPolicer_t *bw_policer );
+extern L7_RC_t dtlPtinBWPolicer( L7_uint32 intIfNum, ptin_bwPolicer_t *bw_policer );
 
 /**
  * Apply/Get EVC Statistics
  *  
- * @param intIfNum : First interface for the cross-connection  
+ * @param intIfNum : Interface
  * @param evcStats : EVC Stats structure
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
