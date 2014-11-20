@@ -4225,7 +4225,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     if (ptin_igmp_clientGroup_remove(&clientId) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
-      rc = L7_FAILURE;
+      //rc = L7_FAILURE;    /* L7_NOT_EXIST is not an error */
     }
     else
     {
