@@ -70,7 +70,7 @@
 //#define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
 #endif
 
-#define DTL0INBANDVID 4093
+#define DTL0INBANDVID 2047
 extern L7_uint16 ptin_cfg_inband_vlan_get(void);
 extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid);
