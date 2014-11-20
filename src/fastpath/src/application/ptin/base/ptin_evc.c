@@ -298,8 +298,8 @@ static L7_uint32 evcId_from_internalVlan[4096];
 static L7_uint16 n_quattro_evcs = 0;
 static L7_uint16 n_quattro_igmp_evcs = 0;
 
-#define INCREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId))  (counter)++; }
-#define DECREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId) && (counter)>0)  (counter)--; }
+#define INCREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId) && IS_EVC_STACKED(evc_id))  (counter)++; }
+#define DECREMENT_QUATTRO_INSTANCE(evcId, counter)   { if (IS_EVC_QUATTRO(evcId) && IS_EVC_STACKED(evc_id) && (counter)>0)  (counter)--; }
 
 #define NO_INSTANCE(evcId, counter)       (!IS_EVC_QUATTRO(evcId) || ((counter) == 0))
 #define SINGLE_INSTANCE(evcId, counter)   (!IS_EVC_QUATTRO(evcId) || ((counter) <= 1))
@@ -8043,7 +8043,8 @@ static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_f
   /* Quattro EVCs */
   else
   #endif
-  if (evc_flags & PTIN_EVC_MASK_QUATTRO)
+  if ((evc_flags & PTIN_EVC_MASK_QUATTRO) &&
+      (evc_flags & PTIN_EVC_MASK_STACKED))
   {
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     *freeVlan_queue = &queue_free_vlans[PTIN_VLAN_TYPE_QUATTRO][PTIN_VLAN_MACLEARN_ON];
