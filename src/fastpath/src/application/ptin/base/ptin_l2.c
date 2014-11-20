@@ -459,7 +459,8 @@ L7_RC_t ptin_l2_mac_table_entry_remove( ptin_switch_mac_entry *entry )
             vlanId,entry->addr[0],entry->addr[1],entry->addr[2],entry->addr[3],entry->addr[4],entry->addr[5]);
 
   /* Vlan+MAC to search for */
-  memcpy(&keyToFind[0],&vlanId,sizeof(L7_uint16));
+  keyToFind[0] = (L7_uint8) ((vlanId>>8) & 0x0f);
+  keyToFind[1] = (L7_uint8) (vlanId & 0xff);
   memcpy(&keyToFind[L7_FDB_IVL_ID_LEN],entry->addr,sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
 
   /* Search for this key: if not found, return success */
