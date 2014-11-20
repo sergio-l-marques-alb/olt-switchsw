@@ -37,6 +37,8 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include <execinfo.h>
+
 #include "l7_common.h"
 #include "log.h"
 #include "osapi.h"
@@ -54,6 +56,7 @@
 #include "logger.h"
 #include "addrmap.h"
 #include "ptin_globaldefs.h"
+#include <sys/resource.h>
 /* PTin end */
 
 #ifdef L7_CLI_PACKAGE
@@ -349,9 +352,6 @@ int fp_main(int argc, char *argv[])
   L7_int32 startupStatusTaskID;
   L7_RC_t rc;
 
-  /* Initialize logger */
-  log_init(LOG_OUTPUT_FILE);
-
   /* PTin added: Clock */
   #if 1
   extern pthread_cond_t osapiTimerCond;
@@ -375,8 +375,6 @@ int fp_main(int argc, char *argv[])
   {
     printf("Dual Image Manager Initialization failed. \n\n");
   }
-
-  LOG_NOTICE(LOG_CTX_STARTUP,"FASTPATH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
 
   /* PTin added: CPLD and FPGA mapping */
   rc = hapi_ptin_fpga_map();
@@ -480,6 +478,24 @@ int fp_main(int argc, char *argv[])
 ** of the offending pid which received a fatal signal
 ** Processor architecture specific.
 *****************************************************************/
+
+#ifdef __arm__
+void print_backtrace(FILE *logfd)
+{
+  int i, nptrs;
+#define SIZE 100
+  void *buffer[SIZE];
+
+  nptrs = backtrace(buffer, SIZE);
+  printf("backtrace() returned %d addresses\n", nptrs);
+
+  BT_PRINT(logfd, "ARM Backtrace\n");
+  for (i=0; i<nptrs; i++) {
+    BT_PRINT(logfd, "0x%08X\n", (unsigned int)buffer[i]);
+  }
+}
+#endif
+
 #ifdef __powerpc__
 void print_backtrace(siginfo_t *info, unsigned int *raw_stack_pointer, FILE *logfd)
 {
@@ -858,6 +874,11 @@ void sigsegv_handler (int sig, siginfo_t * info, void * v)
   print_backtrace(info, pid_stack, bfd);
 #endif /* __powerpc__ || __mips__ */
 
+#if defined (__arm__)
+  print_backtrace(bfd);
+#endif
+
+
   BT_PRINT(bfd, "\n\n************************************************************\n");
   BT_PRINT(bfd, "*                 End LVL7 Stack Information               *\n");
   BT_PRINT(bfd, "************************************************************\n");
@@ -919,6 +940,12 @@ int main(int argc, char *argv[], char *envp[])
   stack_t sig_stack;
 #endif
 
+  /* Initialize logger */
+  log_init(LOG_OUTPUT_FILE);
+
+  LOG_NOTICE(LOG_CTX_STARTUP,"--------------------------------------");
+  LOG_NOTICE(LOG_CTX_STARTUP,"FASTPATH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
+
   environ = envp;
 
   if (chdir (CONFIG_PATH) != 0) {
@@ -930,6 +957,19 @@ int main(int argc, char *argv[], char *envp[])
   if ((argc <= 1) || (strcmp(argv[1], "boot") != 0)) {
     sprintf (ServicePortName, "eth%d:", bspapiServicePortUnitGet());
   }
+
+#if 1
+  int res;
+  struct rlimit coreLimit;
+  coreLimit.rlim_cur = RLIM_INFINITY;
+  coreLimit.rlim_max = RLIM_INFINITY;
+
+  res = setrlimit(RLIMIT_CORE, (const struct rlimit*)&coreLimit);
+  LOG_INFO(LOG_CTX_STARTUP,"set core limit %d", res);
+
+  res = getrlimit(RLIMIT_CORE, &coreLimit);
+  LOG_INFO(LOG_CTX_STARTUP,"core size limits : cur %d max %d", (int)coreLimit.rlim_cur, (int)coreLimit.rlim_max);
+#endif
 
   sigemptyset(&BlockedSigs);
 

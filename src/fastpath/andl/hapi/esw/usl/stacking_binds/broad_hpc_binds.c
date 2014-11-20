@@ -143,6 +143,8 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
 void hpcHardwareFini(void)
 {
   sal_core_term();
+
+  sdk_term(0);
 }
 
 /**************************************************************************
