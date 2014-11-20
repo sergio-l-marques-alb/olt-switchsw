@@ -718,37 +718,30 @@ int ptin_vlan_double_translate_action_delete(int port, bcm_vlan_t oVlanId, bcm_v
 
 // Egress translations (single+double tagged packets)
 
-int ptin_vlan_egress_translate_action_add(int port, int classId, bcm_vlan_t oVlanId, bcm_vlan_t iVlanId, bcm_vlan_t newOVlanId)
+int ptin_vlan_egress_translate_action_add(int classId, bcm_vlan_t oVlanId, bcm_vlan_t iVlanId, bcm_vlan_t newOVlanId, bcm_vlan_t newIVlanId)
 {
   int error;
-  bcm_port_t bcm_port;
   bcm_vlan_action_set_t action;
 
   // Validate port, and get bcm_port reference
-  if (port>=PTIN_SYSTEM_N_PORTS || classId<=0 || hapi_ptin_bcmPort_get(port,&bcm_port)!=L7_SUCCESS)
+  if (classId<=0)
   {
     printf("Port/Class is invalid\r\n");
     return -1;
   }
 
-  // Class
-  if (bcm_port_class_set(0,bcm_port,bcmPortClassVlanTranslateEgress,classId)!=BCM_E_NONE)
-  {
-    printf("Error setting class %d with port %d\r\n",classId,port);
-    return -1;
-  }
-
   bcm_vlan_action_set_t_init(&action);
   action.dt_outer      = bcmVlanActionReplace;
-  action.dt_inner      = bcmVlanActionNone;
+  action.dt_inner      = bcmVlanActionReplace;
   action.dt_outer_prio = bcmVlanActionNone;
   action.dt_inner_prio = bcmVlanActionNone;
 
   action.ot_outer      = bcmVlanActionReplace;
-  action.ot_inner      = bcmVlanActionNone;
+  action.ot_inner      = bcmVlanActionAdd;
   action.ot_outer_prio = bcmVlanActionNone;
 
   action.new_outer_vlan = newOVlanId;
+  action.new_inner_vlan = newIVlanId;
 
   error = bcm_vlan_translate_egress_action_add(0,classId,oVlanId,iVlanId,&action);
 
