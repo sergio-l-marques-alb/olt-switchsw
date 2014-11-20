@@ -10,6 +10,136 @@ static L7_uint32              mac_table_entries=0;
 static ptin_switch_mac_entry  mac_table[PLAT_MAX_FDB_MAC_ENTRIES];
 
 /**
+ * Manage L2 earning events
+ * 
+ * @param macAddr 
+ * @param intIfNum 
+ * @param virtual_port 
+ * @param vlanId 
+ * @param msgsType 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 virtual_port,
+                            L7_uint32 vlanId, L7_uchar8 msgsType)
+{
+  L7_uint32         ext_evc_id;
+  nimUSP_t          usp;
+  L7_uint32         pon_intIfNum;
+  L7_INTF_TYPES_t   intf_type;
+  intf_vp_entry_t   vp_entry;
+  ptin_bw_profile_t profile;
+  L7_RC_t           rc = L7_SUCCESS;
+
+  LOG_TRACE(LOG_CTX_PTIN_L2, "Learning event received: %u", msgsType);
+
+  /* NULL MACs are not considered */
+  if (macAddr[0]==0 && macAddr[1]==0 && macAddr[2]==0 && macAddr[3]==0 && macAddr[4]==0 && macAddr[5]==0)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Get EVC id from VLAN */
+  if (ptin_evc_get_evcIdfromIntVlan(vlanId, &ext_evc_id) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Unknown internal VLAN: %u", vlanId);
+    return L7_FAILURE;
+  }
+
+  /* Get intf type */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Unknown intIfNum type: %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* This routine only applies to virtual ports */
+  if (intf_type != L7_VLAN_PORT_INTF)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Search for this entry */
+  memset(&vp_entry, 0x00, sizeof(vp_entry));
+  vp_entry.vport_id = virtual_port & 0xffffff;
+
+  if (intf_vp_DB(3, &vp_entry) != 0)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_L2, "Virtual port 0x%08x does not exist!", virtual_port);
+    return L7_FAILURE;
+  }
+
+  /* If no policer associated, there is nothing to be done! */
+  if (!vp_entry.policer.in_use || vp_entry.policer.meter.cir == (L7_uint32)-1)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Get USP of PON port */
+  if (ptin_intf_ptintf2intIfNum(&vp_entry.pon, &pon_intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain intIfNum from port %u/%u", vp_entry.pon.intf_type, vp_entry.pon.intf_id);
+    return L7_FAILURE;
+  }
+  if (nimGetUnitSlotPort(pon_intIfNum, &usp) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain USP from intIfNum %u or port %u/%u", pon_intIfNum, vp_entry.pon.intf_type, vp_entry.pon.intf_id);
+    return L7_FAILURE;
+  }
+
+  /* Fill structure for policer */
+  memset(&profile, 0x00, sizeof(profile));
+  profile.ddUsp_src.unit = usp.unit;
+  profile.ddUsp_src.slot = usp.slot;
+  profile.ddUsp_src.port = usp.port-1;
+  profile.outer_vlan_out = vp_entry.gem_id;
+  memcpy(profile.macAddr, macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+
+  if (msgsType == FDB_ADD)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_L2, "ADD event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
+              macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
+
+    /* Add policer */
+    profile.meter.cir = vp_entry.policer.meter.cir;
+    profile.meter.eir = vp_entry.policer.meter.eir;
+    profile.meter.cbs = vp_entry.policer.meter.cbs;
+    profile.meter.ebs = vp_entry.policer.meter.ebs;
+  }
+  else if (msgsType == FDB_DEL)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_L2, "DEL event: MAC=%02x:%02x:%02x:%02x:%02x:%02x VLAN=%u intIfNum=%u virtual_port=0x%08x",
+              macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
+
+    /* Remove policer */
+    profile.meter.cir = (L7_uint32) -1;
+    profile.meter.eir = (L7_uint32) -1;
+    profile.meter.cbs = 0;
+    profile.meter.ebs = 0;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Unknown operation type %u", msgsType);
+    rc = L7_FAILURE;
+  }
+
+  /* Apply policer*/
+  if (ptin_evc_bwProfile_set(ext_evc_id, &profile) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Error applying profile to eEVC %u", ext_evc_id);
+    rc = L7_FAILURE;
+  }
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Error occurred");
+    return rc;
+  }
+
+  return L7_FAILURE;
+}
+
+/**
  * Get aging time
  * 
  * @param age : aging time in seconds (output)

@@ -664,12 +664,37 @@ typedef struct {
     unsigned short  gem_id;
     //unsigned int    evc_id;
     //int             vport_id;
+
+    /* Policer */
+    struct {
+      L7_BOOL in_use;
+      ptin_bw_meter_t meter;
+    } policer;
+    
 } intf_vp_entry_t;
 
 extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
 extern void dump_intf_vp_DB(void);
 
+/**
+ * Find a particular entry inside virtual port list
+ * 
+ * @param vport_id 
+ * @param entry 
+ * 
+ * @return int : 0 -> Found, -1 -> Not found
+ */
+extern int intf_vp_find(L7_uint32 vport_id, intf_vp_entry_t **entry);
 
+/**
+ * Set bandwidth policer for one virtual port
+ * 
+ * @param vport_id 
+ * @param meter 
+ * 
+ * @return int : 0>Success, -1>Failed
+ */
+extern int intf_vp_policer(unsigned long vport_id, ptin_bw_meter_t *meter);
 
 
 /**

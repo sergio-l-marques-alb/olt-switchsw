@@ -7530,6 +7530,9 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   profile->inner_vlan_in  = 0;
   profile->inner_vlan_out = 0;
 
+  /* No MAC address provided */
+  memset(profile->macAddr, 0x00, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+
   /* Source interface */
   profile->ddUsp_src.unit = profile->ddUsp_src.slot = profile->ddUsp_src.port = -1;
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
