@@ -34,7 +34,7 @@
 # define PTIN_SYSTEM_10G_PORTS_MASK    0x000F000000000000ULL
 # define PTIN_SYSTEM_PORTS_MASK        (PTIN_SYSTEM_PON_PORTS_MASK | PTIN_SYSTEM_ETH_PORTS_MASK | PTIN_SYSTEM_10G_PORTS_MASK)
 
-# define PTIN_SYSTEM_N_EVCS            1024  /* Maximum nr of EVCs allowed in this equipment */
+# define PTIN_SYSTEM_N_EVCS            4002  /* Maximum nr of EVCs allowed in this equipment */
 # define PTIN_SYSTEM_N_CLIENTS         8192  /* 1 client per interface */
 # define PTIN_SYSTEM_N_FLOWS_MAX       8192  /* Maximum nr of flows (total) */
 
@@ -134,8 +134,8 @@
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES               32    /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES              32    /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   PTIN_SYSTEM_N_ETH   /* 1 client per DHCP instance */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  PTIN_SYSTEM_N_ETH   /* 1 client per PPPoE instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   8192  /* 1 client per DHCP instance */
+# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  8192  /* 1 client per PPPoE instance */
 
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module
