@@ -8357,8 +8357,8 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
     return L7_FAILURE;
   }
 
-  msgErpsStatus->slotId             = msgErpsStatus->slotId;
-  msgErpsStatus->idx                = msgErpsStatus->idx;
+  //msgErpsStatus->slotId             = msgErpsStatus->slotId;
+  //msgErpsStatus->idx                = msgErpsStatus->idx;
   msgErpsStatus->port0_SF           = status.port0_SF;
   msgErpsStatus->port1_SF           = status.port1_SF;
   msgErpsStatus->port0State         = status.port0State;
