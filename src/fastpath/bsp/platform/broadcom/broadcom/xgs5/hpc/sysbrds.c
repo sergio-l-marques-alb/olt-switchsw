@@ -520,18 +520,11 @@ L7_RC_t hpcConfigBoardSet()
       if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
         return(L7_FAILURE);
 
-      /* For L2 fast flushes */
-//    if (sal_config_set(spn_L2XMSG_MODE, "1") != 0)
-//      return(L7_FAILURE);
-
-      #if 1
+      #if 0
       /* L2 table */
       if (sal_config_set(spn_L2_MEM_ENTRIES, "32768") != 0)
         return(L7_FAILURE);
-      if (sal_config_set(spn_L3_MEM_ENTRIES, "1024") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_MPLS_MEM_ENTRIES, "1024") != 0)
-        return(L7_FAILURE);
+
       /* Translation entries */
       if (sal_config_set(spn_VLAN_XLATE_MEM_ENTRIES, "8192") != 0)
         return(L7_FAILURE);
