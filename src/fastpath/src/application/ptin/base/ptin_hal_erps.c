@@ -840,7 +840,7 @@ void *ptin_hal_apsPacketTx_task(void *_X_)
 
       if (counter > 0)
       {
-        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS (Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
+        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
         osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
         tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
         osapiSemaGive(ptin_hal_erps_sem);
@@ -1484,7 +1484,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
  */
 int ptin_hal_erps_rd_alarms(L7_uint8 slot, L7_uint32 index)
 {
-  return MEP_is_in_LOC(index, 0xffff, &oam);
+  return MEP_is_in_LOC(index, 0xffff, &oam) |  MEP_is_in_RDI(index, 0xffff, &oam);
 }
 
 #endif  // PTIN_ENABLE_ERPS
