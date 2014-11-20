@@ -1650,10 +1650,10 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     if (egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
       continue;
 
-  #if (PTIN_BOARD_IS_MATRIX)
-    if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)   /* For matrix, only process PROMISCUOUS ports */
-  #elif (PTIN_BOARD_IS_LINECARD)
+  #if (PTIN_BOARD_IS_LINECARD)
     if (egress_type != PTIN_PORT_EGRESS_TYPE_ISOLATED)      /* For matrix, only process ISOLATED ports */
+  //#elif (PTIN_BOARD_IS_MATRIX)
+  //  if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)   /* For matrix, only process PROMISCUOUS ports */
   #else
     if (0)                                                  /* For others, process all ports */
   #endif
@@ -3942,12 +3942,6 @@ void ptin_stormcontrol_dump(void)
   {
     for (index = 0; index < STORM_CONTROL_TRAFFIC_MAX; index++) 
     {
-      /* Skip not used entries */
-      if (policyId_storm[egress_type][index] == 0 || policyId_storm[egress_type][index] == BROAD_POLICY_INVALID)
-      {
-        continue;
-      }
-
       if (index == 0)
       {
         printf("Egress Ports type: ");
@@ -3966,6 +3960,12 @@ void ptin_stormcontrol_dump(void)
           printf("??? (%u type)\r\n", index);
           break;
         }
+      }
+
+      /* Skip not used entries */
+      if (policyId_storm[egress_type][index] == 0 || policyId_storm[egress_type][index] == BROAD_POLICY_INVALID)
+      {
+        continue;
       }
 
       rule = 0;
