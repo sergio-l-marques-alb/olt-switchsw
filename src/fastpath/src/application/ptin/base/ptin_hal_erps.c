@@ -486,12 +486,13 @@ L7_RC_t ptin_hal_erps_convert_vid_init(L7_uint8 erps_idx)
       vid = (byte*8)+bit;
 
       if ((tbl_erps[erps_idx].protParam.vid_bmp[byte] >> bit) & 1) {       
-        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d", erps_idx, vid);
+        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d Added", erps_idx, vid);
         erpsIdx_from_serviceVid[vid] = erps_idx;
       }
       else if (erpsIdx_from_serviceVid[vid] == erps_idx)
       {
         erpsIdx_from_serviceVid[vid] = PROT_ERPS_UNUSEDIDX;
+        LOG_DEBUG(LOG_CTX_ERPS, "ERPS#%d: VLAN ID %d Removed", erps_idx, vid);
       }
     } // for(bit...)
   } // for(byte...)
