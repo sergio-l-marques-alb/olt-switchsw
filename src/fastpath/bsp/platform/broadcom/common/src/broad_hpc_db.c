@@ -385,7 +385,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
     }
 
     /* Run all provided slots */
-    for (slot=1, port=0; slot<=PTIN_SYS_SLOTS_MAX && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; slot++)
+    for (slot=1, port=0; slot<=PTIN_SYS_SLOTS_MAX /*&& port<L7_MAX_PHYSICAL_PORTS_PER_UNIT*/; slot++)
     {
       switch (slot_mode[slot-1])
       {
@@ -435,7 +435,7 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
       }
 
       /* Run all lanes of each slot */
-      for (i=0; i<total_lanes && port<L7_MAX_PHYSICAL_PORTS_PER_UNIT; i++)
+      for (i=0; i<total_lanes /*&& port<L7_MAX_PHYSICAL_PORTS_PER_UNIT*/; i++)
       {
         /* Find the first WC connected to this slot */
         for (wc_index=0; wc_index<WC_MAX_NUMBER; wc_index++)
@@ -492,14 +492,17 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
           return L7_NOT_SUPPORTED;
         }
 
-        /* We have a valid WC, and a valid lane */
-        wcMap[port].portNum  = port;
-        wcMap[port].slotNum  = slot;
-        wcMap[port].wcIdx    = wc_index;
-        wcMap[port].wcLane   = wc_lane;
-        wcMap[port].wcSpeedG = speedG;
-        LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
-                  wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+        if (port<L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+        {
+          /* We have a valid WC, and a valid lane */
+          wcMap[port].portNum  = port;
+          wcMap[port].slotNum  = slot;
+          wcMap[port].wcIdx    = wc_index;
+          wcMap[port].wcLane   = wc_lane;
+          wcMap[port].wcSpeedG = speedG;
+          LOG_TRACE(LOG_CTX_STARTUP,"Port %2u: slotNum=%2u, wcIdx=%2u, wcLane=%u wcSpeedG=%2u", port,
+                    wcMap[port].slotNum, wcMap[port].wcIdx, wcMap[port].wcLane, wcMap[port].wcSpeedG);
+        }
 
         /* Lane is now in use */
         wclanes_in_use[wc_index][wc_lane] = L7_TRUE;
@@ -550,6 +553,13 @@ L7_RC_t hpcConfigWCmap_build(L7_uint32 *slot_mode, HAPI_WC_PORT_MAP_t *retMap)
         LOG_ERR(LOG_CTX_STARTUP,"Could not allocate PTP port!");
         return L7_NOT_SUPPORTED;
       }
+    }
+
+    /* Validate maximum number of ports */
+    if (port > L7_MAX_PHYSICAL_PORTS_PER_UNIT)
+    {
+      LOG_ERR(LOG_CTX_STARTUP,"More than 64 ports allocated (%u)!", port);
+      return L7_NOT_SUPPORTED;
     }
 
     /* Do not use remaining ports */
