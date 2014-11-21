@@ -31,16 +31,20 @@ FASTPATH_PUBLIC_API_DIR=$FASTPATH_ROOT_DIR/src/l7public/api
 
 NEW_CONFIGURATION="no"
 
+
 # 1 - Configuration
 cd $MGMD_ROOT_DIR
+	
 if [ -f "configure" ]; then
 	#Compare MGMD package version and current configured version
-	MGMD_PACKAGE_VERSION=`cat configure.ac | grep "AC_INIT" -m 1 | sed "s/[^0-9]*//; s/].*//"`
+	MGMD_PACKAGE_VERSION=`cat ./src/ptin_mgmd_defs.h | grep "PTIN_MGMD_SVN_PACKAGE" -m 1|  awk '{print$3}'  | sed "s/[^0-9.M]*//g; s/].*//"`	
+	#echo "MGMD_PACKAGE_VERSION:"$MGMD_CURRENT_VERSION
 	MGMD_CURRENT_VERSION=`cat configure | grep "PACKAGE_VERSION=" -m 1 | sed "s/[^0-9]*//; s/'//"`
+	#echo "MGMD_CURRENT_VERSION:"$MGMD_CURRENT_VERSION
 	if [ "$MGMD_PACKAGE_VERSION" != "$MGMD_CURRENT_VERSION" ]; then
 		echo "MGMD upgrade detected! Reconfiguring..."
 		NEW_CONFIGURATION="yes"
-		sh build/autogen.sh && sh build/configure-ud.sh
+		sh build/autogen.sh && sh build/configure-ud.sh >/dev/null 2>&1
 	fi
 else
 	#MGMD not yet configured. To reduce Fastpath's compilation verbosity, we skip the configuration output
