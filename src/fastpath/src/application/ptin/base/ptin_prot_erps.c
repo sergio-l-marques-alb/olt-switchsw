@@ -434,6 +434,7 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
 
     ptin_hal_erps_convert_vid_init(erps_idx);
 
+    ptin_hal_erps_queue_vlans_used_clear(erps_idx);
     ptin_hal_erps_internal_vlans_used_sync(erps_idx);
 
     #if 0
