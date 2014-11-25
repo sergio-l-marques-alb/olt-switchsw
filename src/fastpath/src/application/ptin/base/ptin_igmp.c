@@ -2323,7 +2323,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       {
         if (ctrlResMsg.res==NOT_EXIST)
           break;
-        LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]", ctrlResMsg.dataLength);
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]. Expecting Multiple of :%u", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
         return L7_FAILURE;
       }
       globalGroupCount+=groupCount;
@@ -2357,10 +2357,17 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       return L7_FAILURE;
     }
 
+
+    /*Take Semaphore*/
+    osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
     /* Validate interface */
     if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
+
+      /*Give Semaphore*/
+      osapiSemaGive(ptin_igmp_clients_sem);
       return L7_FAILURE;
     }
 
@@ -2417,63 +2424,68 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
             LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X",      ctrlResMsg.msgCode);
             LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X",      ctrlResMsg.msgId);
             LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
-            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%u)", ctrlResMsg.dataLength, (ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
           
-            if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
-            { 
-              L7_uint16   iterator;
-              L7_uint16   existingEntry=L7_FALSE;
+            if (0 != ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
+            {
+              if (ctrlResMsg.res==NOT_EXIST)
+                continue;         
 
-              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u)", McastEvcId);
-              while((ctrlResMsg.dataLength > 0) && (groupCount+globalGroupCount < *number_of_channels))
-              {
-                memcpy(&mgmdGroupsRes, ctrlResMsg.data + groupCountperMsg*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));         
-                
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry [%u]", mgmdGroupsRes.entryId);
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Type:           %s",   mgmdGroupsRes.groupType==PTIN_MGMD_CTRL_GROUPTYPE_DYNAMIC? ("Dynamic"):("Static"));
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Filter-Mode:    %s",   mgmdGroupsRes.filterMode==PTIN_MGMD_CTRL_FILTERMODE_INCLUDE? ("Include"):("Exclude"));
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Group Timer:    %u",   mgmdGroupsRes.groupTimer);
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Groups Address: %08X", mgmdGroupsRes.groupIP);
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Timer:   %u",   mgmdGroupsRes.sourceTimer);
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Address: %08X", mgmdGroupsRes.sourceIP);
-
-                //This procedure is required, since the client id on mgmd identifies devices (e.g. set-top boxes), while on the manager identifies ONUs          
-                if(firstDevice==L7_FALSE)
-                {
-                  for (iterator=0;iterator<globalGroupCount+groupCount;iterator++)
-                  {
-                    //Verify if we have already read this entry before
-                    if (L7_INET_ADDR_COMPARE(&channel_list[iterator].groupAddr,&mgmdGroupsRes.groupIP)==L7_TRUE && 
-                        L7_INET_ADDR_COMPARE(&channel_list[iterator].sourceAddr,&mgmdGroupsRes.sourceIP)==L7_TRUE)
-                    {
-                      existingEntry=L7_TRUE;
-                      break;
-                    }
-                  }
-                }
-
-                if(existingEntry==L7_FALSE)
-                {//Add entry
-                  inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[groupCount+globalGroupCount].groupAddr);
-                  inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[groupCount+globalGroupCount].sourceAddr);
-                  channel_list[groupCount+globalGroupCount].static_type = mgmdGroupsRes.groupType;
-
-                  ++groupCount;
-                }
-                else
-                {//Restore value            
-                  existingEntry=FALSE;                                 
-                }
-
-                ++groupCountperMsg;         
-                ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t);
-              }        
-            }
-            else
-            {         
-              LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]", ctrlResMsg.dataLength);
+              LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]. Expecting multiple of %u", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+              /*Give Semaphore*/
+              osapiSemaGive(ptin_igmp_clients_sem);
               return L7_FAILURE;
             }
+               
+            L7_uint16   iterator;
+            L7_uint16   existingEntry=L7_FALSE;
+
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u)", McastEvcId);
+            while((ctrlResMsg.dataLength > 0) && (groupCount+globalGroupCount < *number_of_channels))
+            {
+              memcpy(&mgmdGroupsRes, ctrlResMsg.data + groupCountperMsg*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));         
+              
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry [%u]", mgmdGroupsRes.entryId);
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Type:           %s",   mgmdGroupsRes.groupType==PTIN_MGMD_CTRL_GROUPTYPE_DYNAMIC? ("Dynamic"):("Static"));
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Filter-Mode:    %s",   mgmdGroupsRes.filterMode==PTIN_MGMD_CTRL_FILTERMODE_INCLUDE? ("Include"):("Exclude"));
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Group Timer:    %u",   mgmdGroupsRes.groupTimer);
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Groups Address: %08X", mgmdGroupsRes.groupIP);
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Timer:   %u",   mgmdGroupsRes.sourceTimer);
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Address: %08X", mgmdGroupsRes.sourceIP);
+
+              //This procedure is required, since the client id on mgmd identifies devices (e.g. set-top boxes), while on the manager identifies ONUs          
+              if(firstDevice==L7_FALSE)
+              {
+                for (iterator=0;iterator<globalGroupCount+groupCount;iterator++)
+                {
+                  //Verify if we have already read this entry before
+                  if (L7_INET_ADDR_COMPARE(&channel_list[iterator].groupAddr,&mgmdGroupsRes.groupIP)==L7_TRUE && 
+                      L7_INET_ADDR_COMPARE(&channel_list[iterator].sourceAddr,&mgmdGroupsRes.sourceIP)==L7_TRUE)
+                  {
+                    existingEntry=L7_TRUE;
+                    break;
+                  }
+                }
+              }
+
+              if(existingEntry==L7_FALSE)
+              {//Add entry
+                inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[groupCount+globalGroupCount].groupAddr);
+                inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[groupCount+globalGroupCount].sourceAddr);
+                channel_list[groupCount+globalGroupCount].static_type = mgmdGroupsRes.groupType;
+
+                ++groupCount;
+              }
+              else
+              {//Restore value            
+                existingEntry=FALSE;                                 
+              }
+
+              ++groupCountperMsg;         
+              ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t);
+            }        
+            
+            
 
             globalGroupCount+=groupCount;
             globalGroupCountperMsg+=groupCountperMsg;
@@ -2496,6 +2508,9 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
     }
        
     *number_of_channels = globalGroupCount;
+
+    /*Give Semaphore*/
+    osapiSemaGive(ptin_igmp_clients_sem);
   }
 
   return L7_SUCCESS;
@@ -2534,6 +2549,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   ptin_client_id_t                       avl_key;
   ptinIgmpClientGroupsSnapshotInfoData_t *avl_infoData;
   L7_uint32                              totalClientCount = 0; 
+  L7_uint32                              totalInvalidClients = 0; 
   
   /* Validate arguments */
   if (client_list==L7_NULLPTR || number_of_clients==L7_NULLPTR || total_clients==L7_NULLPTR)
@@ -2562,7 +2578,11 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   if(0 == client_index)
   {
     L7_uint32 maxResponseEntries = PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Max Entries:%u", maxResponseEntries);
     L7_uint32 pageClientCount = 0; 
+
+    /*Take Semaphore*/
+    osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
     do
     {
@@ -2578,93 +2598,133 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
       ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
       ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X",      ctrlResMsg.msgCode);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X",      ctrlResMsg.msgId);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",        ctrlResMsg.res);
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Length  : %u (%.1f)", ctrlResMsg.dataLength, ((double)ctrlResMsg.dataLength)/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code            : %08X",      ctrlResMsg.msgCode);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id              : %08X",      ctrlResMsg.msgId);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res                 : %u",        ctrlResMsg.res);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Length              : %u", ctrlResMsg.dataLength);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry Length             : %u", sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), ctrlResMsg.dataLength/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Number Of Entries Length : %u", ctrlResMsg.dataLength/sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
 
-      if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t))
+      if (0 != ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t))
       {
-        PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t mgmdGroupsRes = {0};
+        if (ctrlResMsg.res==NOT_EXIST)
+          break;
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid dataLength:%u received. Expecting multiple of :%u", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
+        /*Give Semaphore*/
+        osapiSemaGive(ptin_igmp_clients_sem);
 
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u GroupAddr:%08X)", McastEvcId, groupAddr->s_addr);
-        while(ctrlResMsg.dataLength > 0)
+        return L7_FAILURE;
+      }
+
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u GroupAddr:%08X)", McastEvcId, groupAddr->s_addr);
+
+      PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t *mgmdGroupsRes = (PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t*) ctrlResMsg.data;      
+      while(ctrlResMsg.dataLength > 0 && mgmdGroupsRes != L7_NULLPTR)
+      {
+        ptin_client_id_t               newClientEntry;    
+        ptinIgmpClientInfoData_t      *client;
+        ptinIgmpClientGroupInfoData_t *clientGroup;
+        L7_uint32                      ptinPort;
+
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  EntryId [%u]",   mgmdGroupsRes->entryId);
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    PortId:   %u", mgmdGroupsRes->portId);
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    ClientId: %u", mgmdGroupsRes->clientId);
+
+        if (ptin_intf_intIfNum2port(mgmdGroupsRes->portId,&ptinPort) != L7_SUCCESS)
         {
-          ptin_client_id_t               newClientEntry;    
-          ptinIgmpClientInfoData_t      *client;
-          ptinIgmpClientGroupInfoData_t *clientGroup;
-          L7_uint32                      ptinPort;
+          *number_of_clients=0;
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to convert intIfNum [%u] to ptinPort",mgmdGroupsRes->portId);
+          /*Give Semaphore*/
+          osapiSemaGive(ptin_igmp_clients_sem);
 
-          memcpy(&mgmdGroupsRes, ctrlResMsg.data + pageClientCount*sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t));
-
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  EntryId [%u]",   mgmdGroupsRes.entryId);
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    PortId:   %u", mgmdGroupsRes.portId);
-          LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    ClientId: %u", mgmdGroupsRes.clientId);
-
-          if (ptin_intf_intIfNum2port(mgmdGroupsRes.portId,&ptinPort) != L7_SUCCESS)
-          {
-            *number_of_clients=0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to convert intIfNum [%u] to ptinPort",mgmdGroupsRes.portId);
-            return L7_FAILURE;
-          }
-          LOG_TRACE(LOG_CTX_PTIN_IGMP, "Converted   intIfNum [%u] to ptinPort [%u]", mgmdGroupsRes.portId,ptinPort);
-          
-          /* Save entry in the clientGroup snapshot avlTree */
-          if(L7_NULLPTR == (client = igmpClients_unified.client_devices[ptinPort][mgmdGroupsRes.clientId].client))
-          {
-            *number_of_clients=0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client returned from MGMD");
-            return L7_FAILURE;
-          }
-          if(L7_NULLPTR == (clientGroup = client->pClientGroup))
-          {
-            *number_of_clients=0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client returned from MGMD");
-            return L7_FAILURE;
-          }
-          #if (MC_CLIENT_INTERF_SUPPORTED)
-                if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
-                {
-                  *number_of_clients=0;
-                  LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
-                  return L7_FAILURE;
-                }
-                newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port: %u", clientGroup->ptin_port);
-          #endif
-          #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-                newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
-                newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "oVlan: %u", newClientEntry.outerVlan);
-          #endif
-          #if (MC_CLIENT_INNERVLAN_SUPPORTED)
-                newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
-                newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-                LOG_DEBUG(LOG_CTX_PTIN_IGMP, "iVlan: %u", newClientEntry.innerVlan);
-          #endif
-          #if 0
-          #if (MC_CLIENT_IPADDR_SUPPORTED)
-                newClientEntry.ipv4_addr = clientGroup->ipv4_addr;
-                newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
-          #endif
-          #if (MC_CLIENT_MACADDR_SUPPORTED)
-                memcpy(newClientEntry.macAddr, clientGroup->macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-                newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
-          #endif
-          #endif
-          if(L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
-          {
-            *number_of_clients=0;
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes.clientId, mgmdGroupsRes.portId);
-            return L7_FAILURE;
-          }
-
-          ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
-          ++totalClientCount;
-          ++pageClientCount;
+          return L7_FAILURE;
         }
+        LOG_TRACE(LOG_CTX_PTIN_IGMP, "Converted   intIfNum [%u] to ptinPort [%u]", mgmdGroupsRes->portId,ptinPort);
+        
+        /* Save entry in the clientGroup snapshot avlTree */
+        if(L7_NULLPTR == (client = igmpClients_unified.client_devices[ptinPort][mgmdGroupsRes->clientId].client))
+        {          
+          /*Decrement Data Length*/
+          ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
+          /*Increment the Number of Consumed Pages*/
+          ++totalClientCount;
+          /*Increment the Total Number of Clients Found*/
+          ++pageClientCount;
+          /*Increment the Total Invalid Clients Found*/
+          ++totalInvalidClients;
+          /*Move the Pointer to the Next Client*/
+          LOG_WARNING(LOG_CTX_PTIN_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
+          mgmdGroupsRes++;                  
+          continue;
+        }
+        if(L7_NULLPTR == (clientGroup = client->pClientGroup))
+        {
+          *number_of_clients=0;
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
+
+          /*Give Semaphore*/
+          osapiSemaGive(ptin_igmp_clients_sem);
+
+          return L7_FAILURE;
+        }
+        #if (MC_CLIENT_INTERF_SUPPORTED)
+              if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+              {
+                *number_of_clients=0;
+                LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
+
+                 /*Give Semaphore*/
+                osapiSemaGive(ptin_igmp_clients_sem);
+
+                return L7_FAILURE;
+              }
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port: %u", clientGroup->ptin_port);
+        #endif
+        #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "oVlan: %u", newClientEntry.outerVlan);
+        #endif
+        #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+              LOG_DEBUG(LOG_CTX_PTIN_IGMP, "iVlan: %u", newClientEntry.innerVlan);
+        #endif
+        #if 0
+        #if (MC_CLIENT_IPADDR_SUPPORTED)
+              newClientEntry.ipv4_addr = clientGroup->ipv4_addr;
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
+        #endif
+        #if (MC_CLIENT_MACADDR_SUPPORTED)
+              memcpy(newClientEntry.macAddr, clientGroup->macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+              newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
+        #endif
+        #endif
+        if(L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
+        {
+          *number_of_clients=0;
+          LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes->clientId, mgmdGroupsRes->portId);
+
+           /*Give Semaphore*/
+          osapiSemaGive(ptin_igmp_clients_sem);
+
+          return L7_FAILURE;
+        }
+
+        /*Decrement Data Length*/
+        ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_GROUPCLIENTS_RESPONSE_t);
+        /*Increment the Number of Consumed Pages*/
+        ++totalClientCount;
+        /*Increment the Total Number of Clients Found*/
+        ++pageClientCount;
+        /*Move the Pointer to the Next Client*/
+        mgmdGroupsRes++;        
       }
     } while(pageClientCount == maxResponseEntries); //While the number of clients returned equals the max number of clients per page
+
+    /*Give Semaphore*/
+    osapiSemaGive(ptin_igmp_clients_sem);
   }
 
   /* Get all clients */
@@ -2720,7 +2780,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
     ++currentClientId;
   }
 
-  *total_clients     = totalClientCount;
+  *total_clients     = totalClientCount-totalInvalidClients;
   *number_of_clients = clientBufferIdx;
     
   return L7_SUCCESS;
@@ -9564,10 +9624,15 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
     return L7_FAILURE;
   }
 
+  /*Take Semaphore*/
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
+    /*Give Semaphore*/
+    osapiSemaGive(ptin_igmp_clients_sem);
     return L7_FAILURE;
   }
 
@@ -9602,7 +9667,9 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
 
         if(L7_SUCCESS != ctrlResMsg.res)
         {
-          LOG_ERR(LOG_CTX_PTIN_IGMP, "Error reading clientId[%u] statistics", clientId);
+          LOG_ERR(LOG_CTX_PTIN_IGMP, "Error reading clientId[%u] statistics rc:%u", clientId, ctrlResMsg.res);
+          /*Give Semaphore*/
+          osapiSemaGive(ptin_igmp_clients_sem);
           return ctrlResMsg.res;
         }
 
@@ -9661,6 +9728,8 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This groupClient has zero devices currently attached!");
   }
+  /*Give Semaphore*/
+  osapiSemaGive(ptin_igmp_clients_sem);
 
   return L7_SUCCESS;
 }
@@ -11966,10 +12035,11 @@ void ptin_igmp_groupclients_dump(void)
     /* Count number of child clients */
     child_clients = igmp_clientDevice_get_devices_number(clientGroup);
 
-    printf("      Client#%u: (OnuId=%u) "
+    printf(
            #if (MC_CLIENT_INTERF_SUPPORTED)
            "ptin_port=%-2u "
            #endif
+           "(OnuId=%u) (#devices=%u) "
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
            "svlan=%-4u (intVlan=%-4u) "
            #endif
@@ -11981,15 +12051,16 @@ void ptin_igmp_groupclients_dump(void)
            #endif
            #if (MC_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
-           #endif
+           #endif           
+           "uni_vid=%4u+%-4u "
            #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
            "mask=0x%02x maxAllowedChannels=%hu  maxAllowedBandwidth=%u allocatedChannels=%hu  allocatedBandwidth=%u"
            #endif
-           ": port=%-2u uni_vid=%4u+%-4u (#devices=%u)\r\n",
-           i_client, clientGroup->onuId,
+           "\r\n",          
            #if (MC_CLIENT_INTERF_SUPPORTED)
            clientGroup->igmpClientDataKey.ptin_port,
            #endif
+           clientGroup->onuId, child_clients,
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
            clientGroup->uni_ovid, clientGroup->igmpClientDataKey.outerVlan,
            #endif
@@ -12009,24 +12080,23 @@ void ptin_igmp_groupclients_dump(void)
               clientGroup->igmpClientDataKey.macAddr[3],
                clientGroup->igmpClientDataKey.macAddr[4],
                 clientGroup->igmpClientDataKey.macAddr[5],
-           #endif
+           #endif           
+           clientGroup->uni_ovid, clientGroup->uni_ivid           
            #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-           clientGroup->admissionControl.mask, 
+           ,clientGroup->admissionControl.mask, 
            clientGroup->admissionControl.maxAllowedChannels,
            clientGroup->admissionControl.maxAllowedBandwidth,
            clientGroup->admissionControl.allocatedChannels,
-           clientGroup->admissionControl.allocatedBandwidth,
+           clientGroup->admissionControl.allocatedBandwidth
            #endif
-           clientGroup->ptin_port,
-           clientGroup->uni_ovid, clientGroup->uni_ivid,
-           child_clients);
+           );
 
     i_client++;
   }
 
+  printf("\nNoOfGroupClients:%u\n", i_client);
   osapiSemaGive(ptin_igmp_clients_sem);
 
-  printf("Done!\n");
   fflush(stdout);
 }
 
@@ -14590,10 +14660,7 @@ void ptin_igmp_clients_dump(void)
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
     
-    printf("      Client#%u: "
-           #if (MC_CLIENT_INTERF_SUPPORTED)
-           "ptin_port=%-2u "
-           #endif
+    printf("ptin_port_port=%u / clientId=%u (OnuId:%u) "           
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
            "svlan=%-4u (intVlan=%-4u) "
            #endif
@@ -14606,15 +14673,12 @@ void ptin_igmp_clients_dump(void)
            #if (MC_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
-           ": port=%-2u/index=%-3u  uni_vid=%4u+%-4u [%s] "
+           " uni_vid=%4u+%-4u [%s] "
            #if !PTIN_SNOOP_USE_MGMD 
            "#channels=%u"
            #endif
            "\r\n",
-           i_client,
-           #if (MC_CLIENT_INTERF_SUPPORTED)
-           avl_info->igmpClientDataKey.ptin_port,
-           #endif
+           avl_info->ptin_port, avl_info->client_index, (avl_info->pClientGroup != L7_NULLPTR) ? avl_info->pClientGroup->onuId : 0,           
            #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
            avl_info->uni_ovid, avl_info->igmpClientDataKey.outerVlan,
            #endif
@@ -14634,9 +14698,7 @@ void ptin_igmp_clients_dump(void)
               avl_info->igmpClientDataKey.macAddr[3],
                avl_info->igmpClientDataKey.macAddr[4],
                 avl_info->igmpClientDataKey.macAddr[5],
-           #endif
-           avl_info->ptin_port,
-           avl_info->client_index,
+           #endif           
            avl_info->uni_ovid, avl_info->uni_ivid,
            ((avl_info->isDynamic) ? "dynamic" : "static ")
            #if !PTIN_SNOOP_USE_MGMD 
@@ -14647,9 +14709,9 @@ void ptin_igmp_clients_dump(void)
     i_client++;
   }
 
+  printf("\nNoOfClients:%u\n", i_client);
   osapiSemaGive(ptin_igmp_clients_sem);
-
-  printf("Done!\n");
+  
   fflush(stdout);
 }
 
