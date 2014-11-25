@@ -116,8 +116,8 @@ L7_RC_t ptin_hal_erps_init(void)
   // Create task for Tx packets
   ptin_hal_apsPacketTx_TaskId = osapiTaskCreate("ptin_hal_apsPacketTx_task", ptin_hal_apsPacketTx_task, 0, 0,
                                            L7_DEFAULT_STACK_SIZE,
-                                           L7_TASK_PRIORITY_LEVEL(L7_MEDIUM_TASK_PRIORITY-1),
-                                           L7_DEFAULT_TASK_SLICE);  
+                                           10,
+                                           0);
 
   if (ptin_hal_apsPacketTx_TaskId == L7_ERROR) {
     LOG_FATAL(LOG_CTX_ERPS, "Could not create task ptin_hal_apsPacketTx_task");

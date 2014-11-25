@@ -8394,7 +8394,7 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
 {
   L7_uint   evc_id;
   L7_uint32 intIfNum;
-//L7_uint16 intIfNum_list[2];
+  L7_uint16 intIfNum_list[2];
   L7_RC_t   rc = L7_SUCCESS;
   #if 0
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -8436,25 +8436,25 @@ L7_RC_t switching_root_unblock(L7_uint root_intf, L7_uint16 int_vlan)
     return L7_FAILURE;
   }
 
-//intIfNum_list[0] = intIfNum;
-//if (dtlDot1qAddPort(0, int_vlan, intIfNum_list, 1, L7_NULLPTR, 0, L7_NULLPTR, 0) != L7_SUCCESS)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
-//  rc = L7_FAILURE;
-//}
-//else
-//{
+  intIfNum_list[0] = intIfNum;
+  if (dtlDot1qAddPort(0, int_vlan, intIfNum_list, 1, L7_NULLPTR, 0, L7_NULLPTR, 0) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
+    rc = L7_FAILURE;
+  }
+  else
+  {
     /* Associate root internal vlan to the root intf */
     if (usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "Error associating root Int.VLAN %u to root intIfNum# %u (rc=%d)", int_vlan, intIfNum, rc);
       rc = L7_FAILURE;
     }
-//}
+  }
 
   /* Wait until all requests are attended */
-  while (!dot1qQueueIsEmpty())
-    osapiSleepUSec(1);
+//while (!dot1qQueueIsEmpty())
+//  osapiSleepUSec(1);
 
   /* Get all leaf interfaces... */
   #if 0
@@ -8496,7 +8496,7 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
 {
   L7_uint   evc_id;
   L7_uint32 intIfNum;
-//L7_uint16 intIfNum_list[2];
+  L7_uint16 intIfNum_list[2];
   L7_RC_t   rc = L7_SUCCESS;
   #if 0
   L7_uint   intf_list[PTIN_SYSTEM_N_INTERF];
@@ -8538,25 +8538,25 @@ L7_RC_t switching_root_block(L7_uint root_intf, L7_uint16 int_vlan)
     return L7_FAILURE;
   }
 
-//intIfNum_list[0] = intIfNum;
-//if (dtlDot1qDeletePort(0, int_vlan, intIfNum_list, 1, L7_NULLPTR, 0, L7_NULLPTR, 0) != L7_SUCCESS)
-//{
-//  LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
-//  rc = L7_FAILURE;
-//}
-//else
-//{
+  intIfNum_list[0] = intIfNum;
+  if (dtlDot1qDeletePort(0, int_vlan, intIfNum_list, 1, L7_NULLPTR, 0, L7_NULLPTR, 0) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
+    rc = L7_FAILURE;
+  }
+  else
+  {
     /* Delete intIfNum from int_vlan */
     if (usmDbVlanMemberSet(1, int_vlan, intIfNum, L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "Error deleting intIfNum# %u from Int.VLAN %u (rc=%d)", intIfNum, int_vlan, rc);
       rc = L7_FAILURE;
     }
-//}
+  }
 
   /* Wait until all requests are attended */
-  while (!dot1qQueueIsEmpty())
-    osapiSleepUSec(1);
+//while (!dot1qQueueIsEmpty())
+//  osapiSleepUSec(1);
 
   /* Get all leaf interfaces... */
   #if 0

@@ -3884,8 +3884,8 @@ L7_RC_t ptin_prot_erps_init(void)
   /* Create task for ERProtection State Machine */
   erps_TaskId = osapiTaskCreate("ptin_prot_erps_task", ptin_erps_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
-                                L7_TASK_PRIORITY_LEVEL(L7_MEDIUM_TASK_PRIORITY-2),
-                                L7_DEFAULT_TASK_SLICE);
+                                11,
+                                0);
 
   if (erps_TaskId == L7_ERROR) {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Could not create task ptin_prot_erps_task");
