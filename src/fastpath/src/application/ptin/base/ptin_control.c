@@ -1539,7 +1539,7 @@ static dot3ad_matrix_sync2_t stat;
 uint32 ip, len, i;
 
 #ifdef MAP_CPLD
-    if (!ptin_fgpa_mx_is_matrixactive()) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+    if (!ptin_fgpa_mx_is_matrixactive_rt()) return 0;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
 
     {       //rate limit synchronizing LACPDUs between the 2 CXOs
@@ -1604,7 +1604,7 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
     dot3ad_matrix_sync2_t *p2;
 
 #ifdef MAP_CPLD
-    if (ptin_fgpa_mx_is_matrixactive()) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
+    if (ptin_fgpa_mx_is_matrixactive_rt()) return;  //It's the active matrix that sends its received LACPDUs to the other; not the other way around
 #endif
 
     p2= (dot3ad_matrix_sync2_t *) pbuf;
