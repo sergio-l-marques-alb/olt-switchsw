@@ -10695,12 +10695,19 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
     /* Initial key */
     memset(&extEvcIdDataKey, 0x00, sizeof(ptinExtEvcIdDataKey_t));
 
-    extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT);
+    extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_EXACT);
 
+    /* If not found, search for the next one */
     if (extEvcIdInfoData == L7_NULLPTR)
     {
-      printf("No EVCs configured!\r\n");
-      return;
+      extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT);
+
+      /* If not found, table is empty */
+      if (extEvcIdInfoData == L7_NULLPTR)
+      {
+        printf("No EVCs configured!\r\n");
+        return;
+      }
     }
   }
   /* Read only one EVC */
