@@ -10993,7 +10993,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
         osapiSemaGive(ptin_evc_clients_sem);
       }
     }
-    printf("\r\n\n");
+    printf("\r\n");
   }
 
   fflush(stdout);
