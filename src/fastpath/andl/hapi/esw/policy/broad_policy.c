@@ -1188,8 +1188,7 @@ L7_RC_t hapiBroadPolicyRuleActionClearAll(BROAD_POLICY_RULE_t   rule)
 *
 *********************************************************************/
 L7_RC_t hapiBroadPolicyRuleMeterAdd(BROAD_POLICY_RULE_t     rule,
-                                    BROAD_METER_ENTRY_t    *meterInfo,
-                                    L7_int                  policer_id)
+                                    BROAD_METER_ENTRY_t    *meterInfo)
 {
     BROAD_POLICY_RULE_ENTRY_t  *rulePtr;
 

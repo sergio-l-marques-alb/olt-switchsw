@@ -751,7 +751,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&arp_ethtype, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
+  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
   LOG_TRACE(LOG_CTX_STARTUP,"ARP rule added");
 
   result = hapiBroadPolicyCommit(&hapiSystem->dynamicArpInspectUntrustedPolicyId);
@@ -2595,7 +2595,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     /* PTin added: inband */
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
     hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-    hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
+    hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
     /* PTin end */
 
 #ifdef L7_STACKING_PACKAGE

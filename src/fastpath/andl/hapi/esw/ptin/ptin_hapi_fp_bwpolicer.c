@@ -477,7 +477,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAP
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleNonConfActionAdd");
     return result;
   }
-  if ((result=hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL))!=L7_SUCCESS)
+  if ((result=hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo))!=L7_SUCCESS)
   {
     hapiBroadPolicyCreateCancel();
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleMeterAdd");
