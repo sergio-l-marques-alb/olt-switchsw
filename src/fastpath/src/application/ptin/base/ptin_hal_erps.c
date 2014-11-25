@@ -60,27 +60,14 @@ struct vlan_entry_s vlan_entry_pool[4096];
 
 static dl_queue_t queue_vlans_used[MAX_PROT_PROT_ERPS];
 
-
-#define __USE_OSAPI_TASK__ 1
-
-#if __USE_OSAPI_TASK__
 // Task id
 L7_uint32 ptin_hal_apsPacketTx_TaskId = L7_ERROR;
-#else
-  pthread_t          ptin_hal_apsPacketTx_TaskId = L7_ERROR;
-  pthread_attr_t     ptin_hal_apsPacketTx_Task_attr;
-  pthread_mutex_t    ptin_hal_apsPacketTx_Task_lock;
-#endif
 
 /// Global inits
 L7_uint8 ptin_hal_initdone = 0x00;
 
 // Task to process Tx messages
-#if __USE_OSAPI_TASK__
 void ptin_hal_apsPacketTx_task(void);
-#else
-void *ptin_hal_apsPacketTx_task(void *_X_);
-#endif
 
 #define PTIN_ERPS_WAKE_UP_SIGNAL 41
 
@@ -111,8 +98,6 @@ L7_RC_t ptin_hal_erps_init(void)
     return L7_FAILURE;
   }
 
-#if __USE_OSAPI_TASK__
-
   // Create task for Tx packets
   ptin_hal_apsPacketTx_TaskId = osapiTaskCreate("ptin_hal_apsPacketTx_task", ptin_hal_apsPacketTx_task, 0, 0,
                                            L7_DEFAULT_STACK_SIZE,
@@ -130,43 +115,6 @@ L7_RC_t ptin_hal_erps_init(void)
     return(L7_FAILURE);
   }
   LOG_TRACE(LOG_CTX_ERPS,"Task ptin_hal_apsPacketTx_task initialized");
-
-#else
-
-  struct sched_param param;
-
-  /* Set Thread Priority */
-  memset(&param, 0, sizeof(param));
-  param.sched_priority = 10;
-  pthread_attr_setschedparam(&ptin_hal_apsPacketTx_Task_attr, &param);
-
-  /* Thread setup */
-  if (0 != pthread_attr_init(&ptin_hal_apsPacketTx_Task_attr)) 
-  {
-    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_attr_init");
-    return -1;
-  }
-
-  if (0 != pthread_attr_setstacksize(&ptin_hal_apsPacketTx_Task_attr, L7_DEFAULT_STACK_SIZE)) 
-  {
-    LOG_ERR(LOG_CTX_ERPS, "Failed to set thread stack size: %u",L7_DEFAULT_STACK_SIZE);
-    return -1;
-  }
-
-  if (0 != pthread_mutex_init(&ptin_hal_apsPacketTx_Task_lock, NULL)) 
-  {
-    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_mutex_init");
-    return -1;
-  }
-
-  if (0 != pthread_create(&ptin_hal_apsPacketTx_TaskId, &ptin_hal_apsPacketTx_Task_attr, &ptin_hal_apsPacketTx_task, NULL) )
-  {
-    LOG_ERR(LOG_CTX_ERPS, "Failed pthread_create");
-    return -1;
-  }
-  LOG_ERR(LOG_CTX_ERPS, "thread_id=%p",ptin_hal_apsPacketTx_TaskId);
-
-#endif
 
   // Get base MAC address and use it as Src MAC and Node ID
   if (bspapiMacAddrGet(srcMacAddr) != L7_SUCCESS) {
@@ -669,15 +617,10 @@ L7_RC_t ptin_hal_erps_clear(void)
 L7_RC_t ptin_hal_erps_deinit(void)
 {
   // Delete task
-  #if __USE_OSAPI_TASK__
   if ( ptin_hal_apsPacketTx_TaskId != L7_ERROR ) {
     osapiTaskDelete(ptin_hal_apsPacketTx_TaskId);
     ptin_hal_apsPacketTx_TaskId = L7_ERROR;
   }
-  #else
-    pthread_cancel(ptin_hal_apsPacketTx_TaskId);
-    pthread_join(ptin_hal_apsPacketTx_TaskId, (void **)NULL);
-  #endif
 
   /* Create semaphore to control concurrent accesses */
   if (osapiSemaDelete(ptin_hal_erps_sem) != L7_SUCCESS)
@@ -744,11 +687,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
 
   osapiSemaGive(ptin_hal_erps_sem);
 
-  #if __USE_OSAPI_TASK__
   osapiTaskSignal(ptin_hal_apsPacketTx_TaskId, PTIN_ERPS_WAKE_UP_SIGNAL);
-  #else
-  pthread_kill(ptin_hal_apsPacketTx_TaskId, PTIN_ERPS_WAKE_UP_SIGNAL);
-  #endif
   //LOG_ERR(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS WAKE UP SIGNAL Sent!", erps_idx);
 
   return L7_SUCCESS;
@@ -760,11 +699,7 @@ L7_RC_t ptin_hal_erps_sendaps(L7_uint8 erps_idx, L7_uint8 req, L7_uint8 status)
  * 
  * @author joaom (6/17/2013)
  */
-#if __USE_OSAPI_TASK__
 void ptin_hal_apsPacketTx_task(void)
-#else
-void *ptin_hal_apsPacketTx_task(void *_X_)
-#endif
 {
   L7_uint8  erps_idx, req;
   L7_uint16 counter, reqStatus, vid;
@@ -784,12 +719,10 @@ void *ptin_hal_apsPacketTx_task(void *_X_)
   
   LOG_INFO(LOG_CTX_ERPS,"PTin APS packet process task started");
 
-#if __USE_OSAPI_TASK__
   if (osapiTaskInitDone(L7_PTIN_APS_PACKET_TASK_SYNC)!=L7_SUCCESS) {
     LOG_FATAL(LOG_CTX_PTIN_SSM, "Error syncing task");
     PTIN_CRASH();
   }
-#endif
 
   LOG_INFO(LOG_CTX_ERPS,"PTin APS packet task ready to process events");
 
