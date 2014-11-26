@@ -10001,6 +10001,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
        - the outer vlan is the defined for each interface
        - the inner vlan is the same as the internal inner vlan
        If interface is leaf and EVC is stacked, the outer and inner vlans at egress should not be considered */
+    #if 0
     #if ( !PTIN_BOARD_IS_MATRIX )
     profile->outer_vlan_out = 0;
     profile->inner_vlan_out = 0;
@@ -10010,12 +10011,15 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
       profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
       profile->inner_vlan_out = profile->inner_vlan_in;
     }
+    #endif
 
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* For MAC-Bridge flows */
     if (IS_EVC_QUATTRO(evc_id) && IS_EVC_INTF_LEAF(evc_id, ptin_port) &&
         profile->outer_vlan_out != 0)
     {
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Outer vlan id = %u", profile->outer_vlan_out);
+
       /* profile->outer_vlan_out is the GEM id related to the flow */
       ptin_evc_find_flow(profile->outer_vlan_out, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **)&pclientFlow);
 
@@ -10025,9 +10029,11 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
         LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
         return L7_NOT_EXIST;
       }
-
+      /* For QUATTRO services: these VLANs should be initialized */
       profile->outer_vlan_out = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
       profile->inner_vlan_out = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Outer vlan id = %u (uni_ovid=%u)", profile->outer_vlan_out, pclientFlow->uni_ovid);
     }
     else
     #endif
@@ -10063,9 +10069,18 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
           }
           LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
         }
-        profile->outer_vlan_out = pclientFlow->uni_ovid;
-        profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+        /* Removed: for non QUATTRO services, these vlans should be null */
+        //profile->outer_vlan_out = pclientFlow->uni_ovid;
+        //profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
       }
+
+      profile->outer_vlan_out = 0;
+      profile->inner_vlan_out = 0;
+    }
+    else
+    {
+      profile->outer_vlan_out = 0;
+      profile->inner_vlan_out = 0;
     }
 
     /* If svlan is provided, it was already validated... Rewrite it with the internal value */

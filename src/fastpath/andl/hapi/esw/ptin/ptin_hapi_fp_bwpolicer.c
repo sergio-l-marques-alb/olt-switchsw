@@ -302,16 +302,24 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAP
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"New policy created!");
 
-  /* Decide if this policer is to be applied at the ingress OR at the egress */
-  if ((usp->slot >= 0) && (usp->port >= 0))
-  {
-    stage = BROAD_POLICY_STAGE_INGRESS;
-  }
-  else
+  /* Validate interface: should be valid */
+  if ((usp->slot < 0) || (usp->port < 0))
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI,"No interface provided!");
     return L7_FAILURE;
   }
+
+  /* Decide if this policer is to be applied at the ingress OR at the egress */
+  if (profile->outer_vlan_out > 0 && profile->outer_vlan_out < 4096)
+  {
+    stage = BROAD_POLICY_STAGE_EGRESS;
+  }
+  else
+  {
+    stage = BROAD_POLICY_STAGE_INGRESS;
+  }
+
+  result = L7_SUCCESS;
 
   /* Set FP stage */
   if ((result=hapiBroadPolicyStageSet(stage))!=L7_SUCCESS)
@@ -319,8 +327,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bw_profile_t *profile, DAP
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting stage %u",stage);
     return result;
   }
-
-  result = L7_SUCCESS;
 
   if ((result=hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT))!=L7_SUCCESS)
   {
