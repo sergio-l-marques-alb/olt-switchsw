@@ -658,7 +658,10 @@ L7_BOOL ptin_evc_is_intf_in_use(L7_uint intf_idx)
 
     /* If any EVC is using this interface, return TRUE immediately */
     if (evcs[evc_id].intf[intf_idx].in_use)
+    {
+      LOG_INFO(LOG_CTX_PTIN_INTF, "EVC# %u: port %u is already in use", evc_id, intf_idx);
       return L7_TRUE;
+    }
   }
 
   /* At this point no EVC with this interface was found */
@@ -10692,12 +10695,19 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
     /* Initial key */
     memset(&extEvcIdDataKey, 0x00, sizeof(ptinExtEvcIdDataKey_t));
 
-    extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT);
+    extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_EXACT);
 
+    /* If not found, search for the next one */
     if (extEvcIdInfoData == L7_NULLPTR)
     {
-      printf("No EVCs configured!\r\n");
-      return;
+      extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT);
+
+      /* If not found, table is empty */
+      if (extEvcIdInfoData == L7_NULLPTR)
+      {
+        printf("No EVCs configured!\r\n");
+        return;
+      }
     }
   }
   /* Read only one EVC */
@@ -10858,6 +10868,140 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
   printf("Total number of QUATTRO-P2P evcs: %u\r\n", n_quattro_evcs);
   printf("Total number of QUATTRO-P2P evcs with IGMP active: %u\r\n", n_quattro_igmp_evcs);
   #endif
+
+  fflush(stdout);
+}
+
+/**
+ * Dumps EVC detailed info 
+ * If evc_id is invalid, all EVCs are dumped 
+ * 
+ * @param evc_id 
+ */
+void ptin_evc_dump2(L7_int evc_id_ref)
+{
+  L7_uint i, j;
+  struct ptin_evc_client_s *pclientFlow;
+  L7_uint32 evc_id;
+
+  /* Run all AVL nodes */
+  for (evc_id = 0; evc_id < PTIN_SYSTEM_N_EVCS; evc_id++)
+  {
+    /* Skip non wantable EVCs */
+    if (evc_id_ref >= 0 && evc_id_ref != evc_id)
+      continue;
+
+    /* Skip not active EVCs */
+    if (!evcs[evc_id].in_use)
+      continue;
+
+    printf("eEVC# %02u (internal id %u)\n", evcs[evc_id].extended_id, evc_id);
+
+    printf("  Flags     = 0x%08X", evcs[evc_id].flags);
+    if (evcs[evc_id].flags)
+      printf("   ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_BUNDLING)
+      printf("BUNDLING  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_ALL2ONE)
+      printf("ALL2ONE  ");
+
+    if ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO)
+      printf("QUATTRO-");
+    if ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P) == PTIN_EVC_MASK_P2P)
+      printf("P2P     ");
+    else
+      printf("P2MP    ");
+
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED)
+      printf("STACKED    ");
+    else
+      printf("UNSTACKED  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING)
+      printf("MACLEARNING  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
+      printf("MC-IPTV  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING)
+      printf("CPUTrap  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+      printf("IGMP  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+      printf("DHCPop82  ");
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
+      printf("PPPoE  ");
+    printf("\n");
+
+    printf("  MC Flood  = %s (%u)\n", evcs[evc_id].mc_flood == PTIN_EVC_MC_FLOOD_ALL ? "All":evcs[evc_id].mc_flood == PTIN_EVC_MC_FLOOD_UNKNOWN ? "Unknown":"None",
+           evcs[evc_id].mc_flood);
+              
+    printf("  Roots     = %-2u        Counters = %u\t\tProbes=%u\n", evcs[evc_id].n_roots, evcs[evc_id].n_counters, evcs[evc_id].n_probes);
+    printf("  Leafs     = %-2u        BW Prof. = %u\n", evcs[evc_id].n_leafs, evcs[evc_id].n_bwprofiles);
+
+    printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
+    printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
+    printf("  MC Group  = %u\n",   evcs[evc_id].multicast_group);
+
+    /* Only stacked services have clients */
+    if (IS_EVC_STACKED(evc_id))
+      printf("  Clients   = %u\n", evcs[evc_id].n_clients);
+
+    for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
+    {
+      if (!evcs[evc_id].intf[i].in_use)
+        continue;
+
+      if (i<PTIN_SYSTEM_N_PORTS)
+        printf("  PHY# %02u\n", i);
+      else
+        printf("  LAG# %02u\n", i - PTIN_SYSTEM_N_PORTS);
+
+      printf("    MEF Type      = %s          ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
+      #if 0
+      printf("#Flows=%u", evcs[evc_id].intf[i].n_flows);
+      #endif
+      printf("\r\n");
+      printf("    Ext. VLAN     = %-5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
+      printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile[0] != NULL ? "Active":"Disabled");
+      #ifdef PTIN_ERPS_EVC
+      printf("    Port State    = %s\n", evcs[evc_id].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
+      #endif
+
+      /* Only stacked services have clients */
+      if (IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id))
+      {
+        printf("    Clients       = %u\n", evcs[evc_id].intf[i].clients.n_elems);
+
+        /* SEM CLIENTS UP */
+        osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
+
+        dl_queue_get_head(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t **) &pclientFlow);
+
+        for (j=0; j<evcs[evc_id].intf[i].clients.n_elems; j++) {
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+          if (IS_EVC_QUATTRO(evc_id))
+          {
+            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x) (Count {%s,%s}; BWProf {%s,%s})\r\n",
+                   j, pclientFlow->flags & 0xffff,
+                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff,
+                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+          }
+          else
+          #endif
+          {
+            printf("      Client# %2u: VID=%4u+%-4u  (Counter {%s,%s}; BWProf {%s,%s})\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid,
+                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
+                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+          }
+
+          pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t *) pclientFlow);
+        }
+
+        /* SEM CLIENTS DOWN */
+        osapiSemaGive(ptin_evc_clients_sem);
+      }
+    }
+    printf("\r\n");
+  }
 
   fflush(stdout);
 }
