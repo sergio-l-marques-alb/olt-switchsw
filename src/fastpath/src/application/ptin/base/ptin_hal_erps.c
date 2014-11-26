@@ -770,19 +770,26 @@ void ptin_hal_apsPacketTx_task(void)
         ptin_hal_erps_counters_tx(erps_idx, PROT_ERPS_PORT0, req, 1);
         ptin_hal_erps_counters_tx(erps_idx, PROT_ERPS_PORT1, req, 1);
         osapiSemaGive(ptin_hal_erps_sem);
+
+        if (counter > 0)
+        {
+          LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
+          osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
+          tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
+          osapiSemaGive(ptin_hal_erps_sem);
+
+          /* 3 R-APS should be sent with a period of 3.33ms */
+          memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
+          requiredSleepTime.tv_sec  = 0;
+          requiredSleepTime.tv_nsec = 3;
+        }
       }
 
-      if (counter > 0)
+      else if (counter > 0)
       {
-        LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: Tx R-APS Req %d (reqStatus 0x%02X)", erps_idx, req, reqStatus);
         osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
-        tbl_halErps[erps_idx].apsReqTxRemainingCounter--;
+        tbl_halErps[erps_idx].apsReqTxRemainingCounter = 0;
         osapiSemaGive(ptin_hal_erps_sem);
-
-        /* 3 R-APS should be sent with a period of 3.33ms */
-        memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
-        requiredSleepTime.tv_sec  = 0;
-        requiredSleepTime.tv_nsec = 3;
       }
     }
   }
@@ -1008,14 +1015,14 @@ L7_RC_t ptin_hal_erps_queue_vlans_used_print(int erps_idx)
   }
 
   /* print contents */
-  printf("\nVLANs in used: ");
+  printf("\nERPS#%d: %d Internal VLANs in used:\n", erps_idx, queue_vlans_used[erps_idx].n_elems);
   while(vlan_entry != NULL)
   {
-    printf("%d; " , vlan_entry->vid);
+    printf("%4d; " , vlan_entry->vid);
     n++;
     if (n % 16 == 0)
     {
-      printf("               \n");
+      printf("\n");
     }
 
     /* Get next entry */
@@ -1055,8 +1062,6 @@ L7_RC_t ptin_hal_erpsIdx_from_serviceVid_print(void)
 
   return L7_SUCCESS;
 }
-
-
 
 
 /**
@@ -1233,7 +1238,7 @@ L7_RC_t ptin_hal_erps_hwFdbFlush(L7_uint8 erps_idx)
       {
         if (tbl_halErps[erps_idx].hwFdbFlush)
         {
-          LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: Flushing VLAN ID %d", erps_idx, internalVlan);
+          //LOG_DEBUG(LOG_CTX_ERPS,"ERPS#%d: Flushing VLAN ID %d", erps_idx, internalVlan);
           fdbFlushByVlan(internalVlan);
         }
 
