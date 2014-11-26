@@ -1168,7 +1168,7 @@ int ptin_L2StationMove_to_CPU(void)
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_LOW_PRIORITY_COS, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
+  hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
 
   result=hapiBroadPolicyCommit(&policyId);
 
@@ -1698,7 +1698,7 @@ L7_RC_t ptin_cpu_traffic_limit( L7_uint16 cir )
   printf("hard_drop action added\r\n");
 
   /* Define meter action, to rate limit packets */
-  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo, L7_NULL);
+  rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
   if (rc != L7_SUCCESS)
   {
     printf("Error adding rate limit\r\n");
