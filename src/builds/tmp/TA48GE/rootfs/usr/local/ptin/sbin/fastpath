@@ -75,23 +75,27 @@ elif [ $mode = "boot" ]; then
       mv -f $startup_log $startup_log.old
     fi
 
+    # Query application to determine if it is running or not
+    $cli ping 3 4 > /dev/null
+    # Start application
+    if [ "$?" -ne "0" ]; then
+        echo "Going to start application"
+        startup;
+    fi
+
     # Working loop...
     while [ 1 ]
     do
         # Query application to determine if it is running or not
         $cli ping 10 12 > /dev/null
         if [ "$?" -ne "0" ]; then
-            if [ $ntry = 0 ]; then
-                startup;
-            else
-		echo "Transferring LOGs to Matrix board..."
-		/bin/sh /usr/local/ptin/scripts/transfer_logs.sh
-		echo "Rebooting board"
-                reboot;
-                exit;
-            fi
+            echo "Transferring LOGs to Matrix board..."
+            /bin/sh /usr/local/ptin/scripts/transfer_logs.sh
+            echo "Rebooting board"
+            reboot;
+            exit;
         else
-            sleep 15
+            sleep 30
         fi
     done
 

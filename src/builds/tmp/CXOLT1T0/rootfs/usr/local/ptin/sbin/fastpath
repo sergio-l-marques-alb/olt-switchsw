@@ -66,8 +66,6 @@ wait4cxp()
         if [ $reg == "0" ]; then
             sleep 1;
         elif [ $reg == "1" ]; then
-            echo "Sleeping 10 seconds before FP launch..."
-            sleep 10
             echo "Hardware is configured! Launching Fastpath..."
 	    break;
         else
@@ -129,28 +127,30 @@ elif [ $mode = "boot" ]; then
     # Wait for CXP to boot up and configure the hardware                                  
     wait4cxp
 
+    # Query application to determine if it is running or not
+    $cli ping 3 4 > /dev/null
+    # Start application
+    if [ "$?" -ne "0" ]; then
+        echo "Going to start application"
+        startup;
+        signalcxp   # Signal CXP FW that Fastpath is launched
+    fi
+
     # Working loop...
     while [ 1 ]
     do
         # Query application to determine if it is running or not
         $cli ping 10 12 > /dev/null
         if [ "$?" -ne "0" ]; then
-	    echo "No reply"
-            if [ $ntry = 0 ]; then
-		echo "Going to start application"
-                startup;
-                signalcxp   # Signal CXP FW that Fastpath is launched
-            else
-		# Compress log files
-		/bin/sh /usr/local/ptin/scripts/transfer_logs.sh
-		echo "Going to reboot"
-                /sbin/reboot;
-                exit;
-            fi
+            echo "Transferring LOGs to Matrix board..."
+            # Compress log files
+            /bin/sh /usr/local/ptin/scripts/transfer_logs.sh
+            echo "Going to reboot"
+            /sbin/reboot;
+            exit;
         else
-            sleep 15
+            sleep 30
         fi
-
     done
 
 # No option (normal launch)
