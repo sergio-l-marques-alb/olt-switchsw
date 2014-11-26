@@ -2053,7 +2053,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
     else if ( (remoteRequest == RReq_NR) && ( (APS_GET_STATUS(apsReqStatusRx) & RReq_STAT_RB) != (APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) & RReq_STAT_RB) ) ) {
 
-      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]), APS_GET_STATUS(apsReqStatusRx));
+      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(apsReqStatusRx), APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]));
 
       if (topPriorityRequest<100) haveChanges = L7_TRUE;
       else LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with higher Priority...", erps_idx);
@@ -2067,9 +2067,27 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   if (remoteRequest == RReq_NR) {
     memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
     tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
+
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
+              remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
+              apsNodeIdRx[0],
+              apsNodeIdRx[1],
+              apsNodeIdRx[2],
+              apsNodeIdRx[3],
+              apsNodeIdRx[4],
+              apsNodeIdRx[5]);
   }
   else {
     L7_uint8 aux;
+
+    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
+          remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
+          apsNodeIdRx[0],
+          apsNodeIdRx[1],
+          apsNodeIdRx[2],
+          apsNodeIdRx[3],
+          apsNodeIdRx[4],
+          apsNodeIdRx[5]);
 
     // extracts the (node ID, BPR) pair ...
     aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
