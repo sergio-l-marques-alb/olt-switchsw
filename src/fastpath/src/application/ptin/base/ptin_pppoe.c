@@ -359,9 +359,9 @@ L7_RC_t ptin_pppoe_enable(L7_BOOL enable)
   }
   LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Success setting PPPOE global enable to %u",enable);
 
-#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
-  if (ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
+  if (ptin_pppoePkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
     ptin_pppoePkts_global_trap(!enable);
@@ -3654,7 +3654,7 @@ static L7_RC_t ptin_pppoe_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-#if (QUATTRO_PPPOE_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_PPPOE_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(vlan))
 #endif
   {

@@ -1465,7 +1465,7 @@ L7_RC_t ptin_igmp_enable(L7_BOOL enable)
   }
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success setting IGMP global enable to %u", enable);
 
-#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
   if (ptin_igmpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
   {
@@ -3005,7 +3005,7 @@ L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 i
   }
 
   /* For standard EVC types, use old scheme */
-  if (evc_type == PTIN_EVC_TYPE_STD_STACKED || evc_type == PTIN_EVC_TYPE_STD_P2MP)
+  if (evc_type == PTIN_EVC_TYPE_STD_P2MP || evc_type == PTIN_EVC_TYPE_STD_P2MP)
   {
     if ((rc=ptin_evc_vlan_client_next(intVlan, intIfNum, inner_vlan, &next, L7_NULLPTR)) != L7_SUCCESS)
       return rc;
@@ -8567,7 +8567,7 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
     return L7_FAILURE;
   }
 
-#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(mc_vlan))
 #endif
   {
@@ -8591,14 +8591,14 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   }
 
   /* Configure packet trapping for UC VLAN  */
-#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(mc_vlan))
 #endif
   {
     if (ptin_igmpPkts_vlan_trap(uc_vlan, enable) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", uc_vlan, enable);
-      ptin_igmpPkts_vlan_trap(mc_vlan, !enable);
+      //ptin_igmpPkts_vlan_trap(mc_vlan, !enable);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping (enable=%u)", uc_vlan, enable);
@@ -8652,7 +8652,7 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
   }
 
   /* Configure packet trapping for this VLAN  */
-#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(vlan))
 #endif
   {
