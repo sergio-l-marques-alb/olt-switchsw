@@ -148,9 +148,10 @@ typedef struct {
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_DhcpInstCfg_t;
 
+#define QUATTRO_DHCP_TRAP_PREACTIVE     1   /* To always have this rule active, set 1 */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /* Global number of QUATTRO P2P flows */
-static L7_uint32 dhcp_quattro_p2p_evcs = 0;
+static L7_uint32 dhcp_quattro_stacked_evcs = 0;
 #endif
 
 /*********************************************************** 
@@ -367,6 +368,7 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
     return L7_FAILURE;
   }
   
+  /* Global trap */
   if (ptin_dhcpPkts_global_trap(enable)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP global enable to %u",enable);
@@ -374,8 +376,21 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
     usmDbDsAdminModeSet(!enable);
     return L7_FAILURE;
   }
-
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success setting DHCP global enable to %u",enable);
+
+#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+  /* Configure packet trapping for this VLAN  */
+  if (ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
+    ptin_dhcpPkts_global_trap(!enable);
+    dsL2RelayAdminModeSet(!enable);
+    usmDbDsAdminModeSet(!enable);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
+#endif
+
   return L7_SUCCESS;
 }
 
@@ -560,9 +575,9 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 {
-  L7_uint dhcp_idx;
-  L7_uint evc_type;
-  L7_BOOL new_instance = L7_FALSE;
+  L7_uint  dhcp_idx;
+  L7_uint8 evc_type;
+  L7_BOOL  new_instance = L7_FALSE;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -587,7 +602,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   #if 0
   /* If EVC is not QUATTRO pointo-to-point, use tradittional isnatnce management */
-  if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED)
   {
     nni_ovlan = 0;
   }
@@ -635,7 +650,7 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   /* Configure trap rule for this instance */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || dhcp_quattro_p2p_evcs==0)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || dhcp_quattro_stacked_evcs == 0)
   #endif
   {
     if (ptin_dhcp_evc_trap_configure(evc_idx, L7_ENABLE) != L7_SUCCESS)
@@ -652,9 +667,9 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
-  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
   {
-    dhcp_quattro_p2p_evcs++;
+    dhcp_quattro_stacked_evcs++;
   }
   #endif
 
@@ -670,8 +685,8 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
  */
 L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
 {
-  L7_uint dhcp_idx;
-  L7_uint evc_type;
+  L7_uint   dhcp_idx;
+  L7_uint8  evc_type;
   L7_uint16 nni_ovid;
   L7_BOOL remove_instance = L7_TRUE;
 
@@ -705,7 +720,7 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
 
   /* Configure packet trapping for this instance */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || dhcp_quattro_p2p_evcs<=1)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || dhcp_quattro_stacked_evcs <= 1)
   #endif
   {
     if (ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE)!=L7_SUCCESS)
@@ -749,9 +764,9 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
-  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
   {
-    if (dhcp_quattro_p2p_evcs>0)  dhcp_quattro_p2p_evcs--;
+    if (dhcp_quattro_stacked_evcs>0)  dhcp_quattro_stacked_evcs--;
   }
   #endif
 
@@ -3977,53 +3992,26 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
 
 static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
 {
-  L7_uint16            idx, vlan;
-  ptin_HwEthMef10Evc_t evcCfg;
-  L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
+  L7_uint16 vlan;
 
   enable &= 1;
 
-  /* Initialize number of vlans to be configured */
-  vlans_number = 0;
-
-  /* Get Unicast EVC configuration */
-  evcCfg.index = evc_idx;
-  if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting UC EVC %u configuration",evc_idx);
-    return L7_FAILURE;
-  }
-
-  if (ptin_evc_intRootVlan_get(evc_idx,&vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx, &vlan) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get UC root vlan for evc id %u",evc_idx);
     return L7_FAILURE;
   }
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-  {
-    vlan_list[vlans_number++] = vlan;
-  }
 
-  /* Configure vlans */
-  for (idx=0; idx<vlans_number; idx++)
+#if (QUATTRO_DHCP_TRAP_PREACTIVE)
+  if (!PTIN_VLAN_IS_QUATTRO(vlan))
+#endif
   {
-    if (ptin_dhcpPkts_vlan_trap(vlan_list[idx],enable)!=L7_SUCCESS)
+    if (ptin_dhcpPkts_vlan_trap(vlan, enable)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring vlan %u for packet trapping",vlan_list[idx]);
-      break;
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring vlan %u for packet trapping", vlan);
+      return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success configuring vlan %u for packet trapping",vlan_list[idx]);
-  }
-  /* If something went wrong, undo configurations */
-  if (idx<vlans_number)
-  {
-    vlans_number = idx;
-    for (idx=0; idx<vlans_number; idx++)
-    {
-      ptin_dhcpPkts_vlan_trap(vlan_list[idx],!enable);
-      LOG_WARNING(LOG_CTX_PTIN_DHCP,"Unconfiguring vlan %u for packet trapping",vlan_list[idx]);
-    }
-    return L7_FAILURE;
+    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success configuring vlan %u for packet trapping", vlan);
   }
 
   return L7_SUCCESS;
@@ -4255,7 +4243,7 @@ void ptin_dhcp_dump(void)
     }
   }
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  printf("Total number of QUATTRO-P2P evcs: %u\r\n", dhcp_quattro_p2p_evcs);
+  printf("Total number of QUATTRO-STACKED evcs: %u\r\n", dhcp_quattro_stacked_evcs);
   #endif
 
   fflush(stdout);

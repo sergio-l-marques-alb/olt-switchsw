@@ -424,9 +424,10 @@ static ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 L7_uint8 igmpInst_fromRouterVlan[4096];  /* Lookup table to get IGMP instance index based on Router (root) VLAN */
 L7_uint8 igmpInst_fromUCVlan[4096];      /* Lookup table to get IGMP instance index based on Unicast (clients uplink) VLAN */
 
+#define QUATTRO_IGMP_TRAP_PREACTIVE     1   /* To always have this rule active, set 1 */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /* Global number of QUATTRO P2P flows */
-static L7_uint32 igmp_quattro_p2p_evcs = 0;
+static L7_uint32 igmp_quattro_stacked_evcs = 0;
 #endif
 
 
@@ -448,7 +449,7 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable);
 static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable);
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction);
+static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable);
 #endif
 static L7_RC_t ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_idx);
 
@@ -1324,6 +1325,17 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
     ptin_igmp_proxy_config_set__snooping_old(&oldIgmpConfig);
   }
 
+  /* Configure global trapping */
+  if (ptin_igmp_enable(igmpProxy->admin) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error configuring VLANs trapping (enable=%u)", igmpProxy->admin);
+    return L7_FAILURE;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "VLANs trapping configured (enable=%u)", igmpProxy->admin);
+  }
+
   return ctrlResMsg.res;
 }
 
@@ -1432,6 +1444,37 @@ L7_RC_t ptin_igmp_proxy_reset(void)
   }
 
   LOG_INFO(LOG_CTX_PTIN_IGMP,"Multicast queriers reenabled!");
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set Global enable for IGMP packet trapping
+ * 
+ * @param enable : L7_ENABLE/L7_DISABLE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_enable(L7_BOOL enable)
+{
+  /* Global trap enable */
+  if (ptin_igmpPkts_global_trap(enable) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting IGMP global enable to %u", enable);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success setting IGMP global enable to %u", enable);
+
+#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+  /* Configure packet trapping for this VLAN  */
+  if (ptin_igmpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
+    ptin_igmpPkts_global_trap(!enable);
+    return L7_FAILURE;
+  }
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
+#endif
 
   return L7_SUCCESS;
 }
@@ -1778,9 +1821,9 @@ L7_RC_t ptin_igmp_instance_destroy(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 {
-  L7_uint igmp_idx;
-  L7_uint evc_type;
-  L7_BOOL new_instance = L7_FALSE;
+  L7_uint  igmp_idx;
+  L7_uint8 evc_type;
+  L7_BOOL  new_instance = L7_FALSE;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -1804,7 +1847,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   }
 
   /* If EVC is not QUATTRO pointo-to-point, use tradittional isnatnce management */
-  if (evc_type != PTIN_EVC_TYPE_QUATTRO_P2P)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED)
   {
     nni_ovlan = 0;
   }
@@ -1866,7 +1909,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   /* Trap rule */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || igmp_quattro_p2p_evcs==0)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || igmp_quattro_stacked_evcs == 0)
   #endif
   {
     if (ptin_igmp_evc_trap_set(evc_idx, 0 /* Not used*/, L7_ENABLE)!=L7_SUCCESS)
@@ -1885,9 +1928,9 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
-  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
   {
-    igmp_quattro_p2p_evcs++;
+    igmp_quattro_stacked_evcs++;
   }
   #endif
 
@@ -1904,8 +1947,8 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
  */
 L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
 {
-  L7_uint igmp_idx;
-  L7_uint evc_type;
+  L7_uint   igmp_idx;
+  L7_uint8  evc_type;
   L7_uint16 nni_ovlan;
   L7_BOOL remove_instance = L7_TRUE;
 
@@ -1950,7 +1993,7 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
 
   /* Configure querier for this instance */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  if (evc_type!=PTIN_EVC_TYPE_QUATTRO_P2P || igmp_quattro_p2p_evcs<=1)
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || igmp_quattro_stacked_evcs <= 1)
   #endif
   {
     if (ptin_igmp_evc_trap_set(evc_idx, 0 /*Not used*/, L7_DISABLE)!=L7_SUCCESS)
@@ -1985,9 +2028,9 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
-  if (evc_type == PTIN_EVC_TYPE_QUATTRO_P2P)
+  if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
   {
-    if (igmp_quattro_p2p_evcs>0)  igmp_quattro_p2p_evcs--;
+    if (igmp_quattro_stacked_evcs>0)  igmp_quattro_stacked_evcs--;
   }
   #endif
 
@@ -2949,8 +2992,9 @@ L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
 L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 inner_vlan,
                               L7_uint16 *inner_vlan_next, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid)
 {
-  L7_uint next, evc_type;
-  L7_RC_t rc;
+  L7_uint  next;
+  L7_uint8 evc_type;
+  L7_RC_t  rc;
 
   /* Get evc index, of this internal vlan */
   if (ptin_evc_check_evctype_fromIntVlan(intVlan, &evc_type) != L7_SUCCESS)
@@ -2961,7 +3005,7 @@ L7_RC_t ptin_igmp_client_next(L7_uint32 intIfNum, L7_uint16 intVlan, L7_uint16 i
   }
 
   /* For standard EVC types, use old scheme */
-  if (evc_type == PTIN_EVC_TYPE_STD_P2MP || evc_type == PTIN_EVC_TYPE_STD_P2MP)
+  if (evc_type == PTIN_EVC_TYPE_STD_STACKED || evc_type == PTIN_EVC_TYPE_STD_P2MP)
   {
     if ((rc=ptin_evc_vlan_client_next(intVlan, intIfNum, inner_vlan, &next, L7_NULLPTR)) != L7_SUCCESS)
       return rc;
@@ -7076,7 +7120,7 @@ static L7_RC_t igmp_assoc_avlTree_purge( void )
  */
 L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_trap)
 {
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* IGMP instance management already deal with trp rules */
   if (ptin_igmp_is_evc_used(evc_idx))
   {
@@ -7087,7 +7131,7 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
   if (set_trap)
   {
     /* Configure trap rule */
-    if (ptin_igmp_evc_trap_configure(evc_idx, enable, PTIN_DIR_BOTH) != L7_SUCCESS)
+    if (ptin_igmp_evc_trap_configure(evc_idx, enable) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring trap rule to %u",evc_idx,enable);
       return L7_FAILURE;
@@ -7100,11 +7144,11 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
   if (ptin_igmp_evc_querier_configure(evc_idx,enable)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Evc index %u: Error configuring querier to %u",evc_idx,enable);
-    ptin_igmp_evc_trap_configure(evc_idx, !enable, PTIN_DIR_BOTH);
+    ptin_igmp_evc_trap_configure(evc_idx, !enable);
     return L7_FAILURE;
   }
   #endif
-  #endif
+#endif
 
 #ifndef PTIN_MGMD_MC_SERVICE_ID_IN_USE//This is only applicable when MGMD is configured to used the Unicast Service Id
   /* If we are removing the service, force a clear of all it's records on MGMD as well */
@@ -8512,109 +8556,57 @@ static L7_RC_t ptin_igmp_trap_configure(L7_uint igmp_idx, L7_BOOL enable)
 
 static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc, L7_BOOL enable)
 {
-  L7_uint16   idx, mc_vlan;
-  L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
-  L7_uint32 flags, mc_flood;
+  L7_uint16 mc_vlan;
 
   enable &= 1;
 
-  /* Initialize number of vlans to be configured */
-  vlans_number = 0;
-
   /* Get root vlan for MC evc, and add it for packet trapping */
-  if (ptin_evc_intRootVlan_get(evc_idx_mc, &mc_vlan)!=L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx_mc, &mc_vlan) == L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u",evc_idx_mc);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u", evc_idx_mc);
     return L7_FAILURE;
   }
-  if (mc_vlan>=PTIN_VLAN_MIN && mc_vlan<=PTIN_VLAN_MAX)
+
+#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+  if (!PTIN_VLAN_IS_QUATTRO(mc_vlan))
+#endif
   {
-    vlan_list[vlans_number++] = mc_vlan;
+    /* Configure packet trapping for MC VLAN  */
+    if (ptin_igmpPkts_vlan_trap(mc_vlan, enable) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", mc_vlan, enable);
+      return L7_FAILURE;
+    }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping (enable=%u)", mc_vlan, enable);
   }
 
 #if (!defined IGMPASSOC_MULTI_MC_SUPPORTED)
-  ptin_HwEthMef10Evc_t evcCfg;
-  L7_uint16 vlan;
+  L7_uint16 uc_vlan;
 
-  /* Get Unicast EVC configuration */
-  evcCfg.index = evc_idx_uc;
-  if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
+  /* Unicast VLAN */
+  if (ptin_evc_intRootVlan_get(evc_idx_uc, &uc_vlan)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting UC EVC %u configuration",evc_idx_uc);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u", evc_idx_uc);
     return L7_FAILURE;
   }
 
-  if (ptin_evc_intRootVlan_get(evc_idx_uc,&vlan)!=L7_SUCCESS)
+  /* Configure packet trapping for UC VLAN  */
+#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+  if (!PTIN_VLAN_IS_QUATTRO(mc_vlan))
+#endif
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get UC root vlan for evc id %u",evc_idx_uc);
-    return L7_FAILURE;
-  }
-  if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-  {
-    /* Verify if this vlan is scheduled to be configured */
-    for (idx=0; idx<vlans_number; idx++)
+    if (ptin_igmpPkts_vlan_trap(uc_vlan, enable) != L7_SUCCESS)
     {
-      if (vlan_list[idx]==vlan)  break;
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", uc_vlan, enable);
+      ptin_igmpPkts_vlan_trap(mc_vlan, !enable);
+      return L7_FAILURE;
     }
-    /* If not found, add this vlan */
-    if (idx>=vlans_number)
-    {
-      vlan_list[vlans_number++] = vlan;
-    }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping (enable=%u)", uc_vlan, enable);
   }
 #endif
 
-  /* Configure vlans */
-  for (idx=0; idx<vlans_number; idx++)
-  {
-    if (usmDbSnoopVlanModeSet(1,vlan_list[idx],enable,L7_AF_INET)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping",vlan_list[idx]);
-      break;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping",vlan_list[idx]);
-  }
-  /* If something went wrong, undo configurations */
-  if (idx<vlans_number)
-  {
-    vlans_number = idx;
-    for (idx=0; idx<vlans_number; idx++)
-    {
-      usmDbSnoopVlanModeSet(1,vlan_list[idx],!enable,L7_AF_INET);
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Unconfiguring vlan %u for packet trapping",vlan_list[idx]);
-    }
-    return L7_FAILURE;
-  }
-
-  /* Disable/Reenable Multicast rate limit */
-  if (ptin_evc_flags_get(evc_idx_mc, &flags, &mc_flood)==L7_SUCCESS &&
-      (flags & PTIN_EVC_MASK_CPU_TRAPPING) && mc_flood)     /* Get EVC options and check if CPU trapping and MC flooding is active */
-  {
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    /* Apply only to non QUATTRO-P2P or unique QUATTRO-P2P evcs */
-    if ( !(flags & PTIN_EVC_MASK_QUATTRO) || !(flags & PTIN_EVC_MASK_P2P) || (igmp_quattro_p2p_evcs <= 1) )
-    #endif
-    {
-      #if 0
-      /* If multicast rate limit is disabled, broadcast rate limiter should be enabled */
-      if (enable)
-      {
-        ptin_multicast_rateLimit(L7_DISABLE, mc_vlan);
-        ptin_broadcast_rateLimit(L7_ENABLE , mc_vlan);
-      }
-      /* And vice-versa */
-      else
-      {
-        ptin_broadcast_rateLimit(L7_DISABLE, mc_vlan);
-        ptin_multicast_rateLimit(L7_ENABLE , mc_vlan);
-      }
-      #endif
-    }
-  }
-
   return L7_SUCCESS;
 }
-
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 /**
@@ -8623,16 +8615,12 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
  * 
  * @param evc_idx   : evc index
  * @param enable    : enable flag 
- * @param direction : Ports to be considered (PTIN_DIR_UPLINK, 
- *                    PTIN_DIR_DOWNLINK, PTIN_DIR_BOTH).
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, ptin_dir_t direction)
+static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
 {
-  L7_uint16   idx, vlan;
-  L7_uint16 vlans_number, vlan_list[PTIN_SYSTEM_MAX_N_PORTS];
-  ptin_HwEthMef10Evc_t evcCfg;
+  L7_uint16 vlan;
 
   /* IGMP instance management already deal with trp rules */
   if (ptin_igmp_is_evc_used(evc_idx))
@@ -8656,66 +8644,25 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, p
     return L7_FAILURE;
   }
 
-  /* Initialize number of vlans to be configured */
-  vlans_number = 0;
-
-  /* Get EVC configuration */
-  evcCfg.index = evc_idx;
-  if (ptin_evc_get(&evcCfg)!=L7_SUCCESS)
+  /* Configure root vlan (stacked and unstacked services) */
+  if (ptin_evc_intRootVlan_get(evc_idx, &vlan)!=L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting EVC %u configuration",evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get root vlan for evc id %u",evc_idx);
     return L7_FAILURE;
   }
 
-  /* Only for uplink ports, or both */
-  if ( direction == PTIN_DIR_UPLINK || direction == PTIN_DIR_BOTH )
+  /* Configure packet trapping for this VLAN  */
+#if (QUATTRO_IGMP_TRAP_PREACTIVE)
+  if (!PTIN_VLAN_IS_QUATTRO(vlan))
+#endif
   {
-    /* Configure root vlan (stacked and unstacked services) */
-    if (ptin_evc_intRootVlan_get(evc_idx, &vlan)!=L7_SUCCESS)
+    if (ptin_igmpPkts_vlan_trap(vlan, enable) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get root vlan for evc id %u",evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", vlan, enable);
       return L7_FAILURE;
     }
-    if (vlan>=PTIN_VLAN_MIN && vlan<=PTIN_VLAN_MAX)
-    {
-      /* Verify if this vlan is scheduled to be configured */
-      for (idx=0; idx<vlans_number; idx++)
-      {
-        if (vlan_list[idx]==vlan)  break;
-      }
-      /* If not found, add this vlan */
-      if (idx>=vlans_number)
-      {
-        vlan_list[vlans_number++] = vlan;
-      }
-    }
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping (enable=%u)", vlan, enable);
   }
-
-  /* Configure vlans */
-  for (idx=0; idx<vlans_number; idx++)
-  {
-    if (usmDbSnoopVlanModeSet(1, vlan_list[idx], enable, L7_AF_INET) != L7_SUCCESS)
-    //if (ptin_igmpPkts_vlan_trap(vlan_list[idx], enable)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping",vlan_list[idx]);
-      break;
-    }
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping",vlan_list[idx]);
-  }
-  /* If something went wrong, undo configurations */
-  if (idx<vlans_number)
-  {
-    vlans_number = idx;
-    for (idx=0; idx<vlans_number; idx++)
-    {
-      usmDbSnoopVlanModeSet(1, vlan_list[idx], !enable, L7_AF_INET);
-      //ptin_igmpPkts_vlan_trap(vlan_list[idx],!enable);
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Unconfiguring vlan %u for packet trapping",vlan_list[idx]);
-    }
-    return L7_FAILURE;
-  }
-
-  LOG_TRACE(LOG_CTX_PTIN_IGMP, "%s IGMP trap rules for evc %u", ((enable) ? "Added" : "Removed"), evc_idx);
 
   return L7_SUCCESS;
 }
@@ -11996,7 +11943,7 @@ void ptin_igmp_dump(void)
     printf("   UC evcId = %4u     #evc's = %u\r\n",igmpInstances[i].UcastEvcId, igmpInstances[i].n_evcs);
   }
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  printf("\r\nTotal number of QUATTRO-P2P evcs: %u\r\n", igmp_quattro_p2p_evcs);
+  printf("\r\nTotal number of QUATTRO-STACKED evcs: %u\r\n", igmp_quattro_stacked_evcs);
   #endif
   printf("Clients are not associated to IGMP instances any more!!!\r\n");
 

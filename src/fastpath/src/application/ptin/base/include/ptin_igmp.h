@@ -513,6 +513,15 @@ extern L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_
 extern L7_RC_t ptin_igmp_proxy_reset(void);
 
 /**
+ * Set Global enable for IGMP packet trapping
+ * 
+ * @param enable : L7_ENABLE/L7_DISABLE
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_enable(L7_BOOL enable);
+
+/**
  * Check if a EVC is being used in an IGMP instance
  * 
  * @param evc_idx : evc id
