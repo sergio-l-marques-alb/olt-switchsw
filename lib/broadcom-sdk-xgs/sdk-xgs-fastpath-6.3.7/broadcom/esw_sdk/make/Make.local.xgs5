@@ -144,7 +144,7 @@ CFGFLAGS += -DCOMPILER_OVERRIDE_NO_INLINE
 # Options to turn on various debug flags at boot. BE SURE DK_ERR is set
 # otherwise hardware error messages will not be printed.
 #CFGFLAGS += -DDEBUG_STARTUP="DK_RCLOAD+DK_TX+DK_ERR"
-#CFGFLAGS += -DDEBUG_STARTUP="DK_ERR"
+CFGFLAGS += -DDEBUG_STARTUP="DK_ERR+DK_WARN+DK_PHY"
 
 # Define this to add debug code for RX pool buffer tracking
 #CFGFLAGS += -DBCM_RXP_DEBUG
