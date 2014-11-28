@@ -1408,9 +1408,16 @@ L7_RC_t ptin_igmp_proxy_config_get(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
  */
 L7_RC_t ptin_igmp_proxy_reset(void)
 {
-  L7_uint32 admin;
-
   LOG_INFO(LOG_CTX_PTIN_IGMP,"Multicast queriers reset:");
+
+#if PTIN_SNOOP_USE_MGMD
+  if (ptin_igmp_generalquerier_reset() != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Unable to reset MGMD General Queriers");
+    return L7_FAILURE;
+  }
+#else
+  L7_uint32 admin;
 
   /* Read querier admin status */
   if (usmDbSnoopQuerierAdminModeGet(&admin, L7_AF_INET)!=L7_SUCCESS)
@@ -1442,6 +1449,7 @@ L7_RC_t ptin_igmp_proxy_reset(void)
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed Querier reenable operation");
     return L7_FAILURE;
   }
+#endif
 
   LOG_INFO(LOG_CTX_PTIN_IGMP,"Multicast queriers reenabled!");
 
@@ -1457,20 +1465,21 @@ L7_RC_t ptin_igmp_proxy_reset(void)
  */
 L7_RC_t ptin_igmp_enable(L7_BOOL enable)
 {
+#if 0
   /* Global trap enable */
-  if (ptin_igmpPkts_global_trap(enable) != L7_SUCCESS)
+  if (usmDbSnoopAdminModeSet(1, enable, L7_AF_INET) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting IGMP global enable to %u", enable);
     return L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success setting IGMP global enable to %u", enable);
+#endif
 
 #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
-  if (ptin_igmpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
+  if (usmDbSnoopVlanModeSet(1, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable, L7_AF_INET) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
-    ptin_igmpPkts_global_trap(!enable);
     return L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
@@ -8567,12 +8576,12 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
     return L7_FAILURE;
   }
 
-#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
+  #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(mc_vlan))
-#endif
+  #endif
   {
     /* Configure packet trapping for MC VLAN  */
-    if (ptin_igmpPkts_vlan_trap(mc_vlan, enable) != L7_SUCCESS)
+    if (usmDbSnoopVlanModeSet(1, mc_vlan, enable, L7_AF_INET) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", mc_vlan, enable);
       return L7_FAILURE;
@@ -8591,14 +8600,14 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   }
 
   /* Configure packet trapping for UC VLAN  */
-#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
+  #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(mc_vlan))
-#endif
+  #endif
   {
-    if (ptin_igmpPkts_vlan_trap(uc_vlan, enable) != L7_SUCCESS)
+    if (usmDbSnoopVlanModeSet(1, uc_vlan, enable, L7_AF_INET) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", uc_vlan, enable);
-      //ptin_igmpPkts_vlan_trap(mc_vlan, !enable);
+      usmDbSnoopVlanModeSet(1, mc_vlan, !enable, L7_AF_INET);
       return L7_FAILURE;
     }
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success configuring vlan %u for packet trapping (enable=%u)", uc_vlan, enable);
@@ -8652,11 +8661,11 @@ static L7_RC_t ptin_igmp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
   }
 
   /* Configure packet trapping for this VLAN  */
-#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
+  #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
   if (!PTIN_VLAN_IS_QUATTRO(vlan))
-#endif
+  #endif
   {
-    if (ptin_igmpPkts_vlan_trap(vlan, enable) != L7_SUCCESS)
+    if (usmDbSnoopVlanModeSet(1, vlan, enable, L7_AF_INET) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring vlan %u for packet trapping (enable=%u)", vlan, enable);
       return L7_FAILURE;
