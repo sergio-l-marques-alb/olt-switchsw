@@ -1931,7 +1931,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  ptin_evc_check_evctype(evc_ext_id, &evc_type);
   is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P           ) == PTIN_EVC_MASK_P2P;
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   is_quattro    = (evcConf->flags & PTIN_EVC_MASK_QUATTRO       ) == PTIN_EVC_MASK_QUATTRO;
@@ -1946,6 +1945,16 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
   iptv_enabled  = (evcConf->flags & PTIN_EVC_MASK_MC_IPTV)        == PTIN_EVC_MASK_MC_IPTV;
   cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
+
+  /* Determine EVC type */
+  if (evcConf->flags & PTIN_EVC_MASK_QUATTRO)
+  {
+    evc_type = (evcConf->flags & PTIN_EVC_MASK_STACKED) ? PTIN_EVC_TYPE_QUATTRO_STACKED : PTIN_EVC_TYPE_QUATTRO_UNSTACKED;
+  }
+  else
+  {
+    evc_type = (evcConf->flags & PTIN_EVC_MASK_P2P) ? PTIN_EVC_TYPE_STD_P2P : PTIN_EVC_TYPE_STD_P2MP;
+  }
 
   /* To be removed */
   #if 0

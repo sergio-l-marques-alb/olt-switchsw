@@ -424,7 +424,7 @@ static ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 L7_uint8 igmpInst_fromRouterVlan[4096];  /* Lookup table to get IGMP instance index based on Router (root) VLAN */
 L7_uint8 igmpInst_fromUCVlan[4096];      /* Lookup table to get IGMP instance index based on Unicast (clients uplink) VLAN */
 
-#define QUATTRO_IGMP_TRAP_PREACTIVE     1   /* To always have this rule active, set 1 */
+#define QUATTRO_IGMP_TRAP_PREACTIVE     0   /* To always have this rule active, set 1 */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /* Global number of QUATTRO P2P flows */
 static L7_uint32 igmp_quattro_stacked_evcs = 0;
@@ -1330,10 +1330,6 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Error configuring VLANs trapping (enable=%u)", igmpProxy->admin);
     return L7_FAILURE;
-  }
-  else
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "VLANs trapping configured (enable=%u)", igmpProxy->admin);
   }
 
   return ctrlResMsg.res;
@@ -8572,7 +8568,7 @@ static L7_RC_t ptin_igmp_evc_trap_set(L7_uint32 evc_idx_mc, L7_uint32 evc_idx_uc
   enable &= 1;
 
   /* Get root vlan for MC evc, and add it for packet trapping */
-  if (ptin_evc_intRootVlan_get(evc_idx_mc, &mc_vlan) == L7_SUCCESS)
+  if (ptin_evc_intRootVlan_get(evc_idx_mc, &mc_vlan) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Can't get MC root vlan for evc id %u", evc_idx_mc);
     return L7_FAILURE;
