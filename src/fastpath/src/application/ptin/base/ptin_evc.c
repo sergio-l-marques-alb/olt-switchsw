@@ -751,8 +751,8 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
   /* Copy data to the output struct */
   evcConf->flags    = evcs[evc_id].flags;
   evcConf->type     = evcs[evc_id].type;
-  evcConf->evc_type =(evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
   evcConf->mc_flood = evcs[evc_id].mc_flood;
+  ptin_evc_check_evctype(evc_ext_id, &evcConf->evc_type);
   memset(evcConf->ce_vid_bmp, 0x00, sizeof(evcConf->ce_vid_bmp));
 
   /* Return number of attached clients */
@@ -1700,7 +1700,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
  *  
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type)
+L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint8 *evc_type)
 {
   L7_uint32 evc_id;
 
@@ -1719,11 +1719,18 @@ L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type)
   }
 
   /* Check if EVC is stacked, and return result */
-  if (evc_type!=L7_NULLPTR)
+  if (evc_type != L7_NULLPTR)
   {
-    *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO)
+    {
+      *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) ? PTIN_EVC_TYPE_QUATTRO_STACKED : PTIN_EVC_TYPE_QUATTRO_UNSTACKED;
+    }
+    else
+    {
+      *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P) ? PTIN_EVC_TYPE_STD_P2P : PTIN_EVC_TYPE_STD_P2MP;
+    }
   }
-
+  
   return L7_SUCCESS;
 }
 
@@ -1735,7 +1742,7 @@ L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint *evc_type)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint *evc_type)
+L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint8 *evc_type)
 {
   L7_uint evc_id;
 
@@ -1762,12 +1769,7 @@ L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint *evc_type)
   }
 
   /* Check if EVC is stacked, and return result */
-  if (evc_type!=L7_NULLPTR)
-  {
-    *evc_type = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
-  }
-
-  return L7_SUCCESS;
+  return ptin_evc_check_evctype(evcs[evc_id].extended_id, evc_type);
 }
 
 /**
@@ -1887,7 +1889,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint   i;
   L7_uint   evc_id, evc_ext_id;
   L7_int    intf2cfg[PTIN_SYSTEM_N_INTERF]; /* Lookup array to map sequential to indexed intf */
-  L7_uint   evc_type;
+  L7_uint8  evc_type;
   L7_BOOL   is_p2p, is_quattro, is_stacked;
   L7_BOOL   maclearning;
   L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled, iptv_enabled;
@@ -1929,7 +1931,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  evc_type      = (evcConf->flags & PTIN_EVC_MASK_TYPE)>>16;
+  ptin_evc_check_evctype(evc_ext_id, &evc_type);
   is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P           ) == PTIN_EVC_MASK_P2P;
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   is_quattro    = (evcConf->flags & PTIN_EVC_MASK_QUATTRO       ) == PTIN_EVC_MASK_QUATTRO;
@@ -6918,12 +6920,11 @@ static void ptin_evc_entry_init(L7_uint evc_id)
  */
 static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMef10Intf_t *intf_cfg)
 {
-  L7_uint evc_type;
-  L7_BOOL is_p2p, is_quattro, is_stacked;
-  L7_BOOL is_root;
-  L7_BOOL mac_learning;
-  L7_BOOL cpu_trap;
-  L7_BOOL iptv_flag;
+  L7_BOOL   is_p2p, is_quattro, is_stacked;
+  L7_BOOL   is_root;
+  L7_BOOL   mac_learning;
+  L7_BOOL   cpu_trap;
+  L7_BOOL   iptv_flag;
   L7_uint16 int_vlan;
   L7_uint16 root_vlan;
   ptin_intf_t intf;
@@ -6936,7 +6937,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     intf_cfg->vid_inner = 0;
   }
 
-  evc_type     = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
   is_p2p       = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P        ) == PTIN_EVC_MASK_P2P;
   is_quattro   = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO    ) == PTIN_EVC_MASK_QUATTRO;
   is_stacked   = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED    ) == PTIN_EVC_MASK_STACKED;
@@ -7158,7 +7158,6 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
  */
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
-  L7_uint evc_type;
   L7_BOOL is_p2p, is_quattro, is_stacked, iptv_flag;
   L7_BOOL is_root;
   L7_uint16 out_vlan;
@@ -7167,7 +7166,6 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   ptin_intf_t intf;
   L7_uint32 intIfNum;
 
-  evc_type   = (evcs[evc_id].flags & PTIN_EVC_MASK_TYPE)>>16;
   is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
   is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
   is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
@@ -10880,8 +10878,8 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
          (extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT)));
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  printf("Total number of QUATTRO-P2P evcs: %u\r\n", n_quattro_evcs);
-  printf("Total number of QUATTRO-P2P evcs with IGMP active: %u\r\n", n_quattro_igmp_evcs);
+  printf("Total number of QUATTRO evcs: %u\r\n", n_quattro_evcs);
+  printf("Total number of QUATTRO evcs with IGMP active: %u\r\n", n_quattro_igmp_evcs);
   #endif
 
   fflush(stdout);
