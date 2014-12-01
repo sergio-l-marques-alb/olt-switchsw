@@ -1296,7 +1296,7 @@ L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx)
  * 
  * @return L7_BOOL 
  */
-L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint16 internalVlan)
+L7_BOOL ptin_hal_erps_isPortBlocked(L7_uint root_intf, L7_uint16 vlan, L7_uint16 internalVlan)
 {
   L7_uint8 erps_idx;
 
@@ -1328,13 +1328,25 @@ L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 vlan, L7_uint1
         /* Add the internal vlan to the queue */
         ptin_hal_erps_queue_vlan_used_add(erps_idx, internalVlan);
 
+        if ( (root_intf == tbl_erps[erps_idx].protParam.port0.idx) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT0] == ERPS_PORT_BLOCKING) )
+        {
+          osapiSemaGive(ptin_prot_erps_sem);
+          LOG_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is blocked by ERPS#%d", root_intf, vlan, erps_idx);      
+          return L7_TRUE;
+        }
+        else if ( (root_intf == tbl_erps[erps_idx].protParam.port1.idx) && (tbl_erps[erps_idx].portState[PROT_ERPS_PORT1] == ERPS_PORT_BLOCKING) )
+        {
+          osapiSemaGive(ptin_prot_erps_sem);
+          LOG_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is blocked by ERPS#%d", root_intf, vlan, erps_idx);      
+          return L7_TRUE;
+        }
+
         osapiSemaGive(ptin_prot_erps_sem);
 
-        LOG_TRACE(LOG_CTX_ERPS, "EVC with root intf %u and Int.VLAN %u is protected by ERPS#%d", root_intf, vlan, erps_idx);      
+        //ptin_hal_erps_forceHwReconfig(erps_idx);
 
-        ptin_hal_erps_forceHwReconfig(erps_idx);
-
-        return L7_TRUE;
+        LOG_TRACE(LOG_CTX_ERPS, "root intf %u with Int.VLAN %u is NOT blocked by ERPS#%d", root_intf, vlan, erps_idx);      
+        return L7_FALSE;
       }
     }
 
