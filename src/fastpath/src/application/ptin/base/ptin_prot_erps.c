@@ -1203,7 +1203,7 @@ int ptin_erps_blockOrUnblockPort(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 port
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -1259,7 +1259,7 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -1286,7 +1286,8 @@ int ptin_erps_force_alarms(L7_uint8 erps_idx, L7_uint8 port, L7_uint8 sf)
  */
 int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
 {
-  int ret = PROT_ERPS_EXIT_OK;
+  int ret[2] = {PROT_ERPS_EXIT_OK,PROT_ERPS_EXIT_OK};
+  static int ret_h[2] = {PROT_ERPS_EXIT_OK,PROT_ERPS_EXIT_OK};
 
   //LOG_TRACE(LOG_CTX_ERPS,"ERPS#%d: port %d", erps_idx, port);
 
@@ -1296,35 +1297,63 @@ int ptin_erps_rd_alarms(L7_uint8 erps_idx, L7_uint8 port)
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not valid", erps_idx);
     return PROT_ERPS_INDEX_VIOLATION;
   }
-  if (port >= 2)
+  if (port > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: Invalid port id %u", port);
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
   if (force_erps_SF[erps_idx][port]) {
-    return(force_erps_SF[erps_idx][port] & 1);
+    ret[port] = (force_erps_SF[erps_idx][port] & 1);
+
+    if (ret_h[port] != ret[port]) {
+      LOG_ERR(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      ret_h[port] = ret[port];
+    }
+    return ret[port];
   }
 
   if ( (port == PROT_ERPS_PORT0) && (tbl_erps[erps_idx].protParam.port0CfmIdx != 255) )
   {
-    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx)) );
+    ret[port] = ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port0CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx)) );
+    if (ret_h[port] != ret[port]) {
+      LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      ret_h[port] = ret[port];
+    }
+    return ret[port];
   }
 
   else if ( (port == PROT_ERPS_PORT1) && (tbl_erps[erps_idx].protParam.port1CfmIdx != 255) )
   {
-    return ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx)) );
+    ret[port] = ( tbl_erps[erps_idx].hal.rd_alarms(0, tbl_erps[erps_idx].protParam.port1CfmIdx) | (ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx)) );
+    if (ret_h[port] != ret[port]) {
+      LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      ret_h[port] = ret[port];
+    }
+    return ret[port];
   }
 
   // CFM Not defined; use Port link Down
   else if (port == PROT_ERPS_PORT0) {
-    return ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
+    ret[port] = ptin_intf_los_get(tbl_erps[erps_idx].protParam.port0.idx);
+    if (ret_h[port] != ret[port]) {
+      LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      ret_h[port] = ret[port];
+    }
+    return ret[port];
   }
   else if (port == PROT_ERPS_PORT1) {
-    return ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
+    ret[port] = ptin_intf_los_get(tbl_erps[erps_idx].protParam.port1.idx);
+    if (ret_h[port] != ret[port]) {
+      LOG_NOTICE(LOG_CTX_ERPS, "ERPS#%d: ret[%d] %d", erps_idx, port, ret[port]);
+      ret_h[port] = ret[port];
+    }
+    return ret[port];
   }
 
-  return(ret);
+  
+  LOG_ERR(LOG_CTX_ERPS, "ERPS#%d: Upss...", erps_idx);
+  return(PROT_ERPS_EXIT_OK);
 }
 
 int ptin_erps_rd_alarms_test(L7_uint8 ptin_port)
@@ -1333,7 +1362,7 @@ int ptin_erps_rd_alarms_test(L7_uint8 ptin_port)
 
   alarm = ptin_intf_los_get(ptin_port);
 
-  LOG_ERR(LOG_CTX_ERPS,"\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm);
+  LOG_NOTICE(LOG_CTX_ERPS,"\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm);
   printf("\n\nERPS: port %d, alarm %d\n\n", ptin_port, alarm); fflush(stdout);
 
   return(0);
@@ -1451,6 +1480,8 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
     if (ERPS_STATE_IsLocal(state_machine))
     {
       tbl_erps[erps_idx].remoteRequest = RReq_NONE;
+      tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0]  = (RReq_NONE << 12) & 0xF000;
+      tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1]  = (RReq_NONE << 12) & 0xF000;
     }
     else
     {
@@ -1661,17 +1692,50 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
 
-    if (apsRxPort >= 2)
+    L7_uint8 apsReqRxOtherPort;
+    L7_uint8 apsStatusRxOtherPort;
+
+    if (apsRxPort > PROT_ERPS_PORT1)
     {
       LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not: apsRxPort %d not valid", erps_idx, apsRxPort);
       return PROT_ERPS_INDEX_VIOLATION;
     }
-
+#if 0
     remoteRequest = apsReqRx;
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
 
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
+#else
+    apsReqRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] >> 12) & 0xF;
+    apsStatusRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] & 0x00FF);
+
+    apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
+    tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
+
+    if (apsReqStatusRx != tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) {
+
+      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, apsReqRx,
+              remReqToString[apsReqRx], APS_GET_STATUS(apsStatusRx), apsRxPort,
+              apsNodeIdRx[0],
+              apsNodeIdRx[1],
+              apsNodeIdRx[2],
+              apsNodeIdRx[3],
+              apsNodeIdRx[4],
+              apsNodeIdRx[5]);
+
+      if (apsReqRx > apsReqRxOtherPort) {
+        remoteRequest = apsReqRx;
+      }
+      else if ((apsReqRx == apsReqRxOtherPort) && (apsStatusRx != apsStatusRxOtherPort)) {
+        remoteRequest = apsReqRx;
+      }
+      else {
+        LOG_NOTICE(LOG_CTX_ERPS,"ERPS#%d: Ignoring Received R-APS. Other Port Request(0x%x) = %s(0x%x)", erps_idx, apsReqRxOtherPort,
+              remReqToString[apsReqRxOtherPort], APS_GET_STATUS(apsStatusRxOtherPort));
+      }
+    }
+#endif
 
     // The flush logic retains for each ring port the information of node ID and blocked port reference 
     // (BPR) of the last R-APS message received over that ring port.
@@ -1842,7 +1906,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         reqPort = PROT_ERPS_PORT1;
     }
     if ( (SF[PROT_ERPS_PORT1] != tbl_erps[erps_idx].status_SF[PROT_ERPS_PORT1]) ) {
-      if ( (SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SF) ) {
+      if ( (SF[PROT_ERPS_PORT1]) && (localRequest != LReq_SF) && (reqPort != PROT_ERPS_PORT1) ) {
         localRequest = LReq_SF;
         reqPort = PROT_ERPS_PORT1;
         LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: SF[PROT_ERPS_PORT1]", erps_idx);
@@ -1854,7 +1918,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
 
     /* Validate */
-    if (reqPort >= 2)
+    if (reqPort > PROT_ERPS_PORT1)
     {
       LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
       return PROT_ERPS_INDEX_VIOLATION;
@@ -2067,38 +2131,20 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   if (remoteRequest == RReq_NR) {
     memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
     tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
-
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
-              remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
-              apsNodeIdRx[0],
-              apsNodeIdRx[1],
-              apsNodeIdRx[2],
-              apsNodeIdRx[3],
-              apsNodeIdRx[4],
-              apsNodeIdRx[5]);
   }
-  else {
-    L7_uint8 aux;
-
-    LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
-          remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
-          apsNodeIdRx[0],
-          apsNodeIdRx[1],
-          apsNodeIdRx[2],
-          apsNodeIdRx[3],
-          apsNodeIdRx[4],
-          apsNodeIdRx[5]);
+  else if (remoteRequest != RReq_NONE) {
+    L7_uint8 bpr;
 
     // extracts the (node ID, BPR) pair ...
-    aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
+    bpr = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
 
     // ...and compares it with the previous (node ID, BPR)
-    if (memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux))
+    if (memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != bpr))
     {
       // If it is different from the previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
       // stored for that ring port;
       memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
-      tbl_erps[erps_idx].apsBprRx[apsRxPort] = aux;
+      tbl_erps[erps_idx].apsBprRx[apsRxPort] = bpr;
 
       // and if it is different from the (node ID, BPR) pair already stored at the
       // other ring port, then a flush FDB action is triggered
@@ -2128,7 +2174,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   }
 
   /* Validate */
-  if (reqPort >= 2)
+  if (reqPort > PROT_ERPS_PORT1)
   {
     LOG_ERR(LOG_CTX_ERPS,"ERPS#%d: reqPort %u not valid", erps_idx, reqPort);
     return PROT_ERPS_INDEX_VIOLATION;
@@ -3682,6 +3728,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
         //Stop Tx R-APS      
         ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
+
+        #ifdef SM_PTIN_MODS
+        // Flush FDB
+        ptin_erps_FlushFDB(erps_idx, __LINE__);
+        #endif
       }
 
       // Next node state: A

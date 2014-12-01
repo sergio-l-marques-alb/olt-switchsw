@@ -259,7 +259,7 @@ extern L7_RC_t ptin_hal_erps_forceHwReconfig(L7_uint8 erps_idx);
  * 
  * @return L7_BOOL 
  */
-extern L7_BOOL ptin_hal_erps_evcIsProtected(L7_uint root_intf, L7_uint16 int_vlan, L7_uint16 internalVlan);
+extern L7_BOOL ptin_hal_erps_isPortBlocked(L7_uint root_intf, L7_uint16 int_vlan, L7_uint16 internalVlan);
 
 /**
  * If the VLAN is protected force HW reconfiguration

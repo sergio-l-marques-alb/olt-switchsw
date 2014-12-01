@@ -8275,7 +8275,7 @@ static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint
   }
 
   #ifdef PTIN_ERPS_EVC
-  if (ptin_hal_erps_evcIsProtected(root_intf, out_vlan, int_vlan) != L7_TRUE)
+  if (ptin_hal_erps_isPortBlocked(root_intf, out_vlan, int_vlan) != L7_TRUE)
   {
   #endif
     /* Associate root internal vlan to the root intf */

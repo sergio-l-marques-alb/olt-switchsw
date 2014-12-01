@@ -12,7 +12,7 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-NUM_CPUS	= 2
+NUM_CPUS	= 8
 #$(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
