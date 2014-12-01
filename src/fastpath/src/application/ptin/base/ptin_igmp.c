@@ -2327,6 +2327,8 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       groupCount = 0;  
 
       mgmdGroupsMsg.serviceId = McastEvcId;   
+      mgmdGroupsMsg.portId = PTIN_MGMD_ROOT_PORT;
+      mgmdGroupsMsg.clientId = PTIN_MGMD_MANAGEMENT_CLIENT_ID;
             
       if(globalGroupCount==0)
       {
@@ -8314,6 +8316,21 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
       /* Save client group reference */
       clientGroup = clientInfo->pClientGroup;
 
+      if (ptin_debug_igmp_snooping)
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark ptin_port=%u client_idx=%u", ptin_port, client_idx);
+
+      /* Remove device from client group */
+      if (clientGroup != L7_NULLPTR)
+      {
+        igmp_clientDevice_remove(clientGroup, clientInfo);
+      }
+
+      /* Remove client from unified list of clients */
+      igmp_clientIndex_unmark(ptin_port, client_idx);
+
+      /* Free client index */
+      igmp_clientIndex_free(ptin_port, client_idx);
+
       /* Remove this client */
       if (avlDeleteEntry(&(avl_tree->igmpClientsAvlTree), (void *) avl_key)==L7_NULLPTR)
       {
@@ -8353,21 +8370,6 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
                  );
         return L7_FAILURE;
       }
-
-      if (ptin_debug_igmp_snooping)
-        LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to unmark ptin_port=%u client_idx=%u", ptin_port, client_idx);
-
-      /* Remove device from client group */
-      if (clientGroup != L7_NULLPTR)
-      {
-        igmp_clientDevice_remove(clientGroup, clientInfo);
-      }
-
-      /* Remove client from unified list of clients */
-      igmp_clientIndex_unmark(ptin_port, client_idx);
-
-      /* Free client index */
-      igmp_clientIndex_free(ptin_port, client_idx);
     }
   }
 
@@ -8821,6 +8823,34 @@ L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 intIfNum)
 
   mgmdConfigMsg.portId = intIfNum;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_PORT_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_PORT_REMOVE_t));
+  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+
+  return ctrlResMsg.res;
+}
+
+/**
+ * Removes all groups related to this client Id
+ * 
+ * @param intfnum : Multicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_client_remove(L7_uint32 intIfNum, L7_uint32 clientId)
+{
+  PTIN_MGMD_EVENT_t               reqMsg        = {0};
+  PTIN_MGMD_EVENT_t               resMsg        = {0};
+  PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg    = {0};
+  PTIN_MGMD_CTRL_CLIENT_REMOVE_t mgmdConfigMsg = {0}; 
+
+  mgmdConfigMsg.portId   = intIfNum;
+  mgmdConfigMsg.clientId = clientId;
+
+  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_CLIENT_REMOVE_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
   LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Response");
@@ -11800,6 +11830,8 @@ static L7_uint16 igmp_clientIndex_get_new(L7_uint ptin_port, ptinIgmpClientGroup
 static void igmp_clientIndex_free(L7_uint ptin_port, L7_uint16 client_idx)
 {
   struct ptinIgmpClientIdx_s *pClientIdx;
+  L7_uint32                   intIfNum;            
+
 
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
@@ -11837,6 +11869,11 @@ static void igmp_clientIndex_free(L7_uint ptin_port, L7_uint16 client_idx)
   //Remove this ClientId from the LookUp Table
   ptin_igmp_clientgroup_lookup_table_entry_remove(ptin_port, client_idx);
 #endif
+
+  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS)
+  {
+    ptin_igmp_mgmd_client_remove(intIfNum, client_idx);
+  }
 }
 
 #if 0

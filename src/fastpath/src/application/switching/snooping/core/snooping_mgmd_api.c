@@ -1052,11 +1052,12 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uchar8            *dataPtr;
   L7_uint32             packetLength = payloadLength;
   L7_uint32             dstIpAddr;
+  L7_uchar8            *destIpPtr;
   L7_inet_addr_t        destIp;
   L7_uint32             activeState;  
   L7_uint16             int_ovlan; 
   L7_uint16             int_ivlan    = 0; 
-  ptin_IgmpProxyCfg_t   igmpCfg;
+  ptin_IgmpProxyCfg_t   igmpCfg;  
    
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
@@ -1106,7 +1107,9 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     return FAILURE;
   }
   //Get Group Address
-  groupAddress=*((L7_uint32*) (payload+28));   
+  destIpPtr = (payload+28);
+  SNOOP_GET_ADDR(&groupAddress, destIpPtr); 
+  
   //We only get the intRootVLAN here for the General Query and for the Membership Reports
   //For Group Specific Queries we use the  ptin_mgmd_send_leaf_packet to obtain the intRootVLAN
   if ( portType == PTIN_MGMD_PORT_TYPE_ROOT || groupAddress==0x00)
@@ -1146,7 +1149,9 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   #endif
 
   //Get destination MAC from destIpAddr
-  dstIpAddr = *((L7_uint32*) (payload+16));
+  destIpPtr = (payload+16);
+  SNOOP_GET_ADDR(&dstIpAddr, destIpPtr);  
+  
   inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
   snoopMulticastMacFromIpAddr(&destIp, destMac);
 
