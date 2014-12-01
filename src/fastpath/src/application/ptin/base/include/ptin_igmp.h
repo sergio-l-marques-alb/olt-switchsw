@@ -1158,6 +1158,15 @@ extern L7_RC_t ptin_igmp_mgmd_service_remove(L7_uint32 evc_idx);
  */
 L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 intIfNum);
 
+/**
+ * Removes all groups related to this client Id
+ * 
+ * @param intfnum : Multicast evc id 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_mgmd_client_remove(L7_uint32 intIfNum, L7_uint32 clientId);
+
 
 /**************************** 
  * IGMP statistics
