@@ -5910,3 +5910,16 @@ static L7_RC_t ptin_intf_LagConfig_read(ptin_LACPLagConfig_t *lagInfo)
   return L7_SUCCESS;
 }
 #endif
+
+void ptinIntfNumrangeGet(L7_INTF_TYPES_t intf_type)
+{  
+  L7_uint32 minId, maxId;
+
+  if (nimIntIfNumRangeGet(intf_type,&minId, &maxId) != L7_SUCCESS)
+  {
+    return;
+  }
+  printf("intf_tyep:%u range [%u - %u]\n", intf_type, minId, maxId);  
+  fflush(stdout);
+  return;
+}
