@@ -69,6 +69,9 @@
 #endif
 #include <soc/knet.h>
 
+/* PTin added */
+#include "logger.h"
+
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SIRIUS_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT) || defined(BCM_CALADAN3_SUPPORT)
 
 #define DV_MAGIC_NUMBER 0xba5eba11
@@ -1616,7 +1619,18 @@ soc_dma_done_chain(int unit, uint32 chan)
 
     _soc_dma_start_channel(unit, sc);
 
-    soc_dma_process_done_desc(unit, dv_chain, dv_active);
+    /* PTIn added: By calling this multiple times it should force a cache flush. */
+    int i;
+    for (i=0; i < 10; i++)
+    {
+      soc_dma_process_done_desc(unit, dv_chain, dv_active);
+    }
+
+    /* PTin added: print assert info */
+    if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
+    {
+      LOG_ERR(LOG_CTX_SDK, "dv_chain->dv_dcnt=%d, dv_chain->dv_vcnt=%d", dv_chain->dv_dcnt, dv_chain->dv_vcnt);
+    }
 
     assert(dv_chain->dv_dcnt == dv_chain->dv_vcnt); 
 
