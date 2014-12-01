@@ -50,7 +50,8 @@ typedef struct garpTimerDescr_s
     GARP_TIMER_TYPE_t timerType;
     L7_uint32       vid;                /* parm1 to be passed to timeOutFunc by garpTimerProcess() */
     L7_uint32       port_no;            /* parm2 to be passed to timeOutFunc by garpTimerProcess() */
-    L7_int32        expiryTime;         /* in milliseconds */
+    //L7_int32        expiryTime;         /* in milliseconds */
+    L7_int64        expiryTime;         /* in milliseconds - 64 bit version*/
     GARP_TIMER_STATE_t timer_status;
     struct garpTimerDescr_s *next;
 

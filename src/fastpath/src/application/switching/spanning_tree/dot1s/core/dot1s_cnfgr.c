@@ -495,7 +495,7 @@ L7_RC_t dot1sCnfgrInitPhase3Process( L7_BOOL isWarmRestart,
   memset(&nimEventMask, 0, sizeof(nimEventMask));
   nimRegisterIntfEvents(L7_DOT1S_COMPONENT_ID, nimEventMask);
 
-  dot1sStartupTime.phase3Begin = osapiUpTimeMillisecondsGet();
+  dot1sStartupTime.phase3Begin = osapiTimeMillisecondsGet64();
 
   if (sysapiCfgFileGet(L7_DOT1S_COMPONENT_ID, DOT1S_CFG_FILENAME,
                    (L7_char8 *)dot1sCfg, sizeof(dot1sCfg_t),

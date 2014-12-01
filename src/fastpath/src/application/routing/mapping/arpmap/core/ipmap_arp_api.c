@@ -1232,7 +1232,7 @@ L7_RC_t ipMapArpCollisionProcess(void)
 
   L7_LOGF(L7_LOG_SEVERITY_INFO, L7_ARP_MAP_COMPONENT_ID,
           "ARP hash collision. Reducing ARP cache from %u to %u entries in %u msec.",
-          initialCacheSize, finalCacheSize, osapiTimeMillisecondsGet() - startTime);
+          initialCacheSize, finalCacheSize, osapiTimeMillisecondsGetOffset(startTime));
 
   return L7_SUCCESS;
 }

@@ -141,8 +141,8 @@ L7_RC_t dot1sBpduReceive(L7_netBufHandle bufHandle,
   if (DOT1S_DEBUG_COMMON(DOT1S_DEBUG_RCVD_BPDU))
   {
 
-    DOT1S_DEBUG_MSG("%s: Port %d Received BPDU at %d (msec) \n",__FUNCTION__,
-                    bpduInfo->intIfNum,osapiUpTimeMillisecondsGet());
+    DOT1S_DEBUG_MSG("%s: Port %d Received BPDU at %lld (msec) \n",__FUNCTION__,
+                    bpduInfo->intIfNum,osapiTimeMillisecondsGet64());
   }
 
 

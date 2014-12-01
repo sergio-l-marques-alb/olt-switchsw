@@ -62,7 +62,7 @@ typedef struct
   DAPI_USP_t          usp;
   L7_ushort16         instNumber;
   L7_uint32           applicationReference;
-  L7_uint32           enqueTime;
+  L7_uint64           enqueTime;
 } hapi_broad_dot1s_async_msg_t;
 
 typedef struct

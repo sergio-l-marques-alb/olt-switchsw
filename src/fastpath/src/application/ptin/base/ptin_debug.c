@@ -218,7 +218,7 @@ ptin_debug_pktTimer_t debug_pktTimer;
 
 void ptin_igmptimer_clear(void)
 {
-  L7_uint32 time_now = osapiTimeMillisecondsGet();
+  L7_uint64 time_now = osapiTimeMillisecondsGet();
 
   debug_pktTimer.first_pkt  = L7_FALSE;
   debug_pktTimer.time_start = time_now;
@@ -235,9 +235,11 @@ void ptin_igmptimer_clear(void)
 
 void ptin_igmptimer_show(void)
 {
-  L7_uint32 time_delta, n_packets, n_packets_ok, n_packets_er;
+  L7_uint32 n_packets, n_packets_ok, n_packets_er;
+  L7_uint64 time_delta;
 
-  time_delta = debug_pktTimer.time_end - debug_pktTimer.time_start;
+  //time_delta = debug_pktTimer.time_end - debug_pktTimer.time_start;
+  time_delta = osapiTimeMillisecondsDiff(debug_pktTimer.time_end, debug_pktTimer.time_start);
 
   n_packets_ok  = debug_pktTimer.pktOk_counter;
   n_packets_er  = debug_pktTimer.pktEr_counter;
@@ -250,19 +252,19 @@ void ptin_igmptimer_show(void)
   printf("\npkt_int_counter=%u\r\n",debug_pktTimer.pkt_intercept_counter);
   printf("\nFor all processed packets:\r\n");
   printf(" Number of packets processed    = %u\r\n",n_packets);
-  printf(" Time taken for processing (ms) = %u\r\n",time_delta);
-  printf(" Mean time for processing one packet (ms)     = %u\r\n",time_delta/n_packets);
-  printf(" Mean number of packets processed in 1 second = %u\r\n",(n_packets*1000)/time_delta);
+  printf(" Time taken for processing (ms) = %llu\r\n",time_delta);
+  printf(" Mean time for processing one packet (ms)     = %llu\r\n",time_delta/n_packets);
+  printf(" Mean number of packets processed in 1 second = %llu\r\n",(n_packets*1000)/time_delta);
   printf("\nFor successfully processed packets:\r\n");
   printf(" Number of packets processed    = %u\r\n",n_packets_ok);
-  printf(" Time taken for processing (ms) = %u\r\n",time_delta);
-  printf(" Mean time for processing one packet (ms)     = %u\r\n",time_delta/n_packets_ok);
-  printf(" Mean number of packets processed in 1 second = %u\r\n",(n_packets_ok*1000)/time_delta);
+  printf(" Time taken for processing (ms) = %llu\r\n",time_delta);
+  printf(" Mean time for processing one packet (ms)     = %llu\r\n",time_delta/n_packets_ok);
+  printf(" Mean number of packets processed in 1 second = %llu\r\n",(n_packets_ok*1000)/time_delta);
   printf("\nFor non successfully processed packets:\r\n");
   printf(" Number of packets processed    = %u\r\n",n_packets_er);
-  printf(" Time taken for processing (ms) = %u\r\n",time_delta);
-  printf(" Mean time for processing one packet (ms)     = %u\r\n",time_delta/n_packets_er);
-  printf(" Mean number of packets processed in 1 second = %u\r\n",(n_packets_er*1000)/time_delta);
+  printf(" Time taken for processing (ms) = %llu\r\n",time_delta);
+  printf(" Mean time for processing one packet (ms)     = %llu\r\n",time_delta/n_packets_er);
+  printf(" Mean number of packets processed in 1 second = %llu\r\n",(n_packets_er*1000)/time_delta);
 
   fflush(stdout);
 }

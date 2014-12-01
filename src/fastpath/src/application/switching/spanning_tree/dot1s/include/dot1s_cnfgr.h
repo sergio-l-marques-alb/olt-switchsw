@@ -39,11 +39,11 @@ typedef enum
 
 typedef struct
 {
-  L7_uint32 phase3Begin;
-  L7_uint32 startupCBDone;
-  L7_uint32 activateDone;
-  L7_uint32 extRecon;
-  L7_uint32 reconComplete;
+  L7_uint64 phase3Begin;
+  L7_uint64 startupCBDone;
+  L7_uint64 activateDone;
+  L7_uint64 extRecon;
+  L7_uint64 reconComplete;
 }dot1s_startup_times_t;
 
 typedef enum

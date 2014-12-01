@@ -463,9 +463,9 @@ bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
 {
   int status;
   bcm_error_t rv;
-  L7_uint32 time_start, time_end[3];
+  L7_uint64 time_start, time_end[3];
 
-  time_start = osapiTimeMillisecondsGet();
+  time_start = osapiTimeMillisecondsGet64();
 
   rv = bcm_port_link_status_get(0, bcm_port, &status);
   if (rv != BCM_E_NONE)
@@ -474,7 +474,7 @@ bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
     return rv;
   }
 
-  time_end[0] = osapiTimeMillisecondsGet();
+  time_end[0] = osapiTimeMillisecondsGet64();
 
   rv = bcm_port_update(0, bcm_port, status);
   if (rv != BCM_E_NONE)
@@ -483,7 +483,7 @@ bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
     return rv;
   }
 
-  time_end[1] = osapiTimeMillisecondsGet();
+  time_end[1] = osapiTimeMillisecondsGet64();
 
   #if 0
   rv = _soc_link_update(0);
@@ -494,9 +494,9 @@ bcm_error_t ptin_linkscan(bcm_port_t bcm_port)
   }
   #endif
 
-  time_end[2] = osapiTimeMillisecondsGet();
+  time_end[2] = osapiTimeMillisecondsGet64();
 
-  printf("%s(%d) link=%d -> Time taken: t1=%u, t2=%u, t3=%u, total=%u\r\n", __FUNCTION__, __LINE__,
+  printf("%s(%d) link=%d -> Time taken: t1=%llu, t2=%llu, t3=%llu, total=%llu\r\n", __FUNCTION__, __LINE__,
          status,
          time_end[0]-time_start, time_end[1]-time_end[0], time_end[2]-time_end[1],
          time_end[2]-time_start);

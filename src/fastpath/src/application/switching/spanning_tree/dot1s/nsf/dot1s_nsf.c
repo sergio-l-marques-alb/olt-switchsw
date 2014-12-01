@@ -769,7 +769,7 @@ void dot1sPopulateCheckpointData(L7_uchar8  *checkpoint_data,
   dot1s_nsf_port_checkpoint_data_t *ckptPort;
   dot1s_nsf_port_inst_ckpt_t *rxInstPortData;
   L7_uint32 tempCurrLen;
-  L7_uint32 populateStartTime, populateEndTime;
+  L7_uint64 populateStartTime, populateEndTime;
   dot1s_ckpt_header_t msgHeader, *rxHeader;
 
   if (data_len == 0)
@@ -777,7 +777,7 @@ void dot1sPopulateCheckpointData(L7_uchar8  *checkpoint_data,
     return;
   }
 
-  populateStartTime = osapiUpTimeMillisecondsGet();
+  populateStartTime = osapiTimeMillisecondsGet64();
 
   DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_CKPT,"Received Msg of len %d", data_len);
   currPtr = checkpoint_data;
@@ -954,7 +954,7 @@ void dot1sPopulateCheckpointData(L7_uchar8  *checkpoint_data,
   } /*currLen > 0*/
   osapiSemaGive(dot1sCkptMaskSema);
 
-  populateEndTime = osapiUpTimeMillisecondsGet();
+  populateEndTime = osapiTimeMillisecondsGet64();
 
   DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_CKPT, "Time to process message %d ms",
                (populateEndTime - populateStartTime));

@@ -340,13 +340,13 @@ appTimerAddNode (L7_APP_TMR_CTRL_BLK_t timerCtrlBlk,
                  L7_uint32             lineNum)
 {
   appTmrCtrlBlk_t *pCtrlBlk;
-  L7_uint32       currTime;
+  L7_uint64       currTime;
   timerNode_t     *pTimerNode;
 
   pCtrlBlk = (appTmrCtrlBlk_t *)timerCtrlBlk;
 
   /* Retrieve the current timer tick */
-  currTime = osapiTimeMillisecondsGet(); /* We must use the raw System Uptime for our
+  currTime = osapiTimeMillisecondsGet64(); /* We must use the raw System Uptime for our
                                             time references to avoid problems due to
                                             user adjustments of the calender time */
 
@@ -526,7 +526,7 @@ L7_RC_t appTimerUpdate_track(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk,
 {
   appTmrCtrlBlk_t *pCtrlBlk;
   timerNode_t     *pTimerNode = L7_NULLPTR;
-  L7_uint32       currTime;
+  L7_uint64       currTime;
 
   /* Basic sanity Checks */
   pCtrlBlk = (appTmrCtrlBlk_t *)timerCtrlBlk;
@@ -537,7 +537,7 @@ L7_RC_t appTimerUpdate_track(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk,
   if (timerHandle == L7_NULLPTR)
     return L7_FAILURE;
 
-  currTime = osapiTimeMillisecondsGet(); /* We must use the raw System Uptime for our
+  currTime = osapiTimeMillisecondsGet64(); /* We must use the raw System Uptime for our
                                             time references to avoid problems due to
                                             user adjustments of the calender time */
 
@@ -618,7 +618,7 @@ L7_RC_t appTimerTimeLeftGet(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk,
   appTmrCtrlBlk_t *pCtrlBlk;
   timerNode_t     *pTimerNode;
   timerNode_t     *pTmpNode = L7_NULLPTR;
-  L7_uint32       currTime;
+  L7_uint64       currTime;
 
   /* 
    * if timer does not exist or this api fails for whatever reason
@@ -633,7 +633,7 @@ L7_RC_t appTimerTimeLeftGet(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk,
   if(pCtrlBlk->pSelf != pCtrlBlk)
     return L7_FAILURE;
 
-  currTime = osapiTimeMillisecondsGet(); /* We must use the raw System Uptime for our
+  currTime = osapiTimeMillisecondsGet64(); /* We must use the raw System Uptime for our
                                             time references to avoid problems due to
                                             user adjustments of the calender time */
 
@@ -694,7 +694,7 @@ void appTimerProcess(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk)
 {
   appTmrCtrlBlk_t *pCtrlBlk;
   timerNode_t     *pTimerNode = L7_NULLPTR;
-  L7_uint32       currTime;
+  L7_uint64       currTime;
 
   /* Basic sanity Checks */
   pCtrlBlk = (appTmrCtrlBlk_t *)timerCtrlBlk;
@@ -705,7 +705,7 @@ void appTimerProcess(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk)
 
   while(L7_TRUE)
   {
-    currTime = osapiTimeMillisecondsGet(); /* We must use the raw System Uptime for our
+    currTime = osapiTimeMillisecondsGet64(); /* We must use the raw System Uptime for our
                                               time references to avoid problems due to
                                               user adjustments of the calender time */
 
@@ -775,7 +775,7 @@ void appTimerDebugShow(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk)
 
   appTmrCtrlBlk_t *pCtrlBlk;
   timerNode_t     *pTimerNode = L7_NULLPTR;
-  L7_uint32       currTime;
+  L7_uint64       currTime;
   
   /* Basic sanity Checks */
   pCtrlBlk = (appTmrCtrlBlk_t *)timerCtrlBlk;
@@ -791,7 +791,7 @@ void appTimerDebugShow(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk)
   if(osapiSemaTake(pCtrlBlk->semId, L7_WAIT_FOREVER) != L7_SUCCESS)
     return;
   /* Retrieve the current timer tick */
-  currTime = osapiTimeMillisecondsGet();
+  currTime = osapiTimeMillisecondsGet64();
   for (pTimerNode = (timerNode_t *)SLLFirstGet(&(pCtrlBlk->tmrList));
        pTimerNode != L7_NULLPTR;
        pTimerNode = (timerNode_t *)SLLNextGet(&(pCtrlBlk->tmrList), 

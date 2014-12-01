@@ -1821,8 +1821,8 @@ void _handleTask(e_Err (*f_Thread)(void *), OS_Thread *p_thread)
           {
             if (debugQueues > 0)
             {
-              printf("\n%u: Task %#lx read %d msgs from q%d",
-                     osapiTimeMillisecondsGet(),
+              printf("\n%llu: Task %#lx read %d msgs from q%d",
+                     osapiTimeMillisecondsGet64(),
                      p_thread->TaskID, msgsReadFromCurrentQ, currentQ);
             }
             currentQ++;
@@ -1852,17 +1852,17 @@ void _handleTask(e_Err (*f_Thread)(void *), OS_Thread *p_thread)
             }
             XX_CALL_THREAD(p_info, f_Thread);
 
-            if ((debugQueues > 0) && ((osapiTimeMillisecondsGet() - execStart) > 1000))
+            if ((debugQueues > 0) && ((osapiTimeMillisecondsGetOffset(execStart)) > 1000))
             {
               char currFn[MAX_FUNCNAME];
               char unpackFnName[MAX_FUNCNAME];
               memcpy(currFn, p_info->funcName, MAX_FUNCNAME);
               currFn[MAX_FUNCNAME-1] = 0;
-              printf("\r\n%u: msg queued on queue %d by %s:%d calls %s(0x%x) with exec time %u",
-                     osapiTimeMillisecondsGet(),
+              printf("\r\n%llu: msg queued on queue %d by %s:%d calls %s(0x%x) with exec time %u",
+                     osapiTimeMillisecondsGet64(),
                      lastQ, currFn, (int)p_info->lineNum,
                      fptr2name(p_info->unpackFunc, unpackFnName, MAX_FUNCNAME),
-                     (int)p_info->unpackFunc, osapiTimeMillisecondsGet() - execStart);
+                     (int)p_info->unpackFunc, osapiTimeMillisecondsGetOffset(execStart));
             }
 
             /* free the XX_Call parameter block */

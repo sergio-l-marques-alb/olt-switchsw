@@ -1676,7 +1676,8 @@ void dapiCmdProfile(DAPI_CMD_t dapiCmd, L7_BOOL start)
     }
     else
     {
-      currTime = osapiTimeMillisecondsGet() - dapiCmdProfileInfo[dapiCmd].startTime;
+      //currTime = osapiTimeMillisecondsGet() - dapiCmdProfileInfo[dapiCmd].startTime;
+      currTime = osapiTimeMillisecondsGetOffset(dapiCmdProfileInfo[dapiCmd].startTime);
       dapiCmdProfileInfo[dapiCmd].totalTime += currTime;
       if (currTime > dapiCmdProfileInfo[dapiCmd].maxTime)
       {

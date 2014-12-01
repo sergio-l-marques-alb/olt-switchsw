@@ -281,7 +281,7 @@ void garpUpdateLeaveAllTimer(garpTimerCommand_t command,
     case RESTART_LEAVEALL_TIMER:
         /* calculate how long it took the Leave All command to propagate
          * to this function */
-        garpLeaveAllPropagationTime = osapiTimeMillisecondsGet() - time;
+        garpLeaveAllPropagationTime = osapiTimeMillisecondsGetOffset(time);
 
         /* get the new random value for Leave All timer */
         leaveall_timeout_new =

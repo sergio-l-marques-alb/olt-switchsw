@@ -2296,7 +2296,7 @@ e_Err LsaRxmtTickExp(t_RTO * p_RTO)
   if (p_RTO->ospfTraceFlags & OSPF_TRACE_RETX)
    {
      char traceBuf[OSPF_MAX_TRACE_STR_LEN];
-     L7_uint32 duration = osapiTimeMillisecondsGet() - startTime;
+     L7_uint32 duration = osapiTimeMillisecondsGetOffset(startTime);
      sprintf(traceBuf, "OSPF retransmit list processing took %u ms for %u entries.",
              duration, retxEntries);
      RTO_TraceWrite(traceBuf);

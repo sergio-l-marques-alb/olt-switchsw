@@ -761,7 +761,8 @@ void cmgrProfileEvent(cmgrProfileEvents_t event,
         }
         else
         {
-          cmgrProfileData[unitNum][slotNum].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - cmgrProfileData[unitNum][slotNum].eventInfo[event].tempTime;
+          //cmgrProfileData[unitNum][slotNum].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - cmgrProfileData[unitNum][slotNum].eventInfo[event].tempTime;
+          cmgrProfileData[unitNum][slotNum].eventInfo[event].totalTime = osapiTimeMillisecondsGetOffset(cmgrProfileData[unitNum][slotNum].eventInfo[event].tempTime);
         }
       }
       break;
@@ -778,7 +779,8 @@ void cmgrProfileEvent(cmgrProfileEvents_t event,
         }
         else
         {
-          cmgrProfileData[0][0].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - cmgrProfileData[0][0].eventInfo[event].tempTime;
+          //cmgrProfileData[0][0].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - cmgrProfileData[0][0].eventInfo[event].tempTime;
+          cmgrProfileData[0][0].eventInfo[event].totalTime = osapiTimeMillisecondsGetOffset(cmgrProfileData[0][0].eventInfo[event].tempTime);
         }
       }
       break;

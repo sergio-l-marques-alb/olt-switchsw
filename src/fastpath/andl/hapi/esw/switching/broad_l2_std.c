@@ -980,7 +980,7 @@ static void hapiBroadDot1sAsyncProcessMessages(L7_uint32 num_msgs, DAPI_t *dapi_
 {
   DAPI_INTF_MGMT_CMD_t          cmdDot1sStateSet;
   hapi_broad_dot1s_async_msg_t  dot1s_cmd;
-  L7_uint32                     processTime;
+  L7_uint64                     processTime;
 
   while (num_msgs--)
   {
@@ -999,7 +999,7 @@ static void hapiBroadDot1sAsyncProcessMessages(L7_uint32 num_msgs, DAPI_t *dapi_
         cmdDot1sStateSet.cmdData.dot1sState.applicationReference = dot1s_cmd.applicationReference;
         cmdDot1sStateSet.cmdData.dot1sState.state = (DAPI_PORT_DOT1S_STATE_t)dot1s_cmd.state;
         (void)hapiBroadDot1sStateAsyncSet(&dot1s_cmd.usp, DAPI_CMD_INTF_DOT1S_STATE, &cmdDot1sStateSet, dapi_g);
-        processTime = osapiTimeMillisecondsGet() - dot1s_cmd.enqueTime;
+        processTime = osapiTimeMillisecondsGet64() - dot1s_cmd.enqueTime;
         if (processTime > maxDot1sQueueProcessTime)
         {
           maxDot1sQueueProcessTime = processTime;
@@ -1086,7 +1086,7 @@ L7_RC_t hapiBroadIntfDot1sState(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   dot1s_cmd.applicationReference = dapiCmd->cmdData.dot1sState.applicationReference;
   dot1s_cmd.instNumber = (L7_ushort16)instNumber;
   dot1s_cmd.state      = (L7_uchar8)state;
-  dot1s_cmd.enqueTime = osapiTimeMillisecondsGet();
+  dot1s_cmd.enqueTime = osapiTimeMillisecondsGet64();
   result = osapiMessageSend (hapiBroadDot1sAsyncCmdQueue,
                              (void*)&dot1s_cmd,
                              sizeof (dot1s_cmd),

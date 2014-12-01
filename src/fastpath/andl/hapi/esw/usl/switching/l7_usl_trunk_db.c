@@ -1598,7 +1598,7 @@ int usl_trunk_db_dataplane_cleanup(L7_int32 *missingModIds, L7_uint32 missingMod
   }
 
   endTime = osapiTimeMillisecondsGet();
-  uslTrunkDataplaneCleanupTime += (endTime - startTime);
+  uslTrunkDataplaneCleanupTime += osapiTimeMillisecondsDiff(endTime,startTime);
   uslTrunkDataplaneCleanupCount++;
 
   USL_TRUNK_DB_LOCK_GIVE();

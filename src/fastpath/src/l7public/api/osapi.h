@@ -1005,6 +1005,51 @@ EXT_API L7_uint32 osapiTimeMillisecondsGet( void );
 
 /**************************************************************************
 *
+* @purpose  Retrieve number of milliseconds (64 bit version)
+*
+* @param    void
+*
+* @returns  milliseconds since last reset
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+EXT_API L7_uint64 osapiTimeMillisecondsGet64( void );
+
+/**************************************************************************
+*
+* @purpose  Retrieve number of milliseconds since aux_old 
+*
+* @param    void
+*
+* @returns  milliseconds since aux_old
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+EXT_API L7_uint32 osapiTimeMillisecondsGetOffset( L7_uint32 aux_old);
+
+/**************************************************************************
+*
+* @purpose  Retrieve number of milliseconds from  aux_old to aux_current
+*
+* @param    void
+*
+* @returns  milliseconds from aux_old to aux_current
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+EXT_API L7_uint32 osapiTimeMillisecondsDiff( L7_uint32 aux_current, L7_uint32 aux_old);
+
+/**************************************************************************
+*
 * @purpose  Retrieve number of microseconds
 *
 * @param    void

@@ -4412,7 +4412,7 @@ L7_RC_t ipMapLockTake(e_ipMapLockType lockType, const L7_int32 wait,
   if (rc != L7_SUCCESS)
   {
     L7_uint32 i;
-    L7_uint32 etime = osapiTimeMillisecondsGet() - startTime;
+    L7_uint32 etime = osapiTimeMillisecondsGetOffset(startTime);
     L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_IP_MAP_COMPONENT_ID,
             "Failed to take IP MAP %s lock in %s() within %d ms. Waited %u ms.",
             (lockType == IPMAP_READ_LOCK ? "READ" : "WRITE"), lockHolder, wait,

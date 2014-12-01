@@ -679,7 +679,7 @@ static L7_RC_t hpcPwrdsinePoeTransReceiveMsg(L7_uint32 cardIndex, L7_uchar8 *tx_
     result = osapiMessageReceive(poe_rx_msgq[cardIndex], &message, sizeof(message), timeout);
     if (result == L7_SUCCESS)
     {
-      diff_time = osapiTimeMillisecondsGet() - prev;
+      diff_time = osapiTimeMillisecondsGetoffset(prev);
       if (poeDebugEnabled)
       {
         POE_HPC_DPRINTF("The time diff is %d.", diff_time);

@@ -53,14 +53,14 @@ void timeMillisecondsTrace(L7_BOOL logEntry)
   if (logEntry == L7_TRUE)
   {
       SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "Milliseconds passed since system reset: [%10.10u] \n", currTime);
-      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "Milliseconds passed since last checked: %d \n", (currTime - lastTraceMsecTime) );
+      SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS, "Milliseconds passed since last checked: %d \n", osapiTimeMillisecondsDiff(currTime,lastTraceMsecTime) );
   }
   else
   {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
               "Milliseconds passed since system reset: [%10.10u] \n", currTime);
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_SIM_COMPONENT_ID,
-              "Milliseconds passed since last checked: %d \n", (currTime - lastTraceMsecTime) );
+              "Milliseconds passed since last checked: %d \n", osapiTimeMillisecondsDiff(currTime,lastTraceMsecTime) );
   }
 
 }

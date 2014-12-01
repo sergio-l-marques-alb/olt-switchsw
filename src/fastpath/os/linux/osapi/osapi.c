@@ -1653,6 +1653,88 @@ L7_uint32 osapiTimeMillisecondsGet( void )
   return(( tm.tv_sec * 1000 ) + ( tm.tv_nsec / 1000000 ));
 }
 
+
+/**************************************************************************
+*
+* @purpose  Retrieve number of milliseconds (64 bit version)
+*
+* @param    void
+*
+* @returns  milliseconds since last reset
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+L7_uint64 osapiTimeMillisecondsGet64( void )
+{
+  struct timespec tm;
+
+  memset (&tm, 0, sizeof (tm));
+  clock_gettime(CLOCK_MONOTONIC, &tm);
+
+  return(( (L7_uint64)tm.tv_sec * 1000 ) + ( (L7_uint64)tm.tv_nsec / 1000000 ));
+}
+
+
+/**************************************************************************
+*
+* @purpose  Retrieve number of milliseconds since aux_old 
+*
+* @param    void
+*
+* @returns  milliseconds since aux_old
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+L7_uint32 osapiTimeMillisecondsGetOffset( L7_uint32 aux_old)
+{
+  L7_uint32 aux_current;
+
+  struct timespec tm;
+
+  memset (&tm, 0, sizeof (tm));
+  clock_gettime(CLOCK_MONOTONIC, &tm);
+
+  aux_current = (L7_uint32 )(( tm.tv_sec * 1000 ) + ( tm.tv_nsec / 1000000 ));
+
+  if (aux_current>=aux_old) {
+      return(aux_current-aux_old);
+  }
+  else {
+      return((0xFFFFFFFF - aux_old) + aux_current);      
+  }
+}
+
+
+/**************************************************************************
+*
+* @purpose  Retrieve number of milliseconds from  aux_old to aux_current
+*
+* @param    void
+*
+* @returns  milliseconds from aux_old to aux_current
+*
+* @notes
+*
+* @end
+*
+*************************************************************************/
+L7_uint32 osapiTimeMillisecondsDiff( L7_uint32 aux_current, L7_uint32 aux_old)
+{
+  if (aux_current>=aux_old) {
+      return(aux_current-aux_old);
+  }
+  else {
+      return((0xFFFFFFFF - aux_old) + aux_current);      
+  }
+}
+
+
 /**************************************************************************
 *
 * @purpose  Retrieve number of microseconds

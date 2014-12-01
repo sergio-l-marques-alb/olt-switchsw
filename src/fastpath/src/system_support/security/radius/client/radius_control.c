@@ -176,7 +176,8 @@ void radius_task(void)
 
     /* Check whether any timeouts need to be handled.
      */
-    if ((osapiTimeMillisecondsGet() - last_timer_check) > RADIUS_TIMER_TICK)
+    //if ((osapiTimeMillisecondsGet() - last_timer_check) > RADIUS_TIMER_TICK)
+    if ((osapiTimeMillisecondsGetOffset(last_timer_check)) > RADIUS_TIMER_TICK)
     {
       (void) RADIUS_LOCK_TAKE(radiusTaskSyncSema, L7_WAIT_FOREVER);
       memset (&msg, 0, sizeof (msg));
@@ -2249,7 +2250,8 @@ L7_RC_t radiusResponsePacketProcess(L7_uint32 serverAddress, radiusPacket_t *pac
     return L7_FAILURE;
   }
 
-  roundTripTime = ((osapiTimeMillisecondsGet() - request->lastSentTime) / 10);
+  //roundTripTime = ((osapiTimeMillisecondsGet() - request->lastSentTime) / 10);
+  roundTripTime = ((osapiTimeMillisecondsGetOffset(request->lastSentTime)) / 10);
 
   /*
    ** Increment appropriate counter and process the packet.

@@ -112,7 +112,7 @@ pthread_cond_t osapiTimerCond = PTHREAD_COND_INITIALIZER;
 typedef struct {
   L7_uint32     handle;
   L7_uint32     period;
-  L7_uint32     nextTime;
+  L7_uint64     nextTime;
   L7_uint32     taskId;
 } OSAPI_PERIODIC_TIMER_t;
 static OSAPI_PERIODIC_TIMER_t  osapiPeriodicTimer[OSAPI_PERIODIC_TIMER_COUNT + 1];
@@ -1002,7 +1002,7 @@ L7_RC_t osapiPeriodicUserTimerRegister(L7_uint32 period, L7_uint32 *handle)
     {
       osapiPeriodicTimer[index].handle   = index;
       osapiPeriodicTimer[index].period   = period;
-      osapiPeriodicTimer[index].nextTime = osapiTimeMillisecondsGet();
+      osapiPeriodicTimer[index].nextTime = osapiTimeMillisecondsGet64();
       osapiPeriodicTimer[index].taskId   = L7_NULL;
       *handle = osapiPeriodicTimer[index].handle;
       rc = L7_SUCCESS;
@@ -1027,11 +1027,11 @@ L7_RC_t osapiPeriodicUserTimerRegister(L7_uint32 period, L7_uint32 *handle)
 *************************************************************************/
 void osapiPeriodicUserTimerWait(L7_uint32 handle)
 {
-  L7_uint32 now, waitTime;
+  L7_uint64 now, waitTime;
 
   OSAPI_TIMER_PERIODIC_SEM_TAKE;
   osapiPeriodicTimer[handle].nextTime += osapiPeriodicTimer[handle].period;
-  now = osapiTimeMillisecondsGet();
+  now = osapiTimeMillisecondsGet64();
   waitTime = osapiPeriodicTimer[handle].nextTime - now;
 
 

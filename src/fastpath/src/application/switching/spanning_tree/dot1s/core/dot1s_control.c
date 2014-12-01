@@ -696,7 +696,7 @@ L7_RC_t dot1sDispatchCmd(DOT1S_MSG_t msg)
     if (DOT1S_DEBUG_COMMON(DOT1S_DEBUG_MSG_PROC_TIME))
     {
       /* process time diff in queue first */
-      currTime=osapiUpTimeMillisecondsGet();
+      currTime=osapiTimeMillisecondsGet();
       if (Qcnt == 10)
       {
         Qcnt=0;
@@ -708,13 +708,14 @@ L7_RC_t dot1sDispatchCmd(DOT1S_MSG_t msg)
       }
       else
       {
-        dot1sQueueTime[Qcnt] = currTime - msg.timeStamp;
+        //dot1sQueueTime[Qcnt] = currTime - msg.timeStamp;
+        dot1sQueueTime[Qcnt] = osapiTimeMillisecondsDiff(currTime, msg.timeStamp);
         Qcnt++;
       }
 
       /* process msg processing time*/
       /*get timestamp here*/
-      startTime = osapiUpTimeMillisecondsGet();
+      startTime = osapiTimeMillisecondsGet();
     }
     rc = dot1sStateMachineRxBpdu(msg.intf, (DOT1S_MSTP_ENCAPS_t *)msg.data.bpdu);
 
@@ -730,12 +731,13 @@ L7_RC_t dot1sDispatchCmd(DOT1S_MSG_t msg)
     if (DOT1S_DEBUG_COMMON(DOT1S_DEBUG_MSG_PROC_TIME))
     {
       /* get another here store the diff */
-      endTime = osapiUpTimeMillisecondsGet();
+      endTime = osapiTimeMillisecondsGet();
       if (MsgCnt == 10 )
       {
         MsgCnt =0;
       }
-      dot1sBPDUProcessTime[MsgCnt] = endTime-startTime;
+      //dot1sBPDUProcessTime[MsgCnt] = endTime-startTime;
+      dot1sBPDUProcessTime[MsgCnt] = osapiTimeMillisecondsDiff(endTime,startTime);
       MsgCnt++;
     }
     break;

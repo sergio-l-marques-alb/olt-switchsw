@@ -375,7 +375,8 @@ e_Err ARP_PurgeOldEntries(t_Handle *p_ObjId)
        }
     }
     p_Adr = nextAdr;
-    if ((osapiTimeMillisecondsGet() - startTime) > ARP_MAX_WINNOW_TIME)
+    //if ((osapiTimeMillisecondsGet() - startTime) > ARP_MAX_WINNOW_TIME)
+    if(osapiTimeMillisecondsGetOffset(startTime) > ARP_MAX_WINNOW_TIME)
     {
       return E_BUSY;
     }
@@ -1953,7 +1954,7 @@ t_ADR *_createAddrEntry(t_ARP *p_A, t_IPAddr *ipAddr, t_MACAddr *macAddr,
        (void)ARP_GetCacheStats(p_A, &arpStats);
        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_ARP_MAP_COMPONENT_ID, 
                "Purged old entries. Reduced ARP cache from %u to %u entries in %u msec.",
-               initialCacheSize, arpStats.cacheCurrent, osapiTimeMillisecondsGet() - startTime);
+               initialCacheSize, arpStats.cacheCurrent, osapiTimeMillisecondsGetOffset(startTime));
      }
    }
 

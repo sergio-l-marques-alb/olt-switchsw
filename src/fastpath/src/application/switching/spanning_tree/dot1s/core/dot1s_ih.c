@@ -634,13 +634,13 @@ L7_RC_t dot1sProcessIntfStartupCallBack(NIM_STARTUP_PHASE_t startup_phase)
   L7_uint32 intIfNum;
   PORTEVENT_MASK_t nimEventMask;
   DOT1S_PORT_COMMON_t *p;
-  L7_uint32 startTime, endTime;
+  L7_uint64 startTime, endTime;
 
   DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_NIM,"Startup callback phase %s\n", 
                   (startup_phase == NIM_INTERFACE_CREATE_STARTUP) ? 
                   "CREATE" : "ACTIVATE");
 
-  startTime = osapiUpTimeMillisecondsGet();
+  startTime = osapiTimeMillisecondsGet64();
   switch (startup_phase)
   {
     case NIM_INTERFACE_CREATE_STARTUP:
@@ -698,7 +698,7 @@ L7_RC_t dot1sProcessIntfStartupCallBack(NIM_STARTUP_PHASE_t startup_phase)
       break;
   }
 
-  endTime = osapiUpTimeMillisecondsGet();
+  endTime = osapiTimeMillisecondsGet64();
   DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_NIM,"startup callback done in %d msecs \n", 
                   (endTime - startTime));
   nimStartupEventDone(L7_DOT1S_COMPONENT_ID);
@@ -1200,7 +1200,7 @@ L7_RC_t dot1sIntfActivateStartup()
   dot1sAppState = (dot1sIsRestartTypeWarm() == L7_TRUE) ? 
          DOT1S_NSF_SO_IF_ACT : DOT1S_READY;
 
-  dot1sStartupTime.activateDone = osapiUpTimeMillisecondsGet();
+  dot1sStartupTime.activateDone = osapiTimeMillisecondsGet64();
   DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_RECONCILE_STATUS,
                   "DOT1S Reconciliation IF ACTIVATE complete"); 
   OSAPI_TRACE_EVENT(L7_TRACE_EVENT_DOT1S_STARTUP_ACTIVATE_END, L7_NULLPTR, 0);
@@ -1449,9 +1449,9 @@ void dot1sIhSetPortState(L7_uint32 mstID, L7_uint32 intIfNum, L7_uint32 state)
   (void )dot1sInstIndexFind(mstID,&instIndex); 
   if (DOT1S_DEBUG(DOT1S_DEBUG_STATE_CHANGE, instIndex))
   {
-    DOT1S_DEBUG_MSG("Setting Port(%d) instance(%d) to %s at %d\n", 
+    DOT1S_DEBUG_MSG("Setting Port(%d) instance(%d) to %s at %lld\n", 
        intIfNum, instIndex,dot1sStateStringGet(state),
-                      osapiUpTimeMillisecondsGet()); 
+                      osapiTimeMillisecondsGet64()); 
   }
   if (state != L7_DOT1S_DISABLED)
   {

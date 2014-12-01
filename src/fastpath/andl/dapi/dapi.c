@@ -932,7 +932,7 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
     }
   }
   OSAPI_TRACE_EVENT (L7_TRACE_EVENT_DRIVER_EXIT, &result, sizeof(result));
-  delta = osapiTimeMillisecondsGet() - delta;
+  delta = osapiTimeMillisecondsGetOffset(delta);
   dapiTraceDapiCtl(cmd,usp,L7_FALSE,delta);
   dapiCmdProfile(cmd, L7_FALSE);
 

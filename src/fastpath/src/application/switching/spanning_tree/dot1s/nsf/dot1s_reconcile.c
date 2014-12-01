@@ -181,7 +181,7 @@ L7_RC_t dot1sNsfReconcileFailed()
     */
   L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DOT1S_COMPONENT_ID,
           " DOT1S Reconciliation failed at %d: resuming state machines ",
-          osapiUpTimeMillisecondsGet());
+          osapiTimeMillisecondsGet64());
 
 
   p = dot1sIntfFindFirst();
@@ -260,9 +260,9 @@ void dot1sReconcileTimerExpiredProcess()
 {
   DOT1S_PORT_COMMON_t *p;
   dot1s_intf_recon_data_t *port_recon ;
-  L7_uint32 expiredTime;
+  L7_uint64 expiredTime;
 
-  expiredTime = osapiUpTimeMillisecondsGet();
+  expiredTime = osapiTimeMillisecondsGet64();
 
   /* Timer has expired indicates that we haven't received PDUs on our interfaces
      This means that the information that we have been acting on so far could be stale.
@@ -449,7 +449,7 @@ void dot1sCheckGlobalReconciled(L7_BOOL coldRestart)
       (coldRestart == L7_TRUE))
   {
     /* Notify the system that we are in sync.*/
-    dot1sStartupTime.extRecon = osapiUpTimeMillisecondsGet();
+    dot1sStartupTime.extRecon = osapiTimeMillisecondsGet64();
     DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_RECONCILE_STATUS,
                     "DOT1S External Reconciliation complete");
     OSAPI_TRACE_EVENT(L7_TRACE_EVENT_DOT1S_EXTERNAL_RECON_END, L7_NULLPTR, 0);
@@ -465,7 +465,7 @@ void dot1sCheckGlobalReconciled(L7_BOOL coldRestart)
   /* All the interfaces have reconciled. Reconciliation is complete*/
   if (globalReconcile == L7_TRUE)
   {
-    dot1sStartupTime.reconComplete = osapiUpTimeMillisecondsGet();
+    dot1sStartupTime.reconComplete = osapiTimeMillisecondsGet64();
     DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_RECONCILE_STATUS,
                     "DOT1S Reconciliation complete"); 
     OSAPI_TRACE_EVENT(L7_TRACE_EVENT_DOT1S_GLOBAL_RECON_END, L7_NULLPTR, 0);

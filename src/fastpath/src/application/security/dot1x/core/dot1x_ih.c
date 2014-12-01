@@ -132,7 +132,7 @@ L7_RC_t dot1xIhProcessIntfStartup(NIM_STARTUP_PHASE_t startup_phase)
   L7_RC_t rc;
   L7_uint32 intIfNum;
   PORTEVENT_MASK_t nimEventMask;
-  L7_uint32 startTime, endTime;
+  L7_uint64 startTime, endTime;
 
 #ifdef L7_NSF_PACKAGE
   L7_BOOL warmRestart;
@@ -141,7 +141,7 @@ L7_RC_t dot1xIhProcessIntfStartup(NIM_STARTUP_PHASE_t startup_phase)
                   (startup_phase == NIM_INTERFACE_CREATE_STARTUP) ?
                   "CREATE" : "ACTIVATE");*/
 
-  startTime = osapiTimeMillisecondsGet();
+  startTime = osapiTimeMillisecondsGet64();
   switch (startup_phase)
   {
   case NIM_INTERFACE_CREATE_STARTUP:
@@ -270,7 +270,7 @@ L7_RC_t dot1xIhProcessIntfStartup(NIM_STARTUP_PHASE_t startup_phase)
     break;
   }
 
-  endTime = osapiTimeMillisecondsGet();
+  endTime = osapiTimeMillisecondsGet64();
   /*DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_NIM,"startup callback done in %d msecs \n",
                   (endTime - startTime));*/
   nimStartupEventDone(L7_DOT1X_COMPONENT_ID);

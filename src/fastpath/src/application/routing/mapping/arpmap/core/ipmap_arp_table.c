@@ -951,7 +951,7 @@ L7_RC_t ipMapArpIpTableInsert(ipMapArpIpNode_t *pIpInfo, ipMapArpIpNode_t **ppIp
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
                 "[%10.10u] IPM_ARP: inserted %s intf %d, pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
-                osapiTimeMillisecondsGet(), (L7_uchar8 *)ipStr,
+                osapiTimeMillisecondsGet64(), (L7_uchar8 *)ipStr,
                 pIpInfo->intIfNum, (L7_uint32)pNode,
                 (L7_uint32)pNode->arpEntry.arpAgeTimer,
                 (L7_uint32)pNode->arpEntry.arpRspTimer,
@@ -1040,7 +1040,7 @@ L7_RC_t ipMapArpIpTableUpdate(ipMapArpIpNode_t *pIpInfo,
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
                 "[%10.10u] IPM_ARP: %s %s %d, pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
-                osapiTimeMillisecondsGet(), (event == IPM_ARP_TABLE_UPDATE) ? "updated" : "reissued",
+                osapiTimeMillisecondsGet64(), (event == IPM_ARP_TABLE_UPDATE) ? "updated" : "reissued",
                 (L7_uchar8 *)ipStr, pIpInfo->intIfNum, (L7_uint32)pNode,
                 (L7_uint32)pNode->arpEntry.arpAgeTimer,
                 (L7_uint32)pNode->arpEntry.arpRspTimer,
@@ -1138,7 +1138,7 @@ L7_RC_t ipMapArpIpTableRemove(ipMapArpIpNode_t *pIpInfo)
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
                 "[%10.10u] IPM_ARP: removed %s, intf %d pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
-                osapiTimeMillisecondsGet(), ipStr, pNode->intIfNum,
+                osapiTimeMillisecondsGet64(), ipStr, pNode->intIfNum,
                 (L7_uint32)pNode, ageTimerId, rspTimerId,
                 (inDeviceSaved == L7_TRUE) ? "Y" : "N");
 
@@ -1218,7 +1218,7 @@ L7_RC_t ipMapArpIpTableOldestRemove(L7_BOOL allowGw)
     /* debug message */
     IPM_ARP_PRT(IPM_ARP_MSGLVL_LO,
                 "[%10.10u] IPM_ARP: oldest removed %s intf %d, pNode=0x%8.8x t_Age=0x%8.8x t_Rsp=0x%8.8x  (inDev=%1s)\n",
-                osapiTimeMillisecondsGet(), ipStr, pNode->intIfNum,
+                osapiTimeMillisecondsGet64(), ipStr, pNode->intIfNum,
                 (L7_uint32)pNode, ageTimerId, rspTimerId,
                 (inDeviceSaved == L7_TRUE) ? "Y" : "N");
 

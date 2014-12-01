@@ -1052,7 +1052,8 @@ static void new_lease (dhcpClientInfo_t *clientIntfInfo)
   osapiTimerDescr_t *pTimerHolder;
 
   lease = &clientIntfInfo->leaseInfo;
-  lease->expiry_uptime = osapiUpTimeMillisecondsGet();
+  //lease->expiry_uptime = osapiUpTimeMillisecondsGet();
+  lease->expiry_uptime = osapiTimeMillisecondsGet64();
   now=0;
   pTimerHolder = lease->alarm;
 

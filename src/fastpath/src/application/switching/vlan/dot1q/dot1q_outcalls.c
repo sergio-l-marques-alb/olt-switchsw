@@ -329,7 +329,7 @@ void vlanNotifyRegisteredUsers(dot1qNotifyData_t *vlanData,
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT1Q_COMPONENT_ID,
                 "Bad rc %d in vlanNotifyRegisteredUsers for registrar %d, %s\n", (int)rc, (int)i, name);
       }
-      callTime = osapiTimeMillisecondsGet() - callTime;
+      callTime = osapiTimeMillisecondsGetOffset(callTime);
       vlanEventTime[eventIndex][i] = vlanEventTime[eventIndex][i]+callTime;
     }
   }

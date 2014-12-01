@@ -5984,7 +5984,7 @@ static e_Err RTB_RtoUpdateRoutes(t_RTB *p_RTB, ulng startTime, t_Handle newTree,
          * route changes can prompt us to send LSAs (e.g., T3 summaries and translated
          * type 5s. If we reach the global limit for retx list entries, throttle the
          * update process. */
-        if (((osapiTimeMillisecondsGet() - startTime) > OSPF_MAX_RTB_UPDATE_MSECS) ||
+        if (((osapiTimeMillisecondsGetOffset(startTime)) > OSPF_MAX_RTB_UPDATE_MSECS) ||
             (p_RTO->retxEntries >= RTO_MaxLsaRetxEntriesGet(p_RTO)))
         {
           p_RTB->RtePendingUpdate= p_RteNext;
@@ -6083,7 +6083,7 @@ static e_Err RTB_RtoFlushRoutes(t_RTB *p_RTB, ulng startTime, t_Handle oldTree)
        * route changes can prompt us to send LSAs (e.g., T3 summaries and translated
        * type 5s. If we reach the global limit for retx list entries, throttle the
        * update process. */
-        if (((osapiTimeMillisecondsGet() - startTime) > OSPF_MAX_RTB_UPDATE_MSECS) ||
+        if (((osapiTimeMillisecondsGetOffset(startTime)) > OSPF_MAX_RTB_UPDATE_MSECS) ||
             (p_RTO->retxEntries >= RTO_MaxLsaRetxEntriesGet(p_RTO)))
         {
           /* save our position */
@@ -6927,7 +6927,7 @@ e_Err RTB_AddSpfReason(t_RTB *p_RTB, e_SpfReason reason)
 static e_Err RTB_SpfStatsUpdate(t_RTB *p_RTB, L7_uint32 spfStart)
 {
   t_RTO *p_RTO = (t_RTO*) p_RTB->RTO_Id;
-  L7_uint32 duration = osapiTimeMillisecondsGet() - spfStart;   /* msec */
+  L7_uint32 duration = osapiTimeMillisecondsGetOffset(spfStart);   /* msec */
 
   /* Record stats for SPF just completed */
    p_RTB->SpfStats[p_RTB->SpfStatsIndex].SpfTime = spfStart;

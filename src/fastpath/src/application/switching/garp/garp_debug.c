@@ -1228,12 +1228,12 @@ L7_BOOL garpDebugTraceModeGet(L7_uint32 traceFlag)
 *********************************************************************/
 void garpTraceWrite(L7_uchar8 *traceMsg)
 {
-    L7_uint32 msecSinceBoot;
+    L7_uint64 msecSinceBoot;
     L7_uint32 secSinceBoot;
     L7_uint32 msecs;
     L7_uchar8 debugMsg[300 + 1];
 
-    msecSinceBoot = osapiTimeMillisecondsGet();
+    msecSinceBoot = osapiTimeMillisecondsGet64();
     secSinceBoot = msecSinceBoot / 1000;
     msecs = msecSinceBoot % 1000;
 
@@ -1815,7 +1815,9 @@ void garpDebugPrintTimersInfo(void  **timers,
                               garpTimersToPrint timers_to_print,
                               L7_uint32 no_of_timers_to_print)
 {
-    L7_uint32 printedTimers = 0, currentTime = 0;
+    L7_uint32 printedTimers = 0;
+    //L7_uint32 currentTime = 0;
+    L7_uint64 currentTime = 0; //64 bit version
     garpTimerDescr_t *timersList;
 
     if (no_of_timers_to_print <=0 )
@@ -1869,7 +1871,8 @@ void garpDebugPrintTimersInfo(void  **timers,
                      timersList->port_no,
                      timersList->vid);
 
-        currentTime = osapiTimeMillisecondsGet();
+        //currentTime = osapiTimeMillisecondsGet();
+        currentTime = osapiTimeMillisecondsGet64(); //64 bit version
 
         if (currentTime >= timersList->expiryTime)
             sysapiPrintf("Expired %i msecs ago", currentTime - timersList->expiryTime);

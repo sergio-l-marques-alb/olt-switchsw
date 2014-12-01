@@ -328,7 +328,7 @@ extern void appTimerDebugShow(L7_APP_TMR_CTRL_BLK_t timerCtrlBlk);
 typedef struct
 {
   L7_sll_member_t *next;      /* Link to next entry */
-  L7_uint32       expiryTime; /* Expiry time of this entry */
+  L7_uint64       expiryTime; /* Expiry time of this entry */
   L7_app_tmr_fn   expiryFn;
   void            *pParam;
 #ifdef APPTIMER_DEBUG  

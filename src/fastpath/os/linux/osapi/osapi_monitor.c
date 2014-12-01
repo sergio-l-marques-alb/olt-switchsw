@@ -76,7 +76,7 @@ void osapiMonitorTaskSleepIntervalSet(L7_uint32 interval)
 *********************************************************************/
 void osapiMonitorTask()
 {
-  L7_uint32 currentTime = 0, lastMemoryMonitorTime = 0;
+  L7_uint64 currentTime = 0, lastMemoryMonitorTime = 0;
 
   do
   {
@@ -91,7 +91,7 @@ void osapiMonitorTask()
   osapiMemoryProfilerNotify();
 #endif
 
-    currentTime = osapiTimeMillisecondsGet();
+    currentTime = osapiTimeMillisecondsGet64();
     if ((currentTime - lastMemoryMonitorTime) >= osapiMemoryMonitorInterval)
     {
       simMemoryMonitor();    

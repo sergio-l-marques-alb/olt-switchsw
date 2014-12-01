@@ -1450,7 +1450,7 @@ int usl_policy_db_dataplane_cleanup(L7_uint32 cpu_modid, L7_uint32 cpu_modport)
   } while (0);
 
   endTime = osapiTimeMillisecondsGet();
-  uslPolicyDataplaneCleanupTime += (endTime - startTime);
+  uslPolicyDataplaneCleanupTime += osapiTimeMillisecondsDiff(endTime,startTime);
   uslPolicyDataplaneCleanupCount++;
 
   USL_POLICY_DB_LOCK_GIVE();

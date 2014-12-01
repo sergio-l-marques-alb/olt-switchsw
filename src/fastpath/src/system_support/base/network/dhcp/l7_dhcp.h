@@ -188,7 +188,7 @@ typedef struct dhcpLeaseInfo_s
   L7_uint32 net_t1;
   L7_uint32 net_t2;
   L7_uint32 net_expiry;
-  L7_uint32 expiry_uptime;
+  L7_uint64 expiry_uptime;
 
 } dhcpLeaseInfo_t;
 

@@ -1946,7 +1946,7 @@ void hapiBroadDebugPktSendTask(L7_uint32 numArgs, DAPI_t *dapi_g)
   bcm_pkt_blk_t            pkt_blk;
   unsigned int             pkt_count;
   int                      i;
-  L7_uint32                t1, t2;
+  L7_uint64                t1, t2;
 
   memset (&pkt, 0, sizeof(pkt));
   pkt.pkt_data  = &pkt_blk;
@@ -1990,11 +1990,11 @@ void hapiBroadDebugPktSendTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       {
         osapiTaskYield();
         bcmx_tx_pkt_untagged_set(&pkt,L7_FALSE);
-        t1 = osapiTimeMillisecondsGet();
+        t1 = osapiTimeMillisecondsGet64();
         bcmx_tx_uc(&pkt, hapiPortPtr->bcmx_lport,BCMX_TX_F_CPU_TUNNEL);
         hapiBroadDebugSendCounter++;
 
-        t2 = osapiTimeMillisecondsGet();
+        t2 = osapiTimeMillisecondsGet64();
 
         if ((t2 - t1) > maxTxTime)
         {

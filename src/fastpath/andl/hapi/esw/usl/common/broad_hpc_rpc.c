@@ -1313,7 +1313,8 @@ L7_uint32 hpcDebugTest2(L7_uint32 num_iter, L7_uint32 sleep_msec)
 
   end_time = osapiTimeMillisecondsGet ();
 
-  delta_time = end_time - start_time;
+  //delta_time = end_time - start_time;
+  delta_time = osapiTimeMillisecondsDiff(end_time,start_time);
   if (delta_time > 10000)
   {
   transaction_rate = num_iter / (delta_time / 1000);
@@ -1369,7 +1370,8 @@ L7_uint32 hpcDebugTest2a(L7_uint32 num_iter, L7_uint32 sleep_msec)
   }
   end_time = osapiTimeMillisecondsGet ();
 
-  delta_time = end_time - start_time;
+  //delta_time = end_time - start_time;
+  delta_time = osapiTimeMillisecondsDiff(end_time,start_time);
   if (delta_time > 10000)
   {
   transaction_rate = num_iter / (delta_time / 1000);
@@ -1428,7 +1430,8 @@ L7_uint32 hpcDebugTest3(L7_uint32 unit, L7_uint32 num_iter, L7_uint32 sleep_msec
 
   end_time = osapiTimeMillisecondsGet ();
 
-  delta_time = end_time - start_time;
+  //delta_time = end_time - start_time;
+  delta_time = osapiTimeMillisecondsDiff(end_time,start_time);
   if (delta_time > 10000)
   {
   transaction_rate = num_iter / (delta_time / 1000);

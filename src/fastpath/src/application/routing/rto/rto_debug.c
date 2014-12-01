@@ -394,7 +394,7 @@ void rtoDebugMatch(L7_uint32 addr, L7_uint32 count)
   for(i = 0; i < count; i++)
     rc = rtoBestRouteLookup (addr, &route, L7_TRUE);
 
-  msecElapsed = osapiTimeMillisecondsGet() - msecSinceBoot;
+  msecElapsed = osapiTimeMillisecondsGetOffset(msecSinceBoot);
 
   sysapiPrintf("%ums for %d runs: %s: ", msecElapsed, i, osapiInet_ntoa(addr));
 
@@ -449,7 +449,7 @@ void rtoDebugLookup(L7_uint32 addr, L7_uint32 mask, L7_uint32 next)
   osapiReadLockTake(rtoRwLock, L7_WAIT_FOREVER);
   pData = radixLookupNode (&rtoRouteTreeData, &network, &netmask, next);
 
-  msecElapsed = osapiTimeMillisecondsGet() - msecSinceBoot;
+  msecElapsed = osapiTimeMillisecondsGetOffset(msecSinceBoot);
 
   sysapiPrintf("\n%ums: %s: ", msecElapsed, osapiInet_ntoa(addr));
 

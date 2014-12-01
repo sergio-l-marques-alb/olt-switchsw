@@ -891,10 +891,12 @@ void nimProfilePortEvent(L7_COMPONENT_IDS_t component,
     }
     else
     {
-      nimProfileEventInfo->eventInfo[event].totalTime += osapiTimeMillisecondsGet() - nimProfileEventInfo->eventInfo[event].tempTime;
+      //nimProfileEventInfo->eventInfo[event].totalTime += osapiTimeMillisecondsGet() - nimProfileEventInfo->eventInfo[event].tempTime;
+      nimProfileEventInfo->eventInfo[event].totalTime += osapiTimeMillisecondsGetOffset(nimProfileEventInfo->eventInfo[event].tempTime);
       if (nimProfileMask & NIM_PROFILE_PORT_EVENT_PER_INTF)
       {
-        nimProfileIntfEventInfo->intfInfo[intIfNum].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - nimProfileIntfEventInfo->intfInfo[intIfNum].eventInfo[event].tempTime;
+        //nimProfileIntfEventInfo->intfInfo[intIfNum].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - nimProfileIntfEventInfo->intfInfo[intIfNum].eventInfo[event].tempTime;
+        nimProfileIntfEventInfo->intfInfo[intIfNum].eventInfo[event].totalTime = osapiTimeMillisecondsGetOffset(nimProfileIntfEventInfo->intfInfo[intIfNum].eventInfo[event].tempTime);
       }
     }
   }
@@ -935,11 +937,13 @@ void nimProfilePortEventComp(L7_COMPONENT_IDS_t component,
     {
       if (nimProfileMask & NIM_PROFILE_PORT_EVENT_PER_COMP)
       {
-        nimProfileCompEventInfo[component].eventInfo[event].totalTime += osapiTimeMillisecondsGet() - nimProfileCompEventInfo[component].eventInfo[event].tempTime;
+        //nimProfileCompEventInfo[component].eventInfo[event].totalTime += osapiTimeMillisecondsGet() - nimProfileCompEventInfo[component].eventInfo[event].tempTime;
+        nimProfileCompEventInfo[component].eventInfo[event].totalTime += osapiTimeMillisecondsGetOffset(nimProfileCompEventInfo[component].eventInfo[event].tempTime);
       }
       if (nimProfileMask & NIM_PROFILE_PORT_EVENT_PER_COMP_INTF)
       {
-        nimProfileCompIntfEventInfo[component].intfInfo[intIfNum].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - nimProfileCompIntfEventInfo[component].intfInfo[intIfNum].eventInfo[event].tempTime;
+        //nimProfileCompIntfEventInfo[component].intfInfo[intIfNum].eventInfo[event].totalTime = osapiTimeMillisecondsGet() - nimProfileCompIntfEventInfo[component].intfInfo[intIfNum].eventInfo[event].tempTime;
+        nimProfileCompIntfEventInfo[component].intfInfo[intIfNum].eventInfo[event].totalTime = osapiTimeMillisecondsGetOffset(nimProfileCompIntfEventInfo[component].intfInfo[intIfNum].eventInfo[event].tempTime);
       }
     }
   }

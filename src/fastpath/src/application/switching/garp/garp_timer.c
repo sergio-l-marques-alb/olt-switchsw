@@ -328,7 +328,7 @@ static L7_RC_t garpTimerListDeleteElement(garpTimerDescr_t *pTimer, garpTimerLis
 *
 * @end
 *********************************************************************/
-static L7_RC_t garpTimerListFirstExpiryTimeGet(garpTimerList_t *timerList, L7_uint32 *expiryTime)
+static L7_RC_t garpTimerListFirstExpiryTimeGet(garpTimerList_t *timerList, L7_uint64 *expiryTime)
 {
 
     L7_RC_t rc = L7_SUCCESS;
@@ -447,9 +447,9 @@ void garpTimerAdd(L7_uint32 vid, L7_uint32 port_no,
                   GARP_TIMER_TYPE_t timer_type)
 {
 
-    L7_int32        newExpiryTime;
+    L7_int64        newExpiryTime;
 
-    newExpiryTime = milliseconds + osapiTimeMillisecondsGet();
+    newExpiryTime = milliseconds + osapiTimeMillisecondsGet64();
 
     if (pTimer->timer_status != GARP_TIMER_UNDEFINED)
     {
@@ -515,7 +515,7 @@ void garpTimerAction()
     garpTimerList_t *pTimerList;
     garpTimerDescr_t *pTimer;
     L7_BOOL timersPopped;
-    L7_uint32 expiryTime = 0;
+    L7_uint64 expiryTime = 0;
 
     /* ordered list:
      * walk the garpTimersPendingList list until an entry is
@@ -525,7 +525,7 @@ void garpTimerAction()
     pTimerList   = &garpTimers.garpTimersPendingList ;
 
     while ((garpTimerListFirstExpiryTimeGet(pTimerList,&expiryTime) ==L7_SUCCESS) &&
-           (expiryTime <= osapiTimeMillisecondsGet()))
+           (expiryTime <= osapiTimeMillisecondsGet64()))
     {
 
             /* Timer has popped
@@ -831,7 +831,7 @@ void garpDebugUnitTestGarpTimerList(L7_uint32 action,L7_uint32 numEntries)
                 pTimer->timerType    = 4;
                 pTimer->vid          = 1;
                 pTimer->port_no      = 21;
-                pTimer->expiryTime   = milliseconds + osapiTimeMillisecondsGet();
+                pTimer->expiryTime   = milliseconds + osapiTimeMillisecondsGet64();
                 pTimer->timer_status = GARP_TIMER_PENDING;
 
 

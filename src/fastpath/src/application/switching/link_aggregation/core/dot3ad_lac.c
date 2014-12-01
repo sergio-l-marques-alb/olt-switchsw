@@ -622,7 +622,7 @@ L7_RC_t dot3adNimActivateStartup()
   
   DOT3AD_DEBUG_NSF_PRINT_DEBUG(DOT3AD_DEBUG_NSF_NIM_TRACE,
                                "Dot3ad reconcile done in %d ms\n",
-                               (osapiTimeMillisecondsGet() - startTime));
+                               (osapiTimeMillisecondsGetOffset(startTime)));
   return L7_SUCCESS;
 
 }

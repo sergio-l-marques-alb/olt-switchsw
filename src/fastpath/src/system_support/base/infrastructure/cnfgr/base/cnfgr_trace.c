@@ -745,7 +745,8 @@ void cnfgrProfileEventStop(void)
 {
   if (cnfgrProfileEnable == L7_TRUE)
   {
-    cnfgrProfileEventInfo->eventInfo[currProfileCnfgrEvent].totalTime = osapiTimeMillisecondsGet() - cnfgrProfileEventInfo->eventInfo[currProfileCnfgrEvent].tempTime;
+    //cnfgrProfileEventInfo->eventInfo[currProfileCnfgrEvent].totalTime = osapiTimeMillisecondsGet() - cnfgrProfileEventInfo->eventInfo[currProfileCnfgrEvent].tempTime;
+    cnfgrProfileEventInfo->eventInfo[currProfileCnfgrEvent].totalTime = osapiTimeMillisecondsGetOffset(cnfgrProfileEventInfo->eventInfo[currProfileCnfgrEvent].tempTime);
     currProfileCnfgrEvent = CNFGR_EVNT_FIRST;
   }
 }
@@ -793,7 +794,8 @@ void cnfgrProfileEventCompStop(L7_uint32 correlator)
     {
       if (cnfgrProfileEventCompInfo[i].correlator == correlator)
       {
-        cnfgrProfileEventCompInfo[i].eventInfo[currProfileCnfgrReqEvent].totalTime = osapiTimeMillisecondsGet() - cnfgrProfileEventCompInfo[i].eventInfo[currProfileCnfgrReqEvent].tempTime;
+        //cnfgrProfileEventCompInfo[i].eventInfo[currProfileCnfgrReqEvent].totalTime = osapiTimeMillisecondsGet() - cnfgrProfileEventCompInfo[i].eventInfo[currProfileCnfgrReqEvent].tempTime;
+        cnfgrProfileEventCompInfo[i].eventInfo[currProfileCnfgrReqEvent].totalTime = osapiTimeMillisecondsGetOffset(cnfgrProfileEventCompInfo[i].eventInfo[currProfileCnfgrReqEvent].tempTime);
         cnfgrProfileEventCompInfo[i].correlator = 0;
         break;
       }

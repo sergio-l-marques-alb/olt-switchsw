@@ -8049,7 +8049,7 @@ int usl_l3_db_dataplane_cleanup(L7_int32 *missing_mod_ids,
   }
 
   endTime = osapiTimeMillisecondsGet();
-  uslL3DataplaneCleanupTime += (endTime - startTime);
+  uslL3DataplaneCleanupTime += osapiTimeMillisecondsGetDiff(endTime,startTime);
   uslL3DataplaneCleanupCount++;
 
   return rv;

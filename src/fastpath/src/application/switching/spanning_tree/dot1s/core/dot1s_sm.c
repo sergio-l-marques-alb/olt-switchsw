@@ -6657,8 +6657,8 @@ L7_RC_t dot1sFlush(L7_uint32 intIfNum, L7_uint32 instIndex)
 
         if (DOT1S_DEBUG(DOT1S_DEBUG_FLUSH,instIndex))
         {
-          DOT1S_DEBUG_MSG("%s: Flushing Dynamic Filtering entries for port %d at %d\n",
-                          __FUNCTION__,intIfNum,osapiUpTimeMillisecondsGet());
+          DOT1S_DEBUG_MSG("%s: Flushing Dynamic Filtering entries for port %d at %lld\n",
+                          __FUNCTION__,intIfNum,osapiTimeMillisecondsGet64());
         }
 
         return dtlDot1sFlush(intIfNum);
@@ -6832,8 +6832,8 @@ L7_RC_t dot1sTcPropTreeSet(L7_uint32 intIfNum, L7_uint32 instIndex)
       rc = dot1sStateMachineClassifier(tcmTcProp, p, instIndex, L7_NULL, L7_NULLPTR);
       if (DOT1S_DEBUG(DOT1S_DEBUG_DETECTED_TC,instIndex))
       {
-        DOT1S_DEBUG_MSG("%s:Set tcprop for port (%d) ,inst (%d) to TRUE at %d.",
-                        __FUNCTION__,p->portNum,instIndex,osapiUpTimeMillisecondsGet());
+        DOT1S_DEBUG_MSG("%s:Set tcprop for port (%d) ,inst (%d) to TRUE at %lld.",
+                        __FUNCTION__,p->portNum,instIndex,osapiTimeMillisecondsGet64());
       }
     }
     p = dot1sIntfFindNext(p->portNum);
@@ -7069,8 +7069,8 @@ L7_RC_t dot1sTcmNotifiedTcAction(DOT1S_PORT_COMMON_t *p, L7_uint32 instIndex)
 
   if (DOT1S_DEBUG(DOT1S_DEBUG_DETECTED_TC,instIndex))
   {
-    DOT1S_DEBUG_MSG("%s:Put port (%d) , instance (%d) in TCM_NOTIFIED_TC at %d.",
-                    __FUNCTION__,p->portNum,instIndex,osapiUpTimeMillisecondsGet());
+    DOT1S_DEBUG_MSG("%s:Put port (%d) , instance (%d) in TCM_NOTIFIED_TC at %lld.",
+                    __FUNCTION__,p->portNum,instIndex,osapiTimeMillisecondsGet64());
   }
   return rc;
 }

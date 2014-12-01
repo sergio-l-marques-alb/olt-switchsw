@@ -47,13 +47,14 @@ extern L7_char8 *wioInitStateNames[];
 *********************************************************************/
 L7_RC_t wioTraceWrite(L7_uchar8 *wioTrace)
 {
-  L7_uint32 msecSinceBoot, secSinceBoot, msecs;
+  L7_uint32 secSinceBoot, msecs;
+  L7_uint64 msecSinceBoot;
   L7_uchar8 debugMsg[WIO_MAX_TRACE_LEN];
 
   if (wioTrace == NULL)
     return L7_SUCCESS;
 
-  msecSinceBoot = osapiTimeMillisecondsGet();
+  msecSinceBoot = osapiTimeMillisecondsGet64();
   secSinceBoot = msecSinceBoot / 1000;
   msecs = msecSinceBoot % 1000;
 

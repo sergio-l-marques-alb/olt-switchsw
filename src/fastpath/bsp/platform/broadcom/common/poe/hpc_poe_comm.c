@@ -316,7 +316,7 @@ L7_int32 poe_device_read(L7_uint32 cardIndex, L7_uchar8 *rx_buf, L7_uint32 len)
 				 if(bytes < 0) return -1;
 				 temp_len += bytes;
 				 currentTime = osapiTimeMillisecondsGet();
-				 msecs = currentTime - startTime;
+				 msecs = osapiTimeMillisecondsDiff(currentTime, startTime);
 				 if(msecs > HPC_POE_COMM_UART_RX_TIMEOUT)
 				 {
 					 return -1;
@@ -410,7 +410,7 @@ L7_int32 poe_device_flush(L7_uint32 cardIndex)
 					 startTime = osapiTimeMillisecondsGet();
 				 }
 				 currentTime = osapiTimeMillisecondsGet();
-				 msecs = currentTime - startTime;
+				 msecs = osapiTimeMillisecondsDiff(currentTime,startTime);
 			}
     }
 #endif

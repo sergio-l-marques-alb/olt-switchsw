@@ -414,7 +414,7 @@ L7_RC_t ihPacketPoolDelete(void)
 *********************************************************************/
 void ihTraceWrite(L7_uchar8 *traceMsg)
 {
-    L7_uint32 msecSinceBoot;
+    L7_uint64 msecSinceBoot;
     L7_uint32 secSinceBoot;
     L7_uint32 msecs;
     L7_uchar8 debugMsg[1024];
@@ -422,7 +422,7 @@ void ihTraceWrite(L7_uchar8 *traceMsg)
     if (traceMsg == NULL)
         return;
 
-    msecSinceBoot = osapiTimeMillisecondsGet();
+    msecSinceBoot = osapiTimeMillisecondsGet64();
     secSinceBoot = msecSinceBoot / 1000;
     msecs = msecSinceBoot % 1000;
 

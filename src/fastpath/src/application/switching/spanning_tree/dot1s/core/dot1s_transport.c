@@ -241,9 +241,9 @@ void dot1s_transport_task()
 
 
           DOT1S_DEBUG_NSF(DOT1S_DEBUG_NSF_TRANSPORT,
-                      "sending PDU(%d) to helper(%d) for interface %d at %u \n",
+                      "sending PDU(%d) to helper(%d) for interface %d at %llu \n",
                       txMsg.helperData.msgType, unit, intIfIndex,
-                      osapiUpTimeMillisecondsGet());
+                      osapiTimeMillisecondsGet64());
 #ifdef L7_STACKING_PACKAGE
           unitMgrUnitStatusGet(unit, &unitStatus);
           if ((unit != L7_NULL) && (unitStatus == L7_UNITMGR_UNIT_OK))
