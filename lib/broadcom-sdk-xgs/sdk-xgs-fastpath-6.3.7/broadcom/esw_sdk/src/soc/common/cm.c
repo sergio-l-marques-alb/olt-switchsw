@@ -53,6 +53,7 @@
  */
 #include <assert.h>
 #include <sal/core/libc.h>
+#include <sal/core/spl.h>
 #include <sal/core/sync.h>
 #include <soc/devids.h>
 #include <soc/cmext.h>
@@ -73,10 +74,8 @@
 
 #include "logger.h"
 
-/* PTin added: Segmentation fault for OLT1T0 */
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+/* PTin added: Segmentation fault */
 #undef BROADCOM_DEBUG
-#endif
 
 cm_device_t                     soc_cm_device[SOC_MAX_NUM_DEVICES];
 int                             soc_cm_device_count;
@@ -4777,6 +4776,9 @@ static soc_cm_init_t            _soc_cm_init_data = { NULL, NULL, NULL };
 static shared_block_t *head = NULL;
 static char           *shared_start = (char *)~(size_t)0;
 static char           *shared_end   = (char *)0;
+static sal_spinlock_t  dl = NULL;
+#define CM_DB_LOCK()   sal_spinlock_lock(dl ? dl : (dl = sal_spinlock_create("cm debug")));
+#define CM_DB_UNLOCK() sal_spinlock_unlock(dl);
 #endif
 
 /*
@@ -5539,24 +5541,26 @@ soc_cm_salloc(int dev, int size, const char *name)
     p->modified_size = modified_size;
     p->user_data[size_words] = 0xddccbbaa;
 
+    CM_DB_LOCK();
     if (head != NULL) {
         head->prev = p;
     }
     p->prev = NULL;
     p->next = head;
     head = p;
+    if ((char *)p < shared_start) {
+        shared_start = (char*)p;
+    }  
+    if (((char *)p) + modified_size > shared_end) {
+        shared_end = ((char*)p) + modified_size;
+    }
+    CM_DB_UNLOCK();
     soc_cm_debug(DK_VERBOSE,
                  "Allocation: Start :%x: Description:%s: Size:%d:"
                  "ModifiedSize:%d: End:%x:\n",
                   p->start_sentinel ,p->description, p->size,p->modified_size, 
                   p->user_data[size_words]);
     ptr = (void *)&p->user_data[0];
-    if ((char *)p < shared_start) {
-        shared_start = (char*)p;
-    }  
-    if (((char *)p) + modified_size > shared_end) {
-        shared_end = ((char*)p) + modified_size;
-    } 
 #else
     ptr = CMVEC(dev).salloc(&CMDEV(dev).dev, size, name);
 #endif
@@ -5598,6 +5602,7 @@ soc_cm_sfree(int dev, void *ptr)
                "Freeing Start:%x: Desc:%s: Size:%d: ModifiedSize:%d: End:%x:\n",
                p->start_sentinel ,p->description, p->size,p->modified_size, 
                p->user_data[size_words]);
+    CM_DB_LOCK();
     if (p == head) {
         head = p->next;
         if (head != NULL) {
@@ -5613,6 +5618,7 @@ soc_cm_sfree(int dev, void *ptr)
             p->next->prev = p->prev;
         }
     }
+    CM_DB_UNLOCK();
     CMVEC(dev).sfree(&CMDEV(dev).dev, p);
 
 #else /* !BROADCOM_DEBUG */
