@@ -1518,6 +1518,7 @@ void hpcHardwareDefaultConfigApply(void)
           }
 
           rv = bcm_port_pfm_set(i, port, BCM_PORT_PFM_MODEC);   /* PTin modified: L2 */
+          LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
             LOG_ERROR (rv);
@@ -3405,11 +3406,27 @@ void hapiBroadDebugBcmPrint(int val)
   printingOverride_g  = val;
 }
 
+/* PTin added: debug */
+#if 1
+int hapiBroadCmPrint_debug = L7_FALSE;
+
+void hapiBroadCmPrint_enable(int enable)
+{
+  hapiBroadCmPrint_debug = enable;
+}
+#endif
+
 int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
 {
   L7_LOG_SEVERITY_t sev = L7_LOG_SEVERITY_DEBUG;
   L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
   L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE]; 
+
+  /* PTin added: debug */
+  #if 1
+  if (!hapiBroadCmPrint_debug)
+    return 0;
+  #endif
 
   if( (flags == 0) || (flags == DK_ERR) )
   {

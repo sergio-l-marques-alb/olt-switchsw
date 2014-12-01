@@ -144,7 +144,7 @@ typedef struct {
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_PppoeInstCfg_t;
 
-#define QUATTRO_PPPOE_TRAP_PREACTIVE     1   /* To always have this rule active, set 1 */
+#define QUATTRO_PPPOE_TRAP_PREACTIVE     0   /* To always have this rule active, set 1 */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /* Global number of QUATTRO P2P flows */
 static L7_uint32 pppoe_quattro_stacked_evcs = 0;
@@ -359,15 +359,15 @@ L7_RC_t ptin_pppoe_enable(L7_BOOL enable)
   }
   LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Success setting PPPOE global enable to %u",enable);
 
-#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_PPPOE_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
   if (ptin_pppoePkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
     ptin_pppoePkts_global_trap(!enable);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
+  LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
 #endif
 
   return L7_SUCCESS;

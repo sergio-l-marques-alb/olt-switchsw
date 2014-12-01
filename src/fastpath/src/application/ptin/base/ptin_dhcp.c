@@ -148,7 +148,7 @@ typedef struct {
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_DhcpInstCfg_t;
 
-#define QUATTRO_DHCP_TRAP_PREACTIVE     1   /* To always have this rule active, set 1 */
+#define QUATTRO_DHCP_TRAP_PREACTIVE     0   /* To always have this rule active, set 1 */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /* Global number of QUATTRO P2P flows */
 static L7_uint32 dhcp_quattro_stacked_evcs = 0;
@@ -378,17 +378,17 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
   }
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success setting DHCP global enable to %u",enable);
 
-#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_IGMP_TRAP_PREACTIVE)
+#if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_DHCP_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
   if (ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
     ptin_dhcpPkts_global_trap(!enable);
     dsL2RelayAdminModeSet(!enable);
     usmDbDsAdminModeSet(!enable);
     return L7_FAILURE;
   }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
+  LOG_TRACE(LOG_CTX_PTIN_DHCP,"Packet trapping for QUATTRO VLANs configured (enable=%u)", enable);
 #endif
 
   return L7_SUCCESS;
