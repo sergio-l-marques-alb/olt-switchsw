@@ -3422,12 +3422,6 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
   L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
   L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE]; 
 
-  /* PTin added: debug */
-  #if 1
-  if (!hapiBroadCmPrint_debug)
-    return 0;
-  #endif
-
   if( (flags == 0) || (flags == DK_ERR) )
   {
     /* Always treat no flags as an immediate print to the console */
@@ -3466,7 +3460,7 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
   {
     vprintf(format,args);
   }
-  else if (logit)
+  else if (logit && hapiBroadCmPrint_debug)   /* PTin modified: Logs */
   {
     /* 
      * only allow the write to happen to either syslog or dapiTrace 
