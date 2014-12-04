@@ -190,8 +190,6 @@ L7_RC_t ptin_hal_erps_countersClear(L7_uint8 erps_idx)
     return PROT_ERPS_INDEX_VIOLATION;
   }
 
-  printf("\nERPS#%d Reset APS Statistics\n", erps_idx);
-  
   osapiSemaTake(ptin_hal_erps_sem, L7_WAIT_FOREVER);
 
   for (port=0; port<2; port++) {
