@@ -1480,8 +1480,8 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
     if (ERPS_STATE_IsLocal(state_machine))
     {
       tbl_erps[erps_idx].remoteRequest = RReq_NONE;
-      tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0]  = (RReq_NONE << 12) & 0xF000;
-      tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1]  = (RReq_NONE << 12) & 0xF000;
+      tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT0]  = 0;
+      tbl_erps[erps_idx].apsReqStatusRx[PROT_ERPS_PORT1]  = 0;
     }
     else
     {
@@ -1724,11 +1724,14 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
               apsNodeIdRx[4],
               apsNodeIdRx[5]);
 
-      if (apsReqRx > apsReqRxOtherPort) {
+      if (apsReqRx != apsReqRxOtherPort) {
         remoteRequest = apsReqRx;
       }
       else if ((apsReqRx == apsReqRxOtherPort) && (apsStatusRx != apsStatusRxOtherPort)) {
         remoteRequest = apsReqRx;
+
+        /* Clear on the other Port */
+        tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] = 0;
       }
       else {
         LOG_NOTICE(LOG_CTX_ERPS,"ERPS#%d: Ignoring Received R-APS. Other Port Request(0x%x) = %s(0x%x)", erps_idx, apsReqRxOtherPort,
@@ -1737,60 +1740,6 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     }
 #endif
 
-    // The flush logic retains for each ring port the information of node ID and blocked port reference 
-    // (BPR) of the last R-APS message received over that ring port.
-    // 
-    // For each new R-APS message received over one ring port, it extracts the (node ID, BPR) pair and 
-    // compares it with the previous (node ID, BPR) pair stored for that ring port. If it is different from the
-    // previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
-    // stored for that ring port; and if it is different from the (node ID, BPR) pair already stored at the
-    // other ring port, then a flush FDB action is triggered except when the new R-APS message has DNF
-    // or the receiving Ethernet ring node's node ID. An R-APS (NR) message received by this process
-    // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
-    // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
-
-#if 0
-    if (remoteRequest == RReq_NR) {
-      memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
-      tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
-    } else {
-
-      L7_uint8 aux;
-      // extracts the (node ID, BPR) pair ...
-      aux = (APS_GET_STATUS(apsStatusRx) & RReq_STAT_BPR)? PROT_ERPS_PORT1 : PROT_ERPS_PORT0;
-
-      // ...and compares it with the previous (node ID, BPR)
-      if (memcmp(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE) || (tbl_erps[erps_idx].apsBprRx[apsRxPort] != aux))
-      {
-        // If it is different from the previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
-        // stored for that ring port;
-        memcpy(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], apsNodeIdRx, PROT_ERPS_MAC_SIZE);
-        tbl_erps[erps_idx].apsBprRx[apsRxPort] = aux;
-
-        // and if it is different from the (node ID, BPR) pair already stored at the
-        // other ring port, then a flush FDB action is triggered
-        if ((memcmp(tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT0], tbl_erps[erps_idx].apsNodeIdRx[PROT_ERPS_PORT1], PROT_ERPS_MAC_SIZE)) || 
-            (tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0] != tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]))
-        {
-          // except when the new R-APS message has DNF
-          // or the receiving Ethernet ring node's node ID.
-          if (!((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)))
-          {
-            ptin_erps_FlushFDB(erps_idx, __LINE__);
-          }
-        }
-      }
-    }
-#endif
-
-    //LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, remoteRequest,
-    //        remReqToString[remoteRequest], APS_GET_STATUS(apsStatusRx), apsRxPort,
-    //        apsNodeIdRx[0],
-    //        apsNodeIdRx[1],
-    //        apsNodeIdRx[2],
-    //        apsNodeIdRx[3],
-    //        apsNodeIdRx[4],
-    //        apsNodeIdRx[5]);
   }
     
 
@@ -2128,6 +2077,17 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     return(PROT_ERPS_EXIT_OK);
   }
 
+  // The flush logic retains for each ring port the information of node ID and blocked port reference 
+  // (BPR) of the last R-APS message received over that ring port.
+  // 
+  // For each new R-APS message received over one ring port, it extracts the (node ID, BPR) pair and 
+  // compares it with the previous (node ID, BPR) pair stored for that ring port. If it is different from the
+  // previous pair stored, then the previous pair is deleted and the newly received (node ID, BPR) pair is
+  // stored for that ring port; and if it is different from the (node ID, BPR) pair already stored at the
+  // other ring port, then a flush FDB action is triggered except when the new R-APS message has DNF
+  // or the receiving Ethernet ring node's node ID. An R-APS (NR) message received by this process
+  // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
+  // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
   if (remoteRequest == RReq_NR) {
     memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
     tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
@@ -2279,7 +2239,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         }
 
         //Else if failed ring port is RPL next-neighbour port:
-        if (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEXTNEIGH) {
+        else if (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEXTNEIGH) {
           /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
           // Block failed ring port
           // Tx R-APS (SF) from failed ring port
@@ -2341,7 +2301,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         }
 
         //Else if failed ring port is RPL next-neighbour port:
-        if (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEXTNEIGH) {   /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
+        else if (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEXTNEIGH) {   /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
           // Block failed ring port
           // Tx R-APS (SF) from failed ring port
           // Unblock non-failed ring port
@@ -2449,6 +2409,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         // flush FDB
         ptin_erps_FlushFDB(erps_idx, __LINE__);
 
+        #if 0 // Removed: undesired behaviors observed
         // If RPL next-neighbour node
         if ((tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEXTNEIGH) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEXTNEIGH)) {
           /*** TO BE DONE - RPL next-neighbour Not yet supported ***/
@@ -2463,6 +2424,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
           //  clear DNF status
           tbl_erps[erps_idx].dnfStatus = 0;
         }
+        #endif
       }
 
       //Else:
