@@ -3567,6 +3567,9 @@ phy_wcmod_init(int unit, soc_port_t port)
     SOC_DEBUG_PRINT((DK_PHY,
                      "phy_wcmod_init: u=%d p=%d\n", unit, port));
 
+    /* PTin added */
+    osapiSleepMSec(100);
+
     return SOC_E_NONE;
 }
 
