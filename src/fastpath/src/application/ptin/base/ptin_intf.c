@@ -261,6 +261,7 @@ L7_RC_t ptin_intf_init(void)
     LOG_ERR(LOG_CTX_PTIN_INTF, "Failed initializing MEF Ext parameters");
     return L7_FAILURE;
   }
+  LOG_NOTICE(LOG_CTX_PTIN_INTF, "MEF Ext defaults applied");
 
   /* Initialize phy conf structure (must be run after default configurations!) */
   for (i=0; i<ptin_sys_number_of_ports; i++)
