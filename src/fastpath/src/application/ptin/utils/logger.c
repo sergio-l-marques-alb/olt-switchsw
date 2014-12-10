@@ -147,34 +147,34 @@ static char *log_colors_str[LOG_COLOR_LAST] = {
 /* Logger default configuration
  * NOTE: it is assumed that entries are sorted by context indexes! */
 static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
-    {LOG_CTX_LOGGER,            LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_IPC,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_MSGHANDLER,   LOG_SEV_INFO ,       LOG_COLOR_MAGENTA},
-    {LOG_CTX_PTIN_MSG,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_INTF,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_TRUNKS,       LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_HAPI,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_DTL,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_L2,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_XLATE,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_API,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_EVC,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_CONTROL,      LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_IGMP,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_DHCP,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_PPPOE,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_PROTB,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_ROUTING,      LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_SSM,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_PACKET,       LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_PTIN_CNFGR,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_MISC,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_OAM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_SDK,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT},
-    {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT},
+    {LOG_CTX_LOGGER,            LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_IPC,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_MSGHANDLER,   LOG_SEV_INFO ,       LOG_COLOR_MAGENTA,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_MSG,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_INTF,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_TRUNKS,       LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_HAPI,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_DTL,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_L2,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_XLATE,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_API,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_EVC,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_CONTROL,      LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_IGMP,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_DHCP,         LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_PPPOE,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_PROTB,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_ROUTING,      LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_SSM,          LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_PACKET,       LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_PTIN_CNFGR,        LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_MISC,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_OAM,               LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_SDK,               LOG_SEV_DEBUG,       LOG_COLOR_WHITE  ,     LOG_OUTPUT_FILE2  },
+    {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
 };
 
 typedef enum {
@@ -185,8 +185,8 @@ typedef enum {
 static struct s_outFile {
   log_output_t output;
   write_lock_t lock;
-  FILE *stream;
-} outFile = { LOG_OUTPUT_UNINIT, WRITE_UNLOCK, NULL };
+  FILE        *stream[LOG_OUTPUT_MAX];
+} outFile = { LOG_OUTPUT_UNINIT, WRITE_UNLOCK };
 
 
 /**
@@ -220,56 +220,32 @@ void log_help(void)
 /**
  * Initialize logger
  * 
- * @param output : type of output
+ * @param default_output : type of output
  */
-void log_init(log_output_t output)
+void log_init(log_output_t default_output)
 {
-  if (outFile.output != LOG_OUTPUT_UNINIT)
-  {
-    fprintf(stderr,"log already initialized with output = %u\r\n", outFile.output );
-    return;
-  }
+  log_deinit();
 
-  if ( output == LOG_OUTOUT_STDOUT )
+  outFile.lock = WRITE_LOCK;
+
+  /* Initialize stream descriptors */
+  memset(outFile.stream, 0x00, sizeof(outFile.stream));
+  outFile.stream[LOG_OUTPUT_STDERR] = stderr;
+  outFile.stream[LOG_OUTOUT_STDOUT] = stdout;
+
+  outFile.output  = LOG_OUTPUT_UNINIT;
+  outFile.lock    = WRITE_UNLOCK;
+
+  fprintf(stdout,"General log initialization done!\r\n");
+
+  /* Default output */
+  if (default_output < LOG_OUTPUT_MAX)
   {
     outFile.lock    = WRITE_LOCK;
-    outFile.output  = LOG_OUTOUT_STDOUT;
-    outFile.stream  = stdout;
+    outFile.output  = default_output;
     outFile.lock    = WRITE_UNLOCK;
-  }
-  else if ( output == LOG_OUTPUT_STDERR )
-  {
-    outFile.lock    = WRITE_LOCK;
-    outFile.output  = LOG_OUTPUT_STDERR;
-    outFile.stream  = stderr;
-    outFile.lock    = WRITE_UNLOCK;
-  }
-  else if ( output == LOG_OUTPUT_FILE )
-  {
-    if ( NULL != outFile.stream)
-      return;
-    
-    outFile.lock = WRITE_LOCK;
 
-    outFile.stream = fopen( LOG_OUTPUT_FILE_DEFAULT , "a+");
-
-    if (NULL == outFile.stream)
-    {
-      fprintf(stderr,"log NOT initialized error %d \"%s\"\r\n", errno, strerror(errno) );
-    }
-    else
-    {
-      outFile.output  = LOG_OUTPUT_FILE;
-      fprintf(stdout,"log initialized at \"%s\"\r\n", LOG_OUTPUT_FILE_DEFAULT );
-      //LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log initialized at \"%s\"", LOG_OUTPUT_FILE_DEFAULT );
-    }
-
-    outFile.lock = WRITE_UNLOCK;
-  }
-  else
-  {
-    outFile.output = LOG_OUTPUT_UNINIT;
-    fprintf(stderr,"Invalid output identifier: %d \r\n", output );
+    fprintf(stdout,"log initialized for default output %u\r\n", default_output);
   }
 }
 
@@ -278,24 +254,74 @@ void log_init(log_output_t output)
  */
 void log_deinit(void)
 {
+  int i;
+
+  outFile.lock = WRITE_LOCK;
+
+  /* Close file descriptors */
+  for (i = LOG_OUTPUT_FILE; i < LOG_OUTPUT_MAX; i++)
+  {
+    if (outFile.stream[i] != NULL)
+    {
+      fclose(outFile.stream[i]);
+      outFile.stream[i] = NULL;
+    }
+  }
+
+  outFile.output  = LOG_OUTPUT_UNINIT;
+  outFile.lock = WRITE_UNLOCK;
+
+  fprintf(stdout,"log deinitialized!\r\n" );
+}
+
+/**
+ * Initialize stream descriptors for each output type
+ * 
+ * @param output : type of output
+ */
+void log_output_file_set(log_output_t output, char *filename)
+{
+  FILE *stream;
+
+  /* Check if logger is initialized */
   if (outFile.output == LOG_OUTPUT_UNINIT)
   {
-    fprintf(stderr,"log already uninitialized!\r\n" );
+    fprintf(stdout,"Logger not initialized\r\n");
+    return;
+  }
+
+  if (output < LOG_OUTPUT_FILE || output >= LOG_OUTPUT_MAX )
+  {
+    fprintf(stderr,"Invalid output %u\r\n", output );
     return;
   }
 
   outFile.lock = WRITE_LOCK;
 
-  if ( outFile.output == LOG_OUTPUT_FILE )
+  /* Close file descriptor */
+  if (outFile.stream[output] != NULL)
   {
-    fclose( outFile.stream );
+    fclose(outFile.stream[output]);
+    outFile.stream[output] = NULL;
   }
-    
-  outFile.output  = LOG_OUTPUT_UNINIT;
-  outFile.stream  = (FILE *) NULL;
-  outFile.lock = WRITE_UNLOCK;
 
-  fprintf(stdout,"log uninitialized!\r\n" );
+  /* Open and set new file */
+  if (filename != NULL && filename[0] != '\0')
+  {
+    stream = fopen(filename, "a+"); 
+
+    if (NULL == stream)
+    {
+      fprintf(stderr,"Output %u NOT initialized: error %d \"%s\"\r\n", output, errno, strerror(errno) );
+    }
+    else
+    {
+      outFile.stream[output] = stream;
+      fprintf(stdout,"Log initialized for output %u: filename=\"%s\"\r\n", output, filename );
+    }
+  }
+
+  outFile.lock = WRITE_UNLOCK;
 }
 
 /**
@@ -307,77 +333,45 @@ void log_deinit(void)
 void log_redirect(log_output_t output, char* output_file_path)
 {
   FILE * temp_stream;
-  char * file_name;
   
   /* Check if logger is initialized */
   if (outFile.output == LOG_OUTPUT_UNINIT)
   {
-    log_init(output);
+    fprintf(stdout,"Logger not initialized\r\n");
     return;
   }
 
-  /* If output is a file */
-  if ( output == LOG_OUTPUT_FILE )
+  if (output < LOG_OUTPUT_FILE || output >= LOG_OUTPUT_MAX ||
+      output_file_path == NULL || output_file_path[0] == '\0')
   {
-    file_name = (output_file_path!=NULL && output_file_path[0]!='\0') ? output_file_path : LOG_OUTPUT_FILE_DEFAULT;
-
-    /* Firstly, try to open the new file */
-    temp_stream = fopen( file_name, "a+");
-
-    /* If error, do nothing */
-    if (NULL == outFile.stream)
-    {
-      fprintf(stdout,"log NOT initialized error %d \"%s\"\r\n", errno, strerror(errno) );
-      return;
-    }
-
-    /* Otherwise, close the previous file */
-    outFile.lock = WRITE_LOCK;
-    if ( outFile.output == LOG_OUTPUT_FILE )
-    {
-      fclose(outFile.stream);
-    }
-    outFile.output  = LOG_OUTPUT_FILE;
-    outFile.stream  = temp_stream;
-    outFile.lock    = WRITE_UNLOCK;
-    fprintf(stdout,"log redirected to \"%s\"\r\n", file_name );
-    //LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "log redirected to \"%s\"", file_name );
+    fprintf(stdout,"Invalid arguments\r\n");
+    return;
   }
-  else
+
+  /* Firstly, try to open the new file */
+  temp_stream = fopen( output_file_path, "a+");
+
+  /* If error, do nothing */
+  if (NULL == temp_stream)
   {
-    /* Unconfig previous configuration */
-    outFile.lock = WRITE_LOCK;
-    if ( outFile.output == LOG_OUTPUT_FILE)
-    {
-      fclose(outFile.stream);
-    }
-    outFile.output  = LOG_OUTPUT_UNINIT;
-    outFile.stream  = (FILE *) NULL;
-    outFile.lock = WRITE_UNLOCK;
-
-    /* Make new configuration */
-    if ( output == LOG_OUTOUT_STDOUT )
-    {
-      outFile.lock    = WRITE_LOCK;
-      outFile.output  = LOG_OUTOUT_STDOUT;
-      outFile.stream  = stdout;
-      outFile.lock    = WRITE_UNLOCK;
-      fprintf(stdout,"log redirected to stdout\r\n");
-    }
-    else if ( output == LOG_OUTPUT_STDERR )
-    {
-      outFile.lock    = WRITE_LOCK;
-      outFile.output  = LOG_OUTPUT_STDERR;
-      outFile.stream  = stderr;
-      outFile.lock    = WRITE_UNLOCK;
-      fprintf(stdout,"log redirected to stderr\r\n");
-    }
-    else
-    {
-      fprintf(stderr,"Invalid output identifier: %d \r\n", output );
-      //LOG_INFO(LOG_OUTPUT_FILE, LOG_CTX_LOGGER, "Invalid output identifier: %d", output );
-    }
+    fprintf(stdout,"log NOT initialized error %d \"%s\"\r\n", errno, strerror(errno) );
+    return;
   }
+
+  /* Otherwise, close the previous file */
+  outFile.lock = WRITE_LOCK;
+
+  if ( outFile.stream[output] != NULL )
+  {
+    fclose(outFile.stream[output]);
+    outFile.stream[output] = NULL;
+  }
+
+  /* Save new file descriptor */
+  outFile.stream[output] = temp_stream;
+
+  outFile.lock = WRITE_UNLOCK;
+  fprintf(stdout,"Log redirected to \"%s\" for output %u\r\n", output_file_path, output);
 }
 
 /**
@@ -404,7 +398,6 @@ int log_sev_set(unsigned int ctx_mask, int sev)
         if ( ctx_mask & 1 ) {
             log_cfg[ctx].severity = sev;
             fprintf(stdout,"%s severity level set to %s\r\n", log_ctx_str[ctx], log_sev_str[sev]);
-            //LOG_INFO(LOG_CTX_LOGGER, "%s severity level set to %s", log_ctx_str[ctx], log_sev_str[sev]);
         }
     }
 
@@ -412,7 +405,6 @@ int log_sev_set(unsigned int ctx_mask, int sev)
 
     return 0;
 }
-
 
 /**  
  * Sets a color for a group of contexts
@@ -438,7 +430,38 @@ int log_color_set(unsigned int ctx_mask, int color)
         if ( ctx_mask & 1 ) {
             log_cfg[ctx].color = color;
             fprintf(stdout,"%s color set to '%s**** COLOR ****%s'\r\n", log_ctx_str[ctx], log_colors[color], log_colors[LOG_COLOR_DEFAULT]);
-            //LOG_INFO(LOG_CTX_LOGGER, "%s color set to '%s**** COLOR ****%s'", log_ctx_str[ctx], log_colors[color], log_colors[LOG_COLOR_DEFAULT]);
+        }
+    }
+
+    fflush(stdout);
+
+    return 0;
+}
+
+/**
+ * Sets output for a particular list of contexts
+ * 
+ * @param ctx_mask bitmap that defines which contexts are affected 
+ * (bit position corresponds to the context index) 
+ * @param sev severity threshold
+ * 
+ * @return int Zero if OK, otherwise means error
+ */
+int log_output_set(unsigned int ctx_mask, int output)
+{
+    unsigned int ctx;
+
+    /* Validate input parameters */
+    if ( (output < 0) || (output >= LOG_OUTPUT_MAX) )
+        return 1;
+
+    for ( ctx = 0; ctx_mask != 0; ctx_mask >>= 1, ctx++ ) {
+        if ( ctx >= LOG_CONTEXT_LAST )
+            break;
+
+        if ( ctx_mask & 1 ) {
+            log_cfg[ctx].output = output;
+            fprintf(stdout,"%s: output set to %u\r\n", log_ctx_str[ctx], output);
         }
     }
 
@@ -528,11 +551,13 @@ void log_print(log_context_t ctx, log_severity_t sev, char const *file,
         maxlen += MAX_LINE_LEN;
         nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "(%d)", line);
     }
+    #if 0
     else
     {
         /* Add the () to the function name (without line nr) */
         nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "()");
     }
+    #endif
 
     /* Determine offset to truncate string size */
     offset = 0;
@@ -553,12 +578,19 @@ void log_print(log_context_t ctx, log_severity_t sev, char const *file,
     va_end(vargs);
 
     /* Can we print? */
-    if (outFile.lock==WRITE_LOCK)  return;
+    if (outFile.lock == WRITE_LOCK)  return;
 
-    /* Print to where? */
-    if ( outFile.output!=LOG_OUTPUT_UNINIT && outFile.stream!=NULL )
+    /* Use stream inside log_cfg structure (only if not default) */
+    if ((log_cfg[ctx].output > LOG_OUTPUT_DEFAULT && log_cfg[ctx].output < LOG_OUTPUT_MAX) &&
+        outFile.stream[log_cfg[ctx].output] != NULL)
     {
-      stream = outFile.stream;
+      stream = outFile.stream[log_cfg[ctx].output];
+    }
+    /* For default stream, use generic defined at log_init */
+    else if ((outFile.output >= LOG_OUTPUT_DEFAULT && outFile.output < LOG_OUTPUT_MAX) &&
+              outFile.stream[outFile.output] != NULL) 
+    {
+      stream = outFile.stream[outFile.output];
     }
 
     /* Output it... */

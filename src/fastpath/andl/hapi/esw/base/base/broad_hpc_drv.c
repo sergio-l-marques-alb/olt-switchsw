@@ -3408,7 +3408,7 @@ void hapiBroadDebugBcmPrint(int val)
 
 /* PTin added: debug */
 #if 1
-int hapiBroadCmPrint_debug = L7_FALSE;
+int hapiBroadCmPrint_debug = L7_TRUE;
 
 void hapiBroadCmPrint_enable(int enable)
 {
@@ -3489,11 +3489,13 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
       if (dapiTraceOverride_g)
       {
         /* This will log it to the dapiTraceBuffer instead */
-        dapiTraceGeneric(buf);      
+        dapiTraceGeneric(buf);
+        log_print(LOG_CTX_SDK, LOG_SEV_DEBUG, NULL, NULL, 0, "dapiTraceOverride_g: %s", buf);
       }
       else
       {
         l7_logf(sev, L7_DRIVER_COMPONENT_ID, __FILE__, __LINE__, buf);
+        log_print(LOG_CTX_SDK, LOG_SEV_DEBUG, NULL, NULL, 0, "sev=%u: %s", sev, buf);
       }
     }
   }

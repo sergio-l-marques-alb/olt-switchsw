@@ -286,28 +286,43 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_APP_LOGGER_OUTPUT (0x%04X)", CCMSG_APP_LOGGER_OUTPUT);
-      LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "Redirecting logger output...");
+
+      L7_uint8 output;
+      char *filename;
 
       /* If infodim is null, use stdout */
       if (inbuffer->infoDim==0)
       {
-        log_redirect(LOG_OUTOUT_STDOUT, L7_NULLPTR);
-        ptin_mgmd_logredirect(MGMD_LOG_STDOUT, L7_NULLPTR);
-        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to stdout :-)");
-      }
-      /* Else if null length, use default filename */
-      else if (inbuffer->info[0]=='\0')
-      {
-        log_redirect(LOG_OUTPUT_FILE, L7_NULLPTR);
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "Redirecting logger output (0) to \"%s\"...", LOG_OUTPUT_FILE_DEFAULT);
+        log_redirect(LOG_OUTPUT_FILE, LOG_OUTPUT_FILE_DEFAULT);
         ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT);
-        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger output (0) redirected to \"%s\" :-)", LOG_OUTPUT_FILE_DEFAULT);
       }
       /* Otherwise, use the specified filename */
+      else if (inbuffer->infoDim==1 || inbuffer->info[1]=='\0')
+      {
+        output = LOG_OUTPUT_FILE + inbuffer->info[0];
+
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, LOG_OUTPUT_FILE_DEFAULT);
+        log_redirect(output, LOG_OUTPUT_FILE_DEFAULT);
+        if (output == LOG_OUTPUT_FILE)
+        {
+          ptin_mgmd_logredirect(MGMD_LOG_FILE, LOG_OUTPUT_FILE_DEFAULT); 
+        }
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, LOG_OUTPUT_FILE_DEFAULT);
+      }
       else
       {
-        log_redirect(LOG_OUTPUT_FILE, (char *) &inbuffer->info[0]);
-        ptin_mgmd_logredirect(MGMD_LOG_FILE, (char *) &inbuffer->info[0]);
-        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger redirected to \"%s\" :-)", (char *) &inbuffer->info[0]);
+        output = LOG_OUTPUT_FILE + inbuffer->info[0];
+        filename = (char *) &inbuffer->info[1];
+
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "Redirecting logger output (%u) to \"%s\"...", output, filename);
+        log_redirect(output, filename);
+        if (output == LOG_OUTPUT_FILE)
+        {
+          ptin_mgmd_logredirect(MGMD_LOG_FILE, filename);
+        }
+        LOG_NOTICE(LOG_CTX_PTIN_MSGHANDLER, "...Logger output (%u) redirected to \"%s\" :-)", output, filename);
       }
 
       SETIPCACKOK(outbuffer);

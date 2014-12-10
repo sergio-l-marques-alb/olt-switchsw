@@ -14,15 +14,15 @@
 
 #include <stdio.h>
 
-#define LOG_OUTPUT_FILE_DEFAULT "/var/log/switchdrvr.log"
-
-#define LOG_OUTPUT_DEFAULT  LOG_OUTOUT_STDOUT
-
 typedef enum {
-  LOG_OUTPUT_UNINIT=0,
+  LOG_OUTPUT_DEFAULT=0,
   LOG_OUTPUT_STDERR,
   LOG_OUTOUT_STDOUT,
-  LOG_OUTPUT_FILE
+  LOG_OUTPUT_FILE,
+  LOG_OUTPUT_FILE2,
+  LOG_OUTPUT_FILE3,
+  LOG_OUTPUT_MAX,
+  LOG_OUTPUT_UNINIT=0xff
 }log_output_t;
 
 /* Context
@@ -113,22 +113,30 @@ typedef enum {
 
 /* Log configuration entry */
 struct log_cfg_entry_s {
-    int  context;
-    long severity;
-    int  color;
+    log_context_t   context;
+    log_severity_t  severity;
+    log_color_t     color;
+    log_output_t    output;
 };
 
 /**
  * Initialize logger
  * 
- * @param output : type of output
+ * @param default_output : type of output
  */
-extern void log_init(log_output_t output);
+extern void log_init(log_output_t default_output);
 
 /**
  * Deinitialize logger
  */
 extern void log_deinit(void);
+
+/**
+ * Initialize stream descriptors for each output type
+ * 
+ * @param output : type of output
+ */
+extern void log_output_file_set(log_output_t output, char *filename);
 
 /**
  * Redirect logger to a specific file
