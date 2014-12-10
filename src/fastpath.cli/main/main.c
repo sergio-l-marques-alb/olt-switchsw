@@ -4309,7 +4309,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->flags = (uint32) valued<<8;
+            ptr->flags = (uint32) valued;
           }
 
           // Maximum number of MAC addresses
