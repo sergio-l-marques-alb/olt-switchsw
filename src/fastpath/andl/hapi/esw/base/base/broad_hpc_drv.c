@@ -3420,39 +3420,47 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
 {
   L7_LOG_SEVERITY_t sev = L7_LOG_SEVERITY_DEBUG;
   L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
-  L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE]; 
+  L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE];
+  log_severity_t ptin_log_sev = LOG_SEV_PRINT;
 
-  if( (flags == 0) || (flags == DK_ERR) )
+  if( (flags == 0) )
   {
     /* Always treat no flags as an immediate print to the console */
     /* Most of the drivshell functionality relies on 0 flags */
     printit = L7_TRUE;
   }
+  else if (flags & DK_ERR)
+  {
+    logit = L7_TRUE;
+    printit = printingOverride_g;
+    sev = L7_LOG_SEVERITY_ERROR; 
+    ptin_log_sev = LOG_SEV_ERROR;
+  }
   else if (flags & DK_WARN)
   {
     logit = L7_TRUE;
     printit = printingOverride_g;
-    sev = L7_LOG_SEVERITY_DEBUG; 
+    sev = L7_LOG_SEVERITY_WARNING;
+    ptin_log_sev = LOG_SEV_WARNING;
   }
+  #if 0
+  else if (flags & DK_PHY)
+  {
+    logit = L7_TRUE;
+    printit = printingOverride_g;
+    sev = L7_LOG_SEVERITY_INFO;
+    ptin_log_sev = LOG_SEV_INFO;
+  }
+  #endif
   else
   {
-    if (soc_cm_debug_check(flags))   
+    if (soc_cm_debug_check(flags))
     {
       logit = L7_TRUE;
       printit = printingOverride_g;
 
-      if (flags & DK_ERR) 
-      {
-        sev = L7_LOG_SEVERITY_ERROR ;
-      }
-      else if (flags & DK_WARN) 
-      {
-        sev = L7_LOG_SEVERITY_WARNING;
-      }
-      else 
-      { 
-        sev = L7_LOG_SEVERITY_DEBUG; 
-      }
+      sev = L7_LOG_SEVERITY_DEBUG;
+      ptin_log_sev = LOG_SEV_DEBUG;
     }
   }
 
@@ -3490,12 +3498,11 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
       {
         /* This will log it to the dapiTraceBuffer instead */
         dapiTraceGeneric(buf);
-        log_print(LOG_CTX_SDK, LOG_SEV_DEBUG, NULL, NULL, 0, "dapiTraceOverride_g: %s", buf);
       }
       else
       {
-        l7_logf(sev, L7_DRIVER_COMPONENT_ID, __FILE__, __LINE__, buf);
-        log_print(LOG_CTX_SDK, LOG_SEV_DEBUG, NULL, NULL, 0, "sev=%u: %s", sev, buf);
+        //l7_logf(sev, L7_DRIVER_COMPONENT_ID, __FILE__, __LINE__, buf);
+        log_print(LOG_CTX_SDK, ptin_log_sev, NULL, NULL, 0, "(0x%08x) %s", flags, buf);
       }
     }
   }

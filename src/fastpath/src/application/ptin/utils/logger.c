@@ -81,8 +81,8 @@ static int log_sev_color[LOG_SEV_LAST] = {
     LOG_BRIGHT_RED,
     LOG_BRIGHT_YELLOW,
     LOG_COLOR_YELLOW,
+    LOG_COLOR_MAGENTA,
     LOG_COLOR_DEFAULT,
-    LOG_BRIGHT_MAGENTA,
     LOG_COLOR_DEFAULT,
 };
 
@@ -173,7 +173,7 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_ERPS,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
     {LOG_CTX_IPSG,              LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
     {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
-    {LOG_CTX_SDK,               LOG_SEV_DEBUG,       LOG_COLOR_WHITE  ,     LOG_OUTPUT_FILE2  },
+    {LOG_CTX_SDK,               LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_FILE2  },
     {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
 };
 
