@@ -388,6 +388,18 @@ L7_RC_t ptin_hapi_phy_init(void)
   return L7_SUCCESS;
 }
 
+/**
+ * Post-Initialize PHY control parameters
+ * 
+ * @author asantos (07/02/2013)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_post_init(void)
+{
+  return L7_SUCCESS;
+}
+
 
 /**
  * Initialize PHYs for MATRIX boards
@@ -570,23 +582,13 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
       }
     }
   }
-
-  /* Outra martelada: set da velocidade de 1G para garantir que nenhuma fica em 2.5G (que supostamente não é suportada) */
-  for (i=0; i<PTIN_SYSTEM_N_ETH; i++)
+  if (rc == L7_SUCCESS)
   {
-    /* Gefp.s t bcm_port format */
-    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
-      continue;
-    }
-
-    if (bcm_port_speed_set(0, bcm_port, 1000) != BCM_E_NONE)
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
-      rc = L7_FAILURE;
-    }
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "All ports reseted");
   }
+
+  /* Wait 100ms */
+  osapiSleepMSec(100);
 
   for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
   {
@@ -604,6 +606,27 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
     }
 
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
+  }
+
+  /* Outra martelada: set da velocidade de 1G para garantir que nenhuma fica em 2.5G (que supostamente não é suportada) */
+  for (i=0; i<PTIN_SYSTEM_N_ETH; i++)
+  {
+    /* Gefp.s t bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    if (bcm_port_speed_set(0, bcm_port, 1000) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+  }
+  if (rc == L7_SUCCESS)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "All front ports were reinitialized to 1G speed");
   }
 #else
   rc = L7_NOT_SUPPORTED;
