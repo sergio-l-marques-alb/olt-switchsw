@@ -5298,7 +5298,7 @@ L7_RC_t ptin_igmp_clientIntfs_getList(L7_uint16 intVlan, L7_INTF_MASK_t *intfLis
       #elif (!defined IGMP_QUERIER_IN_UC_EVC)
       if (igmpClients_unified.number_of_clients_per_intf[ptin_port] > 0)
       #else
-      if (!(evcCfg.flags & PTIN_EVC_MASK_STACKED) || evcCfg.n_clients > 0)
+      if (!(evcCfg.flags & PTIN_EVC_MASK_STACKED) || evcCfg.n_clientflows > 0)
       #endif
       {
         if (ptin_debug_igmp_snooping)

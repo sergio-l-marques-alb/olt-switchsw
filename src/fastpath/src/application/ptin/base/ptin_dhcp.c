@@ -181,8 +181,7 @@ static L7_RC_t ptin_dhcp_inst_get_fromIntVlan(L7_uint16 intVlan, st_DhcpInstCfg_
 static L7_RC_t ptin_dhcp_instance_find_free(L7_uint *idx);
 static L7_RC_t ptin_dhcp_instance_find(L7_uint32 evc_idx, L7_uint *dhcp_idx);
 static L7_RC_t ptin_dhcp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *dhcp_idx);
-static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable);
-static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable);
+static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable, L7_uint8 family);
 static void    ptin_dhcp_evc_ethprty_get(ptin_AccessNodeCircuitId_t *evc_circuitid, L7_uint8 *ethprty);
 static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *template_str, L7_uint32 mask, L7_char8 *access_node_id, L7_uint8 chassis,
                                                 L7_uint8 rack, L7_uint8 frame, L7_uint8 ethernet_priority, L7_uint16 s_vid);
@@ -380,9 +379,12 @@ L7_RC_t ptin_dhcp_enable(L7_BOOL enable)
 
 #if (PTIN_QUATTRO_FLOWS_FEATURE_ENABLED && QUATTRO_DHCP_TRAP_PREACTIVE)
   /* Configure packet trapping for this VLAN  */
-  if (ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable) != L7_SUCCESS)
+  if (ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable, L7_AF_INET) != L7_SUCCESS ||
+      ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, enable, L7_AF_INET6) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring packet trapping for QUATTRO VLANs (enable=%u)", enable);
+    ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, !enable, L7_AF_INET6);
+    ptin_dhcpPkts_vlan_trap(PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, !enable, L7_AF_INET);
     ptin_dhcpPkts_global_trap(!enable);
     dsL2RelayAdminModeSet(!enable);
     usmDbDsAdminModeSet(!enable);
@@ -433,7 +435,10 @@ L7_RC_t ptin_dhcp_is_evc_used(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
 {
-  L7_uint dhcp_idx;
+  L7_uint   dhcp_idx;
+  L7_uint8  evc_type;
+  L7_uint32 evc_flags;
+  L7_RC_t   rc;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -449,40 +454,80 @@ L7_RC_t ptin_dhcp_instance_add(L7_uint32 evc_idx)
     return L7_FAILURE;
   }
 
+  /* Get EVC type */
+  if (ptin_evc_check_evctype(evc_idx, &evc_type) != L7_SUCCESS ||
+      ptin_evc_flags_get(evc_idx, &evc_flags, L7_NULLPTR) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error getting eEVC %u type and flags", evc_idx);
+    return L7_FAILURE;
+  }
+
   /* Check if there is an instance with these parameters */
-  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with ucEvcId%u",evc_idx);
-    return L7_SUCCESS;
+    /* Check flags */
+    if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) &&
+        !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"DHCP flag is not present for eEVC %u", evc_idx);
+      return L7_FAILURE;
+    }
+
+    /* Find an empty instance to be used */
+    if (ptin_dhcp_instance_find_free(&dhcp_idx)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no free instances to be used");
+      return L7_FAILURE;
+    }
+
+    /* Save direct referencing to dhcp index from evc ids */
+    if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
+      return L7_FAILURE;
+    }
+
+    /* Save data in free instance */
+    dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
+    dhcpInstances[dhcp_idx].nni_ovid = 0;
+    dhcpInstances[dhcp_idx].n_evcs   = 1;
+    dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
+  }
+  else
+  {
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with eEvcId%u", evc_idx);
   }
 
-  /* Find an empty instance to be used */
-  if (ptin_dhcp_instance_find_free(&dhcp_idx)!=L7_SUCCESS)
+  /* Configure trap rule for this instance */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED)
+  #endif
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no free instances to be used");
-    return L7_FAILURE;
-  }
+    /* Guarantee trap rules are deactivated */
+    (void) ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET);
+    (void) ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET6);
 
-  /* Save direct referencing to dhcp index from evc ids */
-  if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
-    return L7_FAILURE;
-  }
+    rc = L7_NO_VALUE;
+    if ((rc == L7_NO_VALUE || rc == L7_SUCCESS) &&
+        (evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
+    {
+      rc = ptin_dhcp_trap_configure(dhcp_idx, L7_ENABLE, L7_AF_INET);
+    }
+    if ((rc == L7_NO_VALUE || rc == L7_SUCCESS) &&
+        (evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
+    {
+      rc = ptin_dhcp_trap_configure(dhcp_idx, L7_ENABLE, L7_AF_INET6);
+    }
 
-  /* Save data in free instance */
-  dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
-  dhcpInstances[dhcp_idx].nni_ovid = 0;
-  dhcpInstances[dhcp_idx].n_evcs   = 1;
-  dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
-
-  /* Configure querier for this instance */
-  if (ptin_dhcp_trap_configure(dhcp_idx,L7_ENABLE)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
-    memset(&dhcpInstances[dhcp_idx],0x00,sizeof(st_DhcpInstCfg_t));
-    ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY);
-    return L7_FAILURE;
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
+      ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET6);
+      ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET);
+      memset(&dhcpInstances[dhcp_idx], 0x00, sizeof(st_DhcpInstCfg_t));
+      ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY);
+      return L7_FAILURE;
+    }
   }
 
   /* DHCP index in use */
@@ -523,11 +568,8 @@ L7_RC_t ptin_dhcp_instance_remove(L7_uint32 evc_idx)
   }
 
   /* Configure packet trapping for this instance */
-  if (ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error unconfiguring DHCP snooping for dhcp_idx=%u",dhcp_idx);
-    return L7_FAILURE;
-  }
+  (void) ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET);
+  (void) ptin_dhcp_trap_configure(dhcp_idx, L7_DISABLE, L7_AF_INET6);
 
   /* Save direct referencing to dhcp index from evc ids */
   if (ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY) != L7_SUCCESS)
@@ -569,15 +611,15 @@ L7_RC_t ptin_dhcp_instance_destroy(L7_uint32 evc_idx)
  * Associate an EVC to a DHCP instance
  * 
  * @param evc_idx : Unicast evc id 
- * @param nni_ovlan  : NNI outer vlan
+ * @param nni_ovlan  : NNI outer vlan 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 {
-  L7_uint  dhcp_idx;
-  L7_uint8 evc_type;
-  L7_BOOL  new_instance = L7_FALSE;
+  L7_uint   dhcp_idx;
+  L7_uint8  evc_type;
+  L7_BOOL   new_evc = L7_FALSE, new_instance = L7_FALSE;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -609,69 +651,83 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   #endif
 
   /* Check if there is an instance with these parameters */
-  if (ptin_dhcp_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
+  if (ptin_dhcp_instance_find(evc_idx, &dhcp_idx) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with ucEvcId%u",evc_idx);
-    return L7_SUCCESS;
-  }
+    new_evc = L7_TRUE;
 
-  /* Check if there is an instance with the same NNI outer vlan: use it! */
-  /* Otherwise, create a new instance */
-  if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
-      ptin_dhcp_instance_find_agg(nni_ovlan, &dhcp_idx) != L7_SUCCESS)
-  {
-    /* Find an empty instance to be used */
-    if (ptin_dhcp_instance_find_free(&dhcp_idx) != L7_SUCCESS)
+    /* Check if there is an instance with the same NNI outer vlan: use it! */
+    /* Otherwise, create a new instance */
+    if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
+        ptin_dhcp_instance_find_agg(nni_ovlan, &dhcp_idx) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no free instances to be used");
+      /* Find an empty instance to be used */
+      if (ptin_dhcp_instance_find_free(&dhcp_idx) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no free instances to be used");
+        return L7_FAILURE;
+      }
+      else
+      {
+        new_instance = L7_TRUE;
+      }
+    }
+
+    /* Save direct referencing to dhcp index from evc ids */
+    if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
       return L7_FAILURE;
     }
-    else
+
+    /* Save data in free instance */
+    if (new_instance)
     {
-      new_instance = L7_TRUE;
+      dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
+      dhcpInstances[dhcp_idx].nni_ovid = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
+      dhcpInstances[dhcp_idx].n_evcs   = 0;
+      dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
     }
   }
-
-  /* Save direct referencing to dhcp index from evc ids */
-  if (ptin_evc_dhcpInst_set(evc_idx, dhcp_idx) != L7_SUCCESS)
+  else
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error setting DHCP instance to ext evc id %u", evc_idx);
-    return L7_FAILURE;
+    LOG_WARNING(LOG_CTX_PTIN_DHCP,"There is already an instance with eEvcId %u",evc_idx);
   }
 
-  /* Save data in free instance */
-  if (new_instance)
-  {
-    dhcpInstances[dhcp_idx].evc_idx  = evc_idx;
-    dhcpInstances[dhcp_idx].nni_ovid = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
-    dhcpInstances[dhcp_idx].n_evcs   = 0;
-    dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
-  }
-
+  /* Use ptin_dhcp_evc_trap_configure, to set traps */
+  #if 0
   /* Configure trap rule for this instance */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || dhcp_quattro_stacked_evcs == 0)
   #endif
   {
-    if (ptin_dhcp_evc_trap_configure(evc_idx, L7_ENABLE) != L7_SUCCESS)
+    rc = ptin_dhcp_evc_trap_configure(evc_idx, L7_ENABLE, family);
+
+    if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring DHCP snooping for dhcp_idx=%u",dhcp_idx);
+      ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE, L7_AF_INET6);
+      ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE, L7_AF_INET);
       memset(&dhcpInstances[dhcp_idx], 0x00, sizeof(st_DhcpInstCfg_t));
       ptin_evc_dhcpInst_set(evc_idx, DHCP_INVALID_ENTRY);
       return L7_FAILURE;
     }
   }
-
-  /* One more EVC associated to this instance */
-  dhcpInstances[dhcp_idx].n_evcs++;
-
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  /* Update number of QUATTRO-P2P evcs */
-  if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
-  {
-    dhcp_quattro_stacked_evcs++;
-  }
   #endif
+
+  /* Only increment number of EVCs, if a new EVC was added */
+  if (new_evc)
+  {
+    /* One more EVC associated to this instance */
+    dhcpInstances[dhcp_idx].n_evcs++;
+
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* Update number of QUATTRO-P2P evcs */
+    if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+    {
+      dhcp_quattro_stacked_evcs++;
+    }
+    #endif
+  }
 
   return L7_SUCCESS;
 }
@@ -718,16 +774,13 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
   /* NNI outer vlan */
   nni_ovid = dhcpInstances[dhcp_idx].nni_ovid;
 
-  /* Configure packet trapping for this instance */
+  /* Deconfigure packet trapping for this instance */
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || dhcp_quattro_stacked_evcs <= 1)
   #endif
   {
-    if (ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE)!=L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error unconfiguring DHCP snooping for dhcp_idx=%u",dhcp_idx);
-      return L7_FAILURE;
-    }
+    (void) ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE, L7_AF_INET); 
+    (void) ptin_dhcp_evc_trap_configure(evc_idx, L7_DISABLE, L7_AF_INET6);
   }
 
   /* Remove clients */
@@ -3972,7 +4025,7 @@ static L7_RC_t ptin_dhcp_instance_find(L7_uint32 evc_idx, L7_uint *dhcp_idx)
   #endif
 }
 
-static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
+static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable, L7_uint8 family)
 {
   /* Validate argument */
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
@@ -3987,10 +4040,19 @@ static L7_RC_t ptin_dhcp_trap_configure(L7_uint dhcp_idx, L7_BOOL enable)
     return L7_FAILURE;
   }
 
-  return ptin_dhcp_evc_trap_configure(dhcpInstances[dhcp_idx].evc_idx, enable);
+  return ptin_dhcp_evc_trap_configure(dhcpInstances[dhcp_idx].evc_idx, enable, family);
 }
 
-static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
+/**
+ * Configure VLAN trap regarding to one EVC
+ * 
+ * @param evc_idx : EVC index
+ * @param enable : Enable
+ * @param family : IP family
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_uint8 family)
 {
   L7_uint16 vlan;
 
@@ -4006,7 +4068,7 @@ static L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
   if (!PTIN_VLAN_IS_QUATTRO(vlan))
 #endif
   {
-    if (ptin_dhcpPkts_vlan_trap(vlan, enable)!=L7_SUCCESS)
+    if (ptin_dhcpPkts_vlan_trap(vlan, enable, family)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring vlan %u for packet trapping", vlan);
       return L7_FAILURE;

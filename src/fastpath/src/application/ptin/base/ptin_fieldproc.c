@@ -346,10 +346,13 @@ L7_RC_t ptin_igmpPkts_global_trap(L7_BOOL enable)
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.family      = 0;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -383,10 +386,13 @@ L7_RC_t ptin_igmpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
     return L7_FAILURE;
   }
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -412,10 +418,13 @@ L7_RC_t ptin_mldPkts_global_trap(L7_BOOL enable)
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_MLD;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -449,10 +458,13 @@ L7_RC_t ptin_mldPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
     return L7_FAILURE;
   }
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_MLD;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -478,10 +490,13 @@ L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable)
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -500,10 +515,11 @@ L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable)
  * 
  * @param vlanId : vlanId to be (dis)allowed
  * @param enable : L7_TRUE/L7_FALSE 
+ * @param family : ip version 
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
+L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable, L7_uint8 family)
 {
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
@@ -515,14 +531,17 @@ L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
     return L7_FAILURE;
   }
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.family      = family;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP;
 
-  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
-  if (rc!=L7_SUCCESS)  {
+  rc = dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc != L7_SUCCESS)  {
     LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
     return rc;
   }
@@ -544,10 +563,13 @@ L7_RC_t ptin_pppoePkts_global_trap(L7_BOOL enable)
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_PPPOE;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
@@ -581,10 +603,13 @@ L7_RC_t ptin_pppoePkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable)
     return L7_FAILURE;
   }
 
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
   dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
   dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
   dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.snoopConfig.CoS         = 0;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
   dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_PPPOE;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);

@@ -429,34 +429,38 @@ L7_RC_t ptin_pppoe_instance_add(L7_uint32 evc_idx)
   }
 
   /* Check if there is an instance with these parameters */
-  if (ptin_pppoe_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
+  if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_PPPOE,"There is already an instance with ucEvcId%u",evc_idx);
-    return L7_SUCCESS;
+    /* Find an empty instance to be used */
+    if (ptin_pppoe_instance_find_free(&pppoe_idx)!=L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"There is no free instances to be used");
+      return L7_FAILURE;
+    }
+
+    /* Save direct referencing to pppoe index from evc ids */
+    if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
+      return L7_FAILURE;
+    }
+
+    /* Save data in free instance */
+    pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
+    pppoeInstances[pppoe_idx].nni_ovid  = 0;
+    pppoeInstances[pppoe_idx].n_evcs    = 1;
+    pppoeInstances[pppoe_idx].inUse     = L7_TRUE;
+  }
+  else
+  {
+    LOG_WARNING(LOG_CTX_PTIN_PPPOE,"There is already an instance with eEvcId%u", evc_idx);
   }
 
-  /* Find an empty instance to be used */
-  if (ptin_pppoe_instance_find_free(&pppoe_idx)!=L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_PPPOE,"There is no free instances to be used");
-    return L7_FAILURE;
-  }
-
-  /* Save direct referencing to pppoe index from evc ids */
-  if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
-    return L7_FAILURE;
-  }
-
-  /* Save data in free instance */
-  pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
-  pppoeInstances[pppoe_idx].nni_ovid  = 0;
-  pppoeInstances[pppoe_idx].n_evcs    = 1;
-  pppoeInstances[pppoe_idx].inUse     = L7_TRUE;
+  /* Make sure trap rule is disabled */
+  (void) ptin_pppoe_trap_configure(pppoe_idx, L7_DISABLE);
 
   /* Configure querier for this instance */
-  if (ptin_pppoe_trap_configure(pppoe_idx,L7_ENABLE)!=L7_SUCCESS)
+  if (ptin_pppoe_trap_configure(pppoe_idx, L7_ENABLE) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
     memset(&pppoeInstances[pppoe_idx],0x00,sizeof(st_PppoeInstCfg_t));
@@ -547,9 +551,10 @@ L7_RC_t ptin_pppoe_instance_destroy(L7_uint32 evcId)
  */
 L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 {
-  L7_uint  pppoe_idx;
-  L7_uint8 evc_type;
-  L7_BOOL  new_instance = L7_FALSE;
+  L7_uint   pppoe_idx;
+  L7_uint8  evc_type;
+  L7_BOOL   new_evc = L7_FALSE, new_instance = L7_FALSE;
+  L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate arguments */
   if (evc_idx>=PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -581,43 +586,46 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   #endif
 
   /* Check if there is an instance with these parameters */
-  if (ptin_pppoe_instance_find(evc_idx,L7_NULLPTR)==L7_SUCCESS)
+  if (ptin_pppoe_instance_find(evc_idx, &pppoe_idx) != L7_SUCCESS)
   {
-    LOG_WARNING(LOG_CTX_PTIN_PPPOE,"There is already an instance with ucEvcId%u",evc_idx);
-    return L7_SUCCESS;
-  }
+    new_evc = L7_TRUE;
 
-  /* Check if there is an instance with the same NNI outer vlan: use it! */
-  /* Otherwise, create a new instance */
-  if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
-      ptin_pppoe_instance_find_agg(nni_ovlan, &pppoe_idx)!=L7_SUCCESS)
-  {
-    /* Find an empty instance to be used */
-    if (ptin_pppoe_instance_find_free(&pppoe_idx)!=L7_SUCCESS)
+    /* Check if there is an instance with the same NNI outer vlan: use it! */
+    /* Otherwise, create a new instance */
+    if ((nni_ovlan < PTIN_VLAN_MIN || nni_ovlan > PTIN_VLAN_MAX) ||
+        ptin_pppoe_instance_find_agg(nni_ovlan, &pppoe_idx)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"There is no free instances to be used");
+      /* Find an empty instance to be used */
+      if (ptin_pppoe_instance_find_free(&pppoe_idx)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_PPPOE,"There is no free instances to be used");
+        return L7_FAILURE;
+      }
+      else
+      {
+        new_instance = L7_TRUE;
+      }
+    }
+
+    /* Save direct referencing to pppoe index from evc ids */
+    if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
       return L7_FAILURE;
     }
-    else
+
+    if (new_instance)
     {
-      new_instance = L7_TRUE;
+      /* Save data in free instance */
+      pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
+      pppoeInstances[pppoe_idx].nni_ovid  = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;;
+      pppoeInstances[pppoe_idx].n_evcs    = 0;
+      pppoeInstances[pppoe_idx].inUse     = L7_TRUE;
     }
   }
-
-  /* Save direct referencing to pppoe index from evc ids */
-  if (ptin_evc_pppoeInst_set(evc_idx, pppoe_idx) != L7_SUCCESS)
+  else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error setting PPPoE instance to ext evc id %u", evc_idx);
-    return L7_FAILURE;
-  }
-
-  if (new_instance)
-  {
-    /* Save data in free instance */
-    pppoeInstances[pppoe_idx].evc_idx   = evc_idx;
-    pppoeInstances[pppoe_idx].nni_ovid  = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;;
-    pppoeInstances[pppoe_idx].n_evcs    = 0;
-    pppoeInstances[pppoe_idx].inUse     = L7_TRUE;
+    LOG_WARNING(LOG_CTX_PTIN_PPPOE,"There is already an instance with eEvcId%u", evc_idx);
   }
 
   /* Configure querier for this instance */
@@ -625,7 +633,9 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
   if (evc_type != PTIN_EVC_TYPE_QUATTRO_STACKED || pppoe_quattro_stacked_evcs == 0)
   #endif
   {
-    if (ptin_pppoe_evc_trap_configure(evc_idx, L7_ENABLE) != L7_SUCCESS)
+    rc = ptin_pppoe_evc_trap_configure(evc_idx, L7_ENABLE);
+
+    if (rc != L7_SUCCESS) 
     {
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring PPPOE snooping for pppoe_idx=%u",pppoe_idx);
       memset(&pppoeInstances[pppoe_idx], 0x00, sizeof(st_PppoeInstCfg_t));
@@ -634,16 +644,19 @@ L7_RC_t ptin_pppoe_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
     }
   }
 
-  /* One more EVC associated to this instance */
-  pppoeInstances[pppoe_idx].n_evcs++;
-
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  /* Update number of QUATTRO-P2P evcs */
-  if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+  if (new_evc)
   {
-    pppoe_quattro_stacked_evcs++;
+    /* One more EVC associated to this instance */
+    pppoeInstances[pppoe_idx].n_evcs++;
+
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* Update number of QUATTRO-P2P evcs */
+    if (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+    {
+      pppoe_quattro_stacked_evcs++;
+    }
+    #endif
   }
-  #endif
 
   return L7_SUCCESS;
 }

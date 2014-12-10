@@ -741,26 +741,36 @@ void hapiBroadL3McastPortVlanRemoveNotify (DAPI_USP_t *usp, L7_ushort16 vlan_id,
 
 L7_RC_t hapiBroadL3McastRPF(L7_netBufHandle frameHdl, L7_ushort16 vlanID, DAPI_USP_t *usp,
                             DAPI_t *dapi_g);
-/* PTin added: DHCP snooping */
+/* PTin added: protocols */
 #if 1
-L7_RC_t hapiBroadConfigDhcpFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g);
+L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig, L7_BOOL switchFrame, DAPI_t *dapi_g);
+
+L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL switchFrame, DAPI_t *dapi_g,
+                                BROAD_POLICY_t *policy_id);
+
+L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t *dapi_g,
+                                BROAD_POLICY_t *policy_id);
+
+L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t *dapi_g,
+                                BROAD_POLICY_t *policy_id);
+
+L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t *dapi_g,
+                                 BROAD_POLICY_t *policy_id);
+
+L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uchar8 *mac_addr, DAPI_t *dapi_g,
+                                  BROAD_POLICY_t *policy_id);
+
+L7_RC_t hapiBroadConfigApsTrap(DAPI_USP_t *usp, L7_uint16 vlanId, L7_uint16 vlan_match, L7_uint8 ringId_level, DAPI_t *dapi_g,
+                               BROAD_POLICY_t *policy_id);
+
+L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level,
+                                 DAPI_t *dapi_g);
 #endif
-/* PTin added: PPPoE */
-#if 1
-L7_RC_t hapiBroadConfigPPPoEFilter(L7_BOOL enable, L7_uint16 vlanId, DAPI_t *dapi_g);
-#endif
 
-/* PTin added: APS */
-L7_RC_t hapiBroadConfigApsFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uint8 ringId_oam_level, DAPI_t *dapi_g);
+/* PTin modified: IGMP snooping */
+L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enable, L7_uint16 vlanId, L7_BOOL switchFrame, DAPI_t *dapi_g);
 
-/* PTin added: CCM */
-L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level, DAPI_t *dapi_g);
-
-/* PTin added: IP DTL0 */
-L7_RC_t hapiBroadConfigIpDtl0Filter(L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 *mac_addr, DAPI_t *dapi_g);
-
-L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enableFilter, L7_uint16 vlanId /* PTin modified: IGMP snooping */, L7_BOOL switchFrame, DAPI_t *dapi_g);
-L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g);
+L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter, DAPI_t *dapi_g);
 
 L7_RC_t hapiBroadTgidToUspConvert(L7_uint32 tgid, DAPI_USP_t *usp, DAPI_t *dapi_g);
 void hapiBroadLportToTgidUspConvert(L7_uint32 lport, DAPI_USP_t *usp, DAPI_t *dapi_g);

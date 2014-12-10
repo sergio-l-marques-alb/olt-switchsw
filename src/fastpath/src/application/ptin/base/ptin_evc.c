@@ -133,10 +133,15 @@ struct ptin_evc_s {
                              *  PTIN_EVC_MASK_MACLEARNING     0x00000008
                              *  PTIN_EVC_MASK_CPU_TRAPPING    0x00000010
                              *  PTIN_EVC_MASK_MC_IPTV         0x00000020
-                             *  PTIN_EVC_MASK_DHCP_PROTOCOL   0x00000100
+                             *  PTIN_EVC_MASK_IPSG_PROTOCOL   0x00000080
+                             *  PTIN_EVC_MASK_DHCPV4_PROTOCOL 0x00000100
                              *  PTIN_EVC_MASK_IGMP_PROTOCOL   0x00000200
                              *  PTIN_EVC_MASK_PPPOE_PROTOCOL  0x00000400
-                             *  PTIN_EVC_MASK_P2P             0x00010000 */
+                             *  PTIN_EVC_MASK_DHCPV6_PROTOCOL 0x00001000
+                             *  PTIN_EVC_MASK_MLD_PROTOCOL    0x00002000
+
+                             *  PTIN_EVC_MASK_P2P             0x00010000
+                             *  PTIN_EVC_MASK_QUATTRO         0x00020000 */
 
   L7_uint8   type;          /* (not used)
                              *   0 - p2p
@@ -151,7 +156,15 @@ struct ptin_evc_s {
   struct ptin_evc_intf_s intf[PTIN_SYSTEM_N_INTERF];
 
   /* Auxiliary (redundant) information */
-  L7_uint32  n_clients;       /* Number of clients associated with this EVC (ONLY on stacked services) */
+  L7_uint32  n_clientflows;       /* Number of clients associated with this EVC (ONLY on stacked services) */
+
+  L7_uint32  n_clientflows_ipsg;
+  L7_uint32  n_clientflows_igmp;
+  L7_uint32  n_clientflows_dhcpv4;
+  L7_uint32  n_clientflows_dhcpv6;
+  L7_uint32  n_clientflows_pppoe;
+  L7_uint32  n_clientflows_mld;
+
   L7_uint32  n_counters;      /* Number of counters associated with this EVC */
 
   L7_uint32  n_bwprofiles;  /* Number of BW profiles associated with this EVC */
@@ -463,6 +476,12 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profi
 static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 
+static L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
+                                    L7_BOOL just_remove, L7_BOOL look_to_counters);
+static L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL pppoe_enabled,
+                                     L7_BOOL just_remove, L7_BOOL look_to_counters);
+static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL igmp_enabled,
+                                    L7_BOOL just_remove, L7_BOOL look_to_counters);
 
 /* Semaphore to access EVC clients */
 void *ptin_evc_clients_sem = L7_NULLPTR;
@@ -756,7 +775,7 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
   memset(evcConf->ce_vid_bmp, 0x00, sizeof(evcConf->ce_vid_bmp));
 
   /* Return number of attached clients */
-  evcConf->n_clients = evcs[evc_id].n_clients;
+  evcConf->n_clientflows = evcs[evc_id].n_clientflows;
 
   evcConf->n_intf = 0;
   for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
@@ -1892,9 +1911,9 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   L7_uint8  evc_type;
   L7_BOOL   is_p2p, is_quattro, is_stacked;
   L7_BOOL   maclearning;
-  L7_BOOL   dhcp_enabled, igmp_enabled, pppoe_enabled, iptv_enabled;
+  L7_BOOL   dhcpv4_enabled, dhcpv6_enabled, igmp_enabled, pppoe_enabled, iptv_enabled;
   L7_BOOL   cpu_trap;
-  L7_BOOL   error = L7_FALSE;
+  L7_BOOL   error = L7_FALSE, new_evc = L7_FALSE;
   L7_uint   n_roots;
   L7_uint   n_leafs;
   L7_int    root_port1, root_port2, leaf_port1;
@@ -1931,20 +1950,21 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     return L7_FAILURE;
   }
 
-  is_p2p        = (evcConf->flags & PTIN_EVC_MASK_P2P           ) == PTIN_EVC_MASK_P2P;
+  is_p2p         = (evcConf->flags & PTIN_EVC_MASK_P2P            ) == PTIN_EVC_MASK_P2P;
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  is_quattro    = (evcConf->flags & PTIN_EVC_MASK_QUATTRO       ) == PTIN_EVC_MASK_QUATTRO;
+  is_quattro     = (evcConf->flags & PTIN_EVC_MASK_QUATTRO        ) == PTIN_EVC_MASK_QUATTRO;
   #else
-  is_quattro    = 0;
+  is_quattro     = 0;
   evcConf->flags &= ~((L7_uint32) PTIN_EVC_MASK_QUATTRO);
   #endif
-  is_stacked    = (evcConf->flags & PTIN_EVC_MASK_STACKED       ) == PTIN_EVC_MASK_STACKED;
-  maclearning   = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING   ) == PTIN_EVC_MASK_MACLEARNING;
-  dhcp_enabled  = (evcConf->flags & PTIN_EVC_MASK_DHCP_PROTOCOL ) == PTIN_EVC_MASK_DHCP_PROTOCOL;
-  igmp_enabled  = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
-  pppoe_enabled = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
-  iptv_enabled  = (evcConf->flags & PTIN_EVC_MASK_MC_IPTV)        == PTIN_EVC_MASK_MC_IPTV;
-  cpu_trap      = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING  ) == PTIN_EVC_MASK_CPU_TRAPPING;
+  is_stacked     = (evcConf->flags & PTIN_EVC_MASK_STACKED        ) == PTIN_EVC_MASK_STACKED;
+  maclearning    = (evcConf->flags & PTIN_EVC_MASK_MACLEARNING    ) == PTIN_EVC_MASK_MACLEARNING;
+  dhcpv4_enabled = (evcConf->flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+  dhcpv6_enabled = (evcConf->flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+  igmp_enabled   = (evcConf->flags & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  pppoe_enabled  = (evcConf->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+  iptv_enabled   = (evcConf->flags & PTIN_EVC_MASK_MC_IPTV        ) == PTIN_EVC_MASK_MC_IPTV;
+  cpu_trap       = (evcConf->flags & PTIN_EVC_MASK_CPU_TRAPPING   ) == PTIN_EVC_MASK_CPU_TRAPPING;
 
   /* Determine EVC type */
   if (evcConf->flags & PTIN_EVC_MASK_QUATTRO)
@@ -1959,7 +1979,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* To be removed */
   #if 0
   /* To be changed in the future */
-  if (dhcp_enabled && !pppoe_enabled)
+  if ((dhcpv4_enabled || dhcpv6_enabled) && !pppoe_enabled)
   {
     pppoe_enabled = L7_TRUE;
     evcConf->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
@@ -2088,6 +2108,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* New EVC ? */
   if ( !IS_eEVC_IN_USE(evc_ext_id) )
   {
+    new_evc = L7_TRUE;
+
     rc = ptin_evc_entry_allocate(evc_ext_id, &evc_id);
     if (rc != L7_SUCCESS) {
       LOG_CRITICAL(LOG_CTX_PTIN_EVC, "Error allocating an internal EVC!");
@@ -2208,272 +2230,80 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     }
     #endif
 
-    /* Update EVC entry (this info will be used on the configuration functions) */
-    evcs[evc_id].in_use           = L7_TRUE;
-    evcs[evc_id].flags            = evcConf->flags;
-    evcs[evc_id].type             = evcConf->type;
-    evcs[evc_id].mc_flood         = evcConf->mc_flood;
-    evcs[evc_id].rvlan            = root_vlan;         /* ...above created */
-    evcs[evc_id].queue_free_vlans = freeVlan_queue;
-    evcs[evc_id].p2p_port1_intf   = p2p_port1;
-    evcs[evc_id].p2p_port2_intf   = p2p_port2;
-    evcs[evc_id].multicast_group  = multicast_group;
-
-    error = L7_FALSE;
-
-    #if 0
-    /* Add a broadcast rate limiter for unstacked services */
-    if ( cpu_trap )
+    /* If no error, proceed to configure each interface */
+    if (!error)
     {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Configuring rate limiters", evc_ext_id);
+      /* Update EVC entry (this info will be used on the configuration functions) */
+      evcs[evc_id].in_use           = L7_TRUE;
+      evcs[evc_id].flags            = evcConf->flags;
+      evcs[evc_id].type             = evcConf->type;
+      evcs[evc_id].mc_flood         = evcConf->mc_flood;
+      evcs[evc_id].rvlan            = root_vlan;         /* ...above created */
+      evcs[evc_id].queue_free_vlans = freeVlan_queue;
+      evcs[evc_id].p2p_port1_intf   = p2p_port1;
+      evcs[evc_id].p2p_port2_intf   = p2p_port2;
+      evcs[evc_id].multicast_group  = multicast_group;
 
-      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-      /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
-      if (NO_INSTANCE(evc_id, n_quattro_evcs))
-      #endif
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Adding interfaces", evc_ext_id);
+
+      /* Configure each interface */
+      for (i=0; i<evcConf->n_intf; i++)
       {
-        if (evcConf->mc_flood == PTIN_EVC_MC_FLOOD_ALL)
-        {
-          /* Rate limiter for MC */
-          if (ptin_multicast_rateLimit(L7_ENABLE, root_vlan)!=L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for multicast traffic", evc_id);
-            error = L7_TRUE;
-          }
-          else
-          {
-            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for multicast traffic", evc_id);
-          }
-        }
+        /* Convert Phy/Lag# into PTin Intf index */
+        if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
+          ptin_port = evcConf->intf[i].intf_id;
         else
-        {
-          /* Rate limiter for BC */
-          if (ptin_broadcast_rateLimit(L7_ENABLE, root_vlan)!=L7_SUCCESS)
-          {
-            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error applying rate limit for broadcast traffic", evc_id);
-            error = L7_TRUE;
-          }
-          else
-          {
-            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Success applying rate limit for broadcast traffic", evc_id);
-          }
-        }
-      }
-    }
-    #endif
+          ptin_port = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
 
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Adding interfaces", evc_ext_id);
-
-    /* Configure each interface */
-    for (i=0; i<evcConf->n_intf; i++)
-    {
-      /* Convert Phy/Lag# into PTin Intf index */
-      if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
-        ptin_port = evcConf->intf[i].intf_id;
-      else
-        ptin_port = evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS;
-
-      /* Apply config */
-      if (ptin_evc_intf_add(evc_id, ptin_port, &evcConf->intf[i]) != L7_SUCCESS)
-      {
-        error = L7_TRUE;
-        break;
-      }
-
-      /* On Unstacked EVCs, a "bridge" needs to be established between each leaf and all root interfaces */
-      if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
-      {
-        if (ptin_evc_etree_intf_add(evc_id, ptin_port) != L7_SUCCESS)
+        /* Apply config */
+        if (ptin_evc_intf_add(evc_id, ptin_port, &evcConf->intf[i]) != L7_SUCCESS)
         {
           error = L7_TRUE;
           break;
         }
-      }
-    }
 
-    /* For EVCs point-to-point unstacked, create now the crossconnection */
-    if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
-    {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Configuring P2P unstacked bridge", evc_ext_id);
-
-      /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-      if (switching_p2p_bridge_add(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
-                                   p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
-                                   0 /* No inner vlan */) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
-                p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
-                p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan);
-        error = L7_TRUE;
+        /* On Unstacked EVCs, a "bridge" needs to be established between each leaf and all root interfaces */
+        if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
+        {
+          if (ptin_evc_etree_intf_add(evc_id, ptin_port) != L7_SUCCESS)
+          {
+            error = L7_TRUE;
+            break;
+          }
+        }
       }
-      else
+
+      /* For EVCs point-to-point unstacked, create now the crossconnection */
+      if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
       {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Single vlanbridge added between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Configuring P2P unstacked bridge", evc_ext_id);
+
+        /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
+        if (switching_p2p_bridge_add(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                                     p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
+                                     0 /* No inner vlan */) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error adding single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
                   p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
                   p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan);
-      }
-    }
-
-    /* Protocol management */
-    #if (!PTIN_BOARD_IS_MATRIX)
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
-    if (dhcp_enabled)
-    {
-      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
-      {
-        error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
-      }
-    }
-    /* If PPPoE is enabled, add PPPoE trap rule */
-    if (pppoe_enabled)
-    {
-      if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid)!=L7_SUCCESS)
-      {
-        error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
-      }
-    }
-    #endif
-
-    /* If IGMP is enabled, add trap rule for this service */
-    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    if (igmp_enabled)
-    {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
-                                 ) != L7_SUCCESS)
-      {
-        error = L7_TRUE;
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added trap rules to IGMP instance", evc_id);
-      }
-    }
-    #endif
-
-    /* Error occured ? */
-    if (error)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to be created", evc_id);
-
-      #if (!PTIN_BOARD_IS_MATRIX)
-      /* Remove DHCP instance */
-      if (dhcp_enabled)
-      {
-        ptin_dhcp_evc_remove(evc_ext_id);
-      }
-      /* remove PPPoE trap rule */
-      if (pppoe_enabled)
-      {
-        ptin_pppoe_evc_remove(evc_ext_id);
-      }
-      #endif
-
-      /* Remove IGMP trap rules */
-      #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-      if (igmp_enabled)
-      {
-        ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs)));
-      }
-      #endif
-
-      /* If EVC is P2MP, remove specific translations */
-      if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
-      {
-        ptin_evc_etree_intf_remove_all(evc_id);
-      }
-      /* For unstacked P2P EVCs, remove single vlan cross-connection */
-      else if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
-      {
-        /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-        switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
-                                    p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
-                                    0 /* No inner vlan */);
-      }
-      
-      /* Remove all previously configured interfaces */
-      ptin_evc_intf_remove_all(evc_id);
-
-      #if 0
-      /* Remove the broadcast rate limiter for unstacked services */
-      if ( cpu_trap)
-      {
-        #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-        /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
-        if (NO_INSTANCE(evc_id, n_quattro_evcs))
-        #endif
+          error = L7_TRUE;
+        }
+        else
         {
-          ptin_broadcast_rateLimit(L7_DISABLE, root_vlan);
-          ptin_multicast_rateLimit(L7_DISABLE, root_vlan);
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Single vlanbridge added between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+                    p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                    p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan);
         }
       }
-      #endif
-
-      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-      /* Virtual ports: Destroy multicast group */
-      if (is_quattro && evcs[evc_id].multicast_group > 0)
-      {
-        /* Virtual ports: Configure multicast group for the vlan */
-        if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
-          //return L7_FAILURE;
-        }
-        LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
-
-        if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
-        {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
-          //return L7_FAILURE;
-        }
-        evcs[evc_id].multicast_group = -1;
-      }
-      #endif
-
-      if (evc_ext_id == PTIN_EVC_INBAND)
-      {
-        switching_vlan_delete(PTIN_VLAN_INBAND);
-      }
-      #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-      else if (evc_ext_id == PTIN_EVC_BL2CPU)
-      {
-        switching_vlan_delete(PTIN_VLAN_BL2CPU);
-      }
-      #endif
-      else
-      {
-      #if (1)   /* EVCid extended feature */
-        ptin_evc_vlan_free(root_vlan, freeVlan_queue);
-      #else
-        ptin_evc_matrix_vlan_free(root_vlan);
-      #endif
-      }
-      
-      ptin_evc_entry_free(evc_ext_id);
-
-      return L7_FAILURE;
     }
+
     /* Successfull creation */
-    else
+    if (!error)
     {
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       /* Count number of QUATTRO P2P evcs */
       INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
       /* Update number of IGMP QUATTRO-P2P evcs */
-      if (igmp_enabled)
-        INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
       #endif
     }
   }
@@ -2487,138 +2317,279 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       return L7_FAILURE;
     }
 
+    root_vlan = evcs[evc_id].rvlan;
+
+    /* Status variables: Do not allow to be changed */
+    is_p2p         = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    is_quattro     = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
+    #endif
+    is_stacked     = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
+    /* The remaining variables allow to be updated */
+
     /* For unstacked P2P services, don't allow ports change */
-    if (is_p2p && !is_stacked)
+    if ( !(is_p2p && !is_stacked) )
+    {
+      LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: applying new config...", evc_id);
+
+      /* Create a lookup table to map the evcConf.intf (sequecial) to the evc.intf (indexed) */
+      for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
+        intf2cfg[i] = -1;   /* A negative value means no mapping... */
+      for (i=0; i<evcConf->n_intf; i++)
+      {
+        if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
+          intf2cfg[evcConf->intf[i].intf_id] = i;
+        else
+          intf2cfg[evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS] = i;
+      }
+
+      /* Check if ports are added or removed */
+      error = L7_FALSE;
+      for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
+      {
+        /* Port added ? */
+        if ((evcs[evc_id].intf[i].in_use == 0) && (intf2cfg[i] >= 0))
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding interface# %u...", evc_id, i);
+
+          if (ptin_evc_intf_add(evc_id, i, &evcConf->intf[intf2cfg[i]]) != L7_SUCCESS)
+          {
+            /* Signal error, but try to process the rest of the config */
+            error = L7_TRUE;
+            continue;
+          }
+
+          /* NOTE: in unstacked EVCs, a bridge needs to be added between each leaf
+           * and all the root interfaces */
+          if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
+          {
+            if (ptin_evc_etree_intf_add(evc_id, i) != L7_SUCCESS)
+            {
+              /* Signal error, but try to process the rest of the config */
+              error = L7_TRUE;
+              continue;
+            }
+          }
+        }
+        /* Port removed ? */
+        else if ((evcs[evc_id].intf[i].in_use) && (intf2cfg[i] < 0))
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing interface# %u...", evc_id, i);
+
+          /* Do not allow port removal if counters or BW profiles are configured */
+          {
+           unsigned long j;
+           for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
+               if (evcs[evc_id].intf[i].bwprofile[j]!= NULL) goto _ptin_evc_create1;
+          }
+          if ((evcs[evc_id].intf[i].counter  != NULL) ||
+              (evcs[evc_id].intf[i].queue_probes.n_elems > 0) ||
+              (evcs[evc_id].intf[i].clients.n_elems > 0))
+          {
+_ptin_evc_create1:
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u has counter/BW profiles or flows configured! Cannot remove it!",
+                    evc_id,
+                    i < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
+                    i < PTIN_SYSTEM_N_PORTS ? i : i - PTIN_SYSTEM_N_PORTS);
+
+            /* Signal error, but try to process the rest of the config */
+            error = L7_TRUE;
+            continue;
+          }
+
+          /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
+          if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
+          {
+            if (ptin_evc_etree_intf_remove(evc_id, i) != L7_SUCCESS)
+            {
+              /* Signal error, but try to process the rest of the config */
+              error = L7_TRUE;
+              continue;
+            }
+          }
+
+          if (ptin_evc_intf_remove(evc_id, i) != L7_SUCCESS)
+          {
+            /* Signal error, but try to process the rest of the config */
+            error = L7_TRUE;
+            continue;
+          }
+        }
+      }
+    }
+    else
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Unstacked point-to-point EVC... no change allowed", evc_id);
+      error = L7_TRUE;
+    }
+  }
+
+  /* If no error, update some EVC data */
+  if (!error)
+  {
+    /* MAC Learning, Multicast flood and CPU trap */
+    evcs[evc_id].mc_flood = evcConf->mc_flood;
+    (cpu_trap   ) ? (evcs[evc_id].flags |= PTIN_EVC_MASK_CPU_TRAPPING) : (evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_CPU_TRAPPING));
+    (maclearning) ? (evcs[evc_id].flags |= PTIN_EVC_MASK_MACLEARNING ) : (evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_MACLEARNING ));
+
+    rc = switching_vlan_config(root_vlan, root_vlan, maclearning, evcs[evc_id].mc_flood, cpu_trap);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
+              evc_id, root_vlan, root_vlan, maclearning, evcs[evc_id].mc_flood);
       return L7_FAILURE;
     }
 
-    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: applying new config...", evc_id);
-
-    /* Create a lookup table to map the evcConf.intf (sequecial) to the evc.intf (indexed) */
-    for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
-      intf2cfg[i] = -1;   /* A negative value means no mapping... */
-    for (i=0; i<evcConf->n_intf; i++)
-    {
-      if (evcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL)
-        intf2cfg[evcConf->intf[i].intf_id] = i;
-      else
-        intf2cfg[evcConf->intf[i].intf_id + PTIN_SYSTEM_N_PORTS] = i;
-    }
-
-    /* Check if ports are added or removed */
-    error = L7_FALSE;
-    for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
-    {
-      /* Port added ? */
-      if ((evcs[evc_id].intf[i].in_use == 0) && (intf2cfg[i] >= 0))
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: adding interface# %u...", evc_id, i);
-
-        if (ptin_evc_intf_add(evc_id, i, &evcConf->intf[intf2cfg[i]]) != L7_SUCCESS)
-        {
-          /* Signal error, but try to process the rest of the config */
-          error = L7_TRUE;
-          continue;
-        }
-
-        /* NOTE: in unstacked EVCs, a bridge needs to be added between each leaf
-         * and all the root interfaces */
-        if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
-        {
-          if (ptin_evc_etree_intf_add(evc_id, i) != L7_SUCCESS)
-          {
-            /* Signal error, but try to process the rest of the config */
-            error = L7_TRUE;
-            continue;
-          }
-        }
-      }
-
-      /* Port removed ? */
-      else if ((evcs[evc_id].intf[i].in_use) && (intf2cfg[i] < 0))
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: removing interface# %u...", evc_id, i);
-
-        /* Do not allow port removal if counters or BW profiles are configured */
-        {
-         unsigned long j;
-         for (j=0; j<L7_COS_INTF_QUEUE_MAX_COUNT; j++)
-             if (evcs[evc_id].intf[i].bwprofile[j]!= NULL) goto _ptin_evc_create1;
-        }
-        if ((evcs[evc_id].intf[i].counter  != NULL) ||
-            (evcs[evc_id].intf[i].queue_probes.n_elems > 0) ||
-            (evcs[evc_id].intf[i].clients.n_elems > 0))
-        {
-_ptin_evc_create1:
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %s# %u has counter/BW profiles or flows configured! Cannot remove it!",
-                  evc_id,
-                  i < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
-                  i < PTIN_SYSTEM_N_PORTS ? i : i - PTIN_SYSTEM_N_PORTS);
-
-          /* Signal error, but try to process the rest of the config */
-          error = L7_TRUE;
-          continue;
-        }
-
-        /* If it is an unstacked EVC, we need to remove the bridge before removing the interface */
-        if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
-        {
-          if (ptin_evc_etree_intf_remove(evc_id, i) != L7_SUCCESS)
-          {
-            /* Signal error, but try to process the rest of the config */
-            error = L7_TRUE;
-            continue;
-          }
-        }
-
-        if (ptin_evc_intf_remove(evc_id, i) != L7_SUCCESS)
-        {
-          /* Signal error, but try to process the rest of the config */
-          error = L7_TRUE;
-          continue;
-        }
-      }
-    }
-
+    /* Protocol management */
     #if (!PTIN_BOARD_IS_MATRIX)
-    /* If DHCP is enabled, add DHCP instance */
-    if (dhcp_enabled)
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
+    /* DHCP configuration */
+    if (ptin_evc_update_dhcp(evc_id, &evcs[evc_id].flags, dhcpv4_enabled, dhcpv6_enabled,
+                             L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
     {
-      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding DHCP instance", evc_id);
-      else
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP instance added with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
+      error = L7_TRUE;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCP", evc_id);
     }
-    /* If PPPoE is enabled, add PPPoE trap rule */
-    if (pppoe_enabled)
+    else
     {
-      if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid)!=L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding PPPoE instance", evc_id);
-      else
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE instance added with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP configured", evc_id);
+    }
+
+    /* PPPoE configuration */
+    if (ptin_evc_update_pppoe(evc_id, &evcs[evc_id].flags, pppoe_enabled,
+                              L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+    {
+      error = L7_TRUE;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE configured", evc_id);
     }
     #endif
 
-    /* If IGMP is enabled, add trap rule for this service */
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    /* PPPoE configuration */
+    if (ptin_evc_update_igmp(evc_id, &evcs[evc_id].flags, igmp_enabled,
+                             L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+    {
+      error = L7_TRUE;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring IGMP", evc_id);
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP configured", evc_id);
+    }
+    #endif
+  }
+
+  /* Error occured: Remove configurations if EVC is new */
+  if (error && new_evc)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: failed to be created", evc_id);
+
+    #if (!PTIN_BOARD_IS_MATRIX)
+    /* Remove DHCP instance */
+    if (dhcpv4_enabled || dhcpv6_enabled)
+    {
+      ptin_dhcp_evc_remove(evc_ext_id);
+    }
+    /* remove PPPoE trap rule */
+    if (pppoe_enabled)
+    {
+      ptin_pppoe_evc_remove(evc_ext_id);
+    }
+    #endif
+
+    /* Remove IGMP trap rules */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
     if (igmp_enabled)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                  (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
-                                  ) != L7_SUCCESS)
+      ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                              (!iptv_enabled && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs)));
+    }
+    #endif
+
+    /* If EVC is P2MP, remove specific translations */
+    if ((evcConf->flags & PTIN_EVC_MASK_ETREE))
+    {
+      ptin_evc_etree_intf_remove_all(evc_id);
+    }
+    /* For unstacked P2P EVCs, remove single vlan cross-connection */
+    else if (evc_type == PTIN_EVC_TYPE_STD_P2P && !is_stacked)
+    {
+      /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
+      switching_p2p_bridge_remove(p2p_port1, evcs[evc_id].intf[p2p_port1].int_vlan,
+                                  p2p_port2, evcs[evc_id].intf[p2p_port2].int_vlan,
+                                  0 /* No inner vlan */);
+    }
+    
+    /* Remove all previously configured interfaces */
+    ptin_evc_intf_remove_all(evc_id);
+
+    #if 0
+    /* Remove the broadcast rate limiter for unstacked services */
+    if ( cpu_trap)
+    {
+      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+      /* Only for non QUATTRO-P2P evcs, or if is the first QUATTRO-P2P */
+      if (NO_INSTANCE(evc_id, n_quattro_evcs))
+      #endif
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added trap rules to IGMP instance", evc_id);
-        /* Update number of igmp quattro-p2p evcs */
-        INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+        ptin_broadcast_rateLimit(L7_DISABLE, root_vlan);
+        ptin_multicast_rateLimit(L7_DISABLE, root_vlan);
       }
     }
     #endif
+
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* Virtual ports: Destroy multicast group */
+    if (is_quattro && evcs[evc_id].multicast_group > 0)
+    {
+      /* Virtual ports: Configure multicast group for the vlan */
+      if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
+        //return L7_FAILURE;
+      }
+      LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
+
+      if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error destroying Multicast group %u", evc_id, evcs[evc_id].multicast_group);
+        //return L7_FAILURE;
+      }
+      evcs[evc_id].multicast_group = -1;
+    }
+    #endif
+
+    if (evc_ext_id == PTIN_EVC_INBAND)
+    {
+      switching_vlan_delete(PTIN_VLAN_INBAND);
+    }
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+    else if (evc_ext_id == PTIN_EVC_BL2CPU)
+    {
+      switching_vlan_delete(PTIN_VLAN_BL2CPU);
+    }
+    #endif
+    else
+    {
+    #if (1)   /* EVCid extended feature */
+      ptin_evc_vlan_free(root_vlan, freeVlan_queue);
+    #else
+      ptin_evc_matrix_vlan_free(root_vlan);
+    #endif
+    }
+    
+    ptin_evc_entry_free(evc_ext_id);
+  }
+
+  /* If error */
+  if (error)
+  {
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u creation failed", evc_ext_id);
+    return L7_FAILURE;
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u successfully created with internal index %u", evc_ext_id, evc_id);
@@ -2927,10 +2898,10 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   #endif
   #ifdef EVC_CLIENTS_REQUIRE_CLEANUP_BEFORE_REMOVAL
   /* Check if there are clients pending... */
-  if (evcs[evc_id].n_clients > 0)
+  if (evcs[evc_id].n_clientflows > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u clients are still configured! EVC cannot be removed!",
-            evc_id, evcs[evc_id].n_clients);
+            evc_id, evcs[evc_id].n_clientflows);
     return L7_FAILURE;
   }
   #endif
@@ -3162,7 +3133,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   #endif
 
   /* IF this EVC belongs to an DHCP instance, destroy that instance */
-  if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+  if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL)
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP is not cleared!!!", evc_id);
 //    TODO !!!
@@ -3224,10 +3195,10 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   #endif
 
   /* Check if there are clients pending... */
-  if (evcs[evc_id].n_clients > 0)
+  if (evcs[evc_id].n_clientflows > 0)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: %u clients are still configured! EVC cannot be destroyed!",
-            evc_id, evcs[evc_id].n_clients);
+            evc_id, evcs[evc_id].n_clientflows);
     return L7_FAILURE;
   }
 
@@ -3509,7 +3480,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   pclient->uni_ivid   = 0;
   pclient->client_vid = evcBridge->inn_vlan;
   /* Save protocol enable flags */
-  pclient->flags    = evcs[evc_id].flags & (PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_DHCP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL);
+  pclient->flags    = evcs[evc_id].flags & (PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_DHCPV4_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL);
   /* No vlans to be flooded */
   memset( pclient->flood_vlan, 0x00, sizeof(pclient->flood_vlan));
   for (i=0; i<L7_COS_INTF_QUEUE_MAX_COUNT; i++) {
@@ -3519,7 +3490,7 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   pclient->counter  [PTIN_EVC_INTF_ROOT] = L7_NULLPTR;
   pclient->counter  [PTIN_EVC_INTF_LEAF] = L7_NULLPTR;
   dl_queue_add_tail(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient); /* add it to the corresponding interface */
-  evcs[evc_id].n_clients++;
+  evcs[evc_id].n_clientflows++;
 
   /* SEM CLIENTS DOWN */
   osapiSemaGive(ptin_evc_clients_sem);
@@ -3708,7 +3679,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   pclient->client_vid = 0;
   pclient->flags      = 0;
   dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pclient);
-  evcs[evc_id].n_clients--;
+  evcs[evc_id].n_clientflows--;
 
   /* SEM CLIENTS DOWN */
   osapiSemaGive(ptin_evc_clients_sem);
@@ -4014,6 +3985,9 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   L7_uint   evc_id, evc_ext_id;
   L7_uint   leaf_port;
   L7_uint32 intIfNum;
+  L7_BOOL   igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
+  /* Always add client */
+  ptin_client_id_t clientId;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -4029,7 +4003,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   /* Is EVC in use? */
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_id);
     return L7_FAILURE;
   }
 
@@ -4119,11 +4093,11 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     pflow->uni_ovid   = evcFlow->uni_ovid;
     pflow->uni_ivid   = evcFlow->uni_ivid;
     pflow->client_vid = evcFlow->uni_ivid;
-    pflow->flags      = evcFlow->flags;
+    pflow->flags      = 0; //evcFlow->flags;
     pflow->virtual_gport = vport_id;
     pflow->vport_id   = vport_id & 0xffffff;
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
-    evcs[evc_id].n_clients++;
+    evcs[evc_id].n_clientflows++;
 
     LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
              evc_ext_id,
@@ -4141,20 +4115,23 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: GEM id already exists", evc_id, evcFlow->uni_ovid, leaf_port);
   }
 
-  /* IGMP / DHCP / PPPoE instance management */
+  /* Protocols */
+  igmp_enabled    = (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  dhcpv4_enabled  = (evcFlow->flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+  dhcpv6_enabled  = (evcFlow->flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+  pppoe_enabled   = (evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+
+  /* Client id: For IGMP */
+  memset(&clientId, 0x00, sizeof(clientId));
+  clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
+  clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
+  clientId.outerVlan            = pflow->int_ovid;
+  clientId.innerVlan            = pflow->int_ivid;
+  clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+
+  /* Manage IGMP client */
   if (evcFlow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    /* Always add client */
-    ptin_client_id_t clientId;
-
-    /* Client id */
-    memset(&clientId, 0x00, sizeof(clientId));
-    clientId.ptin_intf.intf_type  = evcFlow->ptin_intf.intf_type;
-    clientId.ptin_intf.intf_id    = evcFlow->ptin_intf.intf_id;
-    clientId.outerVlan            = pflow->int_ovid;
-    clientId.innerVlan            = pflow->int_ivid;
-    clientId.mask                 = PTIN_CLIENT_MASK_FIELD_INTF | PTIN_CLIENT_MASK_FIELD_OUTERVLAN | PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-
     /* Add client */
     if (ptin_igmp_clientGroup_add(&clientId, pflow->uni_ovid, pflow->uni_ivid, evcFlow->onuId, evcFlow->mask, evcFlow->maxBandwidth, evcFlow->maxChannels) != L7_SUCCESS)
     {
@@ -4165,63 +4142,65 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     {
       LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added client to IGMP instance", evc_id);
     }
-
-    /* Configure trap rule (only at addition - this should not activate IGMP flag) */
-    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL))
+  }
+  else if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
+  {
+    /* Remove client */
+    if (ptin_igmp_clientGroup_remove(&clientId) != L7_SUCCESS)
     {
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
-                                 ) != L7_SUCCESS)
-      {
-        ptin_igmp_clientGroup_remove(&clientId);
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding trap rules for IGMP evc", evc_id);
-        return L7_FAILURE;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added trap rules to IGMP instance", evc_id);
-      }
-      /* Update number of igmp quattro-p2p evcs */
-      INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
-
-      evcs[evc_id].flags |= PTIN_EVC_MASK_IGMP_PROTOCOL;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing client from IGMP instance", evc_id);
+      //rc = L7_FAILURE;    /* L7_NOT_EXIST is not an error */
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Client removed from IGMP instance", evc_id);
     }
   }
+
+  /* ---------------- IGMP ------------------- */
+  /* Only configure IGMP for first time configurations */
+  if (ptin_evc_update_igmp(evc_id, &pflow->flags, igmp_enabled,
+                           L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring IGMP", evc_id);
+    ptin_igmp_clientGroup_remove(&clientId);
+    return L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP configured", evc_id);
+  }
+
   #if (!PTIN_BOARD_IS_MATRIX)
-  if ( (evcFlow->flags & PTIN_EVC_MASK_DHCP_PROTOCOL) &&
-      !(evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL) )
+  /* ---------------- DHCP ------------------- */
+  /* Only configure DHCP for first time configurations */
+  if (ptin_evc_update_dhcp(evc_id, &pflow->flags, dhcpv4_enabled, dhcpv6_enabled,
+                           L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
   {
-    if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to DHCP instance", evc_id);
-      return L7_FAILURE;
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added evc to DHCP instance with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
-    }
-    evcs[evc_id].flags |= PTIN_EVC_MASK_DHCP_PROTOCOL;
-    /* To be changed in the future */
-    evcFlow->flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCP", evc_id);
+    return L7_FAILURE;
   }
-  if ( (evcFlow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) &&
-      !(evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL) )
+  else
   {
-    if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to PPPoE instance", evc_id);
-      return L7_FAILURE;
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added evc to PPPoE instance with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
-    }
-    evcs[evc_id].flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP configured", evc_id);
+  }
+
+  /* ---------------- PPPoE ------------------- */
+  /* PPPoE configuration */
+  if (ptin_evc_update_pppoe(evc_id, &pflow->flags, pppoe_enabled,
+                            L7_FALSE /*Update*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
+    return L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE configured", evc_id);
   }
   #endif
 
   #else
-  LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_ext_id);
+  LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_id);
   return L7_ERROR;
   #endif
 
@@ -4352,7 +4331,8 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   ptin_intf_t ptin_intf;
   struct ptin_evc_client_s *pflow;
   L7_uint32 evc_ext_id;
-  L7_RC_t rc = L7_SUCCESS;
+  L7_BOOL   igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
+  L7_RC_t   rc = L7_SUCCESS;
 
   /* Validate arguments */
   if (evc_id >= PTIN_SYSTEM_N_EVCS || ptin_port >= PTIN_SYSTEM_N_INTERF /*|| flow_id >= PTIN_SYSTEM_N_FLOWS_MAX*/)
@@ -4385,6 +4365,12 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
     LOG_WARNING(LOG_CTX_PTIN_EVC, "EVC# %u: Flow not found", evc_id);
     return L7_SUCCESS;
   }
+
+  /* Protocols */
+  igmp_enabled    = (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  dhcpv4_enabled  = (pflow->flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+  dhcpv6_enabled  = (pflow->flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+  pppoe_enabled   = (pflow->flags & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
 
   /* IGMP / DHCP / PPPoE instance management */
   if (pflow->flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
@@ -4433,7 +4419,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   if (ptin_virtual_port_remove(intIfNum, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port", evc_id);
-    rc = L7_FAILURE;
+    return L7_FAILURE;
   }
 
   /* Delete client from the EVC struct */
@@ -4442,67 +4428,607 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   memset(pflow, 0x00, sizeof(struct ptin_evc_client_s));
   dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pflow);
   /* Update number of flows */
-  if (evcs[evc_id].n_clients > 0)
-    evcs[evc_id].n_clients--;
+  if (evcs[evc_id].n_clientflows > 0)
+    evcs[evc_id].n_clientflows--;
 
-  /* If no more flows, remove instances */
-  if (IS_EVC_P2P(evc_id) || evcs[evc_id].n_clients == 0)
+  /* Remove IGMP configurations */
+  if (ptin_evc_update_igmp(evc_id, &pflow->flags, igmp_enabled,
+                           L7_TRUE /*Remove*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
   {
-    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
-    {
-      /* Remove trap rule */
-      if (ptin_igmp_evc_configure(evc_ext_id, L7_DISABLE,
-                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
-                                 ) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing trap rules for IGMP evc", evc_id);
-        rc = L7_FAILURE;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for IGMP evc", evc_id);
-      }
-      /* Update number of IGMP QUATTRO-P2P evcs */
-      DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
-
-      evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
-    }
-
-    #if (!PTIN_BOARD_IS_MATRIX)
-    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
-    {
-      if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from DHCP instance", evc_id);
-        rc = L7_FAILURE;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removing evc from DHCP instance", evc_id);
-      }
-      evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCP_PROTOCOL);
-    }
-    if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
-    {
-      if (ptin_pppoe_evc_remove(evc_ext_id) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from PPPoE instance", evc_id);
-        rc = L7_FAILURE;
-      }
-      else
-      {
-        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removing evc from PPPoE instance", evc_id);
-      }
-      evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_PPPOE_PROTOCOL);
-    }
-    #endif
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error deconfiguring IGMP", evc_id);
+    rc = L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP removed", evc_id);
   }
 
-  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flow (related to client %u) removed!", evc_id, client_vlan);
+  #if (!PTIN_BOARD_IS_MATRIX)
+  /* Remove DHCP configurations */
+  if (ptin_evc_update_dhcp(evc_id, &pflow->flags, dhcpv4_enabled, dhcpv6_enabled,
+                           L7_TRUE /*Remove*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error deconfiguring DHCP", evc_id);
+    rc = L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE removed", evc_id);
+  }
+
+  /* Remove DHCP configurations */
+  if (ptin_evc_update_pppoe(evc_id, &pflow->flags, pppoe_enabled,
+                            L7_TRUE /*Remove*/, L7_TRUE /*Look to counters*/) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error deconfiguring PPPoE", evc_id);
+    rc = L7_FAILURE;
+  }
+  else
+  {
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE removed", evc_id);
+  }
+  #endif
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Flow (related to client %u) removed! rc=%d", evc_id, client_vlan, rc);
 
   return rc;
 }
 #endif
+
+/**
+ * DHCP configurations
+ * 
+ * @author mruas (12/5/2014)
+ * 
+ * @param evc_id        : EVC id
+ * @param flags_ref     : Reference flags 
+ * @param dhcpv4_enable 
+ * @param dhcpv6_enable  
+ * @param just_remove   : Remove configurations?
+ * @param look_to_counters : Look to DHCP service counters?
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
+                                    L7_BOOL just_remove, L7_BOOL look_to_counters)
+{
+  L7_uint32 evc_ext_id;
+  L7_BOOL dhcpv4_apply, dhcpv6_apply;
+
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Invalid evc id", evc_id);
+    return L7_FAILURE;
+  }
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: EVC not active", evc_id);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_id].extended_id;
+
+  dhcpv4_apply = ((*flags_ref & PTIN_EVC_MASK_DHCPV4_PROTOCOL)==PTIN_EVC_MASK_DHCPV4_PROTOCOL) != dhcpv4_enabled;
+  dhcpv6_apply = ((*flags_ref & PTIN_EVC_MASK_DHCPV6_PROTOCOL)==PTIN_EVC_MASK_DHCPV6_PROTOCOL) != dhcpv6_enabled;
+
+  /* Remove configurations? */
+  if (just_remove)
+  {
+    /* Remove DHCPv4 trap rules */
+    if (dhcpv4_enabled)
+    {
+      if (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv4 == 1)
+      {
+        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing DHCPv4 trap rule", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for DHCPv4", evc_id);
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+        }
+      }
+
+      /* Update counters */
+      if (look_to_counters)
+      {
+        if (evcs[evc_id].n_clientflows_dhcpv4 > 0)
+          evcs[evc_id].n_clientflows_dhcpv4--;
+      }
+      else
+      {
+        evcs[evc_id].n_clientflows_dhcpv4 = 0;
+      }
+    }
+    /* Remove DHCPv6 trap rules */
+    if (dhcpv6_enabled)
+    {
+      if (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv6 == 1)
+      {
+        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET6) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing DHCPv6 trap rule", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for DHCPv6", evc_id);
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+        }
+      }
+
+      /* Update counters */
+      if (look_to_counters)
+      {
+        if (evcs[evc_id].n_clientflows_dhcpv6 > 0)
+          evcs[evc_id].n_clientflows_dhcpv6--;
+      }
+      else
+      {
+        evcs[evc_id].n_clientflows_dhcpv6 = 0;
+      }
+    }
+  }
+  /* Update configurations */
+  else
+  {
+    /* DHCP: Correct data */
+    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL)) 
+    {
+      if (flags_ref != &evcs[evc_id].flags)
+        *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+      evcs[evc_id].n_clientflows_dhcpv4 = 0;
+    }
+    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
+    {
+      if (flags_ref != &evcs[evc_id].flags)
+        *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+      evcs[evc_id].n_clientflows_dhcpv6 = 0;
+    }
+
+    /* If is the virst DHCPv4 or v6 protocol to configured, add EVC to instance */
+    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) &&
+        !(evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) &&
+        (dhcpv4_apply || dhcpv6_apply) )
+    {
+      if (ptin_dhcp_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to DHCP instance", evc_id);
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added evc to DHCP instance with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
+    }
+
+    if (dhcpv4_apply)
+    {
+      /* Configure DHCPv4 trap rule */
+      if (dhcpv4_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv4 == 0))
+      {
+        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_ENABLE, L7_AF_INET) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv4 trap rule", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added DHCPv4 trap rule", evc_id);
+          evcs[evc_id].flags |= PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+        }
+      }
+      else if (!dhcpv4_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv4 == 1))
+      {
+        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv4 trap rule", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed DHCPv4 trap rule", evc_id);
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+        }
+      }
+
+      /* DHCPv4 local data */
+      if (flags_ref != &evcs[evc_id].flags)
+      {
+        if (dhcpv4_enabled && !(*flags_ref & PTIN_EVC_MASK_DHCPV4_PROTOCOL)) 
+        {
+          *flags_ref |= PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+          if (look_to_counters)
+          {
+            evcs[evc_id].n_clientflows_dhcpv4++;
+          }
+        }
+        else if (!dhcpv4_enabled && (*flags_ref & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
+        {
+          *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+          if (look_to_counters)
+          {
+            if (evcs[evc_id].n_clientflows_dhcpv4 > 0)
+              evcs[evc_id].n_clientflows_dhcpv4--;
+          }
+        }
+      }
+    }
+
+    if (dhcpv6_apply)
+    {
+      /* Configure DHCPv6 trap rule */
+      if (dhcpv6_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv6 == 0))
+      {
+        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_ENABLE, L7_AF_INET6) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv6 trap rule", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added DHCPv6 trap rule", evc_id);
+          evcs[evc_id].flags |= PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+        }
+      }
+      else if (!dhcpv6_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv6 == 1))
+      {
+        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET6) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv6 trap rule", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed DHCPv6 trap rule", evc_id);
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+        }
+      }
+
+      /* DHCPv6 local data */
+      if (flags_ref != &evcs[evc_id].flags)
+      {
+        if (dhcpv6_enabled && !(*flags_ref & PTIN_EVC_MASK_DHCPV6_PROTOCOL)) 
+        {
+          *flags_ref |= PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+          if (look_to_counters)
+          {
+            evcs[evc_id].n_clientflows_dhcpv6++;
+          }
+        }
+        else if (!dhcpv6_enabled && (*flags_ref & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
+        {
+          *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+          if (look_to_counters)
+          {
+            if (evcs[evc_id].n_clientflows_dhcpv6 > 0)
+              evcs[evc_id].n_clientflows_dhcpv6--;
+          }
+        }
+      }
+    }
+
+    /* Clear counters */
+    if (!look_to_counters)
+    {
+      if (dhcpv4_apply)  evcs[evc_id].n_clientflows_dhcpv4 = 0;
+      if (dhcpv6_apply)  evcs[evc_id].n_clientflows_dhcpv6 = 0;
+    }
+  }
+
+  /* Remove DHCP instance? */
+  if (!(evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) &&
+      !(evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) &&
+      (just_remove || dhcpv4_apply || dhcpv6_apply) )
+  {
+    if (ptin_dhcp_evc_remove(evc_ext_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing EVC from DHCP instance", evc_id);
+      return L7_FAILURE;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: EVC removed from DHCP instance", evc_id);
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * PPPoE configurations
+ * 
+ * @author mruas (12/5/2014)
+ * 
+ * @param evc_id 
+ * @param flags_ref     : Reference flags  
+ * @param pppoe_enable 
+ * @param just_remove   : Remove configurations?
+ * @param look_to_counters : Look to PPPoE service counters?
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref,
+                                     L7_BOOL pppoe_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
+{
+  L7_uint32 evc_ext_id;
+  L7_BOOL   pppoe_apply;
+
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Invalid evc id", evc_id);
+    return L7_FAILURE;
+  }
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: EVC not active", evc_id);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_id].extended_id;
+
+  pppoe_apply = ((*flags_ref & PTIN_EVC_MASK_PPPOE_PROTOCOL)==PTIN_EVC_MASK_PPPOE_PROTOCOL) != pppoe_enabled;
+
+  if (just_remove)
+  {
+    /* Remove PPPoE trap rules */
+    if (pppoe_enabled)
+    {
+      if (!look_to_counters || evcs[evc_id].n_clientflows_pppoe == 1)
+      {
+        if (ptin_pppoe_evc_remove(evc_ext_id) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from PPPoE instance", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed evc from PPPoE instance", evc_id);
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_PPPOE_PROTOCOL);
+        }
+      }
+
+      /* Update counters */
+      if (look_to_counters)
+      {
+        if (evcs[evc_id].n_clientflows_pppoe > 0)
+          evcs[evc_id].n_clientflows_pppoe--;
+      }
+      else
+      {
+        evcs[evc_id].n_clientflows_pppoe = 0;
+      }
+    }
+  }
+  else
+  {
+    /* PPPoE: Correct data */
+    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)) 
+    {
+      if (flags_ref != &evcs[evc_id].flags)
+        *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_PPPOE_PROTOCOL);
+      evcs[evc_id].n_clientflows_pppoe = 0;
+    }
+
+    /* Only configure PPPoE for first time configurations */
+    if (pppoe_apply)
+    {
+      if (pppoe_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_pppoe == 0))
+      {
+        if (ptin_pppoe_evc_add(evc_ext_id, evcs[evc_id].root_info.nni_ovid) != L7_SUCCESS) 
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to PPPoE instance", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added evc to PPPoE instance with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
+
+          /* Update PPPoE flags */
+          evcs[evc_id].flags |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+        }
+      }
+      else if (!pppoe_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_pppoe == 1))
+      {
+        if (ptin_pppoe_evc_remove(evc_ext_id) != L7_SUCCESS) 
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from PPPoE instance", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: EVC removed from PPPoE instance", evc_id);
+
+          /* Update PPPoE flags */
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_PPPOE_PROTOCOL);
+        }
+      }
+
+      /* PPPoE local data */
+      if (flags_ref != &evcs[evc_id].flags)
+      {
+        if (pppoe_enabled && !(*flags_ref & PTIN_EVC_MASK_PPPOE_PROTOCOL)) 
+        {
+          *flags_ref |= PTIN_EVC_MASK_PPPOE_PROTOCOL;
+          if (look_to_counters)
+          {
+            evcs[evc_id].n_clientflows_pppoe++;
+          }
+        }
+        else if (!pppoe_enabled && (*flags_ref & PTIN_EVC_MASK_PPPOE_PROTOCOL))
+        {
+          *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_PPPOE_PROTOCOL);
+          if (look_to_counters)
+          {
+            if (evcs[evc_id].n_clientflows_pppoe > 0)
+              evcs[evc_id].n_clientflows_pppoe--;
+          }
+        }
+      }
+    }
+
+    /* Clear counters */
+    if (!look_to_counters)
+    {
+      if (pppoe_apply)  evcs[evc_id].n_clientflows_pppoe = 0;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * IGMP configurations
+ * 
+ * @author mruas (12/5/2014)
+ * 
+ * @param evc_id 
+ * @param flags_ref     : Reference flags  
+ * @param igmp_enable 
+ * @param just_remove   : Remove configurations?
+ * @param look_to_counters : Look to PPPoE service counters?
+ * 
+ * @return L7_RC_t 
+ */
+static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
+                                     L7_BOOL igmp_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
+{
+  L7_uint32 evc_ext_id;
+  L7_BOOL   igmp_apply;
+  L7_BOOL   iptv_enabled;
+
+  if (evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Invalid evc id", evc_id);
+    return L7_FAILURE;
+  }
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: EVC not active", evc_id);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_id].extended_id;
+
+  igmp_apply = ((*flags_ref & PTIN_EVC_MASK_IGMP_PROTOCOL)==PTIN_EVC_MASK_IGMP_PROTOCOL) != igmp_enabled;
+
+  iptv_enabled = evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV;
+
+  if (just_remove)
+  {
+    /* Remove IGMP trap rules */
+    if (igmp_enabled)
+    {
+      if (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 1)
+      {
+        if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                                    (!iptv_enabled && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                   ) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed evc from IGMP instance", evc_id);
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+          DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+        }
+      }
+
+      /* Update counters */
+      if (look_to_counters)
+      {
+        if (evcs[evc_id].n_clientflows_igmp > 0)
+          evcs[evc_id].n_clientflows_igmp--;
+      }
+      else
+      {
+        evcs[evc_id].n_clientflows_igmp = 0;
+      }
+    }
+  }
+  else
+  {
+    /* IGMP: Correct data */
+    if (!(evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)) 
+    {
+      if (flags_ref != &evcs[evc_id].flags)
+        *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+      evcs[evc_id].n_clientflows_igmp = 0;
+    }
+
+    /* Only configure IGMP for first time configurations */
+    if (igmp_apply)
+    {
+      if (igmp_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 0))
+      {
+        if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
+                                    (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                   ) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to IGMP instance", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Added evc to IGMP instance with NNI S-VLAN %u", evc_id, evcs[evc_id].root_info.nni_ovid);
+
+          /* Update IGMP flags */
+          evcs[evc_id].flags |= PTIN_EVC_MASK_IGMP_PROTOCOL;
+          INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+        }
+      }
+      else if (!igmp_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 1))
+      {
+        if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                                    (!iptv_enabled && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                   ) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
+          return L7_FAILURE;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: EVC removed from IGMP instance", evc_id);
+
+          /* Update IGMP flags */
+          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+          DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+        }
+      }
+
+      /* IGMP local data */
+      if (flags_ref != &evcs[evc_id].flags)
+      {
+        if (igmp_enabled && !(*flags_ref & PTIN_EVC_MASK_IGMP_PROTOCOL)) 
+        {
+          *flags_ref |= PTIN_EVC_MASK_IGMP_PROTOCOL;
+          if (look_to_counters)
+          {
+            evcs[evc_id].n_clientflows_igmp++;
+          }
+        }
+        else if (!igmp_enabled && (*flags_ref & PTIN_EVC_MASK_IGMP_PROTOCOL))
+        {
+          *flags_ref &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+          if (look_to_counters)
+          {
+            if (evcs[evc_id].n_clientflows_igmp > 0)
+              evcs[evc_id].n_clientflows_igmp--;
+          }
+        }
+      }
+    }
+
+    /* Clear counters */
+    if (!look_to_counters)
+    {
+      if (igmp_apply)  evcs[evc_id].n_clientflows_igmp = 0;
+    }
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Gets the flooding vlans list
@@ -7061,13 +7587,16 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     }
   }
 
-  /* Vlan mode configuration */
-  rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood, cpu_trap );
-  if (rc != L7_SUCCESS)
+  /* Vlan mode configuration: Only for E-TREEs configuration */
+  if (IS_EVC_ETREE(evc_id))
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
-            evc_id, int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood);
-    return L7_FAILURE;
+    rc = switching_vlan_config(int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood, cpu_trap); 
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
+              evc_id, int_vlan, root_vlan, mac_learning, evcs[evc_id].mc_flood);
+      return L7_FAILURE;
+    }
   }
 
   evcs_intfs_in_use[ptin_port]++; /* Add this interface to the list of members in use */
@@ -10798,7 +11327,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       printf("CPUTrap  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
       printf("IGMP  ");
-    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL)
       printf("DHCPop82  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
       printf("PPPoE  ");
@@ -10816,7 +11345,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
-      printf("  Clients   = %u\n", evcs[evc_id].n_clients);
+      printf("  ClientFlows = %u\n", evcs[evc_id].n_clientflows);
 
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {
@@ -10875,12 +11404,24 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       }
     }
     printf("  Instances:");
-    printf(" IGMP=");
+    printf("\n   IGMP = ");
     (extEvcIdInfoData->igmp_inst==(L7_uint8)-1) ? printf("---") : printf("%-3u",extEvcIdInfoData->igmp_inst);
-    printf(" DHCP="); 
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    if (IS_EVC_QUATTRO(evc_id))
+      printf("   #Flows  = %u", evcs[evc_id].n_clientflows_igmp);
+    #endif
+    printf("\n   DHCP = "); 
     (extEvcIdInfoData->dhcp_inst==(L7_uint8)-1) ? printf("---") : printf("%-3u",extEvcIdInfoData->dhcp_inst);
-    printf(" PPPoE=");
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    if (IS_EVC_QUATTRO(evc_id))
+      printf("   #FlowsV4= %-4u #FlowsV6= %-4u", evcs[evc_id].n_clientflows_dhcpv4, evcs[evc_id].n_clientflows_dhcpv6);
+    #endif
+    printf("\n   PPPoE= ");
     (extEvcIdInfoData->pppoe_inst==(L7_uint8)-1) ? printf("---") : printf("%-3u",extEvcIdInfoData->pppoe_inst);
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    if (IS_EVC_QUATTRO(evc_id))
+      printf("   #Flows  = %u", evcs[evc_id].n_clientflows_pppoe);
+    #endif
     printf("\r\n\n");
   }
   while ( evc_ext_id == (L7_uint32)-1 &&
@@ -10946,7 +11487,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
       printf("CPUTrap  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
       printf("IGMP  ");
-    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCP_PROTOCOL)
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL)
       printf("DHCPop82  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL)
       printf("PPPoE  ");
@@ -10964,7 +11505,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
-      printf("  Clients   = %u\n", evcs[evc_id].n_clients);
+      printf("  ClientFlows = %u\n", evcs[evc_id].n_clientflows);
 
     for (i=0; i<PTIN_SYSTEM_N_INTERF; i++)
     {

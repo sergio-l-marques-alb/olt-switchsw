@@ -174,7 +174,7 @@ extern L7_RC_t ptin_dhcp_instance_destroy(L7_uint32 evc_idx);
  * Associate an EVC to a DHCP instance
  * 
  * @param evc_idx : Unicast evc id 
- * @param nni_ovlan  : NNI outer vlan
+ * @param nni_ovlan  : NNI outer vlan 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -188,6 +188,17 @@ extern L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx);
+
+/**
+ * Configure VLAN trap regarding to one EVC
+ * 
+ * @param evc_idx : EVC index
+ * @param enable : Enable
+ * @param family : IP family
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_dhcp_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_uint8 family);
 
 /**
  * Update DHCP entries, when EVCs are deleted

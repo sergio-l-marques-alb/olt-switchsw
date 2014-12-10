@@ -159,10 +159,11 @@ extern L7_RC_t ptin_dhcpPkts_global_trap(L7_BOOL enable);
  * 
  * @param vlanId : vlanId to be (dis)allowed
  * @param enable : L7_TRUE/L7_FALSE 
+ * @param family : ip version  
  *  
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
  */
-extern L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable);
+extern L7_RC_t ptin_dhcpPkts_vlan_trap(L7_uint16 vlanId, L7_BOOL enable, L7_uint8 family);
 
 /**
  * Set global enable for PPPoE packets to go to the CPU

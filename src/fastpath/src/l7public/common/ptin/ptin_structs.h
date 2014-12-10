@@ -21,6 +21,11 @@ typedef struct
   L7_uint32 pkt_intercept_counter;
 } ptin_debug_pktTimer_t;
 
+typedef enum
+{
+  PTIN_AF_INET_MASK=0x01,
+  PTIN_AF_INET6_MASK=0x02
+} ptin_family_mask_enum;
 
 /* General structs */
 /* PTin IP Address */
@@ -445,11 +450,13 @@ typedef struct {
 #define PTIN_EVC_MASK_CPU_TRAPPING      0x00000010
 #define PTIN_EVC_MASK_MC_IPTV           0x00000020    /* Added */
 #define PTIN_EVC_MASK_IPSG_PROTOCOL     0x00000080
-#define PTIN_EVC_MASK_DHCP_PROTOCOL     0x00000100
+#define PTIN_EVC_MASK_DHCPV4_PROTOCOL   0x00000100
 #define PTIN_EVC_MASK_IGMP_PROTOCOL     0x00000200
 #define PTIN_EVC_MASK_PPPOE_PROTOCOL    0x00000400
 #define PTIN_EVC_MASK_DHCPV6_PROTOCOL   0x00001000
 #define PTIN_EVC_MASK_MLD_PROTOCOL      0x00002000
+#define PTIN_EVC_MASK_RES1_PROTOCOL     0x00004000
+#define PTIN_EVC_MASK_RES2_PROTOCOL     0x00008000
 #define PTIN_EVC_MASK_SERV_STD          0x00000000
 
 #define PTIN_EVC_MASK_P2P               0x00010000
@@ -459,11 +466,22 @@ typedef struct {
 /* This bit will tell EVC if should use several vlans to gurantee port isolation */
 #define PTIN_EVC_MASK_ETREE             0x00100000    /* Deprecated */
 
+/* Mask for protocols */
+#define PTIN_EVC_MASK_PROTOCOLS (PTIN_EVC_MASK_IPSG_PROTOCOL | PTIN_EVC_MASK_DHCPV4_PROTOCOL | PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL \
+                                 PTIN_EVC_MASK_DHCPV6_PROTOCOL | PTIN_EVC_MASK_MLD_PROTOCOL | PTIN_EVC_MASK_RES1_PROTOCOL | PTIN_EVC_MASK_RES2_PROTOCOL)
+
 /* EVC type */
 #define PTIN_EVC_TYPE_STD_P2MP          0x0
 #define PTIN_EVC_TYPE_STD_P2P           0x1
 #define PTIN_EVC_TYPE_QUATTRO_UNSTACKED 0x2
 #define PTIN_EVC_TYPE_QUATTRO_STACKED   0x3
+
+typedef enum
+{
+  PTIN_EVC_FAMILY_NONE=0x00,
+  PTIN_EVC_FAMILY_IPV4=0x01,
+  PTIN_EVC_FAMILY_IPV6=0x02
+} ptin_evc_family_enum;
 
 #define PTIN_EVC_MC_FLOOD_ALL       0
 #define PTIN_EVC_MC_FLOOD_UNKNOWN   1
@@ -485,7 +503,7 @@ typedef struct {
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
   L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
-  L7_uint16 n_clients;    // Number of attached clients
+  L7_uint16 n_clientflows;  // Number of attached clients/flows
 
   L7_uint8  n_intf;       // Number of interfaces present on intf array
   ptin_HwEthMef10Intf_t intf[PTIN_SYSTEM_MAX_N_PORTS];

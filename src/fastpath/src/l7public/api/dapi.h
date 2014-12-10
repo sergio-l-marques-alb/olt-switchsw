@@ -756,6 +756,22 @@ typedef struct
 *********************************************************************/
 typedef struct
 {
+  DAPI_CMD_GET_SET_t          getOrSet;
+  L7_BOOL                     enable;
+  L7_uchar8                   family;
+  /* PTin added: IGMP snooping */
+  #if 1
+  ptin_packet_type_t          packet_type;
+  L7_uchar8                   CoS;
+  L7_uint16                   vlanId;
+  L7_uint16                   vlan_mask;
+  L7_enetMacAddr_t            macAddr;
+  L7_uchar8                   level;
+  #endif
+} cmdData_snoopConfig_t;
+
+typedef struct
+{
   L7_ulong32 appHandle;
 
   union
@@ -813,6 +829,10 @@ typedef struct
       L7_BOOL                     enable;
     } flowControl;
 
+    /* PTin modified: IGMP snooping */
+    #if 1
+    cmdData_snoopConfig_t snoopConfig;
+    #else
     struct
     {
       DAPI_CMD_GET_SET_t          getOrSet;
@@ -823,34 +843,11 @@ typedef struct
       ptin_packet_type_t          packet_type;
       L7_uchar8                   CoS;
       L7_uint16                   vlanId;
+      L7_enetMacAddr_t            macAddr;
+      L7_uchar8                   level;
       #endif
     } snoopConfig;
-
-    struct
-    {
-      DAPI_CMD_GET_SET_t          getOrSet;
-      L7_BOOL                     enable;
-      L7_uchar8                   family;
-      /* PTin added: OAM (APS, CCM, ...) */
-      #if 1
-      ptin_packet_type_t          packet_type;
-      L7_uchar8                   level;
-      L7_uint16                   vlanId;
-      #endif
-    } oamConfig;
-
-    struct
-    {
-      DAPI_CMD_GET_SET_t          getOrSet;
-      L7_BOOL                     enable;
-      L7_uchar8                   family;
-      /* PTin added: IP/ARP Packets to Kernel
-         IP Virtual Inteface dtl0 */
-      ptin_packet_type_t          packet_type;
-      L7_ushort16                 vlanId;
-      L7_enetMacAddr_t            macAddr;
-    } ipDtl0Config;
-    
+    #endif
 
     struct
     {

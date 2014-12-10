@@ -99,13 +99,17 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L
     return L7_FAILURE;
   }
 
-  dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
-  dapiCmd.cmdData.oamConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.oamConfig.level       = ringId_oam_level;
-  dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_APS;  
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
 
-  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
+  dapiCmd.cmdData.snoopConfig.level       = ringId_oam_level;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_APS;  
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
     LOG_ERR(LOG_CTX_PTIN_API,"Error setting rule to %u",enable);
     return rc;
@@ -128,13 +132,17 @@ L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable)
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
 
-  dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
-  dapiCmd.cmdData.oamConfig.vlanId      = L7_NULL;
-  dapiCmd.cmdData.oamConfig.level       = 0;
-  dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_APS;
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
 
-  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+  dapiCmd.cmdData.snoopConfig.vlanId      = L7_NULL;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
+  dapiCmd.cmdData.snoopConfig.level       = 0;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_APS;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
   if (rc!=L7_SUCCESS)  {
     LOG_ERR(LOG_CTX_PTIN_API,"Error setting global enable to %u",enable);
     return rc;
@@ -174,11 +182,15 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
     return L7_FAILURE;
   }
 
-  dapiCmd.cmdData.oamConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
-  dapiCmd.cmdData.oamConfig.family      = L7_AF_INET;
-  dapiCmd.cmdData.oamConfig.vlanId      = vlanId;
-  dapiCmd.cmdData.oamConfig.level       = oam_level;
-  dapiCmd.cmdData.oamConfig.packet_type = PTIN_PACKET_CCM;
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
+  dapiCmd.cmdData.snoopConfig.level       = oam_level;
+  dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_CCM;
 
   rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
   if (rc!=L7_SUCCESS)  {
