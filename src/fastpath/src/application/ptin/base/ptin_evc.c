@@ -476,12 +476,13 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profi
 static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 
-static L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
-                                    L7_BOOL just_remove, L7_BOOL look_to_counters);
-static L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL pppoe_enabled,
-                                     L7_BOOL just_remove, L7_BOOL look_to_counters);
-static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL igmp_enabled,
-                                    L7_BOOL just_remove, L7_BOOL look_to_counters);
+
+L7_RC_t ptin_evc_update_dhcp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
+                              L7_BOOL just_remove, L7_BOOL look_to_counters);
+L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL pppoe_enabled,
+                              L7_BOOL just_remove, L7_BOOL look_to_counters);
+L7_RC_t ptin_evc_update_igmp (L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL igmp_enabled,
+                              L7_BOOL just_remove, L7_BOOL look_to_counters);
 
 /* Semaphore to access EVC clients */
 void *ptin_evc_clients_sem = L7_NULLPTR;
@@ -2468,8 +2469,8 @@ _ptin_evc_create1:
     }
     #endif
 
+    /* IGMP configuration */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    /* PPPoE configuration */
     if (ptin_evc_update_igmp(evc_id, &evcs[evc_id].flags, igmp_enabled,
                              L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
     {
@@ -4489,8 +4490,8 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
-                                    L7_BOOL just_remove, L7_BOOL look_to_counters)
+L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhcpv4_enabled, L7_BOOL dhcpv6_enabled,
+                             L7_BOOL just_remove, L7_BOOL look_to_counters)
 {
   L7_uint32 evc_ext_id;
   L7_BOOL dhcpv4_apply, dhcpv6_apply;
@@ -4747,8 +4748,8 @@ static L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_B
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref,
-                                     L7_BOOL pppoe_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
+L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref,
+                              L7_BOOL pppoe_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
 {
   L7_uint32 evc_ext_id;
   L7_BOOL   pppoe_apply;
@@ -4889,10 +4890,9 @@ static L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref,
  * 
  * @return L7_RC_t 
  */
-static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
-                                     L7_BOOL igmp_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
+L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
+                             L7_BOOL igmp_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
 {
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint32 evc_ext_id;
   L7_BOOL   igmp_apply;
   L7_BOOL   iptv_enabled;
@@ -4922,7 +4922,10 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
       if (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 1)
       {
         if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                    (!iptv_enabled && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                    !iptv_enabled
+                                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+                                    && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs)
+                                    #endif
                                    ) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
@@ -4932,7 +4935,9 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
         {
           LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed evc from IGMP instance", evc_id);
           evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+          #endif
         }
       }
 
@@ -4964,7 +4969,10 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
       if (igmp_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 0))
       {
         if (ptin_igmp_evc_configure(evc_ext_id, L7_TRUE,
-                                    (!iptv_enabled && NO_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                    !iptv_enabled 
+                                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+                                    && NO_INSTANCE(evc_id, n_quattro_igmp_evcs)
+                                    #endif
                                    ) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error adding evc to IGMP instance", evc_id);
@@ -4976,13 +4984,18 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
           /* Update IGMP flags */
           evcs[evc_id].flags |= PTIN_EVC_MASK_IGMP_PROTOCOL;
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           INCREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+          #endif
         }
       }
       else if (!igmp_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_igmp == 1))
       {
         if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                    (!iptv_enabled && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                    !iptv_enabled 
+                                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+                                    && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs)
+                                    #endif
                                    ) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing evc from IGMP instance", evc_id);
@@ -4994,7 +5007,9 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
 
           /* Update IGMP flags */
           evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_IGMP_PROTOCOL);
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
+          #endif
         }
       }
 
@@ -5027,7 +5042,6 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
       if (igmp_apply)  evcs[evc_id].n_clientflows_igmp = 0;
     }
   }
-#endif
 
   return L7_SUCCESS;
 }
