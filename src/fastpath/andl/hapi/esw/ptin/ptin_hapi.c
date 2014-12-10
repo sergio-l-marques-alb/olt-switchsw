@@ -530,6 +530,63 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
 #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
   int i;
   bcm_port_t bcm_port;
+  bcm_pbmp_t pbm, pbm_out;
+
+  /* A maior martelada da história: reset aos Cores dos PHYs (4 portas) para garantir que arrancam bem! */
+  /* Reset PHY cores */
+  for (bcm_port=1; bcm_port<=49; bcm_port+=4)
+  {
+    if (bcm_port==37)  bcm_port++;
+
+    LOG_INFO(LOG_CTX_PTIN_HAPI, "Resetting port bcm_port=%u", bcm_port);
+
+    BCM_PBMP_CLEAR(pbm);
+    for (i=0; i<4; i++)
+    {
+      BCM_PBMP_PORT_ADD(pbm, bcm_port+i);
+    }
+
+    /* Detach ports */
+    if (bcm_port_detach(0, pbm, &pbm_out) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default pbm for bcm_port=%u", bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    /* Probe ports */
+    if (bcm_port_probe(0, pbm, &pbm_out) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting probing pbm for bcm_port=%u", bcm_port);
+      rc = L7_FAILURE;
+    }
+
+    /* Enable ports */
+    for (i=0; i<4; i++)
+    {
+      if (bcm_port_enable_set(0, bcm_port+i, L7_ENABLE) != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling bcm_port %u", bcm_port+i);
+        rc = L7_FAILURE;
+      }
+    }
+  }
+
+  /* Outra martelada: set da velocidade de 1G para garantir que nenhuma fica em 2.5G (que supostamente não é suportada) */
+  for (i=0; i<PTIN_SYSTEM_N_ETH; i++)
+  {
+    /* Gefp.s t bcm_port format */
+    if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error obtaining bcm_port for port %u", i);
+      continue;
+    }
+
+    if (bcm_port_speed_set(0, bcm_port, 1000) != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting default 1G speed for port %u (bcm_port %u)", i, bcm_port);
+      rc = L7_FAILURE;
+    }
+  }
 
   for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
   {
