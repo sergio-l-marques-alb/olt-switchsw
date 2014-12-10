@@ -3985,9 +3985,6 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   L7_uint   evc_id, evc_ext_id;
   L7_uint   leaf_port;
   L7_uint32 intIfNum;
-  L7_BOOL   igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
-  /* Always add client */
-  ptin_client_id_t clientId;
 
   evc_ext_id = evcFlow->evc_idx;
 
@@ -4037,9 +4034,12 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     return L7_FAILURE;
   }
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   L7_uint int_ovid;
   L7_int  vport_id, multicast_group;
+  L7_BOOL igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled;
+  /* Always add client */
+  ptin_client_id_t clientId;
 
   struct ptin_evc_client_s *pflow;
 
@@ -4199,10 +4199,10 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
   #endif
 
-  #else
+#else
   LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u: Flows not available for this board", evc_id);
   return L7_ERROR;
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
