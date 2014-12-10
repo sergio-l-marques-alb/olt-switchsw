@@ -3472,7 +3472,8 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
 
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! policer_id=%d, rv=%d\r\n", __FUNCTION__, __LINE__, policer_id, rv);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("%s(%d) We have an error! policer_id=%d, rv=%d\r\n", __FUNCTION__, __LINE__, policer_id, rv);
           return rv;
         }
 
@@ -3484,7 +3485,8 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
         rv = bcm_policer_create(unit, &policer_cfg, &policer_id);
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("%s(%d) We have an error! rv=%d\r\n",__FUNCTION__,__LINE__,rv);
           return rv;
         }
 
@@ -3492,7 +3494,8 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
         rv = bcm_field_entry_policer_attach(unit, eid, 0, policer_id);
         if (BCM_E_NONE != rv)
         {
-          printf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("%s(%d) We have an error! rv=%d",__FUNCTION__,__LINE__,rv);
           return rv;
         }
 
@@ -4919,10 +4922,10 @@ int policy_group_delete_rule(int                  unit,
           return rv;
       if (eid == src_eid)   /* PTin added: Policer/Counter */
       {
-        printf("%s(%d) Destroying policer %u\r\n",__FUNCTION__,__LINE__, policer_id);
         if (bcm_policer_destroy(unit, policer_id) != BCM_E_NONE)
         {
-          printf("%s(%d) ERROR: Cannot destroy policer\r\n",__FUNCTION__,__LINE__);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("%s(%d) ERROR: Cannot destroy policer\r\n",__FUNCTION__,__LINE__);
         }
       }
     }
@@ -4934,10 +4937,10 @@ int policy_group_delete_rule(int                  unit,
           return rv;
       if (eid == src_eid)   /* PTin added: Policer/Counter */
       {
-        printf("%s(%d) Destroying counter %u\r\n",__FUNCTION__,__LINE__, counter_id);
         if (bcm_field_stat_destroy(unit, counter_id) != BCM_E_NONE)
         {
-          printf("%s(%d) ERROR: Cannot destroy counter\r\n",__FUNCTION__,__LINE__);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+              sysapiPrintf("%s(%d) ERROR: Cannot destroy counter\r\n",__FUNCTION__,__LINE__);
         }
       }
     }
