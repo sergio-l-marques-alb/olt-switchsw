@@ -4892,6 +4892,7 @@ static L7_RC_t ptin_evc_update_pppoe(L7_uint16 evc_id, L7_uint32 *flags_ref,
 static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
                                      L7_BOOL igmp_enabled, L7_BOOL just_remove, L7_BOOL look_to_counters)
 {
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint32 evc_ext_id;
   L7_BOOL   igmp_apply;
   L7_BOOL   iptv_enabled;
@@ -5026,6 +5027,7 @@ static L7_RC_t ptin_evc_update_igmp(L7_uint16 evc_id, L7_uint32 *flags_ref,
       if (igmp_apply)  evcs[evc_id].n_clientflows_igmp = 0;
     }
   }
+#endif
 
   return L7_SUCCESS;
 }
