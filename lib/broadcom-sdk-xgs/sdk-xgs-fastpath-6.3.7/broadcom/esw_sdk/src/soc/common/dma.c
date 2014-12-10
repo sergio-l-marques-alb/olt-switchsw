@@ -1620,8 +1620,8 @@ soc_dma_done_chain(int unit, uint32 chan)
     _soc_dma_start_channel(unit, sc);
 
     /* PTIn added: By calling this multiple times it should force a cache flush. */
-    int i;
-    for (i=0; i < 10; i++)
+    //int i;
+    //for (i=0; i < 10; i++)
     {
       soc_dma_process_done_desc(unit, dv_chain, dv_active);
     }
