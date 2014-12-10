@@ -22,22 +22,32 @@ help h:
 	@echo " make all                "
 	@echo " make olt360             "
 	@echo " make olt1t3             "
+	@echo " make olt1t1             "
+	@echo " make olt1t0             "
 	@echo ""
 	@echo " make clean              "
 	@echo " make clean_olt360       "
 	@echo " make clean_olt1t3       "
+	@echo " make clean_olt1t1       "
+	@echo " make clean_olt1t0       "
 	@echo ""
 	@echo " make cleanall           "
 	@echo " make cleanall_olt360    "
 	@echo " make cleanall_olt1t3    "
+	@echo " make cleanall_olt1t1    "
+	@echo " make cleanall_olt1t0    "
 	@echo ""
 	@echo " make install            "
 	@echo " make install_olt360     "
 	@echo " make install_olt1t3     "
+	@echo " make install_olt1t1     "
+	@echo " make install_olt1t0     "
 	@echo ""
 	@echo " make image              "
 	@echo " make image_olt360       "
-	@echo " make install_olt1t3     "
+	@echo " make image_olt1t3       "
+	@echo " make image_olt1t1       "
+	@echo " make image_olt1t0       "
 	@echo ""
 
 all:
@@ -58,9 +68,23 @@ install:
 	@$(MAKE) -f cxo160g.make install
 	@$(MAKE) -f olt1t0.make install
 
-clean:		clean_olt360 clean_olt1t3
+clean:		
+	#@$(MAKE) -f cxp360g.make clean
+	#@$(MAKE) -f tolt8g.make clean
+	@$(MAKE) -f tg16g.make clean
+	@$(MAKE) -f ta48ge.make clean
+	@$(MAKE) -f cxo640g.make clean
+	@$(MAKE) -f cxo160g.make clean
+	@$(MAKE) -f olt1t0.make clean
 
-cleanall:	cleanall_olt360 cleanall_olt1t3
+cleanall:
+	#@$(MAKE) -f cxp360g.make cleanall
+	#@$(MAKE) -f tolt8g.make cleanall
+	@$(MAKE) -f tg16g.make cleanall
+	@$(MAKE) -f ta48ge.make cleanall
+	@$(MAKE) -f cxo640g.make cleanall
+	@$(MAKE) -f cxo160g.make cleanall
+	@$(MAKE) -f olt1t0.make cleanall
 
 image:		install
 		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version)
@@ -71,11 +95,23 @@ olt360:
 olt1t3:
 	@$(MAKE) -f olt1t3.make all
 
+olt1t1:
+	@$(MAKE) -f olt1t1.make all
+
+olt1t0:
+	@$(MAKE) -f olt1t0.make all
+
 clean_olt360:
 	@$(MAKE) -f olt360.make clean
 
 clean_olt1t3:
 	@$(MAKE) -f olt1t3.make clean
+
+clean_olt1t1:
+	@$(MAKE) -f olt1t1.make clean
+
+clean_olt1t0:
+	@$(MAKE) -f olt1t0.make clean
 
 cleanall_olt360:
 	@$(MAKE) -f olt360.make cleanall
@@ -83,10 +119,22 @@ cleanall_olt360:
 cleanall_olt1t3:
 	@$(MAKE) -f olt1t3.make cleanall
 
+cleanall_olt1t1:
+	@$(MAKE) -f olt1t1.make cleanall
+
+cleanall_olt1t0:
+	@$(MAKE) -f olt1t0.make cleanall
+
 install_olt360:
 	@$(MAKE) -f olt360.make install
 
 install_olt1t3:
+	@$(MAKE) -f olt1t3.make install
+
+install_olt1t1:
+	@$(MAKE) -f olt1t3.make install
+
+install_olt1t0:
 	@$(MAKE) -f olt1t3.make install
 
 image_olt360:
@@ -94,4 +142,10 @@ image_olt360:
 
 image_olt1t3:
 	@$(MAKE) -f olt1t3.make image
+
+image_olt1t1:
+	@$(MAKE) -f olt1t1.make image
+
+image_olt1t0:
+	@$(MAKE) -f olt1t0.make image
 
