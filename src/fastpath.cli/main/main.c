@@ -418,6 +418,7 @@ int main (int argc, char *argv[])
         case 1001:
         {
           uint16 len = 0;
+          uint8  output;
 
           // Validate number of arguments
           if (argc<3+0)  {
@@ -425,40 +426,45 @@ int main (int argc, char *argv[])
             exit(0);
           }
 
-          /* If argument is provided, redirect logger to file */
-          /* Otherwise, will be stdout */
-          if (argc>3)
+          comando.infoDim = 0;
+
+          /* Output index */
+          if (argc>=3+1)
+          {
+            // enable
+            if (StrToLongLong(argv[3+0],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            output = (uint8) valued;
+
+            comando.info[0] = output;
+            comando.infoDim += 1;
+          }
+
+          /* File */
+          if (argc>=3+2)
           {
             /* File direction */
-            len = strlen(argv[3+0]);
+            len = strlen(argv[3+1]);
 
             /* Validate length */
             if (len>100) {
               printf("File name too long\n");
             }
 
-            /* $ character referes to default filename */
-            if (len==1 && argv[3+0][0]=='$')
-            {
-              comando.info[0] = '\0';
-              printf("Going to use default filename...\n");
-            }
-            /* Otherwise, use specified filename */
-            else
-            {
-              strncpy((char *) &comando.info[0], argv[3+0], 101 );
-              comando.info[100] = '\0';
-              printf("Going to use \"%s\" filename...\n",comando.info);
-            }
+            strncpy((char *) &comando.info[1], argv[3+1], 101 );
+            comando.info[1+100] = '\0';
+            printf("Going to use \"%s\" filename...\n",&comando.info[1]);
 
             /* Consider also the null character */
-            comando.infoDim = len+1;
+            comando.infoDim += len+1;
           }
           else
           {
             /* Stdout direction */
             comando.info[0] = '\0';
-            comando.infoDim = 0;
+            comando.infoDim += 1;
           }
 
           comando.msgId = CCMSG_APP_LOGGER_OUTPUT;
