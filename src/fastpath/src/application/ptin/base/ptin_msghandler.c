@@ -1779,9 +1779,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_ADD);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding port to EVC");
+      {       
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding port to EVC [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -1808,9 +1808,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_evc_port(evcPort, n_size, PTIN_MSG_OPER_REMOVE);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing port from EVC");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding port to EVC [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -2900,9 +2900,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_igmp_instance_add(igmpEntry);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding an IGMP entry");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding an IGMP entry [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -2929,9 +2929,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_igmp_instance_remove(igmpEntry);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing an IGMP entry");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing an IGMP entry [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -2959,9 +2959,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_igmp_client_add(igmpClient, n_clients);
 
       if (L7_SUCCESS != rc)
-      {
-       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding an IGMP client");
+      {       
        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding an IGMP client [res:0x%x]", res);
        SetIPCNACK(outbuffer, res);
        break;
       }
@@ -2989,9 +2989,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Execute command */
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing IGMP client");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while removing IGMP client [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3020,9 +3020,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_IGMP_clientStats_get(igmpClientStats);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting IGMP client statistics");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting IGMP client statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3051,9 +3051,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_IGMP_clientStats_clear(igmpClient, n_clients);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while clearing IGMP client statistics");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while clearing IGMP client statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3082,9 +3082,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_IGMP_intfStats_get(igmpPortStats);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting IGMP port statistics");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting IGMP port statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3113,9 +3113,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_IGMP_intfStats_clear(igmpIntf, n_ports);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while clearing IGMP client statistics");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while clearing IGMP client statistics [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3144,9 +3144,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc = ptin_msg_IGMP_ChannelAssoc_get(ptr, &n);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting MC channels");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3174,9 +3174,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc  = ptin_msg_IGMP_ChannelAssoc_add(ptr, n);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3204,9 +3204,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc  = ptin_msg_IGMP_ChannelAssoc_remove(ptr, n);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error removing MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
@@ -3234,9 +3234,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       rc  = ptin_msg_IGMP_ChannelAssoc_remove_all(ptr, n);
 
       if (L7_SUCCESS != rc)
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error adding MC channels");
+      {        
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error removing MC channels [res:0x%x]", res);
         SetIPCNACK(outbuffer, res);
         break;
       }
