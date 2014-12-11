@@ -6973,19 +6973,19 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
     int_vlan = root_vlan;   /* Vroot is the same for all the root interfaces */
 
     #if (PTIN_BOARD_IS_GPON)
-    rc = switching_root_add(ptin_port, intf_cfg->vid,
-                            ((is_stacked) ? intf_cfg->vid_inner : 0),
-                            int_vlan,
-                            0,
-                            !is_stacked,
-                            -1);
+    rc = switching_root_add(ptin_port, intf_cfg->vid,                   /* Port and outer vlan */
+                            ((is_stacked) ? intf_cfg->vid_inner : 0),   /* Inner vlan */
+                            int_vlan,                                   /* Internal vlan */
+                            0,                                          /* New inner vlan */
+                            (is_quattro && !is_stacked),                /* Delete egress vlan? Only for QUATTRO unstacked EVCs */
+                            -1);                                        /* Force PCP */
     #else
-    rc = switching_root_add(ptin_port, intf_cfg->vid,
-                            ((is_stacked) ? intf_cfg->vid_inner : 0),
-                            int_vlan,
-                            0,
-                            L7_FALSE,
-                            -1);
+    rc = switching_root_add(ptin_port, intf_cfg->vid,                   /* Port and outer vlan */
+                            ((is_stacked) ? intf_cfg->vid_inner : 0),   /* Inner vlan */
+                            int_vlan,                                   /* Internal vlan */
+                            0,                                          /* New inner vlan */
+                            L7_FALSE,                                   /* Delete egress vlan? */
+                            -1);                                        /* Force PCP */
     #endif
 
     if (rc != L7_SUCCESS)
