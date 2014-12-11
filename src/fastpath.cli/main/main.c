@@ -39,7 +39,7 @@ void help_oltBuga(void)
         "help [comando]\n\r"
         "ping [period] [N] - Waits until fastpath application is up or return error code [0-OK, 2-CRASH]\r\n"
         "m 1000 console[/dev/...]\n\r"
-        "m 1001 console[/dev/...] - Logger output\n\r"
+        "m 1001 [file_index: 0=main; 1=sdk] [filename] - Logger output\n\r"
         "m 1004 - Get resources state\r\n"
         "m 1005 - Get current slot map configuration\r\n"
         "m 1006 <enable> <port1> <port2> ... - Enable PRBS TX/RX machine\r\n"
@@ -418,7 +418,7 @@ int main (int argc, char *argv[])
         case 1001:
         {
           uint16 len = 0;
-          uint8  output;
+          uint8  output = 0;
 
           // Validate number of arguments
           if (argc<3+0)  {
@@ -437,10 +437,9 @@ int main (int argc, char *argv[])
               exit(0);
             }
             output = (uint8) valued;
-
-            comando.info[0] = output;
-            comando.infoDim += 1;
           }
+          comando.info[0] = output;
+          comando.infoDim += 1;
 
           /* File */
           if (argc>=3+2)
