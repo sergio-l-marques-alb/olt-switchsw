@@ -71,6 +71,7 @@
 
 /* PTin added */
 #include "logger.h"
+#include "unistd.h"
 
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SIRIUS_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT) || defined(BCM_CALADAN3_SUPPORT)
 
@@ -1620,11 +1621,14 @@ soc_dma_done_chain(int unit, uint32 chan)
     _soc_dma_start_channel(unit, sc);
 
     /* PTIn added: By calling this multiple times it should force a cache flush. */
-    //int i;
-    //for (i=0; i < 10; i++)
+    int i = 0;
+    do
     {
       soc_dma_process_done_desc(unit, dv_chain, dv_active);
-    }
+
+      /* Wait 1 millisecond, if process not completed */
+      if (dv_chain != dv_active)  usleep(1000);
+    } while ((dv_chain != dv_active) && ((++i) < 100));
 
     /* PTin added: print assert info */
     if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
