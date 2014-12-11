@@ -2236,7 +2236,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     {
       /* Update EVC entry (this info will be used on the configuration functions) */
       evcs[evc_id].in_use           = L7_TRUE;
-      evcs[evc_id].flags            = evcConf->flags;
+      evcs[evc_id].flags            = evcConf->flags & (~(L7_uint32) PTIN_EVC_MASK_PROTOCOLS);  /* Do not include protocols yet */
       evcs[evc_id].type             = evcConf->type;
       evcs[evc_id].mc_flood         = evcConf->mc_flood;
       evcs[evc_id].rvlan            = root_vlan;         /* ...above created */
