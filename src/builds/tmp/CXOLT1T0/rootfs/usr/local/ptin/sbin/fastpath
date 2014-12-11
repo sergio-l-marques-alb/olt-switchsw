@@ -128,7 +128,7 @@ elif [ $mode = "boot" ]; then
     wait4cxp
 
     # Query application to determine if it is running or not
-    $cli ping 3 4 > /dev/null
+    $cli ping 6 4 > /dev/null
     # Start application
     if [ "$?" -ne "0" ]; then
         echo "Going to start application"
