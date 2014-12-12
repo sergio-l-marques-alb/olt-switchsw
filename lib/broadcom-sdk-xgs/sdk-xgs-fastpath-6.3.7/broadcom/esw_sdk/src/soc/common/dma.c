@@ -1635,6 +1635,10 @@ soc_dma_done_chain(int unit, uint32 chan)
     {
       LOG_ERR(LOG_CTX_SDK, "dv_chain->dv_dcnt=%d, dv_chain->dv_vcnt=%d", dv_chain->dv_dcnt, dv_chain->dv_vcnt);
     }
+    else if (i > 0)
+    {
+      LOG_WARNING(LOG_CTX_SDK, "%u tries to achieve dv_chain->dv_dcnt (%d) == dv_chain->dv_vcnt (%d)", i, dv_chain->dv_dcnt, dv_chain->dv_vcnt);
+    }
 
     assert(dv_chain->dv_dcnt == dv_chain->dv_vcnt); 
 
