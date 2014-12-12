@@ -2442,46 +2442,49 @@ _ptin_evc_create1:
     }
 
     /* Protocol management */
+    if (!is_quattro)
+    {
     #if (!PTIN_BOARD_IS_MATRIX)
-    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
-    /* DHCP configuration */
-    if (ptin_evc_update_dhcp(evc_id, &evcs[evc_id].flags, dhcpv4_enabled, dhcpv6_enabled,
-                             L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
-    {
-      error = L7_TRUE;
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCP", evc_id);
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP configured", evc_id);
-    }
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
+      /* DHCP configuration */
+      if (ptin_evc_update_dhcp(evc_id, &evcs[evc_id].flags, dhcpv4_enabled, dhcpv6_enabled,
+                               L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+      {
+        error = L7_TRUE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCP", evc_id);
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP configured", evc_id);
+      }
 
-    /* PPPoE configuration */
-    if (ptin_evc_update_pppoe(evc_id, &evcs[evc_id].flags, pppoe_enabled,
-                              L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
-    {
-      error = L7_TRUE;
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE configured", evc_id);
-    }
+      /* PPPoE configuration */
+      if (ptin_evc_update_pppoe(evc_id, &evcs[evc_id].flags, pppoe_enabled,
+                                L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+      {
+        error = L7_TRUE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE configured", evc_id);
+      }
     #endif
 
-    /* IGMP configuration */
+      /* IGMP configuration */
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-    if (ptin_evc_update_igmp(evc_id, &evcs[evc_id].flags, igmp_enabled,
-                             L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
-    {
-      error = L7_TRUE;
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring IGMP", evc_id);
-    }
-    else
-    {
-      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP configured", evc_id);
-    }
+      if (ptin_evc_update_igmp(evc_id, &evcs[evc_id].flags, igmp_enabled,
+                               L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+      {
+        error = L7_TRUE;
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring IGMP", evc_id);
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP configured", evc_id);
+      }
     #endif
+    }
   }
 
   /* Error occured: Remove configurations if EVC is new */
