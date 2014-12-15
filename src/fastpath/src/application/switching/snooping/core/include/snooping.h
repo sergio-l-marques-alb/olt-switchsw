@@ -251,6 +251,8 @@ typedef struct snoopMrtrTimerData_s
 
 /* PTin added: IGMP snooping */
 #if 1
+#define PTIN_SNOOP_CLIENT_MASK_UNIT               (sizeof(L7_uint32) * 8)
+#define PTIN_SNOOP_PORT_MASK_UNIT                (sizeof(L7_uint32) * 8)
 /* IP channel information */
 typedef struct
 {
