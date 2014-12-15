@@ -738,6 +738,11 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
     }
 #endif
   }
+  else
+  {
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
+            "snoopIntfRemove: Failed mfdbEntryPortsDelete ()");
+  }
 
   if (rc == L7_SUCCESS)
   {
@@ -745,7 +750,7 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
     if (snoopEntry->ll_timerList.sllStart == L7_NULL)
     {
       /* PTin added: IGMP snooping */
-#if 1
+#if !PTIN_SNOOP_USE_MGMD
       /* Entry deletion is only possible, when group is not static */
       if (!snoopEntry->staticGroup)
 #endif
@@ -765,6 +770,7 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
   #define PTIN_IGMP_DEBUG 0
 
   #define PTIN_CLEAR_ARRAY(array)         memset((array),0x00,sizeof(array))
+  #define PTIN_IS_MASKBYTESET(array,idx)  (array[((idx)/(8*sizeof(L7_uint32)))] == 0 ? 0 : 1)
   #define PTIN_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint32)*8)] >> ((idx)%(sizeof(L7_uint32)*8))) & 1)
   #define PTIN_SET_MASKBIT(array,idx)     { array[(idx)/(sizeof(L7_uint32)*8)] |=   (L7_uint32) 1 << ((idx)%(sizeof(L7_uint32)*8)) ; }
   #define PTIN_UNSET_MASKBIT(array,idx)   { array[(idx)/(sizeof(L7_uint32)*8)] &= ~((L7_uint32) 1 << ((idx)%(sizeof(L7_uint32)*8))); }
@@ -977,8 +983,7 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
   L7_uint16 vlan;
   ptin_intf_t ptin_intf;
   L7_uint channel_index,i;
-  ptin_client_id_t clientData;
-  L7_inet_addr_t ip_addr;
+  ptin_client_id_t clientData;  
   L7_uint igmp_network_version;
 
   /* Validate arguments */
@@ -1020,10 +1025,10 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     for (i=0; i<PTIN_SYSTEM_IGMP_MAXCLIENTS; i++)
     {
       /*Check if this position is free*/
-      if(snoopEntry->channel_list[channel_index].clients_list[i] == 0)
+      if( !(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].clients_list, i)))
       {
         /*Move to Next Position -1 because of the for*/
-        i += (sizeof(snoopEntry->channel_list[channel_index].clients_list[i])*8) -1;
+        i += PTIN_SNOOP_CLIENT_MASK_UNIT -1;
         continue;
       }
 
@@ -1053,9 +1058,13 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     /* If this channel does not have any client, remove it */
     if (snoopEntry->channel_list[channel_index].number_of_clients==0)
     {
+#if !PTIN_SNOOP_USE_MGMD
       /* Deactivate channel (only for dynamic entries) */
       if (!snoopEntry->staticGroup)
+#endif
       {
+#if !PTIN_SNOOP_USE_MGMD
+        L7_inet_addr_t ip_addr;
         /* Send LEAVES upsteam (only for IGMP v2) */
         /* Send two leave messages */
         if (igmp_network_version <= 2)
@@ -1069,6 +1078,7 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
               LOG_ERR(LOG_CTX_PTIN_IGMP,"Error sending leaves to router interfaces");
           }
         }
+#endif
 
         memset(&snoopEntry->channel_list[channel_index],0x00,sizeof(ptinSnoopChannelInfo_t));
         snoopEntry->channel_list[channel_index].active = L7_FALSE;
@@ -1217,10 +1227,10 @@ L7_RC_t snoopChannelDelete(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
     /*Check if this position is free*/
-    if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+    if( !(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].intIfNum_mask, i)))
     {
       /*Move to Next Position -1 because of the for*/
-      i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+      i += PTIN_SNOOP_PORT_MASK_UNIT -1;
       continue;
     }
 
@@ -1328,7 +1338,9 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
   /* If this IP does not exist, create it (only for dynamic groups) */
   if (!snoopEntry->channel_list[channel_index].active)
   {
+#if !PTIN_SNOOP_USE_MGMD
     if (!snoopEntry->staticGroup)
+#endif
     {
       /* Fill IP info */
       snoopEntry->channel_list[channel_index].ipAddr = IPchannel->addr.ipv4.s_addr;
@@ -1346,12 +1358,14 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
       /* One new channel */
       PTIN_INCREMENT_COUNTER(snoopEntry->global.number_of_channels,1);
     }
+#if !PTIN_SNOOP_USE_MGMD
     else
     {
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Static channel does not exist!");
       return L7_FAILURE;
     }
+#endif
   }
 
   /* Activate interface using it */
@@ -1457,10 +1471,10 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
       for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
       {
         /*Check if this position is free*/
-        if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+        if( !(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].intIfNum_mask, i)) )
         {
           /*Move to Next Position -1 because of the for*/
-          i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+          i += PTIN_SNOOP_PORT_MASK_UNIT -1;
           continue;
         }
 
@@ -1520,8 +1534,10 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
     }
   }
 
+#if  !PTIN_SNOOP_USE_MGMD
   /* Only remove the channel, if group is dynamic */
   if (!snoopEntry->staticGroup)
+#endif
   {
     /* If there is no interfaces within this channel, remove channel */
     PTIN_NONZEROMASK(snoopEntry->channel_list[channel_index].intIfNum_mask,exist_interfaces);
@@ -1940,7 +1956,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
     if (ptin_debug_igmp_snooping)
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"channel already exists");
   }
-
+#if !PTIN_SNOOP_USE_MGMD
   /* Send two joins */
   if (fwdFlag && igmp_network_version<=2)
   {
@@ -1952,6 +1968,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
       return L7_FAILURE;
     }
   }
+#endif
 
   /* Forward leave to network? */
   if (send_leave_to_network!=L7_NULLPTR)
@@ -2043,6 +2060,7 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from group");
   }
 
+#if !PTIN_SNOOP_USE_MGMD
   /* Only send leaves upstream if standalone or matrix */
 #if (PTIN_BOARD_IS_LINECARD)
   if (!static_group)
@@ -2060,6 +2078,7 @@ L7_RC_t snoop_channel_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId, L7_ine
       }
     }
   }
+#endif
 
   return L7_SUCCESS;
 }
@@ -2189,6 +2208,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
 
   ptin_timer_stop(3);
 
+#if !PTIN_SNOOP_USE_MGMD
   ptin_timer_start(4,"snoop_client_add_procedure-igmp_generate_packet_and_send");
   /* Send one join */
   if (fwdFlag && igmp_network_version<=2)
@@ -2202,6 +2222,7 @@ L7_RC_t snoop_client_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
     }
   }
   ptin_timer_stop(4);
+#endif
 
   /* Forward leave to network? */
   if (send_leave_to_network!=L7_NULLPTR)
@@ -2342,6 +2363,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
     }
   }
 
+#if !PTIN_SNOOP_USE_MGMD
   /* Send one leave */
   if (igmp_network_version <= 2)
   {
@@ -2362,6 +2384,7 @@ L7_RC_t snoop_client_remove_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
       *send_leave_to_network = fwdFlag;
     }
   }
+#endif
 
   return L7_SUCCESS;
 }
@@ -2581,10 +2604,10 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
   for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
   {
     /*Check if this position is free*/
-    if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+    if( !(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].intIfNum_mask, i)))
     {
       /*Move to Next Position -1 because of the for*/
-      i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+      i += PTIN_SNOOP_PORT_MASK_UNIT -1;
       continue;
     }
 
@@ -2597,12 +2620,12 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
 
   /* Run all clients, and update number of active channels for each one */
   for (client=0; client<PTIN_SYSTEM_IGMP_MAXCLIENTS; client++)
-  {
+  {    
     /*Check if this position is free*/
-    if(snoopEntry->channel_list[channel_index].clients_list[client] == 0)
+    if(!(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].clients_list, client)))
     {
       /*Move to Next Position -1 because of the for*/
-      client += (sizeof(snoopEntry->channel_list[channel_index].clients_list[client])*8) -1;
+      client += PTIN_SNOOP_CLIENT_MASK_UNIT -1;
       continue;
     }
 
@@ -2664,10 +2687,10 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
     for (i=0; i<PTIN_SYSTEM_MAXINTERFACES_PER_GROUP; i++)
     {
       /*Check if this position is free*/
-      if(snoopEntry->channel_list[channel_index].intIfNum_mask[i] == 0)
+      if( !(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].intIfNum_mask, i)) )
       {
         /*Move to Next Position -1 because of the for*/
-        i += (sizeof(snoopEntry->channel_list[channel_index].intIfNum_mask[i])*8) -1;
+        i += PTIN_SNOOP_PORT_MASK_UNIT -1;
         continue;
       }
 
@@ -2682,10 +2705,10 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
     for (client=0; client<PTIN_SYSTEM_IGMP_MAXCLIENTS; client++)
     {
       /*Check if this position is free*/
-      if(snoopEntry->channel_list[channel_index].clients_list[client] == 0)
+      if( !(PTIN_IS_MASKBYTESET(snoopEntry->channel_list[channel_index].clients_list, client) ) )
       {
         /*Move to Next Position -1 because of the for*/
-        client += (sizeof(snoopEntry->channel_list[channel_index].clients_list[client])*8) -1;
+        client += PTIN_SNOOP_CLIENT_MASK_UNIT -1;
         continue;
       }
 
@@ -3468,7 +3491,7 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
         LOG_ERR(LOG_CTX_PTIN_IGMP,"snoopChannelDelete failed");
       continue;
     }
-
+#if !PTIN_SNOOP_USE_MGMD
     /* Send two leave messages */
     if (igmp_network_version <= 2)
     {
@@ -3480,6 +3503,7 @@ L7_RC_t snoopEntryRemove(L7_uchar8 *macAddr, L7_uint32 vlanId,
         continue;
       }
     }
+#endif
   }
 #endif
 
