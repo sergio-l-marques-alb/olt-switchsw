@@ -341,6 +341,8 @@ static L7_uint16 n_quattro_igmp_evcs = 0;
 #define IS_EVC_INTF_ROOT(evc_id,ptin_port) (IS_EVC_INTF_USED(evc_id,ptin_port) && evcs[evc_id].intf[ptin_port].type==PTIN_EVC_INTF_ROOT)
 #define IS_EVC_INTF_LEAF(evc_id,ptin_port) (IS_EVC_INTF_USED(evc_id,ptin_port) && evcs[evc_id].intf[ptin_port].type==PTIN_EVC_INTF_LEAF)
 
+#define IS_VLAN_VALID(vlanId)         ((vlanId) > 0 && (vlanId) < 4096)
+
 /**********************************************************
  * AVL TREE with Ext EvcId translation into internal EvcId
  **********************************************************/
@@ -2414,6 +2416,43 @@ _ptin_evc_create1:
             /* Signal error, but try to process the rest of the config */
             error = L7_TRUE;
             continue;
+          }
+        }
+        /* Port exists, and new configuration also has it: VLAN should be equal! */
+        else if ((evcs[evc_id].intf[i].in_use) && (intf2cfg[i] >= 0))
+        {
+          /* Check outer vlan */
+          if (IS_VLAN_VALID(evcConf->intf[intf2cfg[i]].vid) && IS_VLAN_VALID(evcs[evc_id].intf[i].out_vlan))
+          {
+            if (evcConf->intf[intf2cfg[i]].vid != evcs[evc_id].intf[i].out_vlan)
+            {
+              LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Outer VLAN of existent port % do not match (%u vs %u)", evc_id, 
+                      evcConf->intf[intf2cfg[i]].vid, evcs[evc_id].intf[i].out_vlan);
+              error = L7_TRUE;
+            }
+          }
+          else if (IS_VLAN_VALID(evcConf->intf[intf2cfg[i]].vid) != IS_VLAN_VALID(evcs[evc_id].intf[i].out_vlan))
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: One of the Outer VLANs of existent port % is not defined (%u vs %u)", evc_id,
+                    evcConf->intf[intf2cfg[i]].vid, evcs[evc_id].intf[i].out_vlan);
+            error = L7_TRUE;
+          }
+
+          /* Check inner vlan */
+          if (IS_VLAN_VALID(evcConf->intf[intf2cfg[i]].vid_inner) && IS_VLAN_VALID(evcs[evc_id].intf[i].inner_vlan))
+          {
+            if (evcConf->intf[intf2cfg[i]].vid_inner != evcs[evc_id].intf[i].inner_vlan)
+            {
+              LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Inner VLAN of existent port % do not match (%u vs %u)", evc_id, 
+                      evcConf->intf[intf2cfg[i]].vid_inner, evcs[evc_id].intf[i].inner_vlan);
+              error = L7_TRUE;
+            }
+          }
+          else if (IS_VLAN_VALID(evcConf->intf[intf2cfg[i]].vid_inner) != IS_VLAN_VALID(evcs[evc_id].intf[i].inner_vlan))
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: One of the Inner VLANs of existent port % is not defined (%u vs %u)", evc_id,
+                    evcConf->intf[intf2cfg[i]].vid_inner, evcs[evc_id].intf[i].inner_vlan);
+            error = L7_TRUE;
           }
         }
       }
