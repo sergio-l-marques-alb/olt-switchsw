@@ -128,6 +128,15 @@ typedef int (*soc_cm_mdebug_cb_t)(soc_cm_mdebug_config_t *dbg_cfg,
 /* Debug levels for sharing across all debug modules */
 extern const char *soc_cm_mdebug_level_names[];
 
+#ifdef LVL7_FIXUP
+extern int      soc_cm_mdebug_error(const char *format, ...)
+                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+extern int      soc_cm_mdebug_warn(const char *format, ...)
+                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+extern int      soc_cm_mdebug_debug(const char *format, ...)
+                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
+#endif
+
 extern int
 soc_cm_mdebug_deinit(void);
 

@@ -97,6 +97,11 @@ extern int bcm_tr2_ipmc_egress_intf_add(int unit, int index, bcm_port_t port,
                                 bcm_l3_intf_t *l3_intf);
 extern int bcm_tr2_ipmc_egress_intf_delete(int unit, int index, bcm_port_t port,
                                    bcm_l3_intf_t *l3_intf);
+#ifdef LVL7_FIXUP
+extern int bcm_tr2_ipmc_repl_set(int unit, int mc_index, bcm_port_t port,
+                                bcm_vlan_vector_t vlan_vec);
+#endif
+
 extern int bcm_tr2_ipmc_egress_intf_set(int unit, int mc_index,
                                        bcm_port_t port, int if_count,
                                        bcm_if_t *if_array, int check_port);

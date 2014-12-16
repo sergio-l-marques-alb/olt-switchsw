@@ -1358,6 +1358,14 @@ _soc_l2x_thread(void *unit_vp)
 
 cleanup_exit:
 
+#ifdef LVL7_FIXUP
+    /* 
+     * Allow the thread to be terminated by soc_l2x_stop, but not due to errors 
+     * Reset the box if it fails for any reason
+     */
+    assert(soc->l2x_interval == 0); /* PTin TODO: unknown reason for a single DMA access error during boot-up */
+#endif
+
     (void)sal_sem_take(soc->l2x_lock, sal_sem_FOREVER);
 
     if (chunk_buf != NULL) {

@@ -135,6 +135,9 @@
 #include <soc/knet.h>
 #endif
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #ifdef BCM_KATANA_SUPPORT
 #define   BCM_SABER_MAX_COUNTER_DIRECTION 2
 #define   BCM_SABER_MAX_COUNTER_POOL      8
@@ -5330,11 +5333,35 @@ cmicm_pcie_deemphasis_set(int unit, uint16 phy_addr) {
 }
 #endif /* BCM_CMICM_SUPPORT */
 
-int cmic_pcie_cdr_bw_adj(int unit, uint16 phy_addr) {
-
+int cmic_pcie_cdr_bw_adj(int unit, uint16 phy_addr)
+{
+  /* PTin modified: PCIe */
+  #if 0
     SOC_IF_ERROR_RETURN(soc_miim_write(unit, phy_addr, 0x1f, 0x8630));
     SOC_IF_ERROR_RETURN(soc_miim_write(unit, phy_addr, 0x13, 0x190));
     SOC_IF_ERROR_RETURN(soc_miim_write(unit, phy_addr, 0x19, 0x191));
+  #else
+    int rc;
+
+    if ((rc=soc_miim_write(unit, phy_addr, 0x1f, 0x8630)) != SOC_E_NONE)
+    {
+      LOG_WARNING(LOG_CTX_SDK, "Error writing to unit %d, phy_addr 0x%x/0x1f via MIIM: error %d", unit, phy_addr, rc);
+    }
+    else if ((rc=soc_miim_write(unit, phy_addr, 0x13, 0x190)) != SOC_E_NONE)
+    {
+      LOG_WARNING(LOG_CTX_SDK, "Error writing to unit %d, phy_addr 0x%x/0x13 via MIIM: error %d", unit, phy_addr, rc);
+    }
+    else if ((rc=soc_miim_write(unit, phy_addr, 0x19, 0x191)) != SOC_E_NONE)
+    {
+      LOG_WARNING(LOG_CTX_SDK, "Error writing to unit %d, phy_addr 0x%x/0x19 via MIIM: error %d", unit, phy_addr, rc);
+    }
+
+    /* Success */
+    if (rc == SOC_E_NONE)
+    {
+      LOG_NOTICE(LOG_CTX_SDK, "Success updating MIIM registers for PCIe bw adjustment");
+    }
+#endif
 
     return SOC_E_NONE;
 }

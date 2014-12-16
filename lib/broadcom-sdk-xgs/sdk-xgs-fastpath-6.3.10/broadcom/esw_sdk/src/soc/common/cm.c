@@ -72,6 +72,11 @@
 
 #include <sal/core/memlog.h>
 
+#include "logger.h"
+
+/* PTin added: Segmentation fault */
+#undef BROADCOM_DEBUG
+
 cm_device_t                     soc_cm_device[SOC_MAX_NUM_DEVICES];
 int                             soc_cm_device_count;
 
@@ -5703,6 +5708,11 @@ soc_cm_sfree(int dev, void *ptr)
     p = (shared_block_t *) (((char*)ptr) -
         ( (((char*)&(((shared_block_t*)0)->user_data[0]))) - ((char*)(shared_block_t*)0) ));
 
+    if (p == NULL)
+    {
+      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+    }
+
     assert(SHARED_GOOD_START(p));      
     assert(SHARED_GOOD_END(p));
     /*
@@ -5719,6 +5729,10 @@ soc_cm_sfree(int dev, void *ptr)
              head->prev = NULL;
         }
     } else {
+        if (p->prev == NULL)
+        {
+          LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+        }
         p->prev->next = p->next;
         if (p->next != NULL) {
             p->next->prev = p->prev;
@@ -5846,6 +5860,13 @@ soc_cm_sflush(int dev, void *addr, int length)
 int
 soc_cm_sinval(int dev, void *addr, int length)
 {
+#if defined(LVL7_FIXUP) && defined(LVL7_DNI8541)
+/* The cache doesn't need to be synced on the PPC85XX processor. 
+** Invoking the function causes a crash on the PPC85XX devices.
+*/
+    return SOC_E_NONE;
+#endif	
+
     if (CMVEC(dev).sinval) {
         return CMVEC(dev).sinval(&CMDEV(dev).dev, addr, length);
     }
@@ -6099,6 +6120,59 @@ soc_cm_print(const char *format, ...)
 
     return rc; 
 }
+
+#ifdef LVL7_FIXUP
+int
+soc_cm_mdebug_error(const char *format, ...)
+{
+    int rc; 
+    va_list vargs;
+
+    if (_soc_cm_init_data.debug_out == NULL) {
+        return 0;
+    }
+
+    va_start(vargs, format);
+    rc = _soc_cm_init_data.debug_out(DK_ERR, format, vargs);
+    va_end(vargs); 
+
+    return rc; 
+}
+
+int
+soc_cm_mdebug_warn(const char *format, ...)
+{
+    int rc; 
+    va_list vargs;
+
+    if (_soc_cm_init_data.debug_out == NULL) {
+        return 0;
+    }
+
+    va_start(vargs, format);
+    rc = _soc_cm_init_data.debug_out(DK_WARN, format, vargs);
+    va_end(vargs); 
+
+    return rc; 
+}
+
+int
+soc_cm_mdebug_debug(const char *format, ...)
+{
+    int rc; 
+    va_list vargs;
+
+    if (_soc_cm_init_data.debug_out == NULL) {
+        return 0;
+    }
+
+    va_start(vargs, format);
+    rc = _soc_cm_init_data.debug_out(~(DK_WARN | DK_ERR), format, vargs);
+    va_end(vargs); 
+
+    return rc; 
+}
+#endif
 
 /*
  * Function:    soc_cm_vprint

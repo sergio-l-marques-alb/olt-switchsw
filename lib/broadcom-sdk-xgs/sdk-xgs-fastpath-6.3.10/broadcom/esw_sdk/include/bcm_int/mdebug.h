@@ -165,9 +165,24 @@ extern int (*bcm_mdebug_print)(const char *format, ...)
 #define BCM_DEBUG_CHECK(enc_) \
     soc_cm_mdebug_check(&bcm_mdebug_config, enc_)
 
+#ifndef LVL7_FIXUP
 #define BCM_DEBUG(enc_, stuff_) \
     if (BCM_DEBUG_CHECK(enc_) && bcm_mdebug_print != 0) \
 	(*bcm_mdebug_print) stuff_
+#else
+extern int (*bcm_mdebug_error)(const char *format, ... );
+extern int (*bcm_mdebug_warn)(const char *format, ... );
+extern int (*bcm_mdebug_debug)(const char *format, ... );
+#define BCM_DEBUG(flags, stuff)  \
+    do { \
+      if (BCM_DEBUG_CHECK(flags) && bcm_mdebug_print != 0) \
+      { \
+        if (BCM_DBG_ERR & (flags)) (*bcm_mdebug_error) stuff; \
+        else if (BCM_DBG_WARN & (flags)) (*bcm_mdebug_warn) stuff; \
+        else (*bcm_mdebug_debug) stuff ; \
+      } \
+    }while (0)
+#endif
 
 /*
  * Option-specific debug print macros.

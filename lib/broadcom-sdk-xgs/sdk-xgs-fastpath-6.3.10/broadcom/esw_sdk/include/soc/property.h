@@ -457,6 +457,10 @@
 /* This specifies the external PHY device is BCM8706 and equivalent. */
 #define spn_PHY_8706  "phy_8706"
 
+#ifdef LVL7_FIXUP
+#define spn_PHY_VIRTUALCOMBO            "phy_virtualcombo"
+#endif
+
 /* This specifies the external PHY device is BCM8072 and equivalent. */
 #define spn_PHY_8072  "phy_8072"
 
@@ -2301,6 +2305,20 @@
  * Applicable to BCM56840 and BCM56740 device family
  */
 #define spn_PORTMAP  "portmap"
+#ifdef LVL7_FIXUP
+#define spn_PORT_PHY_ADDR "port_phy_addr"
+#define spn_LED_MODE_CUST "led_mode_cust"
+#define spn_PORT_PHY_ADDR_XE            "port_phy_addr_xe"
+#define spn_PORT_COMBO_VIRTUAL_PHY      "port_combo_virtual_phy"
+#define spn_PORT_VIRTUAL_PHY_ADDR       "port_virtual_phy_addr"
+#define spn_PORT_VIRTUAL_PREF_PHYNUM    "port_virtual_pref_phy"
+#define spn_PORT_VIRTUAL_ACTIVE_DRIV    "port_virtual_activ_driv"
+#define spn_BCM56638_4X12_2X24          "bcm56638_4x12_2x24"
+#define spn_HELPCLI_ENABLE              "help_cli_enable"
+#define spn_SERDES_LANE0_RESET          "serdes_lane0_reset"
+#define spn_PORT_INTERNAL               "port_internal"
+#define spn_PORT_SUPER_ISOLATE          "port_super_isolate"
+#endif
 /*
  * Specifies the number of lanes used by each port in the flex port group.
  * portgroup_<port group>=<number of lanes>.

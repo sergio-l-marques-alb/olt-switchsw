@@ -109,6 +109,8 @@
 #include <soc/katana2.h>
 #endif /* BCM_KATANA2_SUPPORT */
 
+/* PTin added: Segmentation fault */
+#undef BROADCOM_DEBUG
 
 #define LPM_INDEX_4K_ENTRIES 4096
 #define LPM_INDEX_2K_ENTRIES 2048
@@ -12674,6 +12676,15 @@ _soc_mem_dual_hash_insert(int unit,
         }
         hash_info.bucket_size = SOC_L2X_BUCKET_SIZE;
         hash_info.base_mem = mem;
+#ifdef LVL7_FIXUP
+       /* soc_l2x_freeze/thaw routine are very costly as they try to disable
+        * learning on all Physical and VPs. In cases where we are continously
+        * running into hash collision, freeze/thaw ends up taking a lot of 
+        * cpu time un-neccessarily as we have not enabled software dual-hash
+        * move by default. */
+       if (recurse_depth > 0)
+       {
+#endif
 
         /* Time to shuffle the entries */
         SOC_IF_ERROR_RETURN(soc_l2x_freeze(unit));
@@ -12681,6 +12692,9 @@ _soc_mem_dual_hash_insert(int unit,
                                      copyno, entry_data, &hash_info,
                                      NULL, recurse_depth - 1);
         SOC_IF_ERROR_RETURN(soc_l2x_thaw(unit));
+#ifdef LVL7_FIXUP
+       }
+#endif
         return rv;
 #if defined(BCM_TRIUMPH_SUPPORT)
 #endif /* BCM_TRIUMPH_SUPPORT */

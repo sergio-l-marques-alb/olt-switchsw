@@ -69,6 +69,10 @@
 #endif
 #include <soc/knet.h>
 
+/* PTin added */
+#include "logger.h"
+#include "unistd.h"
+
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SIRIUS_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT) || defined(BCM_CALADAN3_SUPPORT)
 
 #define DV_MAGIC_NUMBER 0xba5eba11
@@ -1429,9 +1433,22 @@ soc_dma_process_done_desc(int unit, dv_t *dv_chain, dv_t *dv)
     for (; dv != NULL; dv = dv->dv_chain) {
         /* Process all DCBs in the current DV. */
 
+/* (brr) - The BMW platforms are cache coherant processors so */
+/* call is unnecessary. Unfortunately the BSP for the 8541 does not      */
+/* resolve the value to sinval correctly so it is necessary to commnet   */
+/* this call out */
+
+#ifdef LVL7_FIXUP	    
+#ifndef BMW
         /* Clean cache of any dirty data */
         soc_cm_sinval(unit, dv->dv_dcb,
                       dv->dv_vcnt * SOC_DCB_SIZE(unit));
+#endif	
+#else
+        /* Clean cache of any dirty data */
+        soc_cm_sinval(unit, dv->dv_dcb,
+                      dv->dv_vcnt * SOC_DCB_SIZE(unit));
+#endif	
 
         for (i = dv->dv_dcnt; i < dv->dv_vcnt; i++) {
             dcb = SOC_DCB_IDX2PTR(unit, dv->dv_dcb, i);
@@ -1646,7 +1663,26 @@ soc_dma_done_chain(int unit, uint32 chan)
 
     _soc_dma_start_channel(unit, sc);
 
-    soc_dma_process_done_desc(unit, dv_chain, dv_active);
+    /* PTIn added: By calling this multiple times it should force a cache flush. */
+    int i = 0;
+    do
+    {
+      soc_dma_process_done_desc(unit, dv_chain, dv_active);
+
+      /* Wait 1 millisecond, if process not completed */
+      if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
+        usleep(1000);
+    } while ((dv_chain->dv_dcnt != dv_chain->dv_vcnt) && ((++i) < 100));
+
+    /* PTin added: print assert info */
+    if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
+    {
+      LOG_ERR(LOG_CTX_SDK, "dv_chain->dv_dcnt=%d, dv_chain->dv_vcnt=%d", dv_chain->dv_dcnt, dv_chain->dv_vcnt);
+    }
+    else if (i > 0)
+    {
+      LOG_WARNING(LOG_CTX_SDK, "%u tries to achieve dv_chain->dv_dcnt (%d) == dv_chain->dv_vcnt (%d)", i, dv_chain->dv_dcnt, dv_chain->dv_vcnt);
+    }
 
     assert(dv_chain->dv_dcnt == dv_chain->dv_vcnt); 
 

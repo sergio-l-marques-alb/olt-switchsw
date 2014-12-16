@@ -2140,3 +2140,96 @@ soc_i2c_show_speeds(int unit)
     }
 }
 
+#ifdef LVL7_FIXUP
+int
+soc_i2c_read_test(int unit, uint8 devid, uint8 *ptr, int len)
+{
+    int rv = SOC_E_NONE;
+    int i;
+
+    if ( (rv = soc_i2c_start(unit, SOC_I2C_RX_ADDR(devid) ) ) < 0 ) {
+        soc_cm_debug(DK_I2C, "i2c%d: soc_i2c_read_byte_data: "
+                     "failed to generate start.\n",
+                     unit);
+        return rv;
+    }
+
+    do {
+        for (i = 0; i < len; i++) {
+           if (i == len - 1) {
+             if ( (rv = soc_i2c_read_one_byte(unit, ptr,
+                                              FALSE)) < 0 ) {
+                 soc_cm_debug(DK_I2C, "i2c%d: soc_i2c_read_byte_data: "
+                              "failed to read data byte.\n",
+                              unit);
+             }
+           } else {
+             if ( (rv = soc_i2c_read_one_byte(unit, ptr,
+                                              TRUE)) < 0 ) {
+                 soc_cm_debug(DK_I2C, "i2c%d: soc_i2c_read_byte_data: "
+                              "failed to read data byte.\n",
+                              unit);
+             }
+           }
+           ptr++;
+        }
+    } while (0);
+
+    soc_i2c_stop(unit);
+
+    return rv;
+
+
+}
+
+int
+soc_i2c_write_test(int unit, uint8 devid, uint8 *ptr, int len)
+{
+    int rv = SOC_E_NONE;
+    int i;
+
+    if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(devid) ) ) < 0 ) {
+        soc_cm_debug(DK_I2C, "i2c%d: soc_i2c_read_byte_data: "
+                     "failed to generate start.\n",
+                     unit);
+        SOC_ERROR_PRINT((0, "soc_i2c_write_test: %s:%d Failed to generate START \n",
+              __func__, __LINE__));
+
+        return rv;
+    }
+
+    do {
+        for (i = 0; i < len; i++) {
+
+             SOC_ERROR_PRINT((0, "soc_i2c_write_test: %s:%d writing byte%d = %d\n",
+                     __func__, __LINE__, i, *ptr));
+
+             if ( (rv = soc_i2c_write_one_byte(unit, *ptr)) < 0 ) {
+                 soc_cm_debug(DK_I2C, "i2c%d: soc_i2c_write_one_byte: "
+                              "failed to write data byte.\n",
+                              unit);
+             }
+           ptr++;
+        }
+    } while (0);
+
+    soc_i2c_stop(unit);
+
+    return rv;
+
+}
+
+void soc_i2c_regdump()
+{
+  int unit = 0;
+
+  SOC_ERROR_PRINT((0, "soc_i2c_regdump: SLAVE_ADDR: 0x%02x DATA: 0x%02x CTRL: 0x%02x STAT: 0x%02x SLAVE_XADDR: 0x%02x RESET: 0x%02x\n", 
+        soc_i2c_pci_read(unit, CMIC_I2C_SLAVE_ADDR),
+        soc_i2c_pci_read(unit, CMIC_I2C_DATA),
+        soc_i2c_pci_read(unit, CMIC_I2C_CTRL),
+        soc_i2c_pci_read(unit, CMIC_I2C_STAT),
+        soc_i2c_pci_read(unit, CMIC_I2C_SLAVE_XADDR),
+        soc_i2c_pci_read(unit, CMIC_I2C_RESET)));
+}
+#endif /* LVL7_FIXUP */
+
