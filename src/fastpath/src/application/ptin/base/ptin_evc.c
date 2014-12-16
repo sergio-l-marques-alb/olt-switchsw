@@ -2426,14 +2426,14 @@ _ptin_evc_create1:
           {
             if (evcConf->intf[intf2cfg[i]].vid != evcs[evc_id].intf[i].out_vlan)
             {
-              LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Outer VLAN of existent port % do not match (%u vs %u)", evc_id, 
+              LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Outer VLAN of existent port %u do not match (%u vs %u)", evc_id, i, 
                       evcConf->intf[intf2cfg[i]].vid, evcs[evc_id].intf[i].out_vlan);
               error = L7_TRUE;
             }
           }
           else if (IS_VLAN_VALID(evcConf->intf[intf2cfg[i]].vid) != IS_VLAN_VALID(evcs[evc_id].intf[i].out_vlan))
           {
-            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: One of the Outer VLANs of existent port % is not defined (%u vs %u)", evc_id,
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: One of the Outer VLANs of existent port %u is not defined (%u vs %u)", evc_id, i,
                     evcConf->intf[intf2cfg[i]].vid, evcs[evc_id].intf[i].out_vlan);
             error = L7_TRUE;
           }
@@ -2443,14 +2443,14 @@ _ptin_evc_create1:
           {
             if (evcConf->intf[intf2cfg[i]].vid_inner != evcs[evc_id].intf[i].inner_vlan)
             {
-              LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Inner VLAN of existent port % do not match (%u vs %u)", evc_id, 
+              LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Inner VLAN of existent port %u do not match (%u vs %u)", evc_id, i,
                       evcConf->intf[intf2cfg[i]].vid_inner, evcs[evc_id].intf[i].inner_vlan);
               error = L7_TRUE;
             }
           }
           else if (IS_VLAN_VALID(evcConf->intf[intf2cfg[i]].vid_inner) != IS_VLAN_VALID(evcs[evc_id].intf[i].inner_vlan))
           {
-            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: One of the Inner VLANs of existent port % is not defined (%u vs %u)", evc_id,
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: One of the Inner VLANs of existent port %u is not defined (%u vs %u)", evc_id, i,
                     evcConf->intf[intf2cfg[i]].vid_inner, evcs[evc_id].intf[i].inner_vlan);
             error = L7_TRUE;
           }
