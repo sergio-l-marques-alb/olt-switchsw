@@ -33,7 +33,7 @@ extern dot1xCnfgrState_t dot1xCnfgrState;
 extern L7_tlvHandle_t    dot1xTlvHandle;
 extern L7_RC_t dtlLedBlinkSet(L7_BOOL enable);
 extern void fdbDelete(char *mac, L7_uint32 vlanId);
-extern void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 vlanId, L7_ushort16 entryType);
+extern void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port, L7_uint32 vlanId, L7_ushort16 entryType);  /* PTin modified: virtual ports */
 extern L7_RC_t dot1xMacBasedVlanParticipationSet(L7_uint32 lIntIfNum, L7_uint32 vlanId);
 extern void  dot1xCnfgrWarmRestartTypeSet(L7_BOOL L7_FALSE);
 
@@ -1296,7 +1296,7 @@ L7_RC_t dot1xIhPortStatusSet(L7_uint32 lIntIfNum, L7_DOT1X_PORT_STATUS_t portSta
             else
             {
               /* Add entry into FDB so user can see it since this will be (quasi)static and SDK won't update FDB */
-              fdbInsert(&logicalPortInfo->suppMacAddr.addr[0], physPort, vlanId, L7_FDB_ADDR_FLAG_DOT1X_STATIC);
+              fdbInsert(&logicalPortInfo->suppMacAddr.addr[0], physPort, 0 /* Not used */, vlanId, L7_FDB_ADDR_FLAG_DOT1X_STATIC);
 
               /* remove the previously blocked entry if the vlan id does not match*/
               if (logicalPortInfo->blockVlanId != 0 && logicalPortInfo->blockVlanId != vlanId)

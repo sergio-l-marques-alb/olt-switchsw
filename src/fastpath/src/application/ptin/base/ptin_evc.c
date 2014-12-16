@@ -55,7 +55,7 @@ struct ptin_evc_client_s {
   /* GEM ids which will be flooded the ARP packets */
   L7_uint16  flood_vlan[PTIN_FLOOD_VLANS_MAX];
   L7_int     virtual_gport;
-  L7_uint32  intIfNum_vport;
+  L7_uint32  vport_id;
   L7_uint32  flags;         /* Client/flow flags */
 
   /* Counters/Profiles per client on stacked EVCs (S+C) */
@@ -549,7 +549,7 @@ L7_RC_t ptin_evc_init(void)
     return L7_FAILURE;
   }
 
-  IfN_vp_DB(0, NULL);
+  intf_vp_DB(0, NULL);
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC init OK");
 
   return L7_SUCCESS;
@@ -596,6 +596,16 @@ L7_RC_t ptin_evc_startup(void)
     return rc;
   }
   #endif
+
+  L7_uint32 intIfNum_vport;
+
+  /* Create intIfNum for Virtual ports */
+  if (L7_SUCCESS != vlan_port_intIfNum_create(1, &intIfNum_vport))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Error creating intIfNum for virtual ports");
+    return L7_FAILURE;
+  }
+  LOG_NOTICE(LOG_CTX_PTIN_EVC, "Success creating intIfNum for virtual ports: %u", intIfNum_vport);
 
   return L7_SUCCESS;
 }
@@ -3643,66 +3653,64 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 
 
-#define N PROD_MAX_NUM_VLAN_PORT_INTF
-#define intIfNum_vport__2__i(IfN, M) ( ((IfN)^(IfN)<<24) % M)
+#define INTF_VP_MAX           PTIN_SYSTEM_N_CLIENTS
+#define vportId__2__i(vp, M) ( ((vp)^(vp)<<24) % M)
 //static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
-//#define intIfNum_vport__2__i(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
+//#define vportId__2__i(IfN, M) ( ((IfN) ^ invnibble[IfN&0xf]<<28 ^ invnibble[IfN>>4&0xf]<<24 ^ invnibble[IfN>>8&0xf]<<20) % M)
 
+static intf_vp_entry_t  intf_vp_table[INTF_VP_MAX];
+static unsigned long    intf_vp_n = 0;
 
-
-
-int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry)
+int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
 {
-  static IfN_vp_entry_t table[N];
-  static unsigned long n=0;
-  static unsigned long modu=N;
+  static unsigned long modu = INTF_VP_MAX;
   unsigned long i, j, k, _1st_empty;
 
   switch (_0init_1insert_2remove_3find) {
   default: return 1;
   case 0:
-     n=0;
-     for (i=0; i<N; i++) INVALIDATE_IfN_VP(&table[i])
+     intf_vp_n=0;
+     for (i=0; i<INTF_VP_MAX; i++) INVALIDATE_INTF_VP(&intf_vp_table[i])
 
-     for (modu=N; 1;) {                                     //Just to improve modulus
+     for (modu=INTF_VP_MAX; 1;) {                                     //Just to improve modulus
          for (i=2; i*i<modu; i++) if (0==modu%i) break;
          if (i*i>=modu) break;
          modu++;
      }
-     LOG_INFO(LOG_CTX_PTIN_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, N, modu, L7_MAX_INTERFACE_COUNT);
+     LOG_INFO(LOG_CTX_PTIN_EVC, "IfN_vp_DB init(%d)\tN=%lu\tmodu=%lu\tL7_MAX_INTERFACE_COUNT=%lu", _0init_1insert_2remove_3find, INTF_VP_MAX, modu, L7_MAX_INTERFACE_COUNT);
      break;
   case 1:
   case 2:
   case 3:
-     i=intIfNum_vport__2__i(entry->intIfNum_vport, modu%N);
-     for (j=0, k=i, _1st_empty=-1;  j<N;  j++) {
-         if (entry->intIfNum_vport==table[k].intIfNum_vport) {i=k; break;}
-         if (_1st_empty>=N && EMPTY_IfN_VP(&table[k])) _1st_empty=k;
-         if (++k>=N) k=0;
+     i=vportId__2__i(entry->vport_id, modu%INTF_VP_MAX);
+     for (j=0, k=i, _1st_empty=-1;  j<INTF_VP_MAX;  j++) {
+         if (entry->vport_id==intf_vp_table[k].vport_id) {i=k; break;}
+         if (_1st_empty>=INTF_VP_MAX && EMPTY_INTF_VP(&intf_vp_table[k])) _1st_empty=k;
+         if (++k>=INTF_VP_MAX) k=0;
      }
-     LOG_TRACE(LOG_CTX_PTIN_EVC, "IfN_vp_DB (_0init_1insert_2remove_3find=%d)\ti=%lu j=%lu k=%lu\t_1st_empty=%lu\tn=%lu", _0init_1insert_2remove_3find, i,j,k, _1st_empty, n);
-     if (j>=N) {//(entry->intIfNum_vport!=table[i].intIfNum_vport) {//didn't find it
+     LOG_TRACE(LOG_CTX_PTIN_EVC, "IfN_vp_DB (_0init_1insert_2remove_3find=%d)\ti=%lu j=%lu k=%lu\t_1st_empty=%lu\tn=%lu", _0init_1insert_2remove_3find, i,j,k, _1st_empty, intf_vp_n);
+     if (j>=INTF_VP_MAX) {//(entry->vport_id!=intf_vp_table[i].vport_id) {//didn't find it
          if (3==_0init_1insert_2remove_3find) return 2;
          if (2==_0init_1insert_2remove_3find) return 0;
 
          //1==_0init_1insert_2remove_3find
-         if (_1st_empty>=N) return 3; //if (!EMPTY_IfN_VP(&table[i])) return 3; //if (N==n) return 3;       //no empty entries
-         n++;
-         table[_1st_empty]=*entry;
+         if (_1st_empty>=INTF_VP_MAX) return 3; //if (!EMPTY_IfN_VP(&intf_vp_table[i])) return 3; //if (INTF_VP_MAX==intf_vp_n) return 3;       //no empty entries
+         intf_vp_n++;
+         intf_vp_table[_1st_empty]=*entry;
      }
      else {                                             //did find it
-         if (3==_0init_1insert_2remove_3find) {*entry=table[i]; return 0;}
-         if (2==_0init_1insert_2remove_3find) {INVALIDATE_IfN_VP(&table[i]); n--; return 0;}
+         if (3==_0init_1insert_2remove_3find) {*entry=intf_vp_table[i]; return 0;}
+         if (2==_0init_1insert_2remove_3find) {INVALIDATE_INTF_VP(&intf_vp_table[i]); intf_vp_n--; return 0;}
 
          //1==_0init_1insert_2remove_3find
-         table[i]=*entry; //overwrite
+         intf_vp_table[i]=*entry; //overwrite
      }
      break;
   case 4:
      printf("DUMP IfN_vp_DB\n\r");
-     for (i=0; i<N; i++) {
-         if (EMPTY_IfN_VP(&table[i])) continue;
-         printf("%lu: intIfNum_vport=%lu pon=%u/%u gem_id=%u\n\r", i, table[i].intIfNum_vport, table[i].pon.intf_type, table[i].pon.intf_id, table[i].gem_id);
+     for (i=0; i<INTF_VP_MAX; i++) {
+         if (EMPTY_INTF_VP(&intf_vp_table[i])) continue;
+         printf("%lu: vport_id=%lu pon=%u/%u gem_id=%u\n\r", i, intf_vp_table[i].vport_id, intf_vp_table[i].pon.intf_type, intf_vp_table[i].pon.intf_id, intf_vp_table[i].gem_id);
      }
      break;
   }//switch
@@ -3712,7 +3720,7 @@ int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry)
   return 0;
 }//IfN_vp_DB
 
-#undef N
+//#undef INTF_VP_MAX
 
 
 
@@ -3722,7 +3730,10 @@ int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry)
 
 
 
-void dump_IfN_vp_DB(void) {IfN_vp_DB(4,NULL);}
+void dump_intf_vp_DB(void)
+{
+  intf_vp_DB(4,NULL);
+}
 
 
 
@@ -3803,7 +3814,6 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   L7_uint int_ovid;
   L7_int  vport_id, multicast_group;
-  L7_uint32 intIfNum_vport;
 
   struct ptin_evc_client_s *pflow;
 
@@ -3840,17 +3850,13 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       return L7_FAILURE;
     }
     else
-    if (L7_SUCCESS != vlan_port_intIfNum_create(vport_id & 0xffffff, &intIfNum_vport)) {     //check _SHR_GPORT_VLAN_PORT_ID_GET (SDK's gport.h)
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating virtual port (application layer)", evc_id);
-        //return L7_FAILURE;
-    }
-    else {
-    IfN_vp_entry_t e;
+    {
+      intf_vp_entry_t e;
 
-        e.intIfNum_vport=   intIfNum_vport;
-        e.pon=              evcFlow->ptin_intf;
-        e.gem_id=           evcFlow->uni_ovid;
-        IfN_vp_DB(1, &e);
+      e.vport_id  = vport_id & 0xffffff;
+      e.pon       = evcFlow->ptin_intf;
+      e.gem_id    = evcFlow->uni_ovid;
+      intf_vp_DB(1, &e);
     }
 
     /* Add client to the EVC struct */
@@ -3862,14 +3868,14 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     pflow->uni_ivid   = evcFlow->uni_ivid;
     pflow->client_vid = evcFlow->uni_ivid;
     pflow->flags      = evcFlow->flags;
-    pflow->virtual_gport= vport_id;
-    pflow->intIfNum_vport= intIfNum_vport;
+    pflow->virtual_gport = vport_id;
+    pflow->vport_id   = vport_id & 0xffffff;
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
     evcs[evc_id].n_clients++;
 
-    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (intIfNum_vport=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvport_id=0x%8.8lx)",
+    LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u: flow successfully added (vport_id=%lu\tpon=%u/%u(%lu)\tgem_id=%u\tvirtual_gport=0x%8.8lx)",
              evc_ext_id,
-             intIfNum_vport,
+             vport_id & 0xffffff,
              evcFlow->ptin_intf.intf_type,evcFlow->ptin_intf.intf_id, intIfNum,
              evcFlow->uni_ovid, vport_id);
   }
@@ -4166,15 +4172,11 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
   ptin_evc_pclientFlow_clean(evc_id, ptin_port, pflow, L7_TRUE);
 
   /* Remove virtual port */
-  if (L7_SUCCESS!=vlan_port_intIfNum_delete(pflow->intIfNum_vport)) {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing virtual port (application layer)", evc_id);
-      rc = L7_FAILURE;
-  }
   {
-  IfN_vp_entry_t e;
+    intf_vp_entry_t e;
 
-      e.intIfNum_vport=   pflow->intIfNum_vport;
-      IfN_vp_DB(2, &e);
+    e.vport_id = pflow->vport_id;
+    intf_vp_DB(2, &e);
   }
   if (ptin_virtual_port_remove(intIfNum, pflow->virtual_gport, multicast_group) != L7_SUCCESS)
   {

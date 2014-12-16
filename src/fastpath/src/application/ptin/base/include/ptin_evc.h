@@ -632,21 +632,21 @@ L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEt
 
 
 
+#define INVALID_INTF_VP(pentry)     ((pentry)->vport_id>=L7_MAX_INTERFACE_COUNT)
+//#define INVALID_INTF_VP(pentry)   (((unsigned long)(0))-1 == (pentry)->vport_id)
+#define EMPTY_INTF_VP               INVALID_INTF_VP
+#define INVALIDATE_INTF_VP(pentry)  {(pentry)->vport_id = ((unsigned long)(0))-1;}
 
 typedef struct {
-    unsigned long   intIfNum_vport;
-#define INVALID_IfN_VP(pentry)  ((pentry)->intIfNum_vport>=L7_MAX_INTERFACE_COUNT)
-//#define INVALID_IfN_VP(pentry)  (((unsigned long)(0))-1 == (pentry)->intIfNum_vport)
-#define EMPTY_IfN_VP   INVALID_IfN_VP
-#define INVALIDATE_IfN_VP(pentry)  {(pentry)->intIfNum_vport = ((unsigned long)(0))-1;}
+    unsigned long   vport_id;
     ptin_intf_t     pon;
     unsigned short  gem_id;
     //unsigned int    evc_id;
     //int             vport_id;
-} IfN_vp_entry_t;
+} intf_vp_entry_t;
 
-extern int IfN_vp_DB(int _0init_1insert_2remove_3find, IfN_vp_entry_t *entry);
-extern void dump_IfN_vp_DB(void);
+extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
+extern void dump_intf_vp_DB(void);
 
 
 

@@ -211,7 +211,8 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
 #endif
   {
     fdbLearnEntryCallBack(dei->cmdData.unsolLearnedAddress.macAddr.addr,
-                         intIfNum,dei->cmdData.unsolLearnedAddress.vlanID,
+                          intIfNum, dei->virtual_port, /* PTin added: virtual ports */
+                          dei->cmdData.unsolLearnedAddress.vlanID,
                           FDB_ADD);
   }
 
@@ -252,7 +253,7 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
 #endif
 
     fdbLearnEntryCallBack(dei->cmdData.unsolAgedAddress.macAddr.addr,
-                          0, dei->cmdData.unsolAgedAddress.vlanID,
+                          0, 0 /* Not used */, dei->cmdData.unsolAgedAddress.vlanID,
                           FDB_DEL);
   }
   else if (event == DAPI_EVENT_ADDR_LOCK_UNKNOWN_ADDRESS)
