@@ -45,13 +45,13 @@ if [ -f "configure" ]; then
 		echo "MGMD upgrade detected! Reconfiguring..."
 		NEW_CONFIGURATION="yes"
 		rm configure
-		sh build/autogen.sh && sh build/configure-ud.sh >/dev/null 2>&1
+		sh build/autogen.sh && sh build/configure-mgmd.sh >/dev/null 2>&1
 	fi
 else
 	#MGMD not yet configured. To reduce Fastpath's compilation verbosity, we skip the configuration output
 	echo "Starting MGMD configuration..."
 	NEW_CONFIGURATION="yes"
-	sh build/autogen.sh >/dev/null 2>&1 && sh build/configure-ud.sh >/dev/null 2>&1
+	sh build/autogen.sh >/dev/null 2>&1 && sh build/configure-mgmd.sh >/dev/null 2>&1
 fi
 
 # 2 - Compilation
