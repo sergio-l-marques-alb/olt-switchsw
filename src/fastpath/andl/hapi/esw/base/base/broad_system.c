@@ -1781,9 +1781,10 @@ L7_RC_t hapiBroadIntfIsolatePhyConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *dat
 	LOG_ERROR (rv);
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  /* PTin removed */
+#if (0 /*PTIN_BOARD == PTIN_BOARD_TA48GE*/)
   /* Frontal ports */
-  if (hapiPortPtr->bcm_port <= 49)
+  if (enable && hapiPortPtr->bcm_port <= 49)
   {
     rv = bcm_port_speed_set(0, hapiPortPtr->bcm_port, 1000);
     if (L7_BCMX_OK(rv) != L7_TRUE)

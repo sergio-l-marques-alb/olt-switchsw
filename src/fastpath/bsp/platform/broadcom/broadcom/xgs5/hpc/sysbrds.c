@@ -170,7 +170,9 @@ bcm_sys_sa_init_56820(const bcm_sys_board_t* brd, int base)
 *********************************************************************/
 L7_RC_t hpcConfigBoardSet()
 {
-  HPC_UNIT_DESCRIPTOR_t       *lclUnitDesc;
+  L7_int  idx;
+  HPC_UNIT_DESCRIPTOR_t *lclUnitDesc;
+  char param_name[51], param_value[21];
 
   if ((lclUnitDesc = hpcLocalUnitDescriptorGet()) != L7_NULLPTR)
   {
@@ -336,110 +338,56 @@ L7_RC_t hpcConfigBoardSet()
           return(L7_FAILURE);
         LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
         #else
+        if (sal_config_set(spn_POLLED_IRQ_MODE, "0") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TDMA_INTR_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_INTR_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MIIM_INTR_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TSLAM_DMA_ENABLE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_TABLE_DMA_ENABLE, "1") != 0)
+          return(L7_FAILURE);
         LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
         #endif
 
-      #if (SDK_VERSION_IS < SDK_VERSION(6,3,7,0))
-        if (sal_config_set(spn_PORT_PHY_ADDR"_1",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_2",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_3",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_4",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_5",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_6",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_7",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_8",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_9",  "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_10", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_11", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_12", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_13", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_14", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_15", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_16", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_17", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_18", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_19", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_20", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_21", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_22", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_23", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_24", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_25", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_26", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_27", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_28", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_29", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_30", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_31", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_32", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_33", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_34", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_35", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_36", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_37", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_38", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_39", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_40", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_41", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_42", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_43", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_44", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_45", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_46", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_47", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_48", "0xff") != 0) return(L7_FAILURE);
-        if (sal_config_set(spn_PORT_PHY_ADDR"_49", "0xff") != 0) return(L7_FAILURE);
+        for (idx = 1; idx <= 49; idx++)
+        {
+          /* Configurations for 1000 BASE-X mode */
+          sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+          sprintf(param_value, "%u", 0);
+          LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
 
-        if (sal_config_set("phy_wcmod_1",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_2",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_3",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_4",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_5",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_6",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_7",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_8",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_9",  "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_10", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_11", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_12", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_13", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_14", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_15", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_16", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_17", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_18", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_19", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_20", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_21", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_22", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_23", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_24", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_25", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_26", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_27", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_28", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_29", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_30", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_31", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_32", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_33", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_34", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_35", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_36", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_37", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_38", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_39", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_40", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_41", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_42", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_43", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_44", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_45", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_46", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_47", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_48", "0") != 0) return(L7_FAILURE);
-        if (sal_config_set("phy_wcmod_49", "0") != 0) return(L7_FAILURE);
-      #endif
+          sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+          sprintf(param_value, "%u", 1);
+          LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          /* For older SDK versions */
+        #if (SDK_VERSION_IS < SDK_VERSION(6,3,7,0))
+          sprintf(param_name, spn_PORT_PHY_ADDR"_%u", idx);
+          sprintf(param_value, "%u", 0xff);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          sprintf(param_name, "phy_wcmod_%u", idx);
+          sprintf(param_value, "%u", 0);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+        #endif
+        }
+        
 
 #ifdef L7_STACKING_PACKAGE
         /* On Stacking packages, restrict FDB size to 16K MAX for FB2. */
@@ -1588,7 +1536,22 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
           //offset += ((fport_idx - CXO160G_FRONTAL_PORTS_LOCAL) * CXO160G_FRONTAL_PORT_LANES);
         }
 
-        dapiBroadBaseCardSlotMap[port_idx].bcm_port = offset + lane;
+        /* Configurations for 1000 BASE-X mode */
+        #if 0
+        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", offset);
+        sprintf(param_value, "%u", 0);
+        LOG_INFO(LOG_CTX_STARTUP, "fport=%d: sal_config_set(%s,%s)", fport_idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+
+        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", offset);
+        sprintf(param_value, "%u", 1);
+        LOG_INFO(LOG_CTX_STARTUP, "fport=%d: sal_config_set(%s,%s)", fport_idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+        #endif
+
+        dapiBroadBaseCardSlotMap[port_idx].bcm_port = offset;
         fport_idx++;
       }
       /* 1G port */
