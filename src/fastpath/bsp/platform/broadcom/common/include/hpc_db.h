@@ -194,7 +194,6 @@
                                           L7_PHY_CAP_PORTSPEED_HALF_100  |  \
                                           L7_PHY_CAP_PORTSPEED_FULL_100  |  \
                                           L7_PHY_CAP_PORTSPEED_HALF_1000 |  \
-                                          L7_PHY_CAP_PORTSPEED_SFP       |  \
                                           L7_PHY_CAP_PORTSPEED_FULL_1000),  \
                                          L7_RJ45
 
@@ -242,7 +241,7 @@
 
 #define L7_PORT_DESC_BCOM_XAUI_10G_1G    L7_IANA_10G_ETHERNET,              \
                                          L7_PORTCTRL_PORTSPEED_FULL_10GSX,  \
-                                         (L7_PHY_CAP_PORTSPEED_SFP |        \
+                                         (/*L7_PHY_CAP_PORTSPEED_SFP | */   \
                                           L7_PHY_CAP_PORTSPEED_FULL_1000 |  \
                                           L7_PHY_CAP_PORTSPEED_FULL_10G),   \
                                          L7_XAUI
