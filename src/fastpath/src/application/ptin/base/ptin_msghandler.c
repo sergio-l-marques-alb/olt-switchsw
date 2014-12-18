@@ -1749,7 +1749,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_EVC_ADD */
     }
 
-
     /* CCMSG_ETH_EVC_REMOVE ***************************************************/
     case CCMSG_ETH_EVC_REMOVE:
     {
@@ -1835,6 +1834,35 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
 
       break;  /* CCMSG_ETH_EVC_PORT_REMOVE */
+    }
+
+    /* CCMSG_ETH_EVC_OPTIONS_SET *************************************************/
+    case CCMSG_ETH_EVC_OPTIONS_SET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_EVC_OPTIONS_SET (0x%04X)", CCMSG_ETH_EVC_OPTIONS_SET);
+
+      CHECK_INFO_SIZE_MOD(msg_HwEthMef10EvcOptions_t);
+
+      msg_HwEthMef10EvcOptions_t *evcOptions = (msg_HwEthMef10EvcOptions_t *) inbuffer->info;
+      L7_uint16 n_size  = inbuffer->infoDim/sizeof(msg_HwEthMef10EvcOptions_t);
+
+      /* Execute command */
+      rc = ptin_msg_evc_config(evcOptions, n_size);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while reconfiguring EVC# %u", evcOptions->id);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_EVC_ADD */
     }
 
     /* CCMSG_ETH_EVC_BRIDGE_ADD ***********************************************/

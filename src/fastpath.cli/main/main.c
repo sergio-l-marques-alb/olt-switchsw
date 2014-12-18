@@ -119,6 +119,7 @@ void help_oltBuga(void)
         "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
         "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN CVlan flags[01h:DHCP;02h:IGMP;04h:PPPoE] MaxMACs - Add a GEM flow to an EVC\r\n"
         "m 1608 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN - Delete a GEM flow from an EVC\r\n"
+        "m 1609 EVC#[0-64] [type] [mc_flood] [flags_value] [flags_mask] - Change EVC options\r\n"
         "m 1610 - Reads Network Connectivity (inBand) configuration\r\n"
         "m 1611 <intf_type[0:phy 1:lag]> <intf#> <ipaddr> <netmask> <gateway> <managememt_vlan> - Sets Network Connectivity (inBand) configuration\r\n"
         "m 1620 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
@@ -4381,6 +4382,88 @@ int main (int argc, char *argv[])
       }
       break;
 
+    /* fp.cli m 1609 EVC#[0-64] [flags_value] [flags_mask] [mc_flood] [type] -> Change EVC options */
+    case 1609:
+      {
+        msg_HwEthMef10EvcOptions_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        comando.msgId = CCMSG_ETH_EVC_OPTIONS_SET;
+        comando.infoDim = sizeof(msg_HwEthMef10EvcOptions_t);
+
+        // Pointer to data array
+        ptr = (msg_HwEthMef10EvcOptions_t *) &(comando.info[0]);
+        memset(ptr, 0x00, sizeof(msg_HwEthMef10EvcOptions_t));
+
+        // Slot id
+        ptr->SlotId = (uint8)-1;
+        // Default Mask
+        ptr->mask = 0;
+        /* Default flags value */
+        ptr->flags.value = 0;
+        ptr->flags.mask  = 0xffffffff;
+
+        // EVC index
+        if (StrToLongLong(argv[3+0], &valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->id = valued;
+
+        // Type
+        if (argc >= 3+2)
+        {
+          if (StrToLongLong(argv[3 + 1], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->type = (L7_uint8) valued;
+          ptr->mask |= PTIN_EVC_OPTIONS_MASK_TYPE;
+        }
+
+        // MC flood
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3 + 2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->mc_flood = (L7_uint8) valued;
+          ptr->mask |= PTIN_EVC_OPTIONS_MASK_MCFLOOD;
+        }
+
+        // Flags value
+        if (argc >= 3+4)
+        {
+          if (StrToLongLong(argv[3 + 3], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->flags.value = (L7_uint32) valued;
+          ptr->mask |= PTIN_EVC_OPTIONS_MASK_FLAGS;
+        }
+
+        // Flags mask
+        if (argc >= 3+5)
+        {
+          if (StrToLongLong(argv[3 + 4], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->flags.mask = (L7_uint32) valued;
+        }
+      }
+      break;
+
       /* "m 1610 - Reads Network Connectivity (inBand) configuration\r\n" */
       case 1610:
         {
@@ -6537,6 +6620,13 @@ int main (int argc, char *argv[])
           printf("EVC GEM flow successfully deleted\n\r");
         else
           printf("Failed to delete EVC GEM flow - error %08X\r\n", *(unsigned int*)resposta.info);
+        break;
+
+      case 1609:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf("EVC options applied succesfully\n\r");
+        else
+          printf("Failed to apply EVC options - error %08X\r\n", *(unsigned int*)resposta.info);
         break;
 
       case 1610:

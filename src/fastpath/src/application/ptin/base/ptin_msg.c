@@ -2898,6 +2898,69 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
 }
 
 /**
+ * Reconfigure EVC
+ * 
+ * @param msgEvcOptions : EVC options
+ * @param n_size        : Number of structures 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_evc_config(msg_HwEthMef10EvcOptions_t *msgEvcOptions, L7_uint16 n_size)
+{
+  L7_uint i;
+  ptin_HwEthMef10EvcOptions_t evcOptions;
+  L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (msgEvcOptions == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "No data provided");
+    return L7_FAILURE;
+  }
+
+  /* Run all structures */
+  for (i=0; i<n_size; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u",     msgEvcOptions[i].id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Mask      = 0x%04x", msgEvcOptions[i].mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags     = 0x%08x/0x%08x", msgEvcOptions[i].flags.value, msgEvcOptions[i].flags.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Type      = %u", msgEvcOptions[i].type);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " .MC_flood  = %u", msgEvcOptions[i].mc_flood);
+
+    /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+    if (msgEvcOptions[i].id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "EVC# %u is out of range [0..%u]", msgEvcOptions[i].id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+      return L7_FAILURE;
+    }
+
+    /* Copy data to ptin struct */
+    evcOptions.mask         = msgEvcOptions[i].mask;
+    evcOptions.flags.value  = msgEvcOptions[i].flags.value;
+    evcOptions.flags.mask   = msgEvcOptions[i].flags.mask;
+    evcOptions.type         = msgEvcOptions[i].type;
+    evcOptions.mc_flood     = msgEvcOptions[i].mc_flood;
+
+    if ((rc=ptin_evc_config(msgEvcOptions[i].id, &evcOptions)) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error configuring EVC# %u", msgEvcOptions[i].id);
+      rc_global = rc;
+      if (rc != L7_DEPENDENCY_NOT_MET && rc != L7_NOT_EXIST && rc != L7_ALREADY_CONFIGURED)
+        rc_global_failure = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "EVC# %u configured successfully", msgEvcOptions[i].id);
+    }
+  }
+
+  if (rc_global_failure != L7_SUCCESS)
+    return rc_global_failure;
+
+  return rc_global;
+}
+
+/**
  * Adds a bridge to a stacked EVC between the root and a particular interface
  * 
  * @param msgEvcBridge Bridge info

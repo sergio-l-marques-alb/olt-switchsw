@@ -442,6 +442,22 @@ typedef struct {
   L7_uint16 vid_inner;    // Inner vlan associated to this interface
 } ptin_HwEthMef10Intf_t;
 
+#define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
+#define PTIN_EVC_OPTIONS_MASK_TYPE    0x0002
+#define PTIN_EVC_OPTIONS_MASK_MCFLOOD 0x0004
+
+/* EVC flags */
+typedef struct 
+{
+  L7_uint16 mask;         // Generic mask
+  struct {
+    L7_uint32 value;      // bits related to active flags.mask bits will be considered
+    L7_uint32 mask;       // set to 1, to allow flags.value bits to be considered
+  } flags;                // [mask=0x0001] Flags
+  L7_uint8  type;         // [mask=0x0002] (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
+  L7_uint8  mc_flood;     // [mask=0x0004] MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
+} __attribute__((packed)) ptin_HwEthMef10EvcOptions_t;
+
 /* EVC config */
 #define PTIN_EVC_MASK_BUNDLING          0x00000001
 #define PTIN_EVC_MASK_ALL2ONE           0x00000002

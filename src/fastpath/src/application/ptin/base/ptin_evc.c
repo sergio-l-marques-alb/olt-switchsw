@@ -2467,6 +2467,25 @@ _ptin_evc_create1:
   /* If no error, update some EVC data */
   if (!error)
   {
+    ptin_HwEthMef10EvcOptions_t evcOptions;
+
+    memset(&evcOptions, 0x00, sizeof(evcOptions));
+
+    evcOptions.mask        = PTIN_EVC_OPTIONS_MASK_FLAGS | PTIN_EVC_OPTIONS_MASK_MCFLOOD;
+    evcOptions.mc_flood    = evcConf->mc_flood;
+    evcOptions.flags.value = evcConf->flags;
+    evcOptions.flags.mask  = PTIN_EVC_MASK_MACLEARNING | PTIN_EVC_MASK_CPU_TRAPPING |
+                             PTIN_EVC_MASK_DHCPV4_PROTOCOL | PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL | PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+    /* Apply options */
+    rc = ptin_evc_config(evc_ext_id, &evcOptions);
+
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring EVC options", evc_id);
+      return L7_FAILURE;
+    }
+
+    #if 0
     /* MAC Learning, Multicast flood and CPU trap */
     evcs[evc_id].mc_flood = evcConf->mc_flood;
     (cpu_trap   ) ? (evcs[evc_id].flags |= PTIN_EVC_MASK_CPU_TRAPPING) : (evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_CPU_TRAPPING));
@@ -2524,6 +2543,7 @@ _ptin_evc_create1:
       }
     #endif
     }
+    #endif
   }
 
   /* Error occured: Remove configurations if EVC is new */
@@ -2865,6 +2885,170 @@ _ptin_evc_port_remove1:
   }
 
   LOG_INFO(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u: Removed port %u/%u!", evc_ext_id, evc_idx, ptin_intf.intf_type, ptin_intf.intf_id);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * EVC options reconfiguration
+ * 
+ * @param evc_ext_id : EVC extended id
+ * @param evcOptions : EVC options
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOptions)
+{
+  L7_uint   evc_id;
+  L7_uint8  mc_flood;
+  L7_BOOL   maclearning, cpu_trap;
+  L7_BOOL   dhcpv4_enabled, dhcpv6_enabled, igmp_enabled, pppoe_enabled;
+  L7_BOOL   error = L7_FALSE;
+
+  /* Validate arguments */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC %u is out of range [0,%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
+    return L7_FAILURE;
+  }
+  if (evcOptions == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "Null pointer provided");
+    return L7_FAILURE;
+  }
+
+  /* Get the internal index based on the extended one */
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC %u not existent", evc_ext_id);
+    return L7_DEPENDENCY_NOT_MET;
+  }
+
+  /* Check if port is not present */
+  if (!evcs[evc_id].in_use)
+  {
+    /* Nothing to be done! */
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC %u not active", evc_id);
+    return L7_NOT_EXIST;
+  }
+
+  /* Init state vars, with current values */
+  mc_flood       =  evcs[evc_id].mc_flood;
+  maclearning    = (evcs[evc_id].flags & PTIN_EVC_MASK_MACLEARNING    ) == PTIN_EVC_MASK_MACLEARNING;
+  cpu_trap       = (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING   ) == PTIN_EVC_MASK_CPU_TRAPPING;
+  dhcpv4_enabled = (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+  dhcpv6_enabled = (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+  igmp_enabled   = (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
+  pppoe_enabled  = (evcs[evc_id].flags & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: New -> MCflood=%u", evc_id, mc_flood);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Old -> maclearning=%u, cpu_trap=%u", evc_id, maclearning, cpu_trap);
+  LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Old -> IGMP=%u, DHCPv4=%u, DHCPv6=%u, PPPoE=%u", evc_id, igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled);
+
+  /* Change options? */
+  if (evcOptions->mask & PTIN_EVC_OPTIONS_MASK_MCFLOOD)
+  {
+    mc_flood = evcOptions->mc_flood;
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: MCflood will be changed", evc_id);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: New -> MCflood=%u", evc_id, mc_flood);
+  }
+  /* Flags */
+  if (evcOptions->mask & PTIN_EVC_OPTIONS_MASK_FLAGS)
+  {
+    if (evcOptions->flags.mask & PTIN_EVC_MASK_MACLEARNING) 
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: MACLearning will be changed", evc_id);
+      maclearning    = (evcOptions->flags.value & PTIN_EVC_MASK_MACLEARNING    ) == PTIN_EVC_MASK_MACLEARNING; 
+    }
+    if (evcOptions->flags.mask & PTIN_EVC_MASK_CPU_TRAPPING)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: CPUtrap will be changed", evc_id);
+      cpu_trap       = (evcOptions->flags.value & PTIN_EVC_MASK_CPU_TRAPPING   ) == PTIN_EVC_MASK_CPU_TRAPPING;
+    }
+    if (evcOptions->flags.mask & PTIN_EVC_MASK_DHCPV4_PROTOCOL)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: DHCPv4 will be changed", evc_id);
+      dhcpv4_enabled = (evcOptions->flags.value & PTIN_EVC_MASK_DHCPV4_PROTOCOL) == PTIN_EVC_MASK_DHCPV4_PROTOCOL;
+    }
+    if (evcOptions->flags.mask & PTIN_EVC_MASK_DHCPV6_PROTOCOL)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: DHCPv6 will be changed", evc_id);
+      dhcpv6_enabled = (evcOptions->flags.value & PTIN_EVC_MASK_DHCPV6_PROTOCOL) == PTIN_EVC_MASK_DHCPV6_PROTOCOL;
+    }
+    if (evcOptions->flags.mask & PTIN_EVC_MASK_IGMP_PROTOCOL)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: IGMP will be changed", evc_id);
+      igmp_enabled   = (evcOptions->flags.value & PTIN_EVC_MASK_IGMP_PROTOCOL  ) == PTIN_EVC_MASK_IGMP_PROTOCOL;
+    }
+    if (evcOptions->flags.mask & PTIN_EVC_MASK_PPPOE_PROTOCOL)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: PPPoE will be changed", evc_id);
+      pppoe_enabled  = (evcOptions->flags.value & PTIN_EVC_MASK_PPPOE_PROTOCOL ) == PTIN_EVC_MASK_PPPOE_PROTOCOL;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: New -> maclearning=%u, cpu_trap=%u", evc_id, maclearning, cpu_trap);
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: New -> IGMP=%u, DHCPv4=%u, DHCPv6=%u, PPPoE=%u", evc_id, igmp_enabled, dhcpv4_enabled, dhcpv6_enabled, pppoe_enabled);
+  }
+
+  /* VLAN configuration */
+  if (switching_vlan_config(evcs[evc_id].rvlan, evcs[evc_id].rvlan, maclearning, mc_flood, cpu_trap) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring VLAN %u [FwdVlan=%u MACLearning=%u MCFlood=%u]",
+            evc_id, evcs[evc_id].rvlan, evcs[evc_id].rvlan, maclearning, mc_flood);
+    return L7_FAILURE;
+  }
+
+  /* MAC Learning, Multicast flood and CPU trap */
+  evcs[evc_id].mc_flood = mc_flood;
+  (cpu_trap   ) ? (evcs[evc_id].flags |= PTIN_EVC_MASK_CPU_TRAPPING) : (evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_CPU_TRAPPING));
+  (maclearning) ? (evcs[evc_id].flags |= PTIN_EVC_MASK_MACLEARNING ) : (evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_MACLEARNING ));
+
+  error = L7_FALSE;
+
+  /* Protocol management */
+  if (!IS_EVC_QUATTRO(evc_id))
+  {
+  #if (!PTIN_BOARD_IS_MATRIX)
+    LOG_TRACE(LOG_CTX_PTIN_EVC, "eEVC# %u: Checking instances", evc_ext_id);
+    /* DHCP configuration */
+    if (ptin_evc_update_dhcp(evc_id, &evcs[evc_id].flags, dhcpv4_enabled, dhcpv6_enabled,
+                             L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+    {
+      error = L7_TRUE;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCP", evc_id);
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: DHCP configured", evc_id);
+    }
+
+    /* PPPoE configuration */
+    if (ptin_evc_update_pppoe(evc_id, &evcs[evc_id].flags, pppoe_enabled,
+                              L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+    {
+      error = L7_TRUE;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring PPPoE", evc_id);
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: PPPoE configured", evc_id);
+    }
+  #endif
+
+    /* IGMP configuration */
+  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    if (ptin_evc_update_igmp(evc_id, &evcs[evc_id].flags, igmp_enabled,
+                             L7_FALSE /*Update*/, L7_FALSE /*Do not look to counters*/) != L7_SUCCESS)
+    {
+      error = L7_TRUE;
+      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring IGMP", evc_id);
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: IGMP configured", evc_id);
+    }
+  #endif
+  }
 
   return L7_SUCCESS;
 }
@@ -11358,9 +11542,8 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
     printf("eEVC# %02u (internal id %u)\n", ext_id, evc_id);
 
-    printf("  Flags     = 0x%08X", evcs[evc_id].flags);
-    if (evcs[evc_id].flags)
-      printf("   ");
+    printf("  Flags     = 0x%08X   ", evcs[evc_id].flags);
+
     if (evcs[evc_id].flags & PTIN_EVC_MASK_BUNDLING)
       printf("BUNDLING  ");
     if (evcs[evc_id].flags & PTIN_EVC_MASK_ALL2ONE)

@@ -459,6 +459,16 @@ extern L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uin
 extern L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_msg_oper_t oper);
 
 /**
+ * Reconfigure EVC
+ * 
+ * @param msgEvcOptions : EVC options
+ * @param n_size        : Number of structures 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_evc_config(msg_HwEthMef10EvcOptions_t *msgEvcOptions, L7_uint16 n_size);
+
+/**
  * Adds a bridge to a stacked EVC between the root and a particular interface
  * 
  * @param msgEvcBridge Bridge info

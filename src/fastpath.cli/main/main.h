@@ -68,6 +68,7 @@ extern int canal_buga;
 #define CCMSG_ETH_EVC_FLOW_REMOVE           0x903B  // struct msg_HwEthEvcFlow_t
 #define CCMSG_ETH_EVC_PORT_ADD              0x903C  // struct msg_HWevcPort_t
 #define CCMSG_ETH_EVC_PORT_REMOVE           0x903D  // struct msg_HWevcPort_t
+#define CCMSG_ETH_EVC_OPTIONS_SET           0x903E  // struct msg_HwEthMef10EvcOptions_t
 
 #define CCMSG_ETH_EVC_COUNTERS_GET          0x9040  // struct msg_evcStats_t
 #define CCMSG_ETH_EVC_COUNTERS_ADD          0x9041  // struct msg_evcStats_t
@@ -769,6 +770,24 @@ typedef struct {
   L7_uint8  SlotId;
   L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]
 } __attribute__((packed)) msg_HwEthMef10EvcRemove_t;
+
+#define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
+#define PTIN_EVC_OPTIONS_MASK_TYPE    0x0002
+#define PTIN_EVC_OPTIONS_MASK_MCFLOOD 0x0004
+
+/* EVC Options */
+typedef struct {
+
+  L7_uint8  SlotId;
+  L7_uint32 id;           // EVC Id [1..PTIN_SYSTEM_N_EVCS]    /* EVC id */
+  L7_uint16 mask;         // Generic mask
+  struct {
+   L7_uint32 value;           // bits related to active flags.mask bits will be considered
+   L7_uint32 mask;            // set to 1, to allow flags.value bits to be considered
+  } __attribute__((packed)) flags;  // [mask=0x0001] Flags
+  L7_uint8  type;                   // [mask=0x0002] (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
+  L7_uint8  mc_flood;               // [mask=0x0004] MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
+} __attribute__((packed)) msg_HwEthMef10EvcOptions_t;
 
 /* EVC port add/remove */
 // Messages CCMSG_ETH_EVC_PORT_ADD and CCMSG_ETH_EVC_PORT_REMOVE

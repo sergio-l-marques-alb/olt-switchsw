@@ -74,6 +74,16 @@ extern L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *ev
 extern L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf);
 
 /**
+ * EVC options reconfiguration
+ * 
+ * @param evc_ext_id : EVC extended id
+ * @param evcOptions : EVC options
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t *evcOptions);
+
+/**
  * Deletes an EVC
  * 
  * @param evc_id
