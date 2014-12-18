@@ -7745,7 +7745,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
                             ((is_stacked) ? intf_cfg->vid_inner : 0),   /* Inner vlan */
                             int_vlan,                                   /* Internal vlan */
                             0,                                          /* New inner vlan */
-                            (is_quattro && !is_stacked),                /* Delete egress vlan? Only for QUATTRO unstacked EVCs */
+                            !is_stacked,                                /* Delete egress vlan? Only for unstacked EVCs */
                             -1);                                        /* Force PCP */
     #else
     rc = switching_root_add(ptin_port, intf_cfg->vid,                   /* Port and outer vlan */
