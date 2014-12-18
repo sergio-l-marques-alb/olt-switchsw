@@ -5526,6 +5526,11 @@ soc_cm_salloc(int dev, int size, const char *name)
     int             size_words = (size + 3) / 4;
     int             modified_size = 0;
 
+    if (name == NULL)
+    {
+      LOG_FATAL(LOG_CTX_PTIN_HAPI,"XXXXXX - SEGMENTATION FAULT - XXXXXX");
+    }
+
     assert(name != NULL);        /* Don't pass NULLs in here! */
     assert(name[0] != 0);        /* Don't pass empty strings in here! */
 
