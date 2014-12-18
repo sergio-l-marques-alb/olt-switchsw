@@ -100,7 +100,8 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
       return ERROR_CODE_NOTSUPPORTED;
 
     case L7_DEPENDENCY_NOT_MET:
-      return ERROR_CODE_FP_EVC_UNKNOWN;
+      return ERROR_CODE_NOSUCHNAME;
+      //return ERROR_CODE_FP_EVC_UNKNOWN; /* Not supported by management */
   }
 
   // Default error
