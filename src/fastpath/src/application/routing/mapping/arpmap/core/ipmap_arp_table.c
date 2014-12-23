@@ -905,11 +905,13 @@ L7_RC_t ipMapArpIpTableInsert(ipMapArpIpNode_t *pIpInfo, ipMapArpIpNode_t **ppIp
     /* check if a dynamic ARP entry is actually a gateway address */
     if (pNode->arpEntry.entryType == ARP_ENTRY_TYPE_DYNAMIC)
     {
+      /* PTIn Modified */
       /* pGw is not used outside this scope */
       ipMapArpGwNode_t  *pGw;
       tmpip = pNode->arpEntry.ipAddr;
-      tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]) ;
-      ipAddr = (L7_uint32)osapiNtohl(tmp);
+      tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+      //ipAddr = (L7_uint32)osapiNtohl(tmp);
+      ipAddr = tmp;
 
       if (ipMapArpGwTableSearch(ipAddr, pIpInfo->intIfNum, (L7_uint32)L7_MATCH_EXACT, &pGw) == L7_SUCCESS)
         pNode->arpEntry.entryType = ARP_ENTRY_TYPE_GATEWAY;

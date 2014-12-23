@@ -561,9 +561,11 @@ L7_RC_t ipMapArpDeviceTableApply(ipMapArpIpNode_t *pIp,
   /* set up an ARP entry structure from the callback info */
   memset(&arpEntry, 0, sizeof(arpEntry));
 
+  /* PTIn Modified */
   tmpip = pIp->arpEntry.ipAddr;
-  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]) ;
-  ipAddr = (L7_uint32) osapiNtohl(tmp);
+  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+  //ipAddr = (L7_uint32) osapiNtohl(tmp);
+  ipAddr = tmp;
 
   if(ipMapVlanRtrIntIfNumToVlanId(pIntf->intIfNum, &vlanId) != L7_SUCCESS)
     vlanId = 0;

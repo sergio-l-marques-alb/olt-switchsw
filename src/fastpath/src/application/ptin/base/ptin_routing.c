@@ -543,7 +543,7 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
     return L7_FAILURE;
   }
 
-#if PTIN_BOARD_IS_MATRIX //Required because of 'ptin_ipdtl0_control'
+#if (PTIN_BOARD_IS_MATRIX  || PTIN_BOARD_IS_STANDALONE) //Required because of 'ptin_ipdtl0_control'
   /* Allow IP/ARP packets through dtl0 for this vlan */
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Allowing IP/ARP packets through dtl0 for vlans %u/%u on intfIfNum %u", routingVlanId, internalVlanId, routingIntfNum);
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, internalVlanId, routingIntfNum, L7_TRUE))
@@ -740,7 +740,7 @@ L7_RC_t ptin_routing_intf_remove(ptin_intf_t* routingIntf)
     return L7_FAILURE;
   }
 
-#if PTIN_BOARD_IS_MATRIX
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_STANDALONE)
   /* Disable IP/ARP packets through dtl0 for this vlan */
   if(L7_SUCCESS != ptin_ipdtl0_control(routingVlanId, routingVlanId, (L7_uint16)-1, intfNum, L7_FALSE))
   {
