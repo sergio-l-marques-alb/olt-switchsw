@@ -360,9 +360,12 @@ e_Err ipMapArpExtenEntryAgeRefresh(t_Handle arpCacheId, t_ADR *pArpInfo)
 
   if (pArpInfo == L7_NULLPTR)
     return E_FAILED;
+
+  /* PTIn Modified */
   tmpip = pArpInfo->ipAddr;
-  tmp = (tmpip[0]<<24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-  ipAddr = (L7_uint32)osapiNtohl(tmp);
+  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+  //ipAddr = (L7_uint32)osapiNtohl(tmp);
+  ipAddr = tmp;
 
   if ((pIntf = ipMapArpIntfInUse_g[(L7_uint32)pArpInfo->intfNum]) == L7_NULL)
   {
@@ -431,9 +434,11 @@ e_Err ipMapArpExtenEntryStaticConvert(t_Handle arpCacheId, t_ADR *pArpInfo)
   if (pArpInfo == L7_NULLPTR)
     return E_FAILED;
 
+  /* PTIn Modified */
   tmpip = pArpInfo->ipAddr;
-  tmp = (tmpip[0]<< 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]) ;
+  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
   ipAddr = (L7_uint32)osapiNtohl(tmp);
+  ipAddr = tmp;
 
   if ((pIntf = ipMapArpIntfInUse_g[(L7_uint32)pArpInfo->intfNum]) == L7_NULL)
   {
@@ -482,11 +487,13 @@ e_Err ipMapArpExtenCacheInsert(t_Handle arpCacheId, t_ADR *pArpInfo,
 
   *ppArpEntry = L7_NULLPTR;
 
+  /* PTIn Modified */
   pIp = &ip;
   memset(pIp, 0, sizeof(*pIp));
   tmpip = pArpInfo->ipAddr;
-  tmp = (tmpip[0]<<24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-  pIp->key = (L7_uint32)osapiNtohl(tmp);
+  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+  //pIp->key = (L7_uint32)osapiNtohl(tmp);
+  pIp->key = tmp;
 
   if ((pIntf = ipMapArpIntfInUse_g[(L7_uint32)pArpInfo->intfNum]) == L7_NULL)
   {
@@ -560,11 +567,13 @@ e_Err ipMapArpExtenCacheUpdate(t_Handle arpCacheId, t_ADR *pArpInfo,
   /* update ARP table only if the MAC addr has actually changed */
   if (macHasChanged == TRUE)
   {
+    /* PTIn Modified */
     pIp = &ip;
     memset(pIp, 0, sizeof(*pIp));
     tmpip = pArpInfo->ipAddr;
-    tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-    pIp->key = (L7_uint32)osapiNtohl(tmp);
+    tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+    //pIp->key = (L7_uint32)osapiNtohl(tmp);
+    pIp->key = tmp;
 
     if ((pIntf = ipMapArpIntfInUse_g[(L7_uint32)pArpInfo->intfNum])==L7_NULLPTR)
     {
@@ -620,11 +629,13 @@ e_Err ipMapArpExtenCacheRemove(t_Handle arpCacheId, t_ADR *pArpInfo)
   if (pArpInfo == L7_NULLPTR)
     return E_FAILED;
 
+  /* PTIn Modified */
   pIp = &ip;
   memset(pIp, 0, sizeof(*pIp));
-  tmpip = pArpInfo->ipAddr;
-  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-  pIp->key = (L7_uint32)osapiNtohl(tmp);
+  tmpip = pArpInfo->ipAddr;  
+  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+  //pIp->key = (L7_uint32)osapiNtohl(tmp);
+  pIp->key = tmp;
 
   if ((pIntf = ipMapArpIntfInUse_g[(L7_uint32)pArpInfo->intfNum]) == L7_NULL)
   {
@@ -821,9 +832,11 @@ e_Err ipMapArpExtenCacheGetNext(t_Handle arpCacheId, t_ADR *pArpEntry,
   if ((pArpEntry == L7_NULLPTR) || (ppArpEntryNext == L7_NULLPTR))
     return E_FAILED;
 
+  /* PTIn Modified */
   tmpip = pArpEntry->ipAddr;
-  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-  ipAddr = (L7_uint32)osapiNtohl(tmp);
+  tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+  //ipAddr = (L7_uint32)osapiNtohl(tmp);
+  ipAddr = tmp;
 
   if ((pIntf = ipMapArpIntfInUse_g[(L7_uint32)pArpEntry->intfNum]) == L7_NULL)
   {
@@ -1215,9 +1228,13 @@ void ipMapArpShow(L7_uint32 intIfNum)
     if ((intIfNum == 0) || (intIfNum == pIntf->intIfNum))
     {
       IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "  %6u    ", ++count);
+
+      /* PTIn Modified */
       tmpip = pAdr->ipAddr;
-      tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-      ipAddr = (L7_uint32)osapiNtohl(tmp);
+      tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+      //ipAddr = (L7_uint32)osapiNtohl(tmp);
+      ipAddr = tmp;
+
       osapiInetNtoa(ipAddr, ipStr);
       IPM_ARP_PRT(IPM_ARP_MSGLVL_ON, "%-15.15s  ", ipStr);
       for (i = 0; i < L7_MAC_ADDR_LEN-1; i++)

@@ -2315,10 +2315,12 @@ L7_RC_t ipMapPduRcv(ipMapMsg_t *msg)
          * came in on (was saved by DTL when it converted to the
          * VLAN routing interface).
          */
+        /* PTIn Modified */
         arp_header = (L7_ether_arp_t *)(data + offset);
-          tmpip = arp_header->arp_tpa;
-          tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3] ) ;
-          destIpAddr = (L7_uint32) osapiNtohl(tmp);
+        tmpip = arp_header->arp_tpa;        
+        tmp = (tmpip[0] << 24) | (tmpip[1] << 16) | (tmpip[2] << 8) | (tmpip[3]);
+        //destIpAddr = (L7_uint32) osapiNtohl(tmp);
+        destIpAddr = tmp;
 
         if (destIpAddr == simGetSystemIPAddr())
           pduInfo.intIfNum = msg->type.pdu.dtlIntf;
