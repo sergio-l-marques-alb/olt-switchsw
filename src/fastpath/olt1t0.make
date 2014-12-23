@@ -12,8 +12,8 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-NUM_CPUS	= 8
-#$(shell grep -c 'model name' /proc/cpuinfo)
+#NUM_CPUS = 2
+NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
 FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
@@ -47,8 +47,8 @@ export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
 export SDK_LINK := vendor/broadcom
-export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
-#export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
+export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.10/broadcom
+#export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.10/broadcom
 
 export FP_CLI_PATH   := ../fastpath.cli
 export FP_SHELL_PATH := ../fastpath.shell
