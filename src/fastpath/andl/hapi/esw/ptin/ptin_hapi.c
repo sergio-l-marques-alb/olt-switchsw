@@ -542,6 +542,8 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
 #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
   int i;
   bcm_port_t bcm_port;
+
+ #if (PHY_RECOVERY_PROCEDURE)
   bcm_pbmp_t pbm, pbm_out;
 
   /* A maior martelada da história: reset aos Cores dos PHYs (4 portas) para garantir que arrancam bem! */
@@ -589,6 +591,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
 
   /* Wait 100ms */
   osapiSleepMSec(100);
+ #endif
 
   for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
   {
@@ -608,6 +611,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
   }
 
+ #if (PHY_RECOVERY_PROCEDURE)
   /* Outra martelada: set da velocidade de 1G para garantir que nenhuma fica em 2.5G (que supostamente não é suportada) */
   for (i=0; i<PTIN_SYSTEM_N_ETH; i++)
   {
@@ -628,6 +632,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
   {
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "All front ports were reinitialized to 1G speed");
   }
+ #endif
 #else
   rc = L7_NOT_SUPPORTED;
 #endif
