@@ -320,7 +320,7 @@ _traffic_xgs3_modport_set(int unit, int modid, int portA, int portB)
     if (SOC_IS_RAPTOR(unit)) {
         BCM_PBMP_PORT_SET(hg, portA-1);
         BCM_PBMP_PORT_ADD(hg, portB-1);
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "portA %d portB %d\n"), portA, portB));
         idx = modid;
@@ -328,7 +328,7 @@ _traffic_xgs3_modport_set(int unit, int modid, int portA, int portB)
                SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit)) {
         BCM_PBMP_PORT_SET(hg, portA);
         BCM_PBMP_PORT_ADD(hg, portB);
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "portA %d portB %d\n"), portA, portB));
         idx = modid;
@@ -1332,7 +1332,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_10MB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1360,7 +1360,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_100MB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1388,7 +1388,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_1000MB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1416,7 +1416,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_2500MB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1444,7 +1444,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_3000MB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1472,7 +1472,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_10GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1500,7 +1500,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_12GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1528,7 +1528,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_13GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1556,7 +1556,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_16GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1584,7 +1584,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_20GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1612,7 +1612,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_21GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1640,7 +1640,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_24GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1668,7 +1668,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_25GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1696,7 +1696,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_30GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1724,7 +1724,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_32GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1752,7 +1752,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_40GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),
@@ -1779,7 +1779,7 @@ traffic_test_setup_port_pair(traffic_test_t* test, int port_pair_index,
             infoA->local_ability.speed_half_duplex =
                 infoB->local_ability.speed_half_duplex = SOC_PA_SPEED_42GB;
         } else {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d Ports %s-%s: Forcing max speed\n"),
                        unit, SOC_PORT_NAME(unit, portA),

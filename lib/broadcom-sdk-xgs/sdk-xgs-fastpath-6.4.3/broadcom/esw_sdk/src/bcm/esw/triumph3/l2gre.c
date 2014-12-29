@@ -597,7 +597,7 @@ bcm_tr3_l2gre_init(int unit)
     int rv = BCM_E_NONE;
 
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_ERROR(BSL_LS_BCM_L2GRE,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2GRE,
                   (BSL_META_U(unit,
                               "L3 module must be initialized prior to L2GRE Init\n")));
         return BCM_E_CONFIG;
@@ -6730,7 +6730,7 @@ bcm_tr3_l2gre_port_add(int unit, bcm_vpn_t vpn, bcm_l2gre_port_t  *l2gre_port)
 
     BCM_IF_ERROR_RETURN(bcm_xgs3_l3_egress_mode_get(unit, &mode));
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

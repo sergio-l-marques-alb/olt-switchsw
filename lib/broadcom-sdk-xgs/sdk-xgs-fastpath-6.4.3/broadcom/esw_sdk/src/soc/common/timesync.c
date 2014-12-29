@@ -84,7 +84,7 @@ soc_port_phy_timesync_config_set(int unit, soc_port_t port, soc_port_phy_timesyn
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_phy_timesync_config_set failed %d\n"), rv));
     }
@@ -120,7 +120,7 @@ soc_port_phy_timesync_config_get(int unit, soc_port_t port, soc_port_phy_timesyn
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_phy_timesync_config_get failed %d\n"), rv));
     }
@@ -157,7 +157,7 @@ soc_port_control_phy_timesync_set(int unit, soc_port_t port, soc_port_control_ph
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_control_phy_timesync_set failed %d\n"), rv));
     }
@@ -194,7 +194,7 @@ soc_port_control_phy_timesync_get(int unit, soc_port_t port, soc_port_control_ph
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_control_phy_timesync_get failed %d\n"), rv));
     }
@@ -231,7 +231,7 @@ soc_port_phy_timesync_enhanced_capture_get(int unit, soc_port_t port, soc_port_p
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_phy_timesync_enhanced_capture_get failed %d\n"), rv));
     }

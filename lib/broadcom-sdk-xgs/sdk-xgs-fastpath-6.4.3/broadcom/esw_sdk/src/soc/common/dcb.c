@@ -234,7 +234,7 @@
 static void
 dcb0_funcerr(int dt, char *name)
 {
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("ERROR: dcb%d_%s called\n"), dt, name));
 }
 
@@ -9849,7 +9849,7 @@ soc_dcb_unit_init(int unit)
     }
 #endif /* BCM_GREYHOUND_SUPPORT */
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d has unknown dcb type\n"), unit));
     assert(0);

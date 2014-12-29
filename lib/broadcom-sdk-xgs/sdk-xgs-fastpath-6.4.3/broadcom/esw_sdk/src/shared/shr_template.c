@@ -320,14 +320,14 @@ static const _shr_template_managements_t _shr_template_managements_mgrs[SHR_TEMP
  */
 #define TEMPLATE_UNIT_CHECK(_unit, _unitInfo) \
     if ((0 > (_unit)) || (BCM_LOCAL_UNITS_MAX <= (_unit))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
         (BSL_META_U(_unit, \
                     "invalid unit number %d\n"), \
                    _unit)); \
         return BCM_E_PARAM; \
     } \
     if (!(_g_unitTemplateDesc[_unit])) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
         (BSL_META_U(_unit, \
                     "unit %d is not initialised\n"), \
                    _unit)); \
@@ -336,48 +336,48 @@ static const _shr_template_managements_t _shr_template_managements_mgrs[SHR_TEMP
     (_unitInfo) = _g_unitTemplateDesc[_unit]
 #define TEMPLATE_HANDLE_VALID_CHECK(_handle) \
     if (!(_handle)) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("NULL handle is not valid\n"))); \
         return BCM_E_PARAM; \
     }
 #define TEMPLATE_POOL_VALID_CHECK(_handle, _pool) \
     if ((0 > (_pool)) || ((_handle)->templatePoolCount <= (_pool))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p pool %d does not exist\n"), \
                    ((void*)(_handle)), _pool)); \
         return BCM_E_PARAM; \
     }
 #define TEMPLATE_POOL_EXIST_CHECK(_handle, _pool) \
     if (!((_handle)->pool[_pool])) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p pool %d is not configured\n"), \
                    ((void*)(_handle)), _pool)); \
         return BCM_E_CONFIG; \
     }
 #define TEMPLATE_TYPE_VALID_CHECK(_handle, _type) \
     if ((0 > (_type)) || ((_handle)->templateTypeCount <= (_type))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p template %d does not exist\n"), \
                    ((void*)(_handle)), _type)); \
         return BCM_E_PARAM; \
     }
 #define TEMPLATE_TYPE_EXIST_CHECK(_handle, _type) \
     if (!((_handle)->template[_type])) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p template %d is not configured\n"), \
                    ((void*)(_handle)), _type)); \
         return BCM_E_CONFIG; \
     }
 #define TEMPLATE_PARAM_NULL_CHECK(_handle, _param) \
     if ((_param) == NULL) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p template with obligatory argument is NULL\n"), \
                    _handle)); \
         return BCM_E_PARAM;  \
     }
 #define TEMPLATE_POOL_PARAM_TEMPLATE_ID_CHECK(_thisPool,_template) \
       if (!(_template >= thisPool->template_low_id && _template <= (thisPool->template_low_id + thisPool->template_count-1))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("_template id %d is not in correct range. Should be between thisPool->template_low_id %d template_count %d\n") \
                    , _template, thisPool->template_low_id, (thisPool->template_low_id + thisPool->template_count-1))); \
         return BCM_E_PARAM;  \
@@ -507,7 +507,7 @@ shr_template_init(int unit,
     _shr_template_unit_desc_t *tempUnit;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d, %d, %d) enter\n"),
                unit,
@@ -516,7 +516,7 @@ shr_template_init(int unit,
 
     /* a little parameter checking */
     if ((0 > unit) || (BCM_LOCAL_UNITS_MAX <= unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "invalid unit number %d\n"),
                    unit));
@@ -548,7 +548,7 @@ shr_template_init(int unit,
     } /* if (BCM_E_NONE == result) */
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d, %d, %d) return %d (%s)\n"),
                unit,
@@ -685,7 +685,7 @@ shr_template_detach(int unit)
     _shr_template_unit_desc_t *tempUnit;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d) enter\n"),
                unit));
@@ -708,7 +708,7 @@ shr_template_detach(int unit)
     /* else would be not inited, again, easy to detach in that case - NOP */
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d) return %d (%s)\n"),
                unit,
@@ -996,7 +996,7 @@ shr_mtemplate_alloc(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X) enter\n"),
                (void*)handle,
                template_type,
@@ -1013,7 +1013,7 @@ shr_mtemplate_alloc(shr_mtemplate_handle_t handle,
     TEMPLATE_PARAM_NULL_CHECK(handle,template);
 
     if (flags & (~SHR_TEMPLATE_MANAGE_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_TEMPLATE_MANAGE_SINGLE_FLAGS)));
         return BCM_E_PARAM;
@@ -1037,7 +1037,7 @@ shr_mtemplate_alloc(shr_mtemplate_handle_t handle,
         handle->template[template_type]->refCount++;
     }
 
-     LOG_DEBUG(BSL_LS_SOC_COMMON,
+     LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                (BSL_META("(%p, %d, %08X, %p, %d, %d) return %d (%s)\n"),
                 (void*)handle,
                 template_type,
@@ -1066,7 +1066,7 @@ shr_mtemplate_alloc_group(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X) enter\n"),
                (void*)handle,
                template_type,
@@ -1083,7 +1083,7 @@ shr_mtemplate_alloc_group(shr_mtemplate_handle_t handle,
     TEMPLATE_PARAM_NULL_CHECK(handle,template);
 
     if (flags & (~SHR_TEMPLATE_MANAGE_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_TEMPLATE_MANAGE_SINGLE_FLAGS)));
         return BCM_E_PARAM;
@@ -1091,7 +1091,7 @@ shr_mtemplate_alloc_group(shr_mtemplate_handle_t handle,
 
     
     if ((flags & (SHR_TEMPLATE_MANAGE_SET_WITH_ID)) == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("WITH_ID must be specify %08X\n"),
                    flags));
         return BCM_E_PARAM;
@@ -1116,7 +1116,7 @@ shr_mtemplate_alloc_group(shr_mtemplate_handle_t handle,
         handle->template[template_type]->refCount+=nof_additions;
     }
 
-     LOG_DEBUG(BSL_LS_SOC_COMMON,
+     LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                (BSL_META("(%p, %d, %08X, %p, %d, %d, %d) return %d (%s)\n"),
                 (void*)handle,
                 template_type,
@@ -1141,7 +1141,7 @@ shr_mtemplate_free(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) enter\n"),
                (void*)handle,
                template_type,
@@ -1169,7 +1169,7 @@ shr_mtemplate_free(shr_mtemplate_handle_t handle,
         handle->template[template_type]->refCount--;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1192,7 +1192,7 @@ shr_mtemplate_free_group(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) enter\n"),
                (void*)handle,
                template_type,
@@ -1221,7 +1221,7 @@ shr_mtemplate_free_group(shr_mtemplate_handle_t handle,
         handle->template[template_type]->refCount -= nof_deductions;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1246,7 +1246,7 @@ shr_mtemplate_exchange(shr_mtemplate_handle_t handle,
     int result = BCM_E_NONE;
     uint32 valid_flags = SHR_TEMPLATE_MANAGE_SINGLE_FLAGS | SHR_TEMPLATE_MANAGE_SET_WITH_ID | SHR_TEMPLATE_MANAGE_IGNORE_DATA;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d) enter\n"),
                (void*)handle,
                template_type,
@@ -1265,14 +1265,14 @@ shr_mtemplate_exchange(shr_mtemplate_handle_t handle,
     TEMPLATE_PARAM_NULL_CHECK(handle,template);
 
     if (flags & ~valid_flags) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & ~valid_flags));
         return BCM_E_PARAM;
     }
 
     if ((flags & SHR_TEMPLATE_MANAGE_IGNORE_DATA) && !(flags & SHR_TEMPLATE_MANAGE_SET_WITH_ID)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("SHR_TEMPLATE_MANAGE_IGNORE_DATA is only valid in combination with SHR_TEMPLATE_MANAGE_SET_WITH_ID\n")));
         return BCM_E_PARAM;
     }
@@ -1291,7 +1291,7 @@ shr_mtemplate_exchange(shr_mtemplate_handle_t handle,
                                                                  template,
                                                                  is_allocated);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1317,7 +1317,7 @@ shr_mtemplate_exchange_test(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d) enter\n"),
                (void*)handle,
                template_type,
@@ -1336,7 +1336,7 @@ shr_mtemplate_exchange_test(shr_mtemplate_handle_t handle,
     TEMPLATE_PARAM_NULL_CHECK(handle,template);
 
     if (flags & (~SHR_TEMPLATE_MANAGE_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_TEMPLATE_MANAGE_SINGLE_FLAGS)));
         return BCM_E_PARAM;
@@ -1356,7 +1356,7 @@ shr_mtemplate_exchange_test(shr_mtemplate_handle_t handle,
                                                                  template,
                                                                  is_allocated);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1378,7 +1378,7 @@ shr_mtemplate_data_get(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) enter\n"),
                (void*)handle,
                template_type,
@@ -1402,7 +1402,7 @@ shr_mtemplate_data_get(shr_mtemplate_handle_t handle,
                                                                  template,
                                                                  data);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1422,7 +1422,7 @@ shr_mtemplate_index_get(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) enter\n"),
                (void*)handle,
                template_type));
@@ -1442,7 +1442,7 @@ shr_mtemplate_index_get(shr_mtemplate_handle_t handle,
                                                                  data,
                                                                  template);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1463,7 +1463,7 @@ shr_mtemplate_ref_count_get(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) enter\n"),
                (void*)handle,
                template_type,
@@ -1487,7 +1487,7 @@ shr_mtemplate_ref_count_get(shr_mtemplate_handle_t handle,
                                                                  template,
                                                                  ref_count);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1506,7 +1506,7 @@ shr_mtemplate_create(shr_mtemplate_handle_t *handle,
     _shr_template_unit_desc_t *tempHandle;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) enter\n"),
                (void*)handle,
                num_template_types,
@@ -1515,18 +1515,18 @@ shr_mtemplate_create(shr_mtemplate_handle_t *handle,
     /* a little parameter checking */
 
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory OUT argument must not be NULL\n")));
         result = BCM_E_PARAM;
     }
     if (1 > num_template_pools) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("resource pools %d; must be > 0\n"),
                    num_template_pools));
         result =  BCM_E_PARAM;
     }
     if (1 > num_template_types) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("resource types %d; must be > 0\n"),
                    num_template_types));
         result =  BCM_E_PARAM;
@@ -1542,7 +1542,7 @@ shr_mtemplate_create(shr_mtemplate_handle_t *handle,
                          "resource descriptor");
     if (!tempHandle) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)(sizeof(_shr_template_unit_desc_t) +
                    (sizeof(_shr_template_pool_desc_t) * num_template_pools) +
@@ -1562,7 +1562,7 @@ shr_mtemplate_create(shr_mtemplate_handle_t *handle,
         *handle = tempHandle;
     } /* if (!tempUnit) */
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(&(%p), %d, %d) return %d (%s)\n"),
                (void*)(*handle),
                num_template_types,
@@ -1578,7 +1578,7 @@ shr_mtemplate_get(shr_mtemplate_handle_t handle,
                  int *num_template_types,
                  int *num_template_pools)
 {
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %p, %p) enter\n"),
                (void*)handle,
                num_template_types,
@@ -1594,7 +1594,7 @@ shr_mtemplate_get(shr_mtemplate_handle_t handle,
         *num_template_types = handle->templateTypeCount;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, &(%d), &(%d)) return %d (%s)\n"),
                (void*)handle,
                num_template_types?*num_template_types:-1,
@@ -1622,7 +1622,7 @@ shr_mtemplate_pool_set(shr_mtemplate_handle_t handle,
     int xresult;
     const char *noname = "???";
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %s, %d, %d, %d, %d, %p, \"%s\") enter\n"),
                (void*)handle,
                pool_id,
@@ -1638,35 +1638,35 @@ shr_mtemplate_pool_set(shr_mtemplate_handle_t handle,
     TEMPLATE_HANDLE_VALID_CHECK(handle);
     TEMPLATE_POOL_VALID_CHECK(handle,pool_id);
     if ((0 > manager) || (SHR_TEMPLATE_MANAGE_COUNT <= manager)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("template manager type %d not supported\n"),
                    manager));
         return BCM_E_PARAM;
     }
     if (0 >= data_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("data size must be positive\n")));
         return BCM_E_PARAM;
     }
     if (0 >= max_entities) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("maximum entities must be positive\n")));
         return BCM_E_PARAM;
     }
     if (0 > template_low_id) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("template low id cant be negative \n")));
         return BCM_E_PARAM;
     }
     if (0 >= template_count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("template count must be positive \n")));
         return BCM_E_PARAM;
     }
 
     TEMPLATE_PARAM_NULL_CHECK(handle,extras);
     if ((handle->pool[pool_id]) && (handle->pool[pool_id]->refCount)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%p pool %d (%s) can not be changed because it"
                    " has %d types that use it\n"),
                    (void*)handle,
@@ -1697,7 +1697,7 @@ shr_mtemplate_pool_set(shr_mtemplate_handle_t handle,
             result = _shr_template_managements_mgrs[oldPool->templateManagerType].destroy(oldPool);
             if (BCM_E_NONE != result) {
                 handle->pool[pool_id] = oldPool;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("unable to destroy %p old pool %d (%s):"
                            " %d (%s)\n"),
                            (void*)handle,
@@ -1707,7 +1707,7 @@ shr_mtemplate_pool_set(shr_mtemplate_handle_t handle,
                            _SHR_ERRMSG(result)));
                 xresult = _shr_template_managements_mgrs[tempPool->templateManagerType].destroy(tempPool);
                 if (BCM_E_NONE != xresult) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unable to destroy new pool for %p pool"
                                " %d after replace error: %d (%s)\n"),
                                (void*)handle,
@@ -1727,7 +1727,7 @@ shr_mtemplate_pool_set(shr_mtemplate_handle_t handle,
         handle->pool[pool_id] = tempPool;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %s, %d, %d, %d, %d, %p, \"%s\") return %d (%s)\n"),
                (void*)handle,
                pool_id,
@@ -1757,7 +1757,7 @@ shr_mtemplate_pool_get(shr_mtemplate_handle_t handle,
 {
     _shr_template_pool_desc_t *thisPool;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p, %p, %p, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                pool_id,
@@ -1797,7 +1797,7 @@ shr_mtemplate_pool_get(shr_mtemplate_handle_t handle,
         *name = thisPool->name;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, &(%s), &(%d), &(%d), &(%d), &(%d), &(%p), &(\"%s\")) return %d (%s)\n"),
                (void*)handle,
                pool_id,
@@ -1825,7 +1825,7 @@ shr_mtemplate_type_set(shr_mtemplate_handle_t handle,
     const char *noname = "???";
     int len_name = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, \"%s\") enter\n"),
                (void*)handle,
                template_type,
@@ -1838,7 +1838,7 @@ shr_mtemplate_type_set(shr_mtemplate_handle_t handle,
     TEMPLATE_POOL_EXIST_CHECK(handle, pool_id);
     TEMPLATE_TYPE_VALID_CHECK(handle, template_type);
     if ((handle->template[template_type]) && (handle->template[template_type]->refCount)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%p template type %d (%s) can not be changed"
                    " because it has %d elements in use\n"),
                    (void*)handle,
@@ -1853,7 +1853,7 @@ shr_mtemplate_type_set(shr_mtemplate_handle_t handle,
     }
 
     if ((handle->template[template_type]) && (handle->template[template_type]->refCount)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%p template type %d (%s) can not be changed"
                    " because it has %d elements in use\n"),
                    (void*)handle,
@@ -1888,7 +1888,7 @@ shr_mtemplate_type_set(shr_mtemplate_handle_t handle,
         handle->pool[pool_id]->refCount++;
         handle->template[template_type] = tempType;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for %p resource"
                    " type %d\n"),
                    (unsigned int)(sizeof(*tempType) + sal_strlen(name)),
@@ -1899,7 +1899,7 @@ shr_mtemplate_type_set(shr_mtemplate_handle_t handle,
         handle->template[template_type] = oldType;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, \"%s\") return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1917,7 +1917,7 @@ shr_mtemplate_type_get(shr_mtemplate_handle_t handle,
 {
     _shr_template_type_desc_t *thisType;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p, %p) enter\n"),
                (void*)handle,
                template_type,
@@ -1937,7 +1937,7 @@ shr_mtemplate_type_get(shr_mtemplate_handle_t handle,
         *name = thisType->name;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, &(%d), &(\"%s\")) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -1966,7 +1966,7 @@ _shr_mtemplate_destroy_data(_shr_template_unit_desc_t *unitData)
             type = unitData->template[i];
             unitData->template[i] = NULL;
             if (type->refCount) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META("%p type %d (%s): still in use (%d)\n"),
                           unitData,
                           i,
@@ -1987,7 +1987,7 @@ _shr_mtemplate_destroy_data(_shr_template_unit_desc_t *unitData)
             pool = unitData->pool[i];
             unitData->pool[i] = NULL;
             if (pool->refCount) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META("%p pool %d (%s): unexpectedly still"
                           " in use (%d) - invalid condition???\n"),
                           unitData,
@@ -1997,7 +1997,7 @@ _shr_mtemplate_destroy_data(_shr_template_unit_desc_t *unitData)
             }
             result = _shr_template_managements_mgrs[pool->templateManagerType].destroy(pool);
             if (BCM_E_NONE != result) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("%p pool %d (%s): unable to destroy:"
                            " %d (%s)\n"),
                            unitData,
@@ -2094,7 +2094,7 @@ shr_mtemplate_clear(shr_mtemplate_handle_t handle,
     _shr_template_pool_desc_t *thisPool;
     int result = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) enter\n"),
                (void*)handle,
                template_type));
@@ -2109,7 +2109,7 @@ shr_mtemplate_clear(shr_mtemplate_handle_t handle,
     /* make the call */
     result = _shr_template_managements_mgrs[thisPool->templateManagerType].clear(thisPool);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) return %d (%s)\n"),
                (void*)handle,
                template_type,
@@ -2194,7 +2194,7 @@ static int _shr_template_hash_create(_shr_template_pool_desc_t **desc,
     *desc = sal_alloc(sizeof(**desc),"Hash template main descriptor");
     if (!(*desc)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for main descriptor\n"),
                    (unsigned int)(sizeof(**desc))));
         return BCM_E_MEMORY;
@@ -2202,7 +2202,7 @@ static int _shr_template_hash_create(_shr_template_pool_desc_t **desc,
     /* Allocate other stuctures within the descriptor */
     (*desc)->extras = sal_alloc(sizeof(*info),"Hash template extras");
     if (!((*desc)->extras)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for data\n"),
                    (unsigned int)(sizeof(*info))));
         sal_free(*desc);
@@ -2211,7 +2211,7 @@ static int _shr_template_hash_create(_shr_template_pool_desc_t **desc,
     }
     (*desc)->name = sal_alloc(len_name + 1,"Hash template name");
     if (!((*desc)->name)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for data\n"),
                    (unsigned int)(len_name)));
         sal_free((*desc)->extras);
@@ -2242,7 +2242,7 @@ static int _shr_template_hash_create(_shr_template_pool_desc_t **desc,
                                    "hash template data");
     if (!((*desc)->templateHandle)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for data\n"),
                    (unsigned int)(sizeof(_shr_template_hash_data_t))));
         sal_free((*desc)->name);
@@ -2325,7 +2325,7 @@ static int _shr_template_hash_alloc(_shr_template_pool_desc_t *desc,
 
     if (!val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));
@@ -2400,7 +2400,7 @@ static int _shr_template_hash_alloc_group(_shr_template_pool_desc_t *desc,
 
     if (!val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));
@@ -2541,7 +2541,7 @@ static int _shr_template_hash_exchange(_shr_template_pool_desc_t *desc,
     old_val = sal_alloc((desc->data_size),"Data buffer old");
     if (!val || !old_val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));
@@ -2771,7 +2771,7 @@ static int _shr_template_hash_exchange_test(_shr_template_pool_desc_t *desc,
     old_val = sal_alloc((desc->data_size),"Data buffer old");
     if (!val || !old_val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));
@@ -2892,7 +2892,7 @@ static int _shr_template_hash_data_get(_shr_template_pool_desc_t *desc,
 
     if (!val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));
@@ -2941,7 +2941,7 @@ static int _shr_template_hash_index_get(_shr_template_pool_desc_t *desc,
 
     if (!val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));
@@ -3001,7 +3001,7 @@ static int _shr_template_hash_ref_count_get(_shr_template_pool_desc_t *desc,
 
     if (!val) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)
                    ((desc->data_size))));

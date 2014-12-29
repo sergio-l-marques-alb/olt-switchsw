@@ -410,7 +410,7 @@ static uint32 _scache_ofst_;
 #define SCACHE_ALLOC_SIZE_INIT(_var_)                                          \
     do {                                                                       \
         (_var_) = 0; (_scache_ofst_) = 0;                                      \
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,                                        \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,                                        \
             (BSL_META_U(unit,                                                  \
                         "WarmBoot: Scache offset initialized to 0\n")));       \
     } while (0);
@@ -418,7 +418,7 @@ static uint32 _scache_ofst_;
 #define SCACHE_ALLOC_SIZE_INCR(_var_, _count_)                                 \
     do {                                                                       \
         (_var_) += (_count_); (_scache_ofst_) += (_count_);                    \
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,                                        \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,                                        \
                     (BSL_META_U(unit,                                          \
                                 "WarmBoot: Scache offset incr by %d to %d\n"), \
                                 (int)(_count_),  (_scache_ofst_)              \
@@ -428,7 +428,7 @@ static uint32 _scache_ofst_;
 #define SCACHE_BYTE_INIT(_scache_ptr_)                                         \
     do {                                                                       \
         _scache_ofst_ = 0;                                                     \
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,                                        \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,                                        \
                     (BSL_META_U(unit,                                          \
                                 "WarmBoot: Scache offset initialized to 0\n")  \
                                ));                                            \
@@ -439,7 +439,7 @@ static uint32 _scache_ofst_;
         sal_memcpy(_scache_ptr_, _local_var_, _size_);                        \
         _scache_ptr_ += (_size_);                                             \
         (_scache_ofst_) += (_size_);                                          \
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,                                       \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,                                       \
                     (BSL_META_U(unit,                                         \
                                 "WarmBoot: Scache offset incr by %d to %d\n"),\
                                 (int)(_size_),  (_scache_ofst_)              \
@@ -451,7 +451,7 @@ static uint32 _scache_ofst_;
         sal_memcpy(_local_var_, _scache_ptr_, _size_);                        \
         _scache_ptr_ += (_size_);                                             \
         (_scache_ofst_) += (_size_);                                          \
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,                                       \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,                                       \
                     (BSL_META_U(unit,                                         \
                                 "WarmBoot: Scache offset incr by %d to %d\n"),\
                                 (int)(_size_),  (_scache_ofst_)              \
@@ -860,7 +860,7 @@ _bcm_linkphy_port_tx_active_stream_set(int unit,
         /* get the block and index for the LinkPHY memory */
         rv = soc_kt2_linkphy_port_blk_idx_get(unit, port, &lp_block, &lp_index);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   
                                    "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -912,7 +912,7 @@ _bcm_linkphy_port_tx_int_to_ext_stream_map_set(int unit,
         rv = soc_kt2_linkphy_port_blk_idx_get(unit,port,
                                          &lp_block, &lp_index);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   
                                    "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -1002,7 +1002,7 @@ _bcm_linkphy_port_tx_stream_addr_map_set(int unit,
             }
 
             if ((end_addr - start_addr + 1) % 4) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR:for TX data buffer allocation [END-START+1] "
                                       "should be multiple of 4. \n(start =%d, end = %d)"
@@ -1020,7 +1020,7 @@ _bcm_linkphy_port_tx_stream_addr_map_set(int unit,
         rv = soc_kt2_linkphy_port_blk_idx_get(unit,port,
                                          &lp_block, &lp_index);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   
                                    "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -1191,7 +1191,7 @@ _bcm_linkphy_port_rx_int_stream_map_port_set(int unit,
         rv = soc_kt2_linkphy_port_blk_idx_get(unit,port,
                                          &lp_block, &lp_index);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   
                                    "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -1247,7 +1247,7 @@ _bcm_linkphy_subport_stat_callback(int unit)
 
     BCM_LINKPHY_COUNTER_LOCK(unit);
     if (linkphy_temp_ctr[unit] == NULL){
-        LOG_WARN(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                  (BSL_META_U(unit,
                              "Not Initilized or attached\n")));
     }
@@ -1291,7 +1291,7 @@ _bcm_linkphy_subport_stat_callback(int unit)
                                                      [block_id][index];
                             break;
                     }
-                    LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                                 (BSL_META_U(unit,
                                             "%s_DEBUG_COUNTER%d.lp%d index:%d "
                                             "%s : old count:0x%08x%08x \n"),
@@ -1330,7 +1330,7 @@ _bcm_linkphy_subport_stat_callback(int unit)
 
                     COMPILER_64_ADD_32(*vptr, ctr_diff);
 
-                    LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                                 (BSL_META_U(unit,
                                             "%s_DEBUG_COUNTER%d.lp%d index:%d "
                                             "%s : new_count:0x%08x%08x\n"),
@@ -1415,7 +1415,7 @@ _bcm_linkphy_subport_counter_init(int unit)
     }
 
     if (linkphy_temp_ctr[unit] != NULL){
-        LOG_WARN(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                  (BSL_META_U(unit,
                              "WARN:Freeing linkphy_temp_ctr\n")));
         soc_cm_sfree(unit,linkphy_temp_ctr[unit]);
@@ -1428,7 +1428,7 @@ _bcm_linkphy_subport_counter_init(int unit)
                       temp_alloc_size, "linkphy temp counter");
 
     if (linkphy_temp_ctr[unit] == NULL) {
-        LOG_WARN(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                  (BSL_META_U(unit,
                              "linkphy temp allocation for unit:%d failed\n"),
                   unit));
@@ -1436,7 +1436,7 @@ _bcm_linkphy_subport_counter_init(int unit)
         return BCM_E_MEMORY;
     }
     sal_memset(linkphy_temp_ctr[unit], 0, temp_alloc_size);
-    LOG_DEBUG(BSL_LS_BCM_SUBPORT,
+    LOG_BSL_DEBUG(BSL_LS_BCM_SUBPORT,
               (BSL_META_U(unit,
                           "linkphy temp counter size:%d \n"),
                temp_alloc_size));
@@ -1456,7 +1456,7 @@ _bcm_linkphy_subport_counter_init(int unit)
                     0,
                     (_BCM_KT2_LINKPHY_COUNTER_MAX - 1),
                     linkphy_temp_ctr[unit])) {
-                    LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                               (BSL_META_U(unit,
                                           "ERROR: zeroing LinkPHY counter failed\n")));
                     soc_cm_sfree(unit,linkphy_temp_ctr[unit]);
@@ -1472,7 +1472,7 @@ _bcm_linkphy_subport_counter_init(int unit)
         for (block_id = 0; block_id < _BCM_KT2_LINKPHY_BLOCK_MAX; block_id++) {
             /* fragment byte */
             if (linkphy_frag_byte_ctr[unit][direction][block_id] != NULL) {
-                LOG_WARN(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                          (BSL_META_U(unit,
                                      "WARN:Freeing linkphy_frag_byte_ctr\n")));
                 soc_cm_sfree(unit,
@@ -1484,7 +1484,7 @@ _bcm_linkphy_subport_counter_init(int unit)
                  soc_cm_salloc(unit, block_alloc_size,
                                "linkphy_fragment_byte counter");
             if (linkphy_frag_byte_ctr[unit][direction][block_id] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "linkphy_frag_byte_ctr failed for "
                                        " unit:%d,dir:%d, block:%d \n"), unit, direction, block_id));
@@ -1496,7 +1496,7 @@ _bcm_linkphy_subport_counter_init(int unit)
 
             /* fragment */
             if (linkphy_frag_ctr[unit][direction][block_id] != NULL) {
-                LOG_WARN(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                          (BSL_META_U(unit,
                                      "WARN:Freeing linkphy_frag_ctr\n")));
                 soc_cm_sfree(unit,
@@ -1508,7 +1508,7 @@ _bcm_linkphy_subport_counter_init(int unit)
                  soc_cm_salloc(unit, block_alloc_size,
                      "linkphy_fragment counter");
             if (linkphy_frag_ctr[unit][direction][block_id] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "linkphy_frag_ctr failed for "
                                        " unit:%d,dir:%d, block:%d \n"), unit, direction, block_id));
@@ -1523,7 +1523,7 @@ _bcm_linkphy_subport_counter_init(int unit)
 
             /* frame byte */
             if (linkphy_frame_byte_ctr[unit][direction][block_id] != NULL) {
-                LOG_WARN(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                          (BSL_META_U(unit,
                                      "WARN:Freeing linkphy_frame_byte_ctr\n")));
                 soc_cm_sfree(unit,
@@ -1533,7 +1533,7 @@ _bcm_linkphy_subport_counter_init(int unit)
                  soc_cm_salloc(unit, block_alloc_size,
                      "linkphy_frame_byte counter");
             if (linkphy_frame_byte_ctr[unit][direction][block_id] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "linkphy_frame_byte_ctr failed for "
                                        "unit:%d,dir:%d, block:%d \n"), unit, direction, block_id));
@@ -1552,7 +1552,7 @@ _bcm_linkphy_subport_counter_init(int unit)
 
             /* frame */
             if (linkphy_frame_ctr[unit][direction][block_id] != NULL) {
-                LOG_WARN(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                          (BSL_META_U(unit,
                                      "WARN:Freeing linkphy_frame_ctr\n")));
                 soc_cm_sfree(unit,
@@ -1561,7 +1561,7 @@ _bcm_linkphy_subport_counter_init(int unit)
             linkphy_frame_ctr[unit][direction][block_id] = 
                  soc_cm_salloc(unit, block_alloc_size, "linkphy_frame counter");
             if (linkphy_frame_ctr[unit][direction][block_id] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "linkphy_frame_ctr failed for "
                                        "unit:%d,dir:%d block:%d\n"), unit, direction, block_id));
@@ -1632,7 +1632,7 @@ _bcm_linkphy_subport_port_stat_set(
     bcm_subport_config_t_init(&config);
     rv = _bcm_linkphy_subport_port_get(unit, subport, &config);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: _bcm_linkphy_subport_port_get failed \n"
                                "for subport 0x%x\n"), subport));
@@ -1643,7 +1643,7 @@ _bcm_linkphy_subport_port_stat_set(
     rv = _bcm_linkphy_port_ext_stream_id_base_get(unit, port,
             &ext_stream_id_base);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy port %d external "
                                "stream id base get failed\n"), port));
@@ -1688,7 +1688,7 @@ _bcm_linkphy_subport_port_stat_set(
             pool = _BCM_KT2_LINKPHY_POOL_FRAME;
             break;
         default:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "LinkPHY Statistic not supported: %d\n"), stat_type));
             return BCM_E_PARAM;
@@ -1697,7 +1697,7 @@ _bcm_linkphy_subport_port_stat_set(
 
     rv = soc_kt2_linkphy_port_blk_idx_get(unit, port, &block, NULL);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               
                                "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -1804,7 +1804,7 @@ _bcm_linkphy_subport_port_stat_get(
     bcm_subport_config_t_init(&config);
     rv = _bcm_linkphy_subport_port_get(unit, subport, &config);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: _bcm_linkphy_subport_port_get failed \n"
                                "for subport 0x%x\n"), subport));
@@ -1816,7 +1816,7 @@ _bcm_linkphy_subport_port_stat_get(
     rv = _bcm_linkphy_port_ext_stream_id_base_get(unit, port,
             &ext_stream_id_base);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy port %d external "
                                "stream id base get failed\n"), port));
@@ -1829,7 +1829,7 @@ _bcm_linkphy_subport_port_stat_get(
 
     rv = soc_kt2_linkphy_port_blk_idx_get(unit, port, &block, NULL);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               
                                "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -1850,7 +1850,7 @@ _bcm_linkphy_subport_port_stat_get(
             direction = _BCM_KT2_LINKPHY_DIRECTION_TX;
             break;
         default:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "LinkPHY Statistic not supported: %d\n"), stat_type));
             return BCM_E_PARAM;
@@ -1927,7 +1927,7 @@ _bcm_linkphy_subport_init(int unit)
      * For Katana2(BCM56450) port 27 to 34 only support LinkPHY */
     SOC_PBMP_ITER(si->linkphy_pbm, port) {
         if (!_BCM_KT2_PORT_SUPPORTS_LINKPHY(unit, port)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: config variable pbmp_linkphy "
                                    "member port %d is invalid for LinkPHY support\n"), port));
@@ -2000,7 +2000,7 @@ _bcm_linkphy_subport_init(int unit)
         rv = soc_kt2_linkphy_port_blk_idx_get(unit,port,
                                              &lp_block, &lp_index);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   
                                    "ERROR: LinkPHY block, index get failed for port %d\n"), port));
@@ -2029,7 +2029,7 @@ _bcm_linkphy_subport_init(int unit)
             "linkphy_subport_group_bitmap");
 
         if (_bcm_linkphy_group_bitmap[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:subport_init: group bitmap alloc failed\n")));
 
@@ -2052,7 +2052,7 @@ _bcm_linkphy_subport_init(int unit)
                 "dev_int_stream_id_bitmap");
 
         if (_bcm_dev_int_stream_id_bitmap[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:subport_init: dev_int_stream_id_bitmap "
                                    " alloc failed\n")));
@@ -2070,7 +2070,7 @@ _bcm_linkphy_subport_init(int unit)
                        sizeof(_bcm_linkphy_subport_port_info_t)),
                        "linkphy_subport_port_info");
         if (_bcm_linkphy_subport_port_info[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: "
                                    " linkphy_subport_port_info alloc failed\n")));
@@ -2152,7 +2152,7 @@ _bcm_linkphy_subport_group_destroy(int unit,
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(group);
 
         if (!_BCM_KT2_LINKPHY_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport group 0x%x not found.\n"),
                        group));
@@ -2184,7 +2184,7 @@ _bcm_linkphy_subport_group_destroy(int unit,
 
             rv = _bcm_linkphy_subport_port_delete(unit, subport_port_gport);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: LinkPHY subport group 0x%x destroy failed \n"
                                       " to delete subport port (subport group id %d, "
@@ -2234,7 +2234,7 @@ _bcm_linkphy_subport_group_get(int unit,
     if (_BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_GROUP(group)) {
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(group);
         if (!_BCM_KT2_LINKPHY_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport group 0x%x not found.\n"),
                        group));
@@ -2281,7 +2281,7 @@ _bcm_linkphy_subport_group_traverse(int unit,
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(group);
 
         if (!_BCM_KT2_LINKPHY_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport group 0x%x not found.\n"),
                        group));
@@ -2313,7 +2313,7 @@ _bcm_linkphy_subport_group_traverse(int unit,
 
             rv = _bcm_linkphy_subport_port_get(unit, subport_port, &config);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: LinkPHY subport group 0x%x traverse failed \n"
                                       "to get subport port (group id %d, pp_port id %d)\n"),
@@ -2324,7 +2324,7 @@ _bcm_linkphy_subport_group_traverse(int unit,
             rv = cb(unit, subport_port, &config, user_data);
 #ifdef BCM_CB_ABORT_ON_ERR
             if (BCM_FAILURE(rv) && SOC_CB_ABORT_ON_ERR(unit)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: subport group 0x%x traverse failed \n"
                                        "to callback for subport port (group id %d, "
@@ -2374,7 +2374,7 @@ _bcm_linkphy_subport_port_add(int unit,
 
     /* Make sure the group exists */
     if (!_BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport group 0x%x is not LinkPHY group\n"),
                    config->group));
@@ -2384,7 +2384,7 @@ _bcm_linkphy_subport_port_add(int unit,
     sp_group_idx =
         _BCM_KT2_SUBPORT_GROUP_ID_GET(config->group);
     if (!_BCM_KT2_LINKPHY_SUBPORT_GROUP_USED_GET(unit, sp_group_idx)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport group 0x%x does not exist. group id =%d\n"),
                    config->group, sp_group_idx));
@@ -2395,7 +2395,7 @@ _bcm_linkphy_subport_port_add(int unit,
 
     /* Check if port is member of pbmp_linkphy */
     if (!SOC_PBMP_MEMBER(si->linkphy_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Port %d is not member of pbmp_linkphy\n"),
                    port));
@@ -2403,7 +2403,7 @@ _bcm_linkphy_subport_port_add(int unit,
     }
 
     if (si->port_num_subport[port] <= 0) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: %d number of subports available for port %d\n"),
                    si->port_num_subport[port], port));
@@ -2411,7 +2411,7 @@ _bcm_linkphy_subport_port_add(int unit,
     }
 
     if (config->num_streams > BCM_SUBPORT_CONFIG_MAX_STREAMS) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: num_streams %d cannot be greater than %d\n"),
                    config->num_streams, BCM_SUBPORT_CONFIG_MAX_STREAMS));
@@ -2423,7 +2423,7 @@ _bcm_linkphy_subport_port_add(int unit,
             ((config->color != bcmColorGreen) &&
              (config->color != bcmColorYellow) &&
              (config->color != bcmColorRed))) {
-             LOG_ERROR(BSL_LS_BCM_SUBPORT,
+             LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                        (BSL_META_U(unit,
                                    "ERROR: int_pri %d or color %d is invalid\n"),
                         config->int_pri, config->color));
@@ -2434,7 +2434,7 @@ _bcm_linkphy_subport_port_add(int unit,
     rv = _bcm_linkphy_port_int_stream_id_base_get(unit, port,
             &int_stream_id_base);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy port %d internal "
                                "stream id base get failed\n"), port));
@@ -2444,7 +2444,7 @@ _bcm_linkphy_subport_port_add(int unit,
     rv = _bcm_linkphy_port_ext_stream_id_base_get(unit, port,
             &ext_stream_id_base);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy port %d external "
                                "stream id base get failed\n"), port));
@@ -2455,7 +2455,7 @@ _bcm_linkphy_subport_port_add(int unit,
         /* Check stream_id range for the port */
         if (config->stream_id_array[i] >=
             (ext_stream_id_base + _BCM_KT2_LINKPHY_PER_PORT_STREAMS_MAX)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: stream_id %d is out of range for port %d\n"),
                        config->stream_id_array[i], port));
@@ -2471,7 +2471,7 @@ _bcm_linkphy_subport_port_add(int unit,
 
         if (dev_int_stream_id > soc_mem_index_max(unit,
                                     DEVICE_STREAM_ID_TO_PP_PORT_MAPm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: device internal stream_id %d is out of range for \n"
                                   "port %d. internal stream id base %d, internal stream id %d\n"),
@@ -2482,7 +2482,7 @@ _bcm_linkphy_subport_port_add(int unit,
 
         if (_BCM_KT2_LINKPHY_DEV_INT_STREAM_ID_USED_GET(unit,
                 dev_int_stream_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Device internal stream_id %d already used.\n"),
                        dev_int_stream_id));
@@ -2501,7 +2501,7 @@ _bcm_linkphy_subport_port_add(int unit,
     }
 
     if (i == (si->port_subport_base[port] + si->port_num_subport[port])) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: All %d subport pp_port already used.\n"),
                    (i - si->port_subport_base[port])));
@@ -2542,7 +2542,7 @@ _bcm_linkphy_subport_port_add(int unit,
                 &dev_sid_to_pp_entry);
 
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: device internal stream id  %d to pp_port %d "
                                    "map failed.\n"), dev_int_stream_id, pp_port_index));
@@ -2577,7 +2577,7 @@ _bcm_linkphy_subport_port_add(int unit,
         rv = _bcm_linkphy_port_tx_active_stream_set(unit,
                 port, int_stream_id, enable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: TX active stream bitmap enable failed.\n"
                                    "port %d, internal stream_id = %d.\n"), port, int_stream_id));
@@ -2588,7 +2588,7 @@ _bcm_linkphy_subport_port_add(int unit,
         rv = _bcm_linkphy_port_tx_int_to_ext_stream_map_set(unit, 
                 port, config->stream_id_array[i], int_stream_id, enable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: TX internal to external stream mapping failed.\n"
                                   "port %d, internal stream_id = %d, external stream id = %d.\n"),
@@ -2622,7 +2622,7 @@ _bcm_linkphy_subport_port_add(int unit,
         rv = _bcm_linkphy_port_tx_stream_addr_map_set(unit,
                 port, int_stream_id, start_addr, end_addr, enable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: TX data buffer address set failed.\n"
                                    "port %d, internal stream_id = %d, start_addr = %d "
@@ -2636,7 +2636,7 @@ _bcm_linkphy_subport_port_add(int unit,
         rv = _bcm_linkphy_port_rx_active_stream_bitmap_set(unit,
                 port, int_stream_id, enable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: RX active stream enable failed\n"
                                    " port %d, internal stream_id = %d.\n"), port, int_stream_id));
@@ -2647,7 +2647,7 @@ _bcm_linkphy_subport_port_add(int unit,
         rv = _bcm_linkphy_port_rx_int_stream_map_port_set(unit,
                 port, int_stream_id, enable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: RX stream map for port enable failed.\n"
                                    "port %d, internal stream_id = %d.\n"), port, int_stream_id));
@@ -2678,7 +2678,7 @@ _bcm_linkphy_subport_port_add(int unit,
             &pp_to_port_entry);
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: pp_port id %d to physical port %d "
                                "map failed.\n"), pp_port_index, port));
@@ -2738,7 +2738,7 @@ _bcm_linkphy_subport_port_delete(int unit,
     soc_mem_t mem;
 
     if (!_BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_PORT(unit, subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not LinkPHY subport port type.\n"),
                    subport_port_gport));
@@ -2748,7 +2748,7 @@ _bcm_linkphy_subport_port_delete(int unit,
     pp_port_index = _BCM_KT2_SUBPORT_PORT_ID_GET(subport_port_gport);
 
     if (!_BCM_KT2_LINKPHY_SUBPORT_PORT_INFO_VALID_GET(unit, pp_port_index)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: LinkPHY subport port gport 0x%x is invalid\n"),
                    subport_port_gport));
@@ -2758,7 +2758,7 @@ _bcm_linkphy_subport_port_delete(int unit,
     num_streams = _BCM_KT2_LINKPHY_SUBPORT_PORT_INFO_NUM_STREAMS_GET(unit,
                       pp_port_index);
     if (num_streams == -1) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Subport port 0x%x does not have any streams.\n"),
                    subport_port_gport));
@@ -2773,7 +2773,7 @@ _bcm_linkphy_subport_port_delete(int unit,
     rv = _bcm_linkphy_port_int_stream_id_base_get(unit, port,
             &int_stream_id_base);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy subport group internal stream id "
                                "base get failed for port %d.\n"), port));
@@ -2783,7 +2783,7 @@ _bcm_linkphy_subport_port_delete(int unit,
     rv = _bcm_linkphy_port_ext_stream_id_base_get(unit, port,
             &ext_stream_id_base);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy subport group external stream id "
                                "base get failed for port %d.\n"), port));
@@ -2827,7 +2827,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         dev_int_stream_id = int_stream_id + int_stream_id_base;
         mem = DEVICE_STREAM_ID_TO_PP_PORT_MAPm;
         if (dev_int_stream_id > soc_mem_index_max(unit,mem)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: device internal stream_id %d is out of range \n"
                                   "port %d, internal stream id base %d, internal stream id %d "
@@ -2839,7 +2839,7 @@ _bcm_linkphy_subport_port_delete(int unit,
 
         if (!_BCM_KT2_LINKPHY_DEV_INT_STREAM_ID_USED_GET(unit,
                 dev_int_stream_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport port gport 0x%x is not found.\n"
                                   "Device internal stream_id = %d is not set for port %d\n"),
@@ -2852,7 +2852,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         rv = _bcm_linkphy_port_rx_flow_control_set(unit, port,
                                                        int_stream_id, disable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: RX flow control disable failed\n"
                                    " for, internal stream_id = %d.\n"), int_stream_id));
@@ -2876,7 +2876,7 @@ _bcm_linkphy_subport_port_delete(int unit,
                 while (poll_active) {
 
                     if (soc_timeout_check(&timeout)) {
-                        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                                   (BSL_META_U(unit,
                                               "ERROR: RX stream id %d flush timeout :"
                                                "subport_port gport 0x%x, port = %d, pp_port %d\n"),
@@ -2898,7 +2898,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         rv = _bcm_linkphy_port_rx_active_stream_bitmap_set(unit,
                 port, int_stream_id, disable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: RX active stream disable failed\n"
                                    " port %d, internal stream_id = %d.\n"), port, int_stream_id));
@@ -2908,7 +2908,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         rv = _bcm_linkphy_port_rx_int_stream_map_port_set(unit,
                 port, int_stream_id, disable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: RX stream map for port clear failed.\n"
                                    "port %d, internal stream_id = %d.\n"), port, int_stream_id));
@@ -2921,7 +2921,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         rv = _bcm_linkphy_port_tx_active_stream_set(unit,
                 port, int_stream_id, disable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: TX active stream bitmap disable failed.\n"
                                    "port %d, internal stream_id = %d.\n"), port, int_stream_id));
@@ -2931,7 +2931,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         rv = _bcm_linkphy_port_tx_int_to_ext_stream_map_set(unit, 
                 port, 0, int_stream_id, disable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: TX internal to external stream mapp clear failed.\n"
                                   "port %d, internal stream_id = %d, external stream id = %d.\n"),
@@ -2942,7 +2942,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         rv = _bcm_linkphy_port_tx_stream_addr_map_set(unit,
                         port, int_stream_id, 0, 0, disable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: TX data buffer address clear failed.\n"
                                    "port %d, internal stream_id = %d, start_addr = %d "
@@ -2956,7 +2956,7 @@ _bcm_linkphy_subport_port_delete(int unit,
         mem = DEVICE_STREAM_ID_TO_PP_PORT_MAPm;
         rv = soc_mem_field32_modify(unit, mem, dev_int_stream_id, PP_PORTf, 0);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: cleaning device internal stream id  %d to pp_port "
                                   "map failed.\n"),
@@ -2983,7 +2983,7 @@ _bcm_linkphy_subport_port_delete(int unit,
     mem = PP_PORT_TO_PHYSICAL_PORT_MAPm;
     rv = soc_mem_field32_modify(unit,mem ,pp_port_index, DESTINATIONf, 0);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Cleaning pp_port id %d to physical port "
                                "map failed.\n"), pp_port_index));
@@ -3042,7 +3042,7 @@ _bcm_linkphy_subport_port_get(int unit,
         _BCM_KT2_LINKPHY_SUBPORT_PORT_INFO_GROUP_GET(unit, pp_port);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(subport_group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR:Invalid LinkPHY subport port gport 0x%x\n"),
                    subport_port_gport));
@@ -3050,7 +3050,7 @@ _bcm_linkphy_subport_port_get(int unit,
     }
 
     if (!_BCM_KT2_LINKPHY_SUBPORT_PORT_INFO_VALID_GET(unit, pp_port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: LinkPHY subport port gport 0x%x is invalid\n"),
                    subport_port_gport));
@@ -3067,7 +3067,7 @@ _bcm_linkphy_subport_port_get(int unit,
     rv = _bcm_linkphy_port_int_stream_id_base_get(unit, port,
             &int_stream_id_base);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy subport group internal stream id "
                                "base get failed for port %d.\n"), port));
@@ -3077,7 +3077,7 @@ _bcm_linkphy_subport_port_get(int unit,
     rv = _bcm_linkphy_port_ext_stream_id_base_get(unit, port,
                &ext_stream_id_base);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Linkphy subport group external stream id "
                                "base get failed for port %d.\n"), port));
@@ -3092,7 +3092,7 @@ _bcm_linkphy_subport_port_get(int unit,
         dev_int_stream_id = int_stream_id + int_stream_id_base;
         if (dev_int_stream_id > soc_mem_index_max(unit,
                                     DEVICE_STREAM_ID_TO_PP_PORT_MAPm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: device internal stream_id %d is out of range \n"
                                   "port %d, internal stream id base %d\n"),
@@ -3102,7 +3102,7 @@ _bcm_linkphy_subport_port_get(int unit,
 
         if (!_BCM_KT2_LINKPHY_DEV_INT_STREAM_ID_USED_GET(unit,
                 dev_int_stream_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport port gport 0x%x is not found.\n"
                                   "Device internal stream_id = %d is not set for port %d\n"),
@@ -3119,7 +3119,7 @@ _bcm_linkphy_subport_port_get(int unit,
     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, dev_int_stream_id,
             &dev_sid_to_pp_entry);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: DEVICE_STREAM_ID_TO_PP_PORT_MAPm read "
                                "failed.for index %d\n"), dev_int_stream_id));
@@ -3181,7 +3181,7 @@ _bcm_linkphy_subport_port_traverse(int unit,
 
         rv = _bcm_linkphy_subport_port_get(unit, linkphy_subport_port, &config);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport port traverse failed \n"
                                    "to get LinkPHY subport id %d\n"), pp_port_id));
@@ -3192,7 +3192,7 @@ _bcm_linkphy_subport_port_traverse(int unit,
         COMPILER_REFERENCE(rv);
 #ifdef BCM_CB_ABORT_ON_ERR
         if (BCM_FAILURE(rv) && SOC_CB_ABORT_ON_ERR(unit)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport port traverse failed \n"
                                    "to callback for subport port (pp_port id %d)\n"), pp_port_id));
@@ -3238,7 +3238,7 @@ _bcm_linkphy_subport_cleanup(int unit)
 
         rv = _bcm_linkphy_subport_port_delete(unit, subport_port);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport port delete failed (subport id %d)\n"),
                        pp_port_id));
@@ -3348,7 +3348,7 @@ _bcm_subtag_subport_init(int unit)
                             "_bcm_subtag_vlan_id_bitmap");
 
                 if (_bcm_subtag_vlan_id_bitmap[unit][port] == NULL) {
-                    LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                               (BSL_META_U(unit,
                                           "ERROR:_bcm_subtag_vlan_id_bitmap "
                                            " alloc failed\n")));
@@ -3370,7 +3370,7 @@ _bcm_subtag_subport_init(int unit)
              "subtag_subport_group_bitmap");
 
         if (_bcm_subtag_group_bitmap[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:subtag group bitmap alloc failed\n")));
 
@@ -3390,7 +3390,7 @@ _bcm_subtag_subport_init(int unit)
                        sizeof(_bcm_subtag_subport_port_info_t)),
                        "subtag_subport_port_info");
         if (_bcm_subtag_subport_port_info[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: "
                                    " subtag_subport_port_info alloc failed\n")));
@@ -3475,7 +3475,7 @@ _bcm_subtag_subport_group_destroy(int unit,
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(group);
 
         if (!_BCM_KT2_SUBTAG_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag subport group 0x%x not found.\n"),
                        group));
@@ -3507,7 +3507,7 @@ _bcm_subtag_subport_group_destroy(int unit,
 
             rv = _bcm_subtag_subport_port_delete(unit,subport_port_gport);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: SubTag subport group 0x%x destroy failed \n"
                                       " to delete subport port (subport group id %d, "
@@ -3558,7 +3558,7 @@ _bcm_subtag_subport_group_get(int unit,
     if (_BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(group);
         if (!_BCM_KT2_SUBTAG_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag subport group 0x%x not found.\n"),
                        group));
@@ -3606,7 +3606,7 @@ _bcm_subtag_subport_group_traverse(int unit,
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(group);
 
         if (!_BCM_KT2_SUBTAG_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag subport group 0x%x not found.\n"),
                        group));
@@ -3639,7 +3639,7 @@ _bcm_subtag_subport_group_traverse(int unit,
 
             rv = _bcm_subtag_subport_port_get(unit, subport_port, &config);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: SubTag subport group 0x%x traverse failed \n"
                                       "to get subport port (group id %d, subport id %d)\n"),
@@ -3650,7 +3650,7 @@ _bcm_subtag_subport_group_traverse(int unit,
             rv = cb(unit, subport_port, &config, user_data);
 #ifdef BCM_CB_ABORT_ON_ERR
             if (BCM_FAILURE(rv) && SOC_CB_ABORT_ON_ERR(unit)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: subport group 0x%x traverse failed \n"
                                        "to callback for subport port (group id %d, "
@@ -3699,7 +3699,7 @@ _bcm_subtag_subport_port_add(int unit,
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: group 0x%x is not subport group gport\n"),
                    config->group));
@@ -3708,7 +3708,7 @@ _bcm_subtag_subport_port_add(int unit,
 
     /* Make sure the group exists */
     if (!_BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport group 0x%x is not SubTag group\n"),
                    config->group));
@@ -3718,7 +3718,7 @@ _bcm_subtag_subport_port_add(int unit,
     sp_group_idx = _BCM_KT2_SUBPORT_GROUP_ID_GET(config->group);
 
     if (!_BCM_KT2_SUBTAG_SUBPORT_GROUP_USED_GET(unit, sp_group_idx)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: group 0x%x does not exist. group id =%d\n"),
                    config->group, sp_group_idx));
@@ -3729,7 +3729,7 @@ _bcm_subtag_subport_port_add(int unit,
 
     /* Check if port is member of pbmp_subtag  */
     if (!SOC_PBMP_MEMBER(si->subtag_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Port %d is not member of pbmp_subport\n"),
                    port));
@@ -3737,7 +3737,7 @@ _bcm_subtag_subport_port_add(int unit,
     }
 
     if (si->port_num_subport[port] <= 0) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: %d number of subports available for port %d\n"),
                    si->port_num_subport[port], port));
@@ -3745,7 +3745,7 @@ _bcm_subtag_subport_port_add(int unit,
     }
 
     if ((config->pkt_vlan & 0xFFF) <= BCM_VLAN_NONE) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: (config->pkt_vlan & 0xFFF) %d is invalid\n"),
                    (config->pkt_vlan & 0xFFF)));
@@ -3754,7 +3754,7 @@ _bcm_subtag_subport_port_add(int unit,
 
     if (config->prop_flags & BCM_SUBPORT_PROPERTY_PHB) {
         if (config->int_pri < 0 || config->int_pri > 15) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: int_pri %d is invalid\n"),
                        config->int_pri));
@@ -3763,7 +3763,7 @@ _bcm_subtag_subport_port_add(int unit,
         if ((config->color != bcmColorGreen) &&
              (config->color != bcmColorYellow) &&
              (config->color != bcmColorRed)) {
-             LOG_ERROR(BSL_LS_BCM_SUBPORT,
+             LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                        (BSL_META_U(unit,
                                    "ERROR: color %d is invalid\n"),
                         config->color));
@@ -3775,7 +3775,7 @@ _bcm_subtag_subport_port_add(int unit,
     vlan_id = config->pkt_vlan & 0xFFF; 
 
     if (_BCM_KT2_SUBTAG_VLAN_ID_USED_GET(unit, port, vlan_id)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: VLAN id %d already used for port %d\n"),
                    vlan_id, port));
@@ -3789,7 +3789,7 @@ _bcm_subtag_subport_port_add(int unit,
 
     rv = _bcm_subtag_subport_free_entry_find(unit, &subtag_index);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Free entry not found in "
                                " subtag to pp_port map table\n")));
@@ -3809,7 +3809,7 @@ _bcm_subtag_subport_port_add(int unit,
     }
 
     if (i == (si->port_subport_base[port] + si->port_num_subport[port])) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: All %d subport pp_port already used.\n"),
                    (i - si->port_subport_base[port])));
@@ -3824,7 +3824,7 @@ _bcm_subtag_subport_port_add(int unit,
     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, subtag_index,
             &subtag_to_pp_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "SUBPORT_TAG_TO_PP_PORT_MAPm read failed at index %d\n"),
                    subtag_index));
@@ -3864,7 +3864,7 @@ _bcm_subtag_subport_port_add(int unit,
             &subtag_to_pp_entry);
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: (VLAN id %d, port %d) to pp_port %d "
                                "map failed.\n"), vlan_id, port, pp_port_index));
@@ -3888,7 +3888,7 @@ _bcm_subtag_subport_port_add(int unit,
             &pp_to_port_entry);
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: pp_port id %d to physical port %d "
                                "map failed.\n"), pp_port_index, port));
@@ -3946,7 +3946,7 @@ _bcm_subtag_subport_port_delete(int unit,
     subport_tag_to_pp_port_map_entry_t subport_tag_to_pp_port_map_entry;
 
     if (!_BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_PORT(unit, subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not SubTag subport port type.\n"),
                    subport_port_gport));
@@ -3957,7 +3957,7 @@ _bcm_subtag_subport_port_delete(int unit,
         _BCM_KT2_SUBPORT_PORT_ID_GET(subport_port_gport);
 
     if (!_BCM_KT2_SUBTAG_SUBPORT_PORT_INFO_VALID_GET(unit, pp_port_index)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: SubTag subport port gport 0x%x is invalid\n"),
                    subport_port_gport));
@@ -3975,7 +3975,7 @@ _bcm_subtag_subport_port_delete(int unit,
     mem = SUBPORT_TAG_TO_PP_PORT_MAPm;
     if (subtag_to_pp_port_tab_idx < 0 ||
         subtag_to_pp_port_tab_idx > soc_mem_index_max(unit,mem)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: SubTag subport port gport 0x%x is not found.\n"
                                "subtag_to_pp_port  tcam idx = %d\n"), subport_port_gport,
@@ -3987,7 +3987,7 @@ _bcm_subtag_subport_port_delete(int unit,
               0xFFF;
 
     if (!_BCM_KT2_SUBTAG_VLAN_ID_USED_GET(unit, port, vlan_id)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: SubTag subport port gport 0x%x is not found.\n"
                               "VLAN id = %d is not set for port %d\n"),
@@ -4018,7 +4018,7 @@ _bcm_subtag_subport_port_delete(int unit,
     rv = soc_mem_write(unit, mem, MEM_BLOCK_ANY, subtag_to_pp_port_tab_idx,
             &subport_tag_to_pp_port_map_entry);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport_tag %d to pp_port %d "
                                "map failed.\n"), vlan_id, pp_port_index));
@@ -4031,7 +4031,7 @@ _bcm_subtag_subport_port_delete(int unit,
     mem = PP_PORT_TO_PHYSICAL_PORT_MAPm;
     rv = soc_mem_field32_modify(unit,mem ,pp_port_index, DESTINATIONf, 0);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Cleaning pp_port id %d to physical port "
                                "map failed.\n"), pp_port_index));
@@ -4094,7 +4094,7 @@ _bcm_subtag_subport_port_get(int unit,
             _BCM_KT2_SUBTAG_SUBPORT_PORT_INFO_GROUP_GET(unit, pp_port);
 
         if (!BCM_GPORT_IS_SUBPORT_GROUP(subport_group)) {
-            LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                         (BSL_META_U(unit,
                                     "ERROR:Invalid SubTag subport port gport 0x%x\n"),
                          subport_port_gport));
@@ -4102,7 +4102,7 @@ _bcm_subtag_subport_port_get(int unit,
         }
 
         if (!_BCM_KT2_SUBTAG_SUBPORT_PORT_INFO_VALID_GET(unit, pp_port)) {
-            LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                         (BSL_META_U(unit,
                                     "ERROR: SubTag subport port gport 0x%x not found\n"),
                          subport_port_gport));
@@ -4120,7 +4120,7 @@ _bcm_subtag_subport_port_get(int unit,
         mem = SUBPORT_TAG_TO_PP_PORT_MAPm;
         if ((subtag_to_pp_hw_id < 0) ||
             (subtag_to_pp_hw_id > soc_mem_index_max(unit, mem))) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag subport port gport 0x%x is not found.\n"
                                    "subtag_to_pp_port_tab idx = %d\n"), subport_port_gport,
@@ -4131,7 +4131,7 @@ _bcm_subtag_subport_port_get(int unit,
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, subtag_to_pp_hw_id,
                 &subtag_pp_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: DEVICE_STREAM_ID_TO_PP_PORT_MAPm read "
                                    "failed.for index %d\n"), subtag_to_pp_hw_id));
@@ -4197,7 +4197,7 @@ _bcm_subtag_subport_port_traverse(int unit,
 
         rv = _bcm_subtag_subport_port_get(unit, subtag_subport_port, &config);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport port traverse failed \n"
                                    "to get SubTag subport id %d\n"), pp_port_id));
@@ -4208,7 +4208,7 @@ _bcm_subtag_subport_port_traverse(int unit,
         COMPILER_REFERENCE(rv);
 #ifdef BCM_CB_ABORT_ON_ERR
         if (BCM_FAILURE(rv) && SOC_CB_ABORT_ON_ERR(unit)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport port traverse failed \n"
                                    "to callback for subport port (subport_port id %d)\n"),
@@ -4257,7 +4257,7 @@ _bcm_subtag_subport_cleanup(int unit)
 
         rv = _bcm_subtag_subport_port_delete(unit, subport_port);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag subport port delete failed (subport id %d)\n"),
                        pp_port_id));
@@ -4400,7 +4400,7 @@ bcm_kt2_nhi_group_tc_profile_init(int unit)
                 rv = soc_mem_write(unit, NHI_GROUP_TC_PROFILEm,
                         MEM_BLOCK_ALL, (nhi_group<<4)|int_pri, &nhi_entry);
                 if (SOC_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                               (BSL_META_U(unit,
                                           "ERROR: NHI_GROUP_TC_PROFIE init failed\n")));
                     return rv;
@@ -4437,7 +4437,7 @@ bcm_kt2_subport_init(int unit)
             "subport_group_bitmap");
 
         if (_bcm_subport_group_bitmap[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:subport_init: group bitmap alloc failed\n")));
 
@@ -4458,7 +4458,7 @@ bcm_kt2_subport_init(int unit)
             sal_alloc((_BCM_KT2_SUBPORT_GROUP_MAX * sizeof(int)),
                         "subport_group_subport_port_count");
         if (_bcm_subport_group_subport_port_count[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: "
                                    "subport_group_subport_port_count alloc failed\n")));
@@ -4475,7 +4475,7 @@ bcm_kt2_subport_init(int unit)
         BCM_PBMP_NOT_NULL(si->linkphy_pbm)) {
         rv = _bcm_linkphy_subport_init(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY init failed.\n")));
 
@@ -4489,7 +4489,7 @@ bcm_kt2_subport_init(int unit)
         BCM_PBMP_NOT_NULL(si->subtag_allowed_pbm)) {
         rv = _bcm_subtag_subport_init(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag init failed.\n")));
 
@@ -4501,7 +4501,7 @@ bcm_kt2_subport_init(int unit)
     if (soc_feature(unit, soc_feature_lltag)) {
         rv = bcm_kt2_nhi_group_tc_profile_init(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: tc profile init failed.\n")));
 
@@ -4517,7 +4517,7 @@ bcm_kt2_subport_init(int unit)
             "subport_group_bitmap");
 
         if (_bcm_subport_pp_port_bitmap[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:subport_init: pp_port bitmap alloc failed\n")));
 
@@ -4538,7 +4538,7 @@ bcm_kt2_subport_init(int unit)
             sal_mutex_create("linkphy_subtag subport mutex");
 
         if (_bcm_subport_mutex[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:linkphy_subtag subport mutex create failed\n")));
 
@@ -4604,7 +4604,7 @@ bcm_kt2_subport_group_create(int unit,
 
     if ((config->flags & BCM_SUBPORT_GROUP_TYPE_LINKPHY) &&
         (config->flags & BCM_SUBPORT_GROUP_TYPE_SUBPORT_TAG)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR:Either LinkPHY or SubTag group can "
                                "be created at a time\n")));
@@ -4613,7 +4613,7 @@ bcm_kt2_subport_group_create(int unit,
 
     rv = _bcm_esw_port_gport_validate(unit, config->port, &port);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Invalid gport 0x%x for subport group create.\n"),
                    config->port));
@@ -4622,7 +4622,7 @@ bcm_kt2_subport_group_create(int unit,
 
     if ((config->flags & BCM_SUBPORT_GROUP_TYPE_LINKPHY) &&
         !BCM_PBMP_MEMBER(si->linkphy_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: port %d is not member of pbmp_linkphy\n"),
                    port));
@@ -4631,7 +4631,7 @@ bcm_kt2_subport_group_create(int unit,
 
     if ((config->flags & BCM_SUBPORT_GROUP_TYPE_SUBPORT_TAG) &&
         !BCM_PBMP_MEMBER(si->subtag_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: SubportTag/CoE should be enabled"
                                " for port %d\n"), port));
@@ -4639,7 +4639,7 @@ bcm_kt2_subport_group_create(int unit,
     }
 
     if (_bcm_subport_group_count[unit] == _BCM_KT2_SUBPORT_GROUP_MAX) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: All %d subport groups already used.\n"),
                    _BCM_KT2_SUBPORT_GROUP_MAX));
@@ -4654,14 +4654,14 @@ bcm_kt2_subport_group_create(int unit,
         * Check that only subtag/linkphy group id bits (8-0) are configured*/
         if ((group_id >> _BCM_KT2_SUBPORT_GROUP_PORT_SHIFT)
                 & _SHR_GPORT_SUBPORT_GROUP_MASK) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport group id = %d should be within 0 to"
                                    " %d\n"), group_id, _BCM_KT2_SUBPORT_GROUP_MAX-1));
             return BCM_E_PARAM;
         }
         if (_BCM_KT2_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport group id = %d is already used\n"),
                        group_id));
@@ -4676,7 +4676,7 @@ bcm_kt2_subport_group_create(int unit,
         }
 
         if (i == _BCM_KT2_SUBPORT_GROUP_MAX) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: All %d subport groups already used.\n"),
                        i));
@@ -4692,7 +4692,7 @@ bcm_kt2_subport_group_create(int unit,
         rv  =_bcm_linkphy_subport_group_create(unit,
                 is_trunk, port, group_id, group);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY subport group create failed"
                                    " for port %d. rv = %d(%s)\n"),
@@ -4705,7 +4705,7 @@ bcm_kt2_subport_group_create(int unit,
         rv  =_bcm_subtag_subport_group_create(unit,
                 is_trunk, port, group_id, group);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag subport group create failed"
                                    " for port %d. rv = %d(%s)\n"),
@@ -4752,7 +4752,7 @@ bcm_kt2_subport_group_destroy(int unit,
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: group 0x%x is not subport group gport\n"),
                    group));
@@ -4764,7 +4764,7 @@ bcm_kt2_subport_group_destroy(int unit,
     if (soc_feature(unit, soc_feature_linkphy_coe) &&
         _BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->linkphy_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -4774,7 +4774,7 @@ bcm_kt2_subport_group_destroy(int unit,
     } else if (soc_feature(unit, soc_feature_subtag_coe) &&
         _BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -4784,7 +4784,7 @@ bcm_kt2_subport_group_destroy(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport group 0x%x destroy failed. rv= %d(%s)\n"),
                    group, rv, soc_errmsg(rv)));
@@ -4830,7 +4830,7 @@ bcm_kt2_subport_group_get(int unit,
     }
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: group 0x%x is not subport group gport\n"),
                    group));
@@ -4842,7 +4842,7 @@ bcm_kt2_subport_group_get(int unit,
     if (soc_feature(unit, soc_feature_linkphy_coe) &&
         _BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->linkphy_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -4852,7 +4852,7 @@ bcm_kt2_subport_group_get(int unit,
     } else if (soc_feature(unit, soc_feature_subtag_coe) &&
         _BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -4862,7 +4862,7 @@ bcm_kt2_subport_group_get(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport group get failed for 0x%x, rv = %d(%s)\n"),
                    group, rv, soc_errmsg(rv)));
@@ -4900,7 +4900,7 @@ bcm_kt2_subport_group_traverse(int unit,
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: group 0x%x is not subport group gport\n"),
                    group));
@@ -4912,7 +4912,7 @@ bcm_kt2_subport_group_traverse(int unit,
     if (soc_feature(unit, soc_feature_linkphy_coe) &&
         _BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->linkphy_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -4922,7 +4922,7 @@ bcm_kt2_subport_group_traverse(int unit,
     } else if (soc_feature(unit, soc_feature_subtag_coe) &&
         _BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -4932,7 +4932,7 @@ bcm_kt2_subport_group_traverse(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: subport group traverse failed for 0x%x, rv = %d(%s)\n"),
                    group, rv, soc_errmsg(rv)));
@@ -4969,7 +4969,7 @@ bcm_kt2_subport_group_resolve(int unit,
     *trunk_id = BCM_TRUNK_INVALID;
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(subport_group_gport)) {
-        LOG_WARN(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                  (BSL_META_U(unit,
                              "gport 0x%x is not subport gport\n"),
                   subport_group_gport));
@@ -4983,7 +4983,7 @@ bcm_kt2_subport_group_resolve(int unit,
 
         group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(subport_group_gport);
         if(!_BCM_KT2_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-            LOG_WARN(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                      (BSL_META_U(unit,
                                  "subport gport 0x%x is not used\n"),
                       subport_group_gport));
@@ -5033,7 +5033,7 @@ bcm_kt2_subport_port_add(int unit,
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: config->group 0x%x is not subport group gport\n"),
                    config->group));
@@ -5042,7 +5042,7 @@ bcm_kt2_subport_port_add(int unit,
 
     group_id = _BCM_KT2_SUBPORT_GROUP_ID_GET(config->group);
     if(!_BCM_KT2_SUBPORT_GROUP_USED_GET(unit, group_id)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR:config->group 0x%x is not found\n"),
                    config->group));
@@ -5050,7 +5050,7 @@ bcm_kt2_subport_port_add(int unit,
     }
 
     if (_bcm_subport_pp_port_count[unit] == _BCM_KT2_SUBPORT_PORT_MAX) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR:All %d subport pp_port used\n"),
                    _BCM_KT2_SUBPORT_PORT_MAX));
@@ -5062,7 +5062,7 @@ bcm_kt2_subport_port_add(int unit,
     if (soc_feature(unit, soc_feature_linkphy_coe) &&
         _BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_GROUP(config->group)) {
         if (BCM_PBMP_IS_NULL(si->linkphy_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -5072,7 +5072,7 @@ bcm_kt2_subport_port_add(int unit,
     } else if (soc_feature(unit, soc_feature_subtag_coe) &&
         _BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_GROUP(config->group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag ports not configured\n")));
             _BCM_KT2_SUBPORT_UNLOCK(unit);
@@ -5082,7 +5082,7 @@ bcm_kt2_subport_port_add(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Subport port add failed. rv = %d(%s)\n"),
                    rv, soc_errmsg(rv)));
@@ -5121,7 +5121,7 @@ bcm_kt2_subport_port_delete(int unit,
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not subport port gport\n"),
                    subport_port_gport));
@@ -5139,7 +5139,7 @@ bcm_kt2_subport_port_delete(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Subport port 0x%x delete failed. rv = %d(%s)\n"),
                    subport_port_gport, rv, soc_errmsg(rv)));
@@ -5184,7 +5184,7 @@ bcm_kt2_subport_port_get(int unit,
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not subport port gport\n"),
                    subport_port_gport));
@@ -5202,7 +5202,7 @@ bcm_kt2_subport_port_get(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                     (BSL_META_U(unit,
                                 "ERROR: Subport port 0x%x get failed. rv=%d(%s)\n"),
                      subport_port_gport, rv, soc_errmsg(rv)));
@@ -5250,7 +5250,7 @@ bcm_kt2_subport_port_traverse(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR:Subport port traverse failed. rv = %d(%s)\n"),
                    rv,soc_errmsg(rv)));
@@ -5283,7 +5283,7 @@ bcm_kt2_subport_port_resolve(int unit,
     *trunk_id = BCM_TRUNK_INVALID;
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not subport gport\n"),
                    subport_port_gport));
@@ -5374,7 +5374,7 @@ int bcm_kt2_subport_pp_port_subport_info_get(int unit,
         rv = _bcm_linkphy_port_int_stream_id_base_get(unit, subport_info->port,
                 &int_stream_id_base);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Linkphy port %d internal "
                                    "stream id base get failed\n"), subport_info->port));
@@ -5384,7 +5384,7 @@ int bcm_kt2_subport_pp_port_subport_info_get(int unit,
         rv = _bcm_linkphy_port_ext_stream_id_base_get(unit, subport_info->port,
                        &ext_stream_id_base);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Linkphy subport group external stream id "
                                    "base get failed for port %d.\n"), subport_info->port));
@@ -5426,7 +5426,7 @@ bcm_kt2_subport_cleanup(int unit)
         if (BCM_PBMP_NOT_NULL(si->linkphy_pbm)) {
             rv = _bcm_linkphy_subport_cleanup(unit);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: LinkPHY cleanup failed\n")));
                 return rv;
@@ -5437,7 +5437,7 @@ bcm_kt2_subport_cleanup(int unit)
         if (BCM_PBMP_NOT_NULL(si->subtag_allowed_pbm)) {
             rv = _bcm_subtag_subport_cleanup(unit);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: SubTag cleanup failed\n")));
                 return rv;
@@ -5494,7 +5494,7 @@ bcm_kt2_subport_group_linkphy_config_get(int unit,
     }
 
     if (!BCM_PBMP_MEMBER(si->linkphy_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Invalid port %d for LinkPHY config get\n"),
                    port));
@@ -5765,7 +5765,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
     }
 
     if (!BCM_PBMP_MEMBER(si->linkphy_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Invalid port %d for LinkPHY config set\n"),
                    port));
@@ -5779,7 +5779,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
         base_stream_id_max = _BCM_KT2_LINKPHY_STREAMS_MAX -
                              _BCM_KT2_LINKPHY_PER_PORT_STREAMS_MAX;
         if ((base_stream_id % 8) || (base_stream_id > base_stream_id_max)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:base stream id should be "
                                    "multiple of 8 and <= %d\n"), base_stream_id_max));
@@ -5802,7 +5802,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
                 bcmSubportLinkphyHeaderModeEthAdapt) &&
             (linkphy_config->header_mode !=
                 bcmSubportLinkphyHeaderModeTciLength)){
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: invalid LinkPHY header mode %d\n"),
                        linkphy_config->header_mode));
@@ -5812,7 +5812,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
         if (SOC_IS_KATANA2(unit) &&
             (linkphy_config->header_mode ==
                 bcmSubportLinkphyHeaderModeTciLength)){
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY TCI+Length header mode is not supported.\n")));
             return BCM_E_PARAM;
@@ -5898,7 +5898,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
                 RXLP_PORT_NEAR_END_MAC_ADDRr, MAC_ADDRf,
                 linkphy_config->rx_nearend_mac);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY RX nearend MAC set failed\n")));
             return rv;
@@ -5910,7 +5910,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
                 RXLP_PORT_FAR_END_MAC_ADDRr, MAC_ADDRf,
                 linkphy_config->rx_farend_mac);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY RX farend MAC set failed\n")));
             return rv;
@@ -5922,7 +5922,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
                 RXLP_PORT_DFC_DESTINATION_MAC_ADDRr, MAC_ADDRf,
                 linkphy_config->rx_dfc_dest_mac);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY RX DFC dest MAC set failed\n")));
             return rv;
@@ -5984,7 +5984,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
                 TXLP_PORT_NEAR_END_MAC_ADDRr, MAC_ADDRf,
                 linkphy_config->tx_nearend_mac);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY TX nearend MAC set failed\n")));
             return rv;
@@ -5996,7 +5996,7 @@ bcm_kt2_subport_group_linkphy_config_set(int unit,
                 TXLP_PORT_FAR_END_MAC_ADDRr, MAC_ADDRf,
                 linkphy_config->tx_farend_mac);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: LinkPHY TX farend MAC set failed\n")));
             return rv;
@@ -6034,7 +6034,7 @@ bcm_kt2_subport_counter_init(int unit)
     if (soc_feature(unit, soc_feature_linkphy_coe)) {
         rv = _bcm_linkphy_subport_counter_init(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport counter init failed\n")));
             return rv;
@@ -6063,7 +6063,7 @@ bcm_kt2_subport_counter_cleanup(int unit)
     if (soc_feature(unit, soc_feature_linkphy_coe)) {
         rv = _bcm_linkphy_subport_counter_cleanup(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: subport counter cleanup failed\n")));
             return rv;
@@ -6103,7 +6103,7 @@ bcm_kt2_subport_port_stat_set(
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not subport port gport\n"),
                    port));
@@ -6116,7 +6116,7 @@ bcm_kt2_subport_port_stat_set(
         rv = _bcm_linkphy_subport_port_stat_set(unit,
                 port, stream_id, stat_type, val);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Subport 0x%x stat set failed. rv = %d(%s)\n"),
                        port, rv, soc_errmsg(rv)));
@@ -6160,7 +6160,7 @@ bcm_kt2_subport_port_stat_get(
     _BCM_KT2_SUBPORT_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: gport 0x%x is not subport port gport\n"),
                    port));
@@ -6175,7 +6175,7 @@ bcm_kt2_subport_port_stat_get(
         rv = _bcm_linkphy_subport_port_stat_get(unit,
                 port, stream_id, stat_type, val);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Subport 0x%x stat get failed. rv = %d(%s)\n"),
                        port, rv, soc_errmsg(rv)));
@@ -6319,7 +6319,7 @@ bcm_kt2_subport_subtag_port_tpid_set(int unit,
 
         mem = ING_PHYSICAL_PORT_TABLEm;
         if (port > soc_mem_index_max(unit, mem)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Invalid port %d in subport group 0x%x\n"),
                        port, gport));
@@ -6327,7 +6327,7 @@ bcm_kt2_subport_subtag_port_tpid_set(int unit,
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &ing_physical_port_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:ING_PHYSICAL_PORT_TABLEm read failed\n")));
             return rv;
@@ -6337,14 +6337,14 @@ bcm_kt2_subport_subtag_port_tpid_set(int unit,
             rv = soc_mem_field32_modify(unit, mem , port, SUBPORT_TAG_TPIDf,
                 tpid);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: SubTag TPID setting failed for port %d\n"),
                            port));
                 return rv;
             }
         } else {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Port %d is not SubTag Cascaded\n"),
                        port));
@@ -6354,21 +6354,21 @@ bcm_kt2_subport_subtag_port_tpid_set(int unit,
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &egr_physical_port_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:EGR_PHYSICAL_PORTm read failed\n")));
             return rv;
         }
         rv = soc_mem_field32_modify(unit, mem , port, SUBPORT_TAG_TPIDf, tpid);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag TPID setting failed for egr_port %d\n"),
                        port));
             return rv;
         }
     } else {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Invalid gport 0x%x for SubTag TPID set\n"),
                    gport));
@@ -6405,7 +6405,7 @@ bcm_kt2_subport_subtag_port_tpid_get(int unit,
 
         mem = ING_PHYSICAL_PORT_TABLEm;
         if (port > soc_mem_index_max(unit, mem)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Invalid port %d in subport group 0x%x\n"),
                        port, gport));
@@ -6413,7 +6413,7 @@ bcm_kt2_subport_subtag_port_tpid_get(int unit,
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &ing_physical_port_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:ING_PHYSICAL_PORT_TABLEm read failed\n")));
             return rv;
@@ -6423,14 +6423,14 @@ bcm_kt2_subport_subtag_port_tpid_get(int unit,
             *tpid = soc_mem_field32_get(unit, mem, &ing_physical_port_entry,
                         SUBPORT_TAG_TPIDf);
         } else {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Port %d is not SubTag Cascaded\n"),
                        port));
             return BCM_E_PORT;
         }
     } else {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Invalid gport 0x%x for SubTag TPID set\n"),
                    gport));
@@ -6469,7 +6469,7 @@ bcm_kt2_subport_subtag_port_tpid_delete(int unit,
 
         mem = ING_PHYSICAL_PORT_TABLEm;
         if (port > soc_mem_index_max(unit, mem)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Invalid port %d in subport group 0x%x\n"),
                        port, gport));
@@ -6477,7 +6477,7 @@ bcm_kt2_subport_subtag_port_tpid_delete(int unit,
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &ing_physical_port_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:ING_PHYSICAL_PORT_TABLEm read failed\n")));
             return rv;
@@ -6486,14 +6486,14 @@ bcm_kt2_subport_subtag_port_tpid_delete(int unit,
             CASCADED_PORT_TYPEf) == _BCM_KT2_PORT_TYPE_CASCADED_SUBTAG) {
             rv = soc_mem_field32_modify(unit, mem , port, SUBPORT_TAG_TPIDf, 0);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,
                                       "ERROR: SubTag TPID delete failed for port %d\n"),
                            port));
                 return rv;
             }
         } else {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Port %d is not SubTag Cascaded\n"),
                        port));
@@ -6503,21 +6503,21 @@ bcm_kt2_subport_subtag_port_tpid_delete(int unit,
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &egr_physical_port_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR:EGR_PHYSICAL_PORTm read failed\n")));
             return rv;
         }
         rv = soc_mem_field32_modify(unit, mem , port, SUBPORT_TAG_TPIDf, 0);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: SubTag TPID delete failed for egr_port %d\n"),
                        port));
             return rv;
         }
     } else {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR: Invalid gport 0x%x for SubTag TPID set\n"),
                    gport));
@@ -6804,7 +6804,7 @@ int bcm_kt2_port_control_subtag_status_get(int unit,
     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &ing_physical_port_entry);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                   (BSL_META_U(unit,
                               "ERROR:ING_PHYSICAL_PORT_TABLEm read failed\n")));
         _BCM_KT2_SUBPORT_UNLOCK(unit);

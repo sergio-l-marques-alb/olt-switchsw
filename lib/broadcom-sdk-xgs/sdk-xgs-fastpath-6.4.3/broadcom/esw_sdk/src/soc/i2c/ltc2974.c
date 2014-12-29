@@ -168,7 +168,7 @@ ltc2974_wait_for_not_busy(int unit, int devno)
     }
 
     if ((mfr_status & 0x70) != 0x70) {
-        LOG_WARN(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "unit %d i2c %s :ltc2974 is busy !\n"),
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "unit %d i2c %s :ltc2974 is busy !\n"),
                  unit, soc_i2c_devname(unit, devno)));
         rv = SOC_E_TIMEOUT;
     }
@@ -191,7 +191,7 @@ ltc2974_read(int unit, int devno, uint16 addr, uint8* data, uint32* len)
         /* reads a single byte from a device, from a designated register*/
         rv = soc_i2c_read_byte_data(unit, saddr, addr,data);
         soc_i2c_device(unit, devno)->rbyte++;
-         LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC2974_read: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d, "
                     "rv = %d\n"),
@@ -201,7 +201,7 @@ ltc2974_read(int unit, int devno, uint16 addr, uint8* data, uint32* len)
         /* reads a single word from a device, from a designated register*/
         rv = soc_i2c_read_word_data(unit, saddr, addr,(uint16 *)data);
         soc_i2c_device(unit, devno)->rbyte +=2;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC2974_read: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d, "
                     "rv = %d\n"),
@@ -209,7 +209,7 @@ ltc2974_read(int unit, int devno, uint16 addr, uint8* data, uint32* len)
                     saddr, addr, *(uint16 *)data, *len, rv));
     } else {
         /* not supported for now */
-         LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC2974_read fail: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d\n"),
                     unit, soc_i2c_devname(unit,devno),
@@ -229,18 +229,18 @@ ltc2974_write(int unit, int devno, uint16 addr, uint8* data, uint32 len)
 
     if (len == 0) {
         /* simply writes command code to device */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "i2c %s: LTC2974 write: "
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "i2c %s: LTC2974 write: "
                     "saddr = 0x%x, addr = 0x%x, len = %d\n"),
                     soc_i2c_devname(unit, devno), saddr, addr, len));
         rv = soc_i2c_write_byte(unit, saddr, addr);
     } else if (len == 1) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "i2c %s: LTC2974 write: "
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "i2c %s: LTC2974 write: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d\n"),
                     soc_i2c_devname(unit, devno), saddr, addr, *data, len));
         rv = soc_i2c_write_byte_data(unit, saddr, addr, *data);
         soc_i2c_device(unit, devno)->tbyte++;
     } else if (len == 2) {
-         LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "i2c %s: LTC2974 write: "
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "i2c %s: LTC2974 write: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d\n"),
                     soc_i2c_devname(unit, devno),
                     saddr, addr, *(uint16 *)data, len));
@@ -266,7 +266,7 @@ ltc2974_check_page(int unit, int devno, int ch)
 
      if (page != ch) {
          page = ch;
-         LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "LTC2974 %d set page to %d\n"),
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "LTC2974 %d set page to %d\n"),
                      soc_i2c_addr(unit, devno), page));
          rv = ltc2974_write(unit, devno, PMBUS_CMD_PAGE, &page, sizeof(char));
      }
@@ -420,7 +420,7 @@ ltc2974_ioctl(int unit, int devno, int opcode,
              break;
 
          default:
-              LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+              LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                  "unit %d i2c %s: ltc2974_ioctl: invalid opcode (%d)\n"),
                  unit, soc_i2c_devname(unit,devno), opcode));
              break;
@@ -436,7 +436,7 @@ ltc2974_init(int unit, int devno, void* data, int len)
     if (ioctl_lock == NULL) {
         ioctl_lock = sal_mutex_create("ltc2974_ioctl_lock");
         if (ioctl_lock == NULL) {
-            LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                     "Fail to create ltc2974_ioctl_lock\n")));
             rv = SOC_E_MEMORY;
         }
@@ -460,7 +460,7 @@ ltc2974_init(int unit, int devno, void* data, int len)
         return rv;
     }
     soc_i2c_devdesc_set(unit, devno, "LTC2974 Voltage Control");
-     LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "ltc2974_init: %s, devNo=0x%x\n"),
+     LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "ltc2974_init: %s, devNo=0x%x\n"),
              soc_i2c_devname(unit,devno), devno));
 
     sal_mutex_give(ioctl_lock);

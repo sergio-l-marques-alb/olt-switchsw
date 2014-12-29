@@ -764,7 +764,7 @@ bcm_robo_rx_init(int unit)
     }
 
     if (!bcm_rx_pool_setup_done()) {
-        LOG_INFO(BSL_LS_BCM_RX,
+        LOG_BSL_INFO(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              "RX: Starting rx pool\n")));
         rv = (bcm_rx_pool_setup(BCM_ROBO_RX_POOL_PKT_CNT_DEFAULT,
@@ -794,7 +794,7 @@ bcm_robo_rx_init(int unit)
     _BCM_ROBO_RX_SYSTEM_LOCK;
     rx_ctl[unit] = rx_ctrl_ptr; 
     _BCM_ROBO_RX_SYSTEM_UNLOCK;
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Initialized unit %d\n"), unit));
 
@@ -863,14 +863,14 @@ bcm_robo_rx_start(int unit, bcm_rx_cfg_t *cfg)
 
     if (rx_units_started & (1 << unit)) {
         if (rx_units_rxsusped) {
-            LOG_INFO(BSL_LS_BCM_RX,
+            LOG_BSL_INFO(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  "RxMon start\n")));
             soc_eth_dma_rxenable(unit);
             rx_units_rxsusped = 0;
             return BCM_E_NONE;
         } else {
-            LOG_INFO(BSL_LS_BCM_RX,
+            LOG_BSL_INFO(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  "RX start:  Already started\n")));
             return BCM_E_BUSY;
@@ -914,7 +914,7 @@ bcm_robo_rx_start(int unit, bcm_rx_cfg_t *cfg)
         robo_rx_user_cfg_check(unit);
     }
 
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Starting unit %d\n"), unit));
 
@@ -926,13 +926,13 @@ bcm_robo_rx_start(int unit, bcm_rx_cfg_t *cfg)
 
     /* Set up each channel */
     FOREACH_SETUP_CHANNEL(unit, chan) {
-        LOG_INFO(BSL_LS_BCM_RX,
+        LOG_BSL_INFO(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              "RX: Starting unit %d chan %d\n"), unit, chan));
 
         soc_eth_dma_occupancy_get(chan, &test_unit);
         if ((test_unit >= 0) && (test_unit != unit)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "RX: DMA %d already be used by unit %d\n"),
                        chan, test_unit));
@@ -942,7 +942,7 @@ bcm_robo_rx_start(int unit, bcm_rx_cfg_t *cfg)
 
         rv = robo_rx_channel_dv_setup(unit, chan);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "RX: Error on setup unit %d, chan %d\n"),
                        unit, chan));
@@ -997,7 +997,7 @@ bcm_robo_rx_stop(int unit, bcm_rx_cfg_t *cfg)
 
     RX_INIT_CHECK(unit);
 
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Stopping unit %d\n"), unit));
 
@@ -1022,7 +1022,7 @@ bcm_robo_rx_stop(int unit, bcm_rx_cfg_t *cfg)
             sal_usleep(500000);
         }
         if (!robo_rx_control.thread_exit_complete) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "RX %d: Thread %p running after signaled "
                                  "to stop); \nDVs may not be cleaned up.\n"),
@@ -1131,7 +1131,7 @@ _bcm_robo_rx_callback_install(int unit, const char * name, rx_callout_t *rco,
                 sal_free ((void *)rco);
                 return BCM_E_NONE;
             }
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     "RX: %s registered with diff params\n"),
                          name));
@@ -1176,7 +1176,7 @@ _bcm_robo_rx_callback_install(int unit, const char * name, rx_callout_t *rco,
     RX_INTR_UNLOCK;
     RX_UNLOCK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             "RX: %s registered %s%s.\n"),
                  name,
@@ -1231,7 +1231,7 @@ bcm_robo_rx_queue_register(int unit, const char *name, bcm_cos_queue_t cosq,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Registering %s on %d, cosq 0x%x flags 0x%x%s\n"),
               name, unit, cosq, flags, flags & BCM_RCO_F_INTR ? "(intr)" : ""));
@@ -1278,7 +1278,7 @@ bcm_robo_rx_queue_register(int unit, const char *name, bcm_cos_queue_t cosq,
                   RX_UNLOCK(unit);
                   return BCM_E_NONE;
               }
-              LOG_VERBOSE(BSL_LS_BCM_RX,
+              LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                           (BSL_META_U(unit,
                                       "RX: %s registered with diff params\n"), name));
 
@@ -1356,18 +1356,18 @@ bcm_robo_rx_register(int unit, const char *name, bcm_rx_cb_f callback,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Registering %s on %d, flags 0x%x%s\n"),
               name, unit, flags, flags & BCM_RCO_F_INTR ? "(intr)" : ""));
 
     if (!(flags & BCM_RCO_F_COS_ACCEPT_MASK) &&
             !(flags & BCM_RCO_F_ALL_COS)) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "RX unit %d: "
                              "Registering callback with no COS accepted.\n"), unit));
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "    Callbacks will not occur to %s\n"),
                   name));
@@ -1386,7 +1386,7 @@ bcm_robo_rx_register(int unit, const char *name, bcm_rx_cb_f callback,
                 RX_UNLOCK(unit);
                 return BCM_E_NONE;
             }
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     "RX: %s registered with diff params\n"),
                          name));
@@ -1484,7 +1484,7 @@ _bcm_robo_rx_callback_unregister(int unit, bcm_rx_cb_f callback,
     RX_INTR_UNLOCK;
     RX_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Unregistered %s on %d\n"), name, unit));
     sal_free((void *)rco);
@@ -2192,7 +2192,7 @@ robo_rx_chain_start(int unit, int chan, eth_dv_t *dv)
 {
     int rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             "RX: Starting %d/%d/%d\n"),
                  unit, chan, ROBO_DV_INDEX(dv)));
@@ -2208,7 +2208,7 @@ robo_rx_chain_start(int unit, int chan, eth_dv_t *dv)
 
     if ((rv = soc_eth_dma_start(unit, dv)) < 0) {
         ROBO_DV_STATE(dv) = DV_S_ERROR;
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "RX: Could not start dv, u %d, chan %d\n"), unit, chan));
     }
@@ -2242,7 +2242,7 @@ robo_rx_chain_start_or_sched(int unit, int chan, eth_dv_t *dv)
     int system_usecs = 0;
     sal_usecs_t cur_time;
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             "RX: Chain. glob tok %d.\n"),
                  RX_TOKENS(unit)));
@@ -2284,7 +2284,7 @@ robo_rx_chain_start_or_sched(int unit, int chan, eth_dv_t *dv)
         DV_SCHED_TIME(dv) = cur_time;
         DV_TIME_DIFF(dv) = global_usecs;
         SLEEP_MIN_SET(global_usecs);
-        LOG_INFO(BSL_LS_BCM_RX,
+        LOG_BSL_INFO(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              "RX: Scheduling %d/%d/%d in %d us; "
                              "cur %u; sleep %u\n"), unit, chan, ROBO_DV_INDEX(dv),
@@ -2336,7 +2336,7 @@ robo_rx_update_dv(int unit, int chan, eth_dv_t *dv)
         sched_usecs = DV_FUTURE_US(dv, cur_usecs);
         if (sched_usecs <= 0) {
             /* Start the dv */
-            LOG_INFO(BSL_LS_BCM_RX,
+            LOG_BSL_INFO(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  "RX: Starting scheduled %d/%d/%d, diff %d "
                                  "@ %u\n"), unit, chan, ROBO_DV_INDEX(dv),
@@ -2344,7 +2344,7 @@ robo_rx_update_dv(int unit, int chan, eth_dv_t *dv)
             rv = robo_rx_chain_start(unit, chan, dv);
         } else {
             /* Still not ready to be started; set sleep min time */
-            LOG_INFO(BSL_LS_BCM_RX,
+            LOG_BSL_INFO(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  "RX: %d/%d/%d not ready at %u, diff %d\n"),
                       unit, chan, ROBO_DV_INDEX(dv), cur_usecs, sched_usecs));
@@ -2460,7 +2460,7 @@ robo_rx_thread_pkts_process(int unit, int cos, int count)
         _BCM_ROBO_RX_CHECK_THREAD_DONE;
     }  
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             "Processed (%d) packets"), count));
     return rv;
@@ -2496,7 +2496,7 @@ robo_rx_cleanup(int unit)
     /* Abort running DVs */
     /* Robo doesn't have dma abort
     if (soc_robo_dma_abort(unit) < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "RX: Error aborting DMA\n")));
     }
@@ -2629,7 +2629,7 @@ robo_rx_pkt_thread(void *param)
     int count;
     sal_usecs_t cur_time;
 
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX:  Packet thread starting\n")));
 
@@ -2676,7 +2676,7 @@ robo_rx_pkt_thread(void *param)
             }
             /* Process packets based on scheduler allocation. */
             if (BCM_FAILURE(robo_rx_thread_pkts_process(unit, cosq, count))) {
-                LOG_INFO(BSL_LS_BCM_RX,
+                LOG_BSL_INFO(BSL_LS_BCM_RX,
                          (BSL_META_U(unit,
                                      "Packet rx failed - check the scheduler.\n")));
             }
@@ -2722,7 +2722,7 @@ robo_rx_pkt_thread(void *param)
     soc_eth_dma_rxstop(unit);
     robo_rx_cleanup(unit);
     robo_rx_control.thread_exit_complete = TRUE;
-    LOG_INFO(BSL_LS_BCM_RX,
+    LOG_BSL_INFO(BSL_LS_BCM_RX,
              (BSL_META_U(unit,
                          "RX: Packet thread exitting\n")));
 
@@ -3271,7 +3271,7 @@ robo_rx_process_packet(int unit, bcm_pkt_t *pkt)
 #ifdef  BROADCOM_DEBUG
     if (bsl_check(bslLayerBcm, bslSourcePacket, bslSeverityNormal, unit)) {
         /* Dump the packet info */
-        LOG_INFO(BSL_LS_BCM_PACKET,
+        LOG_BSL_INFO(BSL_LS_BCM_PACKET,
                  (BSL_META_U(unit,
                              "robo_rx_process_packet: packet in\n")));
     /* Mask for complier ok */
@@ -3308,7 +3308,7 @@ robo_rx_process_packet(int unit, bcm_pkt_t *pkt)
         case BCM_RX_HANDLED:
             handled = TRUE;
             ROBO_MARK_PKT_PROCESSED(unit, chan, dv, idx);
-            LOG_VERBOSE(BSL_LS_BCM_PACKET,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PACKET,
                         (BSL_META_U(unit,
                                     "rx: pkt handled by %s\n"),
                          rco->rco_name));
@@ -3317,7 +3317,7 @@ robo_rx_process_packet(int unit, bcm_pkt_t *pkt)
         case BCM_RX_HANDLED_OWNED:
             handled = TRUE;
             ROBO_MARK_PKT_PROCESSED(unit, chan, dv, idx);
-            LOG_VERBOSE(BSL_LS_BCM_PACKET,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PACKET,
                         (BSL_META_U(unit,
                                     "rx: pkt owned by %s\n"),
                          rco->rco_name));
@@ -3327,7 +3327,7 @@ robo_rx_process_packet(int unit, bcm_pkt_t *pkt)
             rco->rco_pkts_owned++;
             break;
         default:
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "robo_rx_process_packet: unit=%d: "
                                  "Invalid callback return value=%d\n"), unit, handler_rc));
@@ -3342,7 +3342,7 @@ robo_rx_process_packet(int unit, bcm_pkt_t *pkt)
 
     if (!handled) {
         /* Internal error as discard should have handled packet */
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "bcm_rx_process_packet: No handler processed packet: "
                               "Unit %d Port %s\n"),
@@ -3461,7 +3461,7 @@ robo_rx_user_cfg_check(int unit)
 
     FOREACH_SETUP_CHANNEL(unit, chan) {
         if (RX_CHAINS(unit, chan) < 0) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "rx_config %d %d: Warning: chains < 0."),
                       unit, chan));
@@ -3469,7 +3469,7 @@ robo_rx_user_cfg_check(int unit)
         } else {
             chan_count++;
             if (RX_CHAINS(unit, chan) > ROBO_RX_CHAINS_MAX) {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "rx_config %d %d: Warning: "
                                      "Bad chain cnt %d.  Now %d.\n"),
@@ -3495,7 +3495,7 @@ robo_rx_user_cfg_check(int unit)
 
     if (cfg->pkts_per_chain <= 0 ||
             cfg->pkts_per_chain > RX_PPC_MAX) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "rx_config: Warning: bad pkts/chn %d. "
                              "Now %d.\n"), cfg->pkts_per_chain, ROBO_RX_PPC_DFLT));
@@ -3661,7 +3661,7 @@ robo_rx_dv_fill(int unit, int chan, eth_dv_t *dv)
             if (pkt_data == NULL) {/* Failed to allocate a pkt for this DV. */
                 if (!warned) {
                     warned = 1;
-                    LOG_WARN(BSL_LS_BCM_COMMON,
+                    LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                              (BSL_META_U(unit,
                                          "RX: Failed to allocate mem\n")));
                 }
@@ -3697,7 +3697,7 @@ robo_rx_dv_fill(int unit, int chan, eth_dv_t *dv)
         /* Set up the packet in the DCBs of the DV */
         if ((rv = robo_rx_dv_add_pkt(unit, pkt, i, dv)) < 0) {
             ROBO_DV_STATE(dv) = DV_S_ERROR;
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Failed to add pkt %d to dv on unit %d: %s\n"),
                       i, unit, bcm_errmsg(rv)));
@@ -3918,7 +3918,7 @@ bcm_robo_rx_show(int unit)
              rx_ctl[unit]->restart_errs,
              rx_ctl[unit]->not_running,
              rx_ctl[unit]->thrd_not_running));
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "    Tokens %d. Sleep %d.\n"
                             "    Thread: %p. run %d. exitted %d. pri %d.\n"),
@@ -4006,7 +4006,7 @@ bcm_robo_rx_show(int unit)
                  queue->count,
                  queue->tot_pkts,
                  queue->rate_disc));
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "        Tokens %d. Last_fill %u. Max %d. "
                                 "Brst %d. Head %p. Tail %p.\n"),

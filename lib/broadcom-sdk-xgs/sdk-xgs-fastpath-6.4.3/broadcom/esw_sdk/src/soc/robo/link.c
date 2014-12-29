@@ -258,7 +258,7 @@ soc_robo_link_sw_update(int unit, int link, int port)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_LINK,
                 (BSL_META_U(unit,
                             "soc_robo_link_sw_update: link=%d port=%d\n"), link, port));
 

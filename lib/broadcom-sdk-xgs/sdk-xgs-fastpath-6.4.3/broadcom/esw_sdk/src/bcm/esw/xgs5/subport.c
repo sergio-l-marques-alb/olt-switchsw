@@ -122,7 +122,7 @@ bcmi_xgs5_subtag_subport_init(int unit)
                             "_bcm_subtag_vlan_id_bitmap");
 
                 if (_bcm_subtag_vlan_id_bitmap[unit][port] == NULL) {
-                    LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR:_bcm_subtag_vlan_id_bitmap "
                                 " alloc failed\n")));
 
@@ -142,7 +142,7 @@ bcmi_xgs5_subtag_subport_init(int unit)
              "subtag_subport_group_bitmap");
 
         if (_bcm_subtag_group_bitmap[unit] == NULL) {
-             LOG_ERROR(BSL_LS_BCM_SUBPORT,
+             LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR:subtag group bitmap "
                                        "alloc failed\n")));
 
@@ -160,7 +160,7 @@ bcmi_xgs5_subtag_subport_init(int unit)
                        sizeof(_bcm_subtag_subport_port_info_t)),
                        "subtag_subport_port_info");
         if (_bcm_subtag_subport_port_info[unit] == NULL) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: "
                     " subtag_subport_port_info alloc failed\n")));
 
@@ -255,7 +255,7 @@ bcmi_xgs5_subport_init(int unit,
                 "subport_group_bitmap");
 
             if (_bcm_subport_group_bitmap[unit] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,"ERROR:subport_init: group bitmap "
                                            "alloc failed\n")));
 
@@ -277,7 +277,7 @@ bcmi_xgs5_subport_init(int unit,
                 sal_alloc((_BCM_TD2P_SUBPORT_COE_GROUP_MAX * sizeof(int)),
                             "subport_group_subport_port_count");
             if (_bcm_subport_group_subport_port_count[unit] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,"ERROR: "
                     "subport_group_subport_port_count alloc failed\n")));
 
@@ -293,7 +293,7 @@ bcmi_xgs5_subport_init(int unit,
             BCM_PBMP_NOT_NULL(si->subtag_allowed_pbm)) {
             rv = bcmi_xgs5_subtag_subport_init(unit);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,"ERROR: SubTag init failed.\n")));
 
                 bcmi_xgs5_subport_free_resource(unit);
@@ -309,7 +309,7 @@ bcmi_xgs5_subport_init(int unit,
                 sal_mutex_create("subtag subport mutex");
 
             if (_bcm_subport_mutex[unit] == NULL) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                           (BSL_META_U(unit,"ERROR:subtag subport mutex "
                                            "create failed\n")));
 
@@ -373,7 +373,7 @@ int _bcm_coe_subtag_subport_port_get(int unit,
 
         /* Flag error if subport not found */
         if(i == _BCM_TD2P_SUBPORT_COE_PORT_MAX) {
-            LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                         (BSL_META_U(unit, "ERROR:Invalid SubTag subport"
                                           " port gport 0x%x\n"),
                                     subport_port_gport));
@@ -384,7 +384,7 @@ int _bcm_coe_subtag_subport_port_get(int unit,
         subport_group = _bcm_subtag_subport_port_info[unit][i].group;
 
         if (!BCM_GPORT_IS_SUBPORT_GROUP(subport_group)) {
-            LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                         (BSL_META_U(unit, "ERROR:Invalid SubTag subport"
                                           " group gport 0x%x\n"),
                 subport_port_gport));
@@ -432,7 +432,7 @@ int bcmi_xgs5_subport_coe_port_get(int unit,
     _BCM_SUBPORT_COE_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: gport 0x%x is not "
                                        "subport port gport\n"),
                                   subport_port_gport));                                
@@ -448,7 +448,7 @@ int bcmi_xgs5_subport_coe_port_get(int unit,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_SUBPORT,
                         (BSL_META_U(unit, "ERROR: Subport port 0x%x "
                                           "get failed. rv=%d(%s)\n"),
                                     subport_port_gport, rv, soc_errmsg(rv)));
@@ -485,7 +485,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
     subport_tag_sgpp_map_entry_t subport_tag_to_sgpp_port_map_entry;
 
     if (!_BCM_COE_GPORT_IS_SUBTAG_SUBPORT_PORT(unit, subport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: gport 0x%x is not SubTag "
                                        "subport port type.\n"),
                                   subport));
@@ -500,7 +500,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
     }
 
     if(idx >= _BCM_TD2P_SUBPORT_COE_PORT_MAX) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport_gport 0x%x "
                                        "not configured.\n"),
                                   subport));
@@ -508,7 +508,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
     }
 
     if (!_BCM_SUBPORT_COE_SUBTAG_PORT_INFO_VALID_GET(unit, idx)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport port "
                                        "gport 0x%x is invalid\n"),
                                   subport));
@@ -529,7 +529,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
     mem = SUBPORT_COE_HW_SUBPORT_SUBTAG_SGPP_MEM(unit);
     if (subtag_to_subport_port_tab_idx < 0 ||
         subtag_to_subport_port_tab_idx > soc_mem_index_max(unit,mem)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport port gport "
                                        "0x%x is not found.\n"
                                        "subtag_to_pp_port  tcam idx = %d\n")
@@ -544,7 +544,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
 
     /* Make sure the VLAN is indeed configured */
     if (!_BCM_COE_SUBTAG_VLAN_ID_USED_GET(unit, port, vlan_id)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport port gport "
                                        "0x%x is not found.\n"
                                         "VLAN id = %d is not set for "
@@ -579,7 +579,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
     rv = soc_mem_write(unit, mem, MEM_BLOCK_ANY, idx,
             &subport_tag_to_sgpp_port_map_entry);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport_tag %d to sgpp %d "
                                   "map failed.\n"), vlan_id, idx));
         return rv;
@@ -599,7 +599,7 @@ _bcm_coe_subtag_subport_port_delete(int unit, bcm_gport_t subport)
              SUBPORT_COE_HW_MODPORT_MAP_SUBPORT(unit)->enable, 0);
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Cleaning mod_port to subport id "
                                        "%d to physical port "
                                        "map failed.\n"), subport));
@@ -632,7 +632,7 @@ int bcmi_xgs5_subport_coe_port_delete(int unit, bcm_gport_t subport)
     _BCM_SUBPORT_COE_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(subport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: gport 0x%x is not "
                                        "subport port gport\n"),
                                        subport));
@@ -647,7 +647,7 @@ int bcmi_xgs5_subport_coe_port_delete(int unit, bcm_gport_t subport)
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Subport port 0x%x "
                                        "delete failed. rv = %d(%s)\n"),
                                         subport, rv, soc_errmsg(rv)));
@@ -719,7 +719,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
     _BCM_SUBPORT_COE_CHECK_INIT(unit);
 
     if (!(config->flags & BCM_SUBPORT_GROUP_TYPE_SUBPORT_TAG)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: The group type has to "
                                        "be SUBPORT_TAG\n")));
         return BCM_E_PARAM;
@@ -728,7 +728,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
     /* Validate the passed in front panel port */
     rv = _bcm_esw_port_gport_validate(unit, config->port, &port);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Invalid gport 0x%x for "
                                        "subport group create.\n"),
                                   config->port));
@@ -738,7 +738,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
     /* Ensure that the physical port can be a cascaded port */
     if ((config->flags & BCM_SUBPORT_GROUP_TYPE_SUBPORT_TAG) &&
         !BCM_PBMP_MEMBER(si->subtag_pbm, port)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubportTag/CoE "
                                        "should be enabled"
                                        " for port %d\n"), port));
@@ -747,7 +747,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
 
     /* If max groups aready taken up, error out */
     if (_bcm_subport_group_count[unit] == _BCM_TD2P_SUBPORT_COE_GROUP_MAX) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: All %d subport "
                                        "groups already used.\n"),
                                        _BCM_TD2P_SUBPORT_COE_GROUP_MAX));
@@ -762,7 +762,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
         * Check that only subtag group id bits (8-0) are configured*/
         if ((group_id >> _BCM_SUBPORT_COE_GROUP_PORT_SHIFT)
                 & _SHR_GPORT_SUBPORT_GROUP_MASK) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group id = %d "
                                        "should be within 0 to"
                                        " %d\n"), 
@@ -771,7 +771,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
             return BCM_E_PARAM;
         }
         if (_BCM_SUBPORT_COE_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group id = %d "
                                        "is already used\n"), group_id));
             return BCM_E_EXISTS;
@@ -786,7 +786,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
         }
 
         if (i == _BCM_TD2P_SUBPORT_COE_GROUP_MAX) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: All %d subport groups "
                                        "already used.\n"), i));
             return BCM_E_FULL;
@@ -800,7 +800,7 @@ int bcmi_xgs5_subport_coe_group_create(int unit,
             rv  =_bcm_coe_subtag_subport_group_create(unit, port, 
                                                       group_id, group);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport group "
                                        "create failed"
                                        " for port %d. rv = %d(%s)\n"),
@@ -852,7 +852,7 @@ _bcm_coe_subtag_subport_group_destroy(int unit, bcm_gport_t group)
         group_id = _BCM_SUBPORT_COE_GROUP_ID_GET(group);
 
         if (!_BCM_SUBPORT_COE_SUBTAG_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport group "
                                        "0x%x not found.\n"), group));
             return BCM_E_NOT_FOUND;
@@ -879,7 +879,7 @@ _bcm_coe_subtag_subport_group_destroy(int unit, bcm_gport_t group)
             rv = _bcm_coe_subtag_subport_port_delete(unit, 
                       _bcm_subtag_subport_port_info[unit][i].subport_port);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport group "
                                        "0x%x destroy failed \n"
                                        " to delete subport port (subport group id %d, "
@@ -920,7 +920,7 @@ int bcmi_xgs5_subport_coe_group_destroy(int unit, bcm_gport_t group)
     _BCM_SUBPORT_COE_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: group 0x%x is not subport "
                                        "group gport\n"), group));
         return BCM_E_PARAM;
@@ -931,7 +931,7 @@ int bcmi_xgs5_subport_coe_group_destroy(int unit, bcm_gport_t group)
     if (soc_feature(unit, soc_feature_hgproxy_subtag_coe) &&
         _BCM_COE_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag ports not "
                                        "configured\n")));
             _BCM_SUBPORT_COE_UNLOCK(unit);
@@ -941,7 +941,7 @@ int bcmi_xgs5_subport_coe_group_destroy(int unit, bcm_gport_t group)
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group 0x%x "
                                        "destroy failed. rv= %d(%s)\n"),
                                         group, rv, soc_errmsg(rv)));
@@ -987,7 +987,7 @@ _bcm_coe_subtag_subport_group_get(int unit, bcm_gport_t group,
     if (_BCM_COE_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         group_id = _BCM_SUBPORT_COE_GROUP_ID_GET(group);
         if (!_BCM_SUBPORT_COE_SUBTAG_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport "
                                        "group 0x%x not found.\n"), group));
             return BCM_E_NOT_FOUND;;
@@ -1027,7 +1027,7 @@ int bcmi_xgs5_subport_coe_group_get(int unit, bcm_gport_t group,
     }
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: group 0x%x is not "
                                        "subport group gport\n"),
                                         group));
@@ -1039,7 +1039,7 @@ int bcmi_xgs5_subport_coe_group_get(int unit, bcm_gport_t group,
     if (soc_feature(unit, soc_feature_hgproxy_subtag_coe) &&
         _BCM_COE_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag ports not "
                                        "configured\n")));
             _BCM_SUBPORT_COE_UNLOCK(unit);
@@ -1049,7 +1049,7 @@ int bcmi_xgs5_subport_coe_group_get(int unit, bcm_gport_t group,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group get "
                                        "failed for 0x%x, rv = %d(%s)\n"),
                                         group, rv, soc_errmsg(rv)));
@@ -1095,7 +1095,7 @@ _bcm_coe_subtag_subport_group_traverse(int unit,
         group_id = _BCM_SUBPORT_COE_GROUP_ID_GET(group);
 
         if (!_BCM_SUBPORT_COE_SUBTAG_GROUP_USED_GET(unit, group_id)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport group "
                                        "0x%x not found.\n"), group));
             return BCM_E_NOT_FOUND;
@@ -1124,7 +1124,7 @@ _bcm_coe_subtag_subport_group_traverse(int unit,
                      _bcm_subtag_subport_port_info[unit][i].subport_port, 
                     &config);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport group "
                                        "0x%x traverse failed \n"
                                        "to get subport port (group id %d, "
@@ -1140,7 +1140,7 @@ _bcm_coe_subtag_subport_group_traverse(int unit,
                     user_data);
 #ifdef BCM_CB_ABORT_ON_ERR
             if (BCM_FAILURE(rv) && SOC_CB_ABORT_ON_ERR(unit)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group 0x%x "
                                        "traverse failed \n"
                                        "to callback for subport "
@@ -1181,7 +1181,7 @@ int bcmi_xgs5_subport_coe_group_traverse(int unit, bcm_gport_t group,
     _BCM_SUBPORT_COE_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: group 0x%x is not subport "
                                        "group gport\n"), group));
         return BCM_E_PARAM;
@@ -1192,7 +1192,7 @@ int bcmi_xgs5_subport_coe_group_traverse(int unit, bcm_gport_t group,
     if (soc_feature(unit, soc_feature_hgproxy_subtag_coe) &&
         _BCM_COE_GPORT_IS_SUBTAG_SUBPORT_GROUP(group)) {
         if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag ports not "
                                        "configured\n")));
             _BCM_SUBPORT_COE_UNLOCK(unit);
@@ -1202,7 +1202,7 @@ int bcmi_xgs5_subport_coe_group_traverse(int unit, bcm_gport_t group,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group traverse failed for "
                                        "0x%x, rv = %d(%s)\n"),
                                         group, rv, soc_errmsg(rv)));
@@ -1353,7 +1353,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Ensyre group is of the proper type */
     if (!BCM_GPORT_IS_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: group 0x%x is not "
                                        "subport group gport\n"),
                                         config->group));
@@ -1362,7 +1362,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Make sure the group is of correct type */
     if (!_BCM_COE_GPORT_IS_SUBTAG_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport group 0x%x is not "
                                        "SubTag group\n"),
                                         config->group));
@@ -1374,7 +1374,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Make sure the group exists */
     if (!_BCM_SUBPORT_COE_SUBTAG_GROUP_USED_GET(unit, sp_group_idx)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: group 0x%x does not exist. "
                                        "group id =%d\n"),
                                         config->group, sp_group_idx));
@@ -1392,7 +1392,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Check if port is member of pbmp_subtag  */
     if (!SOC_PBMP_MEMBER(si->subtag_pbm, port)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Port %d is not member "
                                        "of pbmp_subport\n"), port));
         return BCM_E_PORT;
@@ -1400,7 +1400,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Ensure the port in question is configured to host 'subtended' port */
     if (si->port_num_subport[port] <= 0) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: %d number of subports "
                                        "available for port %d\n"),
                                        si->port_num_subport[port], port));
@@ -1409,7 +1409,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Ensure that the passed in subport_tag is valid */
     if ((config->pkt_vlan & 0xFFF) <= BCM_VLAN_NONE) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: (config->pkt_vlan & 0xFFF) "
                                        "%d is invalid\n"),
                                         (config->pkt_vlan & 0xFFF)));
@@ -1419,7 +1419,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
     /* If the PHB is set, check the PRI and Color for sanity */
     if (config->prop_flags & BCM_SUBPORT_PROPERTY_PHB) {
         if (config->int_pri < 0 || config->int_pri > 15) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: int_pri %d is invalid\n"), 
                        config->int_pri));
             return BCM_E_PARAM;
@@ -1427,7 +1427,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
         if ((config->color != bcmColorGreen) &&
              (config->color != bcmColorYellow) &&
              (config->color != bcmColorRed)) {
-             LOG_ERROR(BSL_LS_BCM_SUBPORT,
+             LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: color %d is invalid\n"), 
                        config->color));
             return BCM_E_PARAM;
@@ -1438,7 +1438,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
     vlan_id = config->pkt_vlan & 0xFFF; 
 
     if (_BCM_COE_SUBTAG_VLAN_ID_USED_GET(unit, port, vlan_id)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: VLAN id %d already "
                                        "used for port %d\n"),
                                         vlan_id, port));
@@ -1456,7 +1456,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
         /* Check if the supplied CoE-(mod,port) is valid */
         if(_bcm_stk_aux_modport_valid(unit, BCM_TD2PLUS_MODID_TYPE_COE, 
                                       modid, portid) != BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Supplied (mod,port) (%d,%d) "
                                        "not valid\n"),
                                         modid, portid));
@@ -1466,7 +1466,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
     } else {
 		rv = _bcm_coe_subport_allocate_modport(unit, &modid, &portid);
         if(rv != BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Free CoE (mod,port) "
                                        "not found\n")));
             return BCM_E_FULL;
@@ -1480,7 +1480,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
     mem = SUBPORT_COE_HW_SUBPORT_SUBTAG_SGPP_MEM(unit);
     rv = _bcm_coe_subport_free_entry_find(unit, &subtag_index);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Free entry not found in "
                                   " subtag to sgpp map table\n")));
         return rv;
@@ -1490,7 +1490,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, subtag_index,
             &subtag_to_sgpp_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"SUBPORT_TAG_SGPP_MAPm read "
                                        "failed at index %d\n"),
                                        subtag_index));
@@ -1549,7 +1549,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Bail on error */
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: (VLAN id %d, port %d) "
                                        "to subtag_index %d "
                                        "map failed.\n"), 
@@ -1589,7 +1589,7 @@ _bcm_coe_subtag_subport_port_add(int unit,
 
     /* Bail on error */
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: (mod,port) (%d,%d) "
                                        "to physical port %d "
                                        "map failed.\n"), 
@@ -1654,7 +1654,7 @@ int bcmi_xgs5_subport_coe_port_add(int unit, bcm_subport_config_t *config,
     _BCM_SUBPORT_COE_CHECK_INIT(unit);
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(config->group)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: config->group 0x%x is not "
                                        "subport group gport\n"),
                                         config->group));
@@ -1663,14 +1663,14 @@ int bcmi_xgs5_subport_coe_port_add(int unit, bcm_subport_config_t *config,
 
     group_id = _BCM_SUBPORT_COE_GROUP_ID_GET(config->group);
     if(!_BCM_SUBPORT_COE_GROUP_USED_GET(unit, group_id)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR:config->group 0x%x "
                                        "is not found\n"), config->group));
         return BCM_E_NOT_FOUND;
     }
 
     if (_bcm_subport_coe_port_count[unit] == _BCM_TD2P_SUBPORT_COE_PORT_MAX) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR:All %d subport's in use\n"),
                                   _BCM_TD2P_SUBPORT_COE_PORT_MAX));
         return BCM_E_FULL;
@@ -1681,7 +1681,7 @@ int bcmi_xgs5_subport_coe_port_add(int unit, bcm_subport_config_t *config,
     if (soc_feature(unit, soc_feature_hgproxy_subtag_coe) &&
         _BCM_COE_GPORT_IS_SUBTAG_SUBPORT_GROUP(config->group)) {
             if (BCM_PBMP_IS_NULL(si->subtag_pbm)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag ports not "
                                        "configured\n")));
                 _BCM_SUBPORT_COE_UNLOCK(unit);
@@ -1691,7 +1691,7 @@ int bcmi_xgs5_subport_coe_port_add(int unit, bcm_subport_config_t *config,
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: Subport port add failed. "
                                        "rv = %d(%s)\n"),
                                         rv, soc_errmsg(rv)));
@@ -1727,7 +1727,7 @@ int bcmi_xgs5_subport_coe_port_traverse(int unit,
                     &config);
 
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport port traverse failed \n"
                                   "to get SubTag subport id %d index: %d\n"), 
                      _bcm_subtag_subport_port_info[unit][i].subport_port, i));
@@ -1743,7 +1743,7 @@ int bcmi_xgs5_subport_coe_port_traverse(int unit,
 
 #ifdef BCM_CB_ABORT_ON_ERR
             if (BCM_FAILURE(rv) && SOC_CB_ABORT_ON_ERR(unit)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: subport port traverse failed \n"
                                   "to callback for subport port "
                                   "(subport_port id %d)\n"),
@@ -1787,7 +1787,7 @@ int _bcm_coe_subtag_subport_cleanup(int unit)
         rv = _bcm_coe_subtag_subport_port_delete(unit, 
                   _bcm_subtag_subport_port_info[unit][i].subport_port);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag subport port "
                                        "delete failed (subport id %d)\n"),
                          _bcm_subtag_subport_port_info[unit][i].subport_port));
@@ -1863,7 +1863,7 @@ int bcmi_xgs5_subport_coe_cleanup(int unit)
         if (BCM_PBMP_NOT_NULL(si->subtag_allowed_pbm)) {
             rv = _bcm_coe_subtag_subport_cleanup(unit);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_SUBPORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: SubTag cleanup failed\n")));
                 return rv;
             }
@@ -2233,7 +2233,7 @@ int bcmi_xgs5_port_control_subtag_status_get(int unit,
     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
             &port_tab_entry);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR:PORT_TABLEm read failed\n")));
         _BCM_SUBPORT_COE_UNLOCK(unit);
         return rv;
@@ -2274,7 +2274,7 @@ bcmi_xgs5_subport_group_resolve(int unit,
     *trunk_id = BCM_TRUNK_INVALID;
 
     if (!BCM_GPORT_IS_SUBPORT_GROUP(subport_group_gport)) {
-        LOG_WARN(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                  (BSL_META_U(unit,"gport 0x%x is not subport gport\n"),
                              subport_group_gport));
         return BCM_E_NONE;
@@ -2285,7 +2285,7 @@ bcmi_xgs5_subport_group_resolve(int unit,
 
         group_id = _BCM_SUBPORT_COE_GROUP_ID_GET(subport_group_gport);
         if(!_BCM_SUBPORT_COE_GROUP_USED_GET(unit, group_id)) {
-            LOG_WARN(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_WARN(BSL_LS_BCM_SUBPORT,
                      (BSL_META_U(unit,"subport gport 0x%x is not used\n"),
                                  subport_group_gport));
             return BCM_E_NONE;
@@ -2324,7 +2324,7 @@ bcmi_xgs5_subport_port_resolve(int unit,
     *trunk_id = BCM_TRUNK_INVALID;
 
     if (!BCM_GPORT_IS_SUBPORT_PORT(subport_port_gport)) {
-        LOG_ERROR(BSL_LS_BCM_SUBPORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,"ERROR: gport 0x%x is not subport gport\n"),
                                   subport_port_gport));
         return BCM_E_PARAM;

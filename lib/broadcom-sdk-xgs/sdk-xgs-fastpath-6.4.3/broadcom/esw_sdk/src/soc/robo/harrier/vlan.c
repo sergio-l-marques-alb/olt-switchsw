@@ -191,7 +191,7 @@ _drv_v2v_reset(int unit, int reset_type)
             }
         }
         if (i == 0) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s: VLAN2VLAN table reset timeout!\n"), FUNCTION_NAME()));
             return SOC_E_TIMEOUT;
@@ -249,7 +249,7 @@ drv_harrier_vlan_vt_add(int unit, uint32 vt_type, uint32 port,  uint32 cvid,
         if (!v2v_reset_done) {
             rv = _drv_v2v_reset(unit, V2V_SW_RESET);
             if (rv){
-                LOG_INFO(BSL_LS_SOC_VLAN,
+                LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                          (BSL_META_U(unit,
                                      "%s,can't reset V2V table\n"), FUNCTION_NAME()));
             }
@@ -363,7 +363,7 @@ drv_harrier_vlan_vt_delete(int unit, uint32 vt_type, uint32 port, uint32 vid)
         if (!v2v_reset_done) {
             rv = _drv_v2v_reset(unit, V2V_SW_RESET);
             if (rv){
-                LOG_INFO(BSL_LS_SOC_VLAN,
+                LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                          (BSL_META_U(unit,
                                      "%s,can't reset V2V table\n"), FUNCTION_NAME()));
             }
@@ -493,7 +493,7 @@ drv_harrier_vlan_vt_delete_all(int unit, uint32 vt_type)
         if (v2v_reset_done == 0){
             rv = _drv_v2v_reset(unit, V2V_SW_RESET);
             if (rv){
-                LOG_INFO(BSL_LS_SOC_VLAN,
+                LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                          (BSL_META_U(unit,
                                      "%s,can't reset V2V table!\n"), FUNCTION_NAME()));
             }
@@ -675,7 +675,7 @@ drv_harrier_vlan_vt_get(int unit, uint32 prop_type, uint32 vid,
     /* check if V2V is reset already */
     if (!v2v_reset_done) {
          if (_drv_v2v_reset(unit, V2V_SW_RESET)){
-            LOG_INFO(BSL_LS_SOC_VLAN,
+            LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                      (BSL_META_U(unit,
                                  "%s,can't reset V2V table!\n"), FUNCTION_NAME()));
         }
@@ -759,7 +759,7 @@ drv_harrier_port_vlan_set(int unit, uint32 port, soc_pbmp_t bmp)
     uint32	temp = 0;
     uint64  reg_value64;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: port=%d, bmp=0x%x\n"),
               FUNCTION_NAME(), port, SOC_PBMP_WORD_GET(bmp, 0)));
@@ -804,7 +804,7 @@ drv_harrier_port_vlan_get(int unit, uint32 port, soc_pbmp_t *bmp)
         PORT_EGRESS_ENf, &temp);
     SOC_PBMP_WORD_SET(*bmp, 0, temp);
     
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: port=%d, bmp=0x%x\n"),
               FUNCTION_NAME(), port, SOC_PBMP_WORD_GET(*bmp, 0)));
@@ -837,7 +837,7 @@ drv_harrier_vlan_prop_set(int unit, uint32 prop_type, uint32 prop_val)
     uint16  dev_id;
     uint8   rev_id;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, prop_val));
@@ -915,7 +915,7 @@ drv_harrier_vlan_prop_set(int unit, uint32 prop_type, uint32 prop_val)
             if (!v2v_reset_done) {
                 rv = _drv_v2v_reset(unit, V2V_SW_RESET);
                 if (rv){
-                    LOG_INFO(BSL_LS_SOC_VLAN,
+                    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                              (BSL_META_U(unit,
                                          "%s,can't reset V2V table!\n"), FUNCTION_NAME()));
                 }
@@ -986,7 +986,7 @@ drv_harrier_vlan_prop_set(int unit, uint32 prop_type, uint32 prop_val)
     
             /* 3. reset the V2V table */
             if (_drv_v2v_reset(unit, V2V_SW_RESET)){
-                LOG_INFO(BSL_LS_SOC_VLAN,
+                LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                          (BSL_META_U(unit,
                                      "%s,can't reset V2V table!\n"), 
                           FUNCTION_NAME()));
@@ -1026,7 +1026,7 @@ drv_harrier_vlan_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
     uint32  reg_value, temp = 0;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, *prop_val));
@@ -1088,7 +1088,7 @@ drv_harrier_vlan_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
         if (v2v_reset_done) { 
             *prop_val = (igr_vt_db.vt_en) ? TRUE : FALSE;
         } else {
-            LOG_INFO(BSL_LS_SOC_VLAN,
+            LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                      (BSL_META_U(unit,
                                  "%s, V2V table not reset yet!\n"), FUNCTION_NAME()));
             *prop_val = FALSE;
@@ -1100,7 +1100,7 @@ drv_harrier_vlan_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
         if (v2v_reset_done) { 
             *prop_val = (IS_PORT_BASED_VT) ? TRUE : FALSE;
         } else {
-            LOG_INFO(BSL_LS_SOC_VLAN,
+            LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                      (BSL_META_U(unit,
                                  "%s, V2V table not reset yet!\n"), FUNCTION_NAME()));
             *prop_val = FALSE;
@@ -1141,7 +1141,7 @@ drv_harrier_vlan_prop_port_enable_set(int unit, uint32 prop_type,
     int rv = SOC_E_NONE;
     soc_pbmp_t set_bmp, temp_bmp;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop=%d, value=0x%x\n"), 
               FUNCTION_NAME(), unit, prop_type, val));
@@ -1162,7 +1162,7 @@ drv_harrier_vlan_prop_port_enable_set(int unit, uint32 prop_type,
             if (!v2v_reset_done) {
                 rv = _drv_v2v_reset(unit, V2V_SW_RESET);
                 if (rv){
-                    LOG_INFO(BSL_LS_SOC_VLAN,
+                    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                              (BSL_META_U(unit,
                                          "%s,can't reset V2V table!\n"), FUNCTION_NAME()));
                 }
@@ -1285,7 +1285,7 @@ drv_harrier_vlan_prop_port_enable_get(int unit, uint32 prop_type,
     soc_pbmp_t pbmp;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop=%d, port=%d\n"), 
               FUNCTION_NAME(), unit, prop_type, port_n));

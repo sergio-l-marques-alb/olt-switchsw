@@ -182,7 +182,7 @@ soc_firebolt_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -196,7 +196,7 @@ soc_firebolt_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -300,7 +300,7 @@ soc_fb_l3_defip_bist(int unit, int instance)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : DEFIP_CAM_BIST timeout\n"), unit));
             rv = SOC_E_INTERNAL;
@@ -362,14 +362,14 @@ soc_fb_l3_defip_resize(int unit)
 
     for(i = 0; i < L3_DEFIP_CAM_NUM_INSTANCE; i++) {
         if (soc_fb_l3_defip_bist(unit, i) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit = %d, Recommend Mapping out L3_DEFIP block %d\n"),
                        unit, i));
             l3_defip_map |= (1 << i);
         }
         if (sop->l3_defip_map & (1 << i)) { /* Map out the instance */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit = %d, Mapped out L3_DEFIP block %d\n"),
                        unit, i));
@@ -382,7 +382,7 @@ soc_fb_l3_defip_resize(int unit)
                           cam_enf[i],
                           1);
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Recommend config add  %s.%d=0x%02x); config save\n"),
                spn_L3_DEFIP_MAP, unit, l3_defip_map));
@@ -1415,7 +1415,7 @@ soc_firebolt_mmu_init(int unit)
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_post_init failed on unit %d\n"), unit));
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "soc_post_init: took %d usec\n"),
                                     SAL_USECS_SUB(sal_time_usecs(), stime)));
@@ -1473,7 +1473,7 @@ int _soc_fb_mmu_parity_error(int unit)
         soc->stat.intr_mmu++;
     }
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_fb_mmu_parity_error:unit = %d,"
                           "INTSTATUS  = 0x%08x Fail Count = %d\n"),
@@ -1484,7 +1484,7 @@ int _soc_fb_mmu_parity_error(int unit)
 
 
     if (soc_reg_field_get(unit, MEMFAILINTSTATUSr, istat, CFAPFAILERRORf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, CFAPFAILERROR\n"), unit));
     }
@@ -1493,7 +1493,7 @@ int _soc_fb_mmu_parity_error(int unit)
                           istat, CFAPPARITYERRORf)) {
         soc->stat.err_cfap++;
         SOC_IF_ERROR_RETURN(READ_CFAPPARITYERRORPTRr(unit, &val));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, CFAPPARITYERRORPTR 0x%08x\n"),
                               unit, val));
@@ -1501,13 +1501,13 @@ int _soc_fb_mmu_parity_error(int unit)
 
     if (soc_reg_field_get(unit, MEMFAILINTSTATUSr, istat, SOFTRESETERRORf)) {
         soc->stat.err_sr++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, MMU Soft Reset Error\n"), unit));
     }
 
     if (soc_reg_field_get(unit, MEMFAILINTSTATUSr, istat, CELLNOTIPERRORf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, MMU Cell not in progress\n"), unit));
     }
@@ -1515,7 +1515,7 @@ int _soc_fb_mmu_parity_error(int unit)
     if (soc_reg_field_get(unit, MEMFAILINTSTATUSr, istat, CELLCRCERRORf)) {
         soc->stat.err_cellcrc++;
         SOC_IF_ERROR_RETURN(READ_CBPCELLCRCERRPTRr(unit, &val));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, CBPCELLCRCERRPTR 0x%08x\n"), unit, val));
     }
@@ -1524,7 +1524,7 @@ int _soc_fb_mmu_parity_error(int unit)
                           istat, CBPPKTHDRPARITYERRORf)) {
         soc->stat.err_cbphp++;
         SOC_IF_ERROR_RETURN(READ_CBPPKTHDRPARITYERRPTRr(unit, &val));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, CBPPKTHDRPARITYERRPTR 0x%08x\n"),
                               unit, val));
@@ -1534,7 +1534,7 @@ int _soc_fb_mmu_parity_error(int unit)
                           istat, CBPCELLHDRPARITYERRORf)) {
         soc->stat.err_cpbcrc++;
         SOC_IF_ERROR_RETURN(READ_CBPCELLHDRPARITYERRPTRr(unit, &val));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, CBPCELLHDRPARITYERRPTR 0x%08x\n"),
                               unit, val));
@@ -1543,7 +1543,7 @@ int _soc_fb_mmu_parity_error(int unit)
     if (soc_reg_field_get(unit, MEMFAILINTSTATUSr, istat, XQPARITYERRORf)) {
         soc->stat.err_mp++;
         SOC_IF_ERROR_RETURN(READ_XQPARITYERRORPBMr(unit, &val));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, XQPARITYERRORPBM 0x%08x\n"),
                               unit, val));
@@ -1552,7 +1552,7 @@ int _soc_fb_mmu_parity_error(int unit)
     if (soc_reg_field_get(unit, MEMFAILINTSTATUSr, istat, CCPPARITYERRORf)) {
         soc->stat.err_cpcrc++;
         SOC_IF_ERROR_RETURN(READ_CCPPARITYERRORPTRr(unit, &val));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit = %d, CCPPARITYERRORPTR 0x%08x\n"),
                               unit, val));
@@ -1561,7 +1561,7 @@ int _soc_fb_mmu_parity_error(int unit)
     if (soc_feature(unit, soc_feature_ip_mcast_repl)) {
         if (soc_reg_field_get(unit, MEMFAILINTSTATUSr,
                               istat, IPMCREPOVERLIMITERRORf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit=%d, IPMC Over Pre-set Replication Limit\n"),
                        unit));
@@ -1592,7 +1592,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                                        istat, BUCKET_IDXf),
             entry_bmap = soc_reg_field_get(unit, L2_ENTRY_PARITY_STATUSr,
                                            istat, ENTRY_BMf);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_soc_hx_ipipe_parity_error:unit = %d,"
                                   "L2_ENTRY_PARITY_STATUS  = 0x%08x, "
@@ -1637,7 +1637,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                                        istat, BUCKET_IDXf),
             entry_bmap = soc_reg_field_get(unit, L3_ENTRY_PARITY_STATUSr,
                                            istat, ENTRY_BMf);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_soc_hx_ipipe_parity_error:unit = %d,"
                                   "L3_ENTRY_PARITY_STATUS  = 0x%08x, "
@@ -1688,7 +1688,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                 
                 mem_idx_min = mem_idx & ~0x3;
                 mem_idx_max = mem_idx_min + 3;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_soc_fb_ipipe_parity_error:unit = %d,"
                                       "L3_DEFIP_PARITY_STATUS  = 0x%08x, "
@@ -1705,7 +1705,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                     (void)soc_ser_correction(unit, &spci);
                 }
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_soc_fb_ipipe_parity_error:unit = %d,"
                                       "L3_DEFIP_PARITY_STATUS  = 0x%08x, Index = %d "),
@@ -1752,7 +1752,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                 case L2MC_PARITY_STATUSr:
                 case VLAN_PARITY_STATUSr:
                     err_addr = soc_reg_field_get(unit, stat_reg[i], istat, ERR_ADDRf);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_soc_fb_ipipe_parity_error:unit = %d,"
                                           "PARITY_STATUS register (%x) = 0x%08x, Index = %d "),
@@ -1766,7 +1766,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                 case EGR_VLAN_TABLE_PARITY_STATUSr:
                 case L3_IPMC_PARITY_STATUSr:
                     mem_idx = soc_reg_field_get(unit, stat_reg[i], istat, MEMORY_IDXf);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_soc_fb_ipipe_parity_error:unit = %d,"
                                           "PARITY_STATUS register (%x) = 0x%08x, Index = %d "),
@@ -1778,7 +1778,7 @@ int _soc_hx_ipipe_parity_error(int unit)
                 case FP_POLICY_PARITY_STATUSr:
                     slice_idx = soc_reg_field_get(unit, stat_reg[i], istat, SLICE_IDXf);
                     mem_idx = soc_reg_field_get(unit, stat_reg[i], istat, MEMORY_IDXf);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_soc_fb_ipipe_parity_error:unit = %d,"
                                           "PARITY_STATUS register (%x) = 0x%08x, Slice = %d,"

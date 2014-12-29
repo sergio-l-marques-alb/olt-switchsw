@@ -126,14 +126,14 @@
 
 #define _MDB_VALID_CHECK(_mdb) \
     if (!(_mdb)) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("NULL is not a valid handle\n"))); \
         return _SHR_E_PARAM; \
     }
 #define _MDB_LOCK_TAKE(_mdb) \
     if ((_mdb)->lock) { \
         if (sal_mutex_take((_mdb)->lock,sal_mutex_FOREVER)) { \
-            LOG_ERROR(BSL_LS_SOC_COMMON, \
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                       (BSL_META("unable to take mdb %08X lock\n"), \
                        PTR_TO_INT(_mdb)));                         \
             return _SHR_E_INTERNAL; \
@@ -142,7 +142,7 @@
 #define _MDB_LOCK_GIVE(_mdb) \
     if ((_mdb)->lock) { \
         if (sal_mutex_give((_mdb)->lock)) { \
-            LOG_ERROR(BSL_LS_SOC_COMMON, \
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                       (BSL_META("unable to release mdb %08X lock\n"), \
                        PTR_TO_INT(_mdb)));                            \
             return _SHR_E_INTERNAL; \
@@ -372,7 +372,7 @@ _mdb_block_prep(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_desc_t elem;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d)\n"),
                PTR_TO_INT(res),
                head,
@@ -421,7 +421,7 @@ _mdb_block_join(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t newCount;
     shr_mdb_elem_index_t headTemp;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%08X)\n"),
                PTR_TO_INT(res),
                headLow,
@@ -474,7 +474,7 @@ _mdb_block_split_size(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_bank_index_t oldCount = res->elem[head].count;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d,%s,*,*) enter\n"),
                PTR_TO_INT(res),
                head,
@@ -500,7 +500,7 @@ _mdb_block_split_size(shr_mdb_list_handle_t res,
     res->elem[*extra].count = oldCount - count;
     res->elem[*extra + (oldCount - count) - 1].count = oldCount - count;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d,%s,&(%08X),&(%08X)) leave\n"),
                PTR_TO_INT(res),
                head,
@@ -538,7 +538,7 @@ _mdb_block_split_point(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t newCount = second - head;
     shr_mdb_elem_bank_index_t auxCount = oldCount - newCount;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%08X) enter\n"),
                PTR_TO_INT(res),
                head,
@@ -581,7 +581,7 @@ _mdb_list_insert(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t bank;
     shr_mdb_elem_bank_index_t offs;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%04X)\n"),
                PTR_TO_INT(res),
                head,
@@ -651,7 +651,7 @@ _mdb_list_remove(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t bank;
     shr_mdb_elem_bank_index_t list;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X)\n"),
                PTR_TO_INT(res),
                head));
@@ -734,7 +734,7 @@ _mdb_block_frag_and_free(shr_mdb_list_handle_t res,
     shr_mdb_elem_index_t oldHead = head;
     shr_mdb_elem_index_t newHead;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X)\n"),
                PTR_TO_INT(res),
                head));
@@ -742,7 +742,7 @@ _mdb_block_frag_and_free(shr_mdb_list_handle_t res,
     /* split the block into largest possible free subblocks */
     while (count) {
         /* while we have elements to free */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X has %d elements;"
                             " freelist = %d\n"),
                    PTR_TO_INT(res),
@@ -806,7 +806,7 @@ _mdb_block_defrag(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t offs;
     shr_mdb_alloc_pref_t pref = res->allocPref | override;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,&(%08X)) enter\n"),
                PTR_TO_INT(res),
                *head));
@@ -821,7 +821,7 @@ _mdb_block_defrag(shr_mdb_list_handle_t res,
                 /* the next block isn't on a free list; finsihed going down */
                 break;
             }
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META("join downward to %08X (%d elements)\n"),
                        nextBlock,
                        count));
@@ -838,7 +838,7 @@ _mdb_block_defrag(shr_mdb_list_handle_t res,
         (!(pref & (shr_mdb_join_low | shr_mdb_join_high)))) {
         /* try to collect free blocks into one by going upward in bank */
         count = res->elem[*head].count;
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("current %08X count %d next %08X mask %08X\n"),
                    *head,
                    count,
@@ -851,7 +851,7 @@ _mdb_block_defrag(shr_mdb_list_handle_t res,
                 /* the next block isn't on a free list; finished going up */
                 break;
             }
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META("join upward to %08X (%d elements)\n"),
                        nextBlock,
                        res->elem[nextBlock].count));
@@ -864,7 +864,7 @@ _mdb_block_defrag(shr_mdb_list_handle_t res,
         } /* while ((offs + count) <= res->bankMask) */
     } /* if (alloc_join_high mode or neither that nor alloc_join_low mode) */
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,&(%08X)) leave\n"),
                PTR_TO_INT(res),
                *head));
@@ -892,14 +892,14 @@ _mdb_block_head_get(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_index_t currBlock;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,&(%08X)) enter\n"),
                PTR_TO_INT(res),
                *head));
 
     if (_MDB_BLOCK_NOT_HEAD != res->elem[*head].list) {
         /* element is the head, so just return now */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("(%08X,&(%08X)) early leave (head, %d)\n"),
                    PTR_TO_INT(res),
                    *head,
@@ -909,7 +909,7 @@ _mdb_block_head_get(shr_mdb_list_handle_t res,
     if (0 != res->elem[*head].count) {
         /* element isn't head, but count is nonzero, so must be tail */
         *head -= (res->elem[*head].count - 1);
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("(%08X,&(%08X)) early leave (tail, %d)\n"),
                    PTR_TO_INT(res),
                    *head,
@@ -931,7 +931,7 @@ _mdb_block_head_get(shr_mdb_list_handle_t res,
           ((currBlock + res->elem[currBlock].count) < (*head)));
          currBlock += res->elem[currBlock].count) {
         /* just search; don't do anything */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X length %d\n"),
                    PTR_TO_INT(res),
                    currBlock,
@@ -939,7 +939,7 @@ _mdb_block_head_get(shr_mdb_list_handle_t res,
     }
     *head = currBlock;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,&(%08X)) leave\n"),
                PTR_TO_INT(res),
                *head));
@@ -990,7 +990,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
     shr_mdb_elem_index_t extra = ~0;
     int result = _SHR_E_RESOURCE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,*,%d) enter\n"),
                PTR_TO_INT(res),
                count));
@@ -998,7 +998,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
     /* make sure we can actually alloc the requested block */
     if (count > res->list[res->freeLists - 1].elemsBlock) {
         /* the request is larger than the largest supported block */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: count %d exceeds largest block %d\n"),
                    PTR_TO_INT(res),
                    count,
@@ -1012,7 +1012,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
          baseList++) {
         /* don't do anything but iterate for the desired list */
     }
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("mdb %08X: looking for free block >= %d elements\n"),
                PTR_TO_INT(res),
                res->list[baseList].elemsBlock));
@@ -1020,7 +1020,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
     switch (res->allocPref & shr_mdb_alloc_bank_mask) {
     case shr_mdb_alloc_bank_first:
         /* using first method; get the first block that's big enough */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: using '%s' alloc mode\n"),
                    PTR_TO_INT(res),
                    "first"));
@@ -1046,7 +1046,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
         break;
     case shr_mdb_alloc_bank_low:
         /* using low method; search banks low to high */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: using '%s' alloc mode\n"),
                    PTR_TO_INT(res),
                    "low"));
@@ -1076,7 +1076,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
         break;
     case shr_mdb_alloc_bank_high:
         /* using high method; search banks high to low */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: using '%s' alloc mode\n"),
                    PTR_TO_INT(res),
                    "high"));
@@ -1106,7 +1106,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
         break;
     default:
         /* should never see this; it's not valid */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: unknown alloc mode: %d\n"),
                    PTR_TO_INT(res),
                    res->allocPref & shr_mdb_alloc_bank_mask));
@@ -1114,7 +1114,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
     }
     if (_SHR_E_NONE == result) {
         /* was able to find an acceptable block somewhere */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: found suitable block at %08X (%d elements)\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1137,7 +1137,7 @@ _shr_mdb_block_alloc(shr_mdb_list_handle_t res,
         *head = block + res->low;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,&(%08X)) return %d (%s)\n"),
                PTR_TO_INT(res),
                count,
@@ -1167,7 +1167,7 @@ _shr_mdb_block_free(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X)\n"),
                PTR_TO_INT(res),
                head));
@@ -1175,7 +1175,7 @@ _shr_mdb_block_free(shr_mdb_list_handle_t res,
     /* make sure the arguments are acceptable */
     block = head - res->low;
     if ((head < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: invalid block at %08X can not be freed\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1184,7 +1184,7 @@ _shr_mdb_block_free(shr_mdb_list_handle_t res,
     }
     if (res->elem[block].list < res->freeLists) {
         /* this block is already free */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X is already free\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1192,7 +1192,7 @@ _shr_mdb_block_free(shr_mdb_list_handle_t res,
     }
     if (_MDB_BLOCK_NOT_IN_LIST != res->elem[block].list) {
         /* this block is in a user list */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X is in a list\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1206,7 +1206,7 @@ _shr_mdb_block_free(shr_mdb_list_handle_t res,
     /* free the block */
     _mdb_block_frag_and_free(res, block);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1237,7 +1237,7 @@ _mdb_block_size_get(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,*) enter\n"),
                PTR_TO_INT(res),
                head));
@@ -1246,7 +1246,7 @@ _mdb_block_size_get(shr_mdb_list_handle_t res,
     block = head - res->low;
     /* make sure the block is valid */
     if ((head < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: element %08X is not valid\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1257,7 +1257,7 @@ _mdb_block_size_get(shr_mdb_list_handle_t res,
     _mdb_block_head_get(res, &block);
     /* make sure the block is not free */
     if (res->freeLists > res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X is free\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1267,7 +1267,7 @@ _mdb_block_size_get(shr_mdb_list_handle_t res,
     /* okay, return the count on which the block belongs, biased */
     *count = res->elem[block].count;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,&(%d)) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1307,7 +1307,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
     shr_mdb_elem_index_t block;
     shr_mdb_elem_desc_t elem;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) enter\n"),
                PTR_TO_INT(res),
                head,
@@ -1318,7 +1318,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
     if ((head < res->low) ||
         ((head + count - res->low) > res->count)) {
         /* head or count places part or all of the block outside range */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not reserve %d elements at %08X since"
                    " the range contains invalid elements\n"),
                    PTR_TO_INT(res),
@@ -1329,7 +1329,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
     }
     if (!count) {
         /* do nothing? */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not reserve zero element range\n"),
                    PTR_TO_INT(res)));
         return _SHR_E_PARAM;
@@ -1342,7 +1342,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
     while (currElem < block + count) {
         if (res->elem[currElem].list >= res->freeLists) {
             /* this block is not free */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't reserve in-use block"
                        " at %08X\n"),
                        PTR_TO_INT(res),
@@ -1365,7 +1365,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
         /* remove this block from its free list */
         _mdb_list_remove(res, currElem);
         if (block > currElem) {
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: break off low elements"
                                 " %08X..%08X\n"),
                        PTR_TO_INT(res),
@@ -1383,7 +1383,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
             currElem = block;
         }
         if ((currElem + currCount) > (block + count)) {
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: break off high elements"
                                 " %08X..%08X\n"),
                        PTR_TO_INT(res),
@@ -1407,7 +1407,7 @@ _shr_mdb_elems_reserve(shr_mdb_list_handle_t res,
         }
     } /* while (currElem < head + count) */
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1440,7 +1440,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
     shr_mdb_elem_index_t currElem;
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) enter\n"),
                PTR_TO_INT(res),
                head,
@@ -1450,7 +1450,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
     block = head - res->low;
     if ((head < res->low) || ((head + count - res->low) > res->count)) {
         /* head or count places part or all of the block outside range */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not collect %d elements at %08X since"
                    " the range contains invalid elements\n"),
                    PTR_TO_INT(res),
@@ -1461,14 +1461,14 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
     }
     if (!count) {
         /* do nothing? */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not reserve zero element range\n"),
                    PTR_TO_INT(res)));
         return _SHR_E_PARAM;
     }
     /* make sure all elements are in the same bank */
     if ((_MDB_OFFS_FROM_ELEM(*res, block) + count) > ((~(res->bankMask)) + 1)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: %d element block at %08X"
                    " would span banks\n"),
                    PTR_TO_INT(res),
@@ -1483,7 +1483,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
          currElem++) {
         if (res->elem[currElem].list == _MDB_BLOCK_NOT_HEAD) {
             /* non-head elements do not exist in one-element blocks */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't collect non-single-element"
                        " block at %08X\n"),
                        PTR_TO_INT(res),
@@ -1492,7 +1492,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
         }
         if (res->elem[currElem].list < res->freeLists) {
             /* this block is already free */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't collect free"
                        " block at %08X\n"),
                        PTR_TO_INT(res),
@@ -1501,7 +1501,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
         }
         if (res->elem[currElem].list != _MDB_BLOCK_NOT_IN_LIST) {
             /* the block is in a list */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't collect block at %08X since"
                        " it is in a list\n"),
                        PTR_TO_INT(res),
@@ -1510,7 +1510,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
         }
         if (res->elem[currElem].count != 1) {
             /* the block size is not one */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't collect %d-element"
                        " block at %08X\n"),
                        PTR_TO_INT(res),
@@ -1522,7 +1522,7 @@ _shr_mdb_elems_collect(shr_mdb_list_handle_t res,
     /* prepare the newly gathered block */
     _mdb_block_prep(res, block, count);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1562,7 +1562,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
     shr_mdb_elem_index_t block;
     shr_mdb_elem_bank_index_t offs;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) enter\n"),
                PTR_TO_INT(res),
                head,
@@ -1572,7 +1572,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
     block = head - res->low;
     if ((head < res->low) || ((head + count - res->low) > res->count)) {
         /* head or count places part or all of the block outside range */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not unreserve %d elements at"
                    " %08X since the range contains invalid elements\n"),
                    PTR_TO_INT(res),
@@ -1583,7 +1583,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
     }
     if (!count) {
         /* do nothing? */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not reserve zero element range\n"),
                    PTR_TO_INT(res)));
         return _SHR_E_PARAM;
@@ -1594,7 +1594,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
          currElem++) {
         if (res->elem[currElem].list == _MDB_BLOCK_NOT_HEAD) {
             /* non-head elements do not exist in one-element blocks */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't unreserve non-single-element"
                        " block at %08X\n"),
                        PTR_TO_INT(res),
@@ -1603,7 +1603,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
         }
         if (res->elem[currElem].list < res->freeLists) {
             /* this block is already free */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't unreserve free"
                        " block at %08X\n"),
                        PTR_TO_INT(res),
@@ -1612,7 +1612,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
         }
         if (res->elem[currElem].list != _MDB_BLOCK_NOT_IN_LIST) {
             /* the block is in a list */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't unreserve block at %08X since"
                        " it is in a list\n"),
                        PTR_TO_INT(res),
@@ -1621,7 +1621,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
         }
         if (res->elem[currElem].count != 1) {
             /* the block size is not one */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: can't unreserve %d-element"
                        " block at %08X\n"),
                        PTR_TO_INT(res),
@@ -1653,7 +1653,7 @@ _shr_mdb_elems_unreserve(shr_mdb_list_handle_t res,
         count -= currCount;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1686,7 +1686,7 @@ _shr_mdb_block_alloc_id(shr_mdb_list_handle_t res,
     shr_mdb_elem_index_t currElem;
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) enter\n"),
                PTR_TO_INT(res),
                head,
@@ -1697,7 +1697,7 @@ _shr_mdb_block_alloc_id(shr_mdb_list_handle_t res,
     if ((head < res->low) ||
         ((head + count - res->low) > res->count)) {
         /* head or count places part or all of the block outside range */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not alloc %d elements at %08X since"
                    " the range contains invalid elements\n"),
                    PTR_TO_INT(res),
@@ -1708,7 +1708,7 @@ _shr_mdb_block_alloc_id(shr_mdb_list_handle_t res,
     }
     if (!count) {
         /* do nothing? */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not reserve zero element range\n"),
                    PTR_TO_INT(res)));
         return _SHR_E_PARAM;
@@ -1718,7 +1718,7 @@ _shr_mdb_block_alloc_id(shr_mdb_list_handle_t res,
     _mdb_block_head_get(res, &currElem);
     /* make sure it's free */
     if (res->freeLists <= res->elem[currElem].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: can not allocate %d elements at %08X since"
                    " the range does not begin within a free block\n"),
                    PTR_TO_INT(res),
@@ -1736,7 +1736,7 @@ _shr_mdb_block_alloc_id(shr_mdb_list_handle_t res,
         ((currElem + res->elem[currElem].count) < (block + count))) {
         /* the block starts too high or ends too low; put it back & give up */
         _mdb_block_frag_and_free(res, currElem);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: unable to alloc %d elements at %08X"
                    " because at least some part of it was not free\n"),
                    PTR_TO_INT(res),
@@ -1757,7 +1757,7 @@ _shr_mdb_block_alloc_id(shr_mdb_list_handle_t res,
         _mdb_block_frag_and_free(res, block + count);
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,%d) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1789,7 +1789,7 @@ _mdb_user_list_insert(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,%08X) enter\n"),
                PTR_TO_INT(res),
                list,
@@ -1799,7 +1799,7 @@ _mdb_user_list_insert(shr_mdb_list_handle_t res,
     block = head - res->low;
     /* make sure the block and list are valid */
     if (list >= res->userLists) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: list %d is not valid\n"),
                    PTR_TO_INT(res),
                    list));
@@ -1807,7 +1807,7 @@ _mdb_user_list_insert(shr_mdb_list_handle_t res,
         return _SHR_E_NOT_FOUND;
     }
     if ((head < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: element %08X is not valid\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1818,7 +1818,7 @@ _mdb_user_list_insert(shr_mdb_list_handle_t res,
     _mdb_block_head_get(res, &block);
     /* make sure the block is not free */
     if (res->freeLists > res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X is free\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1827,7 +1827,7 @@ _mdb_user_list_insert(shr_mdb_list_handle_t res,
     }
     /* make sure the block isn't already in a list */
     if (_MDB_BLOCK_NOT_IN_LIST != res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X in list %d\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1838,7 +1838,7 @@ _mdb_user_list_insert(shr_mdb_list_handle_t res,
     /* looks okay; insert the block to the list */
     _mdb_list_insert(res, block, list + res->freeLists);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,%08X) return %d (%s)\n"),
                PTR_TO_INT(res),
                list,
@@ -1868,7 +1868,7 @@ _mdb_user_list_remove(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X) enter\n"),
                PTR_TO_INT(res),
                head));
@@ -1877,7 +1877,7 @@ _mdb_user_list_remove(shr_mdb_list_handle_t res,
     block = head - res->low;
     /* make sure the block is valid */
     if ((head < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: element %08X is not valid\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1888,7 +1888,7 @@ _mdb_user_list_remove(shr_mdb_list_handle_t res,
     _mdb_block_head_get(res, &block);
     /* make sure the block is not free */
     if (res->freeLists > res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X is free\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1897,7 +1897,7 @@ _mdb_user_list_remove(shr_mdb_list_handle_t res,
     }
     /* make sure the block is already in a list */
     if (_MDB_BLOCK_NOT_IN_LIST == res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X not in a list\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1907,7 +1907,7 @@ _mdb_user_list_remove(shr_mdb_list_handle_t res,
     /* looks okay; insert the block to the list */
     _mdb_list_remove(res, block);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -1938,7 +1938,7 @@ _mdb_user_list_get(shr_mdb_list_handle_t res,
 {
     shr_mdb_elem_index_t block;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,*) enter\n"),
                PTR_TO_INT(res),
                head));
@@ -1947,7 +1947,7 @@ _mdb_user_list_get(shr_mdb_list_handle_t res,
     block = head - res->low;
     /* make sure the block is valid */
     if ((head < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: element %08X is not valid\n"),
                    PTR_TO_INT(res),
                    head));
@@ -1958,7 +1958,7 @@ _mdb_user_list_get(shr_mdb_list_handle_t res,
     _mdb_block_head_get(res, &block);
     /* make sure the block is not free */
     if (res->freeLists > res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X is free\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1967,7 +1967,7 @@ _mdb_user_list_get(shr_mdb_list_handle_t res,
     }
     /* make sure the block is already in a list */
     if (_MDB_BLOCK_NOT_IN_LIST == res->elem[block].list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X not in a list\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -1977,7 +1977,7 @@ _mdb_user_list_get(shr_mdb_list_handle_t res,
     /* okay, return the list on which the block belongs, biased */
     *list = res->elem[block].list - res->freeLists;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,&(%d)) return %d (%s)\n"),
                PTR_TO_INT(res),
                head,
@@ -2010,13 +2010,13 @@ _mdb_user_list_head(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t bank;
     shr_mdb_elem_bank_index_t offs;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,*) enter\n"),
                PTR_TO_INT(res),
                list));
 
     if (list >= res->userLists) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: there is no list %d\n"),
                    PTR_TO_INT(res),
                    list));
@@ -2026,7 +2026,7 @@ _mdb_user_list_head(shr_mdb_list_handle_t res,
     bank = res->list[list + res->freeLists].head;
     if (_MDB_BANK_END == bank) {
         /* there are no banks on this list */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: list %d has no member blocks\n"),
                    PTR_TO_INT(res),
                    list));
@@ -2035,7 +2035,7 @@ _mdb_user_list_head(shr_mdb_list_handle_t res,
     offs = _MDB_LIST_BANK_DESC(*res, list + res->freeLists, bank).head;
     *head = _MDB_ELEM_FROM_BANK_OFFS(*res, bank, offs);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,&(%08X)) return %d (%s)\n"),
                PTR_TO_INT(res),
                list,
@@ -2068,13 +2068,13 @@ _mdb_user_list_tail(shr_mdb_list_handle_t res,
     shr_mdb_elem_bank_index_t bank;
     shr_mdb_elem_bank_index_t offs;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,*) enter\n"),
                PTR_TO_INT(res),
                list));
 
     if (list >= res->userLists) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: there is no list %d\n"),
                    PTR_TO_INT(res),
                    list));
@@ -2084,7 +2084,7 @@ _mdb_user_list_tail(shr_mdb_list_handle_t res,
     bank = res->list[list + res->freeLists].tail;
     if (_MDB_BANK_END == bank) {
         /* there are no banks on this list */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: list %d has no member blocks\n"),
                    PTR_TO_INT(res),
                    list));
@@ -2093,7 +2093,7 @@ _mdb_user_list_tail(shr_mdb_list_handle_t res,
     offs = _MDB_LIST_BANK_DESC(*res, list + res->freeLists, bank).tail;
     *tail = _MDB_ELEM_FROM_BANK_OFFS(*res, bank, offs);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d,&(%08X)) return %d (%s)\n"),
                PTR_TO_INT(res),
                list,
@@ -2129,7 +2129,7 @@ _mdb_list_pred(shr_mdb_list_handle_t res,
     shr_mdb_elem_desc_t *thisElem;
     shr_mdb_elem_bank_index_t offs;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,*) enter\n"),
                PTR_TO_INT(res),
                current));
@@ -2138,7 +2138,7 @@ _mdb_list_pred(shr_mdb_list_handle_t res,
     block = current - res->low;
     /* make sure the block is valid */
     if ((current < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: element %08X is not valid\n"),
                    PTR_TO_INT(res),
                    current));
@@ -2151,7 +2151,7 @@ _mdb_list_pred(shr_mdb_list_handle_t res,
 #if 0 
     /* make sure the block is not free */
     if (res->freeLists > thisElem->list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X is free\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -2161,7 +2161,7 @@ _mdb_list_pred(shr_mdb_list_handle_t res,
 #endif 
     /* make sure the block is already in a list */
     if (_MDB_BLOCK_NOT_IN_LIST == thisElem->list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X not in a list\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -2176,7 +2176,7 @@ _mdb_list_pred(shr_mdb_list_handle_t res,
         bank = _MDB_LIST_BANK_DESC(*res, thisElem->list, bank).prev;
         if (_MDB_BANK_END == bank) {
             /* can't go past beginning of list */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: block at %08X is head of list %d\n"),
                        PTR_TO_INT(res),
                        current,
@@ -2187,7 +2187,7 @@ _mdb_list_pred(shr_mdb_list_handle_t res,
     }
     *pred = _MDB_ELEM_FROM_BANK_OFFS(*res, bank, offs);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,&(%08X)) return %d (%s)\n"),
                PTR_TO_INT(res),
                current,
@@ -2223,7 +2223,7 @@ _mdb_list_succ(shr_mdb_list_handle_t res,
     shr_mdb_elem_desc_t *thisElem;
     shr_mdb_elem_bank_index_t offs;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,*) enter\n"),
                PTR_TO_INT(res),
                current));
@@ -2232,7 +2232,7 @@ _mdb_list_succ(shr_mdb_list_handle_t res,
     block = current - res->low;
     /* make sure the block is valid */
     if ((current < res->low) || (block >= res->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: element %08X is not valid\n"),
                    PTR_TO_INT(res),
                    current));
@@ -2245,7 +2245,7 @@ _mdb_list_succ(shr_mdb_list_handle_t res,
 #if 0 
     /* make sure the block is not free */
     if (res->freeLists > thisElem->list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X is free\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -2255,7 +2255,7 @@ _mdb_list_succ(shr_mdb_list_handle_t res,
 #endif 
     /* make sure the block is already in a list */
     if (_MDB_BLOCK_NOT_IN_LIST == thisElem->list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: block at %08X..%08X not in a list\n"),
                    PTR_TO_INT(res),
                    block + res->low,
@@ -2270,7 +2270,7 @@ _mdb_list_succ(shr_mdb_list_handle_t res,
         bank = _MDB_LIST_BANK_DESC(*res, thisElem->list, bank).next;
         if (_MDB_BANK_END == bank) {
             /* can't go past beginning of list */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: block at %08X is head of list %d\n"),
                        PTR_TO_INT(res),
                        current,
@@ -2281,7 +2281,7 @@ _mdb_list_succ(shr_mdb_list_handle_t res,
     }
     *succ = _MDB_ELEM_FROM_BANK_OFFS(*res, bank, offs);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%08X,&(%08X)) return %d (%s)\n"),
                PTR_TO_INT(res),
                current,
@@ -2317,14 +2317,14 @@ _mdb_user_list_purge(shr_mdb_list_handle_t res,
     shr_mdb_list_bank_desc_t *thisBank;
     shr_mdb_elem_index_t elem;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d) enter\n"),
                PTR_TO_INT(res),
                list));
 
     /* make sure arguments are valid */
     if (list >= res->userLists) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: there is no list %d\n"),
                    PTR_TO_INT(res),
                    list));
@@ -2335,7 +2335,7 @@ _mdb_user_list_purge(shr_mdb_list_handle_t res,
     nextBank = res->list[listNum].head;
     if (_MDB_BANK_END == nextBank) {
         /* there are no banks on this list (but it's NOT an error!) */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: user list %d has no member blocks\n"),
                    PTR_TO_INT(res),
                    list));
@@ -2347,7 +2347,7 @@ _mdb_user_list_purge(shr_mdb_list_handle_t res,
         thisBank = &(_MDB_LIST_BANK_DESC(*res, listNum, bank));
         nextBank = thisBank->next;
         nextOffs = thisBank->head;
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("mdb %08X: user list %d has blocks in bank %04X,"
                             " head %04X\n"),
                    PTR_TO_INT(res),
@@ -2359,7 +2359,7 @@ _mdb_user_list_purge(shr_mdb_list_handle_t res,
             offs = nextOffs;
             elem = _MDB_ELEM_FROM_BANK_OFFS(*res, bank, offs);
             nextOffs = res->elem[elem].next;
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META("mdb %08X: list %d has block to free at"
                                 " %04X:%04X (%08X, list %04X, size %04X,"
                                 " next %04X)\n"),
@@ -2385,7 +2385,7 @@ _mdb_user_list_purge(shr_mdb_list_handle_t res,
         } /* while (_MDB_BLOCK_END != nextOffs) */
     } /* while (_MDB_BANK_END != nextBank) */
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%08X,%d) return %d (%s)\n"),
                PTR_TO_INT(res),
                list,
@@ -2477,7 +2477,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     unsigned int list;
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(*,%d,%d,*,%d,%d,%d,%s) enter\n"),
                  bankSize,
                  freeLists,
@@ -2495,20 +2495,20 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     }
     if (!size || (32768 < size)) {
         /* the requested bank size is too large */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("requested bank size %d is too large\n"),
                    bankSize));
         return _SHR_E_PARAM;
     }
     if (last <= first) {
         /* there are too few elements (one, zero, or negative) to bother */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("range has negative, zero, or one element\n")));
         return _SHR_E_PARAM;
     }
     if ((freeLists + userLists) > 255) {
         /* there are too many lists */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("there are too many lists (free+user = %d, which is"
                    " > 255)\n"),
                    freeLists + userLists));
@@ -2516,7 +2516,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     }
     if (!handle) {
         /* there's no place to put the handle */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL pointer for out argument\n")));
         return _SHR_E_PARAM;
     }
@@ -2536,12 +2536,12 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     }
     if (banks > 0xFFF0) {
         /* there are too many banks */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("there are too many banks (%d)\n"),
                    banks));
         return _SHR_E_PARAM;
     }
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("%u elements, bankSize %u -> %u banks with"
                " last bank having %u elements\n"),
                elems,
@@ -2556,12 +2556,12 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
             (lists * sizeof(shr_mdb_list_desc_t)) +                 /* lists */
             (sizeof(shr_mdb_list_t)));                          /* top level */
     /* try to allocate it */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("allocate %d bytes for descriptor\n"),
                size));
     tempList = sal_alloc(size, "mdb_management");
     if (!tempList) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %d bytes for descriptor\n"),
                    size));
         return _SHR_E_MEMORY;
@@ -2570,18 +2570,18 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     result = _SHR_E_NONE;
     /* prepare it */
     if (lock) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("create lock\n")));
         tempList->lock = sal_mutex_create("mdb_management_lock");
         if (!(tempList->lock)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("unable to create lock\n")));
             result = _SHR_E_RESOURCE;
         }
     } else {
         tempList->lock = NULL;
     }
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("prepare top-level descriptor\n")));
     tempList->low = first;
     tempList->count = elems;
@@ -2602,7 +2602,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     tempList->elem = (shr_mdb_elem_desc_t*)(&(tempList->listBank[banks * lists]));
     if (_SHR_E_NONE == result) {
         /* prepare list descriptors */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("prepare list descriptors\n")));
         bankList.blocks = 0;
         bankList.elems = 0;
@@ -2616,13 +2616,13 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
             tempList->list[list].head = _MDB_BANK_END;
             tempList->list[list].tail = _MDB_BANK_END;
             if (0 == list) {
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META("obligatory free list %d:"
                            " blocks of 1 element\n"),
                            list));
                 tempList->list[list].elemsBlock = 1;
             } else if (list <= freeLists) {
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META("additional free list %d:"
                            " blocks of %d elements\n"),
                            list,
@@ -2630,14 +2630,14 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
                 tempList->list[list].elemsBlock = freeCnts[list - 1];
                 if (tempList->list[list].elemsBlock <=
                     tempList->list[list - 1].elemsBlock) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("block size in user specified free lists"
                                " is not strictly increasing\n")));
                     result = _SHR_E_PARAM;
                     break;
                 }
                 if (tempList->list[list].elemsBlock > bankSize) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("block size %d exceeds bank size %d\n"),
                                tempList->list[list].elemsBlock,
                                bankSize));
@@ -2645,7 +2645,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
                     break;
                 }
             } else {
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META("user list %d\n"),
                            list - (freeLists + 1)));
                 tempList->list[list].elemsBlock = 0;
@@ -2657,7 +2657,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
     } /* if (_SHR_E_NONE == result) */
     /* prepare element descriptors */
     if (_SHR_E_NONE == result) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("prepare element descriptors (%d banks)\n"),
                    tempList->banks));
         for (bank = 0; bank < (banks - 1); bank++) {
@@ -2669,7 +2669,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
                         _MDB_ELEM_FROM_BANK_OFFS(*tempList, bank, 0),
                         tempList->lastBankSize);
         /* assign elements to appropriate free lists */
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("assign elements to appropriate free lists\n")));
         for (bank = 0; bank < banks; bank++) {
             _mdb_block_frag_and_free(tempList,
@@ -2692,7 +2692,7 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(&(%08X),%d,%d,*,%d,%d,%d,%s) return %d (%s)\n"),
                  PTR_TO_INT(*handle),
                  bankSize,
@@ -2728,12 +2728,12 @@ shr_mdb_create(shr_mdb_list_handle_t *handle,
 int
 shr_mdb_destroy(shr_mdb_list_handle_t handle)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X) enter\n"),
                  PTR_TO_INT(handle)));
 
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL handle is not acceptable\n")));
         return _SHR_E_PARAM;
     }
@@ -2746,7 +2746,7 @@ shr_mdb_destroy(shr_mdb_list_handle_t handle)
     /* free it */
     sal_free(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  _SHR_E_NONE,
@@ -2781,7 +2781,7 @@ shr_mdb_reserve(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%08X) enter\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -2789,7 +2789,7 @@ shr_mdb_reserve(shr_mdb_list_handle_t handle,
 
     _MDB_VALID_CHECK(handle);
     if (first > last) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("first %08X is greater than last %08X\n"),
                    first,
                    last));
@@ -2799,7 +2799,7 @@ shr_mdb_reserve(shr_mdb_list_handle_t handle,
     result = _shr_mdb_elems_reserve(handle, first, (last - first) + 1);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -2836,7 +2836,7 @@ shr_mdb_unreserve(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%08X) enter\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -2844,7 +2844,7 @@ shr_mdb_unreserve(shr_mdb_list_handle_t handle,
 
     _MDB_VALID_CHECK(handle);
     if (first > last) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("first %08X is greater than last %08X\n"),
                    first,
                    last));
@@ -2854,7 +2854,7 @@ shr_mdb_unreserve(shr_mdb_list_handle_t handle,
     result = _shr_mdb_elems_unreserve(handle, first, (last - first) + 1);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -2893,7 +2893,7 @@ shr_mdb_reserve_to_block(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%08X) enter\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -2901,7 +2901,7 @@ shr_mdb_reserve_to_block(shr_mdb_list_handle_t handle,
 
     _MDB_VALID_CHECK(handle);
     if (first > last) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("first %08X is greater than last %08X\n"),
                    first,
                    last));
@@ -2911,7 +2911,7 @@ shr_mdb_reserve_to_block(shr_mdb_list_handle_t handle,
     result = _shr_mdb_elems_collect(handle, first, (last - first) + 1);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -2948,14 +2948,14 @@ shr_mdb_alloc(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,*,%d) enter\n"),
                  PTR_TO_INT(handle),
                  count));
 
     _MDB_VALID_CHECK(handle);
     if (!block) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as block pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -2963,7 +2963,7 @@ shr_mdb_alloc(shr_mdb_list_handle_t handle,
     result = _shr_mdb_block_alloc(handle, block, count);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,&(%08X),%d) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  *block,
@@ -3000,7 +3000,7 @@ shr_mdb_alloc_id(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%d) enter\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3011,7 +3011,7 @@ shr_mdb_alloc_id(shr_mdb_list_handle_t handle,
     result = _shr_mdb_block_alloc_id(handle, block, count);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%d) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3046,7 +3046,7 @@ shr_mdb_free(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X) enter\n"),
                  PTR_TO_INT(handle),
                  block));
@@ -3056,7 +3056,7 @@ shr_mdb_free(shr_mdb_list_handle_t handle,
     result = _shr_mdb_block_free(handle, block);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3092,14 +3092,14 @@ shr_mdb_block_size_get(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,*) enter\n"),
                  PTR_TO_INT(handle),
                  block));
 
     _MDB_VALID_CHECK(handle);
     if (!count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as count pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -3107,7 +3107,7 @@ shr_mdb_block_size_get(shr_mdb_list_handle_t handle,
     result = _mdb_block_size_get(handle, block, count);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,&(%d)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3144,7 +3144,7 @@ shr_mdb_list_insert(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,%08X) enter\n"),
                  PTR_TO_INT(handle),
                  list,
@@ -3155,7 +3155,7 @@ shr_mdb_list_insert(shr_mdb_list_handle_t handle,
     result = _mdb_user_list_insert(handle, list, block);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  list,
@@ -3190,7 +3190,7 @@ shr_mdb_list_remove(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X) enter\n"),
                  PTR_TO_INT(handle),
                  block));
@@ -3200,7 +3200,7 @@ shr_mdb_list_remove(shr_mdb_list_handle_t handle,
     result = _mdb_user_list_remove(handle, block);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3236,14 +3236,14 @@ shr_mdb_list_get(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,*) enter\n"),
                  PTR_TO_INT(handle),
                  block));
 
     _MDB_VALID_CHECK(handle);
     if (!list) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as list pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -3251,7 +3251,7 @@ shr_mdb_list_get(shr_mdb_list_handle_t handle,
     result = _mdb_user_list_get(handle, block, list);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,&(%d)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3288,14 +3288,14 @@ shr_mdb_list_head(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,*) enter\n"),
                  PTR_TO_INT(handle),
                  list));
 
     _MDB_VALID_CHECK(handle);
     if (!head) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as head pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -3303,7 +3303,7 @@ shr_mdb_list_head(shr_mdb_list_handle_t handle,
     result = _mdb_user_list_head(handle, list, head);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,&(%08X)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  list,
@@ -3340,14 +3340,14 @@ shr_mdb_list_tail(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,*) enter\n"),
                  PTR_TO_INT(handle),
                  list));
 
     _MDB_VALID_CHECK(handle);
     if (!tail) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as tail pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -3355,7 +3355,7 @@ shr_mdb_list_tail(shr_mdb_list_handle_t handle,
     result = _mdb_user_list_tail(handle, list, tail);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,&(%08X)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  list,
@@ -3392,14 +3392,14 @@ shr_mdb_list_pred(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,*) enter\n"),
                  PTR_TO_INT(handle),
                  block));
 
     _MDB_VALID_CHECK(handle);
     if (!pred) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as predecessor pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -3407,7 +3407,7 @@ shr_mdb_list_pred(shr_mdb_list_handle_t handle,
     result = _mdb_list_pred(handle, block, pred);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,&(%08X)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3444,14 +3444,14 @@ shr_mdb_list_succ(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,*) enter\n"),
                  PTR_TO_INT(handle),
                  block));
 
     _MDB_VALID_CHECK(handle);
     if (!succ) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL is unacceptable as predecessor pointer\n")));
         return _SHR_E_PARAM;
     }
@@ -3459,7 +3459,7 @@ shr_mdb_list_succ(shr_mdb_list_handle_t handle,
     result = _mdb_list_succ(handle, block, succ);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,&(%08X)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3494,7 +3494,7 @@ shr_mdb_list_purge(shr_mdb_list_handle_t handle,
 {
     int result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d) enter\n"),
                  PTR_TO_INT(handle),
                  list));
@@ -3504,7 +3504,7 @@ shr_mdb_list_purge(shr_mdb_list_handle_t handle,
     result = _mdb_user_list_purge(handle, list);
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  list,
@@ -3541,13 +3541,13 @@ shr_mdb_block_info(shr_mdb_list_handle_t handle,
     int result = _SHR_E_NONE;
     shr_mdb_elem_index_t head;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,*) enter\n"),
                  PTR_TO_INT(handle),
                  block));
 
     if (!blockInfo) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL pointer unacceptable for"
                    " outbound argument\n")));
         return _SHR_E_PARAM;
@@ -3558,7 +3558,7 @@ shr_mdb_block_info(shr_mdb_list_handle_t handle,
     head = block - handle->low;
     if ((block < handle->low) ||
         (head >= handle->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element %08X is not valid\n"),
                    block));
         /* don't ask me why, but BCM likes NOT_FOUND for INVALID_ID */
@@ -3569,7 +3569,7 @@ shr_mdb_block_info(shr_mdb_list_handle_t handle,
         _mdb_block_head_get(handle, &head);
         if (handle->elem[head].list < handle->freeLists) {
             /* this thing is free; still an error */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("element %08X is free\n"),
                        block));
             result = _SHR_E_NOT_FOUND;
@@ -3584,7 +3584,7 @@ shr_mdb_block_info(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,&{%d,%d,%d}) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  block,
@@ -3630,7 +3630,7 @@ shr_mdb_block_check_all(shr_mdb_list_handle_t handle,
     shr_mdb_elem_index_t head;
     shr_mdb_elem_bank_index_t dist;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%d) enter\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -3641,7 +3641,7 @@ shr_mdb_block_check_all(shr_mdb_list_handle_t handle,
     head = first - handle->low;
     if ((first < handle->low) ||
         ((head + count) > handle->count)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element range %08X..%08X is not valid\n"),
                    first,
                    count));
@@ -3661,7 +3661,7 @@ shr_mdb_block_check_all(shr_mdb_list_handle_t handle,
                 head += handle->elem[head].count;
                 if (handle->elem[head].list >= handle->freeLists) {
                     /* this block is not free */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("block including element %08X (%d elems)"
                                " is partially free and partially used\n"),
                                first,
@@ -3678,7 +3678,7 @@ shr_mdb_block_check_all(shr_mdb_list_handle_t handle,
                 result = _SHR_E_FULL;
             } else {
                 /* block exists but not as caller expected it to be */
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("block including element %08X (%d elems)"
                            " actually starts at %08X with %d elems\n"),
                            first,
@@ -3692,7 +3692,7 @@ shr_mdb_block_check_all(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%08X,%d) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  first,
@@ -3731,14 +3731,14 @@ shr_mdb_list_info(shr_mdb_list_handle_t handle,
 {
     int result = _SHR_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,%s,*) enter\n"),
                  PTR_TO_INT(handle),
                  list,
                  free?"Free":"User"));
 
     if (!listInfo) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL pointer unacceptable for"
                    " outbound argument\n")));
         return _SHR_E_PARAM;
@@ -3748,7 +3748,7 @@ shr_mdb_list_info(shr_mdb_list_handle_t handle,
 
     if (free) {
         if (list >= handle->freeLists) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("there are not %d free lists\n"),
                        list));
             /* don't ask me why, but BCM likes NOT_FOUND for INVALID_ID */
@@ -3756,7 +3756,7 @@ shr_mdb_list_info(shr_mdb_list_handle_t handle,
         }
     } else {
         if (list >= handle->userLists) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("there are not %d user lists\n"),
                        list));
             /* don't ask me why, but BCM likes NOT_FOUND for INVALID_ID */
@@ -3773,7 +3773,7 @@ shr_mdb_list_info(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d,%s,*) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  list,
@@ -3808,12 +3808,12 @@ shr_mdb_info(shr_mdb_list_handle_t handle,
 {
     shr_mdb_elem_bank_index_t list;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,*) enter\n"),
                  PTR_TO_INT(handle)));
 
     if (!mdbInfo) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL pointer unacceptable for"
                    " outbound argument\n")));
         return _SHR_E_PARAM;
@@ -3836,7 +3836,7 @@ shr_mdb_info(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,*) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  _SHR_E_NONE,
@@ -3867,12 +3867,12 @@ int
 shr_mdb_allocmode_get(shr_mdb_list_handle_t handle,
                       shr_mdb_alloc_pref_t *allocmode)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,*) enter\n"),
                  PTR_TO_INT(handle)));
 
     if (!allocmode) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("NULL pointer unacceptable for"
                    " outbound argument\n")));
         return _SHR_E_PARAM;
@@ -3884,7 +3884,7 @@ shr_mdb_allocmode_get(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,&(%08X)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  *allocmode,
@@ -3916,7 +3916,7 @@ int
 shr_mdb_allocmode_set(shr_mdb_list_handle_t handle,
                       shr_mdb_alloc_pref_t allocmode)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,*) enter\n"),
                  PTR_TO_INT(handle)));
 
@@ -3928,18 +3928,18 @@ shr_mdb_allocmode_set(shr_mdb_list_handle_t handle,
         /* all of these are good */
         break;
     default:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid alloc mechanism %d\n"),
                    allocmode & shr_mdb_alloc_bank_mask));
         return _SHR_E_PARAM;
     }
     if (!(allocmode & shr_mdb_join_alloc_and_free)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must join on free, alloc, or both\n")));
         return _SHR_E_PARAM;
     }
     if (!(allocmode & shr_mdb_join_high_and_low)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must join high, low, or both\n")));
         return _SHR_E_PARAM;
     }
@@ -3948,7 +3948,7 @@ shr_mdb_allocmode_set(shr_mdb_list_handle_t handle,
                        shr_mdb_free_block_high |
                        shr_mdb_join_alloc_and_free |
                        shr_mdb_join_high_and_low))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid bits are set in allocmode (%08X)\n"),
                    allocmode & (~(shr_mdb_alloc_bank_mask |
                    shr_mdb_alloc_block_high |
@@ -3965,7 +3965,7 @@ shr_mdb_allocmode_set(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,&(%08X)) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  allocmode,
@@ -4003,7 +4003,7 @@ shr_mdb_all_free_to_user_list(shr_mdb_list_handle_t handle,
     shr_mdb_elem_index_t bank;
     shr_mdb_elem_index_t block = ~0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d) enter\n"),
                  PTR_TO_INT(handle),
                  userList));
@@ -4028,7 +4028,7 @@ shr_mdb_all_free_to_user_list(shr_mdb_list_handle_t handle,
             } /* while (the free list has blocks) */
         } /* for (each free list) */
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("user list %d invalid for mdb %08X\n"),
                    userList,
                    PTR_TO_INT(handle)));
@@ -4037,7 +4037,7 @@ shr_mdb_all_free_to_user_list(shr_mdb_list_handle_t handle,
 
     _MDB_LOCK_GIVE(handle);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("(%08X,%d) return %d (%s)\n"),
                  PTR_TO_INT(handle),
                  userList,

@@ -320,7 +320,7 @@ int _bcm_robo_vlan_vtcfp_vid_search(int unit, bcm_vlan_t in_vid,
     defined(BCM_NORTHSTAR_SUPPORT) || defined(BCM_NORTHSTARPLUS_SUPPORT)
     /* check if VID is valid */
     if (in_vid < BCM_VID_VALID_MIN || in_vid > BCM_VID_VALID_MAX){
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s: invalid VID=%d\n"), FUNCTION_NAME(), in_vid));
         return FALSE;
@@ -406,25 +406,25 @@ void _bcm_robo_vlan_vtcfp_sw_db_update(int op, bcm_vlan_t  ori_vid,
     
     if (!(IS_VALID_VTCFP_DB_ENTRY_ID(fast_id))){
         if (fast_id != -1) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META("%s: invalid case on fast_id \n"), FUNCTION_NAME()));
             return;
         }
     }
 
     if (!(IS_VALID_VTCFP_DB_ENTRY_ID(this_id))){
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("%s: invalid case on this_id \n"), FUNCTION_NAME()));
         return;   
     }
     
     if (!flag_vt_cfp_init){
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META("%s: VT_CFP is not init!\n"), FUNCTION_NAME()));
         return ;
     }
     
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META("%s,%d,Start(op=%d,vid=%d,fast_id=%d,this_id=%d)!\n"), 
               FUNCTION_NAME(),__LINE__,op, ori_vid, fast_id, this_id));
     switch(op){
@@ -470,7 +470,7 @@ void _bcm_robo_vlan_vtcfp_sw_db_update(int op, bcm_vlan_t  ori_vid,
                 
                 if (temp_id != VTCFP_SUPPORT_VLAN_CNT){
                     /* this case should not be happened */
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META("%s: invalid case on fast_id=%d \n"), 
                                FUNCTION_NAME(), fast_id));
                     vt_cfp_db.vt_cfp_entry_db[temp_id].prev = this_id;
@@ -537,7 +537,7 @@ void _bcm_robo_vlan_vtcfp_sw_db_update(int op, bcm_vlan_t  ori_vid,
     if (bsl_check(bslLayerBcm, bslSourceVlan, bslSeverityNormal, BSL_UNIT_UNKNOWN)){
         _vtcfp_db_dump();
     }
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META("%s,%d,Done!\n"), FUNCTION_NAME(),__LINE__));
 }
 #endif  /* BCM_53115 || BCM_53125 || BCM_POLAR_SUPPORT || NORTHSTAR || NS+ */
@@ -576,7 +576,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
         return BCM_E_UNAVAIL;
     }
     
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "%s, ori_vid=%d, new_vid=%d,vt_mode=%d!\n"),
               FUNCTION_NAME(),ori_vid, new_vid,vt_mode));
@@ -585,7 +585,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
         DRV_VLAN_PROP_GET(unit, DRV_VLAN_PROP_IDT_MODE_ENABLE,
                      (uint32 *) &idt_mode));
     if (!idt_mode){
-        LOG_VERBOSE(BSL_LS_BCM_VLAN,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                     (BSL_META_U(unit,
                                 "%s, not in iDT_Mode!\n"),FUNCTION_NAME()));
         return BCM_E_CONFIG;
@@ -635,7 +635,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
                 0, vt_mode);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on add VT entry with vid=%d !!\n"), 
                   FUNCTION_NAME(), ori_vid));
@@ -647,14 +647,14 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
                  (uint32 *) &evr_entry_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on get created VT entry-=id for vid=%d !!\n"), 
                   FUNCTION_NAME(), ori_vid));
         return rv;
     }
     if (evr_entry_id == 0){
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "%s,%d, invalid Classification ID!\n"),FUNCTION_NAME(),__LINE__));
     }
@@ -674,7 +674,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     /* for NNI ports */
     rv = bcm_field_entry_create(unit, cfp_vt_group, &nni_cfp_vt_entry);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s:rv=%d,faild on creating field entry for NNI ports!!\n"), 
                   FUNCTION_NAME(),rv));
@@ -684,7 +684,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv = bcm_robo_field_stat_create(unit, cfp_vt_group, 1, 
                                 &stat_arr, &nni_stat_id);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s:rv=%d,faild on creating field stat for NNI ports!!\n"), 
                   FUNCTION_NAME(),rv));
@@ -693,7 +693,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     }
     rv = bcm_robo_field_entry_stat_attach(unit, nni_cfp_vt_entry, nni_stat_id);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s:rv=%d,faild on attach field stat for NNI ports!!\n"), 
                   FUNCTION_NAME(),rv));
@@ -703,7 +703,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv = bcm_field_entry_prio_set(unit, nni_cfp_vt_entry, 
                 BCM_FIELD_GROUP_PRIO_ANY);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: rv=%d,faild on set field entry priority!!\n"), 
                   FUNCTION_NAME(),rv));
@@ -714,7 +714,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv |= bcm_field_qualify_OuterVlan
                 (unit, nni_cfp_vt_entry, ori_vid, BCM_VLAN_VID_MAX);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on set field qualify!!\n"), 
                   FUNCTION_NAME()));
@@ -724,7 +724,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     /* for UNI ports */
     rv = bcm_field_entry_create(unit, cfp_vt_group, &uni_cfp_vt_entry);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on creating field entry for NNI ports !!\n"), 
                   FUNCTION_NAME()));
@@ -734,7 +734,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv = bcm_robo_field_stat_create(unit, cfp_vt_group, 1, 
                                 &stat_arr, &uni_stat_id);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s:rv=%d,faild on creating field stat for UNI ports!!\n"), 
                   FUNCTION_NAME(),rv));
@@ -743,7 +743,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     }
     rv = bcm_robo_field_entry_stat_attach(unit, uni_cfp_vt_entry, uni_stat_id);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s:rv=%d,faild on attach field stat for UNI ports!!\n"), 
                   FUNCTION_NAME(),rv));
@@ -753,7 +753,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv = bcm_field_entry_prio_set(unit, uni_cfp_vt_entry, 
                 BCM_FIELD_GROUP_PRIO_ANY);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: rv=%d,faild on set field entry priority!!########\n"), 
                   FUNCTION_NAME(),rv));
@@ -764,7 +764,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv |= bcm_field_qualify_InnerVlan
                 (unit, uni_cfp_vt_entry, ori_vid, BCM_VLAN_VID_MAX);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on set field qualify!!\n"), 
                   FUNCTION_NAME()));
@@ -781,7 +781,7 @@ int _bcm_robo_vlan_vtcfp_create(int unit, bcm_vlan_t ori_vid,
     rv |= bcm_field_entry_install(unit, nni_cfp_vt_entry);
     rv |= bcm_field_entry_install(unit, uni_cfp_vt_entry);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: rv=%d,faild on installing field entry!!\n"), 
                   FUNCTION_NAME(), rv));
@@ -801,7 +801,7 @@ vt_cfp_error_action :
     /* remove the created EVR entry */
     if(DRV_VLAN_VT_DELETE
                 (unit, DRV_VLAN_XLAT_EVR, 0, ori_vid)){
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on remove VT entry with vid=%d !!\n"), 
                   FUNCTION_NAME(), ori_vid));
@@ -841,7 +841,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
 #if defined(BCM_53115) || defined(BCM_53125) || defined(BCM_POLAR_SUPPORT) || \
     defined(BCM_NORTHSTAR_SUPPORT) || defined(BCM_NORTHSTARPLUS_SUPPORT)
    
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "%s,%d,Start(vid=%d, vt_mode=%d)!\n"), 
               FUNCTION_NAME(),__LINE__, ori_vid, vt_mode));
@@ -851,7 +851,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
                     (unit, DRV_VLAN_PROP_IDT_MODE_ENABLE,
                      (uint32 *) &idt_mode));
     if (!idt_mode){
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s,%d not in iDT_Mode!\n"),FUNCTION_NAME(),__LINE__));
         return BCM_E_CONFIG;
@@ -873,7 +873,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
     }
     temp_vtcfp_ent = vt_cfp_db.vt_cfp_entry_db + vtcfp_db_id;
     
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "Processing delete action!\n"))); 
     if (bsl_check(bslLayerBcm, bslSourceVlan, bslSeverityNormal, unit)){
@@ -895,7 +895,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
         temp_vtcfp_entry_id, temp_stat_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on detach NNI stat with id=%d !!\n"), 
                   FUNCTION_NAME(), temp_stat_id));
@@ -904,7 +904,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
     rv = bcm_robo_field_stat_destroy(unit, temp_stat_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on destroy NNI stat with id=%d !!\n"), 
                   FUNCTION_NAME(), temp_stat_id));
@@ -913,7 +913,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
     rv = bcm_field_entry_destroy(unit, temp_vtcfp_entry_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on remove NNI used CFP entry with id=%d !!\n"), 
                   FUNCTION_NAME(), temp_vtcfp_entry_id));
@@ -925,7 +925,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
         temp_vtcfp_entry_id, temp_stat_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on detach UNI stat with id=%d !!\n"), 
                   FUNCTION_NAME(), temp_stat_id));
@@ -934,7 +934,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
     rv = bcm_robo_field_stat_destroy(unit, temp_stat_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on destroy UNI stat with id=%d !!\n"), 
                   FUNCTION_NAME(), temp_stat_id));
@@ -943,7 +943,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
     rv = bcm_field_entry_destroy(unit, temp_vtcfp_entry_id);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild on remove UNI used CFP entry with id=%d !!\n"), 
                   FUNCTION_NAME(), temp_vtcfp_entry_id));
@@ -959,7 +959,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
                 (unit, DRV_VLAN_XLAT_EVR, 0, ori_vid);
     if (rv){
         VT_CFP_UNLOCK;
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s: faild to remove associated VT entroies at vid=%d!!\n"), 
                   FUNCTION_NAME(), ori_vid));
@@ -967,7 +967,7 @@ int _bcm_robo_vlan_vtcfp_delete(int unit, bcm_vlan_t ori_vid, int vt_mode){
     }
     
     VT_CFP_UNLOCK;
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "%s,%d,Done!\n"), FUNCTION_NAME(),__LINE__));
 #endif  /* BCM_53115 || BCM_53125 || BCM_POLAR_SUPPORT || NORTHSTAR || NS+ */
@@ -1007,7 +1007,7 @@ int _bcm_robo_vlan_vtcfp_delete_all(int unit, int vt_mode){
     /* 1. No check about iDT_Mode in this routine */
 
     VT_CFP_LOCK;
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "%s,%d,Start to clear vt_mode=%d!\n"), 
               FUNCTION_NAME(), __LINE__, vt_mode));
@@ -1070,7 +1070,7 @@ int _bcm_robo_vlan_vtcfp_delete_all(int unit, int vt_mode){
                     (unit, DRV_VLAN_XLAT_EVR, 0, temp_vid);
             if (rv){
                 VT_CFP_UNLOCK;
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s: faild to remove VT entroies at vid=%d!!\n"), 
                           FUNCTION_NAME(), temp_vid));
@@ -1089,7 +1089,7 @@ int _bcm_robo_vlan_vtcfp_delete_all(int unit, int vt_mode){
     }
     
     VT_CFP_UNLOCK;
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "%s,%d,Done!\n"), FUNCTION_NAME(),__LINE__));
 #endif  /* BCM_53115 || BCM_53125 || BCM_POLAR_SUPPORT || NORTHSTAR || NS+ */
@@ -1149,14 +1149,14 @@ int _bcm_robo_vlan_vtcfp_init(int unit){
         rv |= _bcm_robo_vlan_vtcfp_delete_all(
                         unit, VLAN_VTMODE_MAPPING);
         if (rv){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s: rv=%d,faild on reset the existing VT entries!!\n"), 
                       FUNCTION_NAME(),rv));
             return BCM_E_INIT;
         }
 
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s: VT_CFP init flag reset again!\n"), 
                   FUNCTION_NAME()));
@@ -1235,7 +1235,7 @@ int _bcm_robo_vlan_vtcfp_isp_change(int unit){
         
         bcm_field_entry_t   entry;
         
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s, VTCFP rebuild!\n"),FUNCTION_NAME()));
         /* check iDT_Mode first */
@@ -1243,7 +1243,7 @@ int _bcm_robo_vlan_vtcfp_isp_change(int unit){
                         (unit, DRV_VLAN_PROP_IDT_MODE_ENABLE,
                          (uint32 *) &idt_mode));
         if (!idt_mode){
-            LOG_INFO(BSL_LS_BCM_VLAN,
+            LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                      (BSL_META_U(unit,
                                  "%s, not in iDT_Mode!\n"),FUNCTION_NAME()));
             return BCM_E_NONE;
@@ -1275,13 +1275,13 @@ int _bcm_robo_vlan_vtcfp_isp_change(int unit){
             entry = temp_vtcfp_ent->nni_field_id;
             if ((rv = (bcm_field_qualify_InPorts(
                     unit, entry, nni_bmp, pbm_mask))) != BCM_E_NONE){
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s,%d,(err=%d) failed on field(new InPorts)!\n"),
                           FUNCTION_NAME(), __LINE__, rv));
             }
             if ((rv = (bcm_field_entry_install(unit, entry))) != BCM_E_NONE){
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s,%d,(err=%d) failed on field(Action install)!\n"),
                           FUNCTION_NAME(), __LINE__, rv));
@@ -1291,13 +1291,13 @@ int _bcm_robo_vlan_vtcfp_isp_change(int unit){
             entry = temp_vtcfp_ent->uni_field_id;
             if ((rv = (bcm_field_qualify_InPorts(
                     unit, entry, uni_bmp, pbm_mask))) != BCM_E_NONE){
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s,%d,(err=%d) failed on field(new InPorts)!\n"),
                           FUNCTION_NAME(), __LINE__, rv));
             }
             if ((rv = (bcm_field_entry_install(unit, entry))) != BCM_E_NONE){
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s,%d,(err=%d) failed on field(Action install)!\n"),
                           FUNCTION_NAME(), __LINE__, rv));
@@ -1305,7 +1305,7 @@ int _bcm_robo_vlan_vtcfp_isp_change(int unit){
           
         }
         VT_CFP_UNLOCK;
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s, VTCFP rebuild DONE!\n"),FUNCTION_NAME()));
         
@@ -2101,7 +2101,7 @@ _bcm_robo_vlan_init(int unit, bcm_vlan_data_t *vd)
     
     /* ---- clear VLAN table ---- */
     /* skipped VLAN table clear (assuming hardware did it) */
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "[vlan]: assuming hardware vlan table is cleared after power on\n")));
 
@@ -2346,7 +2346,7 @@ int bcm_robo_vlan_init(int unit)
     bcm_vlan_data_t     vd;
     char *s;
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_init()..\n")));
 
@@ -2614,7 +2614,7 @@ int bcm_robo_vlan_create(int unit, bcm_vlan_t vid)
     CHECK_INIT(unit);
     CHECK_VID(unit, vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_create()..\n")));
     BCM_LOCK(unit);
@@ -2704,7 +2704,7 @@ bcm_robo_vlan_destroy(int unit, bcm_vlan_t vid)
     int     rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_destroy()..\n")));
     CHECK_VID(unit, vid);
@@ -2737,7 +2737,7 @@ bcm_robo_vlan_destroy_all(int unit)
 
     CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_destroy_all()..\n")));
     BCM_LOCK(unit);
@@ -2993,7 +2993,7 @@ bcm_robo_vlan_port_add(int unit,
     int         rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_port_add()..\n")));
     CHECK_VID(unit, vid);
@@ -3188,7 +3188,7 @@ bcm_robo_vlan_port_remove(int unit,
     int         rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_port_remove()..\n")));
     CHECK_VID(unit, vid);
@@ -3226,7 +3226,7 @@ bcm_robo_vlan_port_get(int unit,
     int         rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_port_get()..\n")));
     CHECK_VID(unit, vid);
@@ -3266,7 +3266,7 @@ bcm_robo_vlan_list(int unit, bcm_vlan_data_t **listp, int *countp)
 
     CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_list()..\n")));
     SOC_PBMP_CLEAR(empty_pbm);
@@ -3307,7 +3307,7 @@ bcm_robo_vlan_list_by_pbmp(int unit, pbmp_t pbmp,
 
     CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_list_by_pbmp()..\n")));
     BCM_LOCK(unit);
@@ -3340,7 +3340,7 @@ bcm_robo_vlan_list_by_pbmp(int unit, pbmp_t pbmp,
 int 
 bcm_robo_vlan_list_destroy(int unit, bcm_vlan_data_t *list, int count)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_list_destroy()..\n")));
     COMPILER_REFERENCE(unit);
@@ -3368,7 +3368,7 @@ bcm_robo_vlan_list_destroy(int unit, bcm_vlan_data_t *list, int count)
 int 
 bcm_robo_vlan_default_get(int unit, bcm_vlan_t *vid_ptr)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_default_get()..\n")));
     *vid_ptr = robo_vlan_info[unit].defl;
@@ -3395,7 +3395,7 @@ bcm_robo_vlan_default_set(int unit, bcm_vlan_t vid)
     int         rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_default_set()..\n")));
     CHECK_VID(unit, vid);
@@ -3433,7 +3433,7 @@ bcm_robo_vlan_stg_get(int unit, bcm_vlan_t vid, bcm_stg_t *stg_ptr)
         return BCM_E_NOT_FOUND;
     }
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_stg_get()..\n")));
     
@@ -3529,7 +3529,7 @@ bcm_robo_vlan_stg_set(int unit, bcm_vlan_t vid, bcm_stg_t stg)
     CHECK_INIT(unit);
     CHECK_VID(unit, vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_stg_set()..\n")));
 
@@ -3588,7 +3588,7 @@ bcm_robo_vlan_stp_set(int unit, bcm_vlan_t vid,
         return BCM_E_PORT;
     }
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_stp_set()..\n")));
     rv = _bcm_robo_vlan_stp_set(unit, vid, local_port, stp_state);
@@ -3619,7 +3619,7 @@ bcm_robo_vlan_stp_get(int unit, bcm_vlan_t vid,
     uint32 port_status;
     bcm_port_t  local_port;
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_stp_get()..\n")));
 
@@ -3656,7 +3656,7 @@ bcm_robo_vlan_mac_add(int unit, bcm_mac_t mac, bcm_vlan_t vid, int prio)
     uint64 mac_field;
     uint32  temp;
     
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_mac_add()\n")));
 
@@ -3702,7 +3702,7 @@ bcm_robo_vlan_mac_delete(int unit, bcm_mac_t mac)
     uint64 mac_field;
     uint32  temp;
     
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_mac_delete()\n")));
     
@@ -3734,7 +3734,7 @@ int bcm_robo_vlan_mac_delete_all(int unit)
 {
     int rv = BCM_E_NONE;
     
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_mac_delete_all()\n")));
     
@@ -3775,7 +3775,7 @@ bcm_robo_vlan_translate_get (int unit, bcm_port_t port, bcm_vlan_t old_vid,
     CHECK_INIT(unit);
     CHECK_VID(unit, old_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s(unit=%d,port=%d,vid=%d)\n"),
               FUNCTION_NAME(), unit, port, old_vid));
@@ -3863,7 +3863,7 @@ bcm_robo_vlan_translate_get (int unit, bcm_port_t port, bcm_vlan_t old_vid,
             (unit, DRV_VLAN_PROP_VT_MODE, old_vid, port, &vt_mode));
     if (vt_mode != VLAN_VTMODE_MAPPING){
         
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s,unit=%d,port=%d,vid=%d is not at mapping mode!\n"),
                   FUNCTION_NAME(), unit, port, old_vid));
@@ -3891,7 +3891,7 @@ bcm_robo_vlan_translate_add(int unit, bcm_port_t port, bcm_vlan_t old_vid,
     CHECK_VID(unit, old_vid);
     CHECK_VID(unit, new_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
 
@@ -4058,7 +4058,7 @@ bcm_robo_vlan_translate_delete(int unit, bcm_port_t port, bcm_vlan_t old_vid)
     CHECK_INIT(unit);
     CHECK_VID(unit, old_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
             
@@ -4140,7 +4140,7 @@ bcm_robo_vlan_translate_delete(int unit, bcm_port_t port, bcm_vlan_t old_vid)
 int
 bcm_robo_vlan_translate_delete_all(int unit)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
 
@@ -4188,7 +4188,7 @@ bcm_robo_vlan_translate_egress_add(int unit,bcm_port_t port,
     CHECK_VID(unit, old_vid);
     CHECK_VID(unit, new_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
     if (!soc_feature(unit, soc_feature_vlan_translation)) {
@@ -4306,7 +4306,7 @@ int bcm_robo_vlan_translate_egress_get (int unit, bcm_port_t port,
     CHECK_INIT(unit);
     CHECK_VID(unit, old_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s(unit=%d,port=%d,vid=%d)\n"),
               FUNCTION_NAME(), unit, port, old_vid));
@@ -4339,7 +4339,7 @@ int bcm_robo_vlan_translate_egress_get (int unit, bcm_port_t port,
             (unit, DRV_VLAN_PROP_VT_MODE, old_vid, port, &vt_mode));
     if (vt_mode != VLAN_VTMODE_MAPPING){
         
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s,unit=%d,port=%d,vid=%d is not at mapping mode!\n"),
                   FUNCTION_NAME(), unit, port, old_vid));
@@ -4367,7 +4367,7 @@ bcm_robo_vlan_translate_egress_delete(int unit,bcm_port_t port,
     CHECK_INIT(unit);
     CHECK_VID(unit, old_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
     if (!soc_feature(unit, soc_feature_vlan_translation)) {
@@ -4436,7 +4436,7 @@ bcm_robo_vlan_translate_egress_delete(int unit,bcm_port_t port,
 int
 bcm_robo_vlan_translate_egress_delete_all(int unit)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
             
@@ -6946,7 +6946,7 @@ _robo_vlan_translate_action_update(int unit,
             /* Delete the structure's hw rules */
             rv = _robo_vlan_translate_action_delete(unit, &vt_act_param);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Updating vlan translation action failed\n")));
                 return rv;
@@ -6961,7 +6961,7 @@ _robo_vlan_translate_action_update(int unit,
                 BCM_IF_ERROR_RETURN(
                     _robo_vlan_translate_action_add(unit, &vt_act_param, 
                     &action_current));
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Updating vlan translation action failed\n")));
                 return rv;
@@ -8188,7 +8188,7 @@ bcm_robo_vlan_translate_egress_action_add(int unit, int port_class,
          *  index format.
          */
         
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "BCM API : %s, port_class=%d, outer_vid=%d, inner_vid=%d\n"), 
                   FUNCTION_NAME(), port_class, outer_vlan, inner_vlan));
@@ -8199,7 +8199,7 @@ bcm_robo_vlan_translate_egress_action_add(int unit, int port_class,
             evr_id = BCM_GPORT_SPECIAL_GET(port_class);
             if (evr_id != BCM_GPORT_INVALID){
                 EVR_ENTRYID_RESOLVE(evr_id, int_port, int_flowid);
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s, EVT entry at id=%d(port=%d, flow=%d)\n"), 
                           FUNCTION_NAME(), evr_id, int_port, int_flowid));
@@ -8260,7 +8260,7 @@ bcm_robo_vlan_translate_egress_action_add(int unit, int port_class,
                 BCM_IF_ERROR_RETURN(bcm_robo_vlan_dtag_add(unit, 
                         in_port, outer_vlan, new_vid, new_pri));
             } else {
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s, For none-SPECIAL_GPORT_TYPE, the DoubleTag "
                                      "action allowed outer_action at 'Replace' and "
@@ -8277,7 +8277,7 @@ bcm_robo_vlan_translate_egress_action_add(int unit, int port_class,
 
     return BCM_E_NONE;
 #else   /* BCM_53115 || BCM_53125 || BCM_POLAR_SUPPORT || NORTHSTAR || NS+ */
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s..unavailable\n"),FUNCTION_NAME()));
     return BCM_E_UNAVAIL;
@@ -8305,7 +8305,7 @@ bcm_robo_vlan_translate_egress_action_delete(int unit, int port_class,
     defined(BCM_NORTHSTAR_SUPPORT) || defined(BCM_NORTHSTARPLUS_SUPPORT) 
     /* the ingress packet outer/inner VID will be ignored */
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s, port_class=%d, outer_vid=%d, inner_vid=%d\n"), 
               FUNCTION_NAME(), port_class, outer_vlan, inner_vlan));
@@ -8333,7 +8333,7 @@ bcm_robo_vlan_translate_egress_action_delete(int unit, int port_class,
             evr_id = BCM_GPORT_SPECIAL_GET(port_class);
             if (evr_id != BCM_GPORT_INVALID){
                 EVR_ENTRYID_RESOLVE(evr_id, int_port, int_flowid);
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s, EVT entry at id=%d(port=%d, flow=%d)\n"), 
                           FUNCTION_NAME(), evr_id, int_port, int_flowid));
@@ -8381,7 +8381,7 @@ bcm_robo_vlan_translate_egress_action_delete(int unit, int port_class,
     
     return BCM_E_NONE;
 #else   /* BCM_53115 || BCM_53125 || BCM_POLAR_SUPPORT || NORTHSTAR || NS+ */
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s..unavailable\n"),FUNCTION_NAME()));
     return BCM_E_UNAVAIL;
@@ -8420,7 +8420,7 @@ bcm_robo_vlan_dtag_add(int unit,int port, bcm_vlan_t inner_vid,
     CHECK_VID(unit, inner_vid);
     CHECK_VID(unit, outer_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s(unit=%d,port=%d,vid1=%d,vid2=%d,prio=%d)\n"),
               FUNCTION_NAME(), unit, port, inner_vid, outer_vid, prio));
@@ -8599,7 +8599,7 @@ bcm_robo_vlan_dtag_get (int unit, bcm_port_t port,
     CHECK_INIT(unit);
     CHECK_VID(unit, old_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s(unit=%d,port=%d,vid=%d)\n"),
               FUNCTION_NAME(), unit, port, old_vid));
@@ -8681,7 +8681,7 @@ bcm_robo_vlan_dtag_get (int unit, bcm_port_t port,
             (unit, DRV_VLAN_PROP_VT_MODE, old_vid, port, &vt_mode));
     if (vt_mode != VLAN_VTMODE_TRANSPATENT){
         
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "%s,unit=%d,port=%d,vid=%d is not at transparent mode!\n"),
                   FUNCTION_NAME(), unit, port, old_vid));
@@ -8703,7 +8703,7 @@ bcm_robo_vlan_dtag_delete(int unit, int port, bcm_vlan_t inner_vid)
     CHECK_INIT(unit);
     CHECK_VID(unit, inner_vid);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s(unit=%d,port=%d,vid=%d)\n"),
               FUNCTION_NAME(), unit, port, inner_vid));
@@ -8812,7 +8812,7 @@ bcm_robo_vlan_dtag_delete_all(int unit)
 {
     CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : %s\n"), FUNCTION_NAME()));
     if (!soc_feature(unit, soc_feature_vlan_translation)) {
@@ -9110,7 +9110,7 @@ int
 bcm_robo_vlan_ip4_add(int unit, bcm_ip_t ipaddr, bcm_ip_t netmask,
                 bcm_vlan_t vid, int prio)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_ip4_add()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -9119,7 +9119,7 @@ bcm_robo_vlan_ip4_add(int unit, bcm_ip_t ipaddr, bcm_ip_t netmask,
 int 
 bcm_robo_vlan_ip4_delete(int unit, bcm_ip_t ipaddr, bcm_ip_t netmask)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_ip4_delete()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -9128,7 +9128,7 @@ bcm_robo_vlan_ip4_delete(int unit, bcm_ip_t ipaddr, bcm_ip_t netmask)
 int 
 bcm_robo_vlan_ip4_delete_all(int unit)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_ip4_delete_all()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -9137,7 +9137,7 @@ bcm_robo_vlan_ip4_delete_all(int unit)
 int 
 bcm_robo_vlan_ip_add(int unit, bcm_vlan_ip_t * vlan_ip)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_ip_add()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -9146,7 +9146,7 @@ bcm_robo_vlan_ip_add(int unit, bcm_vlan_ip_t * vlan_ip)
 int 
 bcm_robo_vlan_ip_delete(int unit, bcm_vlan_ip_t * vlan_ip)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_ip_delete()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -9155,7 +9155,7 @@ bcm_robo_vlan_ip_delete(int unit, bcm_vlan_ip_t * vlan_ip)
 int 
 bcm_robo_vlan_ip_delete_all(int unit)
 {
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_ip_delete_all()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -9194,7 +9194,7 @@ bcm_robo_vlan_control_set(int unit, bcm_vlan_control_t type, int arg)
     bcm_pbmp_t  set_bmp;
     int port = 0;
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_control_set()..\n")));
     switch (type) {
@@ -9420,7 +9420,7 @@ bcm_robo_vlan_control_get(int unit, bcm_vlan_control_t type, int *arg)
     pbmp_t      pbmp;
     uint32  temp;
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_control_get()..\n")));
     switch (type) {
@@ -9606,7 +9606,7 @@ bcm_robo_vlan_control_port_set(int unit, bcm_port_t port,
     bcm_pbmp_t  bmp;
     bcm_port_t  loc_port;
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_control_set...()")));
 
@@ -9722,7 +9722,7 @@ bcm_robo_vlan_control_port_get(int unit, bcm_port_t port,
     int                 id;
     uint32  temp = 0;
 
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_control_port_get()\n")));
 
@@ -10115,7 +10115,7 @@ bcm_robo_vlan_control_vlan_set(int unit, bcm_vlan_t vid,
     int         rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_control_vlan_set()..\n")));
     CHECK_VID(unit, vid);
@@ -10252,7 +10252,7 @@ bcm_robo_vlan_control_vlan_get(int unit, bcm_vlan_t vid,
     int         rv;
 
     CHECK_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_vlan_port_get()..\n")));
     CHECK_VID(unit, vid);
@@ -10311,14 +10311,14 @@ bcm_robo_vlan_vector_flags_set(int unit,
             if (BCM_SUCCESS(rv)) {
                 rv = bcm_robo_vlan_control_vlan_set(unit, vid, control);
                 if (BCM_FAILURE(rv)){
-                    LOG_INFO(BSL_LS_BCM_VLAN,
+                    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                              (BSL_META_U(unit,
                                          "%s, fail on setting control flag on VLAN(%d)\n"),
                               FUNCTION_NAME(), vid));
                     break;
                 }
             } else {
-                LOG_INFO(BSL_LS_BCM_VLAN,
+                LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                          (BSL_META_U(unit,
                                      "%s, fail on retrieving control flag in VLAN(%d)\n"),
                           FUNCTION_NAME(), vid));
@@ -11920,7 +11920,7 @@ bcm_robo_vlan_translate_egress_action_traverse(int unit,
 #if defined(BCM_VULCAN_SUPPORT) || defined(BCM_STARFIGHTER_SUPPORT) || \
     defined(BCM_POLAR_SUPPORT) || defined(BCM_NORTHSTAR_SUPPORT) || \
     defined(BCM_NORTHSTARPLUS_SUPPORT)
-    LOG_INFO(BSL_LS_BCM_VLAN,
+    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
              (BSL_META_U(unit,
                          "BCM_API:%s...\n"), FUNCTION_NAME()));
 
@@ -11963,7 +11963,7 @@ bcm_robo_vlan_translate_egress_action_get (int unit, int port_class,
 #if defined(BCM_53115) || defined(BCM_53125) || defined(BCM_POLAR_SUPPORT) || \
     defined(BCM_NORTHSTAR_SUPPORT) || defined(BCM_NORTHSTARPLUS_SUPPORT)
         /* the ingress packet outer/inner VID will be ignored */
-        LOG_INFO(BSL_LS_BCM_VLAN,
+        LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "BCM API : %s, port_class=%d, outer_vid=%d, inner_vid=%d\n"), 
                   FUNCTION_NAME(), port_class, outer_vlan, inner_vlan));
@@ -11990,7 +11990,7 @@ bcm_robo_vlan_translate_egress_action_get (int unit, int port_class,
                 evr_id = BCM_GPORT_SPECIAL_GET(port_class);
                 if (evr_id != BCM_GPORT_INVALID){
                     EVR_ENTRYID_RESOLVE(evr_id, int_port, int_flowid);
-                    LOG_INFO(BSL_LS_BCM_VLAN,
+                    LOG_BSL_INFO(BSL_LS_BCM_VLAN,
                              (BSL_META_U(unit,
                                          "%s, EVT entry at id=%d(port=%d, flow=%d)\n"), 
                               FUNCTION_NAME(), evr_id, int_port, int_flowid));

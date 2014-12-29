@@ -145,7 +145,7 @@ sal_if_do_deconfig(char *pfx, END_OBJ *eo, char *if_name, int if_unit)
     char ifconfigstr[32];
 #endif /* VX_VERSION == 66 || VX_VERSION == 68 */
 
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META("%s: Stopping %s %d %08x \n"),
               pfx, if_name, if_unit, (uint32)eo));
     if (OK != muxDevStop(eo)) {
@@ -168,7 +168,7 @@ sal_if_do_deconfig(char *pfx, END_OBJ *eo, char *if_name, int if_unit)
     }
 #else /* VX_VERSION == 66 || VX_VERSION == 68 */
 
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META("%s: Clearing Routes\n"), pfx));
 
 #ifdef VXWORKS_NETWORK_STACK_6_5
@@ -179,14 +179,14 @@ sal_if_do_deconfig(char *pfx, END_OBJ *eo, char *if_name, int if_unit)
     ifRouteDelete(if_name, if_unit);
 #endif /* VXWORKS_NETWORK_STACK_6_5 */
 
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META("%s: Unloading\n"), pfx));
     if (OK != muxDevUnload(if_name, if_unit)) {
 	cli_out("%s: Error: muxDevUnload failed: %s%d\n",
                 pfx, if_name, if_unit);
 	return(-1);
     }
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META("%s: Stopped and Unloaded: %s%d\n"), 
               pfx, if_name, if_unit));
 #endif /* VX_VERSION == 66 || VX_VERSION == 68 */
@@ -218,7 +218,7 @@ sal_if_deconfig(char *pfx,  END_OBJ     *eo, char *if_name, int if_unit)
     }
 
     rv = sal_if_do_deconfig(pfx, eo, if_name, if_unit);
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META("%s: sal_if_deconfig complete: %s%d (%d)\n"), 
               pfx, if_name, if_unit, rv));
     return(rv);
@@ -258,7 +258,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
 #endif
 
     SAL_MAP_NETUNIT(if_unit);
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META_U(u,
                          "%s: sal_if_config *** if_name=%s if_unit=%d\n"), 
               pfx, if_name, if_unit));
@@ -268,7 +268,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
     /* Check to see if end device already loaded */
 
     if (NULL == (eo = endFindByName(if_name, if_unit))) {
-	LOG_INFO(BSL_LS_APPL_END,
+	LOG_BSL_INFO(BSL_LS_APPL_END,
                  (BSL_META_U(u,
                              "%s: End device not loaded: if %s if_unit %d\n"), 
                   pfx, if_name, if_unit));
@@ -280,7 +280,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
 	    return(NULL);
 	}
 
-	LOG_INFO(BSL_LS_APPL_END,
+	LOG_BSL_INFO(BSL_LS_APPL_END,
                  (BSL_META_U(u,
                              "%s: muxDevLoad successful: 0x%x\n"), pfx, (int)eo));
 	if (ERROR == muxDevStart(eo)) {
@@ -288,7 +288,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
 	    (void)muxDevUnload(if_name, if_unit);
 	    return(NULL);
 	}
-	LOG_INFO(BSL_LS_APPL_END,
+	LOG_BSL_INFO(BSL_LS_APPL_END,
                  (BSL_META_U(u,
                              "%s: muxDevStart successful: 0x%x\n"), pfx, (int)eo));
     }
@@ -302,7 +302,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
 	(void)sal_if_do_deconfig(pfx, eo, if_name, if_unit);
 	return(NULL);
     }
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META_U(u,
                          "%s: muxIOCTL successful: Unit %d\n"), pfx, u));
 #endif /* VX_VERSION */
@@ -320,7 +320,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
 	(void)sal_if_do_deconfig(pfx, eo, if_name, if_unit);
 	return(NULL);
     }
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META_U(u,
                          "%s: ipAttach successful: if_name %s if_unit %d\n"), 
               pfx, if_name, if_unit));
@@ -341,7 +341,7 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
         (void)sal_if_do_deconfig(pfx, eo, if_name, if_unit);
         return(NULL);
     }
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META_U(u,
                          "%s: ifconfig: if %s, cfg str %s\n"),
               pfx, if_name_str, if_cfg_str));
@@ -374,13 +374,13 @@ sal_if_config(char *pfx, int u, char *if_name, int if_unit,
     }
 #endif 
 
-    LOG_INFO(BSL_LS_APPL_END,
+    LOG_BSL_INFO(BSL_LS_APPL_END,
              (BSL_META_U(u,
                          "%s: ifAddrSet successful: if %s\n"), pfx, if_name_str));
 #endif
 
     if (if_host && *if_host) {		/* [4] */
-	LOG_INFO(BSL_LS_APPL_END,
+	LOG_BSL_INFO(BSL_LS_APPL_END,
                  (BSL_META_U(u,
                              "%s: Setting hostname: %s\n"), pfx, if_host));
 	if (OK != hostAdd (if_host, if_ip_str)) {
@@ -600,7 +600,7 @@ cmd_if_config(int u, args_t *a)
            format_ipaddr(gateway_str, ifs->ifs_gateway);
 #if VX_VERSION == 66 || VX_VERSION == 68
             sprintf(gw_cfg_str, "add default %s", gateway_str);
-            LOG_INFO(BSL_LS_APPL_END,
+            LOG_BSL_INFO(BSL_LS_APPL_END,
                      (BSL_META_U(u,
                                  "Default gateway: %s\n"), gw_cfg_str));
             if (ERROR == routec(gw_cfg_str)) {

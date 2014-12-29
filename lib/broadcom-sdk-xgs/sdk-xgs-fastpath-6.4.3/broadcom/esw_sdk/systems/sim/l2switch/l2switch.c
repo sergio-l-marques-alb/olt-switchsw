@@ -158,7 +158,7 @@ _interrupt_connect(soc_cm_dev_t *dev, soc_cm_isr_func_t handler, void *data)
 {
     sysconf_pci_dev_t *pci_dev = (sysconf_pci_dev_t *)dev->cookie;
 
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META("sysconf_probe: connecting INT%c# to IRQ %d\n"),
               'A' + pci_dev->pciIntPin - 1, pci_dev->pciIntLine));
 
@@ -250,7 +250,7 @@ _setup_pci(int unit)
 
 #ifdef PCI_SOC_MBAR
     pci_config_putw(dev, PCI_CONF_BASE0, PCI_SOC_MBAR(unit));
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "Set PCI MBAR 0x%x\n"), PCI_SOC_MBAR(unit)));
 #endif
@@ -266,7 +266,7 @@ _setup_pci(int unit)
     soc->pciMemBaseAddr =
 	pci_config_getw(dev, PCI_CONF_BASE0) & PCI_MBASE_MASK;
   
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "Read back PCI MBAR 0x%x\n"), soc->pciMemBaseAddr));
   
@@ -369,11 +369,11 @@ sysconf_probe(void)
 {
     int		rv = -1;
 
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META("sysconf_probe: checking for SOC devices\n")));
 
     if (_ndevices > 0) {
-	LOG_ERROR(BSL_LS_SOC_COMMON,
+	LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("sysconf_probe: probe already done\n")));
 	goto done;		/* Should never probe more than once */
     }
@@ -381,7 +381,7 @@ sysconf_probe(void)
     pci_device_iter(_sysconf_probe_dev);
 
     if (_ndevices == 0) {
-	LOG_ERROR(BSL_LS_SOC_COMMON,
+	LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("WARNING: No StrataSwitch unit found.\n")));
 	goto done;
     }
@@ -389,7 +389,7 @@ sysconf_probe(void)
     rv = 0;
 
  done:
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META("soc_probe: rv=%d\n"), rv));
     return rv;
 }

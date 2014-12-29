@@ -1631,19 +1631,19 @@ static void shr_rdpc_dispatcher(void *owner, void* p0, void* p1, void* p2, void*
     }
 
     if (sal_mutex_take(rdpc->call_count_lock, RDPC_MUTEX_TIMEOUT) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
     } else {
         if (next_call && rdpc->running && rdpc->run_count == 1) {
             int rv = sal_dpc_time(next_call, &shr_rdpc_dispatcher, (void*)rdpc, p0, p1, p2, p3);
             if (rv) {
-                LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC scheduling of DPC failed\n")));
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC scheduling of DPC failed\n")));
                 rdpc->run_count--;
             }
         } else {
             if (rdpc->run_count <= 0) {
                 /* run count was incremented every time this rdpc was started, and decremented
                    when it did not reschedule itself.  If we're here, it should be positive */
-                LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC run count invalid\n")));
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC run count invalid\n")));
             } else {
                 /* Either the RDPC was stopped, or it was started multiple times (possibly racing a stop) */
                 /* in the latter case, let it drain so only one DPC is scheduled for it */
@@ -1713,7 +1713,7 @@ int shr_rdpc_callback_start(shr_rdpc_t *rdpc, sal_usecs_t first_interval,
     int rv = SOC_E_NONE;
 
     if (sal_mutex_take(rdpc->call_count_lock, RDPC_MUTEX_TIMEOUT) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
         return SOC_E_INTERNAL;
     }
 
@@ -1742,7 +1742,7 @@ int shr_rdpc_callback_stop(shr_rdpc_t *rdpc)
     int rv = SOC_E_NONE;
 
     if (sal_mutex_take(rdpc->call_count_lock, RDPC_MUTEX_TIMEOUT) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
         return SOC_E_INTERNAL;
     }
     rdpc->running = 0;
@@ -1767,7 +1767,7 @@ int shr_rdpc_callback_finished(shr_rdpc_t *rdpc)
     int rv = SOC_E_NONE;
 
     if (sal_mutex_take(rdpc->call_count_lock, RDPC_MUTEX_TIMEOUT) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META("RDPC dispatch failed to get mutex\n")));
         return SOC_E_INTERNAL;
     }
     if (rdpc->run_count > 0) {

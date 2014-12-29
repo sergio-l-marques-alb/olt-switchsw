@@ -774,7 +774,7 @@ drv_blackbird2_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ALL:
             if ((rv = _drv_blackbird2_cfp_read(unit, DRV_CFP_RAM_TCAM, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read TCAM with index = 0x%x, rv = %d. \n"), 
                            index, rv));
@@ -782,7 +782,7 @@ drv_blackbird2_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
             }
             if ( (rv = _drv_blackbird2_cfp_read(unit, DRV_CFP_RAM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -793,7 +793,7 @@ drv_blackbird2_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_TCAM:
             if ((rv = _drv_blackbird2_cfp_read(unit, DRV_CFP_RAM_TCAM, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -804,7 +804,7 @@ drv_blackbird2_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ACT:
             if ((rv = _drv_blackbird2_cfp_read(unit, DRV_CFP_RAM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -847,7 +847,7 @@ drv_blackbird2_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ALL:
             if ((rv = _drv_blackbird2_cfp_write(unit, DRV_CFP_RAM_TCAM, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -855,7 +855,7 @@ drv_blackbird2_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
             }
             if ((rv = _drv_blackbird2_cfp_write(unit, DRV_CFP_RAM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write:failed to write action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -866,7 +866,7 @@ drv_blackbird2_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_TCAM:
              if ((rv = _drv_blackbird2_cfp_write(unit, DRV_CFP_RAM_TCAM, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -877,7 +877,7 @@ drv_blackbird2_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ACT:
              if ((rv = _drv_blackbird2_cfp_write(unit, DRV_CFP_RAM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write ACT ram with index = 0x%x, rv = %d. \n"),
                            index, rv));

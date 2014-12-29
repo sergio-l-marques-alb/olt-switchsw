@@ -2786,7 +2786,7 @@ soc_mem_cache_set(int unit, soc_mem_t mem, int copyno, int enable)
     }
 #endif
 
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "soc_mem_cache_set: unit %d memory %s.%s %sable\n"),
               unit, SOC_MEM_UFNAME(unit, mem), SOC_BLOCK_NAME(unit, copyno),
@@ -3075,7 +3075,7 @@ soc_mem_cache_set(int unit, soc_mem_t mem, int copyno, int enable)
         }
 #endif /* BCM_XGS_SWITCH_SUPPORT */
 
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_cache_set: cache=%p size=%d vmap=%p\n"),
                   (void *)cache, cache_size, (void *)vmap));
@@ -3130,7 +3130,7 @@ soc_mem_cache_invalidate(int unit, soc_mem_t mem, int copyno, int index)
 
     if (index < soc_mem_index_min(unit, mem) ||
     index > soc_mem_index_max(unit, mem)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_cache_invalidate: invalid index %d "
                              "for memory %s\n"),
@@ -3287,7 +3287,7 @@ soc_mem_cache_scache_sync(int unit)
 
             sal_memcpy(mem_scache_ptr+offset, SOC_MEM_UFNAME(unit, mem),
                        strlen(SOC_MEM_UFNAME(unit, mem)));
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Store at %d %s\n"), offset, SOC_MEM_UFNAME(unit, mem)));
             offset += 128;
@@ -3353,7 +3353,7 @@ soc_mem_cache_scache_load(int unit, soc_mem_t mem, int *offset)
             cache = SOC_MEM_STATE(unit, mem).cache[blk];
             vmap = SOC_MEM_STATE(unit, mem).vmap[blk];
             
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Load from %d %s to %s\n"), *offset,
                          mem_scache_ptr + *offset, SOC_MEM_UFNAME(unit, mem)));
@@ -3637,14 +3637,14 @@ soc_mem_cfap_init(int unit)
 
     mt.userdata = bad_list;
     mt.mem = cbpcellheader_m;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_mem_cfap_init: unit %d: testing CBPHEADER\n"),
                  unit));
 
     if ((rv = soc_mem_parity_control(unit, mt.mem,
                                      mt.copyno, FALSE)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "Unable to disable parity warnings on %s\n"),
                    SOC_MEM_UFNAME(unit, mt.mem)));
@@ -3655,7 +3655,7 @@ soc_mem_cfap_init(int unit)
 
     if ((rv = soc_mem_parity_control(unit, mt.mem,
                                      mt.copyno, TRUE)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "Unable to disable parity warnings on %s\n"),
                    SOC_MEM_UFNAME(unit, mt.mem)));
@@ -3665,14 +3665,14 @@ soc_mem_cfap_init(int unit)
     for (mt.mem = cbppktheader_start_m;
          mt.mem <= cbppktheader_end_m;
          mt.mem++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_mem_cfap_init: unit %d: testing CBPPKTHEADER%d\n"),
                      unit, mt.mem - cbppktheader_start_m));
 
         if ((rv = soc_mem_parity_control(unit, mt.mem,
                                          mt.copyno, FALSE)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "Unable to disable parity warnings on %s\n"),
                        SOC_MEM_UFNAME(unit, mt.mem)));
@@ -3682,7 +3682,7 @@ soc_mem_cfap_init(int unit)
 
         if ((rv = soc_mem_parity_control(unit, mt.mem,
                                          mt.copyno, TRUE)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "Unable to disable parity warnings on %s\n"),
                        SOC_MEM_UFNAME(unit, mt.mem)));
@@ -3693,14 +3693,14 @@ soc_mem_cfap_init(int unit)
     for (mt.mem = cbpdata_start_m;
          mt.mem <= cbpdata_end_m;
          mt.mem++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_mem_cfap_init: unit %d: testing CBPDATA%d\n"),
                      unit, mt.mem - cbpdata_start_m));
 
         if ((rv = soc_mem_parity_control(unit, mt.mem,
                                          mt.copyno, FALSE)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "Unable to disable parity warnings on %s\n"),
                        SOC_MEM_UFNAME(unit, mt.mem)));
@@ -3710,7 +3710,7 @@ soc_mem_cfap_init(int unit)
 
         if ((rv = soc_mem_parity_control(unit, mt.mem,
                                          mt.copyno, TRUE)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "Unable to disable parity warnings on %s\n"),
                        SOC_MEM_UFNAME(unit, mt.mem)));
@@ -3774,7 +3774,7 @@ soc_mem_cfap_init(int unit)
         uint32        e_good, e_bad;
 
         if (bad_list[i - mt.index_start]) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "soc_mem_cfap_init: unit %d: "
                                     "mapping out CBP index %d\n"),
@@ -4254,7 +4254,7 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
 #endif
 
     /* coverity[var_tested_neg] */
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_xgs3_mem_dma: unit %d"
                          " mem %s.%s index %d-%d buffer %p\n"),
@@ -4352,7 +4352,7 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
         }
         WRITE_CMIC_TABLE_DMA_ENTRY_COUNTr(unit, rval);
     }
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_xgs3_mem_dma: table dma of %d entries "
                          "of %d beats from 0x%x\n"),
@@ -4526,7 +4526,7 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
 
     if (rv < 0) {
         if (rv != SOC_E_TIMEOUT) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "%s.%s failed(NAK)\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -4542,7 +4542,7 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
         } else {
             soc_timeout_t to;
 
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "TableDmaTimeOut: %s.%s %s timeout\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -4565,7 +4565,7 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
                         break;
                     }
                     if (soc_timeout_check(&to)) {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "TableDmaTimeOut:_soc_xgs3_mem_dma, Abort Failed\n")));
                         break;
@@ -4590,7 +4590,7 @@ _soc_xgs3_mem_dma(int unit, soc_mem_t mem, unsigned array_index,
                         break;
                     }
                     if (soc_timeout_check(&to)) {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "TableDmaTimeOut:_soc_xgs3_mem_dma, Abort Failed\n")));
                         break;
@@ -4647,7 +4647,7 @@ _soc_xgs3_mem_slam(int unit, uint32 flags, soc_mem_t mem, unsigned array_index, 
     int cmc = SOC_PCI_CMC(unit);
 #endif
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_xgs3_mem_slam: unit %d"
                          " mem %s.%s index %d-%d buffer %p\n"),
@@ -4761,7 +4761,7 @@ _soc_xgs3_mem_slam(int unit, uint32 flags, soc_mem_t mem, unsigned array_index, 
             }
         }
 
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "_soc_xgs3_mem_slam: tslam dma of %d entries "
                              "of %d beats from 0x%x to index %d-%d\n"),
@@ -4913,7 +4913,7 @@ _soc_xgs3_mem_slam(int unit, uint32 flags, soc_mem_t mem, unsigned array_index, 
 
         if (rv < 0) {
             if (rv != SOC_E_TIMEOUT) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "%s.%s failed(NAK)\n"),
                            SOC_MEM_UFNAME(unit, mem),
@@ -4929,7 +4929,7 @@ _soc_xgs3_mem_slam(int unit, uint32 flags, soc_mem_t mem, unsigned array_index, 
             } else {
                 soc_timeout_t to;
 
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "SlamDmaTimeOut:%s.%s %s timeout\n"),
                            SOC_MEM_UFNAME(unit, mem),
@@ -4952,7 +4952,7 @@ _soc_xgs3_mem_slam(int unit, uint32 flags, soc_mem_t mem, unsigned array_index, 
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                       (BSL_META_U(unit,
                                                   "SlamDmaTimeOut:_soc_xgs3_mem_slam, Abort Failed\n")));
                             break;
@@ -4977,7 +4977,7 @@ _soc_xgs3_mem_slam(int unit, uint32 flags, soc_mem_t mem, unsigned array_index, 
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                       (BSL_META_U(unit,
                                                   "SlamDmaTimeOut:_soc_xgs3_mem_slam, Abort Failed\n")));
                             break;
@@ -5737,7 +5737,7 @@ _soc_xgs3_mem_clear_slam(int unit, soc_mem_t mem,
 
         rv = soc_mem_write_range(unit, mem, copyno, index, index_end, buf);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_write_range: "
                                   "write %s.%s[%d-%d] failed: %s\n"),
@@ -6826,7 +6826,7 @@ _soc_mem_read_ser_correct(int unit, uint32 flags, soc_mem_t mem, int copyno,
             corrupt = SOC_MEM_STATE(unit, mem).corrupt[copyno];
             if (corrupt != NULL) {
                 TCAM_CORRUPT_MAP_SET(corrupt, index);
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                 "Mem[%s] index[%d] "
                                 "TCAM parity error indicating bit is set.\n"),
@@ -6843,7 +6843,7 @@ _soc_mem_read_ser_correct(int unit, uint32 flags, soc_mem_t mem, int copyno,
     if (cache != NULL && CACHE_VMAP_TST(vmap, index)
         && !SOC_MEM_TEST_SKIP_CACHE(unit)) {
         sal_memcpy(entry_data, cache + index * entry_dw, entry_dw * 4);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Unit:%d Mem[%s] index[%d] "
                                 "Force fetch data from cache.\n"),
@@ -6866,7 +6866,7 @@ _soc_mem_read_ser_correct(int unit, uint32 flags, soc_mem_t mem, int copyno,
         }
 
         sal_memcpy(schan_msg, schan_msg_cpy, sizeof(*schan_msg));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Unit:%d Mem[%s] index[%d] "
                                 "Force fetch data from other pipe.\n"),
@@ -6875,7 +6875,7 @@ _soc_mem_read_ser_correct(int unit, uint32 flags, soc_mem_t mem, int copyno,
     } else {
         void *null_entry = soc_mem_entry_null(unit, mem);
         sal_memcpy(entry_data, null_entry, entry_dw * 4);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Unit:%d Mem[%s] index[%d] "
                                 "Force fetch null data.\n"),
@@ -7016,7 +7016,7 @@ _soc_mem_read_schan_msg_send(int unit, uint32 flags, soc_mem_t mem, int copyno,
      * word + address word, and read back header word + entry_dw data words.
      */
     if (2 + entry_dw > CMIC_SCHAN_WORDS(unit)) {
-       LOG_WARN(BSL_LS_SOC_SOCMEM,
+       LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "soc_mem_read: assert will fail for memory %s\n"),
                  SOC_MEM_NAME(unit, mem)));
@@ -7037,7 +7037,7 @@ _soc_mem_read_schan_msg_send(int unit, uint32 flags, soc_mem_t mem, int copyno,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 &err, NULL, NULL);
     if (opcode != READ_MEMORY_ACK_MSG || err != 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_read: "
                               "invalid S-Channel reply, expected READ_MEMORY_ACK:, opcode %d\n"), opcode));
@@ -7363,7 +7363,7 @@ _soc_mem_read(int unit, uint32 flags, soc_mem_t mem,
     }
 
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_read: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -7379,7 +7379,7 @@ _soc_mem_read(int unit, uint32 flags, soc_mem_t mem,
      * Diagnostics need to read/write index 0 of Strata ARL and GIRULE.
      */
     if (index < 0 || index > soc_mem_index_max(unit, mem)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_read: invalid index %d for memory %s\n"),
                    index, SOC_MEM_NAME(unit, mem)));
@@ -7509,7 +7509,7 @@ soc_mem_pipe_select_read(int unit,
     }
 
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_pipe_select_read: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -7524,7 +7524,7 @@ soc_mem_pipe_select_read(int unit,
                    index <= soc_mem_index_max(unit, mem));
 
     if (!index_valid) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_pipe_select_read: invalid index %d for memory %s acc_type %d\n"),
                    index, SOC_MEM_NAME(unit, mem), acc_type));
@@ -7605,7 +7605,7 @@ soc_mem_pipe_select_read(int unit,
      * word + address word, and read back header word + entry_dw data words.
      */
     if (2 + entry_dw > CMIC_SCHAN_WORDS(unit)) {
-       LOG_WARN(BSL_LS_SOC_SOCMEM,
+       LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "soc_mem_read: assert will fail for memory %s\n"),
                  SOC_MEM_NAME(unit, mem)));
@@ -7622,7 +7622,7 @@ soc_mem_pipe_select_read(int unit,
                 corrupt = SOC_MEM_STATE(unit, mem).corrupt[copyno];
                 if (corrupt != NULL) {
                     TCAM_CORRUPT_MAP_SET(corrupt, index);
-                    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                                 (BSL_META_U(unit,
                                             "Mem[%s] index[%d] "
                                             "TCAM parity error indicating bit is set.\n"),
@@ -7637,7 +7637,7 @@ soc_mem_pipe_select_read(int unit,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 &err, NULL, NULL);
     if (opcode != READ_MEMORY_ACK_MSG || err != 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_read: "
                               "invalid S-Channel reply, expected READ_MEMORY_ACK:, opcode %d\n"), opcode));
@@ -7706,14 +7706,14 @@ _soc_mem_read_kt2(int unit,
         soc_reg_field_set(unit, ING_Q_BEGINr, &rval,
                           ING_PHYSICAL_PORT_SBUS_WITH_PKT_DISABLEf, 1);
         WRITE_ING_Q_BEGINr(unit, rval);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, "READ PKT_DISABLE=1\n")));
 
         rv = soc_mem_array_read(unit, mem, 0, copyno, index, entry_data);
         soc_reg_field_set(unit, ING_Q_BEGINr, &rval,
                           ING_PHYSICAL_PORT_SBUS_WITH_PKT_DISABLEf, 0);
         WRITE_ING_Q_BEGINr(unit, rval);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, "READ PKT_DISABLE=0\n")));
     } else {
         return soc_mem_array_read(unit, mem, 0, copyno, index, entry_data);
@@ -7880,7 +7880,7 @@ soc_mem_read_range(int unit, soc_mem_t mem, int copyno,
             indexes = (index_max > index_min) ?
                        (index_max - index_min + 1) : (index_min - index_max + 1);
             sal_memcpy(buffer, cache + (start * entry_dw), indexes * entry_sz);
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Mem[%s] "
                                     "DMA data from cache.\n"),
@@ -7892,7 +7892,7 @@ soc_mem_read_range(int unit, soc_mem_t mem, int copyno,
                                     index_max, buffer);
 #ifdef SOC_MEM_DEBUG_SPEED
     diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "Total dma read time: %d usecs, [%d nsecs per op]\n"),
                  diff_time, diff_time*1000/count));
@@ -7956,7 +7956,7 @@ soc_mem_array_read_range(int unit, soc_mem_t mem, unsigned array_index,
             length = soc_mem_entry_bytes(unit, mem) *
                      (index_max - index_min + 1);
             if (length > p->size) {
-                LOG_WARN(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Suspicious DMA length: "
                                      "Desc:%s: Size:%u: length:%u\n"),
@@ -7964,7 +7964,7 @@ soc_mem_array_read_range(int unit, soc_mem_t mem, unsigned array_index,
             }
         }
     } else if (soc_mem_dmaable(unit, mem, copyno)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "ERROR:ATTN: Address:%p:"
                               "probably not in shared memory region \n"),
@@ -7975,7 +7975,7 @@ soc_mem_array_read_range(int unit, soc_mem_t mem, unsigned array_index,
     count = 0;
 
     /* coverity[var_tested_neg : FALSE] */
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "soc_mem_array_read_range: unit %d memory %s.%s [%d:%d]\n"),
               unit, SOC_MEM_UFNAME(unit, mem),
@@ -8014,7 +8014,7 @@ soc_mem_array_read_range(int unit, soc_mem_t mem, unsigned array_index,
 
             if (SOC_FAILURE(rv)) {
                 if (rv == SOC_E_FAIL && SOC_SER_CORRECTION_SUPPORT(unit)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Mem[%s] "
                                             "DMA fallback to pio.\n"),
@@ -8291,7 +8291,7 @@ soc_scache_mem_read_range(int unit, soc_mem_t mem, int copyno,
     count = 0;
 
     /* coverity[var_tested_neg : FALSE] */
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "soc_scache_mem_read_range: unit %d memory %s.%s [%d:%d]\n"),
               unit, SOC_MEM_UFNAME(unit, mem),
@@ -8363,7 +8363,7 @@ soc_scache_mem_write_range(int unit, soc_mem_t mem, int copyno,
     meminfo = &SOC_MEM_INFO(unit, mem);
     entry_dw = soc_mem_entry_words(unit, mem);
 
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "soc_scache_mem_write_range: unit %d memory %s.%s [%d:%d]\n"),
               unit, SOC_MEM_UFNAME(unit, mem),
@@ -8689,7 +8689,7 @@ _soc_mem_write_sanity_check(int unit, soc_mem_t mem, int index)
      * Diagnostics need to read/write index 0 of Strata ARL and GIRULE.
      */
     if (index < 0 || index > soc_mem_index_max(unit, mem)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_write: invalid index %d for memory %s\n"),
                   index, SOC_MEM_NAME(unit, mem)));
@@ -8697,7 +8697,7 @@ _soc_mem_write_sanity_check(int unit, soc_mem_t mem, int index)
     }
 
     if (meminfo->flags & SOC_MEM_FLAG_READONLY) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                              "soc_mem_write: attempt to write R/O memory %s\n"),
                    SOC_MEM_NAME(unit, mem)));
@@ -8735,7 +8735,7 @@ _soc_mem_write_copyno_update(int unit, soc_mem_t mem, int *copyno,
 
     if (*copyno != COPYNO_ALL) {
         if (!SOC_MEM_BLOCK_VALID(unit, mem, *copyno)) {
-            LOG_WARN(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "soc_mem_write: invalid block %d for memory %s\n"),
                       *copyno, SOC_MEM_NAME(unit, mem)));
@@ -9037,7 +9037,7 @@ _soc_mem_write_schan_msg_create(int unit, soc_mem_t mem, int copyno,
         /* Write header + address + entry_dw data DWORDs */
         /* Note: The hardware does not send WRITE_MEMORY_ACK_MSG. */
         if (2 + entry_dw > CMIC_SCHAN_WORDS(unit)) {
-           LOG_WARN(BSL_LS_SOC_SOCMEM,
+           LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                         "soc_mem_write: assert will fail for memory %s\n"),
                     SOC_MEM_NAME(unit, mem)));
@@ -9187,7 +9187,7 @@ soc_mem_pipe_select_write(int unit,
     }
 
     if (meminfo->flags & SOC_MEM_FLAG_READONLY) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_write: attempt to write R/O memory %s\n"),
                    SOC_MEM_NAME(unit, mem)));
@@ -9231,7 +9231,7 @@ soc_mem_pipe_select_write(int unit,
 
     if (copyno != COPYNO_ALL) {
         if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-            LOG_WARN(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "soc_mem_write: invalid block %d for memory %s\n"),
                       copyno, SOC_MEM_NAME(unit, mem)));
@@ -9245,7 +9245,7 @@ soc_mem_pipe_select_write(int unit,
      */
 
     if (index < 0 || index > soc_mem_index_max(unit, mem)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_pipe_select_write: invalid index %d for memory %s acc_type %d\n"),
                   index, SOC_MEM_NAME(unit, mem), acc_type));
@@ -9336,7 +9336,7 @@ soc_mem_pipe_select_write(int unit,
         /* Write header + address + entry_dw data DWORDs */
         /* Note: The hardware does not send WRITE_MEMORY_ACK_MSG. */
         if (2 + entry_dw > CMIC_SCHAN_WORDS(unit)) {
-           LOG_WARN(BSL_LS_SOC_SOCMEM,
+           LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "soc_mem_pipe_select_write: assert will fail for memory %s\n"), SOC_MEM_NAME(unit, mem)));
         }
@@ -9512,14 +9512,14 @@ _soc_mem_write_kt2(int unit, soc_mem_t mem, int copyno, int index,
         soc_reg_field_set(unit, ING_Q_BEGINr, &rval,
                           ING_PHYSICAL_PORT_SBUS_WITH_PKT_DISABLEf , 1);
         WRITE_ING_Q_BEGINr(unit,rval);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, "WRITE PKT_DISABLE=1\n")));
 
         rv = soc_mem_array_write(unit, mem, 0, copyno, index, entry_data);
         soc_reg_field_set(unit, ING_Q_BEGINr, &rval,
                           ING_PHYSICAL_PORT_SBUS_WITH_PKT_DISABLEf , 0);
         WRITE_ING_Q_BEGINr(unit,rval);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, "WRITE PKT_DISABLE=0\n")));
     } else {
         return soc_mem_array_write(unit, mem, 0, copyno, index, entry_data);
@@ -9793,7 +9793,7 @@ soc_mem_write_range(int unit, soc_mem_t mem, int copyno,
 
 #ifdef SOC_MEM_DEBUG_SPEED
     diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "Total dma write time: %d usecs, [%d nsecs per op]\n"),
                  diff_time, diff_time*1000/count));
@@ -9862,7 +9862,7 @@ soc_mem_array_write_range(int unit, uint32 flags, soc_mem_t mem, unsigned array_
             length = soc_mem_entry_bytes(unit, mem) *
                      (index_max - index_min + 1);
             if (length > p->size) {
-                LOG_WARN(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Suspicious DMA length: "
                                      "Desc:%s: Size:%u: length:%u\n"),
@@ -9870,7 +9870,7 @@ soc_mem_array_write_range(int unit, uint32 flags, soc_mem_t mem, unsigned array_
             }
         }
     } else if (soc_mem_dmaable(unit, mem, copyno)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "ERROR:ATTN: Address:%p:"
                               "probably not in shared memory region \n"),
@@ -9883,7 +9883,7 @@ soc_mem_array_write_range(int unit, uint32 flags, soc_mem_t mem, unsigned array_
     mem_array_vmap_offset = array_index * soc_mem_index_count(unit, mem);
     mem_array_cache_offset = mem_array_vmap_offset * entry_dw;
 
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "soc_mem_array_write_range: unit %d memory %s.%s [%d:%d]\n"),
               unit, SOC_MEM_UFNAME(unit, mem),
@@ -10056,7 +10056,7 @@ int soc_mem_array_fill_range(
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "memory %s[%u:%u].%s [%d:%d]\n"),
               SOC_MEM_UFNAME(unit, mem),
@@ -10072,14 +10072,14 @@ int soc_mem_array_fill_range(
         if (soc_cm_shared_good_range(p)) {
             if (SHARED_GOOD_START(p)  && SHARED_GOOD_END_DEBUG(p)) {
                 if (soc_mem_entry_bytes(unit, mem) > p->size) {
-                    LOG_WARN(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                              (BSL_META_U(unit,
                                          "Some problem in calling: Desc:%s: Size:%u: length:%d\n"),
                               p->description, p->size, soc_mem_entry_bytes(unit, mem)));
                 }
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "ERROR:ATTN: Address:%p: probably not in shared memory region\n"),
                        p));
@@ -10178,7 +10178,7 @@ soc_mem_fill(
 
 #ifdef SOC_MEM_DEBUG_SPEED
     diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM, (BSL_META_U(unit, "Total dma write time: %d usecs\n"), diff_time));
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM, (BSL_META_U(unit, "Total dma write time: %d usecs\n"), diff_time));
 #endif
  return rc;
 }
@@ -10258,7 +10258,7 @@ _clear_use_pio:
                 for (index = index_min; index <= index_max; index++) {
                     if ((rv = soc_mem_write(unit, mem, blk, index,
                                             null_entry)) < 0) {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "soc_mem_clear: "
                                               "write %s.%s[%d] failed: %s\n"),
@@ -10388,7 +10388,7 @@ check_cache:
             for (index = index_min; index <= index_max; index++) {
                 if ((rv = soc_mem_write(unit, mem, blk, index,
                                         soc_mem_entry_null(unit, mem))) < 0) {
-                    LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                               (BSL_META_U(unit,
                                           "soc_mem_clear: "
                                           "write %s.%s[%d] failed: %s\n"),
@@ -10425,7 +10425,7 @@ check_cache:
                     if ((rv = soc_mem_write(unit, mem, blk, index,
                                             soc_mem_entry_null(unit,
                                                                mem))) < 0) {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "soc_mem_clear: "
                                               "write %s.%s[%d] failed: %s\n"),
@@ -10439,7 +10439,7 @@ check_cache:
             } /* else fall thru to default */
 #endif /* BCM_XGS_SWITCH_SUPPORT */
         default:
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_clear: don't know how to clear %s\n"),
                        SOC_MEM_UFNAME(unit, mem)));
@@ -10455,7 +10455,7 @@ check_cache:
 done:
     MEM_UNLOCK(unit, mem);
 
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "soc_mem_clear: unit %d memory %s.%s returns %s\n"),
               unit, SOC_MEM_UFNAME(unit, mem),
@@ -10508,7 +10508,7 @@ _soc_mem_search(int unit,
         mid = base + count / 2;
 
         if ((rv = soc_mem_read(unit, mem, copyno, mid, entry_data)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_search: read %s.%s[%d] failed\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -10548,7 +10548,7 @@ _soc_mem_search(int unit,
     if (lowest_match && base <= soc_mem_index_max(unit, mem)) {
         if (last_read != base &&        /* Optimize out read if possible */
             (rv = soc_mem_read(unit, mem, copyno, base, entry_data)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_search: read %s.%s[%d] failed\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -10641,7 +10641,7 @@ _soc_mem_bank_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_LOOKUP_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_bank_lookup: "
                               "invalid S-Channel reply, expected TABLE_LOOKUP_DONE_MSG:\n")));
@@ -10798,7 +10798,7 @@ _soc_mem_entry_get_key(int unit, soc_mem_t mem, void *entry, void *key)
             soc_mem_field_get(unit, mem, entry, KEYf, key_buff);
             soc_mem_field_set(unit, mem, key, KEYf, key_buff);
         } else {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "Unable to retreive key for %s.\n"),
                        SOC_MEM_NAME(unit, mem)));
@@ -10885,7 +10885,7 @@ _soc_mem_cache_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
                         /* Check and compare key with all entries in the bucket */
                         if (!SOC_IS_TD2_TT2(unit)) {
                             /* All other devices return the bucket */
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "Check in bucket: %d\n"),
                                          index));
@@ -10898,13 +10898,13 @@ _soc_mem_cache_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
                             } else if (mem == L3_ENTRY_IPV6_MULTICASTm) {
                                 index = index/4;
                             }
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "Check at index: %d\n"),
                                          index));
                             entry_base = index;
                         }
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "Base entry: %d\n"), entry_base));
                         for (e = 0; e < entries; e++) {
@@ -10914,7 +10914,7 @@ _soc_mem_cache_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
                                 entry_ptr = cache + ((entry_base+e) * entry_dw);
                                 sal_memset(match_key, 0, sizeof(match_key));
                                 /* If match found then return else continue */
-                                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                             (BSL_META_U(unit,
                                                         "Check cached entry at "
                                                         "index: %d\n"), entry_base+e));
@@ -11017,7 +11017,7 @@ soc_mem_generic_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
 
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_lookup: not supported on %s\n"),
                    SOC_CHIP_STRING(unit)));
@@ -11030,7 +11030,7 @@ soc_mem_generic_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_generic_lookup: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -11105,7 +11105,7 @@ soc_mem_generic_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_LOOKUP_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_lookup: "
                               "invalid S-Channel reply, expected TABLE_LOOKUP_DONE_MSG:\n")));
@@ -11213,7 +11213,7 @@ soc_mem_generic_lookup(int unit, soc_mem_t mem, int copyno, int32 banks,
         index_valid = (index >= 0 &&
                            index <= soc_mem_index_max(unit, mem));
         if (!index_valid) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_generic_lookup: "
                                   "invalid index %d for memory %s\n"),
@@ -11299,7 +11299,7 @@ soc_mem_alpm_lookup(int unit, soc_mem_t mem, int bucket_index,
         (mem != L3_DEFIP_ALPM_IPV6_64_1m) &&
         (mem != L3_DEFIP_ALPM_IPV4m) &&
         (mem != L3_DEFIP_ALPM_IPV4_1m)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_alpm_lookup: not supported non-ALPM memories %s\n"),
                    SOC_MEM_NAME(unit, mem)));
@@ -11308,7 +11308,7 @@ soc_mem_alpm_lookup(int unit, soc_mem_t mem, int bucket_index,
 
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_lookup: not supported on %s\n"),
                    SOC_CHIP_STRING(unit)));
@@ -11320,7 +11320,7 @@ soc_mem_alpm_lookup(int unit, soc_mem_t mem, int bucket_index,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_alpm_lookup: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -11381,7 +11381,7 @@ _retry:
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_LOOKUP_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_lookup: "
                               "invalid S-Channel reply, expected TABLE_LOOKUP_DONE_MSG:\n")));
@@ -11405,7 +11405,7 @@ _retry:
         if (type == SCHAN_GEN_RESP_TYPE_NOT_FOUND) {
             rv = SOC_E_NOT_FOUND;
         } else {
-            LOG_WARN(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "unit %d: ALPM lookup operation encountered "
                                  "parity error !!\n"), unit));
@@ -11414,12 +11414,12 @@ _retry:
                 if (sal_sem_take(SOC_CONTROL(unit)->alpm_lookup_retry,
                                  _SOC_ALPM_MEM_OP_RETRY_TO) < 0) {
                     if (_soc_alpm_lookup_retry < _SOC_ALPM_MEM_OP_RETRY_COUNT) {
-                        LOG_WARN(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                  (BSL_META_U(unit,
                                              "unit %d: Retry ALPM lookup operation..\n"), unit));
                         goto _retry;
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "unit %d: Aborting ALPM lookup operation "
                                               "due to un-correctable error !!\n"), unit));
@@ -11513,7 +11513,7 @@ soc_mem_alpm_insert(int unit, soc_mem_t mem, int bucket,
         (mem != L3_DEFIP_ALPM_IPV6_64_1m) &&
         (mem != L3_DEFIP_ALPM_IPV4m) &&
         (mem != L3_DEFIP_ALPM_IPV4_1m)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_alpm_insert: not supported non-ALPM memories %s\n"),
                    SOC_MEM_NAME(unit, mem)));
@@ -11524,7 +11524,7 @@ soc_mem_alpm_insert(int unit, soc_mem_t mem, int bucket,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_alpm_insert: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -11584,7 +11584,7 @@ _retry:
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_INSERT_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_alpm_insert: "
                               "invalid S-Channel reply, expected TABLE_INSERT_DONE_MSG:\n")));
@@ -11602,20 +11602,20 @@ _retry:
             *index_ptr = -1;
         }
         if (type == SCHAN_GEN_RESP_TYPE_FULL) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Insert table[%s]: hash bucket full\n"),
                       SOC_MEM_NAME(unit, mem)));
             rv = SOC_E_FULL;
         } else if (type == SCHAN_GEN_RESP_TYPE_ERROR) {
             if (err_info == SCHAN_GEN_RESP_ERROR_BUSY) {
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Insert table[%s]: Modfifo full\n"),
                           SOC_MEM_NAME(unit, mem)));
                 rv = SOC_E_BUSY;
             } else if (err_info == SCHAN_GEN_RESP_ERROR_PARITY) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "unit %d ALPM insert table[%s]: Parity Error Index %d\n"),
                            unit, SOC_MEM_NAME(unit, mem), index));
@@ -11624,12 +11624,12 @@ _retry:
                     if (sal_sem_take(SOC_CONTROL(unit)->alpm_insert_retry,
                                  _SOC_ALPM_MEM_OP_RETRY_TO) < 0) {
                         if (_soc_alpm_insert_retry < _SOC_ALPM_MEM_OP_RETRY_COUNT) {
-                            LOG_WARN(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                      (BSL_META_U(unit,
                                                  "unit %d: Retry ALPM insert operation..\n"), unit));
                             goto _retry;
                         } else {
-                            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                       (BSL_META_U(unit,
                                                   "unit %d: Aborting ALPM insert operation "
                                                   "due to un-correctable error !!\n"), unit));
@@ -11729,7 +11729,7 @@ soc_mem_alpm_delete(int unit, soc_mem_t mem, int bucket,
         (mem != L3_DEFIP_ALPM_IPV6_64_1m) &&
         (mem != L3_DEFIP_ALPM_IPV4m) &&
         (mem != L3_DEFIP_ALPM_IPV4_1m)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_alpm_insert: not supported non-ALPM memories %s\n"),
                    SOC_MEM_NAME(unit, mem)));
@@ -11737,7 +11737,7 @@ soc_mem_alpm_delete(int unit, soc_mem_t mem, int bucket,
     }
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_delete: not supported on %s\n"),
                    SOC_CHIP_STRING(unit)));
@@ -11749,7 +11749,7 @@ soc_mem_alpm_delete(int unit, soc_mem_t mem, int bucket,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_generic_delete: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -11824,7 +11824,7 @@ _retry:
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_DELETE_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_delete: "
                               "invalid S-Channel reply, expected TABLE_DELETE_DONE_MSG:\n")));
@@ -11848,20 +11848,20 @@ _retry:
             *index_ptr = -1;
         }
         if (type == SCHAN_GEN_RESP_TYPE_NOT_FOUND) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Delete table[%s]: Not found\n"),
                       SOC_MEM_NAME(unit, mem)));
             rv = SOC_E_NOT_FOUND;
         } else if (type == SCHAN_GEN_RESP_TYPE_ERROR) {
             if (err_info == SCHAN_GEN_RESP_ERROR_BUSY) {
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Delete table[%s]: Modfifo full\n"),
                           SOC_MEM_NAME(unit, mem)));
                 rv = SOC_E_BUSY;
             } else if (err_info == SCHAN_GEN_RESP_ERROR_PARITY) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "ALPM delete table[%s]: Parity Error Index %d\n"),
                            SOC_MEM_NAME(unit, mem), index));
@@ -11870,12 +11870,12 @@ _retry:
                     if (sal_sem_take(SOC_CONTROL(unit)->alpm_delete_retry,
                                      _SOC_ALPM_MEM_OP_RETRY_TO) < 0) {
                         if (_soc_alpm_delete_retry < _SOC_ALPM_MEM_OP_RETRY_COUNT) {
-                            LOG_WARN(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                      (BSL_META_U(unit,
                                                  "unit %d: Retry ALPM delete operation..\n"), unit));
                             goto _retry;
                         } else {
-                            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                       (BSL_META_U(unit,
                                                   "unit %d: Aborting ALPM delete operation "
                                                   "due to un-correctable error !!\n"), unit));
@@ -12506,7 +12506,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
 
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_insert: not supported on %s\n"),
                    SOC_CHIP_STRING(unit)));
@@ -12518,7 +12518,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_generic_insert: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -12583,7 +12583,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
             }
             rv1 = soc_mem_generic_lookup(unit, mem, copyno, bid,
                                          entry, NULL, &index);
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Sh-Ins-Lukp: bank[%d] "
                                     "rv[%d] index[%d]\n"),
@@ -12615,7 +12615,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
                 *index_ptr = index;
             }
             ok = 1; rv = SOC_E_EXISTS;
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Sh-Ins-Lukp: "
                                     "replace at index:%d\n"), index));
@@ -12653,7 +12653,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
                             *index_ptr = index;
                         }
                         ok = 1; rv = SOC_E_NONE;
-                        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                                     (BSL_META_U(unit,
                                                 "Sh-Ins-Lukp: "
                                                 "insert at index:%d\n"), index));
@@ -12674,7 +12674,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
                                 *index_ptr = index;
                             }
                             ok = 1; rv = SOC_E_NONE;
-                            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                                         (BSL_META_U(unit,
                                                     "Sh-Ins-Lukp: "
                                                     "insert at index:%d\n"), index));
@@ -12697,7 +12697,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
         index_valid = (index >= 0 &&
                        index <= soc_mem_index_max(unit, mem));
         if (!index_valid) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_generic_insert: "
                                   "invalid index %d for memory %s\n"),
@@ -12772,7 +12772,7 @@ soc_mem_generic_insert(int unit, soc_mem_t mem, int copyno, int32 banks,
      * (header word + response word + entry_dw) data words.
      */
     if (2 + entry_dw > CMIC_SCHAN_WORDS(unit)) {
-       LOG_WARN(BSL_LS_SOC_SOCMEM,
+       LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "soc_mem_generic_insert: assert will fail for memory %s\n"),
                  SOC_MEM_NAME(unit, mem)));
@@ -12790,7 +12790,7 @@ _retry_op:
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_INSERT_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_insert: "
                               "invalid S-Channel reply, expected TABLE_INSERT_DONE_MSG:\n")));
@@ -12828,7 +12828,7 @@ _retry_op:
                (type == SCHAN_GEN_RESP_MAC_LIMIT_THRESHOLD) ||
                (type == SCHAN_GEN_RESP_MAC_LIMIT_DELETE)))
         {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Insert table[%s]: hash bucket full\n"),
                       SOC_MEM_NAME(unit, mem)));
@@ -12839,7 +12839,7 @@ _retry_op:
                 (type == SCHAN_GEN_RESP_TYPE_L2_FIFO_FULL) ||
                 (type == SCHAN_GEN_RESP_TYPE_MAC_LIMIT_THRE) ||
                 (type == SCHAN_GEN_RESP_TYPE_MAC_LIMIT_DEL)) {
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Insert table[%s]: hash bucket full\n"),
                           SOC_MEM_NAME(unit, mem)));
@@ -12864,13 +12864,13 @@ _retry_op:
                 }
 #endif /* BCM_ESW_SUPPORT */
                 if (err_info == SCHAN_GEN_RESP_ERROR_BUSY) {
-                    LOG_INFO(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                              (BSL_META_U(unit,
                                          "Insert table[%s]: Modfifo full\n"),
                               SOC_MEM_NAME(unit, mem)));
                     rv = SOC_E_BUSY;
                 } else if (err_info == SCHAN_GEN_RESP_ERROR_PARITY) {
-                    LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                               (BSL_META_U(unit,
                                           "Insert table[%s]: Parity Error Index %d\n"),
                                SOC_MEM_NAME(unit, mem), index));
@@ -12886,7 +12886,7 @@ _retry_op:
                         if (insert_retry_attempt < HASH_MEM_OP_RETRY_COUNT) {
                             insert_retry_attempt++;
                             sal_memcpy(&schan_msg, &schan_msg_cpy, sizeof(schan_msg));
-                            LOG_WARN(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                      (BSL_META_U(unit,
                                                  "unit %d: Retry Hash insert operation..\n"),
                                       unit));
@@ -12894,7 +12894,7 @@ _retry_op:
                         }
 
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "unit %d, table[%s]: Parity error recovery failed, return value: %d\n"),
                                    unit, SOC_MEM_NAME(unit, mem), rv));
@@ -12912,14 +12912,14 @@ _retry_op:
                         if (insert_retry_attempt < HASH_MEM_OP_RETRY_COUNT) {
                             insert_retry_attempt++;
                             sal_memcpy(&schan_msg, &schan_msg_cpy, sizeof(schan_msg));
-                            LOG_WARN(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                      (BSL_META_U(unit,
                                                  "unit %d: Retry Hash insert operation..\n"),
                                       unit));
                             goto _retry_op;
                         }
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                                   (BSL_META_U(unit,
                                               "unit %d, table[%s]: Parity error recovery failed, return value: %d\n"),
                                    unit, SOC_MEM_NAME(unit, mem), rv));
@@ -13014,7 +13014,7 @@ _retry_op:
         index_valid = (index >= 0 &&
                        index <= soc_mem_index_max(unit, mem));
         if (!index_valid) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_generic_insert: "
                                   "invalid index %d for memory %s\n"),
@@ -13116,7 +13116,7 @@ soc_mem_generic_delete(int unit, soc_mem_t mem, int copyno, int32 banks,
 
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_delete: not supported on %s\n"),
                    SOC_CHIP_STRING(unit)));
@@ -13129,7 +13129,7 @@ soc_mem_generic_delete(int unit, soc_mem_t mem, int copyno, int32 banks,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_generic_delete: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -13223,7 +13223,7 @@ _retry_op_delete:
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != TABLE_DELETE_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_generic_delete: "
                               "invalid S-Channel reply, expected TABLE_DELETE_DONE_MSG:\n")));
@@ -13256,20 +13256,20 @@ _retry_op_delete:
             *index_ptr = -1;
         }
         if (type == SCHAN_GEN_RESP_TYPE_NOT_FOUND) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Delete table[%s]: Not found\n"),
                       SOC_MEM_NAME(unit, mem)));
             rv = SOC_E_NOT_FOUND;
         } else if (type == SCHAN_GEN_RESP_TYPE_ERROR) {
             if (err_info == SCHAN_GEN_RESP_ERROR_BUSY) {
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Delete table[%s]: Modfifo full\n"),
                           SOC_MEM_NAME(unit, mem)));
                 rv = SOC_E_BUSY;
             } else if (err_info == SCHAN_GEN_RESP_ERROR_PARITY) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "Delete table[%s]: Parity Error Index %d\n"),
                            SOC_MEM_NAME(unit, mem), index));
@@ -13290,7 +13290,7 @@ _retry_op_delete:
                             rv = SOC_E_NONE;
                         } else {
                             sal_memcpy(&schan_msg, &schan_msg_cpy, sizeof(schan_msg));
-                            LOG_WARN(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                      (BSL_META_U(unit,
                                                  "unit %d: Retry Hash delete operation..\n"),
                                       unit));
@@ -13298,7 +13298,7 @@ _retry_op_delete:
                         }
                       }
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                               (BSL_META_U(unit,
                                           "unit %d, table[%s]: Parity error recovery failed, return value: %d\n"),
                                unit, SOC_MEM_NAME(unit, mem), rv));
@@ -13320,7 +13320,7 @@ _retry_op_delete:
                             rv = SOC_E_NONE;
                         } else {
                             sal_memcpy(&schan_msg, &schan_msg_cpy, sizeof(schan_msg));
-                            LOG_WARN(BSL_LS_SOC_SOCMEM,
+                            LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                                      (BSL_META_U(unit,
                                                  "unit %d: Retry Hash delete operation..\n"),
                                       unit));
@@ -13328,7 +13328,7 @@ _retry_op_delete:
                         }
                     }
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                               (BSL_META_U(unit,
                                           "unit %d, table[%s]: Parity error recovery failed, return value: %d\n"),
                                unit, SOC_MEM_NAME(unit, mem), rv));
@@ -13417,7 +13417,7 @@ _retry_op_delete:
             index_valid = (index >= 0 &&
                            index <= soc_mem_index_max(unit, mem));
             if (!index_valid) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "soc_mem_generic_delete: "
                                       "invalid index %d for memory %s\n"),
@@ -14650,7 +14650,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                 v0 = v1 = v2 = v3 = 1;
                 break;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Depth %d, 1st read %d index %d from bank %d bucket %d(%d %d %d %d)\n"),
                          recurse_depth, mem, index+i, cb, bucket,
@@ -14680,7 +14680,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                     if (SHR_BITGET(trace, (numb * nbix) + dest_bucket)) {
                         /* Try next entry in the same bucket */
                         i++;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "  Skip(1) bank %d bucket %d, go to bank %d index %d\n"),
                                      db, dest_bucket, cb, index+i));
@@ -14698,7 +14698,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                         mem = ori_mem;
                         break;
                     }
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Depth %d, L-2nd read %d index %d from bank %d bucket %d\n"),
                                  recurse_depth, mem, index, cb, bucket));
@@ -14721,7 +14721,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                             mem = ori_mem;
                             index = ori_index;
                             i++;
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "  Skip(2) bank %d bucket %d, go to mem %d " \
                                                     "bank %d index %d \n"),
@@ -14731,7 +14731,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                         }
                     }
                 } else {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Depth %d, Existing entry width is narrower, but can't move\n"),
                                  recurse_depth));
@@ -14745,7 +14745,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                 mem = wider_mem;
                 index = (index + i) / cmp_rv;
                 rv = soc_mem_read(unit, mem, copyno, index, move_entry);
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Depth %d, G-2nd read %d index %d from bank %d bucket %d\n"),
                              recurse_depth, mem, index, cb, bucket));
@@ -14774,7 +14774,7 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                         index = ori_index;
                         i += _soc_mem_shared_hash_incr_per_entry(unit, mem,
                                                          move_entry, entry);
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "  Skip(3) bank %d bucket %d, go to bank %d index %d\n"),
                                      db, dest_bucket, cb, index+i));
@@ -14785,19 +14785,19 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
 
             /* Attempt to insert it into the other bank. */
             rv = soc_mem_bank_insert(unit, mem, (uint32)1<<db, copyno, move_entry, NULL);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Depth %d, trying to insert %d index %d to bank %d\n"),
                          recurse_depth, mem, index, db));
             if (SOC_FAILURE(rv)) {
                 if (rv != SOC_E_FULL) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "  But failed, rv %s, ori_mem %d\n"), soc_errmsg(rv), ori_mem));
                     mem = ori_mem;
                     break;
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "  But bank is full, insert failed, will do recurse\n")));
                 /* Recursive call - attempt to create a slot
@@ -14816,19 +14816,19 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                     continue;
                 }
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  Insert successfully\n")));
             /* Entry was moved successfully. */
             found = TRUE;
             /* Delete old entry from original location */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Depth %d, trying to delete %d index %d from bank %d\n"),
                          recurse_depth, mem, index, cb));
             rv = soc_mem_generic_delete(unit, mem, MEM_BLOCK_ANY, (uint32)1<<cb,
                                         move_entry, NULL, NULL);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  Delete moved entry [%d]: %d\n"), mc++, rv));
             mem = ori_mem;
@@ -14852,11 +14852,11 @@ _soc_mem_shared_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
     }
     rv = soc_mem_generic_insert(unit, mem, copyno, (uint32)1<<cb, entry, entry, NULL);
     if (rv) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Insert entry: %d\n"), rv));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Insert entry [%d]\n"), ic++));
     }
@@ -15015,7 +15015,7 @@ _soc_mem_shared_hash_move_entry_resolve(int unit, soc_mem_t mem, int copyno,
         break;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Read %s from index %d (%d %d %d %d)\n"),
                  SOC_MEM_NAME(unit, mem), index, v0, v1, v2, v3));
@@ -15244,7 +15244,7 @@ _soc_mem_shared_hash_breadth_move(int unit, soc_mem_t mem,
                         i += _soc_mem_shared_hash_incr_per_entry(unit, mem,
                                                                  move_entry,
                                                                  entry);
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "  Skip bank %d bucket %d\n"),
                                      db, dest_bucket));
@@ -15275,7 +15275,7 @@ _soc_mem_shared_hash_breadth_move(int unit, soc_mem_t mem,
             /* Delete old entry from original location */
             rv = soc_mem_generic_delete(unit, mem, MEM_BLOCK_ANY, (uint32)1<<cb,
                                         move_entry, NULL, NULL);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  Depth %d, Delete moved entry [%d]: %d\n"),
                          recurse_depth, mc++, rv));
@@ -15311,11 +15311,11 @@ _soc_mem_shared_hash_breadth_move(int unit, soc_mem_t mem,
     rv = soc_mem_generic_insert(unit, mem, copyno, (uint32)1<<cb,
                                 entry, entry, NULL);
     if (rv) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Insert entry: %d\n"), rv));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Insert entry [%d]\n"), ic++));
     }
@@ -15387,7 +15387,7 @@ _soc_mem_insert(int unit,
 
         if ((rv = soc_mem_write(unit, mem, copyno,
                                 ins_index, entry_data)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_insert: write %s.%s[%d] failed\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -15413,7 +15413,7 @@ _soc_mem_insert(int unit,
 
         if ((rv = soc_mem_read(unit, mem, copyno,
                                index - 1, entry_tmp)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_insert: read %s.%s[%d] failed\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -15423,7 +15423,7 @@ _soc_mem_insert(int unit,
 
         if ((rv = soc_mem_write(unit, mem, copyno,
                                 index, entry_tmp)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_insert: write %s.%s[%d] failed\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -15438,7 +15438,7 @@ _soc_mem_insert(int unit,
 
     if ((rv = soc_mem_write(unit, mem, copyno,
                             ins_index, entry_data)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_insert: write %s.%s[%d] failed\n"),
                    SOC_MEM_UFNAME(unit, mem),
@@ -15771,7 +15771,7 @@ _soc_mem_delete_index(int unit,
 
             if ((rv = soc_mem_read(unit, mem, copyno,
                                    index + 1, entry_tmp)) < 0) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "soc_mem_delete_index: "
                                       "read %s.%s[%d] failed\n"),
@@ -15782,7 +15782,7 @@ _soc_mem_delete_index(int unit,
 
             if ((rv = soc_mem_write(unit, mem, copyno,
                                     index, entry_tmp)) < 0) {
-                LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                           (BSL_META_U(unit,
                                       "soc_mem_delete_index: "
                                       "write %s.%s[%d] failed\n"),
@@ -15795,7 +15795,7 @@ _soc_mem_delete_index(int unit,
 
     if ((rv = soc_mem_write(unit, mem, copyno, index,
                             soc_mem_entry_null(unit, mem))) < 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_delete_index: "
                               "write %s.%s[%d] failed\n"),
@@ -16166,7 +16166,7 @@ _soc_mem_pop(int unit, soc_mem_t mem, int copyno, void *entry_data)
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_pop: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -16211,7 +16211,7 @@ _soc_mem_pop(int unit, soc_mem_t mem, int copyno, void *entry_data)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != FIFO_POP_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_pop: "
                               "invalid S-Channel reply, expected FIFO_POP_DONE_MSG:\n")));
@@ -16228,7 +16228,7 @@ _soc_mem_pop(int unit, soc_mem_t mem, int copyno, void *entry_data)
     }
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Fifo pop: ")));
         soc_mem_entry_dump(unit, mem, entry_data);
@@ -16263,7 +16263,7 @@ _soc_mem_push(int unit, soc_mem_t mem, int copyno, void *entry_data)
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_push: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -16302,7 +16302,7 @@ _soc_mem_push(int unit, soc_mem_t mem, int copyno, void *entry_data)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != FIFO_PUSH_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_push: "
                               "invalid S-Channel reply, expected FIFO_PUSH_DONE_MSG:\n")));
@@ -16315,7 +16315,7 @@ _soc_mem_push(int unit, soc_mem_t mem, int copyno, void *entry_data)
     }
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Fifo push: ")));
         soc_mem_entry_dump(unit, mem, entry_data);
@@ -16544,7 +16544,7 @@ _soc_mem_fifo_dma_get_read_ptr(int unit, int chan, void **host_ptr, int *count)
 
     data_beats = soc_reg_field_get(unit, cfg_reg, rval, BEAT_COUNTf);
     if (data_beats <= 0) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "Invalid BEAT_COUNT (%d) in "
                               "CMIC_FIFO_CH%d_RD_DMA_CFG \n"), data_beats, chan));
@@ -16720,7 +16720,7 @@ soc_mem_pop(int unit,
         switch (mem) {
         /* return _soc_mem_pop(unit, mem, copyno, entry_data); */
             default:
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_pop: implement mem POP\n")));
                 return SOC_E_BADID;
@@ -16756,7 +16756,7 @@ soc_mem_push(int unit,
 {
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_push: not supported on %s\n"),
                    SOC_CHIP_STRING(unit)));
@@ -16960,7 +16960,7 @@ soc_mem_entries(int unit,
         copyno = SOC_MEM_BLOCK_ANY(unit, mem);
     }
     if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "soc_mem_entries: invalid block %d for memory %s\n"),
                   copyno, SOC_MEM_NAME(unit, mem)));
@@ -17070,7 +17070,7 @@ soc_mem_iterate(int unit, soc_mem_iter_f do_it, void *data)
     int       rv = SOC_E_NONE;
 
     if (!do_it) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "soc_mem_iterate: Callback function is NULL")));
         return SOC_E_PARAM;
@@ -17093,7 +17093,7 @@ soc_mem_iterate(int unit, soc_mem_iter_f do_it, void *data)
          * Call user provided callback function.
          */
         if ((rv = do_it(unit, mem, data)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_iterate: Failed on memory (%s)\n"),
                        SOC_MEM_NAME(unit, mem)));
@@ -17153,7 +17153,7 @@ soc_host_ccm_copy(int unit, void *srcbuf, void *dstbuf,
                 soc_pci_mcs_write(unit, PTR_TO_INT(dstptr), reg);
                 reg2 = soc_pci_mcs_read(unit, PTR_TO_INT(dstptr));
                 if (reg2 != reg) {
-                    LOG_ERROR(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                               (BSL_META_U(unit,
                                           "ccm_dma: compare error %x (%x %x)\n"),
                                PTR_TO_INT(dstptr), reg, reg2));
@@ -17199,7 +17199,7 @@ soc_host_ccm_copy(int unit, void *srcbuf, void *dstbuf,
             }
     } else {
         soc_timeout_t to;
-        LOG_WARN(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_WARN(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "using Polling mode for CCM DMA\n")));
         soc_timeout_init(&to, soc->ccmDmaTimeout, 10000);
@@ -17218,7 +17218,7 @@ soc_host_ccm_copy(int unit, void *srcbuf, void *dstbuf,
     }
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_ERROR(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(unit,
                               "CcmDmaTimeout: unit %d, ccm_dma timeout\n"), unit));
 
@@ -18041,7 +18041,7 @@ soc_mem_field_clear_all(int unit,
         /* read a chunk of data from mem */
         rv = soc_mem_read_range(unit, mem, copyno, index, index_end, buf);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_read_range: "
                                   "read %s.%s[%d-%d] failed: %s\n"),
@@ -18061,7 +18061,7 @@ soc_mem_field_clear_all(int unit,
         /* Write back the entries to mem */
         rv = soc_mem_write_range(unit, mem, copyno, index, index_end, buf);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_ERROR(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "soc_mem_write_range: "
                                   "write %s.%s[%d-%d] failed: %s\n"),

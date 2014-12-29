@@ -360,7 +360,7 @@ bcm_rx_pool_alloc(int unit, int size, uint32 flags, void **pool)
     }
 
     if (size > rxp_pkt_size) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "bcm_rx_pool_alloc: %d > %d\n"),
                    size, rxp_pkt_size));
@@ -457,7 +457,7 @@ bcm_rx_pool_free(int unit, void *buf)
             /* Buffers should never be freed more than once, but
                distinguish the error between a freed buffer that gets
                reused vs. one that doesn't. */
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Double free of buffer %d\n"),
                       idx));
@@ -473,7 +473,7 @@ bcm_rx_pool_free(int unit, void *buf)
                    rxp_pkt_size - sizeof(void *));
 #if 1 /* Turn this on to verify the entire free list */
         if (bcm_rx_pool_free_verify_p() != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "RX Pool error while checking %d\n"),
                       idx));
@@ -515,7 +515,7 @@ bcm_rx_pool_dump(int min, int max)
     }
     for (i = min; i < max; i++) {
         ptr = (uint32 *)RXP_BUF_START(i);
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META("Pkt %d: %p. [0] 0x%x [1] 0x%x [2] 0x%x\n"),
                   i,
                   ptr, ptr[0], ptr[1], ptr[2]));
@@ -539,16 +539,16 @@ bcm_rx_pool_buf_dump(void *buf, int until)
             if (i > until && (*ptr == FREE_STATE || *ptr == ALLOC_STATE)) {
                 break;
             }
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META("\n%p:"),
                        ptr));
         }
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META(" %08x"),
                    *ptr));
         ptr++;
     }
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META("\n")));
 }
 
@@ -582,19 +582,19 @@ bcm_rx_pool_free_verify_p(void)
     for (buf = rxp_free_list; buf != NULL; buf = RXP_PKT_NEXT(buf)) {
         idx = RXP_BUF_IDX(buf);
         if (!(idx >= 0 && idx < rxp_pkt_count)) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META("RXP BAD BUFFER %p. idx %d\n"),
                       buf, idx));
             if (last_buf != NULL) {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META("RXP BAD BUFFER: Previous buf %p idx %d\n"),
                           last_buf, RXP_BUF_IDX(last_buf)));
             } else {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META("RXP BAD BUFFER: First elt of free list\n")));
             }
             if (idx >= 0 && idx < rxp_pkt_count) {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META("RXP IDX %d out of range (0,%d)"),
                           idx, rxp_pkt_count));
             }
@@ -630,7 +630,7 @@ bcm_rx_pool_own(void *buf, void *owner)
     rxp_tracker[idx].owner = (char *)owner;
 #else
     if ((idx < 0) || (idx >= rxp_pkt_count)) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META("RXP: Buffer %p (idx %d) out of range "
                   "max %d, owner %s\n"), buf, idx,
                   rxp_pkt_count, (char *)owner));
@@ -665,13 +665,13 @@ bcm_rx_pool_report(int min, int max)
             count++;
         }
     }
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META(" #  s  alloc    free     owner\n")));
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META("--- -  -------- -------- ------------\n")));
     for (i = min; i < max; i++) {
         str = rxp_tracker[i].owner;
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("%3d %1d%s %8d %8d %p %s\n"),
                    i,
                    rxp_tracker[i].state,
@@ -682,12 +682,12 @@ bcm_rx_pool_report(int min, int max)
                    _ISALPHA(str) ? str : "?"));
     }
 
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META("  RXPool Used %d. Failed %d. Tot alloc %d. "
                "Tot free %d. Size %d. Count %d.\n"), rxp_alloc_count, rxp_alloc_fail,
                rxp_tot_alloc_count, rxp_tot_free_count, rxp_pkt_size, rxp_pkt_count));
     if (count != rxp_alloc_count) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("  RXP WARNING:  Alloc %d, counted %d\n"),
                    rxp_alloc_count, count));
     }

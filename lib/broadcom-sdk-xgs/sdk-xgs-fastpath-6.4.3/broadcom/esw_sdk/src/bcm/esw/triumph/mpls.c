@@ -873,7 +873,7 @@ void bcmi_tr_mpls_vc_swap_hash_dump(int unit)
     int i, count = 0;
 
 
-    LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
         "printing VC and SWAP hash table\n")));
 
     if (bcmi_vc_swap_label_hash[unit] != NULL) {
@@ -882,7 +882,7 @@ void bcmi_tr_mpls_vc_swap_hash_dump(int unit)
             temp = hash->head_link;
             if (temp != NULL) {
                 while (temp != NULL) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                         "hash index = %d : table index = %d \n"), 
                         i, temp->index));
                     temp = temp->link;
@@ -890,7 +890,7 @@ void bcmi_tr_mpls_vc_swap_hash_dump(int unit)
                 }
             }
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,"\ntotal counts = %d\n"),
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,"\ntotal counts = %d\n"),
              count));
     }
 }
@@ -1992,7 +1992,7 @@ bcm_tr_mpls_init(int unit)
 #endif /* BCM_KATANA_SUPPORT */
 
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_ERROR(BSL_LS_BCM_MPLS,
+        LOG_BSL_ERROR(BSL_LS_BCM_MPLS,
                   (BSL_META_U(unit,
                               "L3 module must be initialized prior to MPLS_init\n")));
         return BCM_E_CONFIG;
@@ -4684,7 +4684,7 @@ bcmi_tr_mpls_vc_swap_hash_index_get(int unit, bcm_mpls_port_t *mpls_port,
     /* Generate key for hash table lookup */
     BCM_IF_ERROR_RETURN(bcmi_tr_mpls_vc_swap_hash_key_get
         (unit, mpls_port, info, egr_obj, action, vc_entry, key));
-    LOG_INFO(BSL_LS_SOC_MPLS, (BSL_META_U(unit,
+    LOG_BSL_INFO(BSL_LS_SOC_MPLS, (BSL_META_U(unit,
         "Printing Key : Label = %d , label_action = %d\n "), key[0], key[1]));
 
     *idx = _shr_crc16b(0, (uint8*)key, 
@@ -4971,7 +4971,7 @@ _bcm_tr_mpls_get_vc_and_swap_table_index (int unit, int flags,
         }
 
         if (rv != BCM_E_EXISTS) {
-            LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                 "Hash Entry insertion failed  = %d\n"), rv));
             return rv;
         }
@@ -8291,7 +8291,7 @@ _bcm_tr_mpls_match_add(int unit, bcm_mpls_port_t *mpls_port, int vp, int vpn)
                 if (old_match_label != mpls_port->match_label) {
                     /* If MPLS label stat is used for this MPLS_ENTRY then
                     * it must be released first using stat_detach*/
-                    LOG_ERROR(BSL_LS_BCM_MPLS,
+                    LOG_BSL_ERROR(BSL_LS_BCM_MPLS,
                               (BSL_META_U(unit,
                                           "The flex stat counter %d for the "
                                           "old label %d must be detached first\n before performing "
@@ -11134,7 +11134,7 @@ bcm_tr_mpls_port_add(int unit, bcm_vpn_t vpn, bcm_mpls_port_t *mpls_port)
 
     BCM_IF_ERROR_RETURN(bcm_xgs3_l3_egress_mode_get(unit, &mode));
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;
@@ -12670,7 +12670,7 @@ bcm_tr_mpls_tunnel_initiator_set(int unit, bcm_if_t intf, int num_labels,
     }
 
     if (!BCM_L3_INTF_USED_GET(unit, intf)) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 interface not created\n")));
         return BCM_E_NOT_FOUND;
@@ -13157,7 +13157,7 @@ bcm_tr_mpls_tunnel_initiator_clear(int unit, bcm_if_t intf)
     }
 
     if (!BCM_L3_INTF_USED_GET(unit, intf)) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 interface not created\n")));
         return BCM_E_NOT_FOUND;
@@ -13195,7 +13195,7 @@ bcm_tr_mpls_tunnel_initiator_get(int unit, bcm_if_t intf, int label_max,
     }
 
     if (!BCM_L3_INTF_USED_GET(unit, intf)) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 interface not created\n")));
         return BCM_E_NOT_FOUND;
@@ -14981,7 +14981,7 @@ bcm_tr_mpls_tunnel_switch_add(int unit, bcm_mpls_tunnel_switch_t *info)
     rv = bcm_xgs3_l3_egress_mode_get(unit, &mode);
     BCM_IF_ERROR_RETURN(rv);
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

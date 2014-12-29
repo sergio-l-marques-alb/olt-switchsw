@@ -1644,11 +1644,11 @@ _bcm_l3_defip_init(int unit)
             rv = soc_alpm_init(unit);
         }
         if (BCM_SUCCESS(rv)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "ALPM mode initialized\n")));
         } else {
-            LOG_ERROR(BSL_LS_BCM_ALPM,
+            LOG_BSL_ERROR(BSL_LS_BCM_ALPM,
                       (BSL_META_U(unit,
                                   "ALPM mode initialization failed, "
                                   "retVal = %d\n"), rv));
@@ -1657,7 +1657,7 @@ _bcm_l3_defip_init(int unit)
     }
 #else /* ALPM_ENABLE */
     if (soc_property_get(unit, spn_L3_ALPM_ENABLE, 0)) {
-        LOG_WARN(BSL_LS_BCM_ALPM,
+        LOG_BSL_WARN(BSL_LS_BCM_ALPM,
                  (BSL_META_U(unit,
                              "ALPM mode support is not compiled. Please, "
                              "recompile the SDK with ALPM_ENABLE proprocessor variable "

@@ -160,7 +160,7 @@ _bcm_board_sl_topomap(int src_unit, int dest_modid, bcm_port_t *exit_port)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("SL topo map failed unit %d to mod id %d\n"),
                  src_unit, dest_modid));
 
@@ -186,7 +186,7 @@ _bcm_board_sl_modport(int unit, topo_cpu_t *tp_cpu)
     /* set everything to the default */
     rv = bcm_stk_modport_clear_all(unit);
     if (rv < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META_U(unit,
                     "SL modport %d: modport failed: %s\n"),
                      unit, bcm_errmsg(rv)));
@@ -196,7 +196,7 @@ _bcm_board_sl_modport(int unit, topo_cpu_t *tp_cpu)
 	return rv;
     }
 
-    LOG_INFO(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_INFO(BSL_LS_TKS_TOPOLOGY,
              (BSL_META_U(unit,
                          "SL modport unit %d\n"),
               unit));
@@ -210,7 +210,7 @@ _bcm_board_sl_modport(int unit, topo_cpu_t *tp_cpu)
 	}
 
         tsp = &tp_cpu->tp_stk_port[i];
-        LOG_INFO(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_INFO(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META_U(unit,
                              "SL modport map unit %d port %d mods %d\n"),
                   unit, port, tsp->tx_mod_num));
@@ -258,7 +258,7 @@ _bcm_board_sl_loop(int unit, topo_cpu_t *tp_cpu)
 	      (CPUDB_SPF_TX_RESOLVED | CPUDB_SPF_RX_RESOLVED))) {
 	    BCM_PBMP_PORT_ADD(cutports, port);
 	} else if (l_entry->sp_info[i].flags & CPUDB_SPF_CUT_PORT) {
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META_U(unit,
                         "BRD: Port %d.%d is a cut port\n"),
                          punit, port));
@@ -344,7 +344,7 @@ _bcm_board_sl_l2(int unit, topo_cpu_t *tp_cpu, cpudb_ref_t db_ref,
 	}
 	rv = bcm_l2_addr_delete(unit, _bcm_sl_l2mac[i], atp_vlan);
 	if (rv < 0 && rv != BCM_E_NOT_FOUND) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META_U(unit,
                      "BRD: Could not l2 delete mac %x:%x:%x\n"),
                       _bcm_sl_l2mac[i][3],
@@ -372,7 +372,7 @@ _bcm_board_sl_l2(int unit, topo_cpu_t *tp_cpu, cpudb_ref_t db_ref,
 
         if (use_dflt_port) {
             if (dflt_exit_port < 0) {
-                LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                          (BSL_META_U(unit,
                                      "BRD: CPU L2 map; not local but no dflt port"
                                      " for unit %d and key " CPUDB_KEY_FMT_EOLN),
@@ -384,7 +384,7 @@ _bcm_board_sl_l2(int unit, topo_cpu_t *tp_cpu, cpudb_ref_t db_ref,
         }
 
 	l2addr.flags |= BCM_L2_STATIC;
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META_U(unit,
                     "BRD: Adding L2 on %d for " CPUDB_KEY_FMT
                      " to mod %d port %d\n"),
@@ -476,7 +476,7 @@ _bcm_board_sl_common(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref,
 int
 bcm_board_topo_24f2g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: SL 5645 24FE+2GE board topology handler\n")));
     return _bcm_board_sl_common(tp_cpu, db_ref, TRUE);
 }
@@ -489,7 +489,7 @@ bcm_board_topo_24f2g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 int
 bcm_board_topo_48f4g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: SL 5665 48FE+4GE board topology handler\n")));
     return _bcm_board_sl_common(tp_cpu, db_ref, FALSE);
 }
@@ -504,7 +504,7 @@ bcm_board_topo_48f2g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     uint32 flags;
     int unit;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: SL b2b 5645 48FE+2GE board topology handler\n")));
 
     /* Add the internal stack ports */

@@ -78,7 +78,7 @@ bcm_cx4_fabric_setup(int unit, bcm_port_t port)
 {
     if (port == CFM1_PORT_CX4) {
         /* CFM in slot 1 */
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_cx4_fabric_setup: port=%d CFM slot-1\n"),
                    port));
@@ -89,7 +89,7 @@ bcm_cx4_fabric_setup(int unit, bcm_port_t port)
         WRITE_ING_EGRMSKBMAPr(unit, CFM1_PORT_CX4, 0x048);
     } else if (port == CFM2_PORT_CX4) {
         /* CFM in slot 2 */
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_cx4_fabric_setup: unit=%d port=%d CFM slot-2\n"),
                    unit, port));
@@ -99,7 +99,7 @@ bcm_cx4_fabric_setup(int unit, bcm_port_t port)
         WRITE_ING_EGRMSKBMAPr(unit, CFM1_PORT_CX4, 0x048);
     } else {
         /* Both CFMs active */
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_cx4_fabric_setup: unit=%d port=%d CFM slot-1&2\n"),
                    unit, port));
@@ -115,7 +115,7 @@ bcm_fabric_setup(int unit, bcm_port_t port)
 {
     if (port == CFM1_PORT_LM) {
         /* CFM in slot 1 */
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_fabric_setup: unit=%d port=%d CFM slot-1\n"),
                               unit, port));
@@ -124,7 +124,7 @@ bcm_fabric_setup(int unit, bcm_port_t port)
         WRITE_ING_EGRMSKBMAPr(unit, DRACO_UNIT1_PORT, 0x142);
     } else if (port == CFM2_PORT_LM) {
         /* CFM in slot 2 */
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_fabric_setup: unit=%d port=%d CFM slot-2\n"),
                               unit, port));
@@ -132,7 +132,7 @@ bcm_fabric_setup(int unit, bcm_port_t port)
         WRITE_ING_EGRMSKBMAPr(unit, DRACO_UNIT1_PORT, 0x10a);
     } else {
         /* Both CFMs active */
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_fabric_setup: unit=%d port=%d CFM slot-1&2\n"),
                               unit, port));
@@ -149,7 +149,7 @@ bcm_cfm_fail_over(int unit, bcm_port_t port, bcm_port_info_t *info)
 
     cfm_port = port;
 
-    LOG_ERROR(BSL_LS_APPL_CHASSIS,
+    LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
               (BSL_META_U(unit,
                           "bcm_cfm_fail_over: unit = %d port = %d Link = %s\n"),
                           unit, port, info->linkstatus ? "Up" : "Down"));
@@ -209,7 +209,7 @@ void bcm_cfm_failover_attach(int unit)
             bcm_fabric_setup(unit, cfm_port);
         }
 
-        LOG_ERROR(BSL_LS_APPL_CHASSIS,
+        LOG_BSL_ERROR(BSL_LS_APPL_CHASSIS,
                   (BSL_META_U(unit,
                               "bcm_cfm_failover_attach: unit = %d %s\n"),
                               unit, "Registered Handler for CFM failover")); 

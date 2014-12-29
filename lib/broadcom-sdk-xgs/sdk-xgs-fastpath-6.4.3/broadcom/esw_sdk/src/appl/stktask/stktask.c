@@ -259,7 +259,7 @@ st_bad_event_warn(bcm_st_state_t state, bcm_st_event_t event)
 
     if (warn_count < bcm_st_max_bad_event_warnings) {
         ++warn_count;
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST ERR: Unexpected event %s in state %s.\n"),
                      BCM_STE_VALID(event) ?
                      bcm_st_event_strings[event] : "(invalid)",
@@ -322,7 +322,7 @@ st_disc_event_process(bcm_st_event_t event)
     bcm_st_state_t new_state = st_state;
 
     if (BCM_STE_DISC_STARTABLE(event)) { /* Re-start discovery */
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: State DISC, event %s restarting discovery\n"),
                      bcm_st_event_strings[event]));
         /* Signal discovery to restart */
@@ -408,12 +408,12 @@ discovery_start(void)
     if (st_disc_tid == SAL_THREAD_ERROR) {
         /* Throw error; abort and return to caller */
         bcm_st_flags |= BCM_STF_ABORT;
-        LOG_ERROR(BSL_LS_TKS_STKTASK,
+        LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                   (BSL_META("ST: Discovery thread not running on start; aborting\n")));
         return;
     }
     if (!(bcm_st_flags & BCM_STF_DISC_SLEEPING)) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Discovery thread not sleeping on start\n")));
         
     }
@@ -436,7 +436,7 @@ discovery_stop(int retry_max)
 
     rv = st_config.st_disc_abort(BCM_E_FAIL, 0);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Discovery abort (fail) returns %s\n"),
                   bcm_errmsg(rv)));
     }
@@ -447,7 +447,7 @@ discovery_stop(int retry_max)
         sal_usleep(10000);
     }
     if (!(bcm_st_flags & BCM_STF_DISC_SLEEPING)) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Discovery thread won't sleep; aborting\n")));
         ST_LOCK;
         bcm_st_flags |= BCM_STF_ABORT;
@@ -472,7 +472,7 @@ discovery_quit(int retry_max)
     if (!(flags & BCM_STF_DISC_SLEEPING)) {
         rv = st_config.st_disc_abort(BCM_E_FAIL, 0);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_TKS_STKTASK,
+            LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                      (BSL_META("ST: Discovery abort (fail) returns %s\n"),
                       bcm_errmsg(rv)));
         }
@@ -485,7 +485,7 @@ discovery_quit(int retry_max)
         sal_usleep(10000);
     }
     if (st_disc_tid != SAL_THREAD_ERROR) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Discovery thread won't quit\n")));
         rv = BCM_E_FAIL;
     }
@@ -519,7 +519,7 @@ st_state_change(bcm_st_state_t new_state, bcm_st_event_t event)
     sal_usecs_t ttime;
 
     ttime = sal_time_usecs();
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("ST: Trans from %s to %s on event %s [T=%u]\n"),
                  bcm_st_state_strings[st_state],
                  bcm_st_state_strings[new_state],
@@ -530,7 +530,7 @@ st_state_change(bcm_st_state_t new_state, bcm_st_event_t event)
     rv = st_config.st_transition(st_state, event, new_state,
                                  bcm_st_disc_db, bcm_st_cur_db);
     if (rv < 0) { /* Error from appl state transition */
-        LOG_ERROR(BSL_LS_TKS_STKTASK,
+        LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                   (BSL_META("ST: Appl trans returns %s; State was %s.\n"),
                    bcm_errmsg(rv), bcm_st_state_strings[st_state]));
         new_state = BCM_STS_BLOCKED;
@@ -538,7 +538,7 @@ st_state_change(bcm_st_state_t new_state, bcm_st_event_t event)
 
     /* new state could change due to above; make sure still different */
     if (new_state == st_state) {
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: Trans from %s cancelled\n"),
                      bcm_st_state_strings[st_state]));
         return;
@@ -567,7 +567,7 @@ st_state_change(bcm_st_state_t new_state, bcm_st_event_t event)
     case BCM_STS_TOPO: /* Start topology processing */
         ST_UNLOCK;
         if ((rv = st_config.st_topo(bcm_st_disc_db)) < 0) {
-            LOG_WARN(BSL_LS_TKS_STKTASK,
+            LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                      (BSL_META("ST: st_topo returns %s\n"),
                       bcm_errmsg(rv)));
         }
@@ -576,7 +576,7 @@ st_state_change(bcm_st_state_t new_state, bcm_st_event_t event)
         promote_disc_database();
         ST_UNLOCK;
         if ((rv = st_config.st_attach(bcm_st_cur_db)) < 0) {
-            LOG_WARN(BSL_LS_TKS_STKTASK,
+            LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                      (BSL_META("ST: st_attach returns %s\n"),
                       bcm_errmsg(rv)));
         }
@@ -662,7 +662,7 @@ st_pending_events_handle(void)
     }
 
     if (st_pending_events != 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Clearing illegal pending flags: 0x%x\n"),
                   st_pending_events));
         st_pending_events = 0;
@@ -861,7 +861,7 @@ stk_units_gen(void)
         }
         if (!found) {
             if (st_num_stk_units >= CPUDB_UNITS_MAX) {
-                LOG_ERROR(BSL_LS_TKS_STKTASK,
+                LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                           (BSL_META("ST: cannot stack more than %d units\n"),
                            CPUDB_UNITS_MAX));
                 return BCM_E_FAIL;
@@ -891,7 +891,7 @@ st_comm_setup(void)
         port = st_config.base.stk_ports[i].port;
         rv = next_hop_port_add(unit, port, 0);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_TKS_STKTASK,
+            LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                      (BSL_META("ST: stkport %d.%d nexthop add failed: %s\n"),
                       unit, port, bcm_errmsg(rv)));
         }
@@ -901,17 +901,17 @@ st_comm_setup(void)
     if (bcm_st_cfg_flags & BCM_STC_DISC_PKT_REGISTER) {
         rv = next_hop_register(st_nh_callback, NULL, SHARED_PKT_TYPE_DISC_NH);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_TKS_STKTASK,
+            LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                      (BSL_META("ST: nexthop register failed: %s\n"),
                       bcm_errmsg(rv)));
         }
     }
     if (!next_hop_running()) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Nexthop is not running\n")));
     }
     if ((rv = next_hop_update((cpudb_base_t *)&st_config.base)) < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Nexthop update returns %s\n"),
                   bcm_errmsg(rv)));
     }
@@ -925,7 +925,7 @@ st_comm_setup(void)
             }
             if ((rv = atp_start(bcm_st_atp_flags, unit_bmp,
                                 BCM_RCO_F_ALL_COS)) < 0) {
-                LOG_WARN(BSL_LS_TKS_STKTASK,
+                LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                          (BSL_META("ST: ATP start returns %s\n"),
                           bcm_errmsg(rv)));
             }
@@ -934,7 +934,7 @@ st_comm_setup(void)
 
     /* Add local key to ATP */
     if ((rv = atp_key_add(st_config.base.key, TRUE)) < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: ATP key add returns %s\n"),
                   bcm_errmsg(rv)));
     }
@@ -948,22 +948,22 @@ st_comm_shutdown(void)
     int i;
 
     for (i = 0; i < st_num_stk_units; i++) {
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: linkscan unregister\n")));
         (void)bcm_linkscan_unregister(st_stk_units[i], st_linkscan_handler);
     }
     if (bcm_st_cfg_flags & BCM_STC_COMM_FAIL_REGISTER) {
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: unregister comm fail\n")));
         (void)atp_timeout_register(NULL);
     }
     if (bcm_st_cfg_flags & BCM_STC_DISC_PKT_REGISTER) {
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: disc packet unregister\n")));
         (void)next_hop_unregister(st_nh_callback, SHARED_PKT_TYPE_DISC_NH);
     }
     if (bcm_st_cfg_flags & BCM_STC_START_ATP) {
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: stopping ATP\n")));
         (void)atp_stop();
     }
@@ -1035,7 +1035,7 @@ st_nh_callback(cpudb_key_t src_key,
      */
     idx = st_stk_port_find(rx_unit, rx_port, FALSE);
     if (idx < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Nexthop pkt on non-stk port (%d, %d)\n"),
                   rx_unit, rx_port));
         return BCM_RX_NOT_HANDLED;
@@ -1056,14 +1056,14 @@ st_nh_callback(cpudb_key_t src_key,
            There's no point in completing topology configuration if
            there's another system that needs to be part of the stack.
         */
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: Probe pkt in TOPO from " CPUDB_KEY_FMT_EOLN),
                      CPUDB_KEY_DISP(src_key)));
 
         bcm_st_event_send(BCM_STE_TOPO_FAILURE);
 
     } else {
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: Probe pkt in from " CPUDB_KEY_FMT_EOLN),
                      CPUDB_KEY_DISP(src_key)));
         /* Discovery pkt on stack port */
@@ -1123,7 +1123,7 @@ st_linkscan_handler(int unit, bcm_port_t port, bcm_port_info_t *info)
             if (BCM_SUCCESS(topo_board_rapid_recovery(bcm_st_cur_db,
                                                       unit, port))) {
                 ST_UNLOCK;
-                LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                             (BSL_META_U(unit,
                             "Rapid recovery successful for unit %d, port %d\n"),
                             unit, port));
@@ -1140,7 +1140,7 @@ st_linkscan_handler(int unit, bcm_port_t port, bcm_port_info_t *info)
            modid feature is not enabled. */
         if (!bcm_st_reserved_modid_enable_get()) {
             if ((rv = nh_tx_src_mod_port_set(unit, port, -1, -1)) < 0) {
-                LOG_WARN(BSL_LS_TKS_STKTASK,
+                LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                          (BSL_META_U(unit,
                          "ST: Link down, error clearing mod/port: %s\n"),
                           bcm_errmsg(rv)));
@@ -1152,7 +1152,7 @@ st_linkscan_handler(int unit, bcm_port_t port, bcm_port_info_t *info)
     ST_WAKE;
     ST_UNLOCK;
 
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META_U(unit,
                 "ST: Link change idx %d, (%d, %d) %s\n"),
                  idx, unit, port,
@@ -1232,7 +1232,7 @@ bcm_st_link_state_get(int unit, bcm_port_t port, int *link)
 STATIC void
 st_comm_failure(cpudb_key_t key)
 {
-    LOG_WARN(BSL_LS_TKS_STKTASK,
+    LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
              (BSL_META("STACK: communication timeout to " CPUDB_KEY_FMT_EOLN),
               CPUDB_KEY_DISP(key)));
 
@@ -1257,14 +1257,14 @@ pre_discovery_prep(void)
 
     bcm_st_disc_db = cpudb_create();
     if (bcm_st_disc_db == CPUDB_REF_NULL) {
-        LOG_ERROR(BSL_LS_TKS_STKTASK,
+        LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                   (BSL_META("ST ERR: Error creating DB.\n")));
         return -1;
     }
     st_config.base.dseq_num = st_ev_count;
     if (cpudb_local_base_info_set(bcm_st_disc_db,
                                   (cpudb_base_t *)&st_config.base) < 0) {
-        LOG_ERROR(BSL_LS_TKS_STKTASK,
+        LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                   (BSL_META("ST ERR: Error creating local entry.\n")));
         CPUDB_TOPO_DESTROY(bcm_st_disc_db);
         bcm_st_disc_db = CPUDB_REF_NULL;
@@ -1314,7 +1314,7 @@ st_encap_check(cpudb_entry_t *local_entry)
             BCM_SUCCESS(bcm_stk_mode_get(unit, &stk_mode))) {
             int idx = st_stk_port_find(unit, port, FALSE);
 
-            LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                         (BSL_META_U(unit,
                         "ST: sp(%d,%d) idx=%d encap=%d stkmode=%d\n"),
                          unit,port,idx,mode.encap, stk_mode));
@@ -1333,7 +1333,7 @@ st_encap_check(cpudb_entry_t *local_entry)
                 }
             }
         } else {
-            LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                         (BSL_META_U(unit,
                         "ST: sp(%d,%d): could not get encap/mode.\n"),
                          unit,port));
@@ -1414,7 +1414,7 @@ st_disc_thread(void *cookie)
 
     COMPILER_REFERENCE(cookie);
     /* Synchronize with calling thread */
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("ST [T=%u]: Disc thread started, id %d\n"),
                  sal_time_usecs(), PTR_TO_INT(sal_thread_self())));
     /* Signal about to sleep */
@@ -1432,7 +1432,7 @@ st_disc_thread(void *cookie)
         if (st_state != BCM_STS_DISC) { /* Bad state */
             bcm_st_flags |= BCM_STF_DISC_SLEEPING;
             ST_UNLOCK;
-            LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                         (BSL_META("ST: Disc thread awake, but state %s; continuing\n"),
                          bcm_st_state_strings[st_state]));
             continue;
@@ -1442,7 +1442,7 @@ st_disc_thread(void *cookie)
         rv = st_disc_loop();
 
         BREAK_IF_ABORT(bcm_st_flags);
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: Disc ends: %d [T=%u]\n"),
                      rv, sal_time_usecs()));
         if (rv == BCM_E_NONE) {
@@ -1460,7 +1460,7 @@ st_disc_thread(void *cookie)
     st_disc_tid = SAL_THREAD_ERROR;
     ST_UNLOCK;
 
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("STACK: Disc thread exiting\n")));
     sal_thread_exit(rv);
 }
@@ -1492,7 +1492,7 @@ stk_port_link_state_init(int unit, bcm_port_t port, int sp)
     ST_LOCK;
     rv = bcm_port_link_status_get(unit, port, &link);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_TKS_STKTASK,
+        LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                   (BSL_META_U(unit,
                   "ST: activating stkport %d.%d link status failed: %s\n"),
                    unit, port, bcm_errmsg(rv)));
@@ -1523,7 +1523,7 @@ st_link_init(void)
         for (i = 0; i < st_num_stk_units; i++) {
             rv = bcm_linkscan_register(st_stk_units[i], st_linkscan_handler);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_TKS_STKTASK,
+                LOG_BSL_ERROR(BSL_LS_TKS_STKTASK,
                           (BSL_META("ST: link register failed: %s\n"),
                            bcm_errmsg(rv)));
             }
@@ -1547,14 +1547,14 @@ local_board_setup(cpudb_key_t key)
     int rv;
 
     if ((local_ref = cpudb_create()) == NULL) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Could not create setup DB\n")));
         return BCM_E_MEMORY;
     }
 
     
     if ((rv = cpudb_local_base_info_set(local_ref, &st_config.base)) < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Setup could not set base info: %s\n"),
                   bcm_errmsg(rv)));
         return rv;
@@ -1563,14 +1563,14 @@ local_board_setup(cpudb_key_t key)
     st_encap_check(local_ref->local_entry); 
 
     if ((rv = topology_mod_ids_assign(local_ref)) < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Could not setup modids: %s\n"),
                   bcm_errmsg(rv)));
         return rv;
     }
     
     if ((rv = topo_board_setup(local_ref)) < 0) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Could not setup local topology: %s\n"),
                   bcm_errmsg(rv)));
         return rv;
@@ -1665,7 +1665,7 @@ st_disc_thread_started(void)
         sal_thread_yield();
         sal_usleep(10000);
         if (++count > 400) {
-            LOG_WARN(BSL_LS_TKS_STKTASK,
+            LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                      (BSL_META("ST: Discovery thread not alive on startup\n")));
             return BCM_E_TIMEOUT;
         }
@@ -1705,13 +1705,13 @@ bcm_st_start(bcm_st_config_t *config, int enable)
     }
 
     if (st_disc_tid != SAL_THREAD_ERROR) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: Discovery thread is running\n")));
         return BCM_E_FAIL;
     }
 
     if (!atp_running() && !(bcm_st_cfg_flags & BCM_STC_START_ATP)) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("ST: ATP is not running\n")));
     }
 
@@ -1741,7 +1741,7 @@ bcm_st_start(bcm_st_config_t *config, int enable)
         return rv;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("Stack task started [T=%u]: %s with %d stk unit%s.\n"),
                  st_transition_time, enable ? "ready" : "blocked",
                  st_num_stk_units, st_num_stk_units != 1 ? "s" : ""));
@@ -1761,7 +1761,7 @@ bcm_st_start(bcm_st_config_t *config, int enable)
     if (st_disc_tid == SAL_THREAD_ERROR) {
         bcm_st_flags &= ~BCM_STF_RUNNING;
         ST_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                     (BSL_META("ST: Could not create discovery thread\n")));
         return BCM_E_FAIL;
     }
@@ -1779,7 +1779,7 @@ bcm_st_start(bcm_st_config_t *config, int enable)
     /* Process events until forced to exit */
     st_event_loop();
 
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("ST: Aborting [T=%u]\n"),
                  sal_time_usecs()));
     st_comm_shutdown();
@@ -1920,7 +1920,7 @@ bcm_st_event_send(bcm_st_event_t event)
     ST_UNLOCK;
     ST_WAKE;
 
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("ST: sending event %s [T=%u]\n"),
                  bcm_st_event_strings[event],
                  sal_time_usecs()));
@@ -2076,11 +2076,11 @@ bcm_st_transition(bcm_st_state_t from,
                   cpudb_ref_t cur_db)
 {
     if (event == BCM_STE_TIMEOUT && from != BCM_STS_BLOCKED) {
-        LOG_WARN(BSL_LS_TKS_STKTASK,
+        LOG_BSL_WARN(BSL_LS_TKS_STKTASK,
                  (BSL_META("TKS ST TIMEOUT in state %s\n"),
                   bcm_st_state_strings[from]));
     }
-    LOG_VERBOSE(BSL_LS_TKS_STKTASK,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_STKTASK,
                 (BSL_META("TKS ST transition: disc_db %p. cur_db %p\n"),
                  disc_db, cur_db));
 

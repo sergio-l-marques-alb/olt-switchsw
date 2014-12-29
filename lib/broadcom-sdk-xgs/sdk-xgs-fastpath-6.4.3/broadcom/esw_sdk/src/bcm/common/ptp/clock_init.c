@@ -355,7 +355,7 @@ bcm_common_ptp_clock_create(
         if (clock_cache->in_use) {
             /* reconfiguration.  Don't allow the number of ports to exceed the initial config */
             if (clock_info->num_ports > clock_cache->max_num_ports) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Clock reconfiguration with %d ports exceeds initial number (%d)\n"),
                            clock_info->num_ports, clock_cache->max_num_ports));

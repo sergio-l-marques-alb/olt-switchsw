@@ -210,7 +210,7 @@ _phy_54580_medium_check(int unit, soc_port_t port, int *medium)
                   SOC_PORT_MEDIUM_COPPER; 
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_54580_medium_check: "
                             "u=%d p=%d fiber_pref=%d fiber=%d\n"),
@@ -445,7 +445,7 @@ _phy_54580_no_reset_setup(int unit, soc_port_t port, int fiber)
     int rv = SOC_E_NONE;
     int fiber_capable = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_54580_reset_setup: u=%d p=%d medium=%s\n"),
                          unit, port,
@@ -513,7 +513,7 @@ phy_54580_init(int unit, soc_port_t port)
     bmacsec_dev_addr_t macsec_dev_addr, qsgmii_dev_addr, phy_dev_addr;
     int         mmi_mdio_addr, port_index, macsec_enable;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54xxx_init: u=%d p=%d\n"),
                          unit, port));
@@ -538,7 +538,7 @@ phy_54580_init(int unit, soc_port_t port)
 
     mmi_mdio_addr = soc_property_port_get(unit, port, spn_MACSEC_DEV_ADDR, -1);
     if (mmi_mdio_addr == -1) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_54580_init: "
                              "MACSEC_DEV_ADDR property "
@@ -548,7 +548,7 @@ phy_54580_init(int unit, soc_port_t port)
 
     port_index = soc_property_port_get(unit, port, spn_MACSEC_PORT_INDEX, -1);
     if (port_index == -1) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_54580_init: "
                              "MACSEC_PORT_INDEX property not configured for "
@@ -592,13 +592,13 @@ phy_54580_init(int unit, soc_port_t port)
                             BMACSEC_CORE_BCM5458X_B0, bmacsec_io_mmi1);
     }
     if (!SOC_SUCCESS(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "soc_macsecphy_init: MACSEC init for"
                               " u=%d p=%d FAILED "), unit, port));
         return SOC_E_FAIL;
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "soc_macsecphy_init: MACSEC init for"
                              " u=%d p=%d SUCCESS "), unit, port));
@@ -609,7 +609,7 @@ phy_54580_init(int unit, soc_port_t port)
                                    qsgmii_mdio, pc->macsec_dev_port,
                                    (pc->phy_rev) ? bmacsec_io_mmi1 : bmacsec_io_mmi); 
     if(rv != BMACSEC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_54580_init: bmacsec_phy_mac_addr_set "
                              "returned error for u=%d p=%d\n"), unit, port));
@@ -628,7 +628,7 @@ phy_54580_init(int unit, soc_port_t port)
     pc->fiber_detect =
         soc_property_port_get(unit, port, spn_PHY_FIBER_DETECT, 0);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_init: "
                          "u=%d p=%d type=54580%s automedium=%d fiber_pref=%d detect=%d\n"),
@@ -819,7 +819,7 @@ phy_54580_enable_set(int unit, soc_port_t port, int enable)
                 (PHY_ENABLE_SET(int_pc->pd, unit, port, enable));
         }
     
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_54580_enable_set: "
                              "Power %s fiber medium\n"), (enable) ? "up" : "down"));
@@ -893,7 +893,7 @@ _phy_54580_medium_change(int unit, soc_port_t port, int force_update,
                 SOC_IF_ERROR_RETURN
                     (_phy_54580_medium_config_update(unit, port, &pc->copper));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_54580_link_auto_detect: u=%d p=%d [F->C]\n"),
                       unit, port));
@@ -908,7 +908,7 @@ _phy_54580_medium_change(int unit, soc_port_t port, int force_update,
 
             SOC_IF_ERROR_RETURN
                 (_phy_54580_medium_config_update(unit, port, &pc->fiber));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_54580_link_auto_detect: u=%d p=%d [C->F]\n"),
                       unit, port));
@@ -1005,7 +1005,7 @@ phy_54580_link_get(int unit, soc_port_t port, int *link)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_54580_link_get: u=%d p=%d mode=%s%s link=%d\n"),
                  unit, port,
@@ -1070,7 +1070,7 @@ phy_54580_duplex_set(int unit, soc_port_t port, int duplex)
         pc->copper.force_duplex = duplex;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_duplex_set: u=%d p=%d d=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -1192,7 +1192,7 @@ phy_54580_speed_set(int unit, soc_port_t port, int speed)
             }
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_speed_set: u=%d p=%d s=%d fiber=%d rv=%d\n"),
               unit, port, speed, PHY_FIBER_MODE(unit, port), rv));
@@ -1237,12 +1237,12 @@ phy_54580_speed_get(int unit, soc_port_t port, int *speed)
     rv = bmacsec_phy54580_speed_get(phy_dev_addr, port_mode, speed);
 
     if(!BMACSEC_E_SUCCESS(rv)) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_54580_speed_get: u=%d p=%d invalid speed\n"),
                   unit, port));
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_54580_speed_get: u=%d p=%d speed=%d"),
                   unit, port, *speed));
@@ -1289,7 +1289,7 @@ phy_54580_master_set(int unit, soc_port_t port, int master)
         pc->copper.master = master;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_master_set: u=%d p=%d master=%d fiber=%d rv=%d\n"),
               unit, port, master, PHY_FIBER_MODE(unit, port), rv));
@@ -1389,7 +1389,7 @@ phy_54580_autoneg_set(int unit, soc_port_t port, int autoneg)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_autoneg_set: u=%d p=%d autoneg=%d rv=%d\n"),
               unit, port, autoneg, rv));
@@ -1519,7 +1519,7 @@ phy_54580_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_adv_local_set: u=%d p=%d mode=0x%x, rv=%d\n"),
               unit, port, mode, rv));
@@ -1595,7 +1595,7 @@ phy_54580_adv_local_get(int unit, soc_port_t port, soc_port_mode_t *mode)
             *mode |= SOC_PM_PAUSE_RX;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_adv_local_get: u=%d p=%d mode=0x%x, rv=%d\n"),
               unit, port, *mode, rv));
@@ -1674,7 +1674,7 @@ phy_54580_adv_remote_get(int unit, soc_port_t port, soc_port_mode_t *mode)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_adv_remote_get: u=%d p=%d mode=0x%x, rv=%d\n"),
               unit, port, *mode, rv));
@@ -1734,7 +1734,7 @@ phy_54580_lb_set(int unit, soc_port_t port, int enable)
     phy_dev_addr = SOC_MACSECPHY_MDIO_ADDR(unit, pc->phy_id, 0); 
     rv = bmacsec_phy54580_loopback_set(phy_dev_addr, port_mode, enable);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_54580_lb_set: u=%d p=%d en=%d rv=%d\n"), 
               unit, port, enable, rv));

@@ -1058,7 +1058,7 @@ bcm_tr3_wlan_init(int unit)
         return BCM_E_UNAVAIL;
     }
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 module must be initialized first\n")));
         return BCM_E_NONE;
@@ -1275,7 +1275,7 @@ _bcm_tr3_wlan_client_api_to_hw(int unit, axp_wrx_wcd_entry_t *hw_entry,
     sal_memset(hw_entry, 0, sizeof(axp_wrx_wcd_entry_t));
     if ((info->flags & BCM_WLAN_CLIENT_ROAMED_IN) &&
         (info->flags & BCM_WLAN_CLIENT_ROAMED_OUT)) {
-         LOG_WARN(BSL_LS_BCM_COMMON,
+         LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Invalid! ROAMED_IN and ROAMED_OUT flags are enabled \n")));
         return BCM_E_PARAM;
@@ -2423,7 +2423,7 @@ bcm_tr3_wlan_port_add(int unit, bcm_wlan_port_t *wlan_port)
     rv = bcm_xgs3_l3_egress_mode_get(unit, &mode);
     BCM_IF_ERROR_RETURN(rv);
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

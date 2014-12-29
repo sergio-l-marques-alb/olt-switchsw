@@ -167,7 +167,7 @@ _xlmac_drain_cells(int unit, soc_port_t port, int notify_phy)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_ERROR(BSL_LS_SOC_XLMAC,
+            LOG_BSL_ERROR(BSL_LS_SOC_XLMAC,
                       (BSL_META_U(unit,
                                   "ERROR: port %d:%s: "
                                   "timeout draining TX FIFO (%d cells remain)\n"),
@@ -473,7 +473,7 @@ int xlmac_encap_set(int unit, soc_port_t port, int flags, portmod_encap_t encap)
              break;
 
         default:
-             LOG_ERROR(BSL_LS_SOC_XLMAC,
+             LOG_BSL_ERROR(BSL_LS_SOC_XLMAC,
                       (BSL_META_U(unit, "illegal encap mode %d"), encap));
              return (SOC_E_PARAM); 
              break;
@@ -591,7 +591,7 @@ int xlmac_runt_threshold_set(int unit, soc_port_t port, int value)
     uint64 reg_val;
 
     if (value > 96) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, 
                      "runt size should be small than 96. got %d"), value));
         return (SOC_E_PARAM);
@@ -752,7 +752,7 @@ int xlmac_tx_preamble_length_set(int unit, soc_port_t port, int length)
     uint64 reg_val;
 
     if(length > 8){
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, 
                        "runt size should be small than 8. got %d"), length));
         return (SOC_E_PARAM);
@@ -1046,7 +1046,7 @@ int xlmac_llfc_control_get (int unit, soc_port_t port,
 int
 xlmac_duplex_set(int unit, soc_port_t port, int duplex)
 {
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_xl_duplex_set: unit %d port %s duplex=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1071,7 +1071,7 @@ xlmac_duplex_get(int unit, soc_port_t port, int *duplex)
 {
     *duplex = TRUE; /* Always full duplex */
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_xl_duplex_get: unit %d port %s duplex=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1099,7 +1099,7 @@ int xlmac_init(int unit, soc_port_t port, uint32_t init_flags)
     is_higig             =init_flags & XLMAC_INIT_F_IS_HIGIG         ? 1 : 0;
 
     if(is_append && is_replace) {
-        LOG_VERBOSE(BSL_LS_SOC_10G,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                     (BSL_META_U(unit, "XLAMC_INIT_F_TX_APPEND_CRC & XLAMC_INIT_F_TX_REPLACE_CRC can't co-exist")));
         return (SOC_E_PARAM);
     }

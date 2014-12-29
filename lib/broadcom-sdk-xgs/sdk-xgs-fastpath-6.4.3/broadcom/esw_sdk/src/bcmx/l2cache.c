@@ -330,7 +330,7 @@ bcmx_l2_cache_set(int index, bcmx_l2_cache_addr_t *addr, int *index_used)
 
     BCMX_UNIT_ITER(bcm_unit, i) {
         if (_bcmx_l2_cache_addr_to_bcm(bcm_unit, &bcm_l2, addr) < 0) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META("BCMX L2 CACHE WARN:  "
                                "Failed to convert "
                                "L2 Cache address to BCM\n")));

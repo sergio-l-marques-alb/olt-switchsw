@@ -119,7 +119,7 @@ bcm_robo_l2_cache_delete(int unit, int index)
     int         useraddr_mode = 0;
 #endif /* BCM_HARRIER_SUPPORT */
 
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_cache_delete()..\n")));
     
@@ -184,7 +184,7 @@ bcm_robo_l2_cache_delete_all(int unit)
     int index, size;
     int rv;
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_cache_delete_all()..\n")));
 
@@ -230,7 +230,7 @@ bcm_robo_l2_cache_get(int unit, int index, bcm_l2_cache_addr_t *addr)
     int         useraddr_mode = 0;
 #endif  /* BCM_HARRIER_SUPPORT */
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_cache_get()..\n")));
     
@@ -423,7 +423,7 @@ _bcm_robo_l2_cache_search(int unit, bcm_l2_cache_addr_t *addr, int *id)
                 }
             } else {
                 /* unexpect erorr */
-                LOG_INFO(BSL_LS_BCM_ARL,
+                LOG_BSL_INFO(BSL_LS_BCM_ARL,
                          (BSL_META_U(unit,
                                      "%s,failed on check #%d L2 user address\n"),
                           FUNCTION_NAME(), i));
@@ -487,7 +487,7 @@ bcm_robo_l2_cache_set(int unit, int index, bcm_l2_cache_addr_t *addr, int *index
     uint32      ctrl_cnt = 1, ctrl_type = DRV_DEV_CTRL_L2_USERADDR;    
 #endif /* BCM_HARRIER_SUPPORT */
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_cache_set()..\n")));
     
@@ -552,7 +552,7 @@ bcm_robo_l2_cache_set(int unit, int index, bcm_l2_cache_addr_t *addr, int *index
                     (index == 1 || index == 2)) {
                 if (useraddr_free_cnt != 2) {
                     *index_used = index;
-                    LOG_WARN(BSL_LS_BCM_COMMON,
+                    LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                              (BSL_META_U(unit,
                                          "Failed on set #%d BPDU address, please clear L2 user address first!\n"),
                               index));
@@ -580,7 +580,7 @@ bcm_robo_l2_cache_set(int unit, int index, bcm_l2_cache_addr_t *addr, int *index
             if (useraddr_mode == _BCM_HARRIER_USER_ADDR_MODE_BPDU) {
                 if (useraddr_free_cnt != 2) {
                     *index_used = index;
-                    LOG_WARN(BSL_LS_BCM_COMMON,
+                    LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                              (BSL_META_U(unit,
                                          "Failed on set #%d user L2 address, please clear user external BPDU address first!\n"),
                               index));
@@ -647,7 +647,7 @@ bcm_robo_l2_cache_set(int unit, int index, bcm_l2_cache_addr_t *addr, int *index
 int 
 bcm_robo_l2_cache_size_get(int unit, int *size) 
 {
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_cache_size_get()..\n")));
     

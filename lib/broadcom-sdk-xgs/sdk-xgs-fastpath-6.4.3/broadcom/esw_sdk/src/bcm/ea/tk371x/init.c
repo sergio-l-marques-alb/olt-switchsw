@@ -88,7 +88,7 @@ static int bcm_init_flag = 0;
         int rv;                                                         \
         rv = (_rtn)(unit);                                              \
         if (rv < 0 && rv != BCM_E_UNAVAIL) {                            \
-            LOG_ERROR(BSL_LS_BCM_COMMON, \
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                       (BSL_META("bcm_clear %d: %s failed %d. %s\n"),    \
                        unit, _name, rv, bcm_errmsg(rv)));              \
             return rv;                                                  \

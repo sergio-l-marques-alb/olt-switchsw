@@ -377,7 +377,7 @@ soc_internal_exact_match_bucket_get(pcid_info_t *pcid_info, int bank,
     hash_offset = soc_reg_field_get(unit, reg, rval[0], fields[index]);
     bucket = entry_hash_proc(unit, bank, hash_offset, use_lsb, entry);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bank %d bucket %d\n"), bank, bucket)); 
 
@@ -462,7 +462,7 @@ soc_internal_exact_match_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, 
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, 
                 (BSL_META_U(unit, "EXACT_MATCH Insert\n")));
 
     rv = soc_internal_exact_match_size_get(pcid_info, entry, &mem,
@@ -524,7 +524,7 @@ soc_internal_exact_match_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
                     addr = soc_mem_addr_get(unit, mem, 0, block_info_index,
                                             index, &acc_type);
 
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "write block %d acc_type %d bank %d "
                                             "bucket %d, slot %d, index %d\n"),
@@ -584,7 +584,7 @@ soc_internal_exact_match_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
         addr = soc_mem_addr_get(unit, mem, 0, block_info_index, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write block %d acc_type %d bank %d bucket %d, "
                                 "slot %d, index %d\n"),
@@ -602,7 +602,7 @@ soc_internal_exact_match_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
     result[0] = 0;
@@ -636,7 +636,7 @@ soc_internal_exact_match_del(pcid_info_t *pcid_info, uint32 inv_bank_map,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EXACT_MATCH Delete\n")));
 
@@ -695,7 +695,7 @@ soc_internal_exact_match_del(pcid_info_t *pcid_info, uint32 inv_bank_map,
                     addr = soc_mem_addr_get(unit, mem, 0, block_info_index,
                                             index, &acc_type);
 
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "delete block %d acc_type %d bank %d "
                                             "bucket %d, slot %d, index %d\n"),
@@ -721,7 +721,7 @@ soc_internal_exact_match_del(pcid_info_t *pcid_info, uint32 inv_bank_map,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_exact_match_del: Not found\n")));
 
@@ -755,7 +755,7 @@ soc_internal_exact_match_lkup(pcid_info_t * pcid_info, uint32 inv_bank_map,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EXACT_MATCH Lookup\n")));
 
@@ -814,7 +814,7 @@ soc_internal_exact_match_lkup(pcid_info_t * pcid_info, uint32 inv_bank_map,
                     addr = soc_mem_addr_get(unit, mem, 0, block_info_index,
                                             index, &acc_type);
 
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "found block %d acc_type %d bank %d "
                                             "bucket %d, slot %d, index %d\n"),
@@ -834,7 +834,7 @@ soc_internal_exact_match_lkup(pcid_info_t * pcid_info, uint32 inv_bank_map,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_exact_match_lkup: Not found\n")));
 

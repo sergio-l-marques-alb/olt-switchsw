@@ -186,14 +186,14 @@ drv_northstarplus_dev_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
             break;
         case DRV_DEV_PROP_SWITCHMACSEC_EN_PBMP:
             *prop_val = _soc_nsp_macsec_en_pbmp[unit];
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s,%d,DRV_DEV_PROP_SWITCHMACSEC_EN_PBMP=0x%x\n"), 
                       FUNCTION_NAME(), __LINE__, *prop_val));
             break;
         case DRV_DEV_PROP_SWITCHMACSEC_ATTACH_PBMP:
             *prop_val = _soc_nsp_macsec_attach_pbmp[unit];
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s,%d,DRV_DEV_PROP_SWITCHMACSEC_ATTACH_PBMP=0x%x\n"), 
                       FUNCTION_NAME(), __LINE__, *prop_val));

@@ -449,7 +449,7 @@ tscf_show_serdes_info(phy_ctrl_t *pc, tscf_dev_info_t *pInfo, phymod_core_info_t
     pInfo->name[len] = 0;  /* string terminator */
 
     if (len > TSCF_LANE_NAME_LEN) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("TSCF info string length %d exceeds max length 0x%x: u=%d p=%d\n"),
                    len,TSCF_LANE_NAME_LEN, pc->unit, pc->port));
         return SOC_E_MEMORY;
@@ -1214,7 +1214,7 @@ _phy_tscf_init_pass2(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (phy_tscf_ability_advert_set(unit, port, &ability));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_tscf_init: u=%d p=%d\n"), unit, port));
 
@@ -1276,7 +1276,7 @@ phy_tscf_init(int unit, soc_port_t port)
 
         SOC_IF_ERROR_RETURN( _phy_tscf_init_pass2(unit, port));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "TSCF init pass2 completed: u=%d p=%d\n"), unit, port));
         PHYCTRL_INIT_STATE_SET(pc, PHYCTRL_INIT_STATE_DEFAULT);
@@ -2407,7 +2407,7 @@ phy_tscf_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_tscf_ability_local_get:unit=%d p=%d sp=%08x\n"),
               unit, port, ability->speed_full_duplex));
@@ -4086,7 +4086,7 @@ tscf_tx_ppm_adjust_set(soc_phymod_ctrl_t *pmc, uint32 ppmi)
     int                  ppmv;
 
     if((ppmi & 0xffff) > 50) {
-      LOG_ERROR(BSL_ERROR, ("BAD PPM %d : PPM value is allowed between +50(0x32) and -50(0x10032)\n", 
+      LOG_BSL_ERROR(BSL_ERROR, ("BAD PPM %d : PPM value is allowed between +50(0x32) and -50(0x10032)\n", 
                                 ppmi));
       return SOC_E_PARAM;
     }
@@ -6940,7 +6940,7 @@ phy_tscf_cleanup(soc_phymod_ctrl_t *pmc)
     for (idx = 0; idx < pmc->num_phys ; idx++) {
         phy = pmc->phy[idx];
         if (phy == NULL) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(pmc->unit,
                                  "phy object is empty")));
             continue;
@@ -7267,7 +7267,7 @@ _tscf_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "qsgmiie_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,
@@ -7357,7 +7357,7 @@ _tscf_notify_speed(int unit, soc_port_t port, uint32 speed)
     pCfg = (tscf_config_t *) pc->driver_data;
     fiber = pCfg->fiber_pref;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "_qsgmiie_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -7494,7 +7494,7 @@ phy_tscf_diag_ctrl(
 {
     switch(op_cmd) {
         case PHY_DIAG_CTRL_DSC:
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_tefmod_diag_ctrl: "
                                  "u=%d p=%d PHY_DIAG_CTRL_DSC 0x%x\n"),
@@ -7502,7 +7502,7 @@ phy_tscf_diag_ctrl(
 			SOC_IF_ERROR_RETURN(tscf_uc_status_dump(unit, port, arg));
             break;
         case PHY_DIAG_CTRL_PCS:
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_tefmod_diag_ctrl: "
                                  "u=%d p=%d PHY_DIAG_CTRL_PCS 0x%x\n"),

@@ -104,7 +104,7 @@ int portmod_pmm_free(int unit, pmm_info_t *pmm){
     if(pmm->pms != NULL){
         for(i = 0; i< pmm->pms_in_use; i++){
             if(pmm->pms[i].pm_data.pm4x25_db != NULL){ /*all members of the union are pointers*/
-                LOG_WARN(BSL_LS_SOC_PORT,
+                LOG_BSL_WARN(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "potential memory leak: pm %d wasn't NULL at pmm free\n"),
                           i));
@@ -765,15 +765,15 @@ int portmod_port_add(int unit, int port, const portmod_port_add_info_t *port_add
         group_member_list_group_remove(&_pmm_info[unit]->ports_phys_mapping, port);
         rv_warn = SOC_WB_ENGINE_SET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_PM_ID_MAP, &invalid_pm, port);
         if(SOC_FAILURE(rv_warn)) {
-            LOG_ERROR(BSL_LS_SOC_PORT, (BSL_META_U(unit, "fail remove port %d from PMM_WB_PORT_PM_ID_MAP\n"), port));
+            LOG_BSL_ERROR(BSL_LS_SOC_PORT, (BSL_META_U(unit, "fail remove port %d from PMM_WB_PORT_PM_ID_MAP\n"), port));
         }
         rv_warn = SOC_WB_ENGINE_SET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_INTERFACE_TYPE_MAP, &invalid_interface, port);
         if(SOC_FAILURE(rv_warn)) {
-            LOG_ERROR(BSL_LS_SOC_PORT, (BSL_META_U(unit, "fail remove port %d from PMM_WB_PORT_INTERFACE_TYPE_MAP\n"), port));
+            LOG_BSL_ERROR(BSL_LS_SOC_PORT, (BSL_META_U(unit, "fail remove port %d from PMM_WB_PORT_INTERFACE_TYPE_MAP\n"), port));
         }
         rv_warn = SOC_WB_ENGINE_SET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_ALLIAS_MAP, &invalid_port, port);
         if(SOC_FAILURE(rv_warn)) {
-            LOG_ERROR(BSL_LS_SOC_PORT, (BSL_META_U(unit, "fail remove port %d from PMM_WB_PORT_ALLIAS_MAP\n"), port));
+            LOG_BSL_ERROR(BSL_LS_SOC_PORT, (BSL_META_U(unit, "fail remove port %d from PMM_WB_PORT_ALLIAS_MAP\n"), port));
         }
         _SOC_IF_ERR_EXIT(rv);
     }
@@ -795,25 +795,25 @@ int portmod_port_remove(int unit, int port){
     /*remove from PMM*/
     rv = group_member_list_group_remove(&_pmm_info[unit]->ports_phys_mapping, port);
     if(rv != SOC_E_NONE){
-        LOG_ERROR(BSL_LS_SOC_PORT,
+        LOG_BSL_ERROR(BSL_LS_SOC_PORT,
                   (BSL_META_U(unit,
                               "fail remove port %d from port to phys map\n"), port));
     }
     rv = SOC_WB_ENGINE_SET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_PM_ID_MAP, &invalid_pm, port);
     if(rv != SOC_E_NONE){
-        LOG_ERROR(BSL_LS_SOC_PORT,
+        LOG_BSL_ERROR(BSL_LS_SOC_PORT,
                   (BSL_META_U(unit,
                               "fail remove port %d from port to pm map\n"), port));
     }
     rv = SOC_WB_ENGINE_SET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_INTERFACE_TYPE_MAP, &invalid_interface, port);
     if(rv != SOC_E_NONE){
-        LOG_ERROR(BSL_LS_SOC_PORT,
+        LOG_BSL_ERROR(BSL_LS_SOC_PORT,
                   (BSL_META_U(unit,
                               "fail remove port %d from port to interface type map"), port));
     }
     rv = SOC_WB_ENGINE_SET_ARR(unit, SOC_WB_ENGINE_PORTMOD, PMM_WB_PORT_ALLIAS_MAP, &invalid_port, port);
     if(rv != SOC_E_NONE){
-        LOG_ERROR(BSL_LS_SOC_PORT,
+        LOG_BSL_ERROR(BSL_LS_SOC_PORT,
                   (BSL_META_U(unit,
                               "fail remove port %d from port alias map"), port));
     }

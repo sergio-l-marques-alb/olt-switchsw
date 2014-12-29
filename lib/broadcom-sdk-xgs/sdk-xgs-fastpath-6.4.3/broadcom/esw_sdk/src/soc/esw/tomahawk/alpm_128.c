@@ -147,7 +147,7 @@ l131++){l136[4-(l131-l45)] = prefix[l131];}*l12 = l124;if(l19!= NULL){*l19 =
 l21,int*l142,int*tcam_index,int*bucket_index){int l132 = SOC_E_NONE;trie_t*
 l143;trie_node_t*l144 = NULL;alpm_pivot_t*pivot_pyld;l143 = 
 VRF_PIVOT_TRIE_IPV6_128(l1,l21);l132 = trie_find_lpm(l143,prefix,l32,&l144);
-if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "Pivot find failed\n")));return l132;}pivot_pyld = (alpm_pivot_t*)l144;*l142 = 
 1;*tcam_index = PIVOT_TCAM_INDEX(pivot_pyld);*bucket_index = 
 PIVOT_BUCKET_INDEX(pivot_pyld);return SOC_E_NONE;}static int l145(int l1,void
@@ -158,7 +158,7 @@ SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(l1,key_data,&l146,&l21));if(
 l146 == 0){if(soc_th_alpm_mode_get(l1)){return SOC_E_PARAM;}}
 soc_th_alpm_bank_db_type_get(l1,l21,&l147,&l6);if(l146!= SOC_L3_VRF_OVERRIDE)
 {uint32 prefix[5],l32;int l19 = 0;l132 = _alpm_128_prefix_create(l1,key_data,
-prefix,&l32,&l19);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U
+prefix,&l32,&l19);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U
 (l1,"_soc_alpm_insert: prefix create failed\n")));return l132;}l132 = l141(l1
 ,prefix,l32,l27,l21,&l142,tcam_index,bucket_index);SOC_IF_ERROR_RETURN(l132);
 if(l142){l14(l1,key_data,l10,0,l17,0,0);l132 = _soc_th_alpm_find_in_bkt(l1,
@@ -269,12 +269,12 @@ WRITE_L3_DEFIP_AUX_TABLEm(l1,MEM_BLOCK_ANY,SOC_ALPM_128_ADDR_UPR(index),l156+
 key_data,int tcam_index,alpm_pivot_t*pivot_pyld){int l132;trie_t*l143 = NULL;
 int l27,l21,l146;trie_node_t*l166 = NULL;l27 = L3_DEFIP_MODE_128;(void)
 soc_th_alpm_128_lpm_vrf_get(l1,key_data,&l146,&l21);l132 = 
-soc_th_alpm_128_lpm_delete(l1,l43);if(SOC_FAILURE(l132)){LOG_ERROR(
+soc_th_alpm_128_lpm_delete(l1,l43);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"_soc_alpm_insert: Failure to free new prefix"
 "at %d\n"),soc_th_alpm_logical_idx(l1,L3_DEFIP_PAIR_128m,tcam_index,l27)));}
 l143 = VRF_PIVOT_TRIE_IPV6(l1,l21);if(ALPM_TCAM_PIVOT(l1,tcam_index<<(l27?1:0
 ))!= NULL){l132 = trie_delete(l143,pivot_pyld->key,pivot_pyld->len,&l166);if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: trie delete failure ""in bkt move rollback\n")));}}
 ALPM_TCAM_PIVOT(l1,tcam_index<<(l27?1:0)) = NULL;VRF_PIVOT_REF_DEC(l1,l21,l27
 );}static int l167(int l1,soc_mem_t l17,alpm_mem_prefix_array_t*l168,int*l38)
@@ -287,23 +287,23 @@ sal_alloc(sizeof(*l176)*l168->count,"roll_back_index");if(l176 == NULL){l132 =
 SOC_E_MEMORY;goto l178;}sal_memset(l176,-1,sizeof(*l176)*l168->count);for(
 l131 = 0;l131<l168->count;l131++){payload_t*prefix = l168->prefix[l131];if(
 prefix->index>= 0){l132 = soc_mem_read(l1,l17,MEM_BLOCK_ANY,prefix->index,(
-uint8*)l172+l131*l174);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(
+uint8*)l172+l131*l174);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(l1,"_soc_alpm_split_inval: Failed to read"
 " bkt entry for invalidate for pfx 0x%08x 0x%08x"" 0x%08x 0x%08x\n"),prefix->
 key[1],prefix->key[2],prefix->key[3],prefix->key[4]));l131--;l177 = TRUE;
 break;}if(SOC_URPF_STATUS_GET(l1)){l132 = soc_mem_read(l1,l17,MEM_BLOCK_ANY,
 _soc_th_alpm_rpf_entry(l1,prefix->index),(uint8*)l173+l131*l175);if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_split_inval: Failed to read"
 " bkt entry for invalidate for pfx 0x%08x"" 0x%08x 0x%08x 0x%08x\n"),prefix->
 key[1],prefix->key[2],prefix->key[3],prefix->key[4]));l131--;l177 = TRUE;
 break;}}l132 = soc_mem_write(l1,l17,MEM_BLOCK_ALL,prefix->index,
-soc_mem_entry_null(l1,l17));if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(
+soc_mem_entry_null(l1,l17));if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(l1,"_soc_alpm_split_inval: Failed to remove"
 " prefixes from old bkt for pfx 0x%08x 0x%08x\n"),prefix->key[0],prefix->key[
 1]));l176[l131] = prefix->index;l177 = TRUE;break;}if(SOC_URPF_STATUS_GET(l1)
 ){l132 = soc_mem_write(l1,l17,MEM_BLOCK_ANY,_soc_th_alpm_rpf_entry(l1,prefix
-->index),soc_mem_entry_null(l1,l17));if(SOC_FAILURE(l132)){LOG_ERROR(
+->index),soc_mem_entry_null(l1,l17));if(SOC_FAILURE(l132)){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"_soc_alpm_split_inval: Failed to remove"
 " prefixes from old urpf bkt for pfx 0x%08x"" 0x%08x\n"),prefix->key[0],
 prefix->key[1]));l176[l131] = prefix->index;l177 = TRUE;break;}}}l176[l131] = 
@@ -323,7 +323,7 @@ alpm_bucket_handle_t*l183;l182 = l29->pivot_pyld;l180 = l182->tcam_index;l27 =
 L3_DEFIP_MODE_128;SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(l1,l29->
 key_data,&l146,&l21));l17 = L3_DEFIP_ALPM_IPV6_128m;l181 = ((uint32*)&(l170))
 ;l144 = NULL;l132 = trie_find_lpm(l30,l31,l32,&l144);l179 = (payload_t*)l144;
-if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "unit %d Unable to find lpm for pivot: "
 "0x%08x 0x%08x\n 0x%08x 0x%08x 0x%08x length: %d\n"),l1,l31[0],l31[1],l31[2],
 l31[3],l31[4],l32));return l132;}if(l179->bkt_ptr){if(l179->bkt_ptr == l29->
@@ -335,11 +335,11 @@ l132 = l20(l1,l181,l17,l27,l146,l29->bucket_index,0,lpm_entry);if(SOC_FAILURE
 soc_mem_read(l1,L3_DEFIP_PAIR_128m,MEM_BLOCK_ANY,soc_th_alpm_logical_idx(l1,
 L3_DEFIP_PAIR_128m,SOC_ALPM_128_DEFIP_TO_PAIR(l180>>1),1),lpm_entry);}l183 = 
 sal_alloc(sizeof(alpm_bucket_handle_t),"ALPM Bucket Handle");if(l183 == NULL)
-{LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+{LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Unable to allocate memory ""for PIVOT trie node \n")));
 l132 = SOC_E_MEMORY;return l132;}sal_memset(l183,0,sizeof(*l183));l182 = 
 sal_alloc(sizeof(alpm_pivot_t),"Payload for new Pivot");if(l182 == NULL){
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Unable to allocate memory ""for PIVOT trie node \n")));
 l132 = SOC_E_MEMORY;return l132;}sal_memset(l182,0,sizeof(*l182));
 PIVOT_BUCKET_HANDLE(l182) = l183;l132 = trie_init(_MAX_KEY_LEN_144_,&
@@ -361,21 +361,21 @@ alpm_mem_prefix_array_t l168;int*l38 = NULL;int l132 = SOC_E_NONE,l131,l42 =
 l170));l184 = ((uint32*)&(l171));soc_th_alpm_bank_db_type_get(l1,l21,&l147,
 NULL);l30 = VRF_PREFIX_TRIE_IPV6_128(l1,l21);trie = PIVOT_BUCKET_TRIE(l29->
 pivot_pyld);l132 = soc_th_alpm_bucket_assign(l1,&l29->bucket_index,l27);if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Unable to allocate""new bucket for split\n")));l29->
 bucket_index = -1;_soc_th_alpm_free_pfx_trie(l1,l30,trie,l29->new_pfx_pyld,
 l38,l29->bucket_index,l27);return l132;}l132 = trie_split(trie,
 _MAX_KEY_LEN_144_,FALSE,l31,&l32,&l33,NULL,FALSE);if(SOC_FAILURE(l132)){
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Could not split bucket")));_soc_th_alpm_free_pfx_trie(l1,
 l30,trie,l29->new_pfx_pyld,l38,l29->bucket_index,l27);return l132;}l132 = l28
-(l1,l29,l30,l31,l32,l33,&lpm_entry,&l34);if(l132!= SOC_E_NONE){LOG_ERROR(
+(l1,l29,l30,l31,l32,l33,&lpm_entry,&l34);if(l132!= SOC_E_NONE){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"could not initialize pivot")));
 _soc_th_alpm_free_pfx_trie(l1,l30,trie,l29->new_pfx_pyld,l38,l29->
 bucket_index,l27);return l132;}sal_memset(&l168,0,sizeof(l168));l132 = 
 trie_traverse(PIVOT_BUCKET_TRIE(l29->pivot_pyld),
 _soc_th_alpm_mem_prefix_array_cb,&l168,_TRIE_INORDER_TRAVERSE);if(SOC_FAILURE
-(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Bucket split failed")));_soc_th_alpm_free_pfx_trie(l1,l30,
 trie,l29->new_pfx_pyld,l38,l29->bucket_index,l27);return l132;}l38 = 
 sal_alloc(sizeof(*l38)*l168.count,
@@ -384,14 +384,14 @@ l132 = SOC_E_MEMORY;_soc_th_alpm_free_pfx_trie(l1,l30,trie,l29->new_pfx_pyld,
 l38,l29->bucket_index,l27);return l132;}sal_memset(l38,-1,sizeof(*l38)*l168.
 count);for(l131 = 0;l131<l168.count;l131++){payload_t*l124 = l168.prefix[l131
 ];if(l124->index>0){l132 = soc_mem_read(l1,l17,MEM_BLOCK_ANY,l124->index,l181
-);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Failed to""read prefix "
 "0x%08x 0x%08x 0x%08x 0x%08x for move\n"),l168.prefix[l131]->key[1],l168.
 prefix[l131]->key[2],l168.prefix[l131]->key[3],l168.prefix[l131]->key[4]));(
 void)_soc_th_alpm_rollback_bkt_move(l1,l29->key_data,l17,l185,l29->pivot_pyld
 ,&l168,l38,l42);return l132;}if(SOC_URPF_STATUS_GET(l1)){l132 = soc_mem_read(
 l1,l17,MEM_BLOCK_ANY,_soc_th_alpm_rpf_entry(l1,l124->index),l184);if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Failed to""read rpf prefix "
 "0x%08x 0x%08x 0x%08x 0x%08x for move\n"),l168.prefix[l131]->key[1],l168.
 prefix[l131]->key[2],l168.prefix[l131]->key[3],l168.prefix[l131]->key[4]));(
@@ -409,19 +409,19 @@ l125),l29->alpm_sip_data);}}}l38[l131] = l125;if(SOC_FAILURE(l132)){LOG_ERROR
 ->key[1],l168.prefix[l131]->key[2],l168.prefix[l131]->key[3],l168.prefix[l131
 ]->key[4]));(void)_soc_th_alpm_rollback_bkt_move(l1,l29->key_data,l17,l185,
 l29->pivot_pyld,&l168,l38,l42);return l132;}}l132 = l2(l1,&lpm_entry,l36);if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Unable to add new""pivot to tcam\n")));if(l132 == 
 SOC_E_FULL){VRF_PIVOT_FULL_INC(l1,l21,l27);}(void)
 _soc_th_alpm_rollback_bkt_move(l1,l29->key_data,l17,l185,l29->pivot_pyld,&
 l168,l38,l42);return l132;}*l36 = soc_th_alpm_physical_idx(l1,
 L3_DEFIP_PAIR_128m,*l36,l27);l132 = l149(l1,*l36,l34);if(SOC_FAILURE(l132)){
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_insert: Unable to init bpm_len ""for index %d\n"),*l36));l165(l1,&
 lpm_entry,l29->key_data,*l36,l29->pivot_pyld);(void)
 _soc_th_alpm_rollback_bkt_move(l1,l29->key_data,l17,l185,l29->pivot_pyld,&
 l168,l38,l42);return l132;}l143 = VRF_PIVOT_TRIE_IPV6_128(l1,l21);l132 = 
 trie_insert(l143,(l29->pivot_pyld)->key,NULL,(l29->pivot_pyld)->len,(
-trie_node_t*)l29->pivot_pyld);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM
+trie_node_t*)l29->pivot_pyld);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM
 ,(BSL_META_U(l1,"failed to insert into pivot trie\n")));(void)
 _soc_th_alpm_rollback_bkt_move(l1,l29->key_data,l17,l185,l29->pivot_pyld,&
 l168,l38,l42);return l132;}ALPM_TCAM_PIVOT(l1,SOC_ALPM_128_ADDR_LWR(*l36)<<1)
@@ -431,7 +431,7 @@ SOC_FAILURE(l132)){l165(l1,&lpm_entry,l29->key_data,*l36,l29->pivot_pyld);(
 void)_soc_th_alpm_rollback_bkt_move(l1,l29->key_data,l17,l185,l29->pivot_pyld
 ,&l168,l38,l42);sal_free(l38);l38 = NULL;return l132;}sal_free(l38);if(l42 == 
 -1){l132 = _soc_th_alpm_insert_in_bkt(l1,l17,PIVOT_BUCKET_INDEX(l185),l147,
-l29->alpm_data,l10,&l125,l27);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM
+l29->alpm_data,l10,&l125,l27);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM
 ,(BSL_META_U(l1,"_soc_alpm_insert: Could not insert new "
 "prefix into trie after split\n")));_soc_th_alpm_free_pfx_trie(l1,l30,trie,
 l29->new_pfx_pyld,l38,l29->bucket_index,l27);return l132;}if(
@@ -448,11 +448,11 @@ payload_t*l188,*l189,*l179;int l19 = 0;int*l38 = NULL;alpm_pfx_info_t l29;l27
 = L3_DEFIP_MODE_128;SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(l1,
 key_data,&l146,&l21));soc_th_alpm_bank_db_type_get(l1,l21,&l147,&l6);l17 = 
 L3_DEFIP_ALPM_IPV6_128m;l132 = _alpm_128_prefix_create(l1,key_data,prefix,&
-l32,&l19);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+l32,&l19);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_128_insert: prefix create failed\n")));return l132;}sal_memset(&l8
 ,0,sizeof(defip_aux_scratch_entry_t));SOC_IF_ERROR_RETURN(l4(l1,key_data,l27,
 l6,0,&l8));if(bucket_index == 0){l132 = l141(l1,prefix,l32,l27,l21,&l142,&
-tcam_index,&bucket_index);SOC_IF_ERROR_RETURN(l132);if(l142 == 0){LOG_ERROR(
+tcam_index,&bucket_index);SOC_IF_ERROR_RETURN(l132);if(l142 == 0){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"_soc_alpm_128_insert: "
 " Could not find bucket to insert prefix\n")));return SOC_E_NOT_FOUND;}}l132 = 
 _soc_th_alpm_insert_in_bkt(l1,l17,bucket_index,l147,alpm_data,l10,&l125,l27);
@@ -461,10 +461,10 @@ soc_mem_write(l1,l17,MEM_BLOCK_ANY,_soc_th_alpm_rpf_entry(l1,l125),
 alpm_sip_data);if(SOC_FAILURE(l169)){return l169;}}}if(l132 == SOC_E_FULL){
 l187 = 1;}pivot_pyld = ALPM_TCAM_PIVOT(l1,tcam_index);trie = 
 PIVOT_BUCKET_TRIE(pivot_pyld);l185 = pivot_pyld;l188 = sal_alloc(sizeof(
-payload_t),"Payload for 128b Key");if(l188 == NULL){LOG_ERROR(BSL_LS_SOC_ALPM
+payload_t),"Payload for 128b Key");if(l188 == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM
 ,(BSL_META_U(l1,"_soc_alpm_128_insert: Unable to allocate memory for "
 "trie node \n")));return SOC_E_MEMORY;}l189 = sal_alloc(sizeof(payload_t),
-"Payload for pfx trie 128b key");if(l189 == NULL){LOG_ERROR(BSL_LS_SOC_ALPM,(
+"Payload for pfx trie 128b key");if(l189 == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(l1,"_soc_alpm_128_insert: Unable to allocate memory for "
 "pfx trie node \n")));sal_free(l188);return SOC_E_MEMORY;}sal_memset(l188,0,
 sizeof(*l188));sal_memset(l189,0,sizeof(*l189));l188->key[0] = prefix[0];l188
@@ -542,31 +542,31 @@ l179 = NULL;trie_node_t*l166 = NULL,*l144 = NULL;trie_t*l143 = NULL;l5 = l27 =
 L3_DEFIP_MODE_128;SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(l1,key_data
 ,&l146,&l21));if(l146!= SOC_L3_VRF_OVERRIDE){soc_th_alpm_bank_db_type_get(l1,
 l21,&l147,&l6);l132 = _alpm_128_prefix_create(l1,key_data,prefix,&l32,&l19);
-if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_128_delete: prefix create failed\n")));return l132;}if(!
 soc_th_alpm_mode_get(l1)){if(l146!= SOC_L3_VRF_GLOBAL){if(VRF_TRIE_ROUTES_CNT
-(l1,l21,l27)>1){if(l19){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+(l1,l21,l27)>1){if(l19){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "VRF %d: Cannot v6-128 delete ""default route if other routes are present "
 "in this mode"),l21));return SOC_E_PARAM;}}}l6 = 2;}l17 = 
 L3_DEFIP_ALPM_IPV6_128m;l181 = ((uint32*)&(l170));SOC_ALPM_LPM_LOCK(l1);if(
 bucket_index == 0){l132 = l145(l1,key_data,l17,l181,&tcam_index,&bucket_index
 ,&l125);}else{l132 = l14(l1,key_data,l181,0,l17,0,0);}sal_memcpy(&l191,l181,
 sizeof(l191));l192 = &l191;if(SOC_FAILURE(l132)){SOC_ALPM_LPM_UNLOCK(l1);
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_alpm_128_delete: Unable to find ""prefix for delete\n")));return l132;}
 l194 = bucket_index;pivot_pyld = ALPM_TCAM_PIVOT(l1,tcam_index);trie = 
 PIVOT_BUCKET_TRIE(pivot_pyld);l132 = trie_delete(trie,prefix,l32,&l166);l188 = 
-(payload_t*)l166;if(l132!= SOC_E_NONE){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
+(payload_t*)l166;if(l132!= SOC_E_NONE){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
 l1,"_soc_alpm_128_delete: Error prefix not ""present in trie \n")));
 SOC_ALPM_LPM_UNLOCK(l1);return l132;}l30 = VRF_PREFIX_TRIE_IPV6_128(l1,l21);
 l143 = VRF_PIVOT_TRIE_IPV6_128(l1,l21);if(!l19){l132 = trie_delete(l30,prefix
-,l32,&l166);l197 = (payload_t*)l166;if(SOC_FAILURE(l132)){LOG_ERROR(
+,l32,&l166);l197 = (payload_t*)l166;if(SOC_FAILURE(l132)){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"_soc_th_alpm_128_delete: Prefix not present "
 "in pfx trie: 0x%08x 0x%08x 0x%08x 0x%08x\n"),prefix[1],prefix[2],prefix[3],
 prefix[4]));goto l198;}l144 = NULL;l132 = trie_find_lpm(l30,prefix,l32,&l144)
 ;l179 = (payload_t*)l144;if(SOC_SUCCESS(l132)){payload_t*l199 = (payload_t*)(
 l179->bkt_ptr);if(l199!= NULL){l195 = l199->len;}else{l195 = 0;}}else{
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_th_alpm_128_delete: Could not find"
 " replacement bpm for prefix: 0x%08x 0x%08x ""0x%08x 0x%08x\n"),prefix[1],
 prefix[2],prefix[3],prefix[4]));goto l200;}sal_memcpy(l193,prefix,sizeof(
@@ -577,12 +577,12 @@ l132)){l184 = ((uint32*)&(l171));l169 = soc_mem_read(l1,l17,MEM_BLOCK_ANY,
 _soc_th_alpm_rpf_entry(l1,l125),l184);}}if((l195 == 0)&&SOC_FAILURE(l169)){
 l196 = VRF_TRIE_DEFAULT_ROUTE_IPV6_128(l1,l21);sal_memcpy(&lpm_entry,l196,
 sizeof(lpm_entry));l132 = l23(l1,prefix,l195,l21,l5,&lpm_entry,0,1);}if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_th_alpm_128_delete: Could not find "
 "replacement prefix for prefix: 0x%08x 0x%08x 0x%08x ""0x%08x\n"),prefix[1],
 prefix[2],prefix[3],prefix[4]));goto l200;}l196 = &lpm_entry;}else{l144 = 
 NULL;l132 = trie_find_lpm(l30,prefix,l32,&l144);l179 = (payload_t*)l144;if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_th_alpm_128_delete: Could not find "
 "default route in the trie for vrf %d\n"),l21));goto l198;}l179->bkt_ptr = 0;
 l195 = 0;l196 = VRF_TRIE_DEFAULT_ROUTE_IPV6_128(l1,l21);}l132 = l4(l1,l196,
@@ -600,7 +600,7 @@ PIVOT_BUCKET_ENT_CNT_UPDATE(pivot_pyld);if((pivot_pyld->len!= 0)&&(trie->trie
 == NULL)){uint32 l201[5];sal_memcpy(l201,pivot_pyld->key,sizeof(l201));l135((
 l201),(pivot_pyld->len),(l5));l23(l1,l201,pivot_pyld->len,l21,l5,&lpm_entry,0
 ,1);l132 = soc_th_alpm_128_lpm_delete(l1,&lpm_entry);if(SOC_FAILURE(l132)){
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_th_alpm_128_delete: Unable to "
 "delete pivot 0x%08x 0x%08x 0x%08x 0x%08x \n"),pivot_pyld->key[1],pivot_pyld
 ->key[2],pivot_pyld->key[3],pivot_pyld->key[4]));}}l132 = 
@@ -611,10 +611,10 @@ SOC_ALPM_RPF_BKT_IDX(l1,l194),MEM_BLOCK_ALL,l147,l192,l10,&l142);if(!
 SOC_SUCCESS(l132)){SOC_ALPM_LPM_UNLOCK(l1);l132 = SOC_E_FAIL;return l132;}}if
 ((pivot_pyld->len!= 0)&&(trie->trie == NULL)){l132 = 
 soc_th_alpm_bucket_release(l1,PIVOT_BUCKET_INDEX(pivot_pyld),l27);if(
-SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_th_alpm_128_delete: Unable to release""empty bucket: %d\n"),
 PIVOT_BUCKET_INDEX(pivot_pyld)));}l132 = trie_delete(l143,pivot_pyld->key,
-pivot_pyld->len,&l166);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(
+pivot_pyld->len,&l166);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(l1,"could not delete pivot from pivot trie\n")));}trie_destroy(
 PIVOT_BUCKET_TRIE(pivot_pyld));sal_free(PIVOT_BUCKET_HANDLE(pivot_pyld));
 sal_free(pivot_pyld);_soc_tomahawk_alpm_bkt_view_set(l1,
@@ -623,11 +623,11 @@ SOC_TH_ALPM_BKT_IDX_TO_ENTRY(l1,l194),INVALIDm);if(SOC_TH_ALPM_V6_SCALE_CHECK
 l194+1),INVALIDm);}}}VRF_TRIE_ROUTES_DEC(l1,l21,l27);if(VRF_TRIE_ROUTES_CNT(
 l1,l21,l27) == 0){l132 = l26(l1,l21,l27);}SOC_ALPM_LPM_UNLOCK(l1);return l132
 ;l200:l169 = trie_insert(l30,prefix,NULL,l32,(trie_node_t*)l197);if(
-SOC_FAILURE(l169)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+SOC_FAILURE(l169)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "_soc_th_alpm_128_delete: Unable to reinsert"
 "prefix 0x%08x 0x%08x 0x%08x 0x%08x into pfx trie\n"),prefix[1],prefix[2],
 prefix[3],prefix[4]));}l198:l169 = trie_insert(trie,prefix,NULL,l32,(
-trie_node_t*)l188);if(SOC_FAILURE(l169)){LOG_ERROR(BSL_LS_SOC_ALPM,(
+trie_node_t*)l188);if(SOC_FAILURE(l169)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(l1,"_soc_th_alpm_128_delete: Unable to reinsert"
 "prefix 0x%08x 0x%08x 0x%08x 0x%08x into pfx trie\n"),prefix[1],prefix[2],
 prefix[3],prefix[4]));}SOC_ALPM_LPM_UNLOCK(l1);return l132;}int
@@ -636,7 +636,7 @@ soc_th_alpm_128_lpm_init(l1);SOC_IF_ERROR_RETURN(l132);return l132;}int
 soc_th_alpm_128_state_clear(int l1){int l131,l132;for(l131 = 0;l131<= 
 SOC_VRF_MAX(l1)+1;l131++){l132 = trie_traverse(VRF_PREFIX_TRIE_IPV6_128(l1,
 l131),alpm_delete_node_cb,NULL,_TRIE_INORDER_TRAVERSE);if(SOC_SUCCESS(l132)){
-trie_destroy(VRF_PREFIX_TRIE_IPV6_128(l1,l131));}else{LOG_ERROR(
+trie_destroy(VRF_PREFIX_TRIE_IPV6_128(l1,l131));}else{LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "unit: %d Unable to clear v6_128 pfx trie for ""vrf %d\n"),l1,l131));return
 l132;}if(VRF_TRIE_DEFAULT_ROUTE_IPV6_128(l1,l131)!= NULL){sal_free(
@@ -650,7 +650,7 @@ l205;trie_t*l206 = NULL;trie_init(_MAX_KEY_LEN_144_,&VRF_PIVOT_TRIE_IPV6_128(
 l1,l21));l206 = VRF_PIVOT_TRIE_IPV6_128(l1,l21);trie_init(_MAX_KEY_LEN_144_,&
 VRF_PREFIX_TRIE_IPV6_128(l1,l21));l205 = VRF_PREFIX_TRIE_IPV6_128(l1,l21);
 lpm_entry = sal_alloc(sizeof(*lpm_entry),"Default 128 LPM entry");if(
-lpm_entry == NULL){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+lpm_entry == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_vrf_add: unable to allocate memory "
 "for IPv6-128 LPM entry\n")));return SOC_E_MEMORY;}l23(l1,key,0,l21,l27,
 lpm_entry,0,1);VRF_TRIE_DEFAULT_ROUTE_IPV6_128(l1,l21) = lpm_entry;if(l21 == 
@@ -663,11 +663,11 @@ sizeof(alpm_bucket_handle_t),"ALPM Bucket Handle");if(l183 == NULL){LOG_ERROR
 (BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_vrf_add: Unable to allocate memory ""for bucket handle \n"))
 );return SOC_E_NONE;}sal_memset(l183,0,sizeof(*l183));pivot_pyld = sal_alloc(
-sizeof(alpm_pivot_t),"Payload for Pivot");if(pivot_pyld == NULL){LOG_ERROR(
+sizeof(alpm_pivot_t),"Payload for Pivot");if(pivot_pyld == NULL){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_vrf_add: Unable to allocate memory ""for PIVOT trie node \n"
 )));sal_free(l183);return SOC_E_MEMORY;}l197 = sal_alloc(sizeof(payload_t),
-"Payload for pfx trie key");if(l197 == NULL){LOG_ERROR(BSL_LS_SOC_ALPM,(
+"Payload for pfx trie key");if(l197 == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(l1,"soc_th_alpm_128_vrf_add: Unable to allocate memory "
 "for pfx trie node \n")));sal_free(l183);sal_free(pivot_pyld);return
 SOC_E_MEMORY;}sal_memset(pivot_pyld,0,sizeof(*pivot_pyld));sal_memset(l197,0,
@@ -696,22 +696,22 @@ soc_th_alpm_bucket_release(l1,l204,l27);_soc_tomahawk_alpm_bkt_view_set(l1,
 SOC_TH_ALPM_BKT_IDX_TO_ENTRY(l1,l204),INVALIDm);if(SOC_TH_ALPM_V6_SCALE_CHECK
 (l1,l27)){_soc_tomahawk_alpm_bkt_view_set(l1,SOC_TH_ALPM_BKT_IDX_TO_ENTRY(l1,
 l204+1),INVALIDm);}l132 = l13(l1,lpm_entry,(void*)l136,&l207);if(SOC_FAILURE(
-l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_vrf_delete: unable to get internal"" pivot idx for vrf %d/%d\n")
 ,l21,l27));l207 = -1;}l207 = soc_th_alpm_physical_idx(l1,L3_DEFIP_PAIR_128m,
 l207,l27);l208 = ALPM_TCAM_PIVOT(l1,SOC_ALPM_128_ADDR_LWR(l207)<<1);l132 = 
-soc_th_alpm_128_lpm_delete(l1,lpm_entry);if(SOC_FAILURE(l132)){LOG_ERROR(
+soc_th_alpm_128_lpm_delete(l1,lpm_entry);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_vrf_delete: unable to delete lpm "
 "entry for internal default for vrf %d/%d\n"),l21,l27));}sal_free(lpm_entry);
 VRF_TRIE_DEFAULT_ROUTE_IPV6_128(l1,l21) = NULL;l205 = 
 VRF_PREFIX_TRIE_IPV6_128(l1,l21);VRF_PREFIX_TRIE_IPV6_128(l1,l21) = NULL;
 VRF_TRIE_INIT_DONE(l1,l21,l27,0);l132 = trie_delete(l205,key,0,&l166);l188 = 
-(payload_t*)l166;if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
+(payload_t*)l166;if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
 l1,"Unable to delete internal default for 128b vrf "" %d/%d\n"),l21,l27));}
 sal_free(l188);(void)trie_destroy(l205);l206 = VRF_PIVOT_TRIE_IPV6_128(l1,l21
 );VRF_PIVOT_TRIE_IPV6_128(l1,l21) = NULL;l166 = NULL;l132 = trie_delete(l206,
-key,0,&l166);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+key,0,&l166);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "Unable to delete internal pivot node for vrf"" %d/%d\n"),l21,l27));}(void)
 trie_destroy(l206);(void)trie_destroy(PIVOT_BUCKET_TRIE(l208));sal_free(
 PIVOT_BUCKET_HANDLE(l208));sal_free(l208);return l132;}int
@@ -726,21 +726,21 @@ SOC_ALPM_MODE_TCAM_ALPM)&&(l146 == SOC_L3_VRF_GLOBAL)))){l132 = l2(l1,l3,&
 index);if(SOC_SUCCESS(l132)){VRF_TRIE_ROUTES_INC(l1,MAX_VRF_ID,l5);
 VRF_PIVOT_REF_INC(l1,MAX_VRF_ID,l5);}else if(l132 == SOC_E_FULL){
 VRF_PIVOT_FULL_INC(l1,MAX_VRF_ID,l5);}return(l132);}else if(l21 == 0){if(
-soc_th_alpm_mode_get(l1)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+soc_th_alpm_mode_get(l1)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "VRF=0 cannot be added in Parallel mode\n")));return SOC_E_PARAM;}}if(l146!= 
 SOC_L3_VRF_GLOBAL){if(!soc_th_alpm_mode_get(l1)){if(VRF_TRIE_ROUTES_CNT(l1,
-l21,l5) == 0){if(!l19){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+l21,l5) == 0){if(!l19){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "VRF %d: First route in a VRF has to "" be a default route in this mode\n"),
 l146));return SOC_E_PARAM;}}}}if(!VRF_TRIE_INIT_COMPLETED(l1,l21,l5)){
-LOG_VERBOSE(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+LOG_BSL_VERBOSE(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_insert:VRF %d is not ""initialized\n"),l21));l132 = l202(l1,
-l21,l5);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+l21,l5);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_insert:VRF %d/%d trie init \n""failed\n"),l21,l5));return
-l132;}LOG_VERBOSE(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+l132;}LOG_BSL_VERBOSE(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_128_insert:VRF %d/%d trie init ""completed\n"),l21,l5));}if(l210
 &SOC_ALPM_LOOKUP_HIT){l132 = l148(l1,l3,l181,l192,l17,l209);}else{if(l209 == 
 -1){l209 = 0;}l132 = l186(l1,l3,l17,l181,l192,&index,
-SOC_TH_ALPM_BKT_ENTRY_TO_IDX(l1,l209),l210);}if(l132!= SOC_E_NONE){LOG_ERROR(
+SOC_TH_ALPM_BKT_ENTRY_TO_IDX(l1,l209),l210);}if(l132!= SOC_E_NONE){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"unit %d :soc_th_alpm_128_insert: "
 "Route Insertion Failed :%s\n"),l1,soc_errmsg(l132)));}return(l132);}int
 soc_th_alpm_128_lookup(int l1,void*key_data,void*l10,int*l11,int*l211){
@@ -750,7 +750,7 @@ SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(l1,key_data,&l146,&l21));l132
 = l9(l1,key_data,l10,l11,&l124,&l5);if(SOC_SUCCESS(l132)){SOC_IF_ERROR_RETURN
 (soc_th_alpm_128_lpm_vrf_get(l1,l10,&l146,&l21));if(l146 == 
 SOC_L3_VRF_OVERRIDE){return SOC_E_NONE;}}if(!VRF_TRIE_INIT_COMPLETED(l1,l21,
-l5)){LOG_VERBOSE(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+l5)){LOG_BSL_VERBOSE(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_lookup:VRF %d is not ""initialized\n"),l21));*l11 = 0;*l211 = 0;
 return SOC_E_NOT_FOUND;}l17 = L3_DEFIP_ALPM_IPV6_128m;l181 = ((uint32*)&(l170
 ));SOC_ALPM_LPM_LOCK(l1);l132 = l145(l1,key_data,l17,l181,&tcam_index,&
@@ -763,7 +763,7 @@ l5 = L3_DEFIP_MODE_128;SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(l1,
 key_data,&l146,&l21));if(l146 == SOC_L3_VRF_OVERRIDE){l132 = 
 soc_th_alpm_128_lpm_delete(l1,key_data);if(SOC_SUCCESS(l132)){
 VRF_TRIE_ROUTES_DEC(l1,MAX_VRF_ID,l5);VRF_PIVOT_REF_DEC(l1,MAX_VRF_ID,l5);}
-return(l132);}else{if(!VRF_TRIE_INIT_COMPLETED(l1,l21,l5)){LOG_ERROR(
+return(l132);}else{if(!VRF_TRIE_INIT_COMPLETED(l1,l21,l5)){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"soc_th_alpm_128_delete:VRF %d/%d is not "
 "initialized\n"),l21,l5));return SOC_E_NONE;}if(l209 == -1){l209 = 0;}l132 = 
 l190(l1,key_data,SOC_TH_ALPM_BKT_ENTRY_TO_IDX(l1,l209),l210&~
@@ -822,7 +822,7 @@ soc_meminfo_fieldinfo_field32_get((&SOC_MEM_INFO(l1,L3_DEFIP_PAIR_128m)),(
 key_data),(l100[(l1)]->l66));if((!(SOC_IS_HURRICANE(l1)))&&(((l100[(l1)]->l86
 )!= NULL))){int l212;(void)soc_th_alpm_128_lpm_vrf_get(l1,key_data,(int*)&
 l216[8],&l212);}else{l216[8] = 0;};index = l215;l132 = l128((l111[(l1)]),l213
-,l216,l124,index);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U
+,l216,l124,index);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U
 (l1,"\ndel  index: H %d error %d\n"),index,l132));}}static int l218(int l1,
 void*key_data,int l124,int*l125){l107 l216;int l132;uint16 index = (0xFFFF);
 l216[0] = soc_meminfo_fieldinfo_field32_get((&SOC_MEM_INFO(l1,
@@ -883,7 +883,7 @@ l221&(0x3FFF)] = l122->l105[l129&(0x3FFF)];l122->l105[l129&(0x3FFF)] = (
 );}void soc_th_alpm_128_lpm_state_dump(int l1){int l131;int l223;l223 = ((3*(
 128+2+1))-1);if(!bsl_check(bslLayerSoc,bslSourceAlpm,bslSeverityVerbose,l1)){
 return;}for(l131 = l223;l131>= 0;l131--){if((l131!= ((3*(128+2+1))-1))&&((l52
-[(l1)][(l131)].l45) == -1)){continue;}LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
+[(l1)][(l131)].l45) == -1)){continue;}LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
 l1,"PFX = %d P = %d N = %d START = %d ""END = %d VENT = %d FENT = %d\n"),l131
 ,(l52[(l1)][(l131)].l47),(l52[(l1)][(l131)].next),(l52[(l1)][(l131)].l45),(
 l52[(l1)][(l131)].l46),(l52[(l1)][(l131)].l48),(l52[(l1)][(l131)].l49)));}
@@ -1072,14 +1072,14 @@ soc_mem_entry_null(l1,L3_DEFIP_PAIR_128m),soc_mem_entry_words(l1,
 L3_DEFIP_PAIR_128m)*4);SOC_ALPM_LPM_LOCK(l1);l132 = l9(l1,l3,l10,&index,&l124
 ,&l5);if(l132 == SOC_E_NOT_FOUND){l132 = l238(l1,l124,l5,l10,&index);if(l132<
 0){SOC_ALPM_LPM_UNLOCK(l1);return(l132);}}else{l253 = 1;}*l252 = index;if(
-l132 == SOC_E_NONE){soc_th_alpm_128_lpm_state_dump(l1);LOG_INFO(
+l132 == SOC_E_NONE){soc_th_alpm_128_lpm_state_dump(l1);LOG_BSL_INFO(
 BSL_LS_SOC_ALPM,(BSL_META_U(l1,"soc_th_alpm_128_lpm_insert: %d %d\n"),index,
 l124));if(!l253){l214(l1,l3,index,0x4000,0);}l132 = l162(l1,MEM_BLOCK_ANY,
 index,index,l3);if(l132>= 0){l132 = l224(l1,index,l3);}}SOC_ALPM_LPM_UNLOCK(
 l1);return(l132);}static int soc_th_alpm_128_lpm_delete(int l1,void*key_data)
 {int l124;int index;int l5;uint32 l10[SOC_MAX_MEM_FIELD_WORDS];int l132 = 
 SOC_E_NONE;SOC_ALPM_LPM_LOCK(l1);l132 = l9(l1,key_data,l10,&index,&l124,&l5);
-if(l132 == SOC_E_NONE){LOG_INFO(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
+if(l132 == SOC_E_NONE){LOG_BSL_INFO(BSL_LS_SOC_ALPM,(BSL_META_U(l1,
 "soc_th_alpm_lpm_delete: %d %d\n"),index,l124));l217(l1,key_data,index);l132 = 
 l244(l1,l124,l5,l10,index);}soc_th_alpm_128_lpm_state_dump(l1);
 SOC_ALPM_LPM_UNLOCK(l1);return(l132);}static int l13(int l1,void*key_data,
@@ -1217,10 +1217,10 @@ l132 = _alpm_128_prefix_create(unit,lpm_entry,prefix,&l259,&l19);
 SOC_IF_ERROR_RETURN(l132);SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_vrf_get(
 unit,lpm_entry,&l146,&l21));l257 = soc_th_alpm_physical_idx(unit,
 L3_DEFIP_PAIR_128m,l257,l5);l183 = sal_alloc(sizeof(alpm_bucket_handle_t),
-"ALPM Bucket Handle");if(l183 == NULL){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
+"ALPM Bucket Handle");if(l183 == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
 unit,"Unable to allocate memory for PIVOT trie node \n")));return SOC_E_NONE;
 }sal_memset(l183,0,sizeof(*l183));l31 = sal_alloc(sizeof(alpm_pivot_t),
-"Payload for Pivot");if(l31 == NULL){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
+"Payload for Pivot");if(l31 == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
 unit,"Unable to allocate memory for PIVOT trie node \n")));sal_free(l183);
 return SOC_E_MEMORY;}sal_memset(l31,0,sizeof(*l31));PIVOT_BUCKET_HANDLE(l31) = 
 l183;trie_init(_MAX_KEY_LEN_144_,&PIVOT_BUCKET_TRIE(l31));key[0] = 
@@ -1249,14 +1249,14 @@ L3_DEFIP_ALPM_IPV6_128m;l263 = sal_alloc(sizeof(defip_pair_128_entry_t),
 "Temp Defip Pair lpm_entry");if(NULL == l263){return SOC_E_MEMORY;}
 SOC_IF_ERROR_RETURN(l20(unit,l15,l17,l5,l262,l258,l257,l263));l132 = 
 _alpm_128_prefix_create(unit,l263,prefix,&l32,&l19);if(SOC_FAILURE(l132)){
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(unit,"prefix create failed\n")));return
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(unit,"prefix create failed\n")));return
 l132;}sal_free(l263);l257 = soc_th_alpm_physical_idx(unit,L3_DEFIP_PAIR_128m,
 l257,l5);pivot_pyld = ALPM_TCAM_PIVOT(unit,SOC_ALPM_128_ADDR_LWR(l257)<<1);
 l37 = PIVOT_BUCKET_TRIE(pivot_pyld);l264 = sal_alloc(sizeof(payload_t),
-"Payload for Key");if(NULL == l264){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
+"Payload for Key");if(NULL == l264){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(
 unit,"Unable to allocate memory for trie node.\n")));return SOC_E_MEMORY;}
 l189 = sal_alloc(sizeof(payload_t),"Payload for pfx trie key");if(NULL == 
-l189){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(unit,
+l189){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(unit,
 "Unable to allocate memory for pfx trie node\n")));sal_free(l264);return
 SOC_E_MEMORY;}sal_memset(l264,0,sizeof(*l264));sal_memset(l189,0,sizeof(*l189
 ));l264->key[0] = prefix[0];l264->key[1] = prefix[1];l264->key[2] = prefix[2]
@@ -1270,7 +1270,7 @@ l265:sal_free(l264);sal_free(l189);return l132;}static int l267(int unit,int
 l27,int l21,int l207,int bkt_ptr){int l132 = SOC_E_NONE;uint32 l32;uint32 key
 [5] = {0,0,0,0,0};trie_t*l268 = NULL;payload_t*l197 = NULL;
 defip_pair_128_entry_t*lpm_entry = NULL;lpm_entry = sal_alloc(sizeof(
-defip_pair_128_entry_t),"Default LPM entry");if(lpm_entry == NULL){LOG_ERROR(
+defip_pair_128_entry_t),"Default LPM entry");if(lpm_entry == NULL){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(unit,"unable to allocate memory for LPM entry\n")
 ));return SOC_E_MEMORY;}l23(unit,key,0,l21,l27,lpm_entry,0,1);if(l21 == 
 SOC_VRF_MAX(unit)+1){soc_L3_DEFIP_PAIR_128m_field32_set(unit,lpm_entry,
@@ -1279,7 +1279,7 @@ DEFAULT_MISSf,1);}soc_L3_DEFIP_PAIR_128m_field32_set(unit,lpm_entry,
 ALG_BKT_PTRf,bkt_ptr);VRF_TRIE_DEFAULT_ROUTE_IPV6_128(unit,l21) = lpm_entry;
 trie_init(_MAX_KEY_LEN_144_,&VRF_PREFIX_TRIE_IPV6_128(unit,l21));l268 = 
 VRF_PREFIX_TRIE_IPV6_128(unit,l21);l197 = sal_alloc(sizeof(payload_t),
-"Payload for pfx trie key");if(l197 == NULL){LOG_ERROR(BSL_LS_SOC_ALPM,(
+"Payload for pfx trie key");if(l197 == NULL){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(
 BSL_META_U(unit,"Unable to allocate memory for pfx trie node \n")));return
 SOC_E_MEMORY;}sal_memset(l197,0,sizeof(*l197));l32 = 0;l197->key[0] = key[0];
 l197->key[1] = key[1];l197->len = l32;l132 = trie_insert(l268,key,NULL,l32,&(
@@ -1290,11 +1290,11 @@ l15,int l257,int l258,int l261){int l262;int l21;int l132 = SOC_E_NONE;
 soc_mem_t l17;l17 = L3_DEFIP_ALPM_IPV6_128m;SOC_IF_ERROR_RETURN(
 soc_th_alpm_128_lpm_vrf_get(unit,lpm_entry,&l262,&l21));if(l262 == 
 SOC_L3_VRF_OVERRIDE){return(l132);}if(!VRF_TRIE_INIT_COMPLETED(unit,l21,l5)){
-LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(unit,
+LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U(unit,
 "soc_alpm_128_insert:VRF %d is not ""initialized\n"),l21));l132 = l267(unit,
-l5,l21,l257,l258);if(SOC_FAILURE(l132)){LOG_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U
+l5,l21,l257,l258);if(SOC_FAILURE(l132)){LOG_BSL_ERROR(BSL_LS_SOC_ALPM,(BSL_META_U
 (unit,"VRF %d/%d trie init \n""failed\n"),l21,l5));return l132;}}l132 = l260(
-unit,l5,lpm_entry,l15,l17,l257,l258,l261);if(l132!= SOC_E_NONE){LOG_ERROR(
+unit,l5,lpm_entry,l15,l17,l257,l258,l261);if(l132!= SOC_E_NONE){LOG_BSL_ERROR(
 BSL_LS_SOC_ALPM,(BSL_META_U(unit,"unit %d : ""Route Insertion Failed :%s\n"),
 unit,soc_errmsg(l132)));return(l132);}VRF_TRIE_ROUTES_INC(unit,l21,l5);return
 (l132);}int soc_th_alpm_128_warmboot_bucket_bitmap_set(int l1,int l27,int l209

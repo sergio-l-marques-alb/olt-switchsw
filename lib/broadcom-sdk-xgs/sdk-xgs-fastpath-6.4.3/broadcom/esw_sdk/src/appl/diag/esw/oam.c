@@ -472,7 +472,7 @@ _cmd_esw_oam_tx(int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst,
     }
 
     if ((rv = bcm_tx(unit, &pkt, NULL)) != BCM_E_NONE) {        
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bcm_tx failed: Unit %d: %s\n"),                   
                    unit, bcm_errmsg(rv)));

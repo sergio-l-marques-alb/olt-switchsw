@@ -156,7 +156,7 @@ drv_mem_cache_set(int unit,
         cache_size = index_cnt * entry_size;
         vmap_size = (index_cnt + 7) / 8;
 
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "drv_mem_cache_set: unit %d memory %s %sable\n"),
                   unit, (SOC_IS_ROBO(unit)?SOC_ROBO_MEM_UFNAME(unit, mem_id):""),
@@ -205,7 +205,7 @@ drv_mem_cache_set(int unit,
 
         /* Set memState->cache last to avoid race condition */
 
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "drv_mem_cache_set: cache=%p size=%d vmap=%p\n"),
                   (void *)cache, cache_size, (void *)vmap));

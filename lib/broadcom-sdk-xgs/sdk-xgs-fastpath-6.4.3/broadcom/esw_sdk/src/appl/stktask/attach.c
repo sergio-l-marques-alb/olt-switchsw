@@ -356,7 +356,7 @@ _bcm_stack_detach_attach(cpudb_ref_t db_ref)
     
     cpudb_key_format(db_ref->local_entry->base.key, keybuf, sizeof(keybuf));
     if (db_ref->local_entry == db_ref->master_entry) {
-        LOG_INFO(BSL_LS_TKS_COMMON,
+        LOG_BSL_INFO(BSL_LS_TKS_COMMON,
                  (BSL_META("STACK: master on %s (%d cpu%s, %d unit%s)\n"),
                   keybuf,
                   db_ref->num_cpus, db_ref->num_cpus == 1 ? "" : "s",
@@ -366,19 +366,19 @@ _bcm_stack_detach_attach(cpudb_ref_t db_ref)
 
         cpudb_key_format(db_ref->master_entry->base.key,
                          keymast, sizeof(keymast));
-        LOG_INFO(BSL_LS_TKS_COMMON,
+        LOG_BSL_INFO(BSL_LS_TKS_COMMON,
                  (BSL_META("STACK: slave on %s (%d cpus, master %s)\n"),
                   keybuf, db_ref->num_cpus, keymast));
     }
 
     if (dt_unit > 0) {
-        LOG_INFO(BSL_LS_TKS_COMMON,
+        LOG_BSL_INFO(BSL_LS_TKS_COMMON,
                  (BSL_META("STACK: detach %d unit%s\n"),
                   dt_unit, dt_unit == 1 ? "" : "s"));
     }
 
     if (at_cpu > 0) {
-        LOG_INFO(BSL_LS_TKS_COMMON,
+        LOG_BSL_INFO(BSL_LS_TKS_COMMON,
                  (BSL_META("STACK: attach %d unit%s on %d cpu%s\n"),
                   at_unit, at_unit == 1 ? "" : "s",
                   at_cpu, at_cpu == 1 ? "" : "s"));

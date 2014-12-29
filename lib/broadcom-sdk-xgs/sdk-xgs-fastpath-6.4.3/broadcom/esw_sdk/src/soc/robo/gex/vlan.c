@@ -110,7 +110,7 @@ _drv_gex_evr_vt_sw_search(int unit, uint32 port,
     
     /* check if VID is valid */
     if (vid < 1 || vid > 4094){
-        LOG_INFO(BSL_LS_SOC_VLAN,
+        LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                  (BSL_META_U(unit,
                              "%s: invalid VID=%d\n"), FUNCTION_NAME(), vid));
         return FALSE;
@@ -187,21 +187,21 @@ _drv_gex_evr_vt_sw_db_update(int op, uint32 port,
     
     /* check valid port */
     if (port >= SOC_ROBO_MAX_NUM_PORTS){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%s: invalid port=%d\n"), FUNCTION_NAME(), port));
         return;   
     }
     
     if (!(IS_VALID_EGRVT_DB_ENTRY_ID(fast_id))){
         if (fast_id != -1) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%s: invalid case on fast_id \n"), FUNCTION_NAME()));
             return;
         }
     }
 
     if (!(IS_VALID_EGRVT_DB_ENTRY_ID(this_id))){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%s: invalid case on this_id \n"), FUNCTION_NAME()));
         return;   
     }
@@ -247,7 +247,7 @@ _drv_gex_evr_vt_sw_db_update(int op, uint32 port,
                 
                 if (temp_id != DRV_EVRID_VT_SW_MAX_CNT){
                     /* this case should not be happened */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("%s: invalid case on fast_id=%d \n"), 
                                FUNCTION_NAME(), fast_id));
                     egr_vt_db[port].egr_vt_info[temp_id].prev_id = this_id;
@@ -324,14 +324,14 @@ _drv_gex_evr_entry_set(int unit, uint32 port, int ent_id,
     uint32  entry_addr;
     
     /* Check the validation on entry index */
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: port=%d,entry_id=%d,out_op=%d,in_op=%d\n"), 
               FUNCTION_NAME(), port, ent_id, out_op, in_op));
     if ((ent_id < 0) || 
             (ent_id > (DRV_EVRID_VT_ACTION_FISRT + 
                     DRV_EVRID_VT_SW_MAX_CNT - 1))){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s: invalid ent_id=%d\n"), FUNCTION_NAME(), ent_id));
         return SOC_E_FAIL;
@@ -339,7 +339,7 @@ _drv_gex_evr_entry_set(int unit, uint32 port, int ent_id,
     
     /* check valid op */
     if (!(IS_EVR_OP_VALID(out_op) && IS_EVR_OP_VALID(in_op))){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s: invalid op flag! out_op=%d, in_op=%d\n"), 
                    FUNCTION_NAME(), out_op,in_op));
@@ -567,7 +567,7 @@ _drv_gex_evr_vt_isp_change(int unit, soc_pbmp_t changed_bmp)
     /* check if iDT_Mode is enabled */
     if (!(device_dtag_mode & DRV_VLAN_INTELLIGENT_DT_MODE)){
         /* debug message */
-        LOG_INFO(BSL_LS_SOC_VLAN,
+        LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                  (BSL_META_U(unit,
                              "EVR table can't work if iDT_Mode is not enabled!\n")));
     }
@@ -669,7 +669,7 @@ drv_gex_vlan_vt_add(int unit, uint32 vt_type, uint32 port,  uint32 cvid,
     int     temp_isp_mode;
     soc_pbmp_t  temp_bmp;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: vt_type=%d,port=%d,ori_vid=%d,new_vid=%d\n"),
               FUNCTION_NAME(), vt_type, port, cvid, sp_vid));
@@ -692,7 +692,7 @@ drv_gex_vlan_vt_add(int unit, uint32 vt_type, uint32 port,  uint32 cvid,
          */
         if (_drv_gex_evr_vt_sw_search(unit, 0, cvid, 
                         &search_id, &free_id)){     /* exist */
-            LOG_INFO(BSL_LS_SOC_VLAN,
+            LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                      (BSL_META_U(unit,
                                  "%s:EVR for port=%d,vid=%d is existed! Can't Add it!\n"), 
                       FUNCTION_NAME(), port, cvid));
@@ -702,7 +702,7 @@ drv_gex_vlan_vt_add(int unit, uint32 vt_type, uint32 port,  uint32 cvid,
             /* check if full */
             if ((search_id == DRV_EVRID_VT_SW_MAX_CNT) ||
                         (free_id == DRV_EVRID_VT_SW_MAX_CNT)){
-                LOG_VERBOSE(BSL_LS_SOC_VLAN,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_VLAN,
                             (BSL_META_U(unit,
                                         "%s:EVR for port=%d,vid=%d is existed! Can't Add it!\n"), 
                              FUNCTION_NAME(), port, cvid));
@@ -721,7 +721,7 @@ drv_gex_vlan_vt_add(int unit, uint32 vt_type, uint32 port,  uint32 cvid,
 
         SOC_PBMP_ITER(temp_bmp, i){
             if (IS_CPU_PORT(unit, i)){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s: EVR on CPU is not implemented\n"), 
                            FUNCTION_NAME()));
@@ -805,7 +805,7 @@ drv_gex_vlan_vt_delete(int unit, uint32 vt_type, uint32 port, uint32 vid)
     int  search_id = 0, free_id, real_id;
     soc_pbmp_t  temp_bmp;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: vt_type=%d,port=%d,vid=%d\n"),
               FUNCTION_NAME(), vt_type, port, vid));
@@ -823,7 +823,7 @@ drv_gex_vlan_vt_delete(int unit, uint32 vt_type, uint32 port, uint32 vid)
          */
         if ((_drv_gex_evr_vt_sw_search(unit, 0, vid, 
                         &search_id, &free_id)) == FALSE){ 
-            LOG_INFO(BSL_LS_SOC_VLAN,
+            LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                      (BSL_META_U(unit,
                                  "%s:EVR for port=%d,vid=%d is not existed!\n"), 
                       FUNCTION_NAME(), port, vid));
@@ -831,7 +831,7 @@ drv_gex_vlan_vt_delete(int unit, uint32 vt_type, uint32 port, uint32 vid)
             return SOC_E_NOT_FOUND;
         } else {    /* exist */
             if (!(IS_VALID_EGRVT_DB_ENTRY_ID(search_id))){
-                LOG_VERBOSE(BSL_LS_SOC_VLAN,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_VLAN,
                             (BSL_META_U(unit,
                                         "%s:Unexcepted EVR search result!\n"), FUNCTION_NAME()));
                 return SOC_E_INTERNAL;
@@ -888,7 +888,7 @@ drv_gex_vlan_vt_delete_all(int unit, uint32 vt_type)
 {
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: vt_type=%d\n"), FUNCTION_NAME(), vt_type));
     switch (vt_type){
@@ -936,7 +936,7 @@ drv_gex_vlan_vt_set(int unit, uint32 prop_type, uint32 vid,
     uint32  reg_value;
     int     rv = SOC_E_NONE;
     
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop_type=%d,vid=%d,port=%d,val=%x\n"),
               FUNCTION_NAME(), unit, prop_type, vid, port, prop_val));
@@ -998,7 +998,7 @@ drv_gex_vlan_vt_get(int unit, uint32 prop_type, uint32 vid,
     int  search_id = 0, free_id ;
     drv_vlan_egr_vt_info_t  *temp_evt_sw_db_entry;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop_type=%d,vid=%d,port=%d\n"),
               FUNCTION_NAME(), unit, prop_type, vid, port));
@@ -1027,7 +1027,7 @@ drv_gex_vlan_vt_get(int unit, uint32 prop_type, uint32 vid,
          */
         if ((_drv_gex_evr_vt_sw_search(unit, 0, vid, 
                         &search_id, &free_id)) == FALSE){ 
-            LOG_INFO(BSL_LS_SOC_VLAN,
+            LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                      (BSL_META_U(unit,
                                  "%s:EVR for port=%d,vid=%d is not existed!\n"), 
                       FUNCTION_NAME(), port, vid));
@@ -1035,7 +1035,7 @@ drv_gex_vlan_vt_get(int unit, uint32 prop_type, uint32 vid,
             return SOC_E_NOT_FOUND;
         } else {    /* exist */
             if (!(IS_VALID_EGRVT_DB_ENTRY_ID(search_id))){
-                LOG_VERBOSE(BSL_LS_SOC_VLAN,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_VLAN,
                             (BSL_META_U(unit,
                                         "%s:Unexcepted EVR search result!\n"), FUNCTION_NAME()));
                 return SOC_E_INTERNAL;
@@ -1093,7 +1093,7 @@ _drv_gex_vt_idt_prop_set(int unit, uint32 prop_type, uint32 prop_val)
     pbmp_t  t_pbm;
 #endif  /* BCM_NORTHSTARPLUS_SUPPORT */
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, prop_val));
@@ -1196,7 +1196,7 @@ _drv_gex_vt_idt_prop_set(int unit, uint32 prop_type, uint32 prop_val)
                 
                 SOC_PBMP_COUNT(t_pbm, temp);
                 if (temp > 0) {
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s:re-enable CFI egress remark setting.\n"),
                               FUNCTION_NAME()));
@@ -1262,7 +1262,7 @@ _drv_gex_vt_idt_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
     uint32  reg_value, temp = 0;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, *prop_val));
@@ -1293,7 +1293,7 @@ _drv_gex_vt_idt_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
                     *prop_val = FALSE;
                     if (temp & DRV_VLAN_NORMAL_DT_MODE){
                         /* disable double tagging mode */
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "%s: Internal modification from DT to iDT!\n"),
                                   FUNCTION_NAME()));
@@ -1343,7 +1343,7 @@ _drv_gex_no_vt_idt_prop_set(int unit, uint32 prop_type, uint32 prop_val)
     uint32  reg_value, temp;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, prop_val));
@@ -1379,7 +1379,7 @@ _drv_gex_no_vt_idt_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
     uint32  reg_value, temp = 0;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, *prop_val));
@@ -1418,7 +1418,7 @@ drv_gex_vlan_prop_set(int unit, uint32 prop_type, uint32 prop_val)
     uint32  reg_value, temp;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, prop_val));
@@ -1549,7 +1549,7 @@ drv_gex_vlan_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
     uint32  reg_value, temp = 0;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, *prop_val));
@@ -1680,7 +1680,7 @@ drv_gex_vlan_prop_port_enable_set(int unit, uint32 prop_type,
     pbmp_t  t_pbm, en_pbm;
 #endif /* BCM_NORTHSTARPLUS_SUPPORT */
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop=%d, value=0x%x\n"), 
               FUNCTION_NAME(), unit, prop_type, val));
@@ -1762,7 +1762,7 @@ drv_gex_vlan_prop_port_enable_set(int unit, uint32 prop_type,
             }
             SOC_PBMP_COUNT(en_pbm, temp);
             if (temp > 0) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s:re-enable CFI egress remark setting.\n"),
                           FUNCTION_NAME()));
@@ -1920,7 +1920,7 @@ drv_gex_vlan_prop_port_enable_get(int unit, uint32 prop_type,
     soc_pbmp_t pbmp;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop=%d, port=%d\n"), 
               FUNCTION_NAME(), unit, prop_type, port_n));
@@ -2074,7 +2074,7 @@ drv_gex_port_vlan_set(int unit, uint32 port, soc_pbmp_t bmp)
         * BCM_NORTHSTARPLUS_SUPPORT
         */
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: port=%d, bmp=0x%x\n"),
               FUNCTION_NAME(), port, SOC_PBMP_WORD_GET(bmp, 0)));
@@ -2159,7 +2159,7 @@ drv_gex_port_vlan_get(int unit, uint32 port, soc_pbmp_t *bmp)
     soc_PORT_VLAN_CTLr_field_get(unit, &reg_value,
         PORT_EGRESS_ENf, &temp);
     SOC_PBMP_WORD_SET(*bmp, 0, temp);
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: port=%d, bmp=0x%x\n"),
               FUNCTION_NAME(), port, SOC_PBMP_WORD_GET(*bmp, 0)));

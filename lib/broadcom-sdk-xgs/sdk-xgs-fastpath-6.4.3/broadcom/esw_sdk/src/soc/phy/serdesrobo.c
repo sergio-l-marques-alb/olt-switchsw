@@ -142,7 +142,7 @@ STATIC phy_serdesrobo_state_t
 STATIC int
 phy_serdesrobo_attach(int unit, soc_port_t port)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdesrobo_attach: u=%d p=%d\n"),
               unit, port));
@@ -184,7 +184,7 @@ phy_serdesrobo_init(int unit, soc_port_t port)
     soc_timeout_t 	to;
     int			timeout = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdesrobo_init: u=%d p=%d\n"),
               unit, port));
@@ -233,7 +233,7 @@ phy_serdesrobo_init(int unit, soc_port_t port)
     } while ((tmp & QS_MII_CTRL_RESET) != 0);
 
     if (timeout) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_fe_ge_reset: timeout on u=%d p=%d\n"),
                   unit, port));
@@ -281,7 +281,7 @@ phy_serdesrobo_link_get(int unit, soc_port_t port, int *link)
     uint32		reg_value = 0, temp = 0;
 
     if (SOC_IS_DINO16(unit)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_link_get, u = %d p = %d\n"), unit, port));
 
@@ -326,7 +326,7 @@ phy_serdesrobo_link_get(int unit, soc_port_t port, int *link)
 STATIC int
 phy_serdesrobo_enable_set(int unit, soc_port_t port, int enable)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdesrobo_enable_set: u=%d p=%d en=%d\n"),
               unit, port, enable));
@@ -385,7 +385,7 @@ phy_serdesrobo_duplex_set(int unit, soc_port_t port, int duplex)
 
 #ifdef BCM_DINO16_SUPPORT
     if (SOC_IS_DINO16(unit)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_duplex_set, u = %d p = %d dpx = %d\n"), 
                   unit, port, duplex));
@@ -438,7 +438,7 @@ phy_serdesrobo_duplex_get(int unit, soc_port_t port, int *duplex)
             DUPLEX_MODf, &temp);
 
         *duplex = (int)temp;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_duplex_get, u = %d p = %d dpx = %d\n"),
                   unit, port, *duplex));
@@ -476,7 +476,7 @@ phy_serdesrobo_speed_set(int unit, soc_port_t port, int speed)
 
 #ifdef BCM_DINO16_SUPPORT
     if (SOC_IS_DINO16(unit)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_speed_set, u = %d p = %d sp = %d\n"), 
                   unit, port, speed));
@@ -540,7 +540,7 @@ phy_serdesrobo_speed_get(int unit, soc_port_t port, int *speed)
         *speed = (reg_value & 0x0040L) ? 1000 :        /* check bit[6]  */
                 (reg_value & 0x2000L) ? 100 : 10;    /* check bit[13] */
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_speed_get, u = %d p = %d sp = %d\n"), 
                   unit, port, *speed));
@@ -573,7 +573,7 @@ phy_serdesrobo_an_set(int unit, soc_port_t port, int an)
     uint32  reg_value = 0, temp = (uint32)an;
 
     if (SOC_IS_DINO16(unit)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_an_set, u = %d p = %d an = %d\n"), 
                   unit, port, an));
@@ -643,7 +643,7 @@ phy_serdesrobo_an_get(int unit, soc_port_t port, int *an, int *an_done)
 
         *an_done = (int)temp;
         
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_an_get, u = %d p = %d an = %d an_done = %d\n"),
                   unit, port, *an, *an_done));
@@ -832,7 +832,7 @@ phy_serdesrobo_lb_set(int unit, soc_port_t port, int enable)
     uint32	reg_value = 0, temp = (uint32)enable;
 
     if (SOC_IS_DINO16(unit)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_lb_set, u = %d p = %d lb = %d\n"), 
                   unit, port, enable));
@@ -892,7 +892,7 @@ phy_serdesrobo_lb_get(int unit, soc_port_t port, int *enable)
             LOOPBACKf, &temp);
 
         *enable = (int)temp;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdesrobo_lb_get, u = %d p = %d lb = %d\n"), 
                   unit, port, *enable));
@@ -940,7 +940,7 @@ phy_serdesrobo_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
 	break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdesrobo_interface_set: u=%d p=%d pif=%d rv=%d\n"),
               unit, port, pif, rv));

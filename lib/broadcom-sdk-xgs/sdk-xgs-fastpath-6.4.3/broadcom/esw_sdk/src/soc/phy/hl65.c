@@ -153,7 +153,7 @@ _phy_hl65_pll_lock_wait(int unit, soc_port_t port)
         }
     } while (!soc_timeout_check(&to));
     if ((data16 & XGXSBLK0_XGXSSTATUS_TXPLL_LOCK_MASK) == 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "HL65 : TXPLL did not lock: u=%d p=%d\n"),
                   unit, port));
@@ -524,7 +524,7 @@ _phy_hl65_independent_lane_init(int unit, soc_port_t port)
         }
     }
     if ((data16 & MII_CTRL_RESET) != 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Combo SerDes reset failed: u=%d p=%d\n"),
                   unit, port));
@@ -680,7 +680,7 @@ _phy_hl65_independent_lane_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (WRITE_HL65_XGXSBLK1_LANEPRBSr(unit, pc, 0)); 
 
-     LOG_INFO(BSL_LS_SOC_PHY,
+     LOG_BSL_INFO(BSL_LS_SOC_PHY,
               (BSL_META_U(unit,
                           "phy_hl65_init: u=%d p=%d %s\n"),
                unit, port, (fiber) ? "Fiber" : "Copper"));
@@ -818,7 +818,7 @@ _phy_hl65_combo_core_init(int unit, soc_port_t port)
                        XGXSBLK2_RXLNSWAP_RX_LNSWAP_FORCE2_MASK |
                        XGXSBLK2_RXLNSWAP_RX_LNSWAP_FORCE3_MASK));
             } else {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "unit %d port %s: Invalid RX lane map 0x%04x.\n"),
                            unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -841,7 +841,7 @@ _phy_hl65_combo_core_init(int unit, soc_port_t port)
                    (MODIFY_HL65_XGXSBLK2_TXLNSWAPr(unit, pc, 0x8000 | hw_map,
                                                    0x80ff));
             } else {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "unit %d port %s: Invalid TX lane map 0x%04x.\n"),
                            unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -964,7 +964,7 @@ _phy_hl65_fabric_init(int unit, soc_port_t port)
     uint16      aer_bcst_ofs_strap;
     phy_ctrl_t *pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_fabric_init: u=%d p=%d\n"), unit, port));
     SOC_IF_ERROR_RETURN
@@ -1318,7 +1318,7 @@ phy_hl65_init(int unit, soc_port_t port)
             (_phy_hl65_combo_core_init(unit, port));
     }  
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_init: u=%d p=%d\n"), unit, port));
     return SOC_E_NONE;
@@ -1480,7 +1480,7 @@ _phy_hl65_dsp_cfg (int unit, phy_ctrl_t *pc, int speed)
                    (serdes_id0 == HL_SERDES_ID0_REVID_C0) ) {
             brcdr = HL65_B0C0_DSC_DFE_BRCDR;
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "HL65 : BR-CDR setting may not be correct: u=%d p=%d\n"),                        unit, pc->port));
             brcdr = HL65_B0C0_DSC_DFE_BRCDR;  /* assumed for future versions */
@@ -2133,7 +2133,7 @@ phy_hl65_speed_get(int unit, soc_port_t port, int *speed)
                 break;
         }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_hl65_speed_get: u=%d p=%d GP_STATUS_TOPANSTATUS1 %04x speed= %d\n"),
                   unit, port,
@@ -2168,7 +2168,7 @@ phy_hl65_an_set(int unit, soc_port_t port, int an)
 
     pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -2413,7 +2413,7 @@ _phy_hl65_c73_adv_local_set(int unit, soc_port_t port,
                                      (CL73_AN_ADV_PAUSE |
                                       CL73_AN_ADV_ASYM_PAUSE)));
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_hl65_c73_adv_local_set: u=%d p=%d pause=%08x speeds=%04x,adv=0x%x\n"),
               unit, port, pause, an_adv,ability->speed_full_duplex));
@@ -2455,7 +2455,7 @@ _phy_hl65_c73_adv_local_get(int unit, soc_port_t port,
     }
     ability->pause = pause;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_hl65_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
               unit, port, pause, speeds));
@@ -2565,7 +2565,7 @@ phy_hl65_ability_advert_set(int unit, soc_port_t port,
             (_phy_hl65_c73_adv_local_set(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_ability_advert_set: u=%d p=%d pause=%08x OVER1G_UP1 %04x\n"),
               unit, port, ability->pause, an_adv));
@@ -2650,7 +2650,7 @@ phy_hl65_ability_advert_get(int unit, soc_port_t port,
             (_phy_hl65_c73_adv_local_get(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -2745,7 +2745,7 @@ phy_hl65_ability_remote_get(int unit, soc_port_t port,
         }
     } 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "u=%d p=%d an_enable=%04x link_1000x=%04x link_combo=%04x\n"),
               unit, port, an_enable, link_1000x,link_combo));
@@ -2782,7 +2782,7 @@ phy_hl65_ability_remote_get(int unit, soc_port_t port,
         mode |= (an_adv & GP_STATUS_LP_UP1_DATARATE_2P5GX1_MASK) ?
                  SOC_PA_SPEED_2500MB : 0;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d over1G an_adv=%04x\n"),
                   unit, port, an_adv));
@@ -2790,7 +2790,7 @@ phy_hl65_ability_remote_get(int unit, soc_port_t port,
         SOC_IF_ERROR_RETURN
             (READ_HL65_COMBO_IEEE0_AUTONEGLPABILr(unit, pc, &an_adv));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d combo an_adv=%04x\n"),
                   unit, port, an_adv));
@@ -2822,7 +2822,7 @@ phy_hl65_ability_remote_get(int unit, soc_port_t port,
         phy_hl65_ability_advert_get(unit, port, ability);
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_ability_remote_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -2988,7 +2988,7 @@ phy_hl65_lb_get(int unit, soc_port_t port, int *enable)
             (READ_HL65_XGXSBLK1_LANECTRL2r(unit, pc, &data));
  
         *enable = ((data & lane_mask) == lane_mask);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_hc65_loopback_get: "
                              "u=%d p=%d lb=%d\n"), unit, port, *enable));
@@ -3724,7 +3724,7 @@ _phy_hl65_control_serdes_driver_tune_set(int unit, soc_port_t port,
     SOC_IF_ERROR_RETURN
         (HL65_REG_WRITE(unit, pc, 0x0, 0x826E + (0x10 * lane_num), data));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "hl_65: Equalization tune start\n")));
     return SOC_E_NONE;
@@ -4031,7 +4031,7 @@ _phy_hl65_tuning_done_get(int unit, soc_port_t port,int lane_num, uint16 *done)
 #if 0
     /* If tuning is done */
     if (uData & 0x2000) {
-	LOG_ERROR(BSL_LS_SOC_PHY,
+	LOG_BSL_ERROR(BSL_LS_SOC_PHY,
 		  (BSL_META_U(unit,
 			      "hc(%02d:%02d) Tuning Done indication received\n"),
 		   uPhyAddr, uLaneAddr));
@@ -4100,19 +4100,19 @@ _phy_hl65_tuning_status_get(int unit, soc_port_t port,
     *dfe_tap_bin_avg = avg_dfe;
 
 #if 0
-    LOG_ERROR(BSL_LS_SOC_PHY,
+    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
               (BSL_META_U(unit,
                           "hc(%02d:%02d) VGA avg(%d)\n"),
                uPhyAddr, uLaneAddr, uAvgVga));
-    LOG_ERROR(BSL_LS_SOC_PHY,
+    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
               (BSL_META_U(unit,
                           "hc(%02d:%02d) DFE avg(%d)\n"),
                uPhyAddr, uLaneAddr, uAvgDfe));
 #endif
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "hc(%02d) VGA avg(%d)\n"), port, avg_vga));
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "hc(%02d) DFE avg(%d)\n"), port, avg_dfe));
 
@@ -4242,13 +4242,13 @@ _phy_hl65_fine_tune(int unit, soc_port_t port, int lane_num)
         /* uAvgVgaSum = uAvgVgaSum/10; */
         avg_vga_sum = avg_vga_sum / 10;
         
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "hc(%02d) VGA avg sum(%d)\n"), 
                   port, avg_vga_sum));
         
         if (avg_vga_sum > 31) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "ERROR: hc(%02d) VGA avg sum out of range(%d) maximum allowed 31\n"), 
                        port, avg_vga_sum));
@@ -4358,7 +4358,7 @@ _phy_hl65_fine_tune(int unit, soc_port_t port, int lane_num)
     }
     
     if (!tuning_done) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: hc(%02d) tuning done timed out during BR fine tuning\n"), 
                    port));
@@ -4490,13 +4490,13 @@ _phy_hl65_control_eq_tune_status_get(int unit,
 
 #if 0
     if (!bSigDetected) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: Receiver indicates that no signal detected, check far end enable.\n")));
     }
 #endif
     if (!sig_detected) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Receiver indicates that no signal detected. "
                               "Checking far end enable.\n")));
@@ -4518,14 +4518,14 @@ _phy_hl65_control_eq_tune_status_get(int unit,
 
 #if 0
     if (!bTuningDone) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: Tuning error port(%d), no tuning done indication from hardware\n"),
                    port));
     }
 #endif
     if (!tuning_done) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "No tune done indication received on port %d\n"),
                    port));
@@ -4580,7 +4580,7 @@ _phy_hl65_control_eq_tune_status_get(int unit,
 	   	
 	/* if (!negative && (uAvgDfe < 30) && (postc_metric < 15)) { */
 	if ((!negative) && (avg_dfe < 30)) { 
-	    LOG_WARN(BSL_LS_SOC_PHY,
+	    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "port(%d) postc_metric(0x%x) is positive\n"),
                       port, postc_metric));
@@ -4588,7 +4588,7 @@ _phy_hl65_control_eq_tune_status_get(int unit,
 	    *value = FALSE;
 	    
         } else {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "port(%d) remote equalization calibration complete\n"), 
                       port));
@@ -4600,7 +4600,7 @@ _phy_hl65_control_eq_tune_status_get(int unit,
         /*status = _bcm_bm9600_hypercore_fine_tune(unit, uPhyAddr, uLaneAddr);*/
 
         if (_phy_hl65_fine_tune(unit, port,lane_num) != SOC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "port(%d) hl65_fine_tune fail\n"), port));
         }
@@ -4730,7 +4730,7 @@ _phy_hl65_control_serdes_tune_margin_max_get(int unit, soc_port_t port,
         *max = (1 << DSC3B0_PI_STATUS0_CLK90_PHASE_OFFSET_BITS);
         break;
     default:
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Tune margin supported for 1XOSR, 2XOSR, "
                               "BR CDR DSC")));
@@ -4751,7 +4751,7 @@ _phy_hl65_serdes_tune_margin_common_start(int unit, soc_port_t port,
     phy_ctrl_t *pc = INT_PHY_SW_STATE(unit, port);
 
     /* Step 1: check tuning done */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 1: check tuning done\n")));
     reg_addr = 0x82b7 + (lane_num * 0x10);
@@ -4759,14 +4759,14 @@ _phy_hl65_serdes_tune_margin_common_start(int unit, soc_port_t port,
         (HL65_REG_READ(unit,pc,0x0,reg_addr, &data));
 
     if (!(data & DSC3B0_SM_STATUS0_TUNING_DONE_MASK)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: hc(%02d) tuning has not finished\n"), port));
         return SOC_E_FAIL;
     }
 
     /* Step 2: average vga_sum and dfe_tap_bin */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 2: compute vga_sum, dfe_tap_bin average\n")));
     SOC_IF_ERROR_RETURN
@@ -4774,7 +4774,7 @@ _phy_hl65_serdes_tune_margin_common_start(int unit, soc_port_t port,
                                      &vga_sum_avg, &dfe_tap_bin_avg));
 
     /* Step 3: fix vga_sum and dfe_tab_bin  */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 3: fix vga_sum, dfe_tap_bin\n")));
     reg_addr = 0x8215 + (lane_num * 0x10);
@@ -4831,7 +4831,7 @@ _phy_hl65_serdes_tune_margin_horizontal_start(int unit, soc_port_t port,
      *     ==32  1xOSR 
      *     ==0   2xOSR 
      */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 4: verify clk90_phase_offset\n")));
     reg_addr = 0x82b3 + (lane_num * 0x10);
@@ -4842,7 +4842,7 @@ _phy_hl65_serdes_tune_margin_horizontal_start(int unit, soc_port_t port,
 
     exp_clk90_po = (dsc_cfg == PHY_HL65_DSC_CFG_1X_OSR) ? 32 : 0;
     if (data != exp_clk90_po) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WARNING: hc(%02d) diag clk90 phase offset=%d " 
                              "expected %d\nMake sure DSC is properly configured "
@@ -4851,7 +4851,7 @@ _phy_hl65_serdes_tune_margin_horizontal_start(int unit, soc_port_t port,
     }
 
     /* Step 5: clk90 offset override */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 5: enable clk90 offset override\n")));
     reg_addr = 0x8213 + (lane_num * 0x10);
@@ -4863,7 +4863,7 @@ _phy_hl65_serdes_tune_margin_horizontal_start(int unit, soc_port_t port,
         (HL65_REG_WRITE(unit,pc,0x0,reg_addr, data));
 
     /* Step 6:  pi_phase_delta */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 6: set pi_phase_delta\n")));
     if (dsc_cfg == PHY_HL65_DSC_CFG_1X_OSR) {
@@ -4872,7 +4872,7 @@ _phy_hl65_serdes_tune_margin_horizontal_start(int unit, soc_port_t port,
     } else if (dsc_cfg == PHY_HL65_DSC_CFG_2X_OSR) {
         delta = 2;
     } else {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: hc(%02d) invalid DSC config\n"), 
                               port));
@@ -4898,7 +4898,7 @@ _phy_hl65_serdes_tune_margin_horizontal_adjust(int unit, soc_port_t port,
     /* 
      * Step 7: set phase offset moving direction 
      */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 7: set phase offset moving direction\n")));
     reg_addr = 0x8213 + (lane_num * 0x10);
@@ -4915,7 +4915,7 @@ _phy_hl65_serdes_tune_margin_horizontal_adjust(int unit, soc_port_t port,
         data |= (DSC1B0_PI_CTRL0_PI_PHASE_DEC_BITS <<
                  DSC1B0_PI_CTRL0_PI_PHASE_DEC_SHIFT);
     } else {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: hc(%02d) diag invalid adjust\n"),
                    port));
@@ -4923,7 +4923,7 @@ _phy_hl65_serdes_tune_margin_horizontal_adjust(int unit, soc_port_t port,
     }
              
     /* Step 8: toggle pi phase strobe */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 8: toggle pi phase strobe\n")));
     data &= ~(DSC1B0_PI_CTRL0_PI_PHASE_STROBE_BITS <<
@@ -4959,7 +4959,7 @@ _phy_hl65_serdes_tune_margin_horizontal_stop(int unit, soc_port_t port,
      * Step 11: restore pi_clk90_offset_override, 
      *          pi_phase_data, pi_phase_inc/dec
      */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 11: restore values\n")));
     reg_addr = 0x8213 + (lane_num * 0x10);
@@ -4974,7 +4974,7 @@ _phy_hl65_serdes_tune_margin_horizontal_stop(int unit, soc_port_t port,
         (HL65_REG_WRITE(unit,pc,0x0,reg_addr, data));
 
     /* Step 12,13: release vga_write and dfe_write */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 12: release vga_write, dfe_write enable\n")));
     reg_addr = 0x8215 + (lane_num * 0x10);
@@ -5052,7 +5052,7 @@ _phy_hl65_serdes_tune_margin_horizontal_value_set(int unit, soc_port_t port,
                                                       &max));
     
     if (value > max) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Invalid value %d (0..%d)\n"), 
                               value, max-1));
@@ -5077,7 +5077,7 @@ _phy_hl65_serdes_tune_margin_horizontal_value_set(int unit, soc_port_t port,
         steps /= 2;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "horizontal adjusting to %d from %d steps %d\n"),
                          value, cur_value, steps));
@@ -5101,7 +5101,7 @@ _phy_hl65_serdes_tune_margin_horizontal_value_set(int unit, soc_port_t port,
     }
 
     if (cur_value != value) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WARNING: Adjusted value %d does not match requested "
                              "value  %d\n"), cur_value, value));
@@ -5124,7 +5124,7 @@ _phy_hl65_serdes_tune_margin_vertical_start(int unit, soc_port_t port,
         (_phy_hl65_serdes_tune_margin_common_start(unit, port, lane_num));
 
     /* Step 4: read slicer offset status */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 4: read slice offset status\n")));
     reg_addr = 0x82ba + (lane_num * 0x10);
@@ -5141,7 +5141,7 @@ _phy_hl65_serdes_tune_margin_vertical_start(int unit, soc_port_t port,
                        DSC3B0_SM_STATUS3_SLICER_OFFSET_PE_SHIFT;
 
     /* Step 5: write slicer offsets to control */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 5: write slice offset status\n")));
     reg_addr = 0x821b + (lane_num * 0x10);
@@ -5172,7 +5172,7 @@ _phy_hl65_serdes_tune_margin_vertical_adjust(int unit, soc_port_t port,
     /* 
      * Step 6: perturb data even slicer
      */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 6: perturb data even slicer\n")));
     reg_addr = 0x821b + (lane_num * 0x10);
@@ -5185,7 +5185,7 @@ _phy_hl65_serdes_tune_margin_vertical_adjust(int unit, soc_port_t port,
     if (inc == 1) {
         /* increment */
         if (tmp == 0xf) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "ERROR: hc(%02d) cannot increment anymore\n"),
                        port));
@@ -5195,7 +5195,7 @@ _phy_hl65_serdes_tune_margin_vertical_adjust(int unit, soc_port_t port,
     } else if (inc == 0) {
         /* decrement */
         if (tmp == 0x10) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "ERROR: hc(%02d) cannot decrement anymore\n"),
                        port));
@@ -5203,7 +5203,7 @@ _phy_hl65_serdes_tune_margin_vertical_adjust(int unit, soc_port_t port,
         }
         tmp--;
     } else {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "ERROR: hc(%02d) diag invalid operation\n"), 
                               port));
@@ -5261,7 +5261,7 @@ _phy_hl65_serdes_tune_margin_vertical_value_set(int unit, soc_port_t port,
                                                       &max));
     
     if (value > max) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Invalid value %d (0..%d)\n"), value, max));
         return SOC_E_PARAM;
@@ -5295,7 +5295,7 @@ _phy_hl65_serdes_tune_margin_vertical_value_set(int unit, soc_port_t port,
                                                          lane_num, 
                                                          &cur_value));
     if (cur_value != value) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Adjusted value %d does not match "
                              "requested value %d\n"), cur_value, value));
@@ -5314,7 +5314,7 @@ _phy_hl65_serdes_tune_margin_vertical_stop(int unit, soc_port_t port,
     /* 
      * Step 9: restore all slice offset control registers to 0
      */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 9: restore slice offset\n")));
     reg_addr = 0x821b + (lane_num * 0x10);
@@ -5330,7 +5330,7 @@ _phy_hl65_serdes_tune_margin_vertical_stop(int unit, soc_port_t port,
     /*
      * Step 10: release and restore vga_write and dfe_write 
      */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Step 10: release vga_write, dfe_write enable\n")));
     reg_addr = 0x8215 + (lane_num * 0x10);
@@ -5422,7 +5422,7 @@ _phy_hl65_control_serdes_tune_margin_mode_set(int unit, soc_port_t port,
                                                               dsc_cfg));
         break;
     default:
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Tune margin supported for 1XOSR, 2XOSR, BR CDR DSC")));
         return SOC_E_UNAVAIL;
@@ -5491,7 +5491,7 @@ _phy_hl65_control_serdes_tune_margin_value_get(int unit, soc_port_t port,
                                                                value));
         break;
     default:
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Tune margin supported for 1XOSR, 2XOSR, "
                              "BR CDR DSC\n")));
@@ -5531,7 +5531,7 @@ _phy_hl65_control_serdes_tune_margin_value_set(int unit, soc_port_t port,
                                                                value));
         break;
     default:
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Tune margin supported for 1XOSR, 2XOSR, BR CDR DSC")));
         return SOC_E_UNAVAIL;
@@ -6015,7 +6015,7 @@ phy_hl65_linkup_evt (int unit, soc_port_t port)
 
     phy_hl65_an_get(unit,port,&an,&an_done);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_linkup_evt: "
                          "u=%d p=%d an=%d\n"), unit, port, an));
@@ -6065,7 +6065,7 @@ phy_hl65_linkdown_evt (int unit, soc_port_t port)
                                                                                 
     phy_hl65_an_get(unit,port,&an,&an_done);
                                                                                 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_linkdown_evt: "
                          "u=%d p=%d an=%d\n"), unit, port, an));
@@ -6223,7 +6223,7 @@ phy_hl65_diag_ctrl(
     switch(op_cmd) {
 
         case PHY_DIAG_CTRL_DSC:
-             LOG_INFO(BSL_LS_SOC_PHY,
+             LOG_BSL_INFO(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "phy_hl65_diag_ctrl: "
                                   "u=%d p=%d PHY_DIAG_CTRL_DSC 0x%x\n"),
@@ -6568,7 +6568,7 @@ _phy_hl65_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     fiber = PHY_FIBER_MODE(unit, port);
     pc    = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_hl65_notify_duplex: "
                          "u=%d p=%d duplex=%d fiber=%d\n"),
@@ -6641,7 +6641,7 @@ _phy_hl65_notify_speed(int unit, soc_port_t port, uint32 speed)
     pc    = INT_PHY_SW_STATE(unit, port);
     fiber = PHY_FIBER_MODE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_hl65_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -6708,7 +6708,7 @@ _phy_hl65_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,
@@ -6751,7 +6751,7 @@ _phy_hl65_stop(int unit, soc_port_t port)
         pc->phy_id += pc->lane_num;
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_hl65_stop: u=%d p=%d mask=0x%x value=0x%x\n"),
               unit, port, mask16, data16));

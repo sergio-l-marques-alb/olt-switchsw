@@ -398,13 +398,13 @@ static const _shr_res_alloc_mgr_t _shr_res_alloc_mgrs[SHR_RES_ALLOCATOR_COUNT] =
  */
 #define RES_UNIT_CHECK(_unit, _unitInfo) \
     if ((0 > (_unit)) || (BCM_LOCAL_UNITS_MAX <= (_unit))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("invalid unit number %d\n"), \
                    _unit)); \
         return _SHR_E_PARAM; \
     } \
     if (!(_g_unitResDesc[_unit])) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("unit %d is not initialised\n"), \
                    _unit)); \
         return _SHR_E_INIT; \
@@ -412,34 +412,34 @@ static const _shr_res_alloc_mgr_t _shr_res_alloc_mgrs[SHR_RES_ALLOCATOR_COUNT] =
     (_unitInfo) = _g_unitResDesc[_unit]
 #define RES_HANDLE_VALID_CHECK(_handle) \
     if (!(_handle)) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("NULL handle is not valid\n"))); \
         return _SHR_E_PARAM; \
     }
 #define RES_POOL_VALID_CHECK(_handle, _pool) \
     if ((0 > (_pool)) || ((_handle)->resPoolCount <= (_pool))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p pool %d does not exist\n"), \
                    ((void*)(_handle)), _pool)); \
         return _SHR_E_PARAM; \
     }
 #define RES_POOL_EXIST_CHECK(_handle, _pool) \
     if (!((_handle)->pool[_pool])) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p pool %d is not configured\n"), \
                    ((void*)(_handle)), _pool)); \
         return _SHR_E_CONFIG; \
     }
 #define RES_TYPE_VALID_CHECK(_handle, _type) \
     if ((0 > (_type)) || ((_handle)->resTypeCount <= (_type))) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p resource %d does not exist\n"), \
                    ((void*)(_handle)), _type)); \
         return _SHR_E_PARAM; \
     }
 #define RES_TYPE_EXIST_CHECK(_handle, _type) \
     if (!((_handle)->res[_type])) { \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META("%p resource %d is not configured\n"), \
                    ((void*)(_handle)), _type)); \
         return _SHR_E_CONFIG; \
@@ -463,7 +463,7 @@ _shr_mres_destroy_data(_shr_res_unit_desc_t *unitData)
             type = unitData->res[i];
             unitData->res[i] = NULL;
             if (type->refCount) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META("%p type %d (%s): still in use (%d)\n"),
                           (void*)unitData,
                           i,
@@ -484,7 +484,7 @@ _shr_mres_destroy_data(_shr_res_unit_desc_t *unitData)
             pool = unitData->pool[i];
             unitData->pool[i] = NULL;
             if (pool->refCount) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META("%p pool %d (%s): unexpectedly still"
                           " in use (%d) - invalid condition???\n"),
                           (void*)unitData,
@@ -494,7 +494,7 @@ _shr_mres_destroy_data(_shr_res_unit_desc_t *unitData)
             }
             result = _shr_res_alloc_mgrs[pool->resManagerType].destroy(pool);
             if (_SHR_E_NONE != result) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("%p pool %d (%s): unable to destroy:"
                            " %d (%s)\n"),
                            (void*)unitData,
@@ -525,7 +525,7 @@ shr_mres_create(shr_mres_handle_t *handle,
     _shr_res_unit_desc_t *tempHandle;
     int result = _SHR_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d) enter\n"),
                (void*)handle,
                num_res_types,
@@ -533,18 +533,18 @@ shr_mres_create(shr_mres_handle_t *handle,
 
     /* a little parameter checking */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory OUT argument must not be NULL\n")));
         result = _SHR_E_PARAM;
     }
     if (1 > num_res_pools) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("resource pools %d; must be > 0\n"),
                    num_res_pools));
         result =  _SHR_E_PARAM;
     }
     if (1 > num_res_types) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("resource types %d; must be > 0\n"),
                    num_res_types));
         result =  _SHR_E_PARAM;
@@ -560,7 +560,7 @@ shr_mres_create(shr_mres_handle_t *handle,
                          "resource descriptor");
     if (!tempHandle) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for info\n"),
                    (unsigned int)(sizeof(_shr_res_unit_desc_t) +
                    (sizeof(_shr_res_pool_desc_t) * num_res_pools) +
@@ -580,7 +580,7 @@ shr_mres_create(shr_mres_handle_t *handle,
         *handle = tempHandle;
     } /* if (!tempUnit) */
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(&(%p), %d, %d) return %d (%s)\n"),
                (void*)(*handle),
                num_res_types,
@@ -598,7 +598,7 @@ shr_mres_get(shr_mres_handle_t handle,
              int *num_res_types,
              int *num_res_pools)
 {
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %p, %p) enter\n"),
                (void*)handle,
                (void*)num_res_types,
@@ -614,7 +614,7 @@ shr_mres_get(shr_mres_handle_t handle,
         *num_res_types = handle->resTypeCount;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, &(%d), &(%d)) return %d (%s)\n"),
                (void*)handle,
                num_res_types?*num_res_types:-1,
@@ -632,7 +632,7 @@ shr_mres_destroy(shr_mres_handle_t handle)
 {
     int result = _SHR_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p) enter\n"),
                (void*)handle));
 
@@ -644,7 +644,7 @@ shr_mres_destroy(shr_mres_handle_t handle)
         sal_free(handle);
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p) return %d (%s)\n"),
                (void*)handle,
                result,
@@ -670,7 +670,7 @@ shr_mres_pool_set(shr_mres_handle_t handle,
     int xresult;
     const char *noname = "???";
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %s, %d, %d, %p, \"%s\") enter\n"),
                (void*)handle,
                pool_id,
@@ -684,18 +684,18 @@ shr_mres_pool_set(shr_mres_handle_t handle,
     RES_HANDLE_VALID_CHECK(handle);
     RES_POOL_VALID_CHECK(handle, pool_id);
     if ((0 > manager) || (SHR_RES_ALLOCATOR_COUNT <= manager)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocation manager type %d not supported\n"),
                    manager));
         return _SHR_E_PARAM;
     }
     if (0 > count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("negative counts are not permitted\n")));
         return _SHR_E_PARAM;
     }
     if ((handle->pool[pool_id]) && (handle->pool[pool_id]->refCount)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%p pool %d (%s) can not be changed because it"
                    " has %d types that use it\n"),
                    (void*)handle,
@@ -722,7 +722,7 @@ shr_mres_pool_set(shr_mres_handle_t handle,
             result = _shr_res_alloc_mgrs[oldPool->resManagerType].destroy(oldPool);
             if (_SHR_E_NONE != result) {
                 handle->pool[pool_id] = oldPool;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("unable to destroy %p old pool %d (%s):"
                            " %d (%s)\n"),
                            (void*)handle,
@@ -732,7 +732,7 @@ shr_mres_pool_set(shr_mres_handle_t handle,
                            _SHR_ERRMSG(result)));
                 xresult = _shr_res_alloc_mgrs[tempPool->resManagerType].destroy(tempPool);
                 if (_SHR_E_NONE != xresult) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unable to destroy new pool for %p pool"
                                " %d after replace error: %d (%s)\n"),
                                (void*)handle,
@@ -747,7 +747,7 @@ shr_mres_pool_set(shr_mres_handle_t handle,
         handle->pool[pool_id] = tempPool;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %s, %d, %d, %p, \"%s\") return %d (%s)\n"),
                (void*)handle,
                pool_id,
@@ -771,7 +771,7 @@ shr_mres_pool_unset(shr_mres_handle_t handle,
     _shr_res_pool_desc_t *oldPool;
     int result = _SHR_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) enter\n"),
                (void*)handle, pool_id));
 
@@ -783,7 +783,7 @@ shr_mres_pool_unset(shr_mres_handle_t handle,
     handle->pool[pool_id] = NULL;
     if (oldPool) {
         if (oldPool->refCount) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%p pool %d (%s) can not be destroyed because"
                        " it has %d types that use it\n"),
                        (void*)handle,
@@ -794,7 +794,7 @@ shr_mres_pool_unset(shr_mres_handle_t handle,
         } else { /* if (oldPool->refCount) */
             result = _shr_res_alloc_mgrs[oldPool->resManagerType].destroy(oldPool);
             if (_SHR_E_NONE != result) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("unable to destroy %p old pool %d (%s):"
                            " %d (%s)\n"),
                            (void*)handle,
@@ -809,7 +809,7 @@ shr_mres_pool_unset(shr_mres_handle_t handle,
         handle->pool[pool_id] = oldPool;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) return %d (%s)\n"),
                (void*)handle,
                pool_id,
@@ -832,7 +832,7 @@ shr_mres_pool_get(shr_mres_handle_t handle,
 {
     _shr_res_pool_desc_t *thisPool;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                pool_id,
@@ -864,7 +864,7 @@ shr_mres_pool_get(shr_mres_handle_t handle,
         *name = thisPool->name;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, &(%s), &(%d), &(%d), &(%p), &(\"%s\")) return %d (%s)\n"),
                (void*)handle,
                pool_id,
@@ -888,7 +888,7 @@ shr_mres_pool_info_get(shr_mres_handle_t handle,
 {
     _shr_res_pool_desc_t *thisPool;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p) enter\n"),
                (void*)handle,
                pool_id,
@@ -905,7 +905,7 @@ shr_mres_pool_info_get(shr_mres_handle_t handle,
         info->used = thisPool->inuse;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p) return %d (%s)\n"),
                (void*)handle,
                pool_id,
@@ -931,7 +931,7 @@ shr_mres_type_set(shr_mres_handle_t handle,
     const char *noname = "???";
     int len_name = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d, \"%s\") enter\n"),
                (void*)handle,
                res_id,
@@ -945,13 +945,13 @@ shr_mres_type_set(shr_mres_handle_t handle,
     RES_POOL_EXIST_CHECK(handle, pool_id);
     RES_TYPE_VALID_CHECK(handle, res_id);
     if (1 > elem_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element size %d too small; must be >= 1\n"),
                    elem_size));
         return _SHR_E_PARAM;
     }
     if ((handle->res[res_id]) && (handle->res[res_id]->refCount)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%p resource %d (%s) can not be changed"
                    " because it has %d elements in use\n"),
                    (void*)handle,
@@ -993,7 +993,7 @@ shr_mres_type_set(shr_mres_handle_t handle,
         handle->pool[pool_id]->refCount++;
         handle->res[res_id] = tempType;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for %p resource"
                    " type %d\n"),
                    (unsigned int)(sizeof(*tempType) + sal_strlen(name)),
@@ -1004,7 +1004,7 @@ shr_mres_type_set(shr_mres_handle_t handle,
         handle->res[res_id] = oldType;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d, \"%s\") return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1026,7 +1026,7 @@ shr_mres_type_unset(shr_mres_handle_t handle,
     _shr_res_type_desc_t *oldType;
     int result = _SHR_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) enter\n"),
                (void*)handle, res_id));
 
@@ -1038,7 +1038,7 @@ shr_mres_type_unset(shr_mres_handle_t handle,
     handle->res[res_id] = NULL;
     if (oldType) {
         if (oldType->refCount) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%p resource %d (%s) can not be destroyed"
                        " because it has %d elements in use\n"),
                        (void*)handle,
@@ -1055,7 +1055,7 @@ shr_mres_type_unset(shr_mres_handle_t handle,
         handle->res[res_id] = oldType;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1076,7 +1076,7 @@ shr_mres_type_get(shr_mres_handle_t handle,
 {
     _shr_res_type_desc_t *thisType;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1100,7 +1100,7 @@ shr_mres_type_get(shr_mres_handle_t handle,
         *name = thisType->name;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, &(%d), &(%d), &(\"%s\")) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1122,7 +1122,7 @@ shr_mres_type_info_get(shr_mres_handle_t handle,
 {
     _shr_res_type_desc_t *thisType;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1138,7 +1138,7 @@ shr_mres_type_info_get(shr_mres_handle_t handle,
         info->used = thisType->refCount;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1162,7 +1162,7 @@ shr_mres_alloc(shr_mres_handle_t handle,
     int result = _SHR_E_NONE;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1175,19 +1175,19 @@ shr_mres_alloc(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
     }
     if (flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory argument is NULL\n")));
         return _SHR_E_PARAM;
     }
@@ -1210,7 +1210,7 @@ shr_mres_alloc(shr_mres_handle_t handle,
         }
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d)) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1243,7 +1243,7 @@ shr_mres_alloc_group(shr_mres_handle_t handle,
     int index;
     uint32 blkFlags;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1259,24 +1259,24 @@ shr_mres_alloc_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!flags || !count || !elem)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS | SHR_RES_ALLOC_GROUP_FLAGS))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS |
                    SHR_RES_ALLOC_GROUP_FLAGS))));
@@ -1293,14 +1293,14 @@ shr_mres_alloc_group(shr_mres_handle_t handle,
         /* check parameters for this block */
         blkFlags = flags[index] | (grp_flags & SHR_RES_ALLOC_SINGLE_FLAGS);
         if (blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("invalid flags %08X for block %d\n"),
                        blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS),
                        index));
             result = _SHR_E_PARAM;
         }
         if (0 >= count[index]) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("element count %d must be > 0\n"),
                        count[index]));
             result = _SHR_E_PARAM;
@@ -1344,7 +1344,7 @@ shr_mres_alloc_group(shr_mres_handle_t handle,
                                                                              scaled,
                                                                              elem[index]);
                 if (_SHR_E_NONE != xresult) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unable to back out %p resource %d"
                                " index %d base %d count %d: %d (%s)\n"),
                                (void*)handle,
@@ -1365,7 +1365,7 @@ shr_mres_alloc_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1376,7 +1376,7 @@ shr_mres_alloc_group(shr_mres_handle_t handle,
                (void*)count,
                (void*)elem));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %08X %12d %12d\n"),
                    index,
                    flags[index],
@@ -1401,7 +1401,7 @@ shr_mres_alloc_tag(shr_mres_handle_t handle,
     int result = _SHR_E_NONE;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %p, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1415,19 +1415,19 @@ shr_mres_alloc_tag(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
     }
     if (flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory argument is NULL\n")));
         return _SHR_E_PARAM;
     }
@@ -1446,7 +1446,7 @@ shr_mres_alloc_tag(shr_mres_handle_t handle,
                                                                    elem);
     } else {
         /* not supported by this allocator */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support tagged alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
         result = _SHR_E_UNAVAIL;
@@ -1460,7 +1460,7 @@ shr_mres_alloc_tag(shr_mres_handle_t handle,
         }
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %p, %d, &(%d)) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1495,7 +1495,7 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
     int index;
     uint32 blkFlags;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1512,24 +1512,24 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!flags || !count || !elem)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS | SHR_RES_ALLOC_GROUP_FLAGS))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS |
                    SHR_RES_ALLOC_GROUP_FLAGS))));
@@ -1542,7 +1542,7 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
     /* try to collect the requested blocks */
     if (!_shr_res_alloc_mgrs[thisPool->resManagerType].tag) {
         /* not supported by this allocator */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support tagged alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
         return _SHR_E_UNAVAIL;
@@ -1553,14 +1553,14 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
         /* check parameters for this block */
         blkFlags = flags[index] | (grp_flags & SHR_RES_ALLOC_SINGLE_FLAGS);
         if (blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("invalid flags %08X for block %d\n"),
                        blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS),
                        index));
             result = _SHR_E_PARAM;
         }
         if (0 >= count[index]) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("element count %d must be > 0\n"),
                        count[index]));
             result = _SHR_E_PARAM;
@@ -1605,7 +1605,7 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
                                                                              scaled,
                                                                              elem[index]);
                 if (_SHR_E_NONE != xresult) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unable to back out %p resource %d"
                                " index %d base %d count %d: %d (%s)\n"),
                                (void*)handle,
@@ -1626,7 +1626,7 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1638,7 +1638,7 @@ shr_mres_alloc_tag_group(shr_mres_handle_t handle,
                (void*)count,
                (void*)elem));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %08X %12d %12d\n"),
                    index,
                    flags[index],
@@ -1668,7 +1668,7 @@ shr_mres_alloc_align(shr_mres_handle_t handle,
     int scaledAlign;
     int scaledOffset;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1683,31 +1683,31 @@ shr_mres_alloc_align(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
     }
     if (1 > align) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("align <= 0 invalid, using align = 1 instead\n")));
         align = 1;
     }
     if ((offset >= align) || (0 > offset)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("offset %d must be >= 0 and < align %d\n"),
                    offset,
                    align));
         return _SHR_E_PARAM;
     }
     if (flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory argument is NULL\n")));
         return _SHR_E_PARAM;
     }
@@ -1727,7 +1727,7 @@ shr_mres_alloc_align(shr_mres_handle_t handle,
             base = *elem - thisPool->low;
         }
         if (((((base) / scaledAlign) * scaledAlign) + scaledOffset) != base) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("WITH_ID requested element %d does not comply"
                        " with alignment specifications\n"),
                        *elem));
@@ -1744,7 +1744,7 @@ shr_mres_alloc_align(shr_mres_handle_t handle,
                                                                      elem);
     } else {
         /* not supported by this allocator */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support aligned alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
         result = _SHR_E_UNAVAIL;
@@ -1758,7 +1758,7 @@ shr_mres_alloc_align(shr_mres_handle_t handle,
         }
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %d, &(%d)) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -1799,7 +1799,7 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
     int base;
     uint32 blkFlags;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -1817,24 +1817,24 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!flags || !count || !elem || !align || !offset)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS | SHR_RES_ALLOC_GROUP_FLAGS))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS |
                    SHR_RES_ALLOC_GROUP_FLAGS))));
@@ -1847,7 +1847,7 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
     /* try to collect the requested blocks */
     if (_shr_res_alloc_mgrs[thisPool->resManagerType].align) {
         /* allocator does not support this feature */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support aligned alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
         result = _SHR_E_UNAVAIL;
@@ -1858,27 +1858,27 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
         /* check parameters for this block */
         blkFlags = flags[index] | (grp_flags & SHR_RES_ALLOC_SINGLE_FLAGS);
         if (blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("invalid flags %08X for block %d\n"),
                        blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS),
                        index));
             result = _SHR_E_PARAM;
         }
         if (0 >= count[index]) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("element count %d must be > 0\n"),
                        count[index]));
             result = _SHR_E_PARAM;
         }
         if (1 > align[index]) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("align <= 0 invalid, using align = 1 instead\n")));
             xalign = 1;
         } else {
             xalign = align[index];
         }
         if ((offset[index] >= xalign) || (0 > offset[index])) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("offset %d must be >= 0 and < align %d\n"),
                        offset[index],
                        xalign));
@@ -1898,7 +1898,7 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
                     base = elem[index] - thisPool->low;
                 }
                 if (((((base) / scaledAlign) * scaledAlign) + scaledOffset) != base) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("WITH_ID requested element %d does not"
                                " comply with alignment specifications\n"),
                                elem[index]));
@@ -1943,7 +1943,7 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
                                                                              scaled,
                                                                              elem[index]);
                 if (_SHR_E_NONE != xresult) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unable to back out %p resource %d"
                                " index %d base %d count %d: %d (%s)\n"),
                                (void*)handle,
@@ -1964,7 +1964,7 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p, %p, %p)"
                " return %d (%s)\n"),
                (void*)handle,
@@ -1980,7 +1980,7 @@ shr_mres_alloc_align_group(shr_mres_handle_t handle,
                result,
                _SHR_ERRMSG(result)));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %08X %12d %12d %12d %12d\n"),
                    index,
                    flags[index],
@@ -2013,7 +2013,7 @@ shr_mres_alloc_align_sparse(shr_mres_handle_t handle,
     int index;
     int base;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %08X, %d, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -2030,40 +2030,40 @@ shr_mres_alloc_align_sparse(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern length must be greater than zero\n")));
         return _SHR_E_PARAM;
     }
     if (32 < length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern length must be 32 or less\n")));
         return _SHR_E_PARAM;
     }
     if (0 >= repeats) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("repeat count must be greater than zero\n")));
         return _SHR_E_PARAM;
     }
     if (1 > align) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("align <= 0 invalid, using align = 1 instead\n")));
         align = 1;
     }
     if ((offset >= align) || (0 > offset)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("offset %d must be >= 0 and < align %d\n"),
                    offset,
                    align));
         return _SHR_E_PARAM;
     }
     if (flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory argument is NULL\n")));
         return _SHR_E_PARAM;
     }
@@ -2071,7 +2071,7 @@ shr_mres_alloc_align_sparse(shr_mres_handle_t handle,
     thisType = handle->res[res_id];
     thisPool = handle->pool[thisType->resPoolId];
     if (1 != thisType->resElemSize) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("not compatible with scaled resources\n")));
         return _SHR_E_CONFIG;
     }
@@ -2083,7 +2083,7 @@ shr_mres_alloc_align_sparse(shr_mres_handle_t handle,
             base = *elem - thisPool->low;
         }
         if (((((base) / align) * align) + offset) != base) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("WITH_ID requested element %d does not comply"
                        " with alignment specifications\n"),
                        *elem));
@@ -2102,7 +2102,7 @@ shr_mres_alloc_align_sparse(shr_mres_handle_t handle,
                                                                             elem);
     } else {
         /* not supported by this allocator */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support aligned"
                    " sparse alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
@@ -2123,7 +2123,7 @@ shr_mres_alloc_align_sparse(shr_mres_handle_t handle,
         }
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %08X, %d, %d, &(%d))"
                " return %d (%s)\n"),
                (void*)handle,
@@ -2161,7 +2161,7 @@ shr_mres_alloc_align_tag(shr_mres_handle_t handle,
     int scaledAlign;
     int scaledOffset;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %p, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -2177,31 +2177,31 @@ shr_mres_alloc_align_tag(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
     }
     if (1 > align) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("align <= 0 invalid, using align = 1 instead\n")));
         align = 1;
     }
     if ((offset >= align) || (0 > offset)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("offset %d must be >= 0 and < align %d\n"),
                    offset,
                    align));
         return _SHR_E_PARAM;
     }
     if (flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid flags %08X\n"),
                    flags & (~SHR_RES_ALLOC_SINGLE_FLAGS)));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory argument is NULL\n")));
         return _SHR_E_PARAM;
     }
@@ -2221,7 +2221,7 @@ shr_mres_alloc_align_tag(shr_mres_handle_t handle,
             base = *elem - thisPool->low;
         }
         if (((((base) / scaledAlign) * scaledAlign) + scaledOffset) != base) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("WITH_ID requested element %d does not comply"
                        " with alignment specifications\n"),
                        *elem));
@@ -2239,7 +2239,7 @@ shr_mres_alloc_align_tag(shr_mres_handle_t handle,
                                                                          elem);
     } else {
         /* not supported by this allocator */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support tagged aligned"
                    " alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
@@ -2254,7 +2254,7 @@ shr_mres_alloc_align_tag(shr_mres_handle_t handle,
         }
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %p, %d, &(%d)) return"
                " %d (%s)\n"),
                (void*)handle,
@@ -2298,7 +2298,7 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
     int base;
     uint32 blkFlags;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p, %p, %p, %p)"
                " enter\n"),
                (void*)handle,
@@ -2318,24 +2318,24 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!flags || !count || !elem || !align || !offset)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS | SHR_RES_ALLOC_GROUP_FLAGS))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~(SHR_RES_ALLOC_SINGLE_FLAGS |
                    SHR_RES_ALLOC_GROUP_FLAGS))));
@@ -2348,7 +2348,7 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
     /* try to collect the requested blocks */
     if (_shr_res_alloc_mgrs[thisPool->resManagerType].tag_align) {
         /* allocator does not support this feature */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator type %s does not support tagged aligned"
                    " alloc\n"),
                    _shr_res_alloc_mgrs[thisPool->resManagerType].name));
@@ -2360,27 +2360,27 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
         /* check parameters for this block */
         blkFlags = flags[index] | (grp_flags & SHR_RES_ALLOC_SINGLE_FLAGS);
         if (blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("invalid flags %08X for block %d\n"),
                        blkFlags & (~SHR_RES_ALLOC_SINGLE_FLAGS),
                        index));
             result = _SHR_E_PARAM;
         }
         if (0 >= count[index]) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("element count %d must be > 0\n"),
                        count[index]));
             result = _SHR_E_PARAM;
         }
         if (1 > align[index]) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("align <= 0 invalid, using align = 1 instead\n")));
             xalign = 1;
         } else {
             xalign = align[index];
         }
         if ((offset[index] >= xalign) || (0 > offset[index])) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("offset %d must be >= 0 and < align %d\n"),
                        offset[index],
                        xalign));
@@ -2400,7 +2400,7 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
                     base = elem[index] - thisPool->low;
                 }
                 if (((((base) / scaledAlign) * scaledAlign) + scaledOffset) != base) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("WITH_ID requested element %d does not"
                                " comply with alignment specifications\n"),
                                elem[index]));
@@ -2446,7 +2446,7 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
                                                                              scaled,
                                                                              elem[index]);
                 if (_SHR_E_NONE != xresult) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unable to back out %p resource %d"
                                " index %d base %d count %d: %d (%s)\n"),
                                (void*)handle,
@@ -2467,7 +2467,7 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p, %p, %p, %p)"
                " return %d (%s)\n"),
                (void*)handle,
@@ -2484,7 +2484,7 @@ shr_mres_alloc_align_tag_group(shr_mres_handle_t handle,
                result,
                _SHR_ERRMSG(result)));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %08X %12d %12d %12d %12d\n"),
                    index,
                    flags[index],
@@ -2510,7 +2510,7 @@ shr_mres_free_and_status(shr_mres_handle_t handle,
     int result = _SHR_E_NONE;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -2523,7 +2523,7 @@ shr_mres_free_and_status(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
@@ -2552,7 +2552,7 @@ shr_mres_free_and_status(shr_mres_handle_t handle,
         } /* if (flags) */
     } /* if (_SHR_E_NONE == result) */
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d, &(%08X)) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -2595,7 +2595,7 @@ shr_mres_free_group_and_status(shr_mres_handle_t handle,
     int index;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -2611,24 +2611,24 @@ shr_mres_free_group_and_status(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!count || !elem)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)));
         return _SHR_E_PARAM;
@@ -2670,7 +2670,7 @@ shr_mres_free_group_and_status(shr_mres_handle_t handle,
     } /* if (flags) */
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, &(%08X)) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -2683,7 +2683,7 @@ shr_mres_free_group_and_status(shr_mres_handle_t handle,
                result,
                _SHR_ERRMSG(result)));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %12d, %12d\n"),
                    index,
                    count[index],
@@ -2731,7 +2731,7 @@ shr_mres_free_sparse_and_status(shr_mres_handle_t handle,
     int count;
     int index;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %d, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -2746,22 +2746,22 @@ shr_mres_free_sparse_and_status(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern length must be greater than zero\n")));
         return _SHR_E_PARAM;
     }
     if (32 < length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern length must be 32 or less\n")));
         return _SHR_E_PARAM;
     }
     if (0 >= repeats) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("repeat count must be greater than zero\n")));
         return _SHR_E_PARAM;
     }
     if (1 != handle->res[res_id]->resElemSize) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("not compatible with scaled resources\n")));
         return _SHR_E_CONFIG;
     }
@@ -2795,12 +2795,12 @@ shr_mres_free_sparse_and_status(shr_mres_handle_t handle,
             } /* if (status) */
         } /* if (_SHR_E_NONE == result) */
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator does not support sparse free\n")));
         return _SHR_E_UNAVAIL;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %d, &(%08X)) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -2847,7 +2847,7 @@ shr_mres_check(shr_mres_handle_t handle,
     int scaled;
     int result;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d) enter\n"),
                (void*)handle,
                res_id,
@@ -2859,7 +2859,7 @@ shr_mres_check(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (1 > count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
@@ -2874,7 +2874,7 @@ shr_mres_check(shr_mres_handle_t handle,
                                                                  scaled,
                                                                  elem);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -2905,7 +2905,7 @@ shr_mres_check_group(shr_mres_handle_t handle,
     int index;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -2921,24 +2921,24 @@ shr_mres_check_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!count || !elem || !status)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)));
         return _SHR_E_PARAM;
@@ -2960,7 +2960,7 @@ shr_mres_check_group(shr_mres_handle_t handle,
         status[index] = xresult;
         if ((_SHR_E_NOT_FOUND != xresult) &&
             (_SHR_E_EXISTS != xresult)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("unexpected result checking %p resource %d"
                        " index %d elem %d count %d: %d (%s)\n"),
                        (void*)handle,
@@ -2981,7 +2981,7 @@ shr_mres_check_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -2994,7 +2994,7 @@ shr_mres_check_group(shr_mres_handle_t handle,
                result,
                _SHR_ERRMSG(result)));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %d, %d, %d (%s)\n"),
                    index,
                    count[index],
@@ -3021,7 +3021,7 @@ shr_mres_check_all(shr_mres_handle_t handle,
     int scaled;
     int result;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d) enter\n"),
                (void*)handle,
                res_id,
@@ -3033,7 +3033,7 @@ shr_mres_check_all(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (1 > count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
@@ -3048,7 +3048,7 @@ shr_mres_check_all(shr_mres_handle_t handle,
                                                                      scaled,
                                                                      elem);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %d, %d) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -3079,7 +3079,7 @@ shr_mres_check_all_group(shr_mres_handle_t handle,
     int index;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -3095,24 +3095,24 @@ shr_mres_check_all_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!count || !elem || !status)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)));
         return _SHR_E_PARAM;
@@ -3134,7 +3134,7 @@ shr_mres_check_all_group(shr_mres_handle_t handle,
         status[index] = xresult;
         if ((_SHR_E_NOT_FOUND != xresult) &&
             (_SHR_E_EXISTS != xresult)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("unexpected result checking %p resource %d"
                        " index %d elem %d count %d: %d (%s)\n"),
                        (void*)handle,
@@ -3155,7 +3155,7 @@ shr_mres_check_all_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -3168,7 +3168,7 @@ shr_mres_check_all_group(shr_mres_handle_t handle,
                result,
                _SHR_ERRMSG(result)));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %d, %d, %d (%s)\n"),
                    index,
                    count[index],
@@ -3197,7 +3197,7 @@ shr_mres_check_all_sparse(shr_mres_handle_t handle,
     _shr_res_pool_desc_t *thisPool;
     int result;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %d) enter\n"),
                (void*)handle,
                res_id,
@@ -3211,22 +3211,22 @@ shr_mres_check_all_sparse(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (0 >= length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern length must be greater than zero\n")));
         return _SHR_E_PARAM;
     }
     if (32 < length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern length must be 32 or less\n")));
         return _SHR_E_PARAM;
     }
     if (0 >= repeats) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("repeat count must be greater than zero\n")));
         return _SHR_E_PARAM;
     }
     if (1 != handle->res[res_id]->resElemSize) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("not compatible with scaled resources\n")));
         return _SHR_E_CONFIG;
     }
@@ -3240,12 +3240,12 @@ shr_mres_check_all_sparse(shr_mres_handle_t handle,
                                                                           repeats,
                                                                           elem);
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("allocator does not support sparse check all\n")));
         return _SHR_E_UNAVAIL;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %d, %d) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -3275,7 +3275,7 @@ shr_mres_check_all_tag(shr_mres_handle_t handle,
     int scaled;
     int result;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p, %d, %d) enter\n"),
                (void*)handle,
                res_id,
@@ -3288,7 +3288,7 @@ shr_mres_check_all_tag(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (1 > count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("element count %d must be > 0\n"),
                    count));
         return _SHR_E_PARAM;
@@ -3304,7 +3304,7 @@ shr_mres_check_all_tag(shr_mres_handle_t handle,
                                                                          scaled,
                                                                          elem);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %p, %d, %d) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -3337,7 +3337,7 @@ shr_mres_check_all_tag_group(shr_mres_handle_t handle,
     int index;
     int scaled;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, %p, %p, %p, %p, %p) enter\n"),
                (void*)handle,
                res_id,
@@ -3354,24 +3354,24 @@ shr_mres_check_all_tag_group(shr_mres_handle_t handle,
     RES_TYPE_VALID_CHECK(handle, res_id);
     RES_TYPE_EXIST_CHECK(handle, res_id);
     if (!grp_done) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument grp_done is NULL\n")));
         return _SHR_E_PARAM;
     }
     *grp_done = 0;
     if (0 > grp_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("group member count %d must be >= 0\n"),
                    grp_size));
         return _SHR_E_PARAM;
     }
     if ((0 < grp_size) && (!count || !elem || !status)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("an obligatory array pointer is NULL\n")));
         return _SHR_E_PARAM;
     }
     if (grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid group flags %08X\n"),
                    grp_flags & (~SHR_RES_ALLOC_GROUP_FLAGS)));
         return _SHR_E_PARAM;
@@ -3394,7 +3394,7 @@ shr_mres_check_all_tag_group(shr_mres_handle_t handle,
         status[index] = xresult;
         if ((_SHR_E_NOT_FOUND != xresult) &&
             (_SHR_E_EXISTS != xresult)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("unexpected result checking %p resource %d"
                        " index %d elem %d count %d: %d (%s)\n"),
                        (void*)handle,
@@ -3415,7 +3415,7 @@ shr_mres_check_all_tag_group(shr_mres_handle_t handle,
     *grp_done = index;
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("(%p, %d, %08X, %d, &(%d), %p, %p, %p, %p) return %d (%s)\n"),
                (void*)handle,
                res_id,
@@ -3429,7 +3429,7 @@ shr_mres_check_all_tag_group(shr_mres_handle_t handle,
                result,
                _SHR_ERRMSG(result)));
     for (index = 0; index < grp_size; index++) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("  block %12d: %p, %d, %d, %d (%s)\n"),
                    index,
                    (void*)(tag[index]),
@@ -3517,7 +3517,7 @@ shr_res_init(int unit,
     _shr_res_unit_desc_t *tempUnit;
     int result = _SHR_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d, %d, %d) enter\n"),
                unit,
@@ -3526,7 +3526,7 @@ shr_res_init(int unit,
 
     /* a little parameter checking */
     if ((0 > unit) || (BCM_LOCAL_UNITS_MAX <= unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "invalid unit number %d\n"),
                    unit));
@@ -3557,7 +3557,7 @@ shr_res_init(int unit,
     } /* if (_SHR_E_NONE == result) */
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d, %d, %d) return %d (%s)\n"),
                unit,
@@ -3594,7 +3594,7 @@ shr_res_detach(int unit)
     _shr_res_unit_desc_t *tempUnit;
     int result = _SHR_E_NONE;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d) enter\n"),
                unit));
@@ -3617,7 +3617,7 @@ shr_res_detach(int unit)
     /* else would be not inited, again, easy to detach in that case - NOP */
 
     /* return the result */
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "(%d) return %d (%s)\n"),
                unit,
@@ -4404,7 +4404,7 @@ _shr_res_bitmap_create(_shr_res_pool_desc_t **desc,
                       "bitmap resource descriptor");
     if (!(*desc)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for descriptor\n"),
                    (unsigned int)(sizeof(_shr_res_pool_desc_t) +
                    sal_strlen(name))));
@@ -4423,7 +4423,7 @@ _shr_res_bitmap_create(_shr_res_pool_desc_t **desc,
     if (_SHR_E_NONE == result) {
         (*desc)->resHandle = handle;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to create bitmap allocator, low_id = %d,"
                    " count = %d\n"),
                    low_id,
@@ -4623,7 +4623,7 @@ _shr_res_tag_bitmap_create(_shr_res_pool_desc_t **desc,
                       "tagged bitmap resource descriptor");
     if (!(*desc)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for descriptor\n"),
                    (unsigned int)(sizeof(_shr_res_pool_desc_t) +
                    sal_strlen(name))));
@@ -4634,7 +4634,7 @@ _shr_res_tag_bitmap_create(_shr_res_pool_desc_t **desc,
     (*desc)->low = low_id;
     (*desc)->extras = sal_alloc(sizeof(*extra), "tagged bitmap extras");
     if (!((*desc)->extras)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for extras\n"),
                    (unsigned int)(sizeof(*extra))));
         result = _SHR_E_MEMORY;
@@ -4647,7 +4647,7 @@ _shr_res_tag_bitmap_create(_shr_res_pool_desc_t **desc,
         if (extras) {
             sal_memcpy((*desc)->extras, extras, sizeof(*extra));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("assuming zero tag length and one element"
                       " per grain, since no extras provided\n")));
             extra->grain_size = 1;
@@ -4660,7 +4660,7 @@ _shr_res_tag_bitmap_create(_shr_res_pool_desc_t **desc,
                                            extra->grain_size,
                                            extra->tag_length);
         if (_SHR_E_NONE != result) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("unable to create tagged bitmap allocator:"
                        " %d (%s)\n"),
                        result,
@@ -4870,7 +4870,7 @@ _shr_res_idxres_create(_shr_res_pool_desc_t **desc,
     *desc = sal_alloc(nodesize, "idxres resource descriptor");
     if (!(*desc)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %d bytes for descriptor\n"),
                    nodesize));
         return _SHR_E_MEMORY;
@@ -4886,7 +4886,7 @@ _shr_res_idxres_create(_shr_res_pool_desc_t **desc,
     if (info) {
         if ((1 > info->scaling_factor)) {
             /* negative or zero scaling factors are ignored */
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("invalid scaling factor %d; using 1 instead\n"),
                       info->scaling_factor));
             ((shr_res_idxres_extras_t*)((*desc)->extras))->scaling_factor = 1;
@@ -4895,7 +4895,7 @@ _shr_res_idxres_create(_shr_res_pool_desc_t **desc,
         }
     } else {
         /* no scaling factor provided */
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("missing scaling factor; using 1\n")));
         ((shr_res_idxres_extras_t*)((*desc)->extras))->scaling_factor = 1;
     }
@@ -4917,7 +4917,7 @@ _shr_res_idxres_create(_shr_res_pool_desc_t **desc,
     }
     if (_SHR_E_NONE != result) {
         /* creation failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to create idxres(%d,%d,%d,%d,%d): %d (%s)\n"),
                    low_id,
                    low_id + count - 1,
@@ -4957,7 +4957,7 @@ _shr_res_idxres_alloc(_shr_res_pool_desc_t *desc,
     shr_idxres_element_t item;
 
     if (SHR_RES_ALLOC_REPLACE & flags) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("REPLACE not yet supported on idxres\n")));
     }
 
@@ -4969,7 +4969,7 @@ _shr_res_idxres_alloc(_shr_res_pool_desc_t *desc,
     } else {
         /* allocate next available */
         if (count > info->scaling_factor) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("tried to allocate %d elements from idxres list"
                        " of scaling_factor %d\n"),
                        count,
@@ -5095,7 +5095,7 @@ _shr_res_aidxres_create(_shr_res_pool_desc_t **desc,
     *desc = sal_alloc(nodesize, "aidxres resource descriptor");
     if (!(*desc)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %d bytes for descriptor\n"),
                    nodesize));
         return _SHR_E_MEMORY;
@@ -5111,7 +5111,7 @@ _shr_res_aidxres_create(_shr_res_pool_desc_t **desc,
     if (info) {
         if ((1 >= info->blocking_factor)) {
             /* negative or zero scaling factors are ignored */
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("invalid blocking factor %d; using 7 instead\n"),
                       info->blocking_factor));
             ((shr_res_aidxres_extras_t*)((*desc)->extras))->blocking_factor = 7;
@@ -5120,7 +5120,7 @@ _shr_res_aidxres_create(_shr_res_pool_desc_t **desc,
         }
     } else {
         /* no scaling factor provided */
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("missing blocking factor; using 7\n")));
         ((shr_res_aidxres_extras_t*)((*desc)->extras))->blocking_factor = 7;
     }
@@ -5133,7 +5133,7 @@ _shr_res_aidxres_create(_shr_res_pool_desc_t **desc,
                                      "managed aidxres");
     if (_SHR_E_NONE != result) {
         /* creation failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to create aidxres(%d,%d,%d,%d,%d): %d (%s)\n"),
                    low_id,
                    low_id + count - 1,
@@ -5173,7 +5173,7 @@ _shr_res_aidxres_alloc(_shr_res_pool_desc_t *desc,
     shr_aidxres_element_t item;
 
     if (SHR_RES_ALLOC_REPLACE & flags) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("REPLACE not yet supported on aidxres\n")));
     }
 
@@ -5185,7 +5185,7 @@ _shr_res_aidxres_alloc(_shr_res_pool_desc_t *desc,
     } else {
         /* allocate next available */
         if (count > (2 << info->blocking_factor)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("tried to allocate %d elements from idxres list"
                        " with blocking_factor %d\n"),
                        count,
@@ -5231,7 +5231,7 @@ _shr_res_aidxres_free(_shr_res_pool_desc_t *desc,
                (count > 0)) {
             xresult = shr_aidxres_list_free(handle, elem);
             if ((_SHR_E_NONE != xresult) && (_SHR_E_RESOURCE != xresult)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("element %d unable to free: %d (%s)\n"),
                            elem,
                            xresult,
@@ -5329,7 +5329,7 @@ _shr_res_mdb_create(_shr_res_pool_desc_t **desc,
     *desc = sal_alloc(nodesize, "mdb resource descriptor");
     if (!(*desc)) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %d bytes for descriptor\n"),
                    nodesize));
         return _SHR_E_MEMORY;
@@ -5351,7 +5351,7 @@ _shr_res_mdb_create(_shr_res_pool_desc_t **desc,
         }
     } else {
         /* no settings provided; pick a reasonable(?) default set */
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("missing extra information; using defaults\n")));
         intInfo->bank_size = 4096;
         intInfo->free_lists = 12;
@@ -5378,7 +5378,7 @@ _shr_res_mdb_create(_shr_res_pool_desc_t **desc,
                             FALSE /* no implied locking */);
     if (_SHR_E_NONE != result) {
         /* creation failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to create mdb(%d,%d,%d,%d,...): %d (%s)\n"),
                    low_id,
                    low_id + count - 1,
@@ -5504,14 +5504,14 @@ _shr_res_mdb_free(_shr_res_pool_desc_t *desc,
     result = shr_mdb_block_info(handle, elem, &info);
     if (_SHR_E_NONE == result) {
         if (info.size != count) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("freeing block size %d but claimed %d\n"),
                        info.size,
                        count));
             result = _SHR_E_FAIL;
         }
         if (info.head != (uint32)elem) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("freeing block with head %d by non-head"
                        " element %d\n"),
                        info.head,

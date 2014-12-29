@@ -2236,7 +2236,7 @@ _soc_gh_process_oam_interrupt(int unit)
         fidx++;
     }
     if (!found) {
-      LOG_ERROR(BSL_LS_SOC_COMMON,
+      LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Unexpected interrupt received for OAM !!\n")));
     }
@@ -2262,7 +2262,7 @@ soc_greyhound_oam_ser_process(int unit, soc_mem_t mem, int index)
         /* Clear the entry of MA_STATE and REMP memories */
         null_entry = soc_mem_entry_null(unit, mem);
         if ((rv = soc_mem_write(unit, mem, MEM_BLOCK_ALL, index, null_entry)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "OAM SER ENTRY_CLEAR failed for %s[%d]: %s\n"),
                        SOC_MEM_NAME(unit, mem),
@@ -2271,7 +2271,7 @@ soc_greyhound_oam_ser_process(int unit, soc_mem_t mem, int index)
         }
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem, index);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "OAM SER ENTRY_CLEAR: %s[%d] index %d\n"),
                    SOC_MEM_NAME(unit, mem), mem, index));
@@ -2592,7 +2592,7 @@ soc_greyhound_ser_mem_clear(int unit, soc_mem_t mem)
         SOC_IF_ERROR_RETURN
             (WRITE_SER_RANGE_ENABLEr(unit, range_enable));
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\t%s: SER[%d-%d]\n"),
                      SOC_MEM_NAME(unit, cur_spi->mem),
@@ -2769,12 +2769,12 @@ _soc_greyhound_process_single_parity_error(int unit, int group,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                index, minfo);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, index));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
@@ -2791,7 +2791,7 @@ _soc_greyhound_process_single_parity_error(int unit, int group,
         }
         
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                             "unit %d %s: parity error is handled.\n"),
                  unit, msg));
     }
@@ -2834,12 +2834,12 @@ _soc_greyhound_process_single_ecc_error(int unit, int group,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                                index, minfo);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d %s ECC error\n"),
                    unit, msg, index, double_bit ? "double-bit" : ""));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple ECC errors\n"),
                        unit, msg));
@@ -2857,7 +2857,7 @@ _soc_greyhound_process_single_ecc_error(int unit, int group,
             (void)soc_ser_correction(unit, &spci);
         }
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                             "unit %d %s: parity error is handled.\n"),
                  unit, msg));
     }
@@ -2895,7 +2895,7 @@ _soc_greyhound_process_mmu_ecc(int unit, int group,
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            index, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s entry %d %s ECC error\n"),
                unit, msg, index, double_bit ? "double-bit" : ""));
@@ -2961,7 +2961,7 @@ _soc_greyhound_process_dual_parity_error(int unit, int group,
 
 
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
@@ -2977,7 +2977,7 @@ _soc_greyhound_process_dual_parity_error(int unit, int group,
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                index, minfo);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, index));
@@ -3021,7 +3021,7 @@ _soc_greyhound_process_mmu_xq(int unit, int group,
     valid_val =
         soc_reg_field_get(unit, err_reg, reg_val, ERR_VALIDf);
     if (valid_val == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -3052,12 +3052,12 @@ _soc_greyhound_process_mmu_xq(int unit, int group,
                                SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                                entry_index, minfo);
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s port %d entry %d %s ECC error\n"),
                unit, msg, port, entry_index, double_err ? "double-bit" : ""));
     if (multiple) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s has multiple ECC errors\n"),
                    unit, msg));
@@ -3118,7 +3118,7 @@ _soc_greyhound_process_mmu_ipmcgroup_error(int unit, int group,
 
     /* CHECK if the error is valid */
     if (valid_val == 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                             "unit %d %s: parity error is handled.\n"),
                  unit, msg));
         return SOC_E_NONE;
@@ -3141,12 +3141,12 @@ _soc_greyhound_process_mmu_ipmcgroup_error(int unit, int group,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                                entry_index, minfo);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d IPMC GROUP%d entry %d %s ECC error\n"),
                        unit, i, entry_index, double_err ? "double-bit" : ""));
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d IPMC GROUP%d has multiple ECC errors\n"),
                            unit, i));
@@ -3205,7 +3205,7 @@ _soc_greyhound_process_mmu_ipmcvlan_error(int unit, int group,
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                        entry_index, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d MMU_IPMC VLAN entry %d %s ECC error\n"),
                unit, entry_index, double_err ? "double-bit" : ""));
@@ -3266,7 +3266,7 @@ _soc_greyhound_process_mmu_wred_error(int unit, int group,
             soc_reg_field_get(unit, err_reg, reg_val, ERR_VALIDf);
     /* CHECK if the error is valid */
     if (valid_val == 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                             "unit %d %s: parity error is handled.\n"),
                  unit, msg));
         return SOC_E_NONE;
@@ -3287,13 +3287,13 @@ _soc_greyhound_process_mmu_wred_error(int unit, int group,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                entry_index, minfo);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s entry %d parity error\n"),
                        unit, SOC_MEM_NAME(unit, wred_mems[i]), 
                        entry_index));
             if (multi_err) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s has multiple parity errors\n"),
                            unit, SOC_MEM_NAME(unit, wred_mems[i])));
@@ -3350,7 +3350,7 @@ _soc_greyhound_process_mmu_e2efc_error(int unit, int group,
             soc_reg_field_get(unit, err_reg, reg_val, MEM_IDf);
     /* CHECK if the error is valid */
     if (mem_id == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -3364,7 +3364,7 @@ _soc_greyhound_process_mmu_e2efc_error(int unit, int group,
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                        entry_index, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d MMU E2EFC entry %d parity error\n"),
                unit, entry_index));
@@ -3408,7 +3408,7 @@ _soc_greyhound_process_mmu_cbppkthdr_error(int unit, int group,
     valid_val =
         soc_reg_field_get(unit, err_reg, reg_val, ERR_VALIDf);
     if (valid_val == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -3433,12 +3433,12 @@ _soc_greyhound_process_mmu_cbppkthdr_error(int unit, int group,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                                entry_index, minfo);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d CBPPKTHDR %d entry %d %s ECC error\n"),
                        unit, i, entry_index, double_err ? "double-bit" : ""));
             if (multi_err) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d CBPPKTHDR %d has multiple ECC errors\n"),
                            unit, i));
@@ -3480,35 +3480,35 @@ _soc_greyhound_process_port_macro_error(int unit, int group,
     /* Check errors */
     err = soc_reg_field_get(unit, err_reg, reg_val, TSC_ERRf);
     if (err) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d  port macro ECC error on TSC.\n"),
                    unit));
     }
     err = soc_reg_field_get(unit, err_reg, reg_val, MAC_RX_CDC_MEM_ERRf);
     if (err) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d  port macro ECC error on MAC RX CDC memory.\n"),
                    unit));
     }
     err = soc_reg_field_get(unit, err_reg, reg_val, MAC_TX_CDC_MEM_ERRf);
     if (err) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d  port macro ECC error on MAC TX CDC memory.\n"),
                    unit));
     }
     err = soc_reg_field_get(unit, err_reg, reg_val, MIB_RX_MEM_ERRf);
     if (err) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d  port macro ECC error on MIB RX STAT counter memory.\n"),
                    unit));
     }
     err = soc_reg_field_get(unit, err_reg, reg_val, MIB_TX_MEM_ERRf);
     if (err) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d  port macro ECC error on MIB TX STAT counter memory.\n"),
                    unit));
@@ -3565,7 +3565,7 @@ _soc_greyhound_process_counter_error(int unit, int group,
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                entry_idx, minfo);
             counter_name = SOC_REG_NAME(unit, counter_reg);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "EGR STAT COUNTER port %d %s entry %d parity error\n"),
                        port_idx, counter_name,
@@ -3579,17 +3579,17 @@ _soc_greyhound_process_counter_error(int unit, int group,
             spci.blk_type = block;
             (void)soc_ser_correction(unit, &spci);    
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "EGR STAT COUNTER has multiple parity errors\n")));
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "EGR STAT COUNTER parity hardware inconsistency\n")));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "EGR_STAT_COUNTER parity hardware inconsistency\n")));
     }
@@ -3626,7 +3626,7 @@ _soc_greyhound_process_parity_error(int unit)
     for (group = 0; _soc_gh_parity_group_info[group].cpi_bit; group++) {
         info = _soc_gh_parity_group_info[group].info;
         group_reg = _soc_gh_parity_group_info[group].status_reg;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d %s parity processing\n"),
                                 unit, SOC_REG_NAME(unit, group_reg)));
@@ -3665,7 +3665,7 @@ _soc_greyhound_process_parity_error(int unit)
                 if (!soc_reg_field_valid(unit, group_reg,
                                          info[table].error_field)) {
                     if (info[table].mem != INVALIDm) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s has bad error field\n"),
                                               unit, SOC_MEM_NAME(unit, info[table].mem)));
@@ -3692,7 +3692,7 @@ _soc_greyhound_process_parity_error(int unit)
                     msg = SOC_FIELD_NAME(unit, info[table].error_field);
                 }
 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "unit %d %s analysis\n"),
                                         unit, msg));
@@ -3705,7 +3705,7 @@ _soc_greyhound_process_parity_error(int unit)
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 0,
                                minfo);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s asserted\n"),
                                           unit, msg));
@@ -3935,7 +3935,7 @@ soc_greyhound_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         
         mem = soc_addr_to_mem_extended(unit, block, 0, address);
         if (mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d mem decode failed, "
                                   "SCHAN NACK analysis failure\n"), unit));
@@ -4004,7 +4004,7 @@ soc_greyhound_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
                                    SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                    (offset - min_addr), minfo);
             msg = SOC_MEM_NAME(unit, mem);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s entry %d parity error\n"),
                        unit, msg, (offset - min_addr)));
@@ -4019,7 +4019,7 @@ soc_greyhound_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
 
             if ((rv = _soc_greyhound_mem_nack_error_process(unit, nack_reg_mem, 
                 (soc_block_t)block, reg_mem)) < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                            unit, SOC_MEM_NAME(unit, mem),
@@ -4039,7 +4039,7 @@ soc_greyhound_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         if ((ainfo.reg >= TDBGC0r) && (ainfo.reg <= TDBGC11r)) {
             error_fld = EGR_STATS_COUNTER_TABLE_PAR_ERRf;
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s REG unexpected NACK failure!\n"),
                        unit, SOC_REG_NAME(unit, nack_reg_mem.reg)));
@@ -4051,7 +4051,7 @@ soc_greyhound_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                ainfo.idx, minfo);
         msg = SOC_REG_NAME(unit, nack_reg_mem.reg);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d port %d %s index %d parity error\n"),
                    unit, ainfo.port, msg, ainfo.idx));
@@ -4123,7 +4123,7 @@ soc_greyhound_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -4137,7 +4137,7 @@ soc_greyhound_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -4347,7 +4347,7 @@ soc_greyhound_port_config_init(int unit, uint16 dev_id)
         speed_max = port_speed_max_non_cascade;
         dual_port_idx = 1;
         valid_port_idx = port_blk_gport;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "no device_id matched\n")));
     } else {
@@ -4355,7 +4355,7 @@ soc_greyhound_port_config_init(int unit, uint16 dev_id)
         matched_port_config = &_gh_sku_port_config[match];
         if (((option != NULL) && (matched_port_config->config_op == -1)) ||
             (match_option == 0)){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Warning: bcm53400_init_port_config=%d config "
                                  "is not supported in %s ! \n"),_gh_port_config_id,
@@ -4377,7 +4377,7 @@ soc_greyhound_port_config_init(int unit, uint16 dev_id)
                     if (!_GH_FLEX_LANE_MODE_IS_SUPPORT(
                             matched_port_config->flex_lane_modes_bmp[i], 
                             _gh_tsc[i].lane_mode)) {
-                        LOG_WARN(BSL_LS_SOC_COMMON,(BSL_META_U(unit,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,(BSL_META_U(unit,
                                 "Warning: bcm53400_init_port_config_tsc%d " 
                                 "config is not supported in %s ! \n"), 
                                 i, soc_dev_name(unit)));
@@ -4406,7 +4406,7 @@ soc_greyhound_port_config_init(int unit, uint16 dev_id)
                         }
                     }
                 } else {
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "Warning: bcm53400_init_port_config_tsc%d config "
                                          "is not supported in %s ! \n"),i,soc_dev_name(unit)));
@@ -4496,7 +4496,7 @@ _soc_greyhound_tdm_init(int unit, uint16 dev_id)
     SOC_IF_ERROR_RETURN(WRITE_IARB_TDM_CONTROLr(unit, rval));
     
     if (matched_devid_idx == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "Warning: soc_greyhound_port_config_init should "
                              "be invoked first! Choose bcm534x1 port config.\n")));
@@ -4957,7 +4957,7 @@ _soc_gh_sbus_tsc_block(int unit,
     }
 
     if (*block == -1){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "_soc_gh_sbus_tsc_block(u=%d,pp=%d,mem=%d, blk=%d): "
                              "no valid block for TSC SBUS interface!\n"), 
@@ -5063,7 +5063,7 @@ _soc_greyhound_indacc_read(int unit, uint32 phy_addr,
     int ts;
     uint32  reg_addr = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_indacc_read"
                           "(%d,0x%x,0x%08x,*phy_data)..\n"), 
@@ -5080,7 +5080,7 @@ _soc_greyhound_indacc_read(int unit, uint32 phy_addr,
     reg_addr = phy_reg & 0x1f;
     soc_reg_field_set(unit, CHIP_INDACC_CTLSTSr, &ctlsts, ADDRESSf, reg_addr);
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_indacc_read:"
                           "INDACC_CTLSTSr=0x%08x\n"), ctlsts));
@@ -5107,7 +5107,7 @@ _soc_greyhound_indacc_write(int unit, uint32 phy_addr,
     int ts;
     uint32  reg_addr = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_indacc_write"
                           "(%d,0x%x,0x%08x,0x%04x)..\n"), 
@@ -5126,7 +5126,7 @@ _soc_greyhound_indacc_write(int unit, uint32 phy_addr,
     reg_addr = phy_reg & 0x1f;
     soc_reg_field_set(unit, CHIP_INDACC_CTLSTSr, &ctlsts, ADDRESSf, reg_addr);
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_indacc_write:"
                           "INDACC_CTLSTSr=0x%08x\n"), ctlsts));
@@ -5150,7 +5150,7 @@ _soc_greyhound_sbus_qsgmii_read(int unit,
 
     *phy_data = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_sbus_qsgmii_read"
                           "(%d,0x%x,0x%08x,*phy_data)..\n"), 
@@ -5191,7 +5191,7 @@ _soc_greyhound_sbus_qsgmii_read(int unit,
 
     *phy_data = reg_data;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_sbus_qsgmii_read()...data=0x%04x\n"),
                *phy_data));
@@ -5205,7 +5205,7 @@ _soc_greyhound_sbus_qsgmii_write(int unit,
 {
     uint32  reg_addr, reg_data;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_sbus_qsgmii_write"
                           "(%d,0x%x,0x%08x,0x%04x)..\n"), 
@@ -5244,7 +5244,7 @@ _soc_greyhound_sbus_qsgmii_write(int unit,
     SOC_IF_ERROR_RETURN(_soc_greyhound_indacc_write(unit, 
             phy_addr, reg_addr, phy_data));
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_sbus_qsgmii_write()... Done!")));
 
@@ -5269,7 +5269,7 @@ _soc_greyhound_mdio_reg_read(int unit, uint32 phy_addr,
     int port, phy_port, blk;
     int qsgmii_reg = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_mdio_reg_read(%d,0x%x,0x%08x,*phy_data)..\n"), 
                unit, phy_addr, phy_reg));
@@ -5304,7 +5304,7 @@ _soc_greyhound_mdio_reg_write(int unit, uint32 phy_addr,
     int port, phy_port, blk;
     int qsgmii_reg = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "_soc_greyhound_mdio_reg_write(%d,0x%x,0x%08x,0x%04x)..\n"), 
                unit, phy_addr, phy_reg,phy_data));
@@ -5863,7 +5863,7 @@ _soc_greyhound_misc_init(int unit)
     _phy_tsce_firmware_set_helper[unit] = _soc_greyhound_tsce_firmware_set;
 
     if (soc_mspi_init(unit) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "unit %d : MSPI Init Failed\n"), unit)); 
     }
@@ -5884,7 +5884,7 @@ _soc_greyhound_misc_init(int unit)
         if (soc_mem_config_set) {
             soc_mem_config_set("bcm953411", "1");
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : soc_mem_config_set() is NULL\n"), unit));
         }
@@ -6362,7 +6362,7 @@ soc_greyhound_chip_reset(int unit)
         }
     }
     if (ts_idx == sizeof(ts_pll)/sizeof(ts_pll[0])) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid value for PTP_TS_PLL_REF (%u).  No default PLL params.\n"), ts_ref_freq));
         /* Could check for existence of SOC properties for VCO_DIV2, KA, KI, KP, NDIV_INT, NDIV_FRAC, MDIV, PDIV, and if
@@ -6437,7 +6437,7 @@ soc_greyhound_chip_reset(int unit)
             }
         }
         if (bs_idx == sizeof(bs_pll)/sizeof(bs_pll[0])) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid value for PTP_BS_REF (%u).  No default PLL params.\n"), bs_ref_freq));
             /* Could check for existence of SOC properties for VCO_DIV2, KA, KI, KP, NDIV_INT,
@@ -6574,7 +6574,7 @@ soc_greyhound_chip_reset(int unit)
     /* TSCx should be disabled in some sku. */ 
     /* pgw_ctrl_0 */
     if (matched_devid_idx == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "Warning: soc_greyhound_port_config_init should "
                              "be invoked first! Choose bcm534x1 port config.\n")));
@@ -6671,7 +6671,7 @@ void soc_greyhound_oam_handler_register(int unit, soc_greyhound_oam_handler_t ha
     gh_oam_handler[unit] = handler;
     rv = READ_IP1_INTR_ENABLEr(unit, &rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLEr)));
@@ -6683,7 +6683,7 @@ void soc_greyhound_oam_handler_register(int unit, soc_greyhound_oam_handler_t ha
     }
     rv = WRITE_IP1_INTR_ENABLEr(unit, rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error writing %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLEr)));
@@ -7547,10 +7547,10 @@ int soc_gh_ser_test(int unit, _soc_ser_test_t test_type) {
         }
     }
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Total TCAM errors on unit %d: %d\n"), unit, numTCAMErr));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Total H/W parity errors on unit %d: %d\n"),unit, numHwMemErr));
     soc_ser_test_long_sleep = FALSE;

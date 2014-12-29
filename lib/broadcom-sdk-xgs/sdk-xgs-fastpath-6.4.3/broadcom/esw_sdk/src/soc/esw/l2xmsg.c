@@ -118,7 +118,7 @@ STATIC l2x_data_t l2x_data[SOC_MAX_NUM_DEVICES];
 #define L2X_ENTRY_CALLBACK_SET(_u_, _index_)                \
 {                                                           \
     SHR_BITSET(l2x_data[(_u_)].callback_map, (_index_));    \
-    LOG_VERBOSE(BSL_LS_SOC_ARL, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL, \
                 (BSL_META_U(unit, \
                             "set_entry_callback: u:%d i=%d\n"), \
                             _u_, _index_));                             \
@@ -127,7 +127,7 @@ STATIC l2x_data_t l2x_data[SOC_MAX_NUM_DEVICES];
 #define L2X_ENTRY_DELETED_SET(_u_, _index_)                 \
 {                                                           \
     SHR_BITSET(l2x_data[(_u_)].delete_map, (_index_));      \
-    LOG_VERBOSE(BSL_LS_SOC_ARL, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL, \
                 (BSL_META_U(unit, \
                             "set_entry_deleted: u:%d i=%d\n"),  \
                             _u_, _index_));                             \
@@ -613,7 +613,7 @@ soc_l2x_sync_delete(int unit, uint32 *del_entry, int index, uint32 flags)
     int                 max_index;
     uint32              *tab_p;
 
-    LOG_VERBOSE(BSL_LS_SOC_ARL,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                 (BSL_META_U(unit,
                             "soc_l2x_sync_delete: unit=%d index=%d\n"),
                  unit, index));
@@ -713,7 +713,7 @@ soc_l2x_start(int unit, uint32 flags, sal_usecs_t interval)
         return soc_tr3_l2x_start(unit, flags, interval);
     }
 #endif
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_l2x_start: unit=%d flags=0x%x interval=%d\n"),
               unit, flags, interval));
@@ -779,7 +779,7 @@ soc_l2x_start(int unit, uint32 flags, sal_usecs_t interval)
                                              _soc_l2x_thread,
                                              INT_TO_PTR(unit));
             if (soc->l2x_pid == SAL_THREAD_ERROR) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "soc_l2x_start: Could not start L2X thread\n")));
                 SOC_CONTROL_UNLOCK(unit);
@@ -817,7 +817,7 @@ soc_l2x_stop(int unit)
         return soc_tr3_l2x_stop(unit);
     }
 #endif
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_l2x_stop: unit=%d\n"), unit));
 
@@ -855,7 +855,7 @@ soc_l2x_stop(int unit)
 
         while (soc->l2x_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "soc_l2x_stop: thread will not exit\n")));
                 rv = SOC_E_INTERNAL;
@@ -1249,7 +1249,7 @@ _soc_l2x_thread(void *unit_vp)
     assert(soc_mem_index_min(unit, l2x_data[unit].l2mem) == 0);
     index_count = soc_mem_index_count(unit, l2x_data[unit].l2mem);
     if (index_count <= 0) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_l2x_thread: table size is 0 \n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1281,7 +1281,7 @@ _soc_l2x_thread(void *unit_vp)
     if (shadow_tab == NULL || chunk_buf == NULL || 
         delete_map == NULL || chunk_delete_map == NULL || 
         callback_map == NULL || chunk_callback_map == NULL) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:soc_l2x_thread: not enough memory \n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1313,7 +1313,7 @@ _soc_l2x_thread(void *unit_vp)
          * Read the next chunk of the L2 table using Table DMA.
          */
 
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_l2x_thread: Process %d-%d\n"),
                      chunk_index, chunk_index + chunk_size - 1));
@@ -1322,7 +1322,7 @@ _soc_l2x_thread(void *unit_vp)
 
         soc_mem_lock(unit, l2x_data[unit].l2mem);
         if (SOC_L2_DEL_SYNC_LOCK(soc) < 0) {
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "soc_l2x_thread: unable to take mutex\n")));
             soc_mem_unlock(unit, l2x_data[unit].l2mem);
@@ -1338,7 +1338,7 @@ _soc_l2x_thread(void *unit_vp)
                                      chunk_buf)) < 0) {
             SOC_L2_DEL_SYNC_UNLOCK(soc);
             soc_mem_unlock(unit, l2x_data[unit].l2mem);
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "soc_l2x_thread: DMA failed: %s\n"),
                                   soc_errmsg(rv)));
@@ -1387,7 +1387,7 @@ _soc_l2x_thread(void *unit_vp)
          * is requested to exit, it can do so immediately.
          */
 
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_l2x_thread: unit=%d: done in %d usec\n"),
                      unit,
@@ -1430,7 +1430,7 @@ cleanup_exit:
 
     (void)sal_sem_give(soc->l2x_lock);
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_l2x_thread: exiting\n")));
 

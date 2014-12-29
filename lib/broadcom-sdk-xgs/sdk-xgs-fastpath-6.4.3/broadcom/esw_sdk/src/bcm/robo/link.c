@@ -352,7 +352,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
         if (IS_GE_PORT(unit, port)){
             rv = _bcm_robo_port_phy_auto_pd_war(unit, port, new_link);
             if (BCM_FAILURE(rv)){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "Port%d is failed on applying Auto-PD WAR(rv=%d)!\n"),
                           port, rv));
@@ -364,7 +364,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
     }
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Port %s: Failed to recover link status: %s\n"), 
                    SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -385,7 +385,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
         
         rv = soc_link_fwd_set(unit, lc->lc_pbm_link);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Port %s: soc_link_fwd_set failed: %s\n"),
                        SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -402,7 +402,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
         rv = bcm_port_update(unit, port, new_link);
         
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Port %s: bcm_port_update failed: %s\n"),
                        SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -419,7 +419,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
         SOC_PBMP_PORT_ADD(lc->lc_pbm_link, port);
         rv = soc_link_fwd_set(unit, lc->lc_pbm_link);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Port %s: soc_link_fwd_set failed: %s\n"),
                        SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -441,7 +441,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
 
     notify = (cur_link  != new_link);
 
-    LOG_VERBOSE(BSL_LS_BCM_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "Unit %d, Port %s: Link: Current %s, New %s\n"),
                  unit,
@@ -453,7 +453,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
         rv = bcm_port_info_get(unit, port, &info);
 
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Port %s: bcm_port_info_get failed: %s\n"), 
                        SOC_PORT_NAME(unit, port),
@@ -463,7 +463,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
     }
 
     if (new_link) {
-        LOG_INFO(BSL_LS_BCM_LINK,
+        LOG_BSL_INFO(BSL_LS_BCM_LINK,
                  (BSL_META_U(unit,
                              "Port %s: link up (%dMb %s %s)\n"),
                   SOC_PORT_NAME(unit, port),
@@ -472,7 +472,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
                   PHY_FIBER_MODE(unit, port) ?
                   "Fiber" : "Copper"));
     } else {
-        LOG_INFO(BSL_LS_BCM_LINK,
+        LOG_BSL_INFO(BSL_LS_BCM_LINK,
                  (BSL_META_U(unit,
                              "Port %s: link down\n"),
                   SOC_PORT_NAME(unit, port)));
@@ -480,7 +480,7 @@ _bcm_robo_linkscan_update_port(int unit, int port)
 
 
     if (notify) {
-        LOG_VERBOSE(BSL_LS_BCM_LINK,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                     (BSL_META_U(unit,
                                 "Unit %d, Port %s: logical link notification - %s\n"),
                      unit, SOC_PORT_NAME(unit, port),
@@ -526,7 +526,7 @@ _bcm_robo_mac_low_power_update(int unit)
         rv = DRV_DEV_PROP_GET(unit, 
             DRV_DEV_PROP_LOW_POWER_SUPPORT_PBMP, &temp);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Failed to get the supported port bitmap of MAC Low power mode!\n")));
         } else {
@@ -556,7 +556,7 @@ _bcm_robo_mac_low_power_update(int unit)
                         /* Save te PHY configuration */
                         rv = _bcm_robo53101_phy_cfg_save(unit);
                         if (BCM_FAILURE(rv)) {
-                            LOG_ERROR(BSL_LS_BCM_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                                       (BSL_META_U(unit,
                                                   "Failed to save the PHY configuration!\n")));
                         }
@@ -572,7 +572,7 @@ _bcm_robo_mac_low_power_update(int unit)
                     rv= DRV_DEV_PROP_SET(unit, 
                         DRV_DEV_PROP_LOW_POWER_ENABLE, temp);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                                   (BSL_META_U(unit,
                                               "Enabling the MAC Low Power Mode was failed!\n")));
                     } else {
@@ -621,7 +621,7 @@ _bcm_robo_mac_low_power_update(int unit)
                 SOC_CONTROL(unit)->ultra_low_power_detected = sal_time();
                 rv= DRV_DEV_PROP_SET(unit, DRV_DEV_PROP_ULTRA_LOW_POWER, 0x0);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META_U(unit,
                                           "Enabling the MAC Ultra Low Power Mode was failed!\n")));
                 }
@@ -672,7 +672,7 @@ _bcm_robo_linkscan_update(int unit, pbmp_t pbm)
                 err->wait = 0;  /* Exit error state */
                 err->count = 0;
                 
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Port %s: restored\n"),
                              SOC_PORT_NAME(unit, port)));
@@ -691,7 +691,7 @@ _bcm_robo_linkscan_update(int unit, pbmp_t pbm)
             if (++err->count >= err->limit && err->limit > 0) {
                 /* Enter error state */
                 
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Port %s: temporarily removed from linkscan\n"),
                            SOC_PORT_NAME(unit, port)));
@@ -767,7 +767,7 @@ _bcm_robo_linkscan_thread(int unit)
     int                 rv;
     soc_port_t      port;
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "Linkscan starting on unit %d\n"), unit));
 
@@ -807,7 +807,7 @@ _bcm_robo_linkscan_thread(int unit)
 #endif
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Failed to clear forwarding ports: %s\n"), 
                    bcm_errmsg(rv)));
@@ -821,7 +821,7 @@ _bcm_robo_linkscan_thread(int unit)
     rv = soc_linkscan_register(unit, _bcm_robo_linkscan_hw_interrupt);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Failed to register handler: %s\n"), 
                    bcm_errmsg(rv)));
@@ -862,7 +862,7 @@ _bcm_robo_linkscan_thread(int unit)
         (void)bcm_port_enable_set(unit, port, TRUE);
     }
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "Linkscan exiting\n")));
 
@@ -959,7 +959,7 @@ int bcm_robo_linkscan_init(int unit)
 {
     ls_cntl_t   *lc;
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_init()..\n")));
     if (robo_link_control[unit] != NULL) {
@@ -1018,7 +1018,7 @@ int bcm_robo_linkscan_detach(int unit)
     ls_handler_t        *lh;
     pbmp_t      empty_pbm;
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_detach()..\n")));
     if (lc == NULL) {
@@ -1076,7 +1076,7 @@ int bcm_robo_linkscan_enable_set(int unit, int us)
     int                 rv = BCM_E_NONE;
     soc_timeout_t       to;
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_enable_set()..\n")));
     if (!us && lc == NULL) {    /* No error to disable if not inited */
@@ -1114,7 +1114,7 @@ int bcm_robo_linkscan_enable_set(int unit, int us)
 
             while (lc->lc_thread == NULL) {
                 if (soc_timeout_check(&to)) {
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META_U(unit,
                                           "%s: Thread did not start\n"),
                                lc->lc_taskname));
@@ -1133,7 +1133,7 @@ int bcm_robo_linkscan_enable_set(int unit, int us)
 
         while (lc->lc_thread != NULL) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "%s: Thread did not exit\n"),
                            lc->lc_taskname));
@@ -1162,7 +1162,7 @@ int bcm_robo_linkscan_enable_get(int unit, int *us)
 {
     LC_CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_enable_get()..\n")));
     *us = robo_link_control[unit]->lc_us;
@@ -1186,7 +1186,7 @@ int bcm_robo_linkscan_enable_port_get(int unit, bcm_port_t port)
 {
     ls_cntl_t           *lc = robo_link_control[unit];
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_enable_get()..port=0x%x\n"),
               port));
@@ -1225,7 +1225,7 @@ int bcm_robo_linkscan_mode_set(int unit, bcm_port_t port, int mode)
 
     LC_CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_mode_set()..port=%d,mode=%d\n"),
               port, mode));
@@ -1295,7 +1295,7 @@ int bcm_robo_linkscan_mode_set_pbm(int unit, bcm_pbmp_t pbm, int mode)
 {
     bcm_port_t  port;
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_mode_set_pbm()..\n")));
     LC_CHECK_INIT(unit);
@@ -1337,7 +1337,7 @@ int bcm_robo_linkscan_mode_get(int unit, bcm_port_t port, int *mode)
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_mode_get()..\n")));
     if (PBMP_MEMBER(lc->lc_pbm_hw, port)) {
@@ -1371,7 +1371,7 @@ int bcm_robo_linkscan_register(int unit, bcm_linkscan_handler_t f)
 
     LC_CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_register()..\n")));
     /* First, see if this handler already registered */
@@ -1423,7 +1423,7 @@ int bcm_robo_linkscan_unregister(int unit, bcm_linkscan_handler_t f)
 
     LC_CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_linkscan_unregister()..\n")));
     LC_LOCK(unit);
@@ -1477,7 +1477,7 @@ int bcm_robo_link_wait(int unit, bcm_pbmp_t *pbm, int us)
         return (BCM_E_PARAM);
     }
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_link_wait()..pbm=0x%x\n"),
               SOC_PBMP_WORD_GET(*pbm, 0)));
@@ -1535,7 +1535,7 @@ bcm_robo_link_change(int unit, pbmp_t pbm)
 
     LC_CHECK_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_link_change()..pbm=0x%x\n"),
               SOC_PBMP_WORD_GET(pbm, 0)));

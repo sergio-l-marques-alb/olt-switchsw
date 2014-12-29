@@ -599,7 +599,7 @@ soc_ea_private_db_sync(int unit, int flag)
         while(db_type < socEaChipInfoCount){
             rv = _soc_ea_chip_info_sync(unit, (soc_ea_chip_info_t)db_type, flag);
             if(rv != SOC_E_NONE){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Ea unit %d db %d sync failed.\n"),unit, 
                            db_type));
@@ -612,7 +612,7 @@ soc_ea_private_db_sync(int unit, int flag)
         while(db_type < socEaChipControlCount){
             rv = _soc_ea_chip_control_sync(unit, (soc_ea_chip_control_t)db_type, flag);
             if(rv != SOC_E_NONE){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Ea unit %d db %d sync failed.\n"),unit, 
                            db_type));
@@ -633,14 +633,14 @@ soc_ea_private_db_dump(int unit)
     int j;
 
     if (NULL == SOC_CONTROL(unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Ea err code:%d"),SOC_E_UNIT));
         return;
     }
 
     if(!SOC_IS_EA(unit)){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Ea err code:%d"),SOC_E_UNIT));
         return ;
@@ -651,7 +651,7 @@ soc_ea_private_db_dump(int unit)
     si = &soc->info;
 
     if(si->private == NULL){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Ea err code:%d"),SOC_E_INIT));
         return ;
@@ -919,7 +919,7 @@ soc_ea_info_config(int unit, soc_control_t *soc)
         break;
     default:
         si->chip = 0;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_info_config: driver device %04x unexpected\n"),
                   drv_dev_id));
@@ -1100,7 +1100,7 @@ soc_ea_pre_attach(int unit)
     /* Attach GMII control interface drivers */
     soc->oam_ctrlops = soc_ea_oam_ctrl_attach(socEaOamCtrlIfEther);
     if (!soc->oam_ctrlops) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "EA unit %d attached control interface failed\n"),
                    unit));
@@ -1112,7 +1112,7 @@ soc_ea_pre_attach(int unit)
     for (i = 0; i < socEaOamCtrlIfCount; i++) {
         soc->oam_ctrlops = soc_ea_oam_ctrl_attach(i);
         if (soc->oam_ctrlops) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "EA unit %d attached control interface failed\n"), 
                        unit));
@@ -1120,7 +1120,7 @@ soc_ea_pre_attach(int unit)
         }
     }
     if (!soc->oam_ctrlops) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "EA unit %d attached control interface failed\n"), 
                    unit));
@@ -1255,7 +1255,7 @@ _ea_device_probe_thread(void *param)
             soc = SOC_CONTROL(SOC_NDEV_IDX2DEV(cur_unit));
     
             if (!(soc->soc_flags & SOC_F_ATTACHED)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(u,
                                      "Unit %d attaching failed\n"), SOC_NDEV_IDX2DEV(cur_unit)));
                 soc_ea_detach(SOC_NDEV_IDX2DEV(cur_unit));

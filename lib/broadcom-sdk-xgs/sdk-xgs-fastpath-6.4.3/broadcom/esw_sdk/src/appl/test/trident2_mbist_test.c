@@ -19355,7 +19355,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <61023> 2'bx1,30'bxxxxxxxxxxxxx00000000000000x01\n"),
                               unit, read_data));
@@ -19414,7 +19414,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <61191> 2'bx1,30'bxxxxxxxxxxxxx00000000000000x01\n"),
                               unit, read_data));
@@ -19473,7 +19473,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <61365> 2'bx1,30'bxxxxxxxxx000000000000000000x01\n"), 
                               unit, read_data));
@@ -19544,7 +19544,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <61575> 2'bx1,30'b000000000000000000000000000x01\n"), 
                               unit, read_data));
@@ -19617,7 +19617,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <61834> 2'bx1,30'b00000000000xx000000xx000000x01\n"), 
                               unit, read_data));
@@ -19718,7 +19718,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <62121> 2'bx1,30'bxxx000000000000000000000000x01\n"), 
                               unit, read_data));
@@ -19793,7 +19793,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <62320> 2'bx1,30'bxxx000000000000000000000000x01\n"), 
                               unit, read_data));
@@ -19868,7 +19868,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <62504> 2'bx1,30'bxxxxxxxxxxxxx00000000000000x01\n"), 
                               unit, read_data));
@@ -19939,7 +19939,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <62684> 2'bx1,30'bxxxxxxxxxxxxx00000000000000x01\n"), 
                               unit, read_data));
@@ -20010,7 +20010,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <62867> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -20037,7 +20037,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <63006> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -20064,7 +20064,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <63163> 2'bx1,30'b000000000xx0000000000000000x01\n"), 
                               unit, read_data));
@@ -20161,7 +20161,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <63452> 2'bx1,30'b000000000xx0000000000000000x01\n"), 
                               unit, read_data));
@@ -20258,7 +20258,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <63714> 2'bx1,30'bxxxxxxxxxxxxxxxxx0000000000x01\n"), 
                               unit, read_data));
@@ -20389,7 +20389,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <63948> 2'bx1,30'bxxxxxxxxxxxxxxxxx0000000000x01\n"), 
                               unit, read_data));
@@ -20520,7 +20520,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <64188> 2'bx1,30'bxxxxxxxxxxxxx00000000000000x01\n"), 
                               unit, read_data));
@@ -20571,7 +20571,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <64348> 2'bx1,30'bxxxxxxxxxxxxx00000000000000x01\n"), 
                               unit, read_data));
@@ -20622,7 +20622,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <64523> 2'bx1,30'bxxx000000000000000000000000x01\n"), 
                               unit, read_data));
@@ -20673,7 +20673,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <64698> 2'bx1,30'bxxx000000000000000000000000x01\n"), 
                               unit, read_data));
@@ -20724,7 +20724,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <64855> 2'bx1,30'bxxxxxxxxxxxxxxx000000000000x01\n"), 
                               unit, read_data));
@@ -20751,7 +20751,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <64988> 2'bx1,30'bxxxxxxxxxxxxxxx000000000000x01\n"), 
                               unit, read_data));
@@ -20778,7 +20778,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <65115> 2'bx1,30'bxxxxxxxxxxxxxxxxx00000000xxx01\n"), 
                               unit, read_data));
@@ -20813,7 +20813,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <65250> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -20874,7 +20874,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <65473> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -20935,7 +20935,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <65696> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -20996,7 +20996,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <65919> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -21057,7 +21057,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <66142> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -21118,7 +21118,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <66365> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -21179,7 +21179,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <66588> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -21240,7 +21240,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <66811> 2'bx1,30'b0xxxxxxxxxxxxxxxxxx00xxxx00x01\n"), 
                               unit, read_data));
@@ -21305,7 +21305,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4001fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67037> 2'bx1,30'bxxxxxxxxxxxxx11111111111111x01\n"), 
                               unit, read_data));
@@ -21343,7 +21343,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4001fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67143> 2'bx1,30'bxxxxxxxxxxxxx11111111111111x01\n"), 
                               unit, read_data));
@@ -21381,7 +21381,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x401ffff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67253> 2'bx1,30'bxxxxxxxxx111111111111111111x01\n"), 
                               unit, read_data));
@@ -21425,7 +21425,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x7ffffff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67385> 2'bx1,30'b111111111111111111111111111x01\n"), 
                               unit, read_data));
@@ -21470,7 +21470,7 @@ int trident2_mem_bist(int unit)
     
       READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x7ff9f9f9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67539> 2'bx1,30'b11111111111xx111111xx111111x01\n"), 
                               unit, read_data));
@@ -21529,7 +21529,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x47fffff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67707> 2'bx1,30'bxxx111111111111111111111111x01\n"), 
                               unit, read_data));
@@ -21575,7 +21575,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x47fffff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67831> 2'bx1,30'bxxx111111111111111111111111x01\n"), 
                               unit, read_data));
@@ -21621,7 +21621,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4001fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <67945> 2'bx1,30'bxxxxxxxxxxxxx11111111111111x01\n"), 
                               unit, read_data));
@@ -21665,7 +21665,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4001fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68057> 2'bx1,30'bxxxxxxxxxxxxx11111111111111x01\n"), 
                               unit, read_data));
@@ -21709,7 +21709,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68172> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -21731,7 +21731,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68265> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -21753,7 +21753,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x7fe7fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68369> 2'bx1,30'b111111111xx1111111111111111x01\n"), 
                               unit, read_data));
@@ -21810,7 +21810,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x7fe7fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68539> 2'bx1,30'b111111111xx1111111111111111x01\n"), 
                               unit, read_data));
@@ -21867,7 +21867,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40001ff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68691> 2'bx1,30'bxxxxxxxxxxxxxxxxx1111111111x01\n"), 
                               unit, read_data));
@@ -21941,7 +21941,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40001ff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68829> 2'bx1,30'bxxxxxxxxxxxxxxxxx1111111111x01\n"), 
                               unit, read_data));
@@ -22015,7 +22015,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4001fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <68971> 2'bx1,30'bxxxxxxxxxxxxx11111111111111x01\n"), 
                               unit, read_data));
@@ -22049,7 +22049,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4001fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69073> 2'bx1,30'bxxxxxxxxxxxxx11111111111111x01\n"), 
                               unit, read_data));
@@ -22083,7 +22083,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x47fffff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69185> 2'bx1,30'bxxx111111111111111111111111x01\n"), 
                               unit, read_data));
@@ -22117,7 +22117,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x47fffff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69297> 2'bx1,30'bxxx111111111111111111111111x01\n"), 
                               unit, read_data));
@@ -22151,7 +22151,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40007ff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69397> 2'bx1,30'bxxxxxxxxxxxxxxx111111111111x01\n"), 
                               unit, read_data));
@@ -22173,7 +22173,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40007ff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69485> 2'bx1,30'bxxxxxxxxxxxxxxx111111111111x01\n"), 
                               unit, read_data));
@@ -22195,7 +22195,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40001fe1) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69569> 2'bx1,30'bxxxxxxxxxxxxxxxxx11111111xxx01\n"), 
                               unit, read_data));
@@ -22221,7 +22221,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69657> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22260,7 +22260,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69789> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22299,7 +22299,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <69921> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22338,7 +22338,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <70053> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22377,7 +22377,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <70185> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22416,7 +22416,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <70317> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22455,7 +22455,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <70449> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -22494,7 +22494,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x60000619) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <70581> 2'bx1,30'b1xxxxxxxxxxxxxxxxxx11xxxx11x01\n"), 
                               unit, read_data));
@@ -24324,7 +24324,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <77837> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -24351,7 +24351,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <77976> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -24378,7 +24378,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <78094> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -24453,7 +24453,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <78271> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -24475,7 +24475,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <78364> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -24497,7 +24497,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <78442> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -26332,7 +26332,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <85459> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -26359,7 +26359,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <85598> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -26386,7 +26386,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <85716> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -26461,7 +26461,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <85893> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -26483,7 +26483,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <85986> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -26505,7 +26505,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <86064> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -28340,7 +28340,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <93081> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -28367,7 +28367,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <93220> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -28394,7 +28394,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <93338> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -28469,7 +28469,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <93515> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -28491,7 +28491,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <93608> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -28513,7 +28513,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <93686> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -30348,7 +30348,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <100672> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -30375,7 +30375,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <100811> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -30402,7 +30402,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <100929> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -30477,7 +30477,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <101105> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -30499,7 +30499,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <101197> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -30521,7 +30521,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <101275> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -31396,7 +31396,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <104069> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -31423,7 +31423,7 @@ int trident2_mem_bist(int unit)
 
       READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <104208> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -31450,7 +31450,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <104326> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -31525,7 +31525,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <104502> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -31547,7 +31547,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <104594> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -31569,7 +31569,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <104672> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -32444,7 +32444,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <107466> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -32471,7 +32471,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <107605> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -32498,7 +32498,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <107723> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -32573,7 +32573,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <107899> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -32595,7 +32595,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <107991> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -32617,7 +32617,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <108069> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -33492,7 +33492,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <110863> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -33519,7 +33519,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <111002> 2'bx1,30'bxxxxxxxxxxx0000000000000000x01\n"), 
                               unit, read_data));
@@ -33546,7 +33546,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <111120> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -33621,7 +33621,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <111296> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -33643,7 +33643,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x4007fff9) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <111388> 2'bx1,30'bxxxxxxxxxxx1111111111111111x01\n"), 
                               unit, read_data));
@@ -33665,7 +33665,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <111466> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -33805,7 +33805,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <111899> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx00xxx01\n"), 
                               unit, read_data));
@@ -33832,7 +33832,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <112017> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -33907,7 +33907,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000061) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <112179> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx11xxx01\n"), 
                               unit, read_data));
@@ -33929,7 +33929,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <112257> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -34069,7 +34069,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <112675> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx00xxx01\n"), 
                               unit, read_data));
@@ -34096,7 +34096,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <112793> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -34171,7 +34171,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000061) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <112955> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx11xxx01\n"), 
                               unit, read_data));
@@ -34193,7 +34193,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <113033> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -34333,7 +34333,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <113451> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx00xxx01\n"), 
                               unit, read_data));
@@ -34360,7 +34360,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <113569> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -34435,7 +34435,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000061) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <113731> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx11xxx01\n"), 
                               unit, read_data));
@@ -34457,7 +34457,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <113809> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -34597,7 +34597,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <114227> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx00xxx01\n"), 
                               unit, read_data));
@@ -34624,7 +34624,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <114345> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -34699,7 +34699,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000061) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <114507> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxx11xxx01\n"), 
                               unit, read_data));
@@ -34721,7 +34721,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <114585> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -34812,7 +34812,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <114846> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -34887,7 +34887,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <115008> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -34978,7 +34978,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <115268> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -35053,7 +35053,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <115430> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -35144,7 +35144,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <115690> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -35219,7 +35219,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <115852> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -35310,7 +35310,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <116112> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -35385,7 +35385,7 @@ int trident2_mem_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <116274> 2'bx1,30'bxxxxxxxxxxxxxxxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -36290,7 +36290,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <2608> 2'bx1,30'bxxxxxxxxx00xxxxxxxxxxxxxxxxx01\n"), 
                               unit, read_data));
@@ -36385,7 +36385,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <2794> 2'bx1,30'bxxxxxxxxx00xxxxxxxxxxxxxxxxx01\n"), 
                               unit, read_data));
@@ -36480,7 +36480,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <2986> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxxxxxxx01\n"), 
                               unit, read_data));
@@ -36553,7 +36553,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <3215> 2'bx1,30'bxxxxxxxxxxx00xxxxxx00xxxxxxx01\n"), 
                               unit, read_data));
@@ -36652,7 +36652,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <3405> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxxxx00x01\n"), 
                               unit, read_data));
@@ -36691,7 +36691,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40180001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <3531> 2'bx1,30'bxxxxxxxxx11xxxxxxxxxxxxxxxxx01\n"), 
                               unit, read_data));
@@ -36786,7 +36786,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40180001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <3715> 2'bx1,30'bxxxxxxxxx11xxxxxxxxxxxxxxxxx01\n"), 
                               unit, read_data));
@@ -36881,7 +36881,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000001) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <3903> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxxxxxxx01\n"), 
                               unit, read_data));
@@ -36953,7 +36953,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40060601) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <4097> 2'bx1,30'bxxxxxxxxxxx11xxxxxx11xxxxxxx01\n"), 
                               unit, read_data));
@@ -37052,7 +37052,7 @@ int trident2_regfile_bist(int unit)
     
     READ_TOP_UC_TAP_READ_DATAr(unit, &read_data);
     if (read_data != 0x40000019) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "Unit : %d, ERROR Got : 0x%x Expected : <4285> 2'bx1,30'bxxxxxxxxxxxxxxxxxxxxxxxxx11x01\n"), 
                               unit, read_data));

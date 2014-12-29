@@ -1214,7 +1214,7 @@ nl_mdio_prbs_chk_err(int unit, uint16 mdio_portid, uint16 crx)
         SOC_IF_ERROR_RETURN
             (nl_mdio_read(unit, mdio_portid, mdio_devid, 0x11, &prbs_ctrl));
         if((prbs_ctrl & 0x1) == 0x0) {
-            LOG_WARN(BSL_LS_SOC_ESM,
+            LOG_BSL_WARN(BSL_LS_SOC_ESM,
                      (BSL_META_U(unit,
                                  "PRBS is not enabled for NL TCAM mdio_portid=%d\n"), mdio_portid));
             return SOC_E_FAIL;
@@ -1233,29 +1233,29 @@ nl_mdio_prbs_chk_err(int unit, uint16 mdio_portid, uint16 crx)
         if_lane_base = (mdio_devid < 8) ? (mdio_devid - 2) * 4 : (mdio_devid - 8) * 4;
 
         if(err_count_l0) {
-			LOG_WARN(BSL_LS_SOC_ESM,
+			LOG_BSL_WARN(BSL_LS_SOC_ESM,
                                  (BSL_META_U(unit,
                                              "\t%d PRBS errors seen on lane %d of %s interface\n"), err_count_l0, if_lane_base + 0, if_name));
 	    }		
         if(err_count_l1) {
-			LOG_WARN(BSL_LS_SOC_ESM,
+			LOG_BSL_WARN(BSL_LS_SOC_ESM,
                                  (BSL_META_U(unit,
                                              "\t%d PRBS errors seen on lane %d of %s interface\n"), err_count_l1, if_lane_base + 1, if_name));
 	    }		
         if(err_count_l2) {
-			LOG_WARN(BSL_LS_SOC_ESM,
+			LOG_BSL_WARN(BSL_LS_SOC_ESM,
                                  (BSL_META_U(unit,
                                              "\t%d PRBS errors seen on lane %d of %s interface\n"), err_count_l2, if_lane_base + 2, if_name));
 	    }		
         if(err_count_l3) {
-			LOG_WARN(BSL_LS_SOC_ESM,
+			LOG_BSL_WARN(BSL_LS_SOC_ESM,
                                  (BSL_META_U(unit,
                                              "\t%d PRBS errors seen on lane %d of %s interface\n"), err_count_l3, if_lane_base + 3, if_name));
 	    }		
 	    if (err_count_l0 || err_count_l1 || err_count_l2 || err_count_l3) prbs_pass = 0;
     }
     if(prbs_pass) {
-        LOG_WARN(BSL_LS_SOC_ESM,
+        LOG_BSL_WARN(BSL_LS_SOC_ESM,
                  (BSL_META_U(unit,
                              "\tPRBS OK \n")));
     }
@@ -3770,17 +3770,17 @@ esm_calc_new_step_size_ps(int unit, unsigned list_cost210_len,
      * dividing real-numbers by step-size, so how does rouding-up to nearest 
      * integer value help ?
      */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "esm_calc_new_step_size_ps: ")));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "worst_req_proc_cost_ns=%d"), 
                             worst_req_proc_cost_ns));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             " step_size_ps=%d"), step_size_ps));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "(num_bits_to_represent_worst_req_proc_cost=8)")));
     return (step_size_ps/1000) * 1000;
@@ -3870,37 +3870,37 @@ esm_prog_new_drop_all_costs(int unit, unsigned idle_req_rsp_latency_ns_x,
     SOC_IF_ERROR_RETURN(WRITE_ESM_ADM_THR_DROP_ALL_RESET_COST0r(unit, 
                                                         drop_all_reset_cost0));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "esm_prog_drop_all_costs: drop_all_cost2=%d, "),
                  drop_all_cost2));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drop_all_reset_cost2=%d (is "), drop_all_reset_cost2));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%d %% of drop_all_cost2"), percent_hysteresis));
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "esm_prog_drop_all_costs: drop_all_cost1=%d, "),
                  drop_all_cost1));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drop_all_reset_cost1=%d (is "), drop_all_reset_cost1));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%d %% of drop_all_cost1"), percent_hysteresis));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "esm_prog_drop_all_costs: drop_all_cost0=%d, "),
                  drop_all_cost0));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drop_all_reset_cost0=%d (is "), drop_all_reset_cost0));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%d %% of drop_all_cost0"), percent_hysteresis));
     return SOC_E_NONE;
@@ -4108,10 +4108,10 @@ hwtl_kill_endless (int unit)
 
     if (!SOC_SUCCESS(rc)) {
          /* hwtl did not complete */
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit: %d HWTL did not complete, will not "), unit));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "verify packet, byte counters\n")));
         return rc;
@@ -4120,18 +4120,18 @@ hwtl_kill_endless (int unit)
         status =  hwtl_verify_pb_counters(unit, 0, zero_64, zero_64, zero_64, 
                                           1, 1);
         if (!SOC_SUCCESS(status)) {
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "unit %d: HWTL test PASSED (completed without"),
                                   unit));
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "mismatches), but packet, byte counters")));
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "check FAILED\n")));
 	    } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d: Packet, byte counters check also PASSED\n"),
                          unit));
@@ -4208,13 +4208,13 @@ hwtl_start_burst (int unit, int ptr_fme_req, int num_bb_req, int num_gaps,
 /*
       #esm_puts_fyi " WARNING: will not check for hwtl_done, will not verify packet, byte counters (ENDLESS=1), HWTL is still running";
 */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d: WARNING: will not check for hwtl_done,"), unit));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "will not verify packet, byte counters")));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "(ENDLESS=1), HWTL is still running\n")));
         return SOC_E_NONE;
@@ -4223,11 +4223,11 @@ hwtl_start_burst (int unit, int ptr_fme_req, int num_bb_req, int num_gaps,
         rc = hwtl_poll_done(unit);
         if (rc != SOC_E_NONE) {
             /* hwtl did not complete */
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "unit %d: HWTL did not complete !!, will not"),
                                   unit));
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "verify packet, byte counters")));
 	        return rc;
@@ -4235,13 +4235,13 @@ hwtl_start_burst (int unit, int ptr_fme_req, int num_bb_req, int num_gaps,
             unsigned skip_exp_ipipe_req_chk = 0;
             unsigned skip_exp_txrx_pbc_chk;
             /* hwtl had completed without mismatch */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d: HWTL PASSED (completed"), unit));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "without mismatch), will now verify ")));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "packet, byte counters\n")));
             skip_exp_txrx_pbc_chk = last_cword_is_optional;
@@ -4251,22 +4251,22 @@ hwtl_start_burst (int unit, int ptr_fme_req, int num_bb_req, int num_gaps,
                                           skip_exp_txrx_pbc_chk,
                                           skip_exp_ipipe_req_chk);
 	        if (rc != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_ESM,
+                LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                           (BSL_META_U(unit,
                                       "unit: %d HWTL PASSED (completed without "),
                                       unit));
-                LOG_ERROR(BSL_LS_SOC_ESM,
+                LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                           (BSL_META_U(unit,
                                       "mismatches), but packet, byte counters ")));
-                LOG_ERROR(BSL_LS_SOC_ESM,
+                LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                           (BSL_META_U(unit,
                                       "check FAILED !!")));
 	        } else {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "unit: %d Packet, byte counters check"),
                              unit));
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         " also PASSED")));
 	        }
@@ -4286,7 +4286,7 @@ hwtl_find_idle_req_rsp_latency(int unit, int ptr_fme_req,
     int rv = 0;
     unsigned esmif_max_latency_recorded, esmif_clk_period_ns;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "test_runtime_seconds=%d\n"),test_runtime_seconds));
     if (test_runtime_seconds <= 0) {
@@ -4308,7 +4308,7 @@ hwtl_find_idle_req_rsp_latency(int unit, int ptr_fme_req,
     }
     
     if (failed) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit %d: hwtl_find_idle_req_rsp_latency: FAILED !!\n"), 
                    unit));
@@ -4321,46 +4321,46 @@ hwtl_find_idle_req_rsp_latency(int unit, int ptr_fme_req,
         *latency_ns = esmif_clk_period_ns * esmif_max_latency_recorded;
 
         if (esmif_max_latency_recorded > ESMIF_MAX_FIFO_DEPTH) {
-         LOG_ERROR(BSL_LS_SOC_ESM,
+         LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                    (BSL_META_U(unit,
                                "unit %d: ESMIF.MAX_LATENCY_RECORDED = "), unit));
-         LOG_ERROR(BSL_LS_SOC_ESM,
+         LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                    (BSL_META_U(unit,
                                "%d !! - number "), esmif_max_latency_recorded));
-         LOG_ERROR(BSL_LS_SOC_ESM,
+         LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                    (BSL_META_U(unit,
                                "greater than %d means "), ESMIF_MAX_FIFO_DEPTH ));
-         LOG_ERROR(BSL_LS_SOC_ESM,
+         LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                    (BSL_META_U(unit,
                                "catastrophy !!\n")));
          return SOC_E_FAIL; 
         } else if (esmif_max_latency_recorded > ESMIF_ALLOWED_FIFO_DEPTH) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d: ESMIF.MAX_LATENCY_RECORDED = "),
                          unit));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%d !! - which "),esmif_max_latency_recorded ));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "is greater than budgeted %d !!"), 
                          ESMIF_ALLOWED_FIFO_DEPTH));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "@ %d MHz,this \n corresponds to latency of %d nS"),
                          esmif_clk_freq_khz(unit)/1000, *latency_ns));
             return SOC_E_NONE;
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "ESMIF.MAX_LATENCY_RECORDED = %d "), 
                          esmif_max_latency_recorded));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "(num_esmif_clks) @ %d MHz, this "),
                          esmif_clk_freq_khz(unit)/1000));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "corresponds \n to latency of %d nS\n"), 
                          *latency_ns));
@@ -5504,14 +5504,14 @@ esm_calc_new_fme_cost210 (int unit, int ptr_fme_req, int calc_optional_cost,
         SOC_IF_ERROR_RETURN(rc);
     }
     if (llength != 3) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit %d: %s: ptr_fme_req=%d, could not"),
                               unit, proc_name, ptr_fme_req));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "compute cost in terms of num_rsp_words,")));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "num_req_words, num_nl_cclks\n")));
         /* failure */
@@ -5529,11 +5529,11 @@ esm_calc_new_fme_cost210 (int unit, int ptr_fme_req, int calc_optional_cost,
         rsp_mpps = max_rsp_mwps / num_rsp_words;
         time_to_receive_rsp_ns_x = (1000*1000*1000) / rsp_mpps;
     } else {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit %d: %s: ptr_fme_req=%d, num_rsp_words"),
                               unit, proc_name, ptr_fme_req));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "must be non-zero, exitting\n")));
         return SOC_E_FAIL; /* failed */
@@ -5547,11 +5547,11 @@ esm_calc_new_fme_cost210 (int unit, int ptr_fme_req, int calc_optional_cost,
         req_mpps = max_req_mwps / num_req_words;
         time_to_transmit_req_ns_x = (1000*1000*1000) / req_mpps;
     } else {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit %d: %s: ptr_fme_req=%d, num_req_words"),
                               unit, proc_name, ptr_fme_req));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "must be non-zero, exitting\n")));
         return SOC_E_FAIL; /* failed */
@@ -5564,11 +5564,11 @@ esm_calc_new_fme_cost210 (int unit, int ptr_fme_req, int calc_optional_cost,
                   (100 - REQD_NL_CCLK_BW_FOR_CPU_PERCENT))/100) / num_nl_cclks;
         time_for_nl_to_execute_search_ns_x = (1000*1000*1000) / nl_core_mpps;
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d: %s: ptr_fme_req=%d, num_nl_cclks"),
                      unit, proc_name, ptr_fme_req));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "must be non-zero, exitting\n")));
         return SOC_E_FAIL; /* failed */
@@ -5618,11 +5618,11 @@ esm_prog_new_fme_costs (int unit, int ptr_fme_req, int prog_optional_cost,
         return rc;
     }
     if (llength != 3) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit %d: esm_prog_new_fme_costs: will not "),
                               unit));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "to program costs in FIELDMAPPER table")));
         return SOC_E_FAIL;
@@ -5630,11 +5630,11 @@ esm_prog_new_fme_costs (int unit, int ptr_fme_req, int prog_optional_cost,
     fme_cost2 = list_cost210[0]; /* element_0 of list */
     fme_cost1 = list_cost210[1]; /* element_1 of list */
     fme_cost0 = list_cost210[2]; /* element_2 of list */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "unit %d: esm_prog_new_fme_costs: ptr_fme_req=%d"),
                  unit, ptr_fme_req));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "fme_cost2=%d, fme_cost1=%d, fme_cost0=%d\n"),
                  fme_cost2, fme_cost1, fme_cost0));
@@ -5904,11 +5904,11 @@ esm_prog_drop_all_cost_fme_req_cost(int unit, unsigned *idle_req_rsp_latency_ns_
                  unit, *idle_req_rsp_latency_ns_x));
     }
     if (*idle_req_rsp_latency_ns_x == 0) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "unit %d: ptr_fme_req=%d: idle_req_rsp_latency"),
                               unit, idle_req_rsp_ptr_fme_req));
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "measurement FAILED, will quit\n")));
         return SOC_E_FAIL;
@@ -6479,12 +6479,12 @@ esm_chk_giol(int unit)
                               EXT_TCAM_INTR1f);
     
     if (giol0) {
-       LOG_ERROR(BSL_LS_SOC_ESM,
+       LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                  (BSL_META_U(unit,
                              "GIOL0 is asserted on unit %d!.\n"), unit));
     }
     if (giol1) {
-       LOG_ERROR(BSL_LS_SOC_ESM,
+       LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                  (BSL_META_U(unit,
                              "GIOL1 is asserted on unit %d!.\n"), unit));
     }
@@ -6505,7 +6505,7 @@ nl_clear_giol(int unit, unsigned num_nl)
         SOC_IF_ERROR_RETURN(nl_reg_write(unit, dev_id, NL_REG_ADDR_ERR_STS, 
                                         nl_regval, 0, 0, 0));
         if (nl_chk_err_status_reg(unit, dev_id)) {
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "Failed to clear the NL11K error register on "
                                   "device %d on unit %d.\n"), dev_id, unit));
@@ -6523,7 +6523,7 @@ nl_clear_giol(int unit, unsigned num_nl)
         /* from now on : chk csm_status and make sure there are no errors */
         rv = nl_mdio_chk_csm_status_regs(unit, mdio_portid, chk_crx);
         if (rv < SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "Status check failed on NL11K "
                                   "device %d on unit %d.\n"), dev_id, unit));
@@ -6531,7 +6531,7 @@ nl_clear_giol(int unit, unsigned num_nl)
     }
     
     if (esm_chk_giol(unit)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "Failed to clear GIOL status on unit %d.\n"), unit));
         return SOC_E_FAIL;
@@ -6663,28 +6663,28 @@ esm_err_recovery_seq(int unit, unsigned num_nl)
         return rv;
     }
     if (ipipe_req_count0 != ipipe_req_count1) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "Not successful in stopping Esmif lookup "
                               "requests to Etu on unit %d.\n"), unit));
         error++;
     }
     if (COMPILER_64_NE(tx_pkt_count0, tx_pkt_count1)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "Not successful in stopping ETU requests "
                               "to NL11K on unit %d.\n"), unit));
         error++;
     }
     if (COMPILER_64_NE(rx_pkt_count0, rx_pkt_count1)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "Not successful in stopping NL11K responses "
                               "to ETU on unit %d.\n"), unit));
         error++;
     }  
     if (ipipe_rsp_count0 != ipipe_rsp_count1) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "Not successful in stopping Etu responses to "
                               "to Esmif on unit %d.\n"), unit));
@@ -6780,32 +6780,32 @@ esm_err_recovery_seq(int unit, unsigned num_nl)
     
     /* make sure nothing is reported without traffic */
     if (chk_fifos(unit)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "ESM FIFO check failed on unit %d.\n"), unit));
         error++;
     }
     if (chk_etu_counters(unit)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "ESM counter check failed on unit %d.\n"), unit));
         error++;
     }
     if (chk_all_intr_sts(unit, num_nl)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "ESM interrupt check failed on unit %d.\n"), unit));
         error++;
     }    
     if (chk_esmif_adc(unit)) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "ESM ADC check failed on unit %d.\n"), unit));
         error++;
     }
     for (dev_id = 0; dev_id < num_nl; ++dev_id) {
         if (nl_chk_errors(unit, dev_id)) {
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "Failed to clear errors on NL11K "
                                   "device %d on unit %d.\n"), dev_id, unit));
@@ -6876,13 +6876,13 @@ soc_tr3_esm_interrupt_process(int unit)
     /* If ETU error, apply recovery sequence */
     if (etu_chk_errors(unit)) {
         count++;
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "Recovering from ETU alignment error on "
                               "unit %d (incident #%d).\n"), unit, count));
         rv = esm_err_recovery_seq(unit, num_nl);
         if (rv < SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_ESM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                       (BSL_META_U(unit,
                                   "ETU alignment recovery failed on "
                                   "unit %d.\n"), unit));
@@ -6927,7 +6927,7 @@ soc_tr3_esm_recovery_start(int unit)
 			                                        soc_tr3_esm_recovery_thread, 0);
 
     if (soc->esm_recovery_pid == SAL_THREAD_ERROR) {
-        LOG_ERROR(BSL_LS_SOC_ESM,
+        LOG_BSL_ERROR(BSL_LS_SOC_ESM,
                   (BSL_META_U(unit,
                               "soc_tr3_esm_recovery_start: "
                               "Could not start esm recovery thread\n")));

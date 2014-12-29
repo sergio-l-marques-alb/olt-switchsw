@@ -267,7 +267,7 @@ drv_tbx_queue_mode_set(int unit, soc_pbmp_t bmp, uint32 flag,
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_mode_set: \
                             unit %d, bmp = 0x%x, flag = 0x%x, queue mode = %d\n"),
@@ -392,7 +392,7 @@ drv_tbx_queue_mode_get(int unit, uint32 port, uint32 flag,
             return SOC_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_mode_get: \
                             unit %d, port = %d, flag = 0x%x, queue mode = %d\n"),
@@ -423,7 +423,7 @@ drv_tbx_queue_count_set(int unit, uint32 port_type, uint8 count)
 {
     uint32  reg_value, temp, max_numq;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_count_set: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, count));
@@ -474,7 +474,7 @@ drv_tbx_queue_count_get(int unit, uint32 port_type, uint8 *count)
     /* The number of COS queue is fixed as 8 */
     *count = max_numq;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_count_get: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, *count));
@@ -510,7 +510,7 @@ drv_tbx_queue_WRR_weight_set(int unit, uint32 port_type,
     uint32  max_weight = 0;
     uint64  reg_value64;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_WRR_weight_set: \
                             unit %d, port type = %d, bmp = 0x%x, queue = %d, weight = %d\n"),
@@ -637,7 +637,7 @@ drv_tbx_queue_WRR_weight_get(int unit, uint32 port_type,
 
     *weight = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_WRR_weight_get: \
                             unit %d, port type = %d, port = %d, queue = %d, weight = %d\n"),
@@ -671,7 +671,7 @@ drv_tbx_queue_prio_set(int unit, uint32 port, uint8 prio, uint8 queue_n)
     uint64  reg_value64;
 	_tbx_cosq_rx_reason_info_t  *reason_info = NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_prio_set: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -896,7 +896,7 @@ drv_tbx_queue_prio_get(int unit, uint32 port, uint8 prio, uint8 *queue_n)
         *queue_n = temp;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_prio_get: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -929,7 +929,7 @@ drv_tbx_queue_mapping_type_set(int unit, soc_pbmp_t bmp,
 {
     uint32  reg_value, temp, val_32;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_mapping_type_set: \
                             unit %d, bmp = 0x%x 0x%x, type = %d, %sable\n"),
@@ -1201,7 +1201,7 @@ drv_tbx_queue_mapping_type_get(int unit, uint32 port,
             return SOC_E_PARAM;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_mapping_type_get: \
                             unit %d, port = %d, type = %d, %sable\n"),
@@ -1277,7 +1277,7 @@ drv_tbx_queue_dfsv_remap_set(int unit, uint8 dscp, uint8 prio)
 	int     rv;
 
     /* The parameter prio means {DP[1:0], TC[3:0]} for TB */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_dfsv_remap_set: \
                             unit %d, dscp value = %d, {DP[1:0], TC[3:0]} = %d\n"), 
@@ -1356,7 +1356,7 @@ drv_tbx_queue_dfsv_remap_get(int unit, uint8 dscp, uint8 *prio)
         SOC_IF_ERROR_RETURN(rv);
 
         *prio = temp;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                     (BSL_META_U(unit, \
                                 "drv_tbx_queue_dfsv_remap_get: \
                                 unit %d, dscp value = %d, {DP[1:0], TC[3:0]} = %d\n"),
@@ -1398,7 +1398,7 @@ drv_tbx_queue_dfsv_unmap_set(int unit, uint8 prio, uint8 dscp)
     int     rv;
 
     /* The parameter prio means {DP[1:0], TC[3:0]} for TB */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_dfsv_unmap_set: \
                             unit %d, {DP[1:0], TC[3:0]} = %d, dscp value = %d\n"), 
@@ -1481,7 +1481,7 @@ drv_tbx_queue_dfsv_unmap_get(int unit, uint8 prio, uint8 *dscp)
         SOC_IF_ERROR_RETURN(rv);
 
         *dscp = temp;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                     (BSL_META_U(unit, \
                                 "drv_tbx_queue_dfsv_unmap_get: \
                                 unit %d, {DP[1:0], TC[3:0]} = %d, dscp value = %d\n"), 
@@ -1522,7 +1522,7 @@ drv_tbx_queue_rx_reason_set(int unit, uint8 reason, uint32 queue)
     uint32  temp;
     _tbx_cosq_rx_reason_info_t  *reason_info = NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_rx_reason_set: \
                             unit %d, reason = %d, queue = %d\n"), unit, reason, queue));
@@ -1728,7 +1728,7 @@ drv_tbx_queue_rx_reason_get(int unit, uint8 reason, uint32 *queue)
         *queue = temp;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_rx_reason_get: \
                             unit %d, reason = %d, *queue = %d\n"), unit, reason, *queue));
@@ -1762,7 +1762,7 @@ drv_tbx_queue_port_txq_pause_set(int unit, uint32 port,
     uint32  reg_value;
     uint32  temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_port_txq_pause_set: \
                             unit %d, port = %d, queue = %d, state = %d\n"), 
@@ -1979,7 +1979,7 @@ drv_tbx_queue_port_txq_pause_get(int unit, uint32 port,
         *enable = FALSE;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_port_txq_pause_get: \
                             unit %d, port = %d, queue = %d, state = %d\n"),
@@ -2013,7 +2013,7 @@ drv_tbx_queue_qos_control_set(int unit, uint32 port, uint32 type, uint32 state)
     _tbx_cosq_rx_reason_info_t  *reason_info = NULL;
     _tbx_cosq_rx_reason_info_t  *reason_info_prev = NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_qos_control_set: \
                             unit %d, port = %d, type = 0x%x, state = 0x%x\n"), 
@@ -2302,7 +2302,7 @@ drv_tbx_queue_qos_control_get(int unit, uint32 port, uint32 type, uint32 *state)
             return SOC_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_tbx_queue_qos_control_get: \
                             unit %d, port = %d, type = 0x%x, state = 0x%x\n"), 

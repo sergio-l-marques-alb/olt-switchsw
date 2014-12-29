@@ -119,13 +119,13 @@ soc_internal_miim_op(pcid_info_t *pcid_info, int read)
     }
 
     if (read) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Responding to MIIM read: id=0x%02x addr=0x%02x data=0x%04x\n"),
                      phy_id, phy_addr, phy_regs[phy_id][phy_addr]));
 	PCIM(pcid_info, CMIC_MIIM_READ_DATA) = phy_regs[phy_id][phy_addr];
     } else {
 	phy_wr_data = PCIM(pcid_info, CMIC_MIIM_PARAM) & 0xffff;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Responding to MIIM write: "
                               "id=0x%02x addr=0x%02x data=0x%04x\n"),
                      phy_id, phy_addr, phy_wr_data));

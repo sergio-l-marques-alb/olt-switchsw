@@ -146,7 +146,7 @@ soc_wb_engine_add_buff(int unit, int engine_id, int buff_idx, soc_wb_engine_buff
 {
     if(!soc_wb_engine_buffer_info[unit][engine_id]) 
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine buffer table is not initialized\n"),
                    engine_id));
@@ -173,7 +173,7 @@ soc_wb_engine_add_var(int unit, int engine_id, int var_idx, soc_wb_engine_var_in
        dynamic buffers should be used to hold dynamic vars */
     if ((var.is_dynamic && !buffer->is_dynamic) ||
         (!var.is_dynamic && buffer->is_dynamic)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "var and buffer dont have same is_dynamic value (buffer %d var %d - %s)\n"),
                    var.buffer, var_idx, var.var_string));
@@ -182,7 +182,7 @@ soc_wb_engine_add_var(int unit, int engine_id, int var_idx, soc_wb_engine_var_in
 
     if(!soc_wb_engine_var_info[unit][engine_id]) 
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable table is not initialized\n"),
                    engine_id));
@@ -203,7 +203,7 @@ soc_wb_engine_add_var(int unit, int engine_id, int var_idx, soc_wb_engine_var_in
 
     if (data_size == 0 && !var.is_dynamic) {
         /*size was supposed to be comitted dinamically but wasnt recieved*/
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine id:%d wb variable %d - %s have size 0\n"),
                    engine_id, var_idx, var.var_string));
@@ -212,7 +212,7 @@ soc_wb_engine_add_var(int unit, int engine_id, int var_idx, soc_wb_engine_var_in
 
     if (buffer->is_only_copy && var.data_orig!=NULL) {
         /*size was supposed to be comitted dinamically but wasnt recieved*/
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine id:%d wb variable %d - %s: buffer %d is marked as the only original data and thus expect NULL pointer to external original data\n"),
                    engine_id, var_idx, var.var_string, var.buffer));
@@ -220,7 +220,7 @@ soc_wb_engine_add_var(int unit, int engine_id, int var_idx, soc_wb_engine_var_in
     }
 
     if (var.data_orig==NULL && !buffer->is_dynamic && !buffer->is_only_copy) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d engine_id %d: data_orig is NULL while buffer is not dynamic and not holds the original data var #%d %s buffer %d\n"),
                    unit, engine_id, var_idx, var.var_string, var.buffer));
@@ -260,7 +260,7 @@ soc_wb_engine_enable_dynamic_var(int unit, int engine_id, int var_idx, soc_wb_en
 
     if(!soc_wb_engine_var_info[unit][engine_id]) 
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable table is not initialized\n"),
                    engine_id));
@@ -304,7 +304,7 @@ soc_wb_engine_enable_dynamic_var(int unit, int engine_id, int var_idx, soc_wb_en
 
     rv = soc_wb_engine_init_buffer(unit, engine_id, buff_id, TRUE);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         goto exit;
@@ -328,7 +328,7 @@ soc_wb_engine_enable_dynamic_var(int unit, int engine_id, int var_idx, soc_wb_en
     if (SOC_WB_ENGINE_IS_AUTOSYNC(unit)) {
         rv = soc_scache_commit(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             goto exit;
@@ -366,7 +366,7 @@ soc_wb_engine_array_set(int unit, int engine_id, int var_ndx, uint8 value)
         
     variables = SOC_WB_ENGINE_VARS_INFO(unit,engine_id);
     if(variables == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable table is not initialized\n"),
                    engine_id));
@@ -376,7 +376,7 @@ soc_wb_engine_array_set(int unit, int engine_id, int var_ndx, uint8 value)
     buffer = SOC_WB_ENGINE_BUFFER_INFO(unit, engine_id,variables[var_ndx].buffer);
 
     if (!(variables[var_ndx].init_done == SOC_WB_ENGINE_VAR_INITIALIZED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d - is not initialized\n"),
                    engine_id, var_ndx));
@@ -384,7 +384,7 @@ soc_wb_engine_array_set(int unit, int engine_id, int var_ndx, uint8 value)
     }
 
     if(var_ndx < 0 || var_ndx >= soc_wb_engine_nof_vars[unit][engine_id]) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d var_ndx %d is out of bound\n"),
                    engine_id, var_ndx));
@@ -393,7 +393,7 @@ soc_wb_engine_array_set(int unit, int engine_id, int var_ndx, uint8 value)
 
     /* verifiying it is an array */
     if (variables[var_ndx].inner_arr_length <= 1) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d function:soc_wb_engine_array_set wb engine variable %d - %s - has length <= 1\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -402,7 +402,7 @@ soc_wb_engine_array_set(int unit, int engine_id, int var_ndx, uint8 value)
 
     /* verifiying it is an array */
     if (variables[var_ndx].outer_arr_length != 1) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d function:soc_wb_engine_array_set wb engine variable %d - %s - is not a valid 1d array\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -411,7 +411,7 @@ soc_wb_engine_array_set(int unit, int engine_id, int var_ndx, uint8 value)
 
     /* check that the array is continuous (without any spaces) */
     if (variables[var_ndx].inner_arr_jump != variables[var_ndx].data_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d - %s - is expected to be a continous array\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -453,7 +453,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
     variables = SOC_WB_ENGINE_VARS_INFO(unit,engine_id);
         
     if(variables == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable table is not initialized\n"),
                    engine_id));
@@ -463,7 +463,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
     buffer = SOC_WB_ENGINE_BUFFER_INFO(unit, engine_id,variables[var_ndx].buffer);
 
     if (!(variables[var_ndx].init_done == SOC_WB_ENGINE_VAR_INITIALIZED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d is not initialized\n"),
                    engine_id, var_ndx));
@@ -471,7 +471,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
     }
 
     if(var_ndx < 0 || var_ndx >= soc_wb_engine_nof_vars[unit][engine_id]) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d var_ndx %d is out of bound\n"),
                    engine_id, var_ndx));
@@ -480,7 +480,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
 
     /* verifiying it is an array */
     if (variables[var_ndx].inner_arr_length <= 1) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d - %s - has invalid array length (inner_arr_length <= 1)\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -489,7 +489,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
 
     /* verifiying it is an array */
     if (variables[var_ndx].outer_arr_length != 1) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d - %s - has is not a valid 1d array\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -498,7 +498,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
 
     /* check that the array is continuous (without any spaces) */
     if (variables[var_ndx].inner_arr_jump != variables[var_ndx].data_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d - %s - is expected to be a continous array\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -507,7 +507,7 @@ soc_wb_engine_array_range_set_or_get(int unit, int engine_id, int var_ndx, uint3
 
     /* prevent copying outisde of array limit */
     if (arr_ndx + range_length > variables[var_ndx].inner_arr_length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d - %s - is trying to read outisde of array limit \n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -558,7 +558,7 @@ soc_wb_engine_var_set(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     variables = SOC_WB_ENGINE_VARS_INFO(unit,engine_id);
         
     if(variables == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "wb engine variable table is not initialized\n")));
         /* using assert as legacy code may not check return value */
@@ -569,7 +569,7 @@ soc_wb_engine_var_set(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     buffer = SOC_WB_ENGINE_BUFFER_INFO(unit, engine_id,variables[var_ndx].buffer);
 
     if(var_ndx < 0 || var_ndx >= soc_wb_engine_nof_vars[unit][engine_id]) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d var_ndx %d is out of bound\n"),
                    engine_id, var_ndx));
@@ -579,7 +579,7 @@ soc_wb_engine_var_set(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     }
 
     if (!(variables[var_ndx].init_done == SOC_WB_ENGINE_VAR_INITIALIZED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "wb engine variable %d was not initialized\n"),
                    var_ndx));
@@ -590,7 +590,7 @@ soc_wb_engine_var_set(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
 
     /* if variable is a dynamic variable but was not enabled */
     if (variables[var_ndx].is_dynamic && (!variables[var_ndx].is_enabled)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "wb engine variable %d (%s) is a dynamic variable that wasn't initialized\n"),
                    var_ndx, variables[var_ndx].var_string));
@@ -600,7 +600,7 @@ soc_wb_engine_var_set(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     }
 
     if ((variables[var_ndx].inner_arr_length <= inner_arr_ndx) || (variables[var_ndx].outer_arr_length <= outer_arr_ndx)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "trying to set wb variable %d (%s) with index out of bounds (inner %d, outer %d\n)"),
                    var_ndx, variables[var_ndx].var_string, inner_arr_ndx, outer_arr_ndx));
@@ -639,7 +639,7 @@ soc_wb_engine_var_get(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
         
     variables = SOC_WB_ENGINE_VARS_INFO(unit,engine_id);
     if(variables == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable table is not initialized\n"),
                    engine_id));
@@ -651,7 +651,7 @@ soc_wb_engine_var_get(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     buffer = SOC_WB_ENGINE_BUFFER_INFO(unit, engine_id, variables[var_ndx].buffer);
 
     if(var_ndx < 0 || var_ndx >= soc_wb_engine_nof_vars[unit][engine_id]) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d var_ndx %d is out of bound\n"),
                    engine_id, var_ndx));
@@ -661,7 +661,7 @@ soc_wb_engine_var_get(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     }
 
     if (!(variables[var_ndx].init_done == SOC_WB_ENGINE_VAR_INITIALIZED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d wasn't initialized\n"),
                    engine_id, var_ndx));
@@ -672,7 +672,7 @@ soc_wb_engine_var_get(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
 
     /* if variable is a dynamic variable but was not enabled */
     if (variables[var_ndx].is_dynamic && (!variables[var_ndx].is_enabled)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable %d (%s) is a dynamic variable that wasn't enabled\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string));
@@ -682,7 +682,7 @@ soc_wb_engine_var_get(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     }
 
     if (inner_arr_ndx >= variables[var_ndx].inner_arr_length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb variable %d (%s) idex out of bounds (inner index = %d)\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string, inner_arr_ndx));
@@ -692,7 +692,7 @@ soc_wb_engine_var_get(int unit, int engine_id, int var_ndx, uint32 outer_arr_ndx
     }
 
     if (outer_arr_ndx >= variables[var_ndx].outer_arr_length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb variable %d (%s) idex out of bounds (outer index = %d)\n"),
                    engine_id, var_ndx, variables[var_ndx].var_string, outer_arr_ndx));
@@ -719,7 +719,7 @@ int
 soc_wb_engine_init_tables(int unit, int engine_id, int nof_buffers, int nof_vars)
 {
     if (soc_wb_engine_buffer_info[unit][engine_id] || soc_wb_engine_var_info[unit][engine_id]) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb variable tables are already allocated (trying to realloc)\n"),
                    engine_id));
@@ -755,7 +755,7 @@ soc_wb_engine_deinit_tables(int unit,int engine_id)
 #endif
 
     if (!soc_wb_engine_buffer_info[unit][engine_id] || !soc_wb_engine_var_info[unit][engine_id]) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb variable tables weren't allocated\n"),
                    engine_id));
@@ -894,7 +894,7 @@ soc_wb_engine_scache_ptr_get(int unit, int engine_id, soc_scache_handle_t handle
         }
 
         if (storage_version < *recovered_ver) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Downgrade detected. Current version=%d.%d  found %d.%d\n"),
                        SOC_SCACHE_VERSION_MAJOR(version),
@@ -925,7 +925,7 @@ soc_wb_engine_scache_ptr_get(int unit, int engine_id, soc_scache_handle_t handle
             /* warm boot initialization. The individual module needs to parse its */
             /* scache based on the recovered_ver.                                 */
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Upgrade scenario supported. Current version=%d.%d  found %d.%d\n"),
                          SOC_SCACHE_VERSION_MAJOR(version),
@@ -1054,7 +1054,7 @@ soc_wb_engine_update(int unit, int engine_id, uint32 var_id, uint32 outer_ndx, u
 
     rc = soc_scache_commit_specific_data(unit, wb_handle, data_size *update_length, data, offset);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -1077,7 +1077,7 @@ soc_wb_engine_update_var_info(int unit, int engine_id, int var_idx, uint32 data_
 
     if(!soc_wb_engine_var_info[unit][engine_id]) 
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "engine_id:%d wb engine variable table is not initialized\n"),
                    engine_id));
@@ -1168,7 +1168,7 @@ soc_wb_engine_calculate_offsets(int unit, int engine_id, uint32 buffer_id, uint1
             continue;
         }
         if (variables[var_ndx].version_added > version) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "engine_id:%d wb engine variable %d (%s) version:%d is larger than its buffer version:%d (meanning ISSU is detected)\n"),
                          engine_id, var_ndx, variables[var_ndx].var_string, variables[var_ndx].version_added, version));
@@ -1515,7 +1515,7 @@ soc_wb_engine_dump(int unit, int engine_id, int flags, uint32 var_id, uint32 buf
                     }
                     /* check for buffer overflow */
                     if ((dst - buffers[curr_buff].scache_ptr)+variables[var_ndx].data_size >= buffers[curr_buff].size) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "%s\n"), soc_errmsg(rc)));
                         return SOC_E_RESOURCE;
@@ -1594,7 +1594,7 @@ soc_wb_engine_buffer_dynamic_vars_state_get(int unit, int engine_id, int buffer_
 
     if (rc == SOC_E_NOT_FOUND) {
         
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -1644,7 +1644,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         rc = soc_wb_engine_scache_ptr_get(unit, engine_id, wb_handle, socWbEngineScacheRetreive, flags,
                                     &size, &scache_ptr, version, &recovered_ver, &already_exists);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -1655,7 +1655,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         /* calculate offsets corresponding to buffer's version in scache */
         rc = soc_wb_engine_calculate_offsets(unit, engine_id, buffer_id, recovered_ver);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -1668,7 +1668,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         /* if version is the same as the saved version, layout should be identical */
         if (version == recovered_ver) {
                 if (sal_strcmp(vars_info_header->buffer_name, buffer->buff_string)){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "engine_id:%d wb engine buffer %d - buffer name has changed after warm reboot! (%s --> %s)\n"), 
                                engine_id, buffer_id, vars_info_header->buffer_name, buffer->buff_string));
@@ -1681,7 +1681,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
                         variables[var_ndx].version_removed > version) 
                     {
                         if (sal_strcmp(var_info_arr[nof_vars].name, variables[var_ndx].var_string)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "engine_id:%d wb engine buffer %d var %d - variable name has changed after warm reboot! (%s --> %s)\n"), 
                                        engine_id, buffer_id, var_ndx, var_info_arr[nof_vars].name, variables[var_ndx].var_string));
@@ -1689,7 +1689,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
                         }
 
                         if ((var_info_arr[nof_vars].data_size != variables[var_ndx].data_size) && !buffer->is_dynamic) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "engine_id:%d wb engine buffer %d var %d (%s)- variable size has changed after warm reboot! (%d --> %d)\n"), 
                                        engine_id, buffer_id, var_ndx, var_info_arr[nof_vars].name, var_info_arr[nof_vars].data_size, variables[var_ndx].data_size));
@@ -1697,7 +1697,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
                         }
 
                         if ((var_info_arr[nof_vars].nof_items_in_array != (variables[var_ndx].inner_arr_length * variables[var_ndx].outer_arr_length)) && !buffer->is_dynamic) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "engine_id:%d wb engine buffer %d var %d (%s)- array length has changed after warm reboot! (%d --> %d)\n"), 
                                        engine_id, buffer_id, var_ndx, var_info_arr[nof_vars].name, 
@@ -1713,7 +1713,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         /* restore state (ISSU is handled here)*/
         rc = soc_wb_engine_restore(unit, engine_id, buffer_id, recovered_ver);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -1725,7 +1725,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
             /* recalculate offsets according to current buffer's version*/
             rc = soc_wb_engine_calculate_offsets(unit, engine_id, buffer_id, buffer->version);
             if (SOC_FAILURE(rc)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rc)));
                 return rc;
@@ -1735,7 +1735,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
             rc = soc_wb_engine_scache_ptr_get(unit, engine_id, wb_handle, socWbEngineScacheRealloc, flags,
                                     &size, &scache_ptr, version, &recovered_ver, &already_exists);
             if (SOC_FAILURE(rc)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rc)));
                 return rc;
@@ -1758,7 +1758,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         /* calculate offsets corresponding to current version */
         rc = soc_wb_engine_calculate_offsets(unit, engine_id, buffer_id, buffer->version);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -1781,7 +1781,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         }
 
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -1810,7 +1810,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
                 }
                 else
                 {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "engine_id:%d wb engine variable %d - variable name (string) is longer than 128 chars\n"),
                                engine_id, var_ndx));
@@ -1826,7 +1826,7 @@ int soc_wb_engine_init_buffer(int unit, int engine_id, int buffer_id, uint8 is_r
         }
         else
         {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "engine_id:%d wb engine buffer %d - buffer name (string) is longer than 128 chars\n"),
                        engine_id, buffer_id));

@@ -447,17 +447,17 @@ _soc_log_buf_print_hdr(void *location)
 {
     _soc_log_buf_t *buf_hdr = location;
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("Log Buffer Header\n")));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tfirst_entry: %d\n"), buf_hdr->first_entry));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tlast_entry: %d\n"), buf_hdr->last_entry));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tbuf_size: %d\n"), buf_hdr->buf_size));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tmutex: %p\n"), (char*)(buf_hdr->mutex)));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tboot_count: %d\n"), buf_hdr->boot_count));
 
     return SOC_E_NONE;
@@ -473,26 +473,26 @@ _soc_log_buf_print_entry(void *location, int offset)
 
     _soc_log_buf_read(location, offset, &hdr, sizeof(_soc_log_entry_hdr_t));
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("Log Entry Header\n")));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\toffset: %d\n"), offset));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tid: %d\n"), hdr.id));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tsize: %d\n"), hdr.size));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tdata: \n\t\t")));
 
     _soc_log_buf_read(location, 
         offset+sizeof(_soc_log_entry_hdr_t),
         &temp_buf, _SOC_LOG_BUF_PRINT_BUFFER_SIZE);
     for (index = 0; index < hdr.size; index++) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("%02x "),
                    temp_buf[index%_SOC_LOG_BUF_PRINT_BUFFER_SIZE]));
         if (((index+1)%_SOC_LOG_BUF_PRINT_BUFFER_SIZE) == 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("\n\t\t")));
             _soc_log_buf_read(location, 
                 offset+sizeof(_soc_log_entry_hdr_t) + index + 1, 
@@ -501,7 +501,7 @@ _soc_log_buf_print_entry(void *location, int offset)
         }
     }
     if ((index%_SOC_LOG_BUF_PRINT_BUFFER_SIZE) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\n")));
     }
 

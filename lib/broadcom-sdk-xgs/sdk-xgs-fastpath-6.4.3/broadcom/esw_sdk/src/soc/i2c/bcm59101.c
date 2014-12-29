@@ -68,7 +68,7 @@ bcm59101_read(int unit, int devno,
     if ( ! len || ! data )
         return SOC_E_PARAM;
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "bcm59101_read: unit: %d devno: %d addr: %d data: %p len: %u\n"),
               unit, devno, addr, (void *)data, *len));
@@ -77,7 +77,7 @@ bcm59101_read(int unit, int devno,
 
     saddr_r = SOC_I2C_RX_ADDR(soc_i2c_addr(unit, devno));
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "bcm59101_read: devno=0x%x (data=%p) len=%d\n"),
               devno, (void *)data, (int)*len));
@@ -88,7 +88,7 @@ bcm59101_read(int unit, int devno,
      */
     /* Generate Start, for Write address */
     if( (rv = soc_i2c_start(unit, saddr_r)) < 0){
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META_U(unit,
                            "bcm59101_write(%d,%d,0x%x,%p,%d): "
                            "failed to gen start\n"),
@@ -120,7 +120,7 @@ bcm59101_write(int unit, int devno,
     uint8 *ptr;
     uint32 i;
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "bcm59101_write: unit: %d devno: %d addr: %d data: %p len: %d\n"),
               unit, devno, addr, (void *)data, len));
@@ -132,7 +132,7 @@ bcm59101_write(int unit, int devno,
     I2C_LOCK(unit);
 
     if ((rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr))) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_bcm59101_write: "
                              "failed to generate start.\n"),
@@ -144,7 +144,7 @@ bcm59101_write(int unit, int devno,
     ptr = data;
     for (i = 0; i < len; i++, ptr++) {
         if ((rv = soc_i2c_write_one_byte(unit, *ptr) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_bcm59101_write: "
                                  "failed to send byte %d.\n"),
@@ -178,7 +178,7 @@ bcm59101_init(int unit, int devno,
     soc_timeout_t to;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "bcm59101_init: unit: %d devno: %d data: %p len: %d\n"),
               unit, devno, data, len)); 
@@ -195,7 +195,7 @@ bcm59101_init(int unit, int devno,
 
     if ((rv = bcm59101_write(unit, devno, 0, data, len)) < 0) {
                             
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_bcm59101_init: "
                              "failed to send power init packet.\n"), unit));
@@ -211,20 +211,20 @@ bcm59101_init(int unit, int devno,
 
     l = BCM59101_CTN;
     if ((rv = bcm59101_read(unit, devno, 0, pkt, &l)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_bcm59101_init: "
                              "failed to read power init packet.\n"), unit));
         return rv;
     }
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "bcm59101_init: Signature read %x %x\n"), *pkt, *(pkt+1)));
 
     if ((*pkt != 0x20 || *(pkt+1) != 0x01) && *pkt != 0xaf) {
 
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_bcm59101_init: "
                              "bcm5910 not found.\n"), unit));

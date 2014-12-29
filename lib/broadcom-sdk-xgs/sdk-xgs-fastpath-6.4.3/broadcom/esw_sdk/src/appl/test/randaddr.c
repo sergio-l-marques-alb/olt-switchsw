@@ -686,7 +686,7 @@ addr_rand_init(int unit, args_t *a, void **p)
     rw->addr_incr = get_rel_prime(rw->index_total, rw->seed *
                                   rw->index_total);
     rw->first_addr = (rw->addr_incr % rw->index_total) + rw->index_min;
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Running with simple seed.  Incr: %d. First 0x%x.\n"),
               rw->addr_incr, rw->first_addr));

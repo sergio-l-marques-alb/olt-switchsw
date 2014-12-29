@@ -445,7 +445,7 @@ _robo_reg_get_by_type(int unit, uint32 regaddr, soc_regtype_t regtype,
 
             r = soc_robo_anyreg_read(unit, &ainfo, outval);
             if (r < 0) {
-                if (!LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
+                if (!LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
                     cli_out("ERROR: soc_reg_read failed: %s\n", soc_errmsg(r));
                 }
                 rv = CMD_FAIL;
@@ -476,7 +476,7 @@ _robo_reg_get_by_type(int unit, uint32 regaddr, soc_regtype_t regtype,
             }
             break;
         case soc_invalidreg:
-            if (LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
                 r = _robo_internal_reg_get(unit, regaddr, outval, flags);
                 if (r < 0) {
                     cli_out("ERROR: soc_reg_read failed: %s\n", soc_errmsg(r));
@@ -548,7 +548,7 @@ _robo_reg_set_by_type(int unit, uint32 regaddr, soc_regtype_t regtype,
     
             r = soc_robo_anyreg_write(unit, &ainfo, regval);
             if (r < 0) {
-                if (!LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
+                if (!LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
                     cli_out("ERROR: write reg failed: %s\n", soc_errmsg(r));
                 }
                 rv = CMD_FAIL;
@@ -654,7 +654,7 @@ cmd_robo_reg_get(int unit, args_t *a)
         regaddr = (regaddr << SOC_ROBO_PAGE_BP) | parse_integer(name);
         rv = _robo_reg_get_by_type(unit, regaddr, rt->type, &regval, flags);
         if (SOC_FAILURE(rv)) {
-            if (LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
                 if((name = ARG_GET(a)) == 0){                
                     cli_out("length should be be specified!");
                     return CMD_USAGE;
@@ -745,7 +745,7 @@ do_robo_reg_set(int unit, args_t *a, int mod)
         /* full address is ((page << 8) + offset) */
         regaddr = (regaddr << SOC_ROBO_PAGE_BP) | parse_integer(name);
 
-        if (LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
             soc_robo_regaddrinfo_get(unit, &tmp_ainfo, regaddr);
             if (tmp_ainfo.reg == INDEX(INVALID_Rr)) {
                 if (((name = ARG_GET(a)) == 0) || !isint(name)) {
@@ -771,7 +771,7 @@ do_robo_reg_set(int unit, args_t *a, int mod)
         rv = _robo_reg_set_by_type(unit, regaddr, rt->type, regval);
 
         if (SOC_FAILURE(rv)) {
-            if (LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)) {
                 rv = _robo_internal_reg_set(unit, regaddr, regval, len);
                 if (rv < 0) {
                     cli_out("ERROR: write reg failed: %s\n", soc_errmsg(rv));

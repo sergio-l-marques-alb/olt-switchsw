@@ -148,7 +148,7 @@ _bcm_mbox_status_read(int unit, int idx, uint32 *status)
 #if defined(BCM_CMICM_SUPPORT)
     rv = sal_mutex_take(mbox_info.unit_state[unit].status_access_lock, MBOX_STATUS_LOCK_TIME);
     if (rv != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit, "Failed to get mbox status lock")));
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit, "Failed to get mbox status lock")));
         return BCM_E_UNAVAIL;
     }
     soc_cm_sinval(unit, (void*)&mbox_info.unit_state[unit].mboxes->status[idx], sizeof(mbox_info.unit_state[unit].mboxes->status[0]));
@@ -166,7 +166,7 @@ _bcm_mbox_status_write(int unit, int idx, uint32 status)
 #if defined(BCM_CMICM_SUPPORT)
     rv = sal_mutex_take(mbox_info.unit_state[unit].status_access_lock, MBOX_STATUS_LOCK_TIME);
     if (rv != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit, "Failed to get mbox status lock")));
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit, "Failed to get mbox status lock")));
         return BCM_E_UNAVAIL;
     }
     mbox_info.unit_state[unit].mboxes->status[idx] = soc_htonl(status);
@@ -319,7 +319,7 @@ _bcm_mbox_tx(
         /* sal_thread_name(sal_thread_self(), this_thread_name, 100); */
         /* ptp_printf("******* Contention, status %d (%s is sending, %s wants to send)\n", */
         /*            mbox_info.unit_state[unit].mboxes->status[0], holding_thread_name, this_thread_name); */
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Contention\n")));
     }
@@ -360,7 +360,7 @@ _bcm_mbox_tx(
         status_out = _BCM_MBOX_MS_TUNNEL_OUT;
         break;
     default:
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "mbox_tx failed: Unknown transport type\n")));
     }
@@ -402,7 +402,7 @@ _bcm_mbox_tx_completion(
     }
 
     /* sal_strcpy(holding_thread_name + strlen(holding_thread_name), "-over"); */
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "Failed async Tx to ToP.  No clear\n")));
     return BCM_E_TIMEOUT;
@@ -475,7 +475,7 @@ _bcm_mbox_rx_response_get(
     }
 
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Failed management Tx to ToP\n")));
         _MBOX_ERROR_FUNC("_bcm_ptp_sem_take()");
@@ -586,7 +586,7 @@ _bcm_mbox_txrx(
     rv = _bcm_mbox_tx(unit, node_num, _BCM_MBOX_MESSAGE, out_data, out_len);
 
     if (rv != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "mbox_txrx failed: Tx error\n")));
         goto release_mgmt_lock;
@@ -600,7 +600,7 @@ _bcm_mbox_txrx(
     rv = _bcm_mbox_rx_response_get(unit, node_num, _BCM_MBOX_RESPONSE_TIMEOUT_US,
                                    &response_data, &response_len);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "mbox_txrx failed: No response\n")));
         goto release_mgmt_lock;

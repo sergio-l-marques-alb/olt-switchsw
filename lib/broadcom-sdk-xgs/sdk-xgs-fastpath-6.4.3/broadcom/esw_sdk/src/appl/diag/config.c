@@ -172,7 +172,7 @@ sh_config(int u, args_t *a)
                      break; 
                  }
                  if ((sal_strstr(name, pattern) != NULL)) {
-                    LOG_VERBOSE(BSL_LS_APPL_SHELL, (BSL_META_U(u,
+                    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL, (BSL_META_U(u,
                                 "Pattern(%s) Deleting %s=%s\n"),
                                 pattern, name, value));
                     sal_config_set(name, 0);

@@ -740,7 +740,7 @@ sal_time_t _bcm_ptp_monotonic_time()
     rv = _bcm_ptp_mutex_take(mutex, 1000000); /* one second timeout */
 
     if (rv != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("Failed to get PTP monotonic_time mutex: %d (%s)\n"), rv, bcm_errmsg(rv)));
         return this_time + time_offset;
     }
@@ -755,7 +755,7 @@ sal_time_t _bcm_ptp_monotonic_time()
     time_jump = time_diff - (usecs_diff / 1000000);
 
     if (time_jump < -2 || time_jump > 2) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("PTP Monotonic time jumped by %d\n"), (int)time_jump));
 
         /* the output of sal_time() evidently jumped, so incorporate that jump into future output */

@@ -207,7 +207,7 @@ phy_wc40_config_init(phy_ctrl_t *pc)
                 pc->phy_mode = PHYCTRL_ONE_LANE_PORT;
                 pc->flags |= PHYCTRL_MDIO_ADDR_SHARE;
            } else {
-             LOG_WARN(BSL_LS_SOC_PHY,
+             LOG_BSL_WARN(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "Board configuration not found: u=%d p=%d\n"), unit,port));
            }
@@ -283,7 +283,7 @@ phy_wc40_config_init(phy_ctrl_t *pc)
     pInfo->name[len] = 0;  /* string terminator */
 
     if (len > WC40_LANE_NAME_LEN) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "WC info string length %d exceeds max length 0x%x: u=%d p=%d\n"),
                    len,WC40_LANE_NAME_LEN,unit, port));
@@ -859,7 +859,7 @@ phy_wc40_config_init(phy_ctrl_t *pc)
      */
     if((pCfg->cl37an != WC40_CL37_AND_CL37BAM) && 
           ((pCfg->hg_mode) || (pCfg->cl73an == WC40_CL73_AND_CL73BAM))) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC config init, CL37 BAM is not enabled with HG/BAM mode: u=%d p=%d\n"), unit,port));
 

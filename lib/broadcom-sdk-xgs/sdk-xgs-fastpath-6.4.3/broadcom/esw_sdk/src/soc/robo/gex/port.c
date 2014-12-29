@@ -1316,7 +1316,7 @@ _drv_gex_port_eee_set(int unit, soc_pbmp_t bmp,
                         DRV_DEV_PROP_GET(unit, 
                         DRV_DEV_PROP_LOW_POWER_ENABLE, &freq_khz));
                     if (freq_khz) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "Don't allow to enable EEE in Low Power Mode.\n")));
                         return SOC_E_FAIL;
@@ -1538,7 +1538,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
         * BCM_NORTHSTARPLUS_SUPPORT
         */    
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_gex_port_set: unit=%d bmp=%x\n"), 
               unit, SOC_PBMP_WORD_GET(bmp, 0)));
@@ -1546,7 +1546,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
     SOC_ROBO_PORT_INIT(unit); 
     switch (prop_type) {
         case DRV_PORT_PROP_SPEED:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_SPEED\n")));
             temp = 0;
@@ -1599,7 +1599,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             break;
 
         case DRV_PORT_PROP_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_DUPLEX\n")));
             switch (prop_val) {
@@ -1636,7 +1636,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             break;
         case DRV_PORT_PROP_RESTART_AUTONEG:
         case DRV_PORT_PROP_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_AUTONEG\n")));
             PBMP_ITER(bmp, port) {
@@ -1645,7 +1645,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_TX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_TX_PAUSE\n")));
             PBMP_ITER(bmp, port) {
@@ -1664,7 +1664,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_RX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_RX_PAUSE\n")));
             PBMP_ITER(bmp, port) {
@@ -1683,7 +1683,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_LOCAL_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: LOCAL_ADVER\n")));
             PBMP_ITER(bmp, port) {
@@ -1692,35 +1692,35 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_REMOTE_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: REMOTE_ADVER not support\n")));
             /* can not set remote advert */
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PORT_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PORT_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MAC_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_MAC_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PHY_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_INTERFACE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_INTERFACE %x %x\n"), 
                       SOC_PBMP_WORD_GET(bmp, 0), prop_val));
@@ -1730,7 +1730,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             break;
         case DRV_PORT_PROP_MAC_ENABLE:
             /* This case is called for _bcm_robo_port_update() only. */
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_MAC_ENABLE\n")));
             PBMP_ITER(bmp, port) {
@@ -1749,7 +1749,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_ENABLE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_ENABLE\n")));
             PBMP_ITER(bmp, port) {
@@ -1779,7 +1779,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
         case DRV_PORT_PROP_EGRESS_C_PCP_REMARK:
         case DRV_PORT_PROP_EGRESS_S_PCP_REMARK:
         case DRV_PORT_PROP_EGRESS_DSCP_REMARK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s: PROP_ENABLE_SET\n"), FUNCTION_NAME()));
             PBMP_ITER(bmp, port) {
@@ -1788,19 +1788,19 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_IPG_FE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_IPG_FE\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_IPG_GE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_IPG_GE\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_JAM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_JAM\n")));
             
@@ -1823,7 +1823,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_BPDU_RX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_BPDU_RX\n")));
             if (SOC_PBMP_EQ(bmp, PBMP_ALL(unit))) {
@@ -1843,7 +1843,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_MAC_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_MAC_LOOPBACK\n")));
             PBMP_ITER(bmp, port) {
@@ -1861,7 +1861,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_LOOPBACK\n")));
             PBMP_ITER(bmp, port) {
@@ -1869,13 +1869,13 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_MEDIUM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_ex_port_set: PROP_PHY_MEDIUM not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PHY_MDIX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_MDIX\n")));
             PBMP_ITER(bmp, port) {
@@ -1891,13 +1891,13 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_MDIX_STATUS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_MDIX_STATUS not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_MS not support\n")));
             PBMP_ITER(bmp, port) {
@@ -1906,7 +1906,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             break;
             
         case DRV_PORT_PROP_SEC_MAC_MODE_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_SEC_MODE_NONE\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -1919,7 +1919,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_EXTEND:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_SEC_MAC_MODE_EXTEND\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -1932,7 +1932,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_SIMPLIFY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_SEC_MAC_MODE_SIMPLIFY\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -1951,7 +1951,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PHY_LINKUP_EVT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_LINKUP_EVT\n")));
             PBMP_ITER(bmp, port) {
@@ -1963,7 +1963,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_LINKDN_EVT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_LINKDN_EVT\n")));
             PBMP_ITER(bmp, port) {
@@ -1975,7 +1975,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_RESET:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PHY_RESET\n")));
             PBMP_ITER(bmp, port) {
@@ -1984,7 +1984,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             break;
         case DRV_PORT_PROP_PAUSE_FRAME_BYPASS_RX:
         case DRV_PORT_PROP_PAUSE_FRAME_BYPASS_TX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_PAUSE_FRAME_BYPASS\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -1998,7 +1998,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_DTAG_MODE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_DTAG_MODE\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2014,7 +2014,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             rv = _drv_gex_port_property_enable_set(unit, 0, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_ISP_PORT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_DTAG_ISP_PORT\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2028,7 +2028,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_DTAG_TPID:       
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_DTAG_TPID\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2045,7 +2045,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_MAC_BASE_VLAN:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_MAC_BASE_VLAN\n")));
             rv = SOC_E_UNAVAIL;
@@ -2066,7 +2066,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_INGRESS_VLAN_CHK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_set: PROP_INGRESS_VLAN_CHK\n")));
             if ((rv = REG_READ_VLAN_CTRL4r(unit, &reg_value)) < 0) {
@@ -2102,7 +2102,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
     defined(BCM_NORTHSTARPLUS_SUPPORT)
             if(SOC_IS_POLAR(unit) || SOC_IS_NORTHSTAR(unit) || 
                 SOC_IS_NORTHSTARPLUS(unit)) {
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "drv_gex_port_set: PORT_PROP_DEFAULT_TC_PRIO\n")));
 
@@ -2353,7 +2353,7 @@ drv_gex_port_set(int unit, soc_pbmp_t bmp,
         break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_gex_port_set: Exit\n")));
     return rv;
@@ -2397,7 +2397,7 @@ drv_gex_port_get(int unit, int port,
 
     /* remarked for linkscan called each time
      *  (too many messages will be printed out)
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_get: unit=%d port=%d\n"), unit, port));
     */
@@ -2405,7 +2405,7 @@ drv_gex_port_get(int unit, int port,
     p_mac = SOC_ROBO_PORT_MAC_DRIVER(unit, port);
     switch (prop_type) {
         case DRV_PORT_PROP_SPEED:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Speed\n")));
             temp = 0;
@@ -2457,7 +2457,7 @@ drv_gex_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Duplex\n")));
             temp = 0;
@@ -2495,7 +2495,7 @@ drv_gex_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Autoneg\n")));
             rv = soc_phyctrl_auto_negotiate_get(unit, port,
@@ -2505,7 +2505,7 @@ drv_gex_port_get(int unit, int port,
             
             break;
         case DRV_PORT_PROP_TX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: TX Pause\n")));
             if (p_mac != NULL) {
@@ -2520,7 +2520,7 @@ drv_gex_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_RX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: RX Pause\n")));
             if (p_mac != NULL) {
@@ -2535,13 +2535,13 @@ drv_gex_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_LOCAL_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Local Advertise\n")));
             rv = soc_phyctrl_adv_local_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_REMOTE_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Remote Advertise\n")));
             /* if auto-negotiation is ON and negotiation is completed */
@@ -2549,7 +2549,7 @@ drv_gex_port_get(int unit, int port,
             rv = soc_phyctrl_adv_remote_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PORT_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Port Ability\n")));
             rv = soc_phyctrl_ability_get(unit, port, &phy_ability);
@@ -2569,7 +2569,7 @@ drv_gex_port_get(int unit, int port,
             *prop_val |= phy_ability & SOC_PM_ABILITY_PHY;
             break;
         case DRV_PORT_PROP_MAC_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: MAC Ability\n")));
             if (p_mac != NULL) {
@@ -2585,13 +2585,13 @@ drv_gex_port_get(int unit, int port,
             *prop_val = mac_ability;
             break;
         case DRV_PORT_PROP_PHY_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PHY Ability\n")));
             rv = soc_phyctrl_ability_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_INTERFACE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Interface\n")));
             if (p_mac != NULL) {
@@ -2606,7 +2606,7 @@ drv_gex_port_get(int unit, int port,
             } 
             break;
         case DRV_PORT_PROP_ENABLE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: Enable\n")));
             rv = soc_phyctrl_enable_get(unit, port, (int *) prop_val);
@@ -2621,26 +2621,26 @@ drv_gex_port_get(int unit, int port,
         case DRV_PORT_PROP_EGRESS_C_PCP_REMARK:
         case DRV_PORT_PROP_EGRESS_S_PCP_REMARK:
         case DRV_PORT_PROP_EGRESS_DSCP_REMARK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s: Enable Get\n"), FUNCTION_NAME()));
             rv = _drv_gex_port_property_enable_get(
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_IPG_FE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: IPG FE\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_IPG_GE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: IPG GE\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_JAM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: JAM\n")));
             if (p_mac != NULL) {
@@ -2656,7 +2656,7 @@ drv_gex_port_get(int unit, int port,
             } 
             break;
         case DRV_PORT_PROP_BPDU_RX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: BPDU RX\n")));
             if ((rv = REG_READ_GMNGCFGr(unit, &reg_value)) < 0) {
@@ -2671,13 +2671,13 @@ drv_gex_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_RESTART_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_RESTART_AUTONEG not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MAC_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_MAC_LOOPBACK\n")));
             if (p_mac != NULL) {
@@ -2693,7 +2693,7 @@ drv_gex_port_get(int unit, int port,
             break;
         case DRV_PORT_PROP_PHY_LOOPBACK:
             /* Remarked for avoid too many message when linkscan.
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_port_get: PROP_PHY_LOOPBACK\n")));
             */
@@ -2702,33 +2702,33 @@ drv_gex_port_get(int unit, int port,
         case DRV_PORT_PROP_PHY_MEDIUM:
             /* remarked for linkscan called each time
              *  (too many messages will be printed out)
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_port_get: PROP_PHY_MEDIUM\n")));
             */
             rv = soc_phyctrl_medium_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PHY_MDIX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_PHY_MDIX\n")));
             rv = soc_phyctrl_mdix_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PHY_MDIX_STATUS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_PHY_MDIX_STATUS\n")));
             rv = soc_phyctrl_mdix_status_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_MS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_MS\n")));
             rv = soc_phyctrl_master_get(unit, port, (int *) prop_val);
             break;
             
         case DRV_PORT_PROP_SEC_MAC_MODE_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_SEC_MODE_NONE\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2740,7 +2740,7 @@ drv_gex_port_get(int unit, int port,
             break;
 
         case DRV_PORT_PROP_SEC_MAC_MODE_EXTEND:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_SEC_MAC_MODE_EXTEND\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2752,7 +2752,7 @@ drv_gex_port_get(int unit, int port,
             break;
 
         case DRV_PORT_PROP_SEC_MAC_MODE_SIMPLIFY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: DRV_PORT_PROP_SEC_MAC_MODE_SIMPLIFY\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2769,21 +2769,21 @@ drv_gex_port_get(int unit, int port,
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PHY_CABLE_DIAG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_PHY_CABLE_DIAG\n")));
             rv = soc_phyctrl_cable_diag(unit, port,
                                         (soc_port_cable_diag_t *)prop_val);
             break;
         case DRV_PORT_PROP_PHY_LINK_CHANGE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_PHY_LINKCHANGE\n")));
             rv = soc_phyctrl_link_change(unit, port, (int *) prop_val);
             break;
         case DRV_PORT_PROP_PAUSE_FRAME_BYPASS_RX:
         case DRV_PORT_PROP_PAUSE_FRAME_BYPASS_TX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_PAUSE_FRAME_BYPASS\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2795,7 +2795,7 @@ drv_gex_port_get(int unit, int port,
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_MODE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_DTAG_MODE\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2808,7 +2808,7 @@ drv_gex_port_get(int unit, int port,
             rv = _drv_gex_port_property_enable_get(unit, 0, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_ISP_PORT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_DTAG_ISP_PORT\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2819,7 +2819,7 @@ drv_gex_port_get(int unit, int port,
             rv = _drv_gex_port_property_enable_get(unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_TPID:            
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_DTAG_TPID\n")));
 #if defined(BCM_DINO8_SUPPORT) || defined(BCM_DINO16_SUPPORT)
@@ -2834,7 +2834,7 @@ drv_gex_port_get(int unit, int port,
             *prop_val = temp;
             break;
         case DRV_PORT_PROP_MAC_BASE_VLAN:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_MAC_BASE_VLAN\n")));
             rv = SOC_E_UNAVAIL;
@@ -2852,7 +2852,7 @@ drv_gex_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_INGRESS_VLAN_CHK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_get: PROP_INGRESS_VLAN_CHK\n")));
             if ((rv = REG_READ_VLAN_CTRL4r(unit, &reg_value)) < 0) {
@@ -2887,7 +2887,7 @@ drv_gex_port_get(int unit, int port,
     defined(BCM_NORTHSTARPLUS_SUPPORT)
             if(SOC_IS_POLAR(unit) || SOC_IS_NORTHSTAR(unit) || 
                 SOC_IS_NORTHSTARPLUS(unit)) {
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "drv_port_get: PORT_PROP_DEFAULT_TC_PRIO\n")));
 
@@ -3101,12 +3101,12 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
         *val = TRUE;
         rv = drv_robo_port_sw_detach(unit);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Port detach failed!\n")));
             *val = FALSE;
         }
-        LOG_INFO(BSL_LS_SOC_PORT,
+        LOG_BSL_INFO(BSL_LS_SOC_PORT,
                  (BSL_META_U(unit,
                              "drv_gex_port_status_get: DETACH %s\n"),
                   *val ? "OK" : "FAIL"));
@@ -3126,7 +3126,7 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
      
 
     /* remarked for performance issue when debugging LinkScan
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_status_get: unit = %d, port = %d\n"),
               unit, port));
@@ -3139,7 +3139,7 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             rv = soc_phyctrl_loopback_get(unit, port, (int *) &port_lb_phy);
 
             if (port_lb_phy){
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "port%d at loopback status.\n"), port));
                 reg_addr = DRV_REG_ADDR(unit, INDEX(LNKSTSr), 0, 0);
@@ -3209,7 +3209,7 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             }
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, Can't get the PHY speed!\n"), FUNCTION_NAME())); 
                 return rv;
@@ -3221,13 +3221,13 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
                     (speed == 100) ? DRV_PORT_STATUS_SPEED_100M :
                                     DRV_PORT_STATUS_SPEED_10M;
             
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_status_get: SPEED = %d\n"),
                       *val));
             break;
         case DRV_PORT_STATUS_LINK_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_status_get: DUPLEX\n")));
             
@@ -3242,7 +3242,7 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             }
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, Can't get the PHY duplex!\n"), FUNCTION_NAME())); 
                 return rv;
@@ -3257,12 +3257,12 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             rv = drv_robo_port_probe(unit, port, &okay);
             *val = okay;
             if (rv < 0) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "Port probe failed on port %s\n"),
                           SOC_PORT_NAME(unit, port)));
             }
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_status_get: PROBE %s\n"),
                       *val ? "OK" : "FAIL"));
@@ -3276,7 +3276,7 @@ drv_gex_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             }
             break;
         case DRV_PORT_STATUS_PHY_DRV_NAME:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_gex_port_status_get: PHY_DRV_NAME\n")));
             SOC_ROBO_PORT_INIT(unit);            

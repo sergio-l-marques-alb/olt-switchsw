@@ -686,19 +686,19 @@ int _check_start_values(cpudb_ref_t db_ref)
 {
 
     if (!cpudb_valid(db_ref)) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR:  Bad DB reference\n")));
         return BCM_E_PARAM;
     }
 
     if (db_ref->local_entry == NULL) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR:  Can't find local DB entry\n")));
         return BCM_E_PARAM;
     }
 
     if (disc_retrx_min_us >= disc_retrx_us) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR:  retrx mis-configuration. min %d max %d\n"),
                    disc_retrx_min_us, disc_retrx_us));
         return BCM_E_PARAM;
@@ -707,12 +707,12 @@ int _check_start_values(cpudb_ref_t db_ref)
     if (db_ref->local_entry->base.num_units < 0 ||
         db_ref->local_entry->base.dest_port < 0 ||
         db_ref->local_entry->base.dest_unit < 0) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc WARN: Bad local DB info\n")));
     }
 
     if (disc_ttl_min == 1 && disc_ttl_max == 1) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("DISC WARN: TTL min == max == 1.  Discovery will fail\n")));
     }
 
@@ -981,7 +981,7 @@ disc_abort(int disc_rv, int timeout_us)
     int retries;
     int rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("DISC abort: RV %d, to %d\n"),
                  disc_rv,
                  timeout_us));
@@ -993,7 +993,7 @@ disc_abort(int disc_rv, int timeout_us)
 
     if (!(disc_flags & DF_DISC_RUNNING)) {
         DISC_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("DISC abort: not running\n")));
         return BCM_E_NONE;
     }
@@ -1013,7 +1013,7 @@ disc_abort(int disc_rv, int timeout_us)
         }
 
         if (!(disc_flags & DF_ABORT_ACK)) {
-            LOG_WARN(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                      (BSL_META("DISC WARN: Discovery did not exit in "
                       "%d us\n"), timeout_us));
             rv = BCM_E_FAIL;
@@ -1039,7 +1039,7 @@ disc_prep(cpudb_ref_t db_ref)
         if (route_pkt_buf[i] == NULL) {
             route_pkt_buf[i] = DATA_SALLOC(ROUTE_PKT_BYTES_MAX);
             if (route_pkt_buf[i] == NULL) {
-                LOG_WARN(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                          (BSL_META("disc WARN: Route pkt alloc %d\n"),
                           i));
                 return BCM_E_MEMORY;
@@ -1051,7 +1051,7 @@ disc_prep(cpudb_ref_t db_ref)
 
 #if defined(BROADCOM_DEBUG)
     if (CPUDB_ENTRY_COUNT_GET(db_ref) > 1) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc WARN: Local DB has > 1 entry\n")));
     }
 #endif /* BROADCOM_DEBUG */
@@ -1067,7 +1067,7 @@ disc_prep(cpudb_ref_t db_ref)
         nh_tx_local_mac_set(LOCAL_MAC(db_ref));
         rv = next_hop_start(&db_ref->local_entry->base);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                      (BSL_META("disc WARN: Error starting next hop\n")));
             disc_flags |= DF_DISC_ERROR;
             return rv;
@@ -1221,13 +1221,13 @@ routing_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *routing_pkt)
     version = buf[DISC_VER_OFS];
     buf += DISC_HEADER_BYTES;
 
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Processing rte pkt\n")));
 
     /* If src is not in DB or sequence numbers mismatch, discard pkt */
     CPUDB_KEY_SEARCH(db_ref, routing_pkt->src_key, entry);
     if (entry == NULL) {
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: Rte src key not found " CPUDB_KEY_FMT_EOLN),
                      CPUDB_KEY_DISP(routing_pkt->src_key)));
         bcm_rx_free(routing_pkt->rx_unit, routing_pkt->pkt_buf);
@@ -1235,7 +1235,7 @@ routing_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *routing_pkt)
         return;
     }
     if (entry->base.dseq_num != src_dseq_num) {
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: Rte src dseq num mismatch; pkt %d, db %d.\n"),
                      src_dseq_num, entry->base.dseq_num));
         bcm_rx_free(routing_pkt->rx_unit, routing_pkt->pkt_buf);
@@ -1262,7 +1262,7 @@ routing_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *routing_pkt)
         /* Add entry to DB if not already present. */
         entry = _disc_key_resolve(db_ref, key, &buf[ROUTE_MAC_OFS], dseq_num);
 
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc: Rte entry %p key " CPUDB_KEY_FMT_EOLN),
                    entry, CPUDB_KEY_DISP(key)));
         if (entry == NULL || entry == db_ref->local_entry) {
@@ -1303,12 +1303,12 @@ disc_done_check(cpudb_ref_t db_ref, int *rv, int unreg)
     } else if (disc_flags & DF_DISC_ABORT) { /* Exit forced */
         *rv = disc_abort_rv;
     } else if (dt < 0 || dt > disc_timeout_us) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR:  Timeout occurred\n")));
         disc_flags |= DF_DISC_TIMEOUT | DF_DISC_ERROR;
         *rv = BCM_E_TIMEOUT;
     } else if (disc_tot_err >= DISC_MAX_ERRORS) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR:  Error limit exceeded\n")));
         *rv = BCM_E_FAIL;
     } else {
@@ -1407,7 +1407,7 @@ inactive_ports_check(cpudb_ref_t db_ref)
              stk_idx++) {
             if (PP_SEEN_GET(stk_idx) == 0) {
                 STK_FLAGS(db_ref, stk_idx) |= CPUDB_SPF_INACTIVE;
-                LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                             (BSL_META("DISC: Marking SP %d inactive\n"),
                              stk_idx));
             }
@@ -1435,7 +1435,7 @@ lc_atp_setup(cpudb_ref_t db_ref)
     rv = atp_register(DISC_CONFIG_CLIENT_ID, disc_config_atp_flags,
                       disc_config_pkt_handler, db_ref, disc_cos, disc_vlan);
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc WARN: could not register cfg client\n")));
     }
 
@@ -1457,7 +1457,7 @@ STATIC INLINE void
 master_is_set(cpudb_ref_t db_ref)
 {
     int rv;
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("Disc: Master is set to " CPUDB_KEY_FMT " w/ dseq num %d\n"),
                  CPUDB_KEY_DISP(db_ref->master_entry->base.key),
                  db_ref->master_entry->base.dseq_num));
@@ -1465,14 +1465,14 @@ master_is_set(cpudb_ref_t db_ref)
         /* Send out config pkts */
         rv = disc_config_send(db_ref);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("Disc ERR: cfg send returns %d: %s\n"),
                        rv, bcm_errmsg(rv)));
             DISC_LOCK;
             disc_flags |= DF_DISC_ERROR;
             DISC_UNLOCK;
         } else {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("Disc: master cfg pkts out sn %d\n"),
                          db_ref->master_entry->base.dseq_num));
        }
@@ -1484,7 +1484,7 @@ STATIC INLINE void
 local_complete_set(cpudb_ref_t db_ref)
 {
     /* If we get here, the local DB is complete; make callback */
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("Disc: Local DB complete\n")));
     LOCAL_FLAGS(db_ref) |= CPUDB_F_LOCAL_COMPLETE;
 
@@ -1497,12 +1497,12 @@ global_complete_set(cpudb_ref_t db_ref)
     int rv;
 
     LOCAL_FLAGS(db_ref) |= CPUDB_F_GLOBAL_COMPLETE;
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("Disc: All DB entries report complete\n")));
 
     if (db_ref->master_entry != NULL) {
         /* Assume this means that we're not the master. */
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("DISC: Global done, but master known.\n")));
     }
 
@@ -1514,7 +1514,7 @@ global_complete_set(cpudb_ref_t db_ref)
         rv = disc_m_elect(db_ref, disc_m_user_data);
     }
     if (rv != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("Disc: Master elect returns %d causing abort: %s\n"),
                      rv, rv == DISC_RESTART_NEW_SEQ ? "Restarting" :
                      bcm_errmsg(rv)));
@@ -1523,7 +1523,7 @@ global_complete_set(cpudb_ref_t db_ref)
         disc_abort_rv = rv;
         DISC_UNLOCK;
     } else if (db_ref->master_entry == NULL) {
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("Disc WARN:  Global done; no master\n")));
     } else {
         master_is_set(db_ref);
@@ -1546,7 +1546,7 @@ disc_status_update(cpudb_ref_t db_ref)
         !(disc_flags & DF_CFG_PKT_SENT)) {
         rv = disc_config_send(db_ref);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("DISC:  Failed to respond with cfg pkt: %s\n"),
                        bcm_errmsg(rv)));
         } else {
@@ -1595,7 +1595,7 @@ disc_status_update(cpudb_ref_t db_ref)
         }
 
         /* All CPU entries have indicated they accept the configuration */
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("DISC:  All DB entries accept config.\n")));
         flags |= DF_DISC_SUCCESS;
         DISC_LOCK;
@@ -1644,7 +1644,7 @@ stk_port_rx_set(cpudb_ref_t db_ref, int sp, cpudb_key_t cpu_key,
         disc_flags |= DF_DB_UPDATED;
         DISC_UNLOCK;
         CHECK_IS_DUPLEX(db_ref, sp);
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: Set RX for sp %d\n"),
                      sp));
     }
@@ -1674,7 +1674,7 @@ stk_port_tx_set(cpudb_ref_t db_ref, int sp, cpudb_key_t cpu_key,
         disc_flags |= DF_DB_UPDATED | DF_TX_KNOWN;
         DISC_UNLOCK;
         CHECK_IS_DUPLEX(db_ref, sp);
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: Set TX for sp %d\n"),
                      sp));
     }
@@ -1756,7 +1756,7 @@ disc_probe_pkt_new(cpudb_ref_t db_ref, cpudb_key_t src_key, uint8 *pkt_buf)
         CPUDB_KEY_SEARCH(db_ref, key, entry);
         UNPACK_LONG(&entry_buf[PROBE_DSEQ_NUM_OFS], dseq_num);
         if (entry == NULL) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("disc probe chk: New key "
                                   CPUDB_KEY_FMT_EOLN), 
                          CPUDB_KEY_DISP(src_key)));
@@ -1764,7 +1764,7 @@ disc_probe_pkt_new(cpudb_ref_t db_ref, cpudb_key_t src_key, uint8 *pkt_buf)
         } else {
             if (dseq_num - entry->base.dseq_num > 0) {
                 /* pkt SN newer than DB */
-                LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                             (BSL_META("disc probe chk: New SN %d for key "
                                       CPUDB_KEY_FMT_EOLN),
                              dseq_num,
@@ -1797,7 +1797,7 @@ probe_pkt_local_cpu_key(cpudb_ref_t db_ref, uint8 *buf, int entry_count)
     for (i = 0; i < entry_count; i++) {
         CPUDB_KEY_UNPACK(buf, key);
         if (!CPUDB_KEY_COMPARE(key, LOCAL_KEY(db_ref))) {
-            LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc: Local key in probe pkt, %d\n"),
                        i));
             return i;
@@ -1806,7 +1806,7 @@ probe_pkt_local_cpu_key(cpudb_ref_t db_ref, uint8 *buf, int entry_count)
         buf += PROBE_ENTRY_BYTES;
     }
 
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Local key not in probe pkt\n")));
     return -1;
 }
@@ -1855,7 +1855,7 @@ probe_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt)
     rx_sp_idx = stk_port_find(db_ref, probe_pkt->rx_unit,
                               probe_pkt->rx_port);
     if (rx_sp_idx < 0) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Could not find stk port for "
                    "probe from unit %d port %d\n"),
                    probe_pkt->rx_unit, probe_pkt->rx_port));
@@ -1869,7 +1869,7 @@ probe_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt)
         remote_ent = _disc_key_resolve(db_ref, key,
                                        &entry_buf[PROBE_MAC_OFS], dseq_num);
         if (remote_ent == NULL) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: Error adding KEY to DB\n")));
             ++disc_rx_pkt_err;
             ++disc_tot_err;
@@ -1882,7 +1882,7 @@ probe_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt)
         }
     }
 
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Prb pkt Rmt TX %d RX %d key "
                CPUDB_KEY_FMT " cnt %d\n"), remote_tx_idx,
                rx_sp_idx, CPUDB_KEY_DISP(key), entry_count));
@@ -1900,7 +1900,7 @@ probe_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt)
            it was found to have a sequence number greater than
            what was found in the receivers database. */
         result = PROBE_PKT_DB_CLEAR;
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: probe entry count %d > %d - forcing forwarding\n"),
                      entry_count, disc_ttl));
     } else {
@@ -1920,7 +1920,7 @@ probe_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt)
         DISC_UNLOCK;
         break;
     case PROBE_PKT_MEMORY:
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: Could not add probe entry\n")));
         break;
     default:
@@ -1960,7 +1960,7 @@ probe_pkt_process(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt)
         }
         probe_pkt_forward(db_ref, probe_pkt, entry_count,
                           rx_sp_idx, FALSE);
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("Restart discovery, forward probe from "
                             CPUDB_KEY_FMT_EOLN),
                    CPUDB_KEY_DISP(key)));
@@ -2012,7 +2012,7 @@ stk_port_analyze(cpudb_entry_t *entry, int sp_idx, uint8 *buf, int new_entry,
         DISC_LOCK;
         disc_flags |= DF_DB_UPDATED;
         DISC_UNLOCK;
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc:  Stk update flags %x\n"),
                    new_flags));
     }
@@ -2028,10 +2028,10 @@ _check_route_pkt(uint8 *buf, cpudb_entry_t *entry)
     if (entry->base.num_stk_ports > 0) {  /* Have seen before */
         UNPACK_LONG(&buf[ROUTE_STK_COUNT_OFS], stk_port_count);
         if (entry->base.num_stk_ports != stk_port_count) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: stk port count mismatch for %x:%x\n"),
                        entry->base.mac[4], entry->base.mac[5]));
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("    was %d. new %d\n"),
                        entry->base.num_stk_ports, stk_port_count));
             return BCM_E_FAIL;   /* Do not analyze further */
@@ -2070,7 +2070,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
     int dest_port;
     
     if (!(entry->flags & CPUDB_F_BASE_INIT_DONE)) {
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc: Base init key " CPUDB_KEY_FMT_EOLN),
                    CPUDB_KEY_DISP(entry->base.key)));
         /* Init base info */
@@ -2080,7 +2080,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
         UNPACK_U32_INCR(buf, dseq_num);
         stale = (dseq_num < entry->base.dseq_num);
         if (dseq_num > entry->base.dseq_num) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("disc: new info for " CPUDB_KEY_FMT " seq %d->%d\n"),
                          CPUDB_KEY_DISP(entry->base.key),
                          entry->base.dseq_num, dseq_num));
@@ -2089,7 +2089,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
         flags |= CPUDB_F_BASE_INIT_DONE;
         UNPACK_U32_INCR(buf, slot_id);
         if (entry->db_ref->local_entry->base.flags & CPUDB_BASE_F_CHASSIS) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("Found slot %d\n"),
                          slot_id));
         }
@@ -2111,7 +2111,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
         /* Get unit count and check database limit */
         UNPACK_U32_INCR(buf, num_units);
         if (num_units > CPUDB_UNITS_MAX) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: Rte unit count %d exceeds DB limit %d\n"),
                        num_units, CPUDB_UNITS_MAX));
             return BCM_E_FAIL;
@@ -2122,7 +2122,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
         /* Get stack port count and check database limit */
         UNPACK_U32_INCR(buf, num_stk_ports);
         if (num_stk_ports > CPUDB_STK_PORTS_MAX) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: Rte stk port count %d exceeds DB limit %d\n"),
                        num_stk_ports, CPUDB_STK_PORTS_MAX));
             return BCM_E_FAIL;
@@ -2130,7 +2130,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
 
         if (stale) {
             /* Do not update CPUDB with stale info from route */
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("disc: stale info for " CPUDB_KEY_FMT " seq %d->%d\n"),
                          CPUDB_KEY_DISP(entry->base.key),
                          entry->base.dseq_num, dseq_num));
@@ -2155,7 +2155,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
         for (i = 0; i < entry->base.num_units; i++) {
             UNPACK_U32_INCR(buf, entry->base.mod_ids_req[i]);
             UNPACK_U32_INCR(buf, entry->base.pref_mod_id[i]);
-            LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc:  Rte unit %d. mr %d. pref %d\n"),
                        i, entry->base.mod_ids_req[i],
                        entry->base.pref_mod_id[i]));
@@ -2170,7 +2170,7 @@ route_entry_process(uint8 *buf, cpudb_entry_t *entry, int version)
         UNPACK_LONG(&buf[ROUTE_FLAGS_OFS], combined_flags);
         combined_flags |= entry->flags;
         if (combined_flags != entry->flags) {
-            LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc:  Rte flag update %x->%x\n"),
                        entry->flags, combined_flags));
             entry->flags = combined_flags;
@@ -2281,7 +2281,7 @@ disc_rx_pkt_ver(cpudb_key_t src_key,
     /* Called with DISC_LOCK held */
     pkt_type = disc_pkt_type_get(pkt_buf);
 
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META_U(unit,
               "disc: %s (%d) pkt in\n"),
                pkt_type == DISC_PKT_TYPE_PROBE ? "PROBE" : "ROUTING" ,
@@ -2291,7 +2291,7 @@ disc_rx_pkt_ver(cpudb_key_t src_key,
 
         /* Mark the stack port active if found */
         if (stack_port_active_mark(db_ref, unit, port) < 0) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META_U(unit,
                         "disc: Inactive Stack port %d %d now active.\n"),
                          unit, port));
@@ -2300,7 +2300,7 @@ disc_rx_pkt_ver(cpudb_key_t src_key,
             return BCM_RX_HANDLED;
         }
         if (enqueue_probe_pkt(src_key, unit, port, pkt_buf, len) < 0) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META_U(unit,
                         "disc: Discarding probe pkt\n")));
             DISC_UNLOCK;
@@ -2309,7 +2309,7 @@ disc_rx_pkt_ver(cpudb_key_t src_key,
         break;
     case DISC_PKT_TYPE_ROUTING:        /* Routing packet */
         if (enqueue_routing_pkt(src_key, unit, port, pkt_buf, len) < 0) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META_U(unit,
                         "disc: Discarding routing pkt\n")));
             DISC_UNLOCK;
@@ -2317,7 +2317,7 @@ disc_rx_pkt_ver(cpudb_key_t src_key,
         }
         break;
     default:
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META_U(unit,
                  "disc WARN: Unsupported packet type %d"),
                   pkt_type));
@@ -2355,7 +2355,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
 
     DISC_LOCK;
 
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META_U(unit,
               "disc: disc_rx_pkt\n")));
     if (!(disc_flags & DF_DISC_RUNNING)) {
@@ -2363,7 +2363,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
         /* If no task_db or discovery not running, then sink probe */
         if (disc_pkt_type_get(pkt_buf) == DISC_PKT_TYPE_PROBE &&
             disc_task_db) {
-            LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                       (BSL_META_U(unit,
                       "disc: rx while idle.\n")));
             (void)disc_callout(disc_task_db, DISC_PROBE_RECEIVED);
@@ -2373,7 +2373,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
 
     if (disc_flags & DF_IGNORE_PACKETS) {
         DISC_UNLOCK;
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META_U(unit,
                   "disc: rx ignored.\n")));
         return BCM_RX_NOT_HANDLED;
@@ -2382,7 +2382,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
     db_ref = *(cpudb_ref_t *)cookie;
     if (!cpudb_valid(db_ref)) {
         DISC_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META_U(unit,
                     "disc: Config pkt in when db_ref is invalid.\n")));
         return BCM_RX_NOT_HANDLED;
@@ -2392,7 +2392,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
 
     /* Fallback only if received discovery packet version is lower */
     if (disc_fallback && (disc_version > d_ver)) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META_U(unit,
                  "DISC WARN: Protocol version changed from %d to %d\n"),
                   disc_version, d_ver));
@@ -2400,7 +2400,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
         DISC_UNLOCK;
         return BCM_RX_HANDLED;
     } else if (d_ver != disc_version && version_warn) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META_U(unit,
                  "DISC WARN: Received discovery version %d, sending %d\n"),
                   d_ver, disc_version));
@@ -2416,7 +2416,7 @@ disc_rx_pkt(cpudb_key_t src_key, int port_num,
 
     /* Unknown version - throw packet away */
     DISC_UNLOCK;
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META_U(unit,
                 "disc: Unknown discovery version %d in probe/route\n"),
                  d_ver));
@@ -2529,7 +2529,7 @@ probe_pkt_tx(cpudb_ref_t db_ref, uint8 *buf, int len, uint8 *cur_entry,
                has been forwarded via this port. */
            continue;
         }
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META_U(unit,
                   "DISC:  Sending probe pkt cos %d to port %d (%d, %d)\n"),
                    disc_cos, i, unit, port));
@@ -2551,7 +2551,7 @@ probe_pkt_tx(cpudb_ref_t db_ref, uint8 *buf, int len, uint8 *cur_entry,
                    NULL);
         if (BCM_FAILURE(rv)) {
             ++disc_tx_pkt_err;
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META_U(unit,
                       "disc ERR %d: probe pkt tx to "
                        "stkport %d: %s\n"), rv, i, bcm_errmsg(rv)));
@@ -2595,7 +2595,7 @@ probe_pkts_generate(cpudb_ref_t db_ref)
     if (disc_ttl > 0 && ++disc_ttl > disc_ttl_max) {
         disc_ttl = disc_ttl_max;
     } else {
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("DISC: TTL is %d\n"),
                    disc_ttl));
     }
@@ -2667,14 +2667,14 @@ probe_pkt_dseq_num_check(cpudb_ref_t db_ref, uint8 *pkt_start,
         } else {
             diff = dseq_num - entry->base.dseq_num;
             if (diff > 0) {  /* pkt SN is newer than local DB */
-                LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                             (BSL_META("disc: New seq num %d for key "
                                       CPUDB_KEY_FMT_EOLN),
                              dseq_num,
                              CPUDB_KEY_DISP(entry->base.key)));
                 return PROBE_PKT_DB_CLEAR;
             } else if (diff < 0) { /* pkt SN is older than DB */
-                LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                             (BSL_META("disc: Old seq num. DB SN %d. Pkt SN %d. key "
                                       CPUDB_KEY_FMT_EOLN),
                              entry->base.dseq_num,
@@ -2733,7 +2733,7 @@ probe_pkt_forward(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt,
     case 0:  /* Ignore TTL */
         break;
     case 1:  /* TTL expired, do not forward */
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("DISC: Not forwarding probe pkt due to TTL == 1\n")));
         return;
     default: /* Decrement TTL and forward */
@@ -2761,7 +2761,7 @@ probe_pkt_forward(cpudb_ref_t db_ref, disc_pkt_t *probe_pkt,
     /* TX UNIT and TX PORT are filled in by receiving CPU */
     tx_len = CPUTRANS_HEADER_BYTES + DISC_HEADER_BYTES +
                entry_count * PROBE_ENTRY_BYTES + sizeof(uint32);
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Prb pkt out, ent %d len %d\n"),
                entry_count, tx_len));
     probe_pkt_tx(db_ref, probe_pkt->pkt_buf, tx_len, local_entry, fd_opt);
@@ -2802,7 +2802,7 @@ off_board_pkt_handle(cpudb_ref_t db_ref,
     entry = _disc_key_resolve(db_ref, key, &buf[PROBE_MAC_OFS], dseq_num);
     if (entry == NULL) {
         ++disc_rx_pkt_err;
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: bad key, off board 0\n")));
         return;
     }
@@ -2823,7 +2823,7 @@ off_board_pkt_handle(cpudb_ref_t db_ref,
         UNPACK_LONG(&buf[PROBE_DSEQ_NUM_OFS], dseq_num);
         entry = _disc_key_resolve(db_ref, key, &buf[PROBE_MAC_OFS], dseq_num);
         if (entry == NULL) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: bad key, off board %d\n"),
                        i));
             ++disc_rx_pkt_err;
@@ -2855,18 +2855,18 @@ probe_pkt_with_local_key(cpudb_ref_t db_ref,
     tx_sp_idx = (int)buf[PROBE_TX_IDX_OFS];
     rx_sp_idx = stk_port_find(db_ref, probe_pkt->rx_unit, probe_pkt->rx_port);
 
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Prb pkt local. RX %d. TX %d, ent cnt %d\n"),
                rx_sp_idx, tx_sp_idx, entry_count));
 
 #if defined(BROADCOM_DEBUG)
     if (tx_sp_idx < 0 || tx_sp_idx > db_ref->local_entry->base.num_stk_ports) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Did not find stk port in probe pkt")));
         return;
     }
     if (rx_sp_idx < 0) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Did not find rx stk port of probe pkt")));
         return;
     }
@@ -2919,7 +2919,7 @@ route_pkt_tx(cpudb_ref_t db_ref, uint8 *buf, int len)
             continue;
         }
 
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc rte pkt out len %d to %d @ " CPUDB_KEY_FMT_EOLN),
                    len, i, CPUDB_KEY_DISP(STK_PORT(db_ref, i).tx_cpu_key)));
         CPUDB_KEY_SEARCH(db_ref, STK_PORT(db_ref, i).tx_cpu_key, dest_entry);
@@ -2957,7 +2957,7 @@ route_pkt_tx(cpudb_ref_t db_ref, uint8 *buf, int len)
                    NULL);
         if (BCM_FAILURE(rv)) {
             ++disc_tx_pkt_err;
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: sending rte to stkport %d\n"),
                        i));
             break;
@@ -3017,7 +3017,7 @@ routing_pkts_form(cpudb_ref_t db_ref)
          * Route packet should fit at least one entry
          */
         if ((entry_bytes > pkt_bytes_left) && (num_entries == 0)) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: route pkt entry too long, need %d, left %d\n"),
                        entry_bytes, pkt_bytes_left));
             ++disc_internal_err;
@@ -3046,7 +3046,7 @@ routing_pkts_form(cpudb_ref_t db_ref)
 
             /* Check route packets limit */
             if ((++cur_pkt_idx) >= ROUTE_PKTS_MAX) {
-                LOG_ERROR(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                           (BSL_META("disc ERR: number of route pkts exceeds limit %d\n"),
                            ROUTE_PKTS_MAX));
                 ++disc_internal_err;
@@ -3065,7 +3065,7 @@ routing_pkts_form(cpudb_ref_t db_ref)
         entry_bytes = db_entry_pack(&pkt_buf[cur_offset], entry,
                                     pkt_bytes_left, version);
         if (entry_bytes < 0) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR: cannot pack route entry %d in packet %d\n"),
                        num_entries + 1, cur_pkt_idx));
             ++disc_internal_err;
@@ -3077,7 +3077,7 @@ routing_pkts_form(cpudb_ref_t db_ref)
         num_entries++;
         tot_entries++;
         
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc: Packing route entry %d in packet %d, "
                    "buffer left %d\n"),
                    num_entries, cur_pkt_idx, pkt_bytes_left));
@@ -3092,7 +3092,7 @@ routing_pkts_form(cpudb_ref_t db_ref)
     }
 
     tot_pkts = cur_pkt_idx + 1;
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Packed %d entries in %d pkts\n"),
                tot_entries, tot_pkts));
 
@@ -3111,7 +3111,7 @@ routing_pkts_send(cpudb_ref_t db_ref)
     int i;
 
     if (!(disc_flags & DF_TX_KNOWN)) {
-        LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc: No route out; no TX known\n")));
         return;
     }
@@ -3241,14 +3241,14 @@ _disc_key_resolve(cpudb_ref_t db_ref, cpudb_key_t key, bcm_mac_t mac,
     if (entry == NULL) {
         disc_external_err++;
         ++disc_tot_err;
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Error adding key\n")));
         return NULL;
     }
     sal_memcpy(entry->base.mac, mac, sizeof(bcm_mac_t));
     db_entry_clear_mod_ids(entry);
     entry->base.dseq_num = dseq_num;
-    LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
               (BSL_META("disc: Added key " CPUDB_KEY_FMT
                "), mac %x:%x seq %d to DB\n"), CPUDB_KEY_DISP(key),
                mac[4], mac[5], dseq_num));
@@ -3294,10 +3294,10 @@ disc_config_pkt_handler_ver(cpudb_key_t src_key,
     CPUDB_KEY_UNPACK(&payload[CFG_MASTER_KEY_OFS], master_key);
     UNPACK_LONG(&payload[CFG_MSEQ_NUM_OFS], master_dseq_num);
 
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("disc: Config pkt in from " CPUDB_KEY_FMT " disc SN %d\n"),
                  CPUDB_KEY_DISP(src_key), src_dseq_num));
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("disc: Cfg pkt master key " CPUDB_KEY_FMT " disc SN %d\n"),
                  CPUDB_KEY_DISP(master_key), master_dseq_num));
 
@@ -3309,7 +3309,7 @@ disc_config_pkt_handler_ver(cpudb_key_t src_key,
     if (entry == NULL) {
         ++disc_rx_pkt_err;
         ++disc_tot_err;
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Config pkt, bad source key "
                             CPUDB_KEY_FMT_EOLN),
                    CPUDB_KEY_DISP(src_key)));
@@ -3319,7 +3319,7 @@ disc_config_pkt_handler_ver(cpudb_key_t src_key,
     if (entry->base.dseq_num != src_dseq_num) {
         ++disc_rx_pkt_err;
         ++disc_tot_err;
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc warn: Config pkt from " CPUDB_KEY_FMT
                   "), seq num mismatch: pkt %d, db %d\n"),
                   CPUDB_KEY_DISP(src_key),
@@ -3330,7 +3330,7 @@ disc_config_pkt_handler_ver(cpudb_key_t src_key,
     if (db_ref->num_cpus != num_cpus) {
         ++disc_rx_pkt_err;
         ++disc_tot_err;
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc warn: Config pkt from " CPUDB_KEY_FMT
                   "), num CPU mismatch: pkt %d db %d\n"),
                   CPUDB_KEY_DISP(src_key),
@@ -3343,7 +3343,7 @@ disc_config_pkt_handler_ver(cpudb_key_t src_key,
     if (db_ref->local_entry == db_ref->master_entry) {
         if (!CPUDB_KEY_EQUAL(master_key, db_ref->local_entry->base.key)) {
             DISC_UNLOCK;
-            LOG_WARN(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                      (BSL_META("disc ERR: Config pkt from " CPUDB_KEY_FMT
                       "), master mismatch: pkt " CPUDB_KEY_FMT
                       "), (local master)\n"),
@@ -3355,7 +3355,7 @@ disc_config_pkt_handler_ver(cpudb_key_t src_key,
     } else { /* I'm not the master. */
         if (db_ref->master_entry != NULL &&
             db_ref->master_entry != entry) {
-            LOG_WARN(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                      (BSL_META("disc WARN: Config pkt w/ different master; "
                       "overwriting\n")));
         }
@@ -3391,7 +3391,7 @@ disc_config_pkt_handler(cpudb_key_t src_key,
     if (!(disc_flags & DF_DISC_RUNNING) ||
             (disc_flags & DF_DISC_SUCCESS)) {
         DISC_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc: Config pkt in when disc_flags are %x.\n"),
                   disc_flags));
         return BCM_RX_NOT_HANDLED;
@@ -3400,14 +3400,14 @@ disc_config_pkt_handler(cpudb_key_t src_key,
     db_ref = (cpudb_ref_t)cookie;
     if (!cpudb_valid(db_ref) || (db_ref->local_entry == NULL)) {
         DISC_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc: Config pkt in when db_ref is invalid.\n")));
         return BCM_RX_NOT_HANDLED;
     }
 
     if (!(db_ref->local_entry->flags & CPUDB_F_LOCAL_COMPLETE)) {
         DISC_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc: Config pkt in when local DB not complete\n")));
         return BCM_RX_NOT_HANDLED;
     }
@@ -3425,7 +3425,7 @@ disc_config_pkt_handler(cpudb_key_t src_key,
 
     /* Unknown version - throw packet away */
     DISC_UNLOCK;
-    LOG_WARN(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc: Unknown discovery version %d in config\n"),
               d_ver));
     return BCM_RX_HANDLED;
@@ -3458,17 +3458,17 @@ disc_config_send(cpudb_ref_t db_ref)
     int rv = BCM_E_NONE;
     cpudb_entry_t *entry;
 
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("DISC:  Generating config packet(s)\n")));
 
     if (!cpudb_valid(db_ref) || (db_ref->master_entry == NULL)) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc WARN: cfg send; master is NULL\n")));
         return BCM_E_PARAM;
     }
 
     if (!(LOCAL_FLAGS(db_ref) & CPUDB_F_LOCAL_COMPLETE)) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("disc WARN: cfg send, but not local complete\n")));
     }
 
@@ -3491,7 +3491,7 @@ disc_config_send(cpudb_ref_t db_ref)
                     NULL,
                     NULL);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc ERR:  %s (%d) Failed to tx cfg pkt to "
                                 CPUDB_KEY_FMT_EOLN),
                        bcm_errmsg(rv), rv,
@@ -3503,7 +3503,7 @@ disc_config_send(cpudb_ref_t db_ref)
                 continue;
             }
 
-            LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc: Cfg pkt out to " CPUDB_KEY_FMT_EOLN),
                        CPUDB_KEY_DISP(entry->base.key)));
             rv = atp_tx(entry->base.key,
@@ -3514,7 +3514,7 @@ disc_config_send(cpudb_ref_t db_ref)
                         NULL,
                         NULL);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_TKS_DISCOVER,
+                LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                           (BSL_META("disc ERR:  %s (%d) Failed to tx pkt to "
                                     CPUDB_KEY_FMT_EOLN),
                            bcm_errmsg(rv), rv,
@@ -3559,7 +3559,7 @@ disc_m_elect_default(cpudb_ref_t db_ref, void *user_data)
     COMPILER_REFERENCE(user_data);
 
     if (db_ref == CPUDB_REF_NULL || db_ref->local_entry == NULL) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc m_elect ERR:  Bad DB or local entry\n")));
         return BCM_E_FAIL;
     }
@@ -3594,7 +3594,7 @@ disc_m_elect_default(cpudb_ref_t db_ref, void *user_data)
 
     if (best_entry == db_ref->local_entry) {    /* See notes */
         if (!(LOCAL_FLAGS(db_ref) & CPUDB_F_GLOBAL_COMPLETE)) {
-            LOG_DEBUG(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_DEBUG(BSL_LS_TKS_DISCOVER,
                       (BSL_META("disc m_elect:  "
                        "Local is master; wait for global complete\n")));
             return BCM_E_NONE;
@@ -3602,13 +3602,13 @@ disc_m_elect_default(cpudb_ref_t db_ref, void *user_data)
     }
 
     if (db_ref->master_entry != NULL && db_ref->master_entry != best_entry) {
-        LOG_WARN(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_WARN(BSL_LS_TKS_DISCOVER,
                  (BSL_META("DISC m_elect:  Master set, but changing\n")));
     }
 
     db_ref->master_entry = best_entry;
     best_entry->flags |= CPUDB_F_IS_MASTER;
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("disc m_elect: Master is "
                           CPUDB_KEY_FMT ", %slocal\n"),
                  CPUDB_KEY_DISP(best_entry->base.key),
@@ -3620,25 +3620,25 @@ disc_m_elect_default(cpudb_ref_t db_ref, void *user_data)
 void
 disc_counter_dump(void)
 {
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_alloc_fail    = %d\n"),
               disc_alloc_fail));
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_resource_err  = %d\n"),
               disc_resource_err));
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_internal_err  = %d\n"),
               disc_internal_err));
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_tx_pkt_err    = %d\n"),
               disc_tx_pkt_err));
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_rx_pkt_err    = %d\n"),
               disc_rx_pkt_err));
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_tot_err       = %d\n"),
               disc_tot_err));
-    LOG_INFO(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_INFO(BSL_LS_TKS_DISCOVER,
              (BSL_META("disc_external_err  = %d\n"),
               disc_external_err));
 }
@@ -3738,10 +3738,10 @@ _disc_run_prep(cpudb_ref_t db_ref)
     DISC_LOCK;
     if (disc_flags & DF_DISC_RUNNING) {
         DISC_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("_disc_run_prep: terminating existing disc\n")));
         if (disc_abort(BCM_E_FAIL, 500000) != BCM_E_NONE) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("%s: disc_abort failed.\n"),
                          FUNCTION_NAME()));
             return BCM_E_BUSY;
@@ -3754,14 +3754,14 @@ _disc_run_prep(cpudb_ref_t db_ref)
 
     if (disc_trans_ptr == NULL) {
         DISC_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("_disc_run ERR: Need transport pointers\n")));
         return BCM_E_FAIL;
     }
 
     if (db_ref == NULL) {
         DISC_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("%s ERR: Need DB ref pointers\n"),
                    FUNCTION_NAME()));
         return BCM_E_PARAM;
@@ -3804,13 +3804,13 @@ _disc_run_reg(cpudb_ref_t *db_refp)
     /* Register with next hop */
     rv = next_hop_register(disc_rx_pkt, db_refp, DISC_NH_PKT_TYPE);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Could not register RX callback")));
         DISC_LOCK;
         disc_flags |= DF_DISC_ERROR;
         DISC_UNLOCK;
     } else {
-        LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                     (BSL_META("disc: registered with nexthop\n")));
     }
     return rv;
@@ -3830,7 +3830,7 @@ _disc_run_reg(cpudb_ref_t *db_refp)
 STATIC int
 _disc_run_unreg(void)
 {
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("disc: unregistered with nexthop\n")));
     return next_hop_unregister(disc_rx_pkt, DISC_NH_PKT_TYPE);
 }
@@ -3978,13 +3978,13 @@ disc_callout(cpudb_ref_t db_ref, int status)
 {
     int rv = BCM_E_PARAM;
 
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("disc: callout status:%d\n"),
                  status));
     if (_disc_callback.callback) {
         rv = _disc_callback.callback(db_ref, status, _disc_callback.user_data);
     }
-    LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                 (BSL_META("disc: callout returns %d\n"),
                  rv));
 
@@ -4025,7 +4025,7 @@ disc_run_task(void)
                                        _disc_run_thread,
                                        NULL))
         == SAL_THREAD_ERROR) {
-        LOG_ERROR(BSL_LS_TKS_DISCOVER,
+        LOG_BSL_ERROR(BSL_LS_TKS_DISCOVER,
                   (BSL_META("disc ERR: Could not create discovery thread\n")));
         rv = BCM_E_FAIL;
     }
@@ -4068,7 +4068,7 @@ disc_run(cpudb_ref_t db_ref)
         if (disc_stat == DISC_STATUS_INACTIVE) {
             rv = BCM_E_INIT;
         } else if (disc_stat != DISC_STATUS_TASK_IDLE) {
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("disc_run busy = %d @ %d\n"),
                          disc_stat, sal_time_usecs()));
             rv = BCM_E_BUSY;
@@ -4083,7 +4083,7 @@ disc_run(cpudb_ref_t db_ref)
         disc_db = cpudb_copy(db_ref);
         if (disc_db) {
             disc_task_db = disc_db;
-            LOG_VERBOSE(BSL_LS_TKS_DISCOVER,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_DISCOVER,
                         (BSL_META("disc_run @ %d\n"),
                          sal_time_usecs()));
             DISC_TASK_WAKE;

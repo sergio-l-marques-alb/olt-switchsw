@@ -334,7 +334,7 @@ _drv_vo_cfp_qual_value_set(int unit, drv_field_qualify_t qual, drv_cfp_entry_t *
     }
   
     if ((-1 == field) ||(0 == mem)){
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "indirect qual field setting.\n")));
         return SOC_E_NONE;
@@ -446,7 +446,7 @@ _drv_vo_cfp_udf_value_set(int unit, uint32 udf_idx, drv_cfp_entry_t *drv_entry,
                 if (drv_entry->flags & _DRV_CFP_SLICE_CHAIN){
                     if ((_vo_udf_mapping_tbl[i].slice_id & 0x3) 
                         != CFP_53600_SLICE_ID_BASE) {
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "udf idex %d is not supported for current slice id %d\n"),
                                   udf_idx, drv_entry->slice_id));
@@ -454,7 +454,7 @@ _drv_vo_cfp_udf_value_set(int unit, uint32 udf_idx, drv_cfp_entry_t *drv_entry,
                     }  
                 } else {
                     if (_vo_udf_mapping_tbl[i].slice_id != drv_entry->slice_id) {
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "udf idex %d is not supported for current slice id %d\n"),
                                   udf_idx, drv_entry->slice_id));
@@ -465,7 +465,7 @@ _drv_vo_cfp_udf_value_set(int unit, uint32 udf_idx, drv_cfp_entry_t *drv_entry,
             } else if (drv_entry->slice_id == CFP_53600_SLICE_ID_WITH_CHAIN){
                 if ((_vo_udf_mapping_tbl[i].slice_id & 0x3) 
                     != CFP_53600_SLICE_ID_BASE) {
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "udf idex %d is not supported for current slice id %d\n"),
                                   udf_idx, drv_entry->slice_id));
@@ -485,7 +485,7 @@ _drv_vo_cfp_udf_value_set(int unit, uint32 udf_idx, drv_cfp_entry_t *drv_entry,
                             SLICEIDf, &valid_data);
 
                     } else {
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "udf idex %d is not supported for current slice id %d\n"),
                                   udf_idx, drv_entry->slice_id));
@@ -499,7 +499,7 @@ _drv_vo_cfp_udf_value_set(int unit, uint32 udf_idx, drv_cfp_entry_t *drv_entry,
         }    
     }
     if (-1 == field) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "no matched udf idex\n")));
         return SOC_E_INTERNAL;
@@ -599,7 +599,7 @@ _drv_vo_cfp_qualify_conflict_check(int unit, drv_field_qualify_t qual,
     data = *p_data;
     mask = *p_mask;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "(1)flags l2 %x l3 %x l4 %x\n"),
                  l2_flags, l3_flags, l4_flags));
@@ -828,7 +828,7 @@ _drv_vo_cfp_qualify_conflict_check(int unit, drv_field_qualify_t qual,
         rv = SOC_E_NONE;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s: conflict %d qual %d, l2_flags %x l3_flags %x l4_flags %x\n"), 
                  FUNCTION_NAME(), conflict, qual, l2_flags, l3_flags, l4_flags));
@@ -929,7 +929,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                     }
                     if (mode == DRV_FIELD_GROUP_MODE_DOUBLE) {
                         if ((_vo_udf_mapping_tbl[i].slice_id & 0x3) != CFP_53600_SLICE_ID_BASE) {
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "udf conflict for double-wide mode!\n")));
                             return SOC_E_UNAVAIL;
@@ -938,7 +938,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                         slice_bmp = CFP_53600_SLICE_ID_MAP(slice_id);
                     } else if (mode == DRV_FIELD_GROUP_MODE_AUTO) {
                         if ((_vo_udf_mapping_tbl[i].slice_id & 0x3) != (slice_id & 0x3)) {
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "udf conflict for auto mode!\n")));
                             return SOC_E_UNAVAIL;
@@ -947,7 +947,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                         slice_bmp |= 1 << (_vo_udf_mapping_tbl[i].slice_id);
                     } else {
                         if (_vo_udf_mapping_tbl[i].slice_id != slice_id) {
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "udf conflict !\n")));
                             return SOC_E_UNAVAIL;
@@ -960,7 +960,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
     }
     drv_entry->slice_id = slice_id;
     drv_entry->slice_bmp = slice_bmp;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "after udf sets slice id %d bmp %x\n"),
                  drv_entry->slice_id, drv_entry->slice_bmp));
@@ -982,14 +982,14 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                     if (_vo_qual_slice_mapping_tbl[i].conflict_qid[0] != -1){
                         if (1 == DRV_FIELD_QSET_TEST((qset), 
                             _vo_qual_slice_mapping_tbl[i].conflict_qid[0])){
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "qset (EtherType/LLC ) conflict with (DSCP/IpProtocol) \n")));
                             return SOC_E_UNAVAIL; 
                         }
                         if (1 == DRV_FIELD_QSET_TEST((qset), 
                             _vo_qual_slice_mapping_tbl[i].conflict_qid[1])){
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "qset (EtherType/LLC ) conflict with (DSCP/IpProtocol) \n")));
                             return SOC_E_UNAVAIL; 
@@ -1009,7 +1009,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                                 } 
                             } else {
                                 if (!(_vo_qual_slice_mapping_tbl[i].slice_bmp & (1<< slice_id))) {
-                                    LOG_WARN(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                              (BSL_META_U(unit,
                                                          "qset conflict for AUTO mode!\n")));
                                     return SOC_E_UNAVAIL; 
@@ -1017,7 +1017,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                             }
                         } else {
                             if  (!(_vo_qual_slice_mapping_tbl[i].slice_bmp & 0x1)) {
-                                LOG_WARN(BSL_LS_SOC_COMMON,
+                                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                          (BSL_META_U(unit,
                                                      "qset conflict for AUTO mode!\n")));
                                 return SOC_E_UNAVAIL; 
@@ -1026,7 +1026,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
                     }
                     if (mode == DRV_FIELD_GROUP_MODE_SINGLE) {                        
                         if (!(_vo_qual_slice_mapping_tbl[i].slice_bmp & (1<< slice_id))) {
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "qset conflict for SINGLE mode!\n")));
                             return SOC_E_UNAVAIL; 
@@ -1042,7 +1042,7 @@ _drv_vo_qset_to_cfp(int unit, drv_field_qset_t qset, drv_cfp_entry_t * drv_entry
     if (slice_id == -1) {
         drv_entry->slice_bmp = support_bmp;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "after qual sets slice id %d bmp %x\n"),
                  drv_entry->slice_id, drv_entry->slice_bmp));
@@ -1158,7 +1158,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         if (l2_flag == VO_CFP_FRAME_L2_DIXv2) {
             if (l2_frame_mask) {
                 if ((l2_frame & l2_frame_mask) != 0){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l2 framing conflict (VO_CFP_FRAME_L2_DIXv2)!\n"),
                               FUNCTION_NAME()));
@@ -1172,7 +1172,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l2_flag == VO_CFP_FRAME_L2_SNAP_PUBLIC) {
             if (l2_frame_mask) {
                 if ((l2_frame & l2_frame_mask) != 0x1){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l2 framing conflict (VO_CFP_FRAME_L2_SNAP_PUBLIC)!\n"),
                               FUNCTION_NAME()));
@@ -1186,7 +1186,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l2_flag == VO_CFP_FRAME_L2_LLC) {
             if (l2_frame_mask) {
                 if ((l2_frame & l2_frame_mask) != 0x2){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l2 framing conflict (VO_CFP_FRAME_L2_LLC)!\n"),
                               FUNCTION_NAME()));
@@ -1200,7 +1200,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l2_flag == VO_CFP_FRAME_L2_SNAP_PRIVATE) {
             if (l2_frame_mask) {
                 if ((l2_frame & l2_frame_mask) != 0x3){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l2 framing conflict (VO_CFP_FRAME_L2_SNAP_PRIVATE)!\n"),
                               FUNCTION_NAME()));
@@ -1211,14 +1211,14 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
             l2_frame = 0x3;
             l2_frame_mask = 0x3;
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s l2 framing conflict (non-handle case )!\n"),
                       FUNCTION_NAME()));  
             rv = SOC_E_UNAVAIL;
             goto framing_err; 
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s l2 frame %x %x\n"),
                      FUNCTION_NAME(), 
@@ -1240,7 +1240,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         if (l3_flag == _DRV_CFP_FRAME_IP4) {
             if (l3_frame_mask) {
                 if ((l3_frame & l3_frame_mask) != 0x0 ){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l3 framing conflict (_DRV_CFP_FRAME_IP4)!\n"),
                               FUNCTION_NAME()));                
@@ -1254,7 +1254,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l3_flag == _DRV_CFP_FRAME_IP6) {
             if (l3_frame_mask) {
                 if ((l3_frame & l3_frame_mask) != 0x1 ){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l3 framing conflict (_DRV_CFP_FRAME_IP6)!\n"),
                               FUNCTION_NAME()));                
@@ -1268,7 +1268,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l3_flag == _DRV_CFP_FRAME_NONIP) {
             if (l3_frame_mask) {
                 if ((l3_frame & l3_frame_mask) != 0x3 ){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l3 framing conflict (_DRV_CFP_FRAME_NONIP)!\n"),
                               FUNCTION_NAME()));                
@@ -1282,7 +1282,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l3_flag &  _DRV_CFP_FRAME_IPANY) {
             if (l3_frame_mask) {
                 if ((l3_frame == 0x3 )|| (l3_frame_mask != 0x2)) {
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l3 framing conflict (_DRV_CFP_FRAME_IPANY)!\n"),
                               FUNCTION_NAME()));                
@@ -1296,7 +1296,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l3_flag & _DRV_CFP_FRAME_IP) {
             if (l3_frame_mask) {
                 if ((l3_frame & l3_frame_mask) == 0x3 ){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l3 framing conflict (_DRV_CFP_FRAME_IP)!\n"),
                               FUNCTION_NAME()));                
@@ -1308,14 +1308,14 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
                 l3_frame_mask = 0x2;
             }
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s l3 framing conflict (non-handle case )!\n"),
                       FUNCTION_NAME()));  
             rv = SOC_E_UNAVAIL;
             goto framing_err; 
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s l3 frame %x %x\n"),
                      FUNCTION_NAME(), 
@@ -1340,7 +1340,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         if (l4_flag == VO_CFP_FRAME_L4_TCP) {
             if (l4_frame_mask) {
                 if ((l4_frame & l4_frame_mask) != 0){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l4 framing conflict (VO_CFP_FRAME_L4_TCP)!\n"),
                               FUNCTION_NAME()));
@@ -1354,7 +1354,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l4_flag == VO_CFP_FRAME_L4_UDP) {
             if (l4_frame_mask) {
                 if ((l4_frame & l4_frame_mask) != 1){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l4 framing conflict (VO_CFP_FRAME_L4_UDP)!\n"),
                               FUNCTION_NAME()));
@@ -1368,7 +1368,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l4_flag == VO_CFP_FRAME_L4_ICMPIGMP) {
             if (l4_frame_mask) {
                 if ((l4_frame & l4_frame_mask) != 2){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l4 framing conflict (VO_CFP_FRAME_L4_ICMPIGMP)!\n"),
                               FUNCTION_NAME()));
@@ -1382,7 +1382,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
         } else if (l4_flag == VO_CFP_FRAME_L4_OTHER) {
             if (l4_frame_mask) {
                 if ((l4_frame & l4_frame_mask) != 3){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l4 framing conflict (VO_CFP_FRAME_L4_OTHER)!\n"),
                               FUNCTION_NAME()));
@@ -1397,7 +1397,7 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
             if (l4_frame_mask) {
                 if (((l4_frame & l4_frame_mask) != 3) || 
                         ((l4_frame & l4_frame_mask) != 2)){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s l4 framing conflict (VO_CFP_FRAME_L4_TCPUDP)!\n"),
                               FUNCTION_NAME()));                
@@ -1409,14 +1409,14 @@ _drv_vo_cfp_framing_configure(int unit, drv_cfp_entry_t *drv_entry, int flag)
                 l4_frame_mask = 0x2;
             }
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s l4 framing conflict (non-handle case )!\n"),
                       FUNCTION_NAME()));  
             rv = SOC_E_UNAVAIL;
             goto framing_err; 
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s l4 frame %x %x\n"),
                      FUNCTION_NAME(), 
@@ -1481,7 +1481,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -1495,7 +1495,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
                 _DRV_FP_ID_CTRL_ALLOC, 0, &chain_id, NULL);
 
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "FP Error: Can't get chain_id for Tcam entry index = %d fail.\n"),  
                            tcam_idx));
@@ -1507,7 +1507,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
             chain_id = drv_entry->cfp_chain->chain_id;
         }
 
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "DRV_FP: %s get chain_id %d\n"),
                    FUNCTION_NAME(), chain_id));
@@ -1519,7 +1519,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ACTION_SET(unit, DRV_CFP_ACT_CHAIN_ID, 
                         drv_entry, 0, 0);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Can't set chain_id action for Tcam entry %d..\n"),  
                        tcam_idx));
@@ -1530,7 +1530,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ACTION_SET(unit, DRV_CFP_ACT_CLASSFICATION_ID, 
                         drv_entry, chain_id, 0);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: set chain_id %d action fail.\n"),  
                        chain_id));
@@ -1542,7 +1542,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -1558,7 +1558,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = _drv_vo_cfp_qual_value_set(unit, drvFieldQualifyClassId, 
                         drv_entry, (uint32 *)&chain_id, &temp);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: set qualify chain_id %d fail.\n"),  
                        chain_id));
@@ -1579,7 +1579,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ENTRY_WRITE
             (unit, tcam_chain_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -1588,7 +1588,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ENTRY_WRITE
             (unit, tcam_chain_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -1601,7 +1601,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -1610,7 +1610,7 @@ _drv_vo_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         rv = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -1640,7 +1640,7 @@ drv_vo_cfp_slice_id_select(int unit, drv_cfp_entry_t *entry, uint32 *slice_id, u
         } else {
             *slice_id = entry->slice_id;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s  %d slice_id %d entry slice id %d bmp %x \n"),
                      FUNCTION_NAME(), __LINE__,
@@ -1702,7 +1702,7 @@ drv_vo_cfp_slice_id_select(int unit, drv_cfp_entry_t *entry, uint32 *slice_id, u
         }        
         entry->slice_id = *slice_id;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s %d slice_id %d entry slice id %d bmp %x \n"),
                  FUNCTION_NAME(), __LINE__,
@@ -2164,7 +2164,7 @@ _drv_vo_cfp_field_set(int unit, uint32 mem_type, uint32 field_type,
         }
     }
     if (fld == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "_vo_cfp_field_set DRV_CFP_FIELD_XXX %d "
                              "can't find the matched field.\n"),
@@ -2210,7 +2210,7 @@ _drv_vo_cfp_field_get(int unit, uint32 mem_type, uint32 field_type,
         }
     }
     if (fld == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "_vo_cfp_field_set DRV_CFP_FIELD_XXX %d "
                              "can't find the matched field.\n"),

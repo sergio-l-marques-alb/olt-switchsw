@@ -246,7 +246,7 @@ drv_gex_storm_control_enable_set(int unit, uint32 port, uint8 enable)
     uint32  specified_port_num;
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT */
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_storm_control_enable_set: \
                          unit = %d, port = %d, %sable\n"), unit, port, (enable) ? "en" : "dis"));
@@ -353,7 +353,7 @@ drv_gex_storm_control_enable_get(int unit, uint32 port, uint8 *enable)
         (unit, &reg_value, EN_BUCKET1f, &temp));
     *enable = temp;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_storm_control_enable_get: \
                          unit = %d, port = %d, %sable\n"), unit, port, (*enable) ? "en" : "dis"));
@@ -390,7 +390,7 @@ drv_gex_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     uint32  specified_port_num;
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT */
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_storm_control_set: \
                          unit = %d, bmp = 0x%x, type = 0x%x, limit = %dK\n"), 
@@ -661,7 +661,7 @@ drv_gex_storm_control_get(int unit, uint32 port, uint32 *type,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_storm_control_get: \
                          unit = %d, port = %d, type = 0x%x, limit = %dK\n"), 

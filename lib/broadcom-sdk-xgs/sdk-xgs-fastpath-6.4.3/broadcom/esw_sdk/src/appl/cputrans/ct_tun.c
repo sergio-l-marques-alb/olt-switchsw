@@ -519,7 +519,7 @@ _ct_rx_tunnel_filter_default(int unit, bcm_pkt_t *pkt)
     bcm_port_config_t port_config;
 
     if (bcm_port_config_get(unit, &port_config) < 0) {
-        LOG_ERROR(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_ERROR(BSL_LS_TKS_TUNNEL,
                   (BSL_META_U(unit,
                               "Tunnel filter: could not get port config "
                               " for %d\n"),
@@ -597,12 +597,12 @@ ct_rx_tunnelled_pkt_handler(cpudb_key_t src_key, uint8 *payload, int len)
     int bcm_unit;
     char keybuf[CPUDB_KEY_STRING_LEN];
 
-    LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                 (BSL_META("Tunnel handler from " CPUDB_KEY_FMT_EOLN),
                  CPUDB_KEY_DISP(src_key)));
 
     if (payload == NULL || len < CT_TUNNEL_RX_HDR_BYTES) {
-        LOG_WARN(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_WARN(BSL_LS_TKS_TUNNEL,
                  (BSL_META("Tunnel RX pkt: no payload (%p, len %d)\n"),
                   payload, len - CT_TUNNEL_RX_HDR_BYTES));
         return;
@@ -611,7 +611,7 @@ ct_rx_tunnelled_pkt_handler(cpudb_key_t src_key, uint8 *payload, int len)
     rx_pkt = NULL;
     rv = bcm_rx_remote_pkt_alloc(len - CT_TUNNEL_RX_HDR_BYTES, &rx_pkt);
     if (rv != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                     (BSL_META("Tunnel RX pkt: remote pkt alloc failed "
                               "for %d bytes\n"),
                      len - CT_TUNNEL_RX_HDR_BYTES));
@@ -621,7 +621,7 @@ ct_rx_tunnelled_pkt_handler(cpudb_key_t src_key, uint8 *payload, int len)
     rv = ct_rx_tunnel_pkt_unpack(payload, len, rx_pkt, &ap_data, &ap_len);
 
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_ERROR(BSL_LS_TKS_TUNNEL,
                   (BSL_META("Tunnel RX pkt: unpack failed\n")));
         bcm_rx_remote_pkt_free(rx_pkt);
         return;
@@ -636,7 +636,7 @@ ct_rx_tunnelled_pkt_handler(cpudb_key_t src_key, uint8 *payload, int len)
     cpudb_key_format(src_key, keybuf, CPUDB_KEY_STRING_LEN);
     bcm_unit = bcm_find("client", keybuf, rx_pkt->rx_unit);
     if (bcm_unit < 0) {
-        LOG_INFO(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_INFO(BSL_LS_TKS_TUNNEL,
                  (BSL_META("Tunnel RX pkt: unit/cpu not found: %s.%d;"
                            CPUDB_KEY_FMT_EOLN),
                   keybuf, rx_pkt->rx_unit,
@@ -649,7 +649,7 @@ ct_rx_tunnelled_pkt_handler(cpudb_key_t src_key, uint8 *payload, int len)
     /* Overwrite unit number with locally meaningful unit number */
     rx_pkt->rx_unit = bcm_unit;
 
-    LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                 (BSL_META("Tunnel handler bcm_u %d. u %d p %d. sm %d "
                           "sp %d cos %d prio_int %d.\n"),
                  bcm_unit, rx_pkt->rx_unit, rx_pkt->rx_port,
@@ -658,7 +658,7 @@ ct_rx_tunnelled_pkt_handler(cpudb_key_t src_key, uint8 *payload, int len)
 
     rv = bcm_rx_remote_pkt_enqueue(bcm_unit, rx_pkt);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_WARN(BSL_LS_TKS_TUNNEL,
                  (BSL_META("Tunnel RX pkt: rx enqueue failed %d: %s\n"),
                   rv, bcm_errmsg(rv)));
         bcm_rx_remote_pkt_free(rx_pkt);
@@ -727,7 +727,7 @@ ct_tx_tunnel_setup(void)
 #if CT_TUNNEL_QUEUE_ENABLE
     rv = ct_tx_tunnel_thread_init();
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_ERROR(BSL_LS_TKS_TUNNEL,
                   (BSL_META("Could not init tunnel thread %d: %s"),
                    rv, bcm_errmsg(rv)));
         return rv;
@@ -739,7 +739,7 @@ ct_tx_tunnel_setup(void)
         ATP_F_REASSEM_BUF,
         ct_tx_tunnelled_pkt_handler, NULL, -1, -1);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_ERROR(BSL_LS_TKS_TUNNEL,
                   (BSL_META("Tunnel: Failed to register for tx tunnel %d: %s\n"),
                    rv, bcm_errmsg(rv)));
         return rv;
@@ -750,7 +750,7 @@ ct_tx_tunnel_setup(void)
         ATP_F_NO_ACK | ATP_F_REASSEM_BUF,
         ct_tx_tunnelled_pkt_handler, NULL, -1, -1);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_ERROR(BSL_LS_TKS_TUNNEL,
                   (BSL_META("Tunnel: Failed to register for tx best effort %d: %s\n"),
                    rv, bcm_errmsg(rv)));
         return rv;
@@ -759,7 +759,7 @@ ct_tx_tunnel_setup(void)
     /* Install the CT TX tunnel routine to the BCM layer */
     rv = bcm_tx_cpu_tunnel_set(ct_tx_tunnel);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_ERROR(BSL_LS_TKS_TUNNEL,
                   (BSL_META("Tunnel: Failed to register tunnel TX "
                             "with BCM layer %d: %s\n"),
                    rv, bcm_errmsg(rv)));
@@ -987,7 +987,7 @@ ct_tx_tunnel(bcm_pkt_t *pkt,
     cpudb_key_t dest_key;
     char dest_key_str[CPUDB_KEY_STRING_LEN];
 
-    LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                 (BSL_META("CT Tunnel pkt out to (%d, %d), flags 0x%x, mode %d\n"),
                  dest_unit, remote_port, flags, mode));
 
@@ -1039,7 +1039,7 @@ ct_tx_tunnel(bcm_pkt_t *pkt,
     rv = bcm_unit_subtype_get(dest_unit, dest_key_str,
                                sizeof(dest_key_str));
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_WARN(BSL_LS_TKS_TUNNEL,
                  (BSL_META("Tunnel TX: Could not get dest key string, %d: %s\n"),
                   rv, bcm_errmsg(rv)));
         atp_tx_data_free(alloc_ptr);
@@ -1049,14 +1049,14 @@ ct_tx_tunnel(bcm_pkt_t *pkt,
 
     rv = cpudb_key_parse(dest_key_str, &dest_key);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_WARN(BSL_LS_TKS_TUNNEL,
                  (BSL_META("Tunnel TX: Could not parse dest key string, %d: %s\n"),
                   rv, bcm_errmsg(rv)));
         atp_tx_data_free(alloc_ptr);
         return rv;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                 (BSL_META("CT Tunnel dest key %x %x %x %x %x %x\n"),
                  dest_key.key[0],
                  dest_key.key[1],
@@ -1073,7 +1073,7 @@ ct_tx_tunnel(bcm_pkt_t *pkt,
                 (void *)(pkt->call_back != NULL ? pkt : NULL));
 
     if (rv < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                     (BSL_META("Tunnel TX: Error sending %d: %s\n"),
                      rv, bcm_errmsg(rv)));
         atp_tx_data_free(alloc_ptr);
@@ -1257,13 +1257,13 @@ ct_tx_tunnelled_pkt_handler(cpudb_key_t src_key,
     int rv;
     bcm_rx_t handled;
 
-    LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                 (BSL_META("CT Tunnel pkt in from " CPUDB_KEY_FMT " cli %d, len %d\n"),
                  CPUDB_KEY_DISP(src_key), client_id, payload_len));
 
     if (payload == NULL) {
         /* Unsupported forwarding mode */
-        LOG_WARN(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_WARN(BSL_LS_TKS_TUNNEL,
                  (BSL_META("Tunnel TX: Received segmented packet to "
                   "forward.  Unsupported\n")));
         return BCM_RX_HANDLED;
@@ -1273,7 +1273,7 @@ ct_tx_tunnelled_pkt_handler(cpudb_key_t src_key,
                                        payload, payload_len);
 
     if (rv < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TUNNEL,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TUNNEL,
                     (BSL_META("Tunnel TX: Error forwarding %d: %s\n"),
                      rv, bcm_errmsg(rv)));
     }

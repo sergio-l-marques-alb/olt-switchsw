@@ -85,11 +85,11 @@ _bcm_ea_port_control_get(
 {
 	int ret_val;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "enter _bcm_ea_port_control_get()\n")));
 	if (TK371X_PON_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "port type: PON=%d\n"), port));
 		switch (type){
@@ -97,10 +97,10 @@ _bcm_ea_port_control_get(
 				OamExtFECMode fec;
 				ret_val = _soc_ea_fec_mode_get(unit, port, &fec);
 				if (OK != ret_val){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "calling _soc_ea_fec_mode_get failed\n")));
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return value: BCM_E_RESOURCE\n")));
 					return BCM_E_FAIL;
@@ -124,37 +124,37 @@ _bcm_ea_port_control_get(
 				if (*value < 0  || *value > 4){
 					return BCM_E_INTERNAL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonFecMode\n")));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "fec.rxFEC=%d\n"), fec.rxFEC));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "fec.txFEC=%d\n"), fec.txFEC));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "*value=%d\n"), *value));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlPonUserTraffic:
 				*value = _user_traffic_status;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonUserTraffic.\n")));
 				return BCM_E_NONE;
 			case bcmPortControlPonMultiLlid:{
 				uint32 llid;
 				int state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonMultiLlid.\n")));
 				ret_val = soc_auth_result_get(unit, &state);
 				if (ret_val != SOC_E_NONE){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "soc_auth_result_get return val=%d, state=%d.\n"), ret_val, state));
 				if (state == TRUE){
@@ -163,12 +163,12 @@ _bcm_ea_port_control_get(
 				}
 				ret_val = _soc_ea_real_llid_count_get(unit, &llid);
 				if (ret_val != SOC_E_NONE){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_real_llid_count_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_real_llid_count_get llid_count=%d\n"), llid));
 				*value = llid;
@@ -176,18 +176,18 @@ _bcm_ea_port_control_get(
 			}
 			case bcmPortControlPonEncryptKeyExpiryTime:{
 				uint16 time;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonEncryptKeyExpiryTime.\n")));
 				ret_val = _soc_ea_encrypt_key_expiry_time_get(unit, port, &time);
 				if (OK != ret_val){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_encrypt_key_expiry_time_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
 				}
 				*value = (int)time;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_real_llid_count_get time=%d\n"), time));
 				return BCM_E_NONE;
@@ -196,17 +196,17 @@ _bcm_ea_port_control_get(
 				uint32 state;
 				uint32 time;
 
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonHoldoverState.\n")));
 				ret_val = CtcExtOamGetHoldover(unit, port, &state, &time);
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "CtcExtOamGetHoldover return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "CtcExtOamGetHoldover state=%d, time=%d\n"), state, time));
 				if (state == HOLDOVERACTIVATED){
@@ -221,17 +221,17 @@ _bcm_ea_port_control_get(
 			case bcmPortControlPonHoldoverTime:{
 				uint32 state;
 				uint32 time;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonHoldoverTime.\n")));
 				ret_val = CtcExtOamGetHoldover(unit, port, &state, &time);
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "CtcExtOamGetHoldover return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "CtcExtOamGetHoldover state=%d, time=%d\n"), state, time));
 				*value = time;
@@ -241,19 +241,19 @@ _bcm_ea_port_control_get(
 				return BCM_E_UNAVAIL;
 		}
 	}else if (TK371X_UNI_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "port type: UNI=%d\n"), port));
 		switch (type){
 			case bcmPortControlEthPortAutoNegFailureAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortAutoNegFailureAlarmState.\n")));
 				ret_val = _soc_ea_alarm_enable_get(unit, port,
 						SOC_EA_EVENT_AUTONEG_FAILURE_ALARM, &state);
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_alarm_enable_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
@@ -263,20 +263,20 @@ _bcm_ea_port_control_get(
 				}else{
 					*value = 0;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_alarm_enable_get state=%d\n"), state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortLosAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortLosAlarmState.\n")));
 				ret_val = _soc_ea_alarm_enable_get(unit, port,
 						SOC_EA_EVENT_LOS_ALARM, &state);
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_alarm_enable_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
@@ -286,20 +286,20 @@ _bcm_ea_port_control_get(
 				}else{
 					*value = 0;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_alarm_enable_get state=%d\n"), state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortFailureAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortFailureAlarmState.\n")));
 				ret_val = _soc_ea_alarm_enable_get(unit, port,
 						SOC_EA_EVENT_PORT_FAILURE_ALARM, &state);
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_alarm_enable_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
@@ -309,21 +309,21 @@ _bcm_ea_port_control_get(
 				}else{
 					*value = 0;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_alarm_enable_get state=%d\n"), state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortLoopbackAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortLoopbackAlarmState.\n")));
 				ret_val = _soc_ea_alarm_enable_get(unit, port,
 						SOC_EA_EVENT_PORT_LOOPBACK_ALARM, &state);
 
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_alarm_enable_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
@@ -333,20 +333,20 @@ _bcm_ea_port_control_get(
 				}else{
 					*value = 0;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_alarm_enable_get state=%d\n"), state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortCongestionAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortCongestionAlarmState.\n")));
 				ret_val = _soc_ea_alarm_enable_get(unit, port,
 						SOC_EA_EVENT_PORT_CONGESTION_ALARM, &state);
 				if (ret_val != OK){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "_soc_ea_alarm_enable_get return BCM_E_RESOURCE, %d\n"), ret_val));
 					return BCM_E_FAIL;
@@ -356,7 +356,7 @@ _bcm_ea_port_control_get(
 				}else{
 					*value = 0;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "_soc_ea_alarm_enable_get state=%d\n"), state));
 				return BCM_E_NONE;
@@ -365,7 +365,7 @@ _bcm_ea_port_control_get(
 				return BCM_E_UNAVAIL;
 		}
 	}else if (TK371X_LLID_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "port type: LLID=%d\n"), port));
 		return BCM_E_UNAVAIL;
@@ -387,14 +387,14 @@ _bcm_ea_port_control_set(
 	int ret_val = BCM_E_NONE;
 
 	if (TK371X_PON_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "port type: PON=%d\n"), port));
 		switch (type){
 			case bcmPortControlPonFecMode:{
 				OamExtFECMode fec;
 
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonFecMode\n")));
 				switch (value){
@@ -420,34 +420,34 @@ _bcm_ea_port_control_set(
 				}
 				ret_val = _soc_ea_fec_mode_set(unit, port, &fec);
 				if (OK != ret_val){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "calling _soc_ea_fec_mode_set failed\n")));
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return value: BCM_E_RESOURCE\n")));
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonFecMode\n")));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "fec.rxFEC=%d\n"), fec.rxFEC));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "fec.txFEC=%d\n"), fec.txFEC));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "*value=%d\n"), value));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlPonUserTraffic:
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonUserTraffic\n")));
 				if (value != 0 && value != 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -455,7 +455,7 @@ _bcm_ea_port_control_set(
 				_user_traffic_status = value;
 				if (_user_traffic_status == 0){
 					ret_val = TkExtOamSetDisUserTraffic(unit, port);
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "calling TkExtOamSetEnaUserTraffic, ret_val=%d\n"), ret_val));
 					if (ret_val != OK){
@@ -464,7 +464,7 @@ _bcm_ea_port_control_set(
 				}
 				if (_user_traffic_status == 1){
 					ret_val = TkExtOamSetEnaUserTraffic(unit, port);
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "calling TkExtOamSetEnaUserTraffic, ret_val=%d\n"), ret_val));
 					if (ret_val != OK){
@@ -473,11 +473,11 @@ _bcm_ea_port_control_set(
 				}
 				return BCM_E_NONE;
 			case bcmPortControlPonMultiLlid:{
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonMultiLlid\n")));
 				if (value > _BCM_TK371X_MAX_LLID_PORT_NUM + 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -487,7 +487,7 @@ _bcm_ea_port_control_set(
 					if (SOC_E_NONE != soc_auth_result_set(unit, TRUE)){
 						return BCM_E_FAIL;
 					}
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "soc_auth_result_set fail return value SOC_E_NONE.\n")));
 					return BCM_E_NONE;
@@ -497,7 +497,7 @@ _bcm_ea_port_control_set(
 					if (SOC_E_NONE != soc_auth_result_set(unit, FALSE)){
 						return BCM_E_FAIL;
 					}
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "soc_auth_result_set success return value SOC_E_NONE.\n")));
 					return BCM_E_NONE;
@@ -507,7 +507,7 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling CtcExtOamSetMulLlidCtrl, ret_val=%d\n"), ret_val));
 				return BCM_E_NONE;
@@ -515,7 +515,7 @@ _bcm_ea_port_control_set(
 			case bcmPortControlPonEncryptKeyExpiryTime: {
 				uint16 time;
 
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonEncryptKeyExpiryTime\n")));
 				time = (uint16)value;
@@ -523,7 +523,7 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling TkExtOamSetEncryptKeyExpiryTime time=%d, ret_val=%d\n"),time, ret_val));
 				return BCM_E_NONE;
@@ -532,20 +532,20 @@ _bcm_ea_port_control_set(
 				uint32 state;
 				uint32 time;
 
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonHoldoverState\n")));
 				ret_val = CtcExtOamGetHoldover(unit, port, &state, &time);
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling CtcExtOamGetHoldoverret_val=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "time=%d\n"), time));
 				state = value;
@@ -563,13 +563,13 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling CtcExtOamSetHoldover=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "time=%d\n"), time));
 				return BCM_E_NONE;
@@ -578,20 +578,20 @@ _bcm_ea_port_control_set(
 			case bcmPortControlPonHoldoverTime:{
 				uint32 state;
 				uint32 time;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlPonHoldoverTime\n")));
 				ret_val = CtcExtOamGetHoldover(unit, port, &state, &time);
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling CtcExtOamGetHoldoverret_val=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "time=%d\n"), time));
 				time = value;
@@ -599,13 +599,13 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling CtcExtOamSetHoldover=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "time=%d\n"), time));
 				return BCM_E_NONE;
@@ -614,17 +614,17 @@ _bcm_ea_port_control_set(
 				return BCM_E_UNAVAIL;
 		}
 	}else if (TK371X_UNI_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Port TYPE: UNI=%d\n"), port));
 		switch (type){
 			case bcmPortControlEthPortAutoNegFailureAlarmState: {
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortAutoNegFailureAlarmState\n")));
 				if (value != 0 && value != 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -635,21 +635,21 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling _soc_ea_alarm_enable_set=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortLosAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortLosAlarmState\n")));
 				if (value != 0 && value != 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -660,21 +660,21 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling _soc_ea_alarm_enable_set=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortFailureAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortFailureAlarmState\n")));
 				if (value != 0 && value != 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -685,21 +685,21 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling _soc_ea_alarm_enable_set=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortLoopbackAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortLoopbackAlarmState\n")));
 				if (value != 0 && value != 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -710,21 +710,21 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling _soc_ea_alarm_enable_set=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
 				return BCM_E_NONE;
 			}
 			case bcmPortControlEthPortCongestionAlarmState:{
 				uint8 state;
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "type=bcmPortControlEthPortLoopbackAlarmState\n")));
 				if (value != 0 && value != 1){
-					LOG_INFO(BSL_LS_BCM_PORT,
+					LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                                  (BSL_META_U(unit,
                                                              "return BCM_E_PARAM, invalid value: %d\n"), value));
 					return BCM_E_PARAM;
@@ -735,10 +735,10 @@ _bcm_ea_port_control_set(
 				if (ret_val != OK){
 					return BCM_E_FAIL;
 				}
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "calling _soc_ea_alarm_enable_set=%d\n"), ret_val));
-				LOG_INFO(BSL_LS_BCM_PORT,
+				LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                          (BSL_META_U(unit,
                                                      "state=%d\n"),state));
 				return BCM_E_NONE;
@@ -748,7 +748,7 @@ _bcm_ea_port_control_set(
 		}
 	}
 	else if (TK371X_LLID_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "port type: LLID=%d\n"), port));
 		switch (type){
@@ -776,7 +776,7 @@ _bcm_ea_port_enable_get(
 
 	if (port < _BCM_TK371X_PON_PORT_BASE ||
 			port > (_BCM_TK371X_LLID_PORT_BASE + _BCM_TK371X_MAX_LLID_PORT_NUM)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_bcm_ea_port_enable_get return BCM_E_PORT, invalid port=%d\n"), port));
 		return BCM_E_PORT;
@@ -787,17 +787,17 @@ _bcm_ea_port_enable_get(
 			{
 			state = (state == 0) ? 1 : 0;
 			}
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "TkExtOamGetEponAdmin:unit=%d, port=%d, state=%d, rv=%d\n"), unit, port, state, rv));
 	}else if (port < _BCM_TK371X_LLID_PORT_BASE){
 		/* getting the UNI port status */
 		rv = _soc_ea_phy_admin_state_get((uint8)unit, 0, port, &state);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_soc_ea_phy_admin_state_get:unit=%d, port=%d, state=%d,rv=%d\n"), unit, port, state, rv));
 	}else {
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_bcm_ea_port_enable_get return BCM_E_UNAVAIL, invalid port=%d\n"), port));
 		return BCM_E_UNAVAIL;
@@ -822,20 +822,20 @@ _bcm_ea_port_enable_set(
 
 	if (port < _BCM_TK371X_PON_PORT_BASE ||
 			port > (_BCM_TK371X_LLID_PORT_BASE + _BCM_TK371X_MAX_LLID_PORT_NUM)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_bcm_ea_port_enable_set return BCM_E_PORT, invalid port=%d\n"), port));
 		return BCM_E_PORT;
 	}else if (port < _BCM_TK371X_UNI_PORT_BASE){
 		state = (enable == 1) ? 0 : 1;
 		rv = TkExtOamSetEponAdmin(unit, port, state);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "TkExtOamSetEponAdmin:unit=%d, port=%d, enable=%d, rv=%d\n"), unit, port, enable, rv));
 	}else if (port < _BCM_TK371X_LLID_PORT_BASE){
 		/* getting the UNI port status */
 		rv = _soc_ea_phy_admin_state_set((uint8)unit, 0, port, enable);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_soc_ea_phy_admin_state_set:unit=%d, port=%d, enable=%d, rv=%d\n"), unit, port, enable, rv));
 	}else {
@@ -857,7 +857,7 @@ _bcm_ea_port_frame_max_get(
 	int rv = 0;
 	uint16 max_frame = 0;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_frame_max_get..., port=%d\n"), port));
 	rv = _soc_ea_mtu_get((uint8)unit, 0, (uint8)port, &max_frame);
@@ -878,7 +878,7 @@ _bcm_ea_port_frame_max_set(
 	int rv = BCM_E_INTERNAL;
 	uint16 framesize;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_frame_max_set...\n")));
 
@@ -890,7 +890,7 @@ _bcm_ea_port_frame_max_set(
 	if (rv != OK){
 		return BCM_E_FAIL;
 	}
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_soc_ea_mtu_set: UNI Port=%d, rv=%d, max_frame=%d"), port, rv, framesize));
 	return BCM_E_NONE;
@@ -904,11 +904,11 @@ _bcm_ea_port_learn_get(
 	    bcm_port_t port,
 	    uint32 *flags)
 {
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_learn_get...\n")));
 	if (port < _BCM_TK371X_UNI_PORT_BASE || port >= _BCM_TK371X_LLID_PORT_BASE){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_UNAVAIL, invalid port=%d\n"), port));
 		return BCM_E_UNAVAIL;
@@ -935,18 +935,18 @@ _bcm_ea_port_learn_modify(
 	int rv = BCM_E_NONE;
 	uint32 flags = 0;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_learn_modify...\n")));
 	if (port < _BCM_TK371X_UNI_PORT_BASE || port >= _BCM_TK371X_LLID_PORT_BASE){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_UNAVAIL, invalid port=%d\n"), port));
 		return BCM_E_UNAVAIL;
 	}
 
 	rv = _bcm_ea_port_learn_get(unit, port, &flags);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_ea_port_learn_get:unit=%d port=%d rv=%d flags=%d\n"),
               unit, port, rv, flags));
@@ -956,7 +956,7 @@ _bcm_ea_port_learn_modify(
 	flags |= add;
 	flags &= ~remove;
 	rv = _bcm_ea_port_learn_set(unit, port, add);
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_learn_set:unit=%d port=%d rv=%d add=%d\n"),
                   unit, port, rv, add));
@@ -976,7 +976,7 @@ _bcm_ea_port_learn_set(
 	ForwardingMode fwd_mode;
 
 	if (port < _BCM_TK371X_UNI_PORT_BASE || port >= _BCM_TK371X_LLID_PORT_BASE){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_UNAVAIL, invalid port=%d\n"), port));
 		return BCM_E_UNAVAIL;
@@ -989,7 +989,7 @@ _bcm_ea_port_learn_set(
 	}
 	rv1 = _soc_ea_mac_learning_set((uint8)unit, 0,
 			port, (uint8)mode);
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_soc_ea_mac_learning_set:unit=%d port=%d rv=%d mode=%d\n"),
                   unit, port, rv1, mode));
@@ -1003,7 +1003,7 @@ _bcm_ea_port_learn_set(
 		fwd_mode = ForwardDropUnknown;
 	}
 	rv2 = _soc_ea_forward_mode_set(unit, 0,  port, fwd_mode);
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_soc_ea_forward_mode_set:unit=%d port=%d rv=%d mode=%d\n"),
                   unit, port, rv2, fwd_mode));
@@ -2587,11 +2587,11 @@ _bcm_ea_port_speed_get(
 	_soc_ea_oam_mac_duplex_status_t duplex_state;
 	int rc = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_speed_get...\n")));
 	if (port < _BCM_TK371X_UNI_PORT_BASE || port >= _BCM_TK371X_LLID_PORT_BASE){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "return BCM_E_PORT, invalid port is %d\n"), port));
 		return BCM_E_PORT;
@@ -2599,7 +2599,7 @@ _bcm_ea_port_speed_get(
 
 	rc = _soc_ea_auto_neg_get((uint8)unit, 0,
 			(uint8)port, &auto_neg_state, &_speed, &duplex_state);
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_soc_ea_auto_neg_get, rv=%d,"
                              "unit = %d, port = %d\n"
@@ -2649,11 +2649,11 @@ _bcm_ea_port_speed_set(
 	_soc_ea_oam_mac_duplex_status_t duplex_state;
 	uint16 drv_speed;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_speed_set...\n")));
 	if (port < _BCM_TK371X_UNI_PORT_BASE || port >= _BCM_TK371X_LLID_PORT_BASE){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "return BCM_E_PORT, invalid port is %d\n"), port));
 		return BCM_E_PORT;
@@ -2685,7 +2685,7 @@ _bcm_ea_port_speed_set(
 	_soc_ea_auto_neg_get((uint8)unit, 0,
 							  (uint8)port, &auto_neg_state,
 							  &drv_speed, &duplex_state);
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_soc_ea_auto_neg_get,"
                              "unit = %d, port = %d\n"
@@ -2695,7 +2695,7 @@ _bcm_ea_port_speed_set(
 
 	rv = _soc_ea_auto_neg_set((uint8)unit, 0, (uint8)port,
 							auto_neg_state, drv_speed, duplex_state);
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_soc_ea_auto_neg_set, rv=%d,"
                              "unit = %d, port = %d\n"
@@ -2714,13 +2714,13 @@ _bcm_ea_port_link_status_get(int unit, bcm_port_t port, int *up){
 	uint8 status;
 	TkEponStatus pon_status;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_link_status_get..\n")));
 	sal_memset(&pon_status, 0, sizeof(TkEponStatus));
 	if (port == _BCM_TK371X_PON_PORT_BASE){
 		rv = TkExtOamGetMLLIDLinkStatus(unit, port, &pon_status);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "TkExtOamGetMLLIDLinkStatus: unit=%d, port=%d, rv=%d\n"), unit, port, rv));
 		if (rv != OK){
@@ -2730,7 +2730,7 @@ _bcm_ea_port_link_status_get(int unit, bcm_port_t port, int *up){
 		return BCM_E_NONE;
 	}else if (port > _BCM_TK371X_PON_PORT_BASE && port < _BCM_TK371X_LLID_PORT_BASE){
 		rv = _soc_ea_eth_link_state_get((uint8)unit, 0, (uint8)port, &status);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_soc_ea_eth_link_state_get: unit=%d, port=%d, rv=%d\n"), unit, port, rv));
 		if (rv != OK){
@@ -2741,7 +2741,7 @@ _bcm_ea_port_link_status_get(int unit, bcm_port_t port, int *up){
 	}else if ((port >= _BCM_TK371X_LLID_PORT_BASE) &&
 			(port < _BCM_TK371X_LLID_PORT_BASE + _BCM_TK371X_MAX_LLID_PORT_NUM)){
 		rv = TkExtOamGetMLLIDLinkStatus(unit, 0, &pon_status);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "TkExtOamGetMLLIDLinkStatus: unit=%d, port=%d, rv=%d\n"), unit, 0, rv));
 		if (rv != OK){

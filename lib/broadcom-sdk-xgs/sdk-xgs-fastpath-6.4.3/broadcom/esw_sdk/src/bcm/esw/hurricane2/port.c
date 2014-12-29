@@ -408,7 +408,7 @@ _bcm_hr2_dual_port_mode_pilot_tx(int unit, int port, bcm_pkt_t *pkt) {
 
     /* Setup */
     if (bcm_esw_port_loopback_set(unit, port, BCM_PORT_LOOPBACK_PHY) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d LoopBack Set Failed\n"), port));
     }
@@ -425,7 +425,7 @@ _bcm_hr2_dual_port_mode_pilot_tx(int unit, int port, bcm_pkt_t *pkt) {
     BCM_PBMP_PORT_ADD(pkt->tx_pbmp, port);
     rv = bcm_esw_tx(unit, pkt, NULL);
     if (rv < 0) {
-    	LOG_ERROR(BSL_LS_BCM_PORT,
+    	LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Tx Error %d\n"), rv));
     	return BCM_E_INTERNAL; 
@@ -434,11 +434,11 @@ _bcm_hr2_dual_port_mode_pilot_tx(int unit, int port, bcm_pkt_t *pkt) {
 
     /* Verify Counters */
     SOC_IF_ERROR_RETURN(READ_TPOKr(unit, port, &new_tpok));
-    LOG_VERBOSE(BSL_LS_BCM_PORT, \
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                 (BSL_META_U(unit, \
                             "old TPOK(port=%d)=0x%x, 0x%x\n"), \
                             port, COMPILER_64_HI(old_tpok), COMPILER_64_LO(old_tpok)));
-    LOG_VERBOSE(BSL_LS_BCM_PORT, \
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                 (BSL_META_U(unit, \
                             "new TPOK(port=%d)=0x%x, 0x%x\n"), \
                             port, COMPILER_64_HI(new_tpok), COMPILER_64_LO(new_tpok)));
@@ -447,13 +447,13 @@ _bcm_hr2_dual_port_mode_pilot_tx(int unit, int port, bcm_pkt_t *pkt) {
         /* packet not transmit out */
         return BCM_E_FAIL;
     }
-    LOG_VERBOSE(BSL_LS_BCM_PORT, \
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                 (BSL_META_U(unit, \
                             "Dual port mode check pass on port %d\n"),port));
 
     /* Cleanup */
     if (bcm_esw_l2_addr_delete_by_port(unit, -1, port, 0) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d L2 entry delete Failed\n"), port));
     }
@@ -461,12 +461,12 @@ _bcm_hr2_dual_port_mode_pilot_tx(int unit, int port, bcm_pkt_t *pkt) {
     soc_reg64_field32_set(unit, XLMAC_TX_CTRLr, &tx_ctl, DISCARDf, 0);
     SOC_IF_ERROR_RETURN(WRITE_XLMAC_TX_CTRLr(unit, port, tx_ctl));
     if (bcm_esw_port_loopback_set(unit, port, BCM_PORT_LOOPBACK_NONE) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d LoopBack Set Failed\n"), port));
     }
     if (bcm_esw_stat_clear(unit, port) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d Stat Clear Failed\n"), port));
     }
@@ -499,7 +499,7 @@ int _bcm_hr2_dual_port_mode_check(int unit, bcm_port_t port, uint32 *tx_pkt)
         } else {
             /* Re-write the MODEs */
             /* program the port to quad port mode */
-            LOG_VERBOSE(BSL_LS_BCM_PORT, \
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                         (BSL_META_U(unit, \
                                     "WAR step 1: program the port to quad port mode\n")));
             mode = 0; /* quad port mode */
@@ -511,7 +511,7 @@ int _bcm_hr2_dual_port_mode_check(int unit, bcm_port_t port, uint32 *tx_pkt)
             SOC_IF_ERROR_RETURN(WRITE_XLPORT_MODE_REGr(unit, port, rval));
     
             /* re-program the port to dual port mode */
-            LOG_VERBOSE(BSL_LS_BCM_PORT, \
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                         (BSL_META_U(unit, \
                                     "WAR step 2: re-program the port to dual port mode\n")));
             mode = 3; /* dual port mode */
@@ -523,7 +523,7 @@ int _bcm_hr2_dual_port_mode_check(int unit, bcm_port_t port, uint32 *tx_pkt)
     	}
         timeout_cnt++;
     }
-    LOG_VERBOSE(BSL_LS_BCM_PORT, \
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                 (BSL_META_U(unit, \
                             "WAR retried %d times on port %d\n"), timeout_cnt, port));
     if (timeout_cnt >= 10) {
@@ -602,7 +602,7 @@ bcm_hr2_dual_port_mode_reinit(int unit) {
                 rv = bcm_esw_port_enable_get(unit, \
                                      test_ports[i], &enable);
                 if (rv < 0) {
-                    LOG_ERROR(BSL_LS_BCM_PORT, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                               (BSL_META_U(unit, \
                                           "Failed to get Port %d enable status\n"), test_ports[i]));
                 }
@@ -610,17 +610,17 @@ bcm_hr2_dual_port_mode_reinit(int unit) {
                     rv = bcm_esw_port_enable_set(unit, \
                                             test_ports[i], 1);
                     if (rv < 0) {
-                        LOG_ERROR(BSL_LS_BCM_PORT, \
+                        LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                                   (BSL_META_U(unit, \
                                               "Failed to set Port %d enable status\n"), test_ports[i]));
                     }
                 }
-                LOG_VERBOSE(BSL_LS_BCM_PORT, \
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT, \
                             (BSL_META_U(unit, \
                                         "Apply Dual Port Mode WAR to port(%d)\n"), test_ports[i]));
                 rv = _bcm_hr2_dual_port_mode_check(unit, test_ports[i], tx_pkt);
                 if (rv < 0) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "Dual port mode WAR Failed on port %d\n"), test_ports[i]));
                 }
@@ -630,7 +630,7 @@ bcm_hr2_dual_port_mode_reinit(int unit) {
                     rv = bcm_esw_port_enable_set(unit, \
                                          test_ports[i], enable);
                     if (rv < 0) {
-                        LOG_ERROR(BSL_LS_BCM_PORT, \
+                        LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                                   (BSL_META_U(unit, \
                                               "Failed to recover Port %d enable status\n"), test_ports[i]));
                     }
@@ -640,7 +640,7 @@ bcm_hr2_dual_port_mode_reinit(int unit) {
         soc_cm_sfree(unit, tx_pkt);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Dual port mode WAR: took %d usec\n"),
                             SAL_USECS_SUB(sal_time_usecs(), stime)));

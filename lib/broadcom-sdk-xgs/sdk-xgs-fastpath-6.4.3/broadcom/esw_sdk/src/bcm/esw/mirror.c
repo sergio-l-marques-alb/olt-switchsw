@@ -1681,7 +1681,7 @@ _bcm_esw_mirror_field_group_reload(int unit, bcm_field_group_t group,
         } else if (rv != BCM_E_NOT_FOUND) {
             break;
         } else {
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "Mirror module reload, ignore FP error report\n")));
         }
@@ -1782,7 +1782,7 @@ _bcm_esw_mirror_field_group_reload(int unit, bcm_field_group_t group,
         } else if (rv != BCM_E_NOT_FOUND) {
             break;
         } else {
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "Mirror module reload, ignore FP error report\n")));
         }

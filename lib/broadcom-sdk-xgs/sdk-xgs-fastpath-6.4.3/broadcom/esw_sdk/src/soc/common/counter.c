@@ -3766,11 +3766,11 @@ void _soc_sbusdma_blk_ctr_cb(int unit, int status, sbusdma_desc_handle_t handle,
     soc_control_t *soc = SOC_CONTROL(unit);
     soc_reg_t ctr_reg;
     soc_blk_ctr_process_t *ctr_process = _blk_ctr_process[unit][PTR_TO_INT(data)];
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "In blk counter cb [%d]\n"), handle));
     if (status == SOC_E_NONE) {
-        LOG_DEBUG(BSL_LS_SOC_COUNTER,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                     (BSL_META_U(unit,
                                 "Complete: blk:%d, index: %d, entries: %d.\n"),
                      ctr_process->blk, ctr_process->bindex, ctr_process->entries));
@@ -3793,7 +3793,7 @@ void _soc_sbusdma_blk_ctr_cb(int unit, int status, sbusdma_desc_handle_t handle,
                     COMPILER_64_SET(ctr_new, 0, ptr[0]);
                 }
                 if (!COMPILER_64_IS_ZERO(ctr_new)) {
-                    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                                 (BSL_META_U(unit,
                                             "idx: %d, bufidx: %d, :val: %x_%x\n"),
                                  i, bufidx, COMPILER_64_HI(ctr_new),
@@ -3832,7 +3832,7 @@ void _soc_sbusdma_blk_ctr_cb(int unit, int status, sbusdma_desc_handle_t handle,
             }
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Counter SBUSDMA failed: blk:%d, index: %d, entries: %d.\n"),
                    ctr_process->blk, ctr_process->bindex, ctr_process->entries));
@@ -3910,7 +3910,7 @@ soc_counter_attach(int unit)
         } else if (sal_strcmp(counter_level, "LOW_LEVEL")) {
             soc->soc_controlled_counter_flags |= (_SOC_CONTROLLED_COUNTER_FLAG_HIGH | _SOC_CONTROLLED_COUNTER_FLAG_MEDIUM | _SOC_CONTROLLED_COUNTER_FLAG_LOW);
         } else { /*default*/
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_counter_attach: unit %d:illegal counter level \n"), unit));
             return SOC_E_FAIL;
@@ -4016,7 +4016,7 @@ soc_counter_attach(int unit)
         ports64 = nports;
 #endif
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_counter_attach: unit %d: unexpected chip type\n"),
                    unit));
@@ -4036,7 +4036,7 @@ soc_counter_attach(int unit)
     soc->counter_portsize = portsize;
     soc->counter_bufsize = n_bytes;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_counter_attach: %d bytes/port, %d ports, %d ctrs/port, "
                             "%d ports with %d ctrs\n"),
@@ -4402,7 +4402,7 @@ soc_counter_attach(int unit)
             }
         }
         soc->blk_ctr_count = n_entries;
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "Total ctr blks: %d, Total entries: %d\n"),
                   soc->blk_ctr_desc_count, n_entries));
@@ -4735,7 +4735,7 @@ _soc_counter_verify(int unit)
     int                 ar_idx;
     uint32              skip_offset = 0;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_counter_verify: unit %d begins\n"), unit));
 
@@ -4765,7 +4765,7 @@ _soc_counter_verify(int unit)
                     continue;
                 }
                 if (!SOC_REG_IS_COUNTER(unit, reg)) {
-                    LOG_DEBUG(BSL_LS_SOC_COMMON,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "soc_counter_verify: "
                                             "%s cntr %s (%d) index %d "
@@ -4777,7 +4777,7 @@ _soc_counter_verify(int unit)
                 if (((SOC_REG_CTR_IDX(unit, reg) + ar_idx) -
                      COUNTER_IDX_OFFSET(unit) - skip_offset)
                     != i) {
-                    LOG_DEBUG(BSL_LS_SOC_COMMON,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "soc_counter_verify: "
                                             "%s cntr %s (%d) index mismatch.\n"
@@ -4806,7 +4806,7 @@ _soc_counter_verify(int unit)
                         if (SOC_CTR_TO_REG(unit, ctype, i) == reg) {
                             if ((SOC_REG_CTR_IDX(unit, reg) -
                                  COUNTER_IDX_OFFSET(unit) - skip_offset) != i) {
-                                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                                             (BSL_META_U(unit,
                                                         "soc_counter_verify: "
                                                         "%s cntr %s (%d) index mismatch.\n"
@@ -4862,7 +4862,7 @@ _soc_counter_verify(int unit)
 #endif
 
             if (!found) {
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "soc_counter_verify: "
                                         "counter %d %s is missing (i=%d, 0x%x)\n"),
@@ -4878,7 +4878,7 @@ _soc_counter_verify(int unit)
                             "Set debug verbose for more info.\n\n")));
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_counter_verify: unit %d ends\n"), unit));
 }
@@ -5021,13 +5021,13 @@ _soc_ctr_evict_fifo_dma_thread(void *unit_vp)
         if (soc->ctrEvictDmaIntrEnb) {
             soc_cmicm_intr0_enable(unit, intr_mask);
             if (sal_sem_take(soc->ctrEvictIntr, interval) < 0) {
-                LOG_DEBUG(BSL_LS_SOC_INTR,
+                LOG_BSL_DEBUG(BSL_LS_SOC_INTR,
                             (BSL_META_U(unit,
                                         "%s polling timeout "
                                         "soc_mem_fifo_delay_value=%d\n"),
                              soc->ctr_evict_name, soc_mem_fifo_delay_value));
             } else {
-                LOG_DEBUG(BSL_LS_SOC_INTR,
+                LOG_BSL_DEBUG(BSL_LS_SOC_INTR,
                             (BSL_META_U(unit,
                                         "%s woken up soc_mem_fifo_delay_value=%d\n"),
                              soc->ctr_evict_name, soc_mem_fifo_delay_value));
@@ -5081,13 +5081,13 @@ _soc_ctr_evict_fifo_dma_thread(void *unit_vp)
             /* check and clear error */
             rval = soc_pci_read(unit, stat_addr);
             if (soc_reg_field_get(unit, stat_reg, rval, DONEf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "FIFO DMA engine terminated for "
                                       "cmc[%d]:chan[%d]\n"),
                            cmc, chan));
                 if (soc_reg_field_get(unit, stat_reg, rval, ERRORf)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "FIFO DMA engine encountered error: "
                                           "[0x%x]\n"),
@@ -5184,7 +5184,7 @@ soc_ctr_evict_start(int unit, uint32 flags, sal_usecs_t interval)
                               _soc_ctr_evict_fifo_dma_thread,
                               INT_TO_PTR(unit));
         if (soc->ctr_evict_pid == SAL_THREAD_ERROR) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_ctr_evict_start: Could not start thread\n")));
             return SOC_E_MEMORY;
@@ -5257,7 +5257,7 @@ soc_counter_autoz(int unit, int enable)
 {
     soc_port_t          port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_autoz: unit=%d enable=%d\n"), unit, enable));
 
@@ -5349,7 +5349,7 @@ _soc_counter_get(int unit, soc_port_t port, soc_reg_t ctr_reg, int ar_idx,
 	  }
 #endif
 
-          LOG_DEBUG(BSL_LS_SOC_COUNTER,
+          LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                       (BSL_META_U(unit,
                                   "port[%d], ctr_reg[%d],"
                                   "port_index[%d], ar_idx[%d]"
@@ -5384,7 +5384,7 @@ _soc_counter_get(int unit, soc_port_t port, soc_reg_t ctr_reg, int ar_idx,
         COUNTER_ATOMIC_END(s);
     }
 
-     LOG_DEBUG(BSL_LS_SOC_COUNTER,
+     LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "cntr get %s port=%d "
                              "port_index=%d vptr=%p val=0x%08x_%08x\n"),
@@ -6766,7 +6766,7 @@ soc_counter_set_by_port(int unit, pbmp_t pbmp, uint64 val)
                     rv = _soc_counter_set(unit, port, ctr_ref->reg,
                                           ctr_ref->index, val);
                     if (rv == SOC_E_FAIL) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "Error %d calling soc_counter_set for"
                                               "port: %d, reg: %d, index: %d\n"), rv,
@@ -6787,7 +6787,7 @@ soc_counter_set_by_port(int unit, pbmp_t pbmp, uint64 val)
             rv = _soc_counter_set(unit, port, SOC_COUNTER_NON_DMA_START + i, -1,
                                  val);
             if (rv == SOC_E_FAIL) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error %d calling soc_counter_set for"
                                       "port: %d, non-DMA index: %d\n"), rv, port, i));
@@ -6831,7 +6831,7 @@ soc_controlled_counter_clear(int unit, soc_port_t port)
     int                 index, port_base;
     soc_controlled_counter_t* ctr;
 
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "soc_controlled_counter_clear: unit=%d "
                             "port=%d\n"), unit, port));
@@ -7236,7 +7236,7 @@ soc_counter_collect32(int unit, int discard)
     int                 recheck_cntrs;
     int                 ar_idx;
 
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "soc_counter_collect32: unit=%d discard=%d\n"),
                  unit, discard));
@@ -7313,7 +7313,7 @@ soc_counter_collect32(int unit, int discard)
 
                 if (suspicious) {
 #if !defined(SOC_NO_NAMES)
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "soc_counter_collect32: "
                                          "unit %d, port%d: suspicious %s "
@@ -7322,7 +7322,7 @@ soc_counter_collect32(int unit, int discard)
                               dma?"DMA":"manual",
                               SOC_REG_NAME(unit, ctr_reg)));
 #else
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "soc_counter_collect32: "
                                          "unit %d, port%d: suspicious %s "
@@ -7352,7 +7352,7 @@ soc_counter_collect32(int unit, int discard)
                 continue;
             }
 
-            LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                      (BSL_META_U(unit,
                                  "soc_counter_collect32: ctr %d => %u\n"),
                       port_index, ctr_new));
@@ -7515,7 +7515,7 @@ soc_petra_port_counter_get(int unit, soc_port_t port, int ctr_type, uint64 *valu
 
     soc_sand_rv = soc_pb_nif_counter_get(unit, if_id, ctr_type, &soc_sand_value);
     if (SOC_SAND_FAILURE(soc_sand_rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_petra_port_counter_get: failed (SOC_SAND_RV:"
                               "%d) to get NIF counter (type:%d) if_id:%d port:0x%x\n"),
@@ -7543,14 +7543,14 @@ soc_petra_counter_collect64(int unit, int discard)
     int                 index, port_base;
     soc_cmap_t          *cmap = NULL;
 
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "soc_petra_counter_collect64: unit=%d "
                             "discard=%d\n"), unit, discard));
 
     if (!SOC_IS_PETRAB(unit)) {
         
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_petra_counter_collect64: not available. \n")));
         return SOC_E_UNAVAIL;
@@ -7583,7 +7583,7 @@ soc_petra_counter_collect64(int unit, int discard)
                 COUNTER_ATOMIC_END(s);
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                      (BSL_META_U(unit,
                                  "soc_counter_collect64: ctr %d => "
                                  "0x%08x_%08x\n"), port_base + index,
@@ -7626,7 +7626,7 @@ soc_controlled_counters_collect64(int unit, int discard)
     int                 index, port_base;
     soc_controlled_counter_t* ctr;
 
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "soc_controlled_counters_collect64: unit=%d "
                             "discard=%d\n"), unit, discard));
@@ -7668,7 +7668,7 @@ soc_controlled_counters_collect64(int unit, int discard)
                 COUNTER_ATOMIC_END(s);
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                      (BSL_META_U(unit,
                                  "soc_controlled_counters_collect64: ctr %d => "
                                  "0x%08x_%08x\n"), port_base + ctr->counter_idx,
@@ -7841,7 +7841,7 @@ soc_counter_collect64(int unit, int discard, soc_port_t tmp_port, soc_reg_t hw_c
     soc_reg_t           reg_2b = INVALIDr;
 #endif /* BCM_BRADLEY_SUPPORT || BCM_TRX_SUPPORT */
 
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "soc_counter_collect64: unit=%d discard=%d\n"),
                  unit, discard));
@@ -8246,7 +8246,7 @@ soc_counter_collect64(int unit, int discard, soc_port_t tmp_port, soc_reg_t hw_c
 
                 if (suspicious) {
 #if !defined(SOC_NO_NAMES)
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "soc_counter_collect64: "
                                          "unit %d, port%d: suspicious %s "
@@ -8255,7 +8255,7 @@ soc_counter_collect64(int unit, int discard, soc_port_t tmp_port, soc_reg_t hw_c
                               dma?"DMA":"manual",
                               SOC_REG_NAME(unit, ctr_reg)));
 #else
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "soc_counter_collect64: "
                                          "unit %d, port%d: suspicious %s "
@@ -8330,7 +8330,7 @@ soc_counter_collect64(int unit, int discard, soc_port_t tmp_port, soc_reg_t hw_c
                 continue;
             }
 
-            LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                      (BSL_META_U(unit,
                                  "soc_counter_collect64: ctr %d => 0x%08x_%08x\n"),
                       port_base + index,
@@ -8455,7 +8455,7 @@ _soc_counter_katana_a0_non_dma_entries(int unit, int dma_id, int port_idx,
     soc_field_t field;
     int dma_base_index;
     int num_non_dma_entries = 0;
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "_soc_counter_katana_a0_non_dma_entries: unit=%d id=%d\n"),
                  unit, dma_id));
@@ -8494,7 +8494,7 @@ _soc_counter_katana_a0_non_dma_entries(int unit, int dma_id, int port_idx,
                           seg_addr);
         SOC_IF_ERROR_RETURN
             (soc_reg32_set(unit,CTR_SEGMENT_STARTr, REG_PORT_ANY,index, rval));
-        LOG_DEBUG(BSL_LS_SOC_COUNTER,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                     (BSL_META_U(unit,
                                 "id=%d index=%d seg_addr=%d \n"),
                      id, index, seg_addr));
@@ -8600,7 +8600,7 @@ soc_counter_non_dma_ready(int unit, soc_counter_non_dma_t *non_dma, int *ctr_dma
     }
 
     if (!soc_property_get(unit, "ctr_slowdma_enable", 1)) {
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "*** SLOWDMA feature disabled.\n")));
         return 0;
@@ -8615,7 +8615,7 @@ soc_counter_non_dma_ready(int unit, soc_counter_non_dma_t *non_dma, int *ctr_dma
         (non_dma->dma_rate_profile & _SOC_COUNTER_DMA_RATE_PROFILE_MASK) >>
                     _SOC_COUNTER_DMA_RATE_PROFILE_OFFSET;
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "dma_prof 0x%x, pick_prof 0x%x, ctr_dma_ct %d\n"),
               given_profiles, curr_profile_pick, *ctr_dma_ct));
@@ -9273,7 +9273,7 @@ soc_counter_collect_th_non_dma_entries(int unit,
                  */
                 if ((non_dma->flags & _SOC_COUNTER_NON_DMA_CTR_EVICT) &&
                     (!soc_counter_non_dma_ready(unit, non_dma, &ctr_dma_ct))) {
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "id %d(%d): NOT pickd for DMA(pipes %d). Ct %d,mem %d/%d/%d\n"),
                               id, SOC_COUNTER_NON_DMA_START, count,
@@ -9283,7 +9283,7 @@ soc_counter_collect_th_non_dma_entries(int unit,
                     non_dma++;
                     continue;
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                          (BSL_META_U(unit,
                                      "id %d(%d): picked for DMA(Pipes %d). mem %d/%d/%d\n"),
                           id, SOC_COUNTER_NON_DMA_START, NUM_PIPE(unit),
@@ -9866,7 +9866,7 @@ _soc_xgs3_counter_dma_setup(int unit)
     }
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "ing_c_cnt = %d egr_c_cnt = %d "
                          "gmac_c_cnt = %d xmac_c_cnt = %d\n"
@@ -10130,18 +10130,18 @@ _soc_xgs3_counter_dma_setup(int unit)
 void _soc_sbusdma_port_ctr_cb(int unit, int status, sbusdma_desc_handle_t handle,
                               void *data)
 {
-    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                 (BSL_META_U(unit,
                             "In port counter cb [%d]\n"), handle));
     if (status == SOC_E_NONE) {
-        LOG_DEBUG(BSL_LS_SOC_COUNTER,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                     (BSL_META_U(unit,
                                 "Complete: port:%d.\n"),
                      SOC_INFO(unit).port_p2l_mapping[PTR_TO_INT(data)]));
     } else {
         uint8 i;
         int blk;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Counter SBUSDMA failed: port:%d.\n"),
                    SOC_INFO(unit).port_p2l_mapping[PTR_TO_INT(data)]));
@@ -10274,7 +10274,7 @@ _soc_counter_sbusdma_setup(int unit)
     egr_addr = soc_reg_addr_get(unit, egr_reg, REG_PORT_ANY, 0, FALSE, &egr_blkoff,
                                 &egr_acc_type);
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "ing_c_cnt = %d egr_c_cnt = %d mac_c_cnt = %d gmac_c_cnt = %d\n"
                          "ing_blkoff = %d ing_acc_type = %d ing_addr = %08x \n"
@@ -10338,7 +10338,7 @@ _soc_counter_sbusdma_setup(int unit)
         SOC_IF_ERROR_RETURN
             (soc_sbusdma_desc_create(unit, &ctrl, &cfg,
                                      &_soc_port_counter_handles[unit][phy_port][0]));
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "port %d phy_port %d handle ip: %d\n"),
                   port, phy_port, _soc_port_counter_handles[unit][phy_port][0]));
@@ -10356,7 +10356,7 @@ _soc_counter_sbusdma_setup(int unit)
         SOC_IF_ERROR_RETURN
             (soc_sbusdma_desc_create(unit, &ctrl, &cfg,
                                      &_soc_port_counter_handles[unit][phy_port][1]));
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "port %d phy_port %d handle ep: %d\n"),
                   port, phy_port, _soc_port_counter_handles[unit][phy_port][1]));
@@ -10418,7 +10418,7 @@ _soc_counter_sbusdma_setup(int unit)
             cfg.width = 2;
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "port %d mac_blkoff = %d, mac_addr = %08x\n"),
                   port, mac_blkoff, mac_addr));
@@ -10434,7 +10434,7 @@ _soc_counter_sbusdma_setup(int unit)
         SOC_IF_ERROR_RETURN
             (soc_sbusdma_desc_create(unit, &ctrl, &cfg,
                                      &_soc_port_counter_handles[unit][phy_port][2]));
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "port %d phy_port %d handle mib: %d\n"),
                   port, phy_port, _soc_port_counter_handles[unit][phy_port][2]));
@@ -10501,13 +10501,13 @@ _soc_counter_sbusdma_setup(int unit)
                                              &_soc_blk_counter_handles[unit][bindex]);
                 sal_free(cfg);
                 if (rc != SOC_E_NONE) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Desc creation error for handle blk: %d\n"),
                                _soc_blk_counter_handles[unit][bindex]));
                     return rc;
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                          (BSL_META_U(unit,
                                      "handle blk: %d\n"),
                           _soc_blk_counter_handles[unit][bindex]));
@@ -10564,7 +10564,7 @@ _soc_counter_sbudma_desc_free_all(int unit)
         blk = SOC_PORT_BLOCK(unit, phy_port);
         bindex = SOC_PORT_BINDEX(unit, phy_port);
         if (_soc_port_counter_handles[unit][phy_port][0] && soc->counter_interval) {
-            LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                      (BSL_META_U(unit,
                                  "port: %d blk: %d, bindex: %d\n"),
                       port, blk, bindex));
@@ -10846,7 +10846,7 @@ soc_counter_thread(void *unit_vp)
     char                pfmt[SOC_PBMP_FMT_LEN];
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_thread: unit=%d\n"), unit));
 
@@ -10885,7 +10885,7 @@ soc_counter_thread(void *unit_vp)
          * immediately when soc_counter_stop wants it to.
          */
 
-        LOG_DEBUG(BSL_LS_SOC_COUNTER,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                     (BSL_META_U(unit,
                                 "soc_counter_thread: sleep %d\n"), interval));
 
@@ -10939,15 +10939,15 @@ soc_counter_thread(void *unit_vp)
                 COMPILER_64_SET(v64, 0, 0);
                 soc_counter_set_by_port(unit, cnt_pbmp, v64);
                 SOC_PBMP_XOR(cur_pbmp, cnt_pbmp);
-                LOG_INFO(BSL_LS_SOC_COUNTER,
+                LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
                          (BSL_META_U(unit,
                                      "Flexport switch: %s=%s\n"),
                           "EnaPbmp", SOC_PBMP_FMT(cnt_pbmp, pfmt)));
-                LOG_INFO(BSL_LS_SOC_COUNTER,
+                LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
                          (BSL_META_U(unit,
                                      "Flexport switch: %s=%s\n"),
                           "DisPbmp", SOC_PBMP_FMT(cur_pbmp, pfmt)));
-                LOG_INFO(BSL_LS_SOC_COUNTER,
+                LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
                          (BSL_META_U(unit,
                                      "Flexport switch: %s=%s\n"),
                           "CurPbmp", SOC_PBMP_FMT(soc->counter_pbmp, pfmt)));
@@ -10985,7 +10985,7 @@ soc_counter_thread(void *unit_vp)
                 blk = SOC_PORT_BLOCK(unit, phy_port);
                 bindex = SOC_PORT_BINDEX(unit, phy_port);
                 if (_soc_port_counter_handles[unit][phy_port][0] && soc->counter_interval) {
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "port: %d blk: %d, bindex: %d\n"),
                               port, blk, bindex));
@@ -11020,7 +11020,7 @@ soc_counter_thread(void *unit_vp)
                                 }
 
                                 if (soc_timeout_check(&to)) {
-                                    LOG_WARN(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                              (BSL_META_U(unit,
                                                          "Counters read operation timedout\n")));
                                     break;
@@ -11046,7 +11046,7 @@ soc_counter_thread(void *unit_vp)
 
             if (soc->blk_ctr_desc_count && soc->counter_interval) {
                 for (i=0; i<soc->blk_ctr_desc_count; i++) {
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "blk ctr %d\n"), i));
                     if (_soc_blk_counter_handles[unit][i] && soc->counter_interval) {
@@ -11070,7 +11070,7 @@ soc_counter_thread(void *unit_vp)
         }
 #endif
         if (dma && !soc_feature(unit, soc_feature_sbusdma)) {
-            LOG_DEBUG(BSL_LS_SOC_COUNTER,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                         (BSL_META_U(unit,
                                     "soc_counter_thread: trigger DMA\n")));
 
@@ -11110,19 +11110,19 @@ soc_counter_thread(void *unit_vp)
                                   (void *)soc->counter_buf32,
                                   soc->counter_bufsize);
 
-                    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                                 (BSL_META_U(unit,
                                             "soc_counter_thread: "
                                             "DMA iter done\n")));
 
 #ifdef COUNTER_BENCH
-                    LOG_DEBUG(BSL_LS_SOC_COMMON,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Time taken for dma: %d usec\n"),
                                  SAL_USECS_SUB(sal_time_usecs(), start_time)));
 #endif
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_counter_thread: "
                                           "DMA did not finish buf32=%p\n"),
@@ -11132,7 +11132,7 @@ soc_counter_thread(void *unit_vp)
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SIRIUS_SUPPORT)
 
                 if (soc_pci_read(unit, CMIC_CMCx_STAT_DMA_STAT_OFFSET(cmc)) & ST_CMCx_DMA_ERR) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_counter_thread: unit = %d DMA Error\n"),
                                unit));
@@ -11156,19 +11156,19 @@ soc_counter_thread(void *unit_vp)
                                   (void *)soc->counter_buf32,
                                   soc->counter_bufsize);
 
-                    LOG_DEBUG(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COUNTER,
                                 (BSL_META_U(unit,
                                             "soc_counter_thread: "
                                             "DMA iter done\n")));
 
 #ifdef COUNTER_BENCH
-                    LOG_DEBUG(BSL_LS_SOC_COMMON,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Time taken for dma: %d usec\n"),
                                  SAL_USECS_SUB(sal_time_usecs(), start_time)));
 #endif
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_counter_thread: "
                                           "DMA did not finish buf32=%p\n"),
@@ -11183,7 +11183,7 @@ soc_counter_thread(void *unit_vp)
                         } else {
                             WRITE_CMIC_DMA_STATr(unit, DS_STAT_DMA_ERROR_CLR);
                         }
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "soc_counter_thread: unit = %d DMA Error\n"),
                                    unit));
@@ -11226,7 +11226,7 @@ soc_counter_thread(void *unit_vp)
         if ( (!err) && (soc->counter_n32 > 0) && (soc->counter_interval) ) {
             rv = soc_counter_collect32(unit, FALSE);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_counter_thread: collect32 failed: %s\n"),
                            soc_errmsg(rv)));
@@ -11254,7 +11254,7 @@ soc_counter_thread(void *unit_vp)
             }
 
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_counter_thread: collect64 failed: "
                                       "%s\n"), soc_errmsg(rv)));
@@ -11271,7 +11271,7 @@ soc_counter_thread(void *unit_vp)
         if ((soc->counter_interval)) {
             soc_controlled_counters_collect64(unit, FALSE);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_counter_thread: soc_controlled_counters_collect64 failed: "
                                       "%s\n"), soc_errmsg(rv)));
@@ -11332,7 +11332,7 @@ soc_counter_thread(void *unit_vp)
          */
 
         if (err) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "AbnormalThreadExit:"
                                       "soc_counter_thread: Too many errors\n")));
@@ -11341,7 +11341,7 @@ soc_counter_thread(void *unit_vp)
             }
 
 #ifdef COUNTER_BENCH
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Iteration time: %d usec\n"),
                      SAL_USECS_SUB(sal_time_usecs(), start_time)));
@@ -11363,14 +11363,14 @@ soc_counter_thread(void *unit_vp)
 #endif
 
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_counter_thread: Operation failed - exiting\n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR,
                            SOC_SWITCH_EVENT_THREAD_COUNTER, __LINE__, rv);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_thread: exiting\n")));
 
@@ -11403,7 +11403,7 @@ soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
     int         rv = SOC_E_NONE;
     soc_port_t          p;
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_start: unit=%d flags=0x%x "
                          "interval=%d pbmp=%s\n"),
@@ -11428,7 +11428,7 @@ soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
 
     if ((soc->counter_trigger != NULL || soc->counter_intr != NULL) &&
         (rv = soc_counter_stop(unit)) != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_counter_start: sem unexpectedly survives\n")));
         return SOC_E_INTERNAL;
@@ -11441,7 +11441,7 @@ soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
         sal_sem_create("counter_intr", sal_sem_BINARY, 0);
 
     if (soc->counter_trigger == NULL || soc->counter_intr == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_counter_start: sem create failed\n")));
         return SOC_E_INTERNAL;
@@ -11456,7 +11456,7 @@ soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
     soc->counter_lock = sal_spinlock_create("counter spinlock");
 
     if (soc->counter_lock == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_counter_start: lock create failed\n")));
         return SOC_E_INTERNAL;
@@ -11505,7 +11505,7 @@ soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
         soc_counter_tbuf[unit] = sal_alloc(SOC_COUNTER_TBUF_SIZE(unit),
                                            "counter_tbuf");
         if (soc_counter_tbuf[unit] == NULL) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_counter_thread: unit %d: "
                                   "failed to allocate temp counter buffer\n"),
@@ -11563,13 +11563,13 @@ soc_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
 
         if (soc->counter_pid == SAL_THREAD_ERROR) {
             soc->counter_interval = 0;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_counter_start: thread create failed\n")));
             return (SOC_E_INTERNAL);
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "soc_counter_start: complete\n")));
     }
@@ -11641,7 +11641,7 @@ soc_counter_status(int unit, uint32 *flags, int *interval, pbmp_t *pbmp)
 {
     soc_control_t       *soc = SOC_CONTROL(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_status: unit=%d\n"), unit));
 
@@ -11706,7 +11706,7 @@ soc_counter_sync(int unit)
     while (soc->counter_sync_req) {
         if (soc_timeout_check(&to)) {
             if (soc->counter_sync_req) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_counter_sync: counter thread not responding\n")));
                 soc->counter_sync_req = FALSE;
@@ -11744,7 +11744,7 @@ soc_counter_stop(int unit)
 #endif
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_stop: unit=%d\n"), unit));
 
@@ -11779,7 +11779,7 @@ soc_counter_stop(int unit)
 
         while ((sample_pid = soc->counter_pid) != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_counter_stop: thread did not exit\n")));
                 soc->counter_pid = SAL_THREAD_ERROR;
@@ -11849,7 +11849,7 @@ soc_counter_stop(int unit)
          * it never does.
          */
 
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "soc_counter_stop: waiting for idle\n")));
 
@@ -11880,7 +11880,7 @@ soc_counter_stop(int unit)
         soc_feature(unit, soc_feature_sbusdma)) {
         int err;
         if ((err = _soc_counter_sbudma_desc_free_all(unit)) != 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_counter_stop: [%d] Desc free error(s)\n"),
                        err));
@@ -11913,7 +11913,7 @@ soc_counter_stop(int unit)
         soc->counter_lock = NULL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_stop: stopped\n")));
 
@@ -12125,7 +12125,7 @@ soc_counter_generic_collect_non_dma_entries(int unit,
                  */
                 if ((non_dma->flags & _SOC_COUNTER_NON_DMA_CTR_EVICT) &&
                     (!soc_counter_non_dma_ready(unit, non_dma, &ctr_dma_ct))) {
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "id %d(%d): NOT pickd for DMA(pipes %d). Ct %d,mem %d/%d/%d\n"),
                               id, SOC_COUNTER_NON_DMA_START, count,
@@ -12134,7 +12134,7 @@ soc_counter_generic_collect_non_dma_entries(int unit,
                     non_dma++;
                     continue;
                 }
-                    LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                              (BSL_META_U(unit,
                                          "id %d(%d): picked for DMA(Pipes %d). mem %d/%d/%d\n"),
                               id, SOC_COUNTER_NON_DMA_START, NUM_PIPE(unit),

@@ -7989,7 +7989,7 @@ bcm_td_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     int id;
     uint32 sched_encap;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td_cosq_gport_add: unit=%d port=0x%x numq=%d flags=0x%x\n"),
               unit, port, numq, flags));
@@ -8124,7 +8124,7 @@ bcm_td_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     node->sibling = NULL;
     node->child = NULL;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       gport=0x%x\n"),
               *gport));
@@ -8137,7 +8137,7 @@ _bcm_td_cosq_gport_delete_all(int unit, bcm_gport_t gport)
 {
     _bcm_td_cosq_node_t *node;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td_cosq_gport_delete: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -8189,7 +8189,7 @@ bcm_td_cosq_gport_delete(int unit, bcm_gport_t gport)
     _bcm_td_cosq_port_info_t *port_info;
     int ii, local_port;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td_cosq_gport_delete: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -8267,7 +8267,7 @@ bcm_td_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td_cosq_gport_get: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -8301,7 +8301,7 @@ bcm_td_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         *flags = 0;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       port=0x%x numq=%d flags=0x%x\n"),
               *port, *numq, *flags));
@@ -9224,7 +9224,7 @@ bcm_td_cosq_gport_attach(int unit, bcm_gport_t sched_gport,
     bcm_port_t sched_port, input_port;
     int rv;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td_cosq_gport_attach: unit=%d sched_port=0x%x "
                          "input_port=0x%x cosq=%d\n"),
@@ -9271,7 +9271,7 @@ bcm_td_cosq_gport_attach(int unit, bcm_gport_t sched_gport,
         }
         BCM_IF_ERROR_RETURN(_bcm_td_cosq_sched_node_set(unit, sched_port));
 
-        LOG_INFO(BSL_LS_BCM_COSQ,
+        LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                  (BSL_META_U(unit,
                              "                         hw_cosq=%d\n"),
                   sched_node->hw_cosq_attached_to));
@@ -9320,7 +9320,7 @@ bcm_td_cosq_gport_detach(int unit, bcm_gport_t sched_gport,
     _bcm_td_cosq_node_t *sched_node, *input_node, *prev_node;
     bcm_port_t sched_port, input_port;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td_cosq_gport_detach: unit=%d sched_port=0x%x "
                          "input_port=0x%x cosq=%d\n"),
@@ -9875,7 +9875,7 @@ bcm_td_cosq_gport_destmod_attach(int unit, bcm_gport_t gport,
      */
     if (_bcm_cosq_voq_find_empty_msg_sel_entry(unit, local_port, 
                                     fabric_egress_port, &msg_sel_index) < 0) {
-        LOG_ERROR(BSL_LS_BCM_COSQ,
+        LOG_BSL_ERROR(BSL_LS_BCM_COSQ,
                   (BSL_META_U(unit,
                               "Error: unit %d port %d MSG_SEL enteries full \n"),
                               unit, local_port));
@@ -9931,7 +9931,7 @@ bcm_td_cosq_gport_destmod_detach(int unit, bcm_gport_t gport,
     
     local_port = BCM_GPORT_UCAST_QUEUE_GROUP_SYSPORTID_GET(gport);
     if (!_BCM_TD_IS_PORT_DMVOQ_CAPABLE(unit, local_port)) {
-        LOG_ERROR(BSL_LS_BCM_COSQ,
+        LOG_BSL_ERROR(BSL_LS_BCM_COSQ,
                   (BSL_META_U(unit,
                               "Error: unit %d port %d is not a DestMod flow-control capable \n"),
                    unit, local_port));

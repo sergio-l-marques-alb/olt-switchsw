@@ -293,7 +293,7 @@ test_done(int u, test_t *test, int status)
     if (status || (test->t_flags & T_F_ERROR)) {
         last_test_status[u] = -1;
         test->t_fail++;
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(u,
                              "Test %d (%s) Completed with error (%d)\n"), 
                   test->t_test, test->t_name, status));
@@ -312,7 +312,7 @@ test_done(int u, test_t *test, int status)
     } else {
         last_test_status[u] = 0;
         test->t_success++;
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(u,
                              "Test %d (%s) Completed successfully\n"), 
                   test->t_test, test->t_name));
@@ -546,7 +546,7 @@ test_dispatch(int u, test_t *test, int loops, args_t *a)
         }
         for (i = 0; i < vloops; i++) {
             if (vloops > 1) {
-                LOG_VERBOSE(BSL_LS_APPL_TESTS,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                             (BSL_META_U(u,
                                         "Test %d: %s.  Starting interation %d.\n"),
                              test->t_test, test->t_name, i+1));

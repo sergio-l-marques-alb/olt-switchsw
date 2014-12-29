@@ -8436,7 +8436,7 @@ _bcm_td2p_vlan_port_egress_default_action_set(int unit, bcm_port_t port,
 error:
     /* Undo action profile entry addition */
     if (_bcm_trx_egr_vlan_action_profile_entry_delete(unit, profile_idx) != BCM_E_NONE) {
-        LOG_INFO(BSL_LS_SOC_VLAN,
+        LOG_BSL_INFO(BSL_LS_SOC_VLAN,
                 (BSL_META_U(unit,
                             "Failed to undo profile entry addition\n")));
     }

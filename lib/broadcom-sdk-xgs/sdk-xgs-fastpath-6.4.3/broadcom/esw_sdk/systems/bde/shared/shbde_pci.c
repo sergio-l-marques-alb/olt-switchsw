@@ -80,7 +80,7 @@
         (_shbde)->log_func(_lvl, _str, _prm);         \
     }
 #define LOG_ERR(_shbde, _str, _prm)     LOG_OUT(_shbde, SHBDE_ERR, _str, _prm)
-#define LOG_WARN(_shbde, _str, _prm)    LOG_OUT(_shbde, SHBDE_WARN, _str, _prm)
+#define LOG_BSL_WARN(_shbde, _str, _prm)    LOG_OUT(_shbde, SHBDE_WARN, _str, _prm)
 #define LOG_DBG(_shbde, _str, _prm)     LOG_OUT(_shbde, SHBDE_DBG, _str, _prm)
 
 /*
@@ -267,7 +267,7 @@ shbde_pci_max_payload_set(shbde_hal_t *shbde, void *pci_dev, int maxpayload)
         /* Do not exceed device capabilities */
         if (max_val > max_cap) {
             max_val = max_cap;
-            LOG_WARN(shbde,
+            LOG_BSL_WARN(shbde,
                      "Payload size exceeds device capability",
                      maxpayload);
         }
@@ -289,7 +289,7 @@ shbde_pci_max_payload_set(shbde_hal_t *shbde, void *pci_dev, int maxpayload)
 
     /* Warn if non-default setting is used */
     if (max_val > 0) {
-        LOG_WARN(shbde,
+        LOG_BSL_WARN(shbde,
                  "Selected payload size may not be supported by all "
                  "PCIe bridges by default.",
                  (1 << (max_val + 7)));

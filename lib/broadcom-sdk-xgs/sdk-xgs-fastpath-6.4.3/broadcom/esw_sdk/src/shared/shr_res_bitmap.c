@@ -176,12 +176,12 @@ shr_res_bitmap_create(shr_res_bitmap_handle_t *handle,
 
     /* check arguments */
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must have a positive number of elements\n")));
         return BCM_E_PARAM;
     }
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument must not be NULL\n")));
         return BCM_E_PARAM;
     }
@@ -192,7 +192,7 @@ shr_res_bitmap_create(shr_res_bitmap_handle_t *handle,
                      "bitmap resource data");
     if (!desc) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for data\n"),
                    (unsigned int)(sizeof(*desc) +
                    SHR_BITALLOCSIZE(count) -
@@ -219,7 +219,7 @@ shr_res_bitmap_destroy(shr_res_bitmap_handle_t handle)
         sal_free(handle);
         return BCM_E_NONE;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to free NULL handle\n")));
         return BCM_E_PARAM;
     }
@@ -237,24 +237,24 @@ shr_res_bitmap_alloc(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory in/out argument must not be NULL\n")));
         return BCM_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must allocate at least one element\n")));
         return BCM_E_PARAM;
     }
     if (SHR_RES_BITMAP_ALLOC_REPLACE ==
         (flags & (SHR_RES_BITMAP_ALLOC_REPLACE |
                   SHR_RES_BITMAP_ALLOC_WITH_ID))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must use WITH_ID when using REPLACE\n")));
         return BCM_E_PARAM;
     }
@@ -277,7 +277,7 @@ shr_res_bitmap_alloc(shr_res_bitmap_handle_t handle,
                 if (flags & SHR_RES_BITMAP_ALLOC_REPLACE) {
                     result = BCM_E_NONE;
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " already exists\n"),
                                (void*)handle,
@@ -288,7 +288,7 @@ shr_res_bitmap_alloc(shr_res_bitmap_handle_t handle,
                 break;
             case BCM_E_EMPTY:
                 if (flags & SHR_RES_BITMAP_ALLOC_REPLACE) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " does not exist\n"),
                                (void*)handle,
@@ -300,7 +300,7 @@ shr_res_bitmap_alloc(shr_res_bitmap_handle_t handle,
                 }
                 break;
             case BCM_E_EXISTS:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("proposed block %p base %d count %d"
                            " would merge/expand existing block(s)\n"),
                            (void*)handle,
@@ -310,7 +310,7 @@ shr_res_bitmap_alloc(shr_res_bitmap_handle_t handle,
                 break;
             default:
                 /* should never see this */
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("unexpected result checking proposed block:"
                            " %d (%s)\n"),
                            result,
@@ -435,24 +435,24 @@ shr_res_bitmap_alloc_align(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory in/out argument must not be NULL\n")));
         return BCM_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must allocate at least one element\n")));
         return BCM_E_PARAM;
     }
     if (SHR_RES_BITMAP_ALLOC_REPLACE ==
         (flags & (SHR_RES_BITMAP_ALLOC_REPLACE |
                   SHR_RES_BITMAP_ALLOC_WITH_ID))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must use WITH_ID when using REPLACE\n")));
         return BCM_E_PARAM;
     }
@@ -478,7 +478,7 @@ shr_res_bitmap_alloc_align(shr_res_bitmap_handle_t handle,
                 offset = ((*elem) - handle->low) % align;
             }
             if (offset != offs) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("provided first element %d does not conform"
                            " to provided align %d + offset %d values"
                            " (actual offset = %d)\n"),
@@ -496,7 +496,7 @@ shr_res_bitmap_alloc_align(shr_res_bitmap_handle_t handle,
                 if (flags & SHR_RES_BITMAP_ALLOC_REPLACE) {
                     result = BCM_E_NONE;
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " already exists\n"),
                                (void*)handle,
@@ -507,7 +507,7 @@ shr_res_bitmap_alloc_align(shr_res_bitmap_handle_t handle,
                 break;
             case BCM_E_EMPTY:
                 if (flags & SHR_RES_BITMAP_ALLOC_REPLACE) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " does not exist\n"),
                                (void*)handle,
@@ -519,7 +519,7 @@ shr_res_bitmap_alloc_align(shr_res_bitmap_handle_t handle,
                 }
                 break;
             case BCM_E_EXISTS:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("proposed block %p base %d count %d"
                            " would merge/expand existing block(s)\n"),
                            (void*)handle,
@@ -529,7 +529,7 @@ shr_res_bitmap_alloc_align(shr_res_bitmap_handle_t handle,
                 break;
             default:
                 /* should never see this */
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("unexpected result checking proposed block:"
                            " %d (%s)\n"),
                            result,
@@ -664,44 +664,44 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory in/out argument must not be NULL\n")));
         return BCM_E_PARAM;
     }
     if (0 >= length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must be at least one long\n")));
         return BCM_E_PARAM;
     }
     if (32 < length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must not be longer than 32\n")));
         return BCM_E_PARAM;
     }
     if (0 >= repeats) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must allocate at least one pattern\n")));
         return BCM_E_PARAM;
     }
     if (0 == (pattern & ((1 << length) - 1))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must contain at least one element\n")));
         return BCM_E_PARAM;
     }
     if (pattern & (~((1 << length) - 1))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must not contain unused bits\n")));
         return BCM_E_PARAM;
     }
     if (SHR_RES_BITMAP_ALLOC_REPLACE ==
         (flags & (SHR_RES_BITMAP_ALLOC_REPLACE |
                   SHR_RES_BITMAP_ALLOC_WITH_ID))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must use WITH_ID when using REPLACE\n")));
         return BCM_E_PARAM;
     }
@@ -724,7 +724,7 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
     }
 #if 0 
     if (first) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("first element is not at zero; the returned block"
                   " will not point to the first element allocated,"
                   " but will point %d elements before it\n"),
@@ -735,13 +735,13 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
     if (flags & SHR_RES_BITMAP_ALLOC_WITH_ID) {
         /* WITH_ID, so only try the specifically requested block */
         if (*elem < handle->low) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("first element is too low\n")));
             result = BCM_E_PARAM;
         }
         index = *elem - handle->low;
         if (index + count > handle->count) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("final element is too high\n")));
             result = BCM_E_PARAM;
         }
@@ -755,7 +755,7 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
                 offset = ((*elem) - handle->low) % align;
             }
             if (offset != offs) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("provided first element %d does not conform"
                            " to provided align %d + offset %d values"
                            " (actual offset = %d)\n"),
@@ -777,7 +777,7 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
                 if (flags & SHR_RES_BITMAP_ALLOC_REPLACE) {
                     result = BCM_E_NONE;
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d pattern %08X"
                                " length %d repeat %d already exists\n"),
                                (void*)handle,
@@ -790,7 +790,7 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
                 break;
             case BCM_E_EMPTY:
                 if (flags & SHR_RES_BITMAP_ALLOC_REPLACE) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d pattern %08X"
                                " length %d repeat %d does not exist\n"),
                                (void*)handle,
@@ -804,7 +804,7 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
                 }
                 break;
             case BCM_E_EXISTS:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("proposed block %p base %d pattern %08X"
                            " length %d repeat %d would merge/expand"
                            " existing block(s)\n"),
@@ -817,7 +817,7 @@ shr_res_bitmap_alloc_align_sparse(shr_res_bitmap_handle_t handle,
                 break;
             default:
                 /* should never see this */
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("unexpected result checking proposed block:"
                            " %d (%s)\n"),
                            result,
@@ -974,7 +974,7 @@ shr_res_bitmap_free(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
@@ -983,7 +983,7 @@ shr_res_bitmap_free(shr_res_bitmap_handle_t handle,
         result = BCM_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must free at least one element\n")));
         return BCM_E_PARAM;
     }
@@ -1029,37 +1029,37 @@ shr_res_bitmap_free_sparse(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
     if (elem < handle->low) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("first element is too low\n")));
         result = BCM_E_PARAM;
     }
     if (0 >= length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must be at least one long\n")));
         return BCM_E_PARAM;
     }
     if (32 < length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must not be longer than 32\n")));
         return BCM_E_PARAM;
     }
     if (0 >= repeats) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check at least one pattern\n")));
         return BCM_E_PARAM;
     }
     if (0 == (pattern & ((1 << length) - 1))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must contain at least one element\n")));
         return BCM_E_PARAM;
     }
     if (pattern & (~((1 << length) - 1))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must not contain unused bits\n")));
         return BCM_E_PARAM;
     }
@@ -1076,7 +1076,7 @@ shr_res_bitmap_free_sparse(shr_res_bitmap_handle_t handle,
 
     elem -= handle->low;
     if (elem + final > handle->count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("last element is too high\n")));
         result = BCM_E_PARAM;
     }
@@ -1121,7 +1121,7 @@ shr_res_bitmap_check(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
@@ -1130,7 +1130,7 @@ shr_res_bitmap_check(shr_res_bitmap_handle_t handle,
         result = BCM_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check at least one element\n")));
         return BCM_E_PARAM;
     }
@@ -1165,7 +1165,7 @@ shr_res_bitmap_check_all(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
@@ -1174,7 +1174,7 @@ shr_res_bitmap_check_all(shr_res_bitmap_handle_t handle,
         result = BCM_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check at least one element\n")));
         return BCM_E_PARAM;
     }
@@ -1204,37 +1204,37 @@ shr_res_bitmap_check_all_sparse(shr_res_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return BCM_E_PARAM;
     }
     if (elem < handle->low) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("first element is too low\n")));
         result = BCM_E_PARAM;
     }
     if (0 >= length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must be at least one long\n")));
         return BCM_E_PARAM;
     }
     if (32 < length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must not be longer than 32\n")));
         return BCM_E_PARAM;
     }
     if (0 >= repeats) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check at least one pattern\n")));
         return BCM_E_PARAM;
     }
     if (0 == (pattern & ((1 << length) - 1))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must contain at least one element\n")));
         return BCM_E_PARAM;
     }
     if (pattern & (~((1 << length) - 1))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("pattern must not contain unused bits\n")));
         return BCM_E_PARAM;
     }
@@ -1252,7 +1252,7 @@ shr_res_bitmap_check_all_sparse(shr_res_bitmap_handle_t handle,
 
     elem -= handle->low;
     if (elem + final > handle->count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("last element is too high\n")));
         result = BCM_E_PARAM;
     }
@@ -1279,7 +1279,7 @@ shr_res_bitmap_dump(const shr_res_bitmap_handle_t handle)
     int rowUse;
 
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must provide non-NULL handle\n")));
         return BCM_E_PARAM;
     }

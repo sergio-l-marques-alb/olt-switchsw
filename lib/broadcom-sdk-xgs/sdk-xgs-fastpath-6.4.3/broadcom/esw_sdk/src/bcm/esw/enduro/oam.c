@@ -1868,7 +1868,7 @@ bcm_en_oam_init(
 	
 	if(SOC_E_NONE != soc_cmic_uc_msg_active_wait(unit, 0))
 	{
-	    LOG_ERROR(BSL_LS_BCM_OAM,
+	    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "uKernel Not Ready, bhh not started\n")));
 	    return BCM_E_NONE;
@@ -2386,7 +2386,7 @@ bcm_en_oam_init(
                 sal_usleep(1000);
             } else {
                 /*Timeout*/
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH event thread not exited.\n")));
                 BCM_IF_ERROR_RETURN(bcm_en_oam_detach(unit));
@@ -2565,7 +2565,7 @@ _bcm_en_oam_bhh_hw_init(int unit)
 
     rv = _bcm_common_rx_queue_channel_set(unit, oam_info_p->cpu_cosq, chan_id);
     if (rv != BCM_E_NONE ) {
-       LOG_ERROR(BSL_LS_BCM_COMMON,
+       LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "BHH(unit %d) Error: No BHH COS Queue available from uC%d - %s\n"),
                   unit, oam_info_p->uc_num, bcm_errmsg(BCM_E_CONFIG))); 
@@ -3554,7 +3554,7 @@ _bcm_en_oam_bhh_callback_thread(void *param)
     thread_name[0] = 0;
     oam_info_p->event_thread_id   = sal_thread_self();
     oam_info_p->event_thread_kill = 0;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(oam_info_p->unit,
                             "BHH callback thread starting\n")));
     sal_thread_name(oam_info_p->event_thread_id, thread_name, sizeof (thread_name));
@@ -3667,11 +3667,11 @@ _bcm_en_oam_bhh_callback_thread(void *param)
 	}
     }
     if (BCM_FAILURE(rv)) { 
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(oam_info_p->unit,
                               "AbnormalThreadExit:%s\n"), thread_name));  
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(oam_info_p->unit,
                             "BHH callback thread exiting\n")));
     oam_info_p->event_thread_kill = 0;

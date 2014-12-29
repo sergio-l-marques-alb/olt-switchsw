@@ -287,11 +287,11 @@ _generic_probe(board_driver_t *driver, int num, bcm_info_t *info)
     int rv = BCM_E_FAIL;
 
     if (num == MAX_UNIT) {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META(__FILE__": accept\n")));
         rv = BCM_E_NONE;
     } else {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META(__FILE__": reject - num_units(%d) != %d\n"),
                      num, MAX_UNIT));
     }
@@ -360,7 +360,7 @@ _generic_start(board_driver_t *driver, uint32 flags)
         BCM_IF_ERROR_RETURN(bcm_stk_my_modid_set(UNIT, PRIVATE(modid)));
     }
 
-    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                 (BSL_META(__FILE__": started %s - %s\n"),
                  generic_board.name,
                  PRIVATE(description)));

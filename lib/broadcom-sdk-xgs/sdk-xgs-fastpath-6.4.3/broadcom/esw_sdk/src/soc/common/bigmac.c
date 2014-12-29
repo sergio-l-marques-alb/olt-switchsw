@@ -227,7 +227,7 @@ _mac_big_drain_cells(int unit, soc_port_t port)
     }
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "port %d bigmac saved pause and pfc state\n"), port));
 
@@ -238,14 +238,14 @@ _mac_big_drain_cells(int unit, soc_port_t port)
 
     /* First put the port in flush state */
     SOC_IF_ERROR_RETURN(soc_mmu_flush_enable(unit, port, TRUE));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "port %d bigmac mmu flush enable completed\n"), port));
     /* Disable switch egress metering so that packet draining is not rate
      * limited.
      */
     SOC_IF_ERROR_RETURN(soc_egress_drain_cells(unit, port, 250000));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "port %d bigmac egress packet draining completed\n"), port));
     /* Notify PHY driver */
@@ -262,7 +262,7 @@ _mac_big_drain_cells(int unit, soc_port_t port)
             (soc_reg_field32_modify(unit, MAC_TXCTRLr, port,
                                     TXFIFO_RESETf, 0));
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "port %d bigmac TX fifo reset completed\n"), port));
     /* Restore original pause configuration */
@@ -275,12 +275,12 @@ _mac_big_drain_cells(int unit, soc_port_t port)
                 SOC_MAC_CONTROL_PFC_RX_ENABLE, pfc_en_rx));
     }
 #endif
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "port %d bigmac restored pause and pfc state\n"), port));
     /* Bring the switch MMU out of flush */
     SOC_IF_ERROR_RETURN(soc_mmu_flush_enable(unit, port, FALSE));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "port %d bigmac mmu flush disabled\n"), port));
     SOC_IF_ERROR_RETURN(READ_MAC_TXCTRLr(unit, port, &tx_ctrl));
@@ -306,7 +306,7 @@ mac_big_enable_set(int unit, soc_port_t port, int enable)
     uint64 ctrl, octrl;
     pbmp_t              mask;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_enable_set: unit %d port %s enable=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -537,7 +537,7 @@ _fusioncore_phy_xgxs1_init(int unit, soc_port_t port)
     }
 
     if (SAL_BOOT_QUICKTURN) {
-        LOG_VERBOSE(BSL_LS_SOC_10G,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                     (BSL_META_U(unit,
                                 "SIMULATION: _fusioncore_phy_xgxs1_init: unit %d "
                                  "port %s: skipped waiting for pll lock\n"),
@@ -567,12 +567,12 @@ _fusioncore_phy_xgxs1_init(int unit, soc_port_t port)
             (soc_miim_read(unit, phy_addr, 0x10, &x_pll_stat));
         SOC_IF_ERROR_RETURN             /* Select block 0x5 */
             (soc_miim_write(unit, phy_addr, 0x1f, 0x0000));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d port %s: FusionCore PLL did not lock PLL_STAT %04x\n"),
                    unit, SOC_PORT_NAME(unit, port), x_pll_stat));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_10G,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                     (BSL_META_U(unit,
                                 "_fusioncore_phy_xgxs1_init: unit %d port %s "
                                  "FusionCore PLL locked in %d usec\n"),
@@ -597,7 +597,7 @@ _fusioncore_phy_xgxs1_init(int unit, soc_port_t port)
 int
 soc_fusioncore_reset(int unit, soc_port_t port)
 {
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "soc_fusioncore_reset: unit %d port %s\n"),
                  unit, SOC_PORT_NAME(unit, port)));
@@ -614,7 +614,7 @@ _mac_big_init(int unit, soc_port_t port)
     uint64              rx_ctrl, tx_ctrl, mac_ctrl, tmp64;
     int                 encap, ipg;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "_mac_big_init: unit %d port %s\n"),
                  unit, SOC_PORT_NAME(unit, port)));
@@ -825,7 +825,7 @@ mac_big_enable_get(int unit, soc_port_t port, int *enable)
 
     *enable = soc_reg64_field32_get(unit, MAC_CTRLr, ctrl, RXENf);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_enable_get: unit %d port %s enable=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -850,7 +850,7 @@ mac_big_enable_get(int unit, soc_port_t port, int *enable)
 STATIC int
 mac_big_duplex_set(int unit, soc_port_t port, int duplex)
 {
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_duplex_set: unit %d port %s duplex=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -874,7 +874,7 @@ mac_big_duplex_get(int unit, soc_port_t port, int *duplex)
 {
     *duplex = TRUE; /* Always full duplex */
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_duplex_get: unit %d port %s duplex=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -900,7 +900,7 @@ mac_big_pause_set(int unit, soc_port_t port, int pause_tx, int pause_rx)
 {
     uint64 tmp, otmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_pause_set: unit %d port %s RX=%s TX=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -956,7 +956,7 @@ mac_big_pause_get(int unit, soc_port_t port, int *pause_tx, int *pause_rx)
     SOC_IF_ERROR_RETURN(READ_MAC_TXCTRLr(unit, port, &tx));
     *pause_tx = soc_reg64_field32_get(unit, MAC_TXCTRLr, tx, PAUSEENf);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_pause_get: unit %d port %s RX=%s TX=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -980,7 +980,7 @@ mac_big_pause_get(int unit, soc_port_t port, int *pause_tx, int *pause_rx)
 STATIC int
 mac_big_speed_set(int unit, soc_port_t port, int speed)
 {
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_speed_set: unit %d port %s speed=%dMb\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1176,7 +1176,7 @@ mac_big_speed_get(int unit, soc_port_t port, int *speed)
             }
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_10G,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                     (BSL_META_U(unit,
                                 "mac_big_speed_get: unit %d port %s speed=%dMb\n"),
                      unit, SOC_PORT_NAME(unit, port),
@@ -1219,7 +1219,7 @@ mac_big_speed_get(int unit, soc_port_t port, int *speed)
           BCM_FIREBOLT2_SUPPORT */
 #endif /* BCM_XGS3_SWITCH_SUPPORT || BCM_SIRIUS_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_speed_get: unit %d port %s speed=%dMb\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1247,7 +1247,7 @@ mac_big_loopback_set(int unit, soc_port_t port, int lb)
 {
     uint64 ctrl, octrl;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_loopback_set: unit %d port %s loopback=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1288,7 +1288,7 @@ mac_big_loopback_get(int unit, soc_port_t port, int *lb)
     local = soc_reg64_field32_get(unit, MAC_CTRLr, ctrl, LCLLOOPf);
     *lb = local | remote;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_loopback_get: unit %d port %s loopback=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1314,7 +1314,7 @@ mac_big_pause_addr_set(int unit, soc_port_t port, sal_mac_addr_t m)
     uint64 r, tmp;
     int i;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_pause_addr_set: unit %d port %s MAC=<"
                              "%02x:%02x:%02x:%02x:%02x:%02x>\n"),
@@ -1367,7 +1367,7 @@ mac_big_pause_addr_get(int unit, soc_port_t port, sal_mac_addr_t m)
     m[4] = (uint8)  ( ( lsw & 0x0000ff00) >> 8 );
     m[5] = (uint8)  ( lsw & 0x000000ff );
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_pause_addr_get: unit %d port %s MAC=<"
                              "%02x:%02x:%02x:%02x:%02x:%02x>\n"),
@@ -1395,7 +1395,7 @@ STATIC int
 mac_big_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
 {
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_interface_set: unit %d port %s interface=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1425,7 +1425,7 @@ mac_big_interface_get(int unit, soc_port_t port, soc_port_if_t *pif)
     *pif = SOC_PORT_IF_MII;
 
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_interface_get: unit %d port %s interface=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1451,7 +1451,7 @@ mac_big_frame_max_set(int unit, soc_port_t port, int size)
 {
     uint64 val64;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_frame_max_set: unit %d port %s size=%d\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1500,7 +1500,7 @@ mac_big_frame_max_get(int unit, soc_port_t port, int *size)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_frame_max_get: unit %d port %s size=%d\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1537,7 +1537,7 @@ mac_big_ifg_set(int unit, soc_port_t port, int speed,
     soc_port_ability_t ability;
     uint32      pa_flag;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_ifg_set: unit %d port %s speed=%dMb duplex=%s "
                              "ifg=%d\n"),
@@ -1621,7 +1621,7 @@ mac_big_ifg_get(int unit, soc_port_t port, int speed,
         *ifg = si->fd_hg;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_ifg_get: unit %d port %s speed=%dMb duplex=%s "
                              "ifg=%d\n"),
@@ -1647,7 +1647,7 @@ mac_big_loopback_remote_set(int unit, soc_port_t port, int lb)
 {
     uint64 ctrl, octrl;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_loopback_remote_set: unit %d port %s loopback=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1751,7 +1751,7 @@ mac_big_encap_set(int unit, soc_port_t port, int mode)
     int                 cur_mode, higig2 = 0;
 
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_encap_set: unit %d port %s encapsulation=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1890,7 +1890,7 @@ mac_big_encap_get(int unit, soc_port_t port, int *mode)
 #endif
 
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_encap_get: unit %d port %s encapsulation=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1967,7 +1967,7 @@ mac_big_control_set(int unit, soc_port_t port, soc_mac_control_t type,
     uint64 reg_val, copy;
     uint32 fval;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_control_set: unit %d port %s type=%d value=%d\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -2403,7 +2403,7 @@ mac_big_control_get(int unit, soc_port_t port, soc_mac_control_t type,
         return SOC_E_UNAVAIL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_control_get: unit %d port %s type=%d value=%d "
                              "rv=%d\n"),
@@ -2468,7 +2468,7 @@ mac_big_ability_local_get(int unit, soc_port_t port,
     }
 
     if (!IS_HG_PORT(unit , port)) {
-        LOG_VERBOSE(BSL_LS_SOC_10G,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                     (BSL_META_U(unit,
                                 "mac_big_ability_local_get: unit %d port %s "
                                  "speed_half=0x%x speed_full=0x%x encap=0x%x pause=0x%x "
@@ -2497,7 +2497,7 @@ mac_big_ability_local_get(int unit, soc_port_t port,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                             "mac_big_ability_local_get: unit %d port %s "
                              "speed_half=0x%x speed_full=0x%x encap=0x%x pause=0x%x "

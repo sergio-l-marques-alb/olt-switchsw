@@ -167,17 +167,17 @@ typedef enum {
 #define SOC_INIT_FUNC_DEFS \
     int _rv = SOC_E_NONE, _lock_taken = 0; \
     (void)_lock_taken; \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("enter\n"))); 
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("enter\n"))); 
 
 #define SOC_FUNC_ERROR \
     SOC_FAILURE(_rv)
 
 #define SOC_FUNC_RETURN \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n"))); \
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n"))); \
     return _rv;
 
 #define SOC_FUNC_RETURN_VOID \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n")));\
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n")));\
         COMPILER_REFERENCE(_rv);
 
 #if (defined(BCM_DPP_SUPPORT) || defined(BCM_DFE_SUPPORT)) && defined(BCM_GEN_ERR_MECHANISM)
@@ -186,7 +186,7 @@ typedef enum {
         int __err__rc = _rc; \
         GEN_ERR_CHK(unit, GEN_ERR_TYPE_SOC, __err__rc); \
         if(__err__rc != SOC_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
             _rv = __err__rc; \
         } \
       } while(0)
@@ -196,7 +196,7 @@ typedef enum {
         int __err__rc = _rc; \
         GEN_ERR_CHK(unit, GEN_ERR_TYPE_SOC, __err__rc); \
         if(__err__rc != SOC_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
             _rv = __err__rc; \
             SOC_EXIT; \
         } \
@@ -206,7 +206,7 @@ typedef enum {
       do { \
         int __err__rc = _rc; \
         if(__err__rc != SOC_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
             _rv = __err__rc; \
         } \
       } while(0)
@@ -215,7 +215,7 @@ typedef enum {
       do { \
         int __err__rc = _rc; \
         if(__err__rc != SOC_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, (BSL_META("%s\n"), soc_errmsg(__err__rc))); \
             _rv = __err__rc; \
             SOC_EXIT; \
         } \
@@ -224,7 +224,7 @@ typedef enum {
 
 #define _SOC_EXIT_WITH_ERR(_rc, stuff) \
       do { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, stuff); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, stuff); \
             _rv = _rc; \
             SOC_EXIT; \
       } while(0)

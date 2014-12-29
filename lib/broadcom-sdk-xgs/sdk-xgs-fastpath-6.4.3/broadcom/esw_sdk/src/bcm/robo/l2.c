@@ -186,7 +186,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
     sal_memset(arl_entry, 0, sizeof (*arl_entry));
     COMPILER_64_ZERO(mac_field);
 
-    LOG_INFO(BSL_LS_BCM_TESTS,
+    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
              (BSL_META_U(unit,
                          "%s, flags is 0x%x\n"), 
               FUNCTION_NAME(), l2addr->flags));
@@ -240,7 +240,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
         BCM_IF_ERROR_RETURN(
                 DRV_MEM_FIELD_SET(unit, DRV_MEM_ARL, DRV_MEM_FIELD_STATIC, 
                 (uint32 *)arl_entry, &fld_value));
-        LOG_INFO(BSL_LS_BCM_TESTS,
+        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                  (BSL_META_U(unit,
                              "\t Static flags set in l2addr\n")));
     }
@@ -254,7 +254,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
                     _TB_ARL_STATUS_PENDING : _TB_ARL_STATUS_VALID;
 #endif
         } else {
-            LOG_INFO(BSL_LS_BCM_TESTS,
+            LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                      (BSL_META_U(unit,
                                  "\t No Pending learning feature!!\n")));
             return BCM_E_UNAVAIL;
@@ -272,7 +272,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
         BCM_IF_ERROR_RETURN(
                 DRV_MEM_FIELD_SET(unit, DRV_MEM_ARL, DRV_MEM_FIELD_AGE, 
                 (uint32 *)arl_entry, &fld_value));
-        LOG_INFO(BSL_LS_BCM_TESTS,
+        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                  (BSL_META_U(unit,
                              "\t Age flags set in l2addr\n")));
     
@@ -308,7 +308,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
         BCM_IF_ERROR_RETURN(
                 DRV_MEM_FIELD_SET(unit, DRV_MEM_ARL, 
                 DRV_MEM_FIELD_ARL_CONTROL, (uint32 *)arl_entry, &fld_value));
-        LOG_INFO(BSL_LS_BCM_TESTS,
+        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                  (BSL_META_U(unit,
                              "\t arl_control flags set in l2addr %x\n"),
                   fld_value));
@@ -344,7 +344,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
 
         /* port parsing : GPORT(LOCAL|SUBPORT)/NON-GPORT */
         if (!BCM_GPORT_IS_SET(l2addr->port)) {
-            LOG_INFO(BSL_LS_BCM_TESTS,
+            LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                      (BSL_META_U(unit,
                                  "%s,%d, port is %d\n"),
                       FUNCTION_NAME(), __LINE__, l2addr->port));
@@ -368,7 +368,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
                     }
                     /* port */
                     fld_value = g_params.param0;
-                    LOG_INFO(BSL_LS_BCM_TESTS,
+                    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                              (BSL_META_U(unit,
                                          "%s,%d, port is %d\n"),
                               FUNCTION_NAME(), __LINE__, fld_value));
@@ -382,7 +382,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
                     /* with this type, param0 is port and param1 is mc_group */ 
                     /* mcast group_id */
                     fld_value = g_params.param1;
-                    LOG_INFO(BSL_LS_BCM_TESTS,
+                    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                              (BSL_META_U(unit,
                                          "%s,%d, port is %d\n"),
                               FUNCTION_NAME(), __LINE__, fld_value));
@@ -399,7 +399,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
                     }
                     /* port */
                     fld_value = g_params.param0;
-                    LOG_INFO(BSL_LS_BCM_TESTS,
+                    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                              (BSL_META_U(unit,
                                          "%s,%d, port is %d\n"),
                               FUNCTION_NAME(), __LINE__, fld_value));
@@ -421,7 +421,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
 #ifdef  BCM_TB_SUPPORT
                         /* vport */
                         fld_value = g_params.param1;
-                        LOG_INFO(BSL_LS_BCM_TESTS,
+                        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                                  (BSL_META_U(unit,
                                              "%s,%d, virtual port is %d\n"),
                                   FUNCTION_NAME(), __LINE__, fld_value));
@@ -438,7 +438,7 @@ _bcm_robo_l2_to_arl(int unit, l2_arl_sw_entry_t *arl_entry,
             }
         }
     }
-    LOG_INFO(BSL_LS_BCM_TESTS,
+    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
              (BSL_META_U(unit,
                          "%s,%d,arl_entry[2-0]=%08x-%08x-%08x\n"), 
               FUNCTION_NAME(), __LINE__, *((uint32 *)arl_entry+2), 
@@ -478,7 +478,7 @@ _bcm_robo_l2_from_arl(int unit,
     
     COMPILER_64_ZERO(mac_field);
 
-    LOG_INFO(BSL_LS_BCM_TESTS,
+    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
              (BSL_META_U(unit,
                          "%s,%d,arl_entry[2-0]=%08x-%08x-%08x\n"), 
               FUNCTION_NAME(), __LINE__, *((uint32 *)arl_entry+2), 
@@ -490,7 +490,7 @@ _bcm_robo_l2_from_arl(int unit,
 
     SAL_MAC_ADDR_FROM_UINT64(l2addr->mac, mac_field);
 
-    LOG_INFO(BSL_LS_BCM_TESTS, \
+    LOG_BSL_INFO(BSL_LS_BCM_TESTS, \
              (BSL_META_U(unit, \
                          "in _bcm_robo_l2_from_arl ,\
                          mac  is %02x-%02x-%02x-%02x-%02x-%02x \n"),
@@ -501,7 +501,7 @@ _bcm_robo_l2_from_arl(int unit,
     DRV_MEM_FIELD_GET(unit, DRV_MEM_ARL,
             DRV_MEM_FIELD_VLANID, (uint32 *)arl_entry, &field_value);
     l2addr->vid = field_value;
-    LOG_INFO(BSL_LS_BCM_TESTS,
+    LOG_BSL_INFO(BSL_LS_BCM_TESTS,
              (BSL_META_U(unit,
                          "in _bcm_robo_l2_from_arl, l2addr->vid is %d\n"),
               l2addr->vid));
@@ -519,7 +519,7 @@ _bcm_robo_l2_from_arl(int unit,
             }
 #endif /* BCM_TB_SUPPORT */
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "\t No Pending learning feature!!\n")));
             return;
@@ -540,7 +540,7 @@ _bcm_robo_l2_from_arl(int unit,
         if (field_value) {
             l2addr->l2mc_group= (int)field_value;               
         }
-        LOG_INFO(BSL_LS_BCM_TESTS,
+        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                  (BSL_META_U(unit,
                              "in _bcm_robo_l2_from_arl, l2mc_group is %d\n"),
                   l2addr->l2mc_group));
@@ -549,7 +549,7 @@ _bcm_robo_l2_from_arl(int unit,
         rv = bcm_robo_switch_control_get(unit, 
                     bcmSwitchUseGport, &useGport);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "fail to get bcmSwitchUseGport\n")));
             return;
@@ -580,7 +580,7 @@ _bcm_robo_l2_from_arl(int unit,
 #ifdef  BCM_TB_SUPPORT
                         uint32  vp_id;
                         
-                        LOG_INFO(BSL_LS_BCM_TESTS,
+                        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                                  (BSL_META_U(unit,
                                              "%s,src_port=%d,l2_gport=0x%08x\n"), 
                                   FUNCTION_NAME(), src_port, l2_gport));
@@ -593,7 +593,7 @@ _bcm_robo_l2_from_arl(int unit,
                                 DRV_MEM_ARL, DRV_MEM_FIELD_VPORT, 
                                 (uint32 *)arl_entry, &field_value);
                         vp_id = field_value;
-                        LOG_INFO(BSL_LS_BCM_TESTS,
+                        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                                  (BSL_META_U(unit,
                                              "in _bcm_robo_l2_from_arl, vport is %d\n"),
                                   vp_id));
@@ -602,13 +602,13 @@ _bcm_robo_l2_from_arl(int unit,
                                 _TB_SUBPORT_SYSTEM_ID_SET(src_port, 0, vp_id);
                         dest.gport_type = BCM_GPORT_SUBPORT_PORT;
 #else   /* BCM_TB_SUPPORT */
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s, GPORT_SUBPORT type is unavailable!\n"), 
                                   FUNCTION_NAME()));
 #endif  /* BCM_TB_SUPPORT */
                     } else {
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s, GPORT_SUBPORT type is unavailable!\n"), 
                                   FUNCTION_NAME()));
@@ -619,7 +619,7 @@ _bcm_robo_l2_from_arl(int unit,
                      */
                     if (!BCM_GPORT_IS_MODPORT(l2addr->port)) {
                         /* other GPORT type */
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s,requesting a unavailable GPORT(0x%x)\n"), 
                                   FUNCTION_NAME(), l2addr->port));
@@ -670,7 +670,7 @@ _bcm_robo_l2_from_arl(int unit,
             }
         }
 
-        LOG_INFO(BSL_LS_BCM_TESTS,
+        LOG_BSL_INFO(BSL_LS_BCM_TESTS,
                  (BSL_META_U(unit,
                              "%s, port is 0x%x cos_dst 0x%x\n"), 
                   FUNCTION_NAME(), l2addr->port, l2addr->cos_dst));
@@ -939,7 +939,7 @@ bcm_53xx_l2_addr_register(int unit,
     /* this should be managed properly from above */
 
     if (_bcm_l2_cbs[unit] != NULL || callback != NULL){
-        LOG_INFO(BSL_LS_BCM_ARL,
+        LOG_BSL_INFO(BSL_LS_BCM_ARL,
                  (BSL_META_U(unit,
                              "%s, Reasigning the callback service routine!\n"),
                   FUNCTION_NAME()));
@@ -1160,7 +1160,7 @@ bcm_robo_l2_addr_freeze(int unit)
 {
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_freeze().\n")));
     BCM_IF_ERROR_RETURN(soc_robo_arl_freeze(unit));
@@ -1183,7 +1183,7 @@ bcm_robo_l2_addr_thaw(int unit)
 {
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_thaw().\n")));
     BCM_IF_ERROR_RETURN( soc_robo_arl_thaw(unit));
@@ -1222,12 +1222,12 @@ bcm_robo_l2_addr_add(int unit, bcm_l2_addr_t *l2addr)
     int                 rv = BCM_E_NONE, freezing = BCM_E_NONE;
 
     L2_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_add()..\n")));
 
     BCM_IF_ERROR_RETURN(_bcm_robo_l2_to_arl(unit, &arl_entry, l2addr));
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "in bcm_robo_l2_addr_add , arl_entry is 0x%x,0x%x,0x%x\n"),
               arl_entry.entry_data[2], 
@@ -1235,7 +1235,7 @@ bcm_robo_l2_addr_add(int unit, bcm_l2_addr_t *l2addr)
               arl_entry.entry_data[0]));
 
     if (l2addr->flags & BCM_L2_REPLACE_DYNAMIC) {
-        LOG_INFO(BSL_LS_BCM_ARL,
+        LOG_BSL_INFO(BSL_LS_BCM_ARL,
                  (BSL_META_U(unit,
                              "BCM API : bcm_robo_l2_addr_add()..BCM_L2_REPLACE_DYNAMIC\n")));
         
@@ -1291,7 +1291,7 @@ bcm_robo_l2_addr_delete(int unit, bcm_mac_t mac, bcm_vlan_t vid)
     uint32              flags = 0;
 
     L2_INIT(unit);
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_delete()..\n")));
             
@@ -1398,7 +1398,7 @@ bcm_robo_l2_addr_delete_by_port(int unit, bcm_module_t mod, bcm_port_t port,
     
     
     fld_value = port;    
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_delete_by_port()..\n")));
     /* set port field */
@@ -1472,7 +1472,7 @@ bcm_robo_l2_addr_delete_by_mac(
 
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API:%s,flags=0x%x\n"), FUNCTION_NAME(), flags));
     assert(mac);
@@ -1506,7 +1506,7 @@ bcm_robo_l2_addr_delete_by_mac(
         }
         
         if (BCM_SUCCESS(rv)){
-            LOG_INFO(BSL_LS_BCM_L2TABLE,
+            LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                      (BSL_META_U(unit,
                                  "%s, %d L2 entries were removed!\n"),
                       FUNCTION_NAME(), rv));
@@ -1556,7 +1556,7 @@ bcm_robo_l2_addr_delete_by_vlan(int unit, bcm_vlan_t vid, uint32 flags)
     sal_memset(&arl_entry, 0, sizeof (arl_entry));
     fld_value = vid; /* vid value */
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_delete_by_vlan()..\n")));
     /* set VID field */
@@ -1636,7 +1636,7 @@ bcm_robo_l2_addr_delete_by_trunk(int unit, bcm_trunk_t tid, uint32 flags)
 
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_delete_by_trunk()..\n")));
 
@@ -1670,7 +1670,7 @@ bcm_robo_l2_addr_delete_by_trunk(int unit, bcm_trunk_t tid, uint32 flags)
 #endif  /* BCM_TB_SUPPORT */
 
         if (flags & BCM_L2_DELETE_PENDING) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Delete with PENDING flag is unavailable in TB.\n")));
         }
@@ -1766,7 +1766,7 @@ bcm_robo_l2_addr_delete_by_mac_port(
 
     assert(mac);
     if (!BCM_MAC_IS_ZERO(mac)){
-        LOG_INFO(BSL_LS_BCM_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                  (BSL_META_U(unit,
                              "%s,mac=%08x-%08x,port=0x%x\n"), 
                   FUNCTION_NAME(), *(uint32 *)mac, *((uint32 *)mac+1), port));
@@ -1800,7 +1800,7 @@ bcm_robo_l2_addr_delete_by_mac_port(
         }
         
         if (BCM_SUCCESS(rv)){
-            LOG_INFO(BSL_LS_BCM_L2TABLE,
+            LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                      (BSL_META_U(unit,
                                  "%s, %d L2 entries were removed!\n"),
                       FUNCTION_NAME(), rv));
@@ -1848,7 +1848,7 @@ bcm_robo_l2_addr_delete_by_vlan_port(int unit, bcm_vlan_t vid,
         return BCM_E_PARAM;
     }
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_delete_by_vlan_port()..\n")));
     /* set VID field */
@@ -1952,7 +1952,7 @@ bcm_robo_l2_addr_delete_by_vlan_trunk(int unit, bcm_vlan_t vid,
     
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_delete_by_vlan_trunk()..\n")));
 
@@ -2013,7 +2013,7 @@ bcm_robo_l2_addr_get(int unit, bcm_mac_t mac, bcm_vlan_t vid,
 
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_get()..\n")));
     bcm_l2_addr_init(&l2_search, mac, vid);
@@ -2143,7 +2143,7 @@ bcm_robo_l2_addr_register(int unit,
 
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_register()..\n")));
     
@@ -2151,7 +2151,7 @@ bcm_robo_l2_addr_register(int unit,
         (bcm_53xx_l2_addr_register(unit, _bcm_l2_addr_callback, NULL));
 
     if (ad->cb_count > L2_CB_MAX) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s,!! cb_count=%d over valid range!!\n"), 
                   FUNCTION_NAME(),ad->cb_count));
@@ -2196,7 +2196,7 @@ bcm_robo_l2_addr_unregister(int unit,
 
     L2_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_addr_unregister()..\n")));
     for (i = 0; i < L2_CB_MAX; i++) {
@@ -2238,7 +2238,7 @@ bcm_robo_l2_age_timer_set(int unit, int age_seconds)
     uint32  max_value = 0;
     uint32  enabled = 0;
 
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_age_timer_set()..\n")));
     BCM_IF_ERROR_RETURN(DRV_DEV_PROP_GET(unit, 
@@ -2274,7 +2274,7 @@ bcm_robo_l2_age_timer_get(int unit, int *age_seconds)
 {
     uint32 enabled;
 
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_age_timer_get()..\n")));
     if (age_seconds == NULL){
@@ -2312,7 +2312,7 @@ bcm_robo_l2_clear(int unit)
 
     BCM_IF_ERROR_RETURN(bcm_l2_detach(unit));
 
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_l2_clear()..\n")));
     /*
@@ -2404,7 +2404,7 @@ bcm_robo_l2_conflict_get(int unit, bcm_l2_addr_t *addr,
             if (!COMPILER_64_IS_ZERO(mac_field)){
                _bcm_robo_l2_from_arl(unit, &cf_array[*cf_count], cf_entry);
                 *cf_count += 1;
-                LOG_INFO(BSL_LS_BCM_ARL,
+                LOG_BSL_INFO(BSL_LS_BCM_ARL,
                          (BSL_META_U(unit,
                                      "%s ,conflict entry on bin[%d] is 0x%x,0x%x,0x%x\n"),
                           FUNCTION_NAME(), i, 
@@ -2415,7 +2415,7 @@ bcm_robo_l2_conflict_get(int unit, bcm_l2_addr_t *addr,
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "%s, cf_status=%d, get %d conflict entry.\n"), 
               FUNCTION_NAME(), search_result, *cf_count));
@@ -2807,7 +2807,7 @@ _bcm_robo_l2_match_op(int unit, _bcm_robo_l2_match_t *match_addr, bcm_l2_addr_t 
     }
 
     /* start the matching process*/
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "%s,%d,op_flags=0x%x!!\n"), 
               FUNCTION_NAME(), __LINE__, match_addr->op_flags));
@@ -2897,7 +2897,7 @@ _bcm_robo_l2_match_op(int unit, _bcm_robo_l2_match_t *match_addr, bcm_l2_addr_t 
         rv = BCM_E_NONE;
     }
     
-    LOG_INFO(BSL_LS_BCM_ARL,
+    LOG_BSL_INFO(BSL_LS_BCM_ARL,
              (BSL_META_U(unit,
                          "%s,%d,diff_flags=0x%x, rv=%d\n"), 
               FUNCTION_NAME(), __LINE__, diff_flags, rv));
@@ -2967,7 +2967,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
     bcm_l2_addr_t   *this_l2addr;
 
     if (soc->arl_table != NULL || soc->arl_interval != 0) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s, can't be performed while ARL thread is running!\n"),
                   FUNCTION_NAME()));
@@ -2976,7 +2976,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
 
     BCM_IF_ERROR_RETURN(soc_robo_arl_is_frozen(unit, &frozen));
     if (!frozen){
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s, not allowed while L2 is not frozen!\n"),
                   FUNCTION_NAME()));
@@ -2986,7 +2986,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
     /* matching key pre-parsing */
     BCM_IF_ERROR_RETURN(_bcm_robo_l2_match_key_validation(unit, match_addr));
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "%s, Starting L2(HW) traverse!\n"),
               FUNCTION_NAME()));
@@ -2999,7 +2999,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                 _ARL_SEARCH_VALID_OP_START, NULL, NULL, NULL);
         if(SOC_FAILURE(rv)){
             ARL_MEM_SEARCH_UNLOCK(soc);
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, unexpected early return!\n"),
                       FUNCTION_NAME(),__LINE__));
@@ -3012,7 +3012,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                     NULL, NULL, NULL);
         if(SOC_FAILURE(rv)){
             ARL_MEM_SEARCH_UNLOCK(soc);
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, unexpected early return!\n"),
                       FUNCTION_NAME(),__LINE__));
@@ -3040,7 +3040,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
             rv = DRV_MEM_FIELD_GET(unit, DRV_MEM_ARL, DRV_MEM_FIELD_VALID,
                     (uint32 *)&sw_arl, &valid);
             if(SOC_FAILURE(rv)){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, unexpected early return!\n"),
                           FUNCTION_NAME(),__LINE__));
@@ -3081,7 +3081,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                     /* BCM_E_NOT_FOUND|BCM_E_FAIL means no match */
                     if (!(match_rv == BCM_E_NOT_FOUND || 
                             match_rv == BCM_E_FAIL)){
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s, Failed matching on L2(id=%d)!\n"), 
                                   FUNCTION_NAME(), index));
@@ -3090,7 +3090,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                 } else {
                     /* matched process */
                     trav_st->mem_idx = this_valid_index;
-                    LOG_INFO(BSL_LS_BCM_L2TABLE,
+                    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                              (BSL_META_U(unit,
                                          "%s, arl_index=%d, L2x[0-2]=%08x-%08x-%08x\n"), 
                               FUNCTION_NAME(), trav_st->mem_idx, 
@@ -3101,7 +3101,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                     rv = trav_st->user_cb(unit, 
                             trav_st->data, trav_st->user_data);
                     if (SOC_FAILURE(rv)){
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s,%d, unexpected early return!\n"),
                                   FUNCTION_NAME(),__LINE__));
@@ -3116,7 +3116,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                     (unit, DRV_MEM_ARL, DRV_MEM_FIELD_VALID,
                     (uint32 *)&sw_arl1, &valid);
                 if (SOC_FAILURE(rv)){
-                    LOG_WARN(BSL_LS_BCM_COMMON,
+                    LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                              (BSL_META_U(unit,
                                          "%s,%d, unexpected early return!\n"),
                               FUNCTION_NAME(),__LINE__));
@@ -3138,7 +3138,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                         /* BCM_E_NOT_FOUND|BCM_E_FAIL means no match */
                         if (!(match_rv == BCM_E_NOT_FOUND || 
                                 match_rv == BCM_E_FAIL)){
-                            LOG_WARN(BSL_LS_BCM_COMMON,
+                            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                      (BSL_META_U(unit,
                                                  "%s, Failed matching on L2(id=%d)!\n"), 
                                       FUNCTION_NAME(), index));
@@ -3147,7 +3147,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                     } else {
                         /* matched process */
                         trav_st->mem_idx = this_valid_index;
-                        LOG_INFO(BSL_LS_BCM_L2TABLE,
+                        LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                                  (BSL_META_U(unit,
                                              "%s, arl_index=%d, L2x[0-2]=%08x-%08x-%08x\n"), 
                                   FUNCTION_NAME(), trav_st->mem_idx, 
@@ -3158,7 +3158,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
                         rv = trav_st->user_cb(unit, 
                                 trav_st->data, trav_st->user_data);
                         if (SOC_FAILURE(rv)){
-                            LOG_WARN(BSL_LS_BCM_COMMON,
+                            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                      (BSL_META_U(unit,
                                                  "%s,%d, unexpected early return!\n"),
                                       FUNCTION_NAME(),__LINE__));
@@ -3182,7 +3182,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
             if (SOC_FAILURE(rv)){
                 ARL_MEM_SEARCH_UNLOCK(soc);
 
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, unexpected early return!\n"),
                           FUNCTION_NAME(),__LINE__));
@@ -3192,7 +3192,7 @@ int _bcm_robo_l2_hw_traverse_mem(int unit, _bcm_robo_l2_match_t *match_addr,
     } while (this_valid_index > -1);
 
 hw_traverse_exit :
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "%s,L2(HW) traverse finished! traverse_cnt=%d\n"),
               FUNCTION_NAME(), traverse_cnt));
@@ -3310,7 +3310,7 @@ _bcm_robo_l2_traverse_mem(int unit, soc_mem_t mem,
             
             sal_usleep(1000000);
         } 
-        LOG_INFO(BSL_LS_BCM_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                  (BSL_META_U(unit,
                              "%s, is_sync=%d, sync_detect count=%d!\n"), 
                   FUNCTION_NAME(), is_sync, 
@@ -3360,7 +3360,7 @@ _bcm_robo_l2_traverse_mem(int unit, soc_mem_t mem,
                 if (match_rv < BCM_E_NONE){
                     /* BCM_E_NOT_FOUND | BCM_E_FAIL means no matched condition */
                     if (!(match_rv == BCM_E_NOT_FOUND || match_rv == BCM_E_FAIL)){
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s, Failed matching process on L2(id=%d)!\n"), 
                                   FUNCTION_NAME(), chnk_idx + ent_idx));
@@ -3369,7 +3369,7 @@ _bcm_robo_l2_traverse_mem(int unit, soc_mem_t mem,
                 } else {
                     /* matched condition */
                     trav_st->mem_idx = chnk_idx + ent_idx;
-                    LOG_INFO(BSL_LS_BCM_L2TABLE,
+                    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                              (BSL_META_U(unit,
                                          "%s, arl_index=%d, L2x[0-2]=%08x-%08x-%08x\n"), 
                               FUNCTION_NAME(), trav_st->mem_idx, 
@@ -3393,7 +3393,7 @@ _bcm_robo_l2_traverse_mem(int unit, soc_mem_t mem,
         
         /* sleep before next chunk process */
         if (chnk_idx < mem_idx_max) {
-            LOG_INFO(BSL_LS_BCM_L2TABLE,
+            LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                      (BSL_META_U(unit,
                                  "%s,%d,Chunk SLEEP...\n"),FUNCTION_NAME(),__LINE__));
             sal_usleep(100000);
@@ -3408,7 +3408,7 @@ _bcm_robo_l2_traverse_mem(int unit, soc_mem_t mem,
         /* treate as _BCM_ROBO_L2TRV_RESP_BCM_NORMAL */
         rv = BCM_E_NONE;        
     }
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "%s, this_trv_cnt=%d, rv=%d\n"), 
               FUNCTION_NAME(), this_trv_cnt, rv));
@@ -3804,7 +3804,7 @@ bcm_robo_l2_replace(int unit, uint32 flags, bcm_l2_addr_t *match_addr,
                 }
                 
                 if (BCM_SUCCESS(rv)){
-                    LOG_INFO(BSL_LS_BCM_L2TABLE,
+                    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                              (BSL_META_U(unit,
                                          "%s, %d L2 entries were removed!\n"),
                               FUNCTION_NAME(), rv));

@@ -58,7 +58,7 @@
 
 #ifdef BCM_FIELD_SUPPORT
 
-#define FP_VERB_CHECK()        LOG_CHECK(BSL_LS_BCM_FP | BSL_VERBOSE)
+#define FP_VERB_CHECK()        LOG_BSL_CHECK(BSL_LS_BCM_FP | BSL_VERBOSE)
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

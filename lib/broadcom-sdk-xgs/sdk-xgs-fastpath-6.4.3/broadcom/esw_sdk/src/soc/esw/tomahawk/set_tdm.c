@@ -59,9 +59,9 @@ typedef int FILE;
 #define TDM_PREPROCESSOR_DIRECTIVES
 
 /*  No variadic macros */
-#define TDM_BIG_BAR  LOG_VERBOSE(BSL_LS_SOC_TDM,                        \
+#define TDM_BIG_BAR  LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                        \
                                  (BSL_META("TDM: #################################################################################################################################\n")));
-#define TDM_SML_BAR  LOG_VERBOSE(BSL_LS_SOC_TDM,                        \
+#define TDM_SML_BAR  LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                        \
                                  (BSL_META("TDM: ---------------------------------------------------------------------------------------------------------------------------------\n")));
 
 #ifdef _STD_ALLOC
@@ -210,61 +210,61 @@ typedef int FILE;
 
 #define CMIC(a) {						\
 			tdm_tbl[a]=CMIC_TOKEN; 		\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,             \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,             \
                         (BSL_META("CMIC/CPU\n")));  \
 			break;                                  \
 		}
 #define LPB0(a) {								\
 			tdm_tbl[a]=LPB0_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,                     \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                     \
                         (BSL_META("TILE 0 LOOPBACK\n")));   \
 			break;                                          \
 		}
 #define MGM1(a) {								\
 			tdm_tbl[a]=MGM1_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,                     \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                     \
                         (BSL_META("IDB 1 MANAGEMENT\n")));  \
 			break;                                          \
 		}
 #define LPB1(a) {								\
 			tdm_tbl[a]=LPB1_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,                     \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                     \
                         (BSL_META("TILE 1 LOOPBACK\n")));   \
 			break;                                          \
 		}
 #define MGM2(a) {								\
 			tdm_tbl[a]=MGM2_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,                     \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                     \
                         (BSL_META("IDB 2 MANAGEMENT\n")));  \
 			break;                                          \
 		}
 #define LPB2(a) {								\
 			tdm_tbl[a]=LPB2_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,                     \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                     \
                         (BSL_META("TILE 2 LOOPBACK\n")));   \
 			break;                                          \
 		}
 #define OPRT(a) {								\
 			tdm_tbl[a]=IDL2_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,         \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,         \
                         (BSL_META("PURGE\n"))); \
 			break;								\
 		}
 #define SBUS(a) {								\
 			tdm_tbl[a]=IDL1_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,         \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,         \
                         (BSL_META("SBUS\n")));  \
 			break;								\
 		}		
 #define NULL_SLOT(a) {							\
 			tdm_tbl[a]=NULL_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,         \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,         \
                         (BSL_META("NULL\n")));  \
 			break;								\
 		}				
 #define LPB3(a) {								\
 			tdm_tbl[a]=LPB3_TOKEN; 				\
-			LOG_VERBOSE(BSL_LS_SOC_TDM,                     \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                     \
                         (BSL_META("TILE 3 LOOPBACK\n")));   \
 			break;                                          \
 		}
@@ -279,11 +279,11 @@ typedef int FILE;
 				}									\
 			}										\
 			if (tdm_tbl[a]==OVSB_TOKEN) {                   \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                 \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                 \
                             (BSL_META("DOT OVERSUB\n")));   \
 			}                                               \
 			else {                                          \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                 \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                 \
                             (BSL_META("DOT CMIC/CPU\n")));  \
 			}                                               \
 			break;                                          \
@@ -299,11 +299,11 @@ typedef int FILE;
 				}										\
 			}											\
 			if (tdm_tbl[a]==OVSB_TOKEN) {				\
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                 \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                 \
                             (BSL_META("DOT OVERSUB\n")));   \
 			}                                               \
 			else {                                                  \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                         \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                         \
                             (BSL_META("DOT IDB 1 MANAGEMENT\n")));	\
 			}                                                       \
 			break;                                                  \
@@ -319,11 +319,11 @@ typedef int FILE;
 				}										\
 			}											\
 			if (tdm_tbl[a]==OVSB_TOKEN) {                           \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                         \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                         \
                             (BSL_META("DOT OVERSUB\n")));           \
 			}                                                       \
 			else {                                                  \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                         \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                         \
                             (BSL_META("DOT IDB 2 MANAGEMENT\n")));	\
 			}                                                       \
 			break;                                                  \
@@ -339,11 +339,11 @@ typedef int FILE;
 				}									\
 			}										\
 			if (tdm_tbl[a]==OVSB_TOKEN) {                   \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                 \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                 \
                             (BSL_META("DOT OVERSUB\n")));   \
 			}                                               \
 			else {                                          \
-				LOG_VERBOSE(BSL_LS_SOC_TDM,                 \
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,                 \
                             (BSL_META("DOT PURGE\n")));     \
 			}                                               \
 			break;                                          \
@@ -1278,22 +1278,22 @@ void block(int tdm_tbl[256])
 			break;
 		}
 	}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\n")));
 	for (i=0; i<j; i++) {
 		if (tdm_tbl[i]!=OVSB_TOKEN) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\t[%0d] =\t %03d\n"),
                          i,tdm_tbl[i]));
 		}
 		else {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\t[%0d] =\t ---\n"),
                          i));
 		}
 	}
 	while(getchar() != '\n');
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\n")));
 #endif
 }
@@ -1393,7 +1393,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	/* Triport */
 	unsigned char tri_chk, tri_en_50=BOOL_FALSE, tri_en_40=BOOL_FALSE, tri_en_20=BOOL_FALSE;
 
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: index limit set to %d\n"),
                  lr_idx_limit));
 
@@ -1474,13 +1474,13 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					for (i=0; i<y6; i++) if (lr25[i] == lr_buffer[j]) y6--;
 					break;				
 				default:
-                    LOG_ERROR(BSL_LS_SOC_TDM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                               (BSL_META("speed %0d port %0d was skipped in linerate preallocation\n"),
                                speed[lr_buffer[j]],lr_buffer[j]));
 			}
 		}
 		else if (lr_buffer[j] != _TH_NUM_EXT_PORTS && lr_buffer[j] != OVSB_TOKEN) {
-			LOG_ERROR(BSL_LS_SOC_TDM,
+			LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("failed to presort linerate port %0d with state mapping %0d\n"),
                        lr_buffer[j], port_state_map[lr_buffer[j]-1]));
 		}
@@ -1534,13 +1534,13 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					for (i=0; i<z6; i++) if (os25[i] == os_buffer[j]) z6--;
 					break;				
 				default:
-					LOG_ERROR(BSL_LS_SOC_TDM,
+					LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                               (BSL_META("speed %0d port %0d was skipped in oversub preallocation\n"),
                                speed[os_buffer[j]],os_buffer[j]));
 			}
 		}
 		else if (os_buffer[j] != _TH_NUM_EXT_PORTS) {
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("failed to presort oversub port %0d with state mapping %0d\n"),
                        os_buffer[j], port_state_map[os_buffer[j]-1]));
 		}
@@ -1562,7 +1562,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		E4X100G_8X10G=BOOL_TRUE;
 	}
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("(10G - %0d) (20G - %0d) (25G - %0d) (40G - %0d) (50G - %0d) (100G - %0d) LR Variety - %0d\n"),
                  y1, y2, y6, y3, y5, y4,
                  (lr_10+lr_20+lr_25+lr_40+lr_50+lr_100)));
@@ -1575,19 +1575,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	if (y4 > 0)
 	{
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 100G scheduling pass\n")));
 		TDM_SML_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: Stack contains: [ ")));
 		for (v=y4; v>0; v--) {
 			if (lr100[v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "),
                              lr100[v]));
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META(" ]\n")));
 		TDM_SML_BAR
 		while (y4 > 0)
@@ -1606,7 +1606,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			if (load_status==FAIL)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Failed to load 100G/106G vector for port %0d\n"), lr100[y4]));
 				return 0;
 			}
@@ -1616,21 +1616,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						vector_map[yy][v]=lr100[y4];
 					}
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("loaded 100G port %d vector from stack pointer %d into map at index %0d\n"),
                              lr100[y4], y4, yy));
 			}
 			y4--; yy++;
 			if (y4>0) {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: map pointer rolled to: %0d, stack pointer is at: %0d\n"),
                              yy, y4));
 				TDM_SML_BAR
 			}
 			else {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: DONE loading 100G vectors, map pointer floating at: %0d\n"),
                              yy));
 				TDM_SML_BAR
@@ -1645,7 +1645,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	if (y5 > 0)
 	{
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 50G scheduling pass\n")));
 		/* scatter sister ports before postallocation to reduce entropy of proxcheck later on */
 		for (v=y5; v>0; v--) {
@@ -1659,15 +1659,15 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 		}
 		TDM_SML_BAR
-            LOG_VERBOSE(BSL_LS_SOC_TDM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Stack contains: [ ")));
 		for (v=y5; v>0; v--) {
 			if (lr50[v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "), lr50[v]));
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META(" ]\n")));
 		TDM_SML_BAR
 		
@@ -1680,7 +1680,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				}
 			}
 			if (tri_en_50==BOOL_TRUE) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: 50G triport detected\n")));
 				break;
 			}
@@ -1695,7 +1695,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			if (load_status==FAIL)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Failed to load 50G vector for port %0d\n"), lr50[y5]));
 				return 0;
 			}
@@ -1705,21 +1705,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						vector_map[yy][v]=lr50[y5];
 					}
 				}			
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("loaded 50G port %d vector from stack pointer %d into map at index %0d\n"),
                              lr50[y5], y5, yy));
 			}			
 			y5--; yy++;
 			if (y5>0) {
 				TDM_SML_BAR
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: map pointer rolled to: %0d, stack pointer is at: %0d\n"),
                                  yy, y5));
 				TDM_SML_BAR
 			}
 			else {
 				TDM_SML_BAR
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: DONE scheduling 50G, map pointer floating at: %0d\n"),
                                  yy));
 				TDM_SML_BAR
@@ -1733,7 +1733,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	if (y3 > 0)
 	{
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 40G scheduling pass\n")));
 		/* scatter sister ports before postallocation to reduce entropy of proxcheck later on */
 		for (v=y3; v>0; v--) {
@@ -1747,15 +1747,15 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 		}
 		TDM_SML_BAR
-            LOG_VERBOSE(BSL_LS_SOC_TDM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Stack contains: [ ")));
 		for (v=y3; v>0; v--) {
 			if (lr40[v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "), lr40[v]));
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META(" ]\n")));
 		TDM_SML_BAR
 		for (v=y3; v>0; v--) {
@@ -1767,7 +1767,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				}
 			}
 			if (tri_en_40==BOOL_TRUE) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: 40G triport detected\n")));
 				break;
 			}
@@ -1796,7 +1796,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			if (load_status==FAIL)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Failed to load 40G vector for port %0d\n"), lr40[y3]));
 				return 0;
 			}
@@ -1806,21 +1806,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						vector_map[yy][v]=lr40[y3];
 					}
 				}			
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("loaded 40G port %d vector from stack pointer %d into map at index %0d\n"),
                              lr40[y3], y3, yy));
 			}			
 			y3--; yy++;
 			if (y3>0) {
 				TDM_SML_BAR
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: map pointer rolled to: %0d, stack pointer is at: %0d\n"),
                                  yy, y3));
 				TDM_SML_BAR
 			}
 			else {
 				TDM_SML_BAR
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: DONE scheduling 40G, map pointer floating at: %0d\n"),
                                  yy));
 				TDM_SML_BAR
@@ -1834,19 +1834,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	if (y6 > 0)
 	{
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 25G scheduling pass\n")));
 		TDM_SML_BAR
-            LOG_VERBOSE(BSL_LS_SOC_TDM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Stack contains: [ ")));
 		for (v=y6; v>0; v--) {
 			if (lr25[v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "),
                              lr25[v]));
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META(" ]\n")));
 		TDM_SML_BAR
 		while (y6 > 0)
@@ -1859,7 +1859,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			if (load_status==FAIL)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Failed to load 25G vector for port %0d\n"), lr25[y6]));
 				return 0;
 			}
@@ -1869,21 +1869,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						vector_map[yy][v]=lr25[y6];
 					}
 				}			
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("loaded 25G port %d vector from stack pointer %d into map at index %0d\n"),
                              lr25[y6], y6, yy));
 			}			
 			y6--; yy++;
 			if (y6>0) {
 				TDM_SML_BAR
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: map pointer rolled to: %0d, stack pointer is at: %0d\n"),
                                  yy, y6));
 				TDM_SML_BAR
 			}
 			else {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: DONE scheduling 25G, map pointer floating at: %0d\n"),
                              yy));
 				TDM_SML_BAR
@@ -1897,19 +1897,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	if (y2 > 0)
 	{
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 20G scheduling pass\n")));
 		TDM_SML_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: Stack contains: [ ")));
 		for (v=y2; v>0; v--) {
 			if (lr20[v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "),
                              lr20[v]));
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META(" ]\n")));
 		TDM_SML_BAR
 		for (v=y2; v>0; v--) {
@@ -1921,7 +1921,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				}
 			}
 			if (tri_en_20==BOOL_TRUE) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: 20G triport detected\n")));
 				break;
 			}
@@ -1936,7 +1936,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			if (load_status==FAIL)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Failed to load 20G vector for port %0d\n"), lr20[y2]));
 				return 0;
 			}
@@ -1946,21 +1946,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						vector_map[yy][v]=lr20[y2];
 					}
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("loaded 20G port %d vector from stack pointer %d into map at index %0d\n"),
                              lr20[y2], y2, yy));
 			}			
 			y2--; yy++;
 			if (y2>0) {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: map pointer rolled to: %0d, stack pointer is at: %0d\n"),
                              yy, y2));
 				TDM_SML_BAR
 			}
 			else {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: DONE scheduling 20G, map pointer floating at: %0d\n"),
                              yy));
 				TDM_SML_BAR
@@ -1974,19 +1974,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	if (y1 > 0)
 	{
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 10G scheduling pass\n")));
 		TDM_SML_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: Stack contains: [ ")));
 		for (v=y1; v>0; v--) {
 			if (lr10[v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "),
                              lr10[v]));
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META(" ]\n")));
 		TDM_SML_BAR
 		while (y1 > 0)
@@ -2002,7 +2002,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			if (load_status==FAIL)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Failed to load 10G vector for port %0d\n"), lr10[y1]));
 				return 0;
 			}
@@ -2012,21 +2012,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						vector_map[yy][v]=lr10[y1];
 					}
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("loaded 10G port %d vector from stack pointer %d into map at index %0d\n"),
                              lr10[y1], y1, yy));
 			}			
 			y1--; yy++;
 			if (y1>0) {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: map pointer rolled to: %0d, stack pointer is at: %0d\n"),
                              yy, y1));
 				TDM_SML_BAR			
 			}
 			else {
 				TDM_SML_BAR
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: DONE scheduling 10G, map pointer floating at: %0d\n"),
                              yy));
 				TDM_SML_BAR			
@@ -2037,20 +2037,20 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	
 	/* Parameterize oversub vectors and insert them into map */
 	if (os_enable && lr_enable) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Oversub scheduling pass\n")));
 		TDM_SML_BAR
 		lr_vec_cnt=0;
 		os_param_cnt=lr_idx_limit;
 		for (i=0; i<VEC_MAP_WID; i++) {
 			if (vector_map[i][0]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("deducting vector PORT:%d SPEED:%d from pipe bandwidth\n"),
                              vector_map[i][0],
                              ((speed[vector_map[i][0]])/1000)));
 				os_param_cnt-=TDM_scheduler_slots(((speed[vector_map[i][0]])/1000));
 				lr_vec_cnt++;
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("oversub parameter:%d, LR vector count:%d\n"),
                              os_param_cnt,lr_vec_cnt));
 				TDM_SML_BAR
@@ -2077,12 +2077,12 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 		}
 		if (((os_param_cnt*BW_QUANTA)/10)>0) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("virtualizing from %d param %dG oversub bandwidth\n"),
                          os_param_cnt,((os_param_cnt*BW_QUANTA)/10)));
 		}
 		else {
-			LOG_ERROR(BSL_LS_SOC_TDM,
+			LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("Could not virtualize %dG oversub bandwidth\n"), ((os_param_cnt*BW_QUANTA)/10)));
 			return 0;
 		}
@@ -2101,7 +2101,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			/* Clamp number of parameterized oversub vectors added to reduce complexity */
 			ovs_vec_cnt=0;
 			/* -------------------------------------- */
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("partitioning %d %dG oversub vectors\n"),
                      ovs_vec_cnt, os_param_spd));
 		TDM_SML_BAR
@@ -2110,7 +2110,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			for (j=0; j<ovs_vec_cnt; j++) {
 				load_status = TDM_scheduler_vector_load(vector_map, freq, os_param_spd, yy, lr_idx_limit);
 				if (load_status==FAIL) {
-					LOG_ERROR(BSL_LS_SOC_TDM,
+					LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                               (BSL_META("Failed to load oversub virtual vector at"
                                         "speed %0d at index %d\n"), 
                                         os_param_spd, yy));
@@ -2130,7 +2130,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			for (j=0; j<(ovs_vec_cnt-1); j++) {
 				load_status = TDM_scheduler_vector_load(vector_map, freq, os_param_spd, yy, lr_idx_limit);
 				if (load_status==FAIL) {
-					LOG_ERROR(BSL_LS_SOC_TDM,
+					LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                               (BSL_META("Failed to load oversub virtual" 
                                         "vector at speed %0d at index %d\n"),
                                         os_param_spd, yy));
@@ -2162,7 +2162,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	}
 	if (lr_enable) {
 		/* Only 1 type of speed in the TDM, bypass heuristics and just divide evenly */
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: taking line rate shortcut, type_mod is %0d\n"),
                      type_mod));
 		for (i=1; i<60; i++) { TOKEN_CHECK(vector_map[0][i]) {break;} else {min_slots++;} }
@@ -2200,10 +2200,10 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						TDM_scheduler_vector_rotate(vector_map[i], lr_idx_limit, 1);
 						TDM_scheduler_vector_dump(file, vector_map, lr_idx_limit);
 						#ifdef _SET_TDM_DEV
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n\t>>> PASS 0 >>> Column %0d >>> Subpass %0d >>> Interrupt @ %0d"),
                                      i,k,timeout));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n")));
 						#endif
 						if (os_enable) {
@@ -2245,9 +2245,9 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								mpass_weight_vnum = ( (TDM_scheduler_weight_vnum(dr_weights,i,2) < mpass_weight_vnum) ) ? (TDM_scheduler_weight_vnum(dr_weights,i,2)):(mpass_weight_vnum);						
 							}
 							#ifdef _SET_TDM_DEV
-                            LOG_VERBOSE(BSL_LS_SOC_TDM,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("\n\t>>> PASS 1 >>> Column %0d >>> Subpass %0d >>> Node %0d >>> Min %0d >>> VNUM %0d"),i,j,mpass_optimal_node,mpass_weight_min,mpass_weight_vnum));
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("\n")));
 							#endif
 						}
@@ -2257,10 +2257,10 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							TDM_scheduler_vector_dump(file, vector_map, lr_idx_limit);
 							++inner_timeout;
 							#ifdef _SET_TDM_DEV
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("\n\t>>> PASS 2 >>> Column %0d >>> Subpass %0d"),
                                          i,inner_timeout));
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("\n")));
 							#endif
 						}
@@ -2270,17 +2270,17 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 									node_transmuted=TDM_scheduler_nodal_transmute_lr(vector_map,freq,speed,tsc,traffic,lr_idx_limit,j,i,lr_vec_cnt);
 									if (node_transmuted==BLANK) {
 										#ifdef _SET_TDM_DEV
-										LOG_WARN(BSL_LS_SOC_TDM,
+										LOG_BSL_WARN(BSL_LS_SOC_TDM,
                                                  (BSL_META("\tTransmute operation at node [%0d,%0d] failed\n"),
                                                   i,j));
 										#endif
 									}
 									TDM_scheduler_weight_update(vector_map,lr_idx_limit,dr_weights,dr_weights_last,dr_weight_cmp,i,j,lr_slot_cnt);
 									#ifdef _SET_TDM_DEV
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("\n\t>>> PASS 3 >>> Column %0d >>> Transmute %0d >>> Shift %0d"),
                                                  i,j,node_transmuted));
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("\n")));
 									#endif
 								}
@@ -2307,17 +2307,17 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 									node_transmuted=TDM_scheduler_nodal_transmute_lr(vector_map,freq,speed,tsc,traffic,lr_idx_limit,j,i,lr_vec_cnt);
 									if (node_transmuted==BLANK) {
 										#ifdef _SET_TDM_DEV
-										LOG_WARN(BSL_LS_SOC_TDM,
+										LOG_BSL_WARN(BSL_LS_SOC_TDM,
                                                  (BSL_META("\tTransmute operation at node [%0d,%0d] failed\n"),
                                                   i,j));
 										#endif
 									}
 									TDM_scheduler_weight_update(vector_map,lr_idx_limit,dr_weights,dr_weights_last,dr_weight_cmp,i,j,lr_slot_cnt);
 									#ifdef _SET_TDM_DEV
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("\n\t>>> PASS 3.5 >>> Column %0d >>> Transmute %0d >>> Shift %0d"),
                                                  i,j,node_transmuted));
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("\n")));
 									#endif
 								}
@@ -2346,10 +2346,10 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						mpass_weight_min = ( (TDM_scheduler_weight_min(dr_weights,i) > mpass_weight_min) ) ? (TDM_scheduler_weight_min(dr_weights,i)):(mpass_weight_min);					
 					}
 					#ifdef _SET_TDM_DEV
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n\t>>> PASS 4 >>> Column %0d >>> Subpass %0d >>> Node %0d >>> Min %0d"),
                                  i,j,mpass_optimal_node,mpass_weight_min));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					#endif
 					inner_timeout=0;
@@ -2358,10 +2358,10 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						TDM_scheduler_vector_dump(file, vector_map, lr_idx_limit);
 						++inner_timeout;
 						#ifdef _SET_TDM_DEV
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n\t>>> PASS 5 >>> Column %0d >>> Subpass %0d"),
                                      i,inner_timeout));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n")));
 						#endif
 					}
@@ -2371,10 +2371,10 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							TDM_scheduler_vector_dump(file, vector_map, lr_idx_limit);
 							++inner_timeout;
 							#ifdef _SET_TDM_DEV
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("\n\t>>> PASS 5 >>> Column %0d >>> Subpass %0d"),
                                          i,inner_timeout));
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("\n")));
 							#endif
 						}			
@@ -2385,17 +2385,17 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								node_transmuted=TDM_scheduler_nodal_transmute_lr(vector_map,freq,speed,tsc,traffic,lr_idx_limit,j,i,lr_vec_cnt);
 								if (node_transmuted==BLANK) {
 									#ifdef _SET_TDM_DEV
-									LOG_WARN(BSL_LS_SOC_TDM,
+									LOG_BSL_WARN(BSL_LS_SOC_TDM,
                                              (BSL_META("\tTransmute operation at node [%0d,%0d] failed\n"),
                                               i,j));
 									#endif
 								}
 								TDM_scheduler_weight_update(vector_map,lr_idx_limit,dr_weights,dr_weights_last,dr_weight_cmp,i,j,lr_slot_cnt);
 								#ifdef _SET_TDM_DEV
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("\n\t>>> PASS 6 >>> Column %0d >>> Transmute %0d >>> Shift %0d")
                                              ,i,j,node_transmuted));
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("\n")));
 								#endif
 							}
@@ -2457,7 +2457,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						slice_blacklist[slice_blacklist_idx]=lr_burst_max_idx;
 						slice_blacklist_idx++;
 						#ifdef _SET_TDM_DEV
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n\tBanned port slice %d, slice blacklist index at %d\n"),
                                      lr_burst_max_idx,slice_blacklist_idx));
 						#endif						
@@ -2537,7 +2537,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						slice_blacklist[slice_blacklist_idx]=os_burst_max_idx;
 						slice_blacklist_idx++;
 						#ifdef _SET_TDM_DEV
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n\tBanned oversub slice %d, slice blacklist index at %d\n"),
                                      os_burst_max_idx,slice_blacklist_idx));
 						#endif
@@ -2551,43 +2551,43 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}
 	}
 
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n\n")));
 	TDM_SML_BAR
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nSolution matrix pipe %0d:\n\n           "),
                  ((vector_map[0][0])/33)));
 	for (v=0; v<VEC_MAP_WID; v++) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("%d"),v));
 		if ((v+1)<VEC_MAP_WID) {
 			if ((v+1)/10==0) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("___")));
 			}
 			else {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("__")));
 			}
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
 	for (v=0; v<lr_idx_limit; v++) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\n %d___\t"), v));
 		for (j=0; j<VEC_MAP_WID; j++) {
 			if (vector_map[j][v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %03d"), vector_map[j][v]));
 			}
 			else {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" ---")));
 			}
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n\n\n")));
 	TDM_SML_BAR
 	
@@ -2634,7 +2634,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: preprocessed TDM table terminates at index %0d\n"),
                  cap));
 	/* find loopback TSC */
@@ -2652,7 +2652,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				break;
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: TDM lookback warp core is %0d\n"),
                      cap_tsc));
 		cap_lkbk=1;
@@ -2664,7 +2664,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				break;
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: end of TDM table, lookback spacing is %0d\n"),
                      cap_lkbk));
 		cap_lpbk=1;
@@ -2677,27 +2677,27 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				break;
 			}
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: end of TDM table, loopback spacing is %0d\n"),
                      cap_lpbk));
 		if (cap_lpbk <= cap_lkbk) {
 			cap+=(cap_lkbk-cap_lpbk);
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: postprocessed TDM table terminates at index %0d\n"),
                  cap));
 	
 	if (cap>lr_idx_limit)
 	{
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                   (BSL_META("Could not find solution TDM within max length at %0d MHz\n"), freq));
 		return 0;
 	}
 	else {
 		cap = lr_idx_limit;
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: TDM extended to slot %0d\n"),
                  cap));
 	
@@ -2817,17 +2817,17 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}
 	}
 
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("OS10-%0d, OS20-%0d, OS25-%0d, OS40-%0d, OS50-%0d, OS100-%0d, OS Types - %0d\n"),
                  z1, z2, z6, z3, z5, z4,
                  (os_10 + os_20 + os_25 + os_40 + os_50 + os_100)));	
 	if ((os_10 + os_20 + os_25 + os_40 + os_50 + os_100) > OS_GROUP_NUM) {
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                   (BSL_META("Oversub speed type limit exceeded\n")));
 		return 0;
 	}
 	if (((os_10 + os_20 + os_25 + os_40 + os_50 + os_100)==OS_GROUP_NUM && (z6>_TH_OS_GROUP_LEN || z1>_TH_OS_GROUP_LEN || z2>_TH_OS_GROUP_LEN)) || ((os_10 + os_20 + os_25 + os_40 + os_50 + os_100)>=(OS_GROUP_NUM-1) && (z6>32 || z1>32 || z2>32)) || ((os_10 + os_20 + os_25 + os_40 + os_50 + os_100)>=(OS_GROUP_NUM-2) && (z6>48 || z1>48)) || ((os_10 + os_20 + os_25 + os_40 + os_50 + os_100)>=(OS_GROUP_NUM-3) && (z6>64 || z1>64))) {
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                   (BSL_META("Oversub bucket overflow\n")));
 		return 0;
 	}
@@ -2835,12 +2835,12 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	/* dequeue from all non-empty ovs lists into buckets */
 	if (z6 > 0) {
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scheduling 25G oversub speed groups\n")));
 		while (z6 > 0) {
 			TDM_BIG_BAR
 			while (z6>=_TH_OS_GROUP_LEN) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: currently in abundant sorting\n")));
 				for (v=0; v<4; v++) {
 					/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
@@ -2854,30 +2854,30 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (f=d; f<z6; f++) os25[f] = os25[f+1];
 					}
 					z6-=(1+i);
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc[c][m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc_swap[m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					if (speed[tsc[c][0]]!=SPEED_25G || speed[tsc[c][2]]!=SPEED_25G || speed[tsc[c][1]]!=SPEED_25G || speed[tsc[c][3]]!=SPEED_25G) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: the current TSC is a triport\n")));
 						if (z11 < (_TH_OS_GROUP_LEN/2) ) {
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                              z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2888,7 +2888,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                              z22,
                                              bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
@@ -2900,7 +2900,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                              z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2911,7 +2911,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                              z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2922,7 +2922,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                              z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2933,7 +2933,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                              z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2944,7 +2944,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                              z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2955,7 +2955,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                              z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2968,7 +2968,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                              z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2979,7 +2979,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                              z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -2990,7 +2990,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                              z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3001,7 +3001,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                              z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3012,7 +3012,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                              z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3023,7 +3023,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                              z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3034,7 +3034,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                              z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3045,7 +3045,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                              z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3059,7 +3059,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				}
 			}
 			while (z6<_TH_OS_GROUP_LEN && z6>0) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: currently in scarce sorting\n")));
 				/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 				for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -3073,28 +3073,28 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					for (f=d; f<z6; f++) os25[f] = os25[f+1];
 				}
 				z6-=(1+i);
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc[c][m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc_swap[m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
 				if (speed[tsc[c][0]]!=SPEED_25G || speed[tsc[c][2]]!=SPEED_25G || speed[tsc[c][1]]!=SPEED_25G || speed[tsc[c][3]]!=SPEED_25G) {
 					if (z11 < (_TH_OS_GROUP_LEN/2) ) {
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3105,7 +3105,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3116,7 +3116,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3127,7 +3127,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3138,7 +3138,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3149,7 +3149,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3160,7 +3160,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3171,7 +3171,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3184,7 +3184,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3195,7 +3195,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3206,7 +3206,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3217,7 +3217,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3228,7 +3228,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3239,7 +3239,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3250,7 +3250,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3261,7 +3261,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3270,7 +3270,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 				}
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: z6 pointer position is %0d\n"),
                          z6));
 		}
@@ -3287,12 +3287,12 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 
 	if (z1 > 0) {
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scheduling 10G oversub speed groups\n")));
 		while (z1 > 0) {
 			TDM_BIG_BAR
 			while (z1>=_TH_OS_GROUP_LEN) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: currently in abundant sorting\n")));
 				for (v=0; v<4; v++) {
 					/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
@@ -3306,30 +3306,30 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (f=d; f<z1; f++) os10[f] = os10[f+1];
 					}
 					z1-=(1+i);
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc[c][m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc_swap[m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					if (speed[tsc[c][0]]>=SPEED_20G || speed[tsc[c][2]]>=SPEED_20G || speed[tsc[c][1]]>=SPEED_20G || speed[tsc[c][3]]>=SPEED_20G) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: the current TSC is a triport\n")));
 						if (z11 < (_TH_OS_GROUP_LEN/2) ) {
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                              z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3340,7 +3340,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                              z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3351,7 +3351,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                              z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3362,7 +3362,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                              z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3373,7 +3373,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                              z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3384,7 +3384,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                              z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3395,7 +3395,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                              z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3406,7 +3406,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                              z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3419,7 +3419,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                              z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3430,7 +3430,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                              z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}	
@@ -3441,7 +3441,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                              z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3452,7 +3452,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                              z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3463,7 +3463,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                              z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3474,7 +3474,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                              z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3485,7 +3485,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                              z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3496,7 +3496,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 								bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                              z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 							}
@@ -3507,7 +3507,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				}
 			}
 			while (z1<_TH_OS_GROUP_LEN && z1>0) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: currently in scarce sorting\n")));
 				/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 				for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -3520,28 +3520,28 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					for (f=d; f<z1; f++) os10[f] = os10[f+1];
 				}
 				z1-=(1+i);
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc[c][m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc_swap[m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
 				if (speed[tsc[c][0]]>=SPEED_20G || speed[tsc[c][2]]>=SPEED_20G || speed[tsc[c][1]]>=SPEED_20G || speed[tsc[c][3]]>=SPEED_20G) {
 					if (z11 < (_TH_OS_GROUP_LEN/2) ) {
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3552,7 +3552,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3563,7 +3563,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3574,7 +3574,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3585,7 +3585,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3596,7 +3596,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3607,7 +3607,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3618,7 +3618,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3631,7 +3631,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3642,7 +3642,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}	
@@ -3653,7 +3653,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3664,7 +3664,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3675,7 +3675,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3686,7 +3686,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3697,7 +3697,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3708,7 +3708,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3717,7 +3717,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 				}
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: z1 pointer position is %0d\n"),
                          z1));
 		}
@@ -3734,12 +3734,12 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	
 	if (z2 > 0) {
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scheduling 20G oversub speed groups\n")));
 		while (z2 > 0) {
 			TDM_BIG_BAR
 			while (z2>=_TH_OS_GROUP_LEN) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: currently in abundant sorting\n")));
 				/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 				for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -3752,31 +3752,31 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					for (f=d; f<z2; f++) os20[f] = os20[f+1];
 				}
 				z2-=(1+i);
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc[c][m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc_swap[m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
 				if (speed[tsc[c][0]]<SPEED_20G || speed[tsc[c][2]]<SPEED_20G || speed[tsc[c][1]]<SPEED_20G || speed[tsc[c][3]]<SPEED_20G ||
 					speed[tsc[c][0]]>SPEED_21G_DUAL || speed[tsc[c][2]]>SPEED_21G_DUAL || speed[tsc[c][1]]>SPEED_21G_DUAL || speed[tsc[c][3]]>SPEED_21G_DUAL) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: the current TSC is a triport\n")));
 					if (z11 < (_TH_OS_GROUP_LEN/2) ) {
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3787,7 +3787,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3798,7 +3798,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3809,7 +3809,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3820,7 +3820,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3831,7 +3831,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3842,7 +3842,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3853,7 +3853,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3866,7 +3866,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          (z11+(m*(_TH_OS_GROUP_LEN/4))), bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3877,7 +3877,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          (z22+(m*(_TH_OS_GROUP_LEN/4))), bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}	
@@ -3888,7 +3888,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          (z33+(m*(_TH_OS_GROUP_LEN/4))), bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3899,7 +3899,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          (z44+(m*(_TH_OS_GROUP_LEN/4))), bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3910,7 +3910,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          (z55+(m*(_TH_OS_GROUP_LEN/4))), bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3921,7 +3921,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          (z66+(m*(_TH_OS_GROUP_LEN/4))), bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3932,7 +3932,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          (z77+(m*(_TH_OS_GROUP_LEN/4))), bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3943,7 +3943,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          (z88+(m*(_TH_OS_GROUP_LEN/4))), bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -3953,7 +3953,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 				}
 			}
 			while (z2<_TH_OS_GROUP_LEN && z2>0) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: currently in scarce sorting\n")));
 				/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 				for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -3966,21 +3966,21 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					for (f=d; f<z2; f++) os20[f] = os20[f+1];
 				}
 				z2-=(1+i);
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc[c][m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc_swap[m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));				
 				if (speed[tsc[c][0]]<SPEED_20G || speed[tsc[c][2]]<SPEED_20G || speed[tsc[c][1]]<SPEED_20G || speed[tsc[c][3]]<SPEED_20G ||
 					speed[tsc[c][0]]>SPEED_21G_DUAL || speed[tsc[c][2]]>SPEED_21G_DUAL || speed[tsc[c][1]]>SPEED_21G_DUAL || speed[tsc[c][3]]>SPEED_21G_DUAL) {
@@ -3988,7 +3988,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          (z11+(m*(_TH_OS_GROUP_LEN/2))), bucket1[z11+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -3999,7 +3999,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          (z22+(m*(_TH_OS_GROUP_LEN/2))), bucket2[z22+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}	
@@ -4010,7 +4010,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          (z33+(m*(_TH_OS_GROUP_LEN/2))), bucket3[z33+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -4021,7 +4021,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          (z44+(m*(_TH_OS_GROUP_LEN/2))), bucket4[z44+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -4032,7 +4032,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          (z55+(m*(_TH_OS_GROUP_LEN/2))), bucket5[z55+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -4043,7 +4043,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          (z66+(m*(_TH_OS_GROUP_LEN/2))), bucket6[z66+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -4054,7 +4054,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                                   (z77+(m*(_TH_OS_GROUP_LEN/2))), bucket7[z77+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -4065,7 +4065,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          (z88+(m*(_TH_OS_GROUP_LEN/2))), bucket8[z88+(m*(_TH_OS_GROUP_LEN/2) )]));
 						}
@@ -4078,7 +4078,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          (z11+(m*(_TH_OS_GROUP_LEN/4))), bucket1[z11+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4089,7 +4089,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          (z22+(m*(_TH_OS_GROUP_LEN/4))), bucket2[z22+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}	
@@ -4100,7 +4100,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          (z33+(m*(_TH_OS_GROUP_LEN/4))), bucket3[z33+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4111,7 +4111,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          (z44+(m*(_TH_OS_GROUP_LEN/4))), bucket4[z44+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4122,7 +4122,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          (z55+(m*(_TH_OS_GROUP_LEN/4))), bucket5[z55+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4133,7 +4133,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          (z66+(m*(_TH_OS_GROUP_LEN/4))), bucket6[z66+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4144,7 +4144,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          (z77+(m*(_TH_OS_GROUP_LEN/4))), bucket7[z77+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4155,7 +4155,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          (z88+(m*(_TH_OS_GROUP_LEN/4))), bucket8[z88+(m*(_TH_OS_GROUP_LEN/4) )]));
 						}
@@ -4164,7 +4164,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 				}
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: z2 pointer position is %0d\n"),
                          z2));
 		}
@@ -4181,7 +4181,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	
 	if (z3 > 0) {
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scheduling 40G oversub speed groups\n")));
 		while (z3 > 0) {
 			TDM_BIG_BAR
@@ -4189,26 +4189,26 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			for (a=0; a<NUM_TSC; a++) for (b=0; b<4; b++) if (tsc[a][b] == os40[z3]) c=a;
 			if (speed[tsc[c][0]]<SPEED_40G || speed[tsc[c][2]]<SPEED_40G || speed[tsc[c][1]]<SPEED_40G || speed[tsc[c][3]]<SPEED_40G ||
 				speed[tsc[c][0]]>SPEED_42G || speed[tsc[c][2]]>SPEED_42G || speed[tsc[c][1]]>SPEED_42G || speed[tsc[c][3]]>SPEED_42G) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc[c][m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
 				tsc_swap[0] = os40[z3]; 
 				os40[z3] = _TH_NUM_EXT_PORTS;
 				z3--;
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc_swap[m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: the current TSC is a triport\n")));				
 				if (z11 < _TH_OS_GROUP_LEN) {
 					q=0;
@@ -4223,7 +4223,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket1[z11] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                      z11, bucket1[z11]));
 					}
@@ -4243,7 +4243,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket2[z22] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                      z22, bucket2[z22]));
 					}
@@ -4263,7 +4263,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket3[z33] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                      z33, bucket3[z33]));
 					}
@@ -4283,7 +4283,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket4[z44] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                      z44, bucket4[z44]));
 					}
@@ -4303,7 +4303,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket5[z55] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                      z55, bucket5[z55]));
 					}
@@ -4323,7 +4323,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket6[z66] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                      z66, bucket6[z66]));
 					}
@@ -4343,7 +4343,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket7[z77] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                      z77, bucket7[z77]));
 					}
@@ -4363,7 +4363,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket8[z88] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                      z88, bucket8[z88]));
 					}
@@ -4375,16 +4375,16 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			else {
 				while (z3>=(_TH_OS_GROUP_LEN/2))
 				{
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: currently in abundant sorting\n")));
 					for (a=0; a<NUM_TSC; a++) for (b=0; b<4; b++) if (tsc[a][b] == os40[z3]) c=a;
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc[c][m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 					for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -4398,19 +4398,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (f=d; f<z3; f++) os40[f] = os40[f+1];
 					}
 					z3-=(1+i);
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc_swap[m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					if ((2*z11) <= _TH_OS_GROUP_LEN-i) {
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4421,7 +4421,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4432,7 +4432,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4443,7 +4443,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))]));
 						}								
@@ -4454,7 +4454,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))]));
 						}								
@@ -4465,7 +4465,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))]));
 						}								
@@ -4476,7 +4476,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))]));
 						}								
@@ -4487,7 +4487,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))]));
 						}								
@@ -4497,16 +4497,16 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					TDM_SML_BAR
 				}
 				while (z3<(_TH_OS_GROUP_LEN/2) && z3>0) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: currently in scarce sorting\n")));
 					for (a=0; a<NUM_TSC; a++) for (b=0; b<4; b++) if (tsc[a][b] == os40[z3]) c=a;
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc[c][m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 					for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -4519,19 +4519,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (f=d; f<z3; f++) os40[f] = os40[f+1];
 					}
 					z3-=(1+i);
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc_swap[m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					if ((2*z11) <= _TH_OS_GROUP_LEN-i) {
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4542,7 +4542,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4553,7 +4553,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4564,7 +4564,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4575,7 +4575,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4586,7 +4586,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4597,7 +4597,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4608,7 +4608,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4618,7 +4618,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					TDM_SML_BAR
 				}
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: z3 pointer position is %0d\n"),
                          z3));
 		}
@@ -4635,33 +4635,33 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	
 	if (z5 > 0) {
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scheduling 50G oversub speed groups\n")));
 		while (z5 > 0) {
 			TDM_BIG_BAR
 			for (a=0; a<NUM_TSC; a++) for (b=0; b<4; b++) if (tsc[a][b] == os50[z5]) c=a;
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: TSC lookup: ")));
 			for (m=0; m<4; m++) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d "), tsc[c][m]));
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\n")));
 			/* all triport 50G ports are orphans */
 			if (speed[tsc[c][0]]!=SPEED_50G || speed[tsc[c][2]]!=SPEED_50G || speed[tsc[c][1]]!=SPEED_50G || speed[tsc[c][3]]!=SPEED_50G) {
 				tsc_swap[0] = os50[z5]; 
 				os50[z5] = _TH_NUM_EXT_PORTS;
 				z5--;
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 				for (m=0; m<4; m++) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META(" %0d "), tsc_swap[m]));
 				}
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: the current TSC is a triport\n")));
 				if (z11 < _TH_OS_GROUP_LEN) {
 					q=0;
@@ -4676,7 +4676,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket1[z11] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 1: pointer at %0d triport content is %0d\n"),
                                      z11, bucket1[z11]));
 					}
@@ -4696,7 +4696,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket2[z22] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 2: pointer at %0d triport content is %0d\n"),
                                      z22, bucket2[z22]));
 					}
@@ -4716,7 +4716,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket3[z33] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 3: pointer at %0d triport content is %0d\n"),
                                      z33, bucket3[z33]));
 					}
@@ -4736,7 +4736,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket4[z44] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 4: pointer at %0d triport content is %0d\n"),
                                      z44, bucket4[z44]));
 					}
@@ -4756,7 +4756,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket5[z55] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 5: pointer at %0d triport content is %0d\n"),
                                      z55, bucket5[z55]));
 					}
@@ -4776,7 +4776,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket6[z66] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 6: pointer at %0d triport content is %0d\n"),
                                      z66, bucket6[z66]));
 					}
@@ -4796,7 +4796,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket7[z77] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 7: pointer at %0d triport content is %0d\n"),
                                      z77, bucket7[z77]));
 					}
@@ -4816,7 +4816,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 					if (q<_TH_OS_GROUP_LEN) {
 						bucket8[z88] = tsc_swap[0];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: Speed Bin 8: pointer at %0d triport content is %0d\n"),
                                      z88, bucket8[z88]));
 					}
@@ -4826,7 +4826,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 			}
 			else {
 				while (z5>=(_TH_OS_GROUP_LEN/2)) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: currently in abundant sorting\n")));
 					for (v=0; v<3; v++) {
 						/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
@@ -4841,20 +4841,20 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 							for (f=d; f<z5; f++) os50[f] = os50[f+1];
 						}
 						z5-=(1+i);
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 						for (m=0; m<4; m++) {
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META(" %0d "), tsc_swap[m]));
 						}
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("\n")));
 						if ((2*z11) <= _TH_OS_GROUP_LEN-i) {
 							for (m = 0; m <= i; m++) {
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z11+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                                  z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4867,7 +4867,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z22+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                                  z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4880,7 +4880,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z33+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                                  z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4893,7 +4893,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z44+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                                  z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4906,7 +4906,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z55+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                                  z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4919,7 +4919,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z66+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                                  z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4932,7 +4932,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z77+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                                  z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4945,7 +4945,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 								/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */
 								if ( (z88+(m*(_TH_OS_GROUP_LEN/2))) < _TH_OS_GROUP_LEN ) {
 									bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-									LOG_VERBOSE(BSL_LS_SOC_TDM,
+									LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                 (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                                  z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))]));
 								}
@@ -4956,7 +4956,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 				}
 				while (z5<(_TH_OS_GROUP_LEN/2) && z5>0) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: currently in scarce sorting\n")));
 					/* 1G, 10G, and 20G need additional mutable stack to ensure no TSC splitting */
 					for (i = 0; i < 4; i++) tsc_swap[i] = _TH_NUM_EXT_PORTS;
@@ -4970,19 +4970,19 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (f=d; f<z5; f++) os50[f] = os50[f+1];
 					}
 					z5-=(1+i);
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Buffer fetch: ")));
 					for (m=0; m<4; m++) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META(" %0d "), tsc_swap[m]));
 					}
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\n")));
 					if ((2*z11) <= _TH_OS_GROUP_LEN-i) {
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                                          z11, bucket1[z11+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -4993,7 +4993,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                                          z22, bucket2[z22+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5004,7 +5004,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                                          z33, bucket3[z33+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5015,7 +5015,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                                          z44, bucket4[z44+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5026,7 +5026,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                                          z55, bucket5[z55+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5037,7 +5037,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                                          z66, bucket6[z66+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5048,7 +5048,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                                          z77, bucket7[z77+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5059,7 +5059,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 						for (m = 0; m <= i; m++) {
 							/* if (tsc_swap[m] != _TH_NUM_EXT_PORTS) */ 
 							bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))] = tsc_swap[m];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                                          z88, bucket8[z88+(m*(_TH_OS_GROUP_LEN/2))]));
 						}
@@ -5068,7 +5068,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 					}
 				}
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: z5 pointer position is %0d\n"),
                          z5));
 		}
@@ -5085,11 +5085,11 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 	
 	while (z4 > 0) {
 		TDM_BIG_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scheduling 100G oversub speed groups\n")));
 		if (z11 < _TH_OS_GROUP_LEN) {
 			bucket1[z11] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 1: pointer at %0d content is %0d\n"),
                          z11, bucket1[z11]));
 			timeout=TIMEOUT;
@@ -5098,7 +5098,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}
 		else if (z22 < _TH_OS_GROUP_LEN) {
 			bucket2[z22] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 2: pointer at %0d content is %0d\n"),
                          z22, bucket2[z22]));
 			timeout=TIMEOUT;
@@ -5107,7 +5107,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}
 		else if (z33 < _TH_OS_GROUP_LEN) {
 			bucket3[z33] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 3: pointer at %0d content is %0d\n"),
                          z33, bucket3[z33]));
 			timeout=TIMEOUT;
@@ -5116,7 +5116,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}
 		else if (z44 < _TH_OS_GROUP_LEN) {
 			bucket4[z44] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 4: pointer at %0d content is %0d\n"),
                          z44, bucket4[z44]));
 			timeout=TIMEOUT;
@@ -5125,7 +5125,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}
 		else if (z55 < _TH_OS_GROUP_LEN) {
 			bucket5[z55] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 5: pointer at %0d content is %0d\n"),
                          z55, bucket5[z55]));
 			timeout=TIMEOUT;
@@ -5134,7 +5134,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}		
 		else if (z66 < _TH_OS_GROUP_LEN) {
 			bucket6[z66] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 6: pointer at %0d content is %0d\n"),
                          z66, bucket6[z66]));
 			timeout=TIMEOUT;
@@ -5143,7 +5143,7 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}		
 		else if (z77 < _TH_OS_GROUP_LEN) {
 			bucket7[z77] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 7: pointer at %0d content is %0d\n"),
                          z77, bucket7[z77]));
 			timeout=TIMEOUT;
@@ -5152,14 +5152,14 @@ int TDM_scheduler_2d(FILE *file, int freq, enum port_speed speed[_TH_NUM_EXT_POR
 		}		
 		else {
 			bucket8[z88] = os100[z4];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: Speed Bin 8: pointer at %0d content is %0d\n"),
                          z88, bucket8[z88]));
 			timeout=TIMEOUT;
 			do {z88++; if (z88>=_TH_OS_GROUP_LEN) {break;}} while ((bucket8[z88]!=_TH_NUM_EXT_PORTS) && ((--timeout)>0));
 			z4--;
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: z4 pointer position is %0d\n"),
                      z4));
 		TDM_BIG_BAR
@@ -5467,9 +5467,9 @@ int TDM_scheduler_nodal_transmute_lr(unsigned char **map, int freq, enum port_sp
 	if ( (TDM_scheduler_fit_singular_cnt(map,shift)==0) && (TDM_scheduler_fit_prox_node(map,shift,lr_vec_cnt,col,tsc,shift)==PASS) ) {
 		if (tdm_abs(row-shift) > jitter) {
 			#ifdef _SET_TDM_DEV
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\n")));
-			LOG_WARN(BSL_LS_SOC_TDM,
+			LOG_BSL_WARN(BSL_LS_SOC_TDM,
                      (BSL_META("Node transmute @ [%0d,%0d] shift %0d will exceed jitter threshold by %0d\n"),
                       col,row,shift,tdm_abs(row-shift)));
 			#endif
@@ -5477,7 +5477,7 @@ int TDM_scheduler_nodal_transmute_lr(unsigned char **map, int freq, enum port_sp
 		map[col][shift]=map[col][row];
 		map[col][row]=_TH_NUM_EXT_PORTS;
 		#ifdef _SET_TDM_DEV
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\n\tNode %0d transmute for line rate @ [%0d,%0d] shift %0d\n\n"),
                      map[col][shift],col,row,shift));
 		#endif
@@ -5490,7 +5490,7 @@ int TDM_scheduler_nodal_transmute_lr(unsigned char **map, int freq, enum port_sp
 				map[col][row]=map[col][shift];
 				map[col][shift]=_TH_NUM_EXT_PORTS;
 				#ifdef _SET_TDM_DEV
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\tReverted illegal transmute at [%0d,%0d]=%0d\n"),
                              col,shift,map[col][row]));
 				#endif
@@ -5526,7 +5526,7 @@ int TDM_scheduler_nodal_slice(unsigned char **map, int freq, enum port_speed spe
 			}
 			if (node_transmuted == BOOL_TRUE) {
 				#ifdef _SET_TDM_DEV
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n\tNode %0d transmute for slice @ [%0d,%0d] shift %0d\n"),
                              map[col][row+1],col,row,(row+1)));
 				#endif
@@ -5540,7 +5540,7 @@ int TDM_scheduler_nodal_slice(unsigned char **map, int freq, enum port_speed spe
 					map[col][row]=map[col][row+1];
 					map[col][row+1]=_TH_NUM_EXT_PORTS;
 					#ifdef _SET_TDM_DEV
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\tReverted illegal transmute at [%0d,%0d]=%0d\n"),
                                  col,row,map[col][row]));
 					#endif
@@ -5559,7 +5559,7 @@ int TDM_scheduler_nodal_slice(unsigned char **map, int freq, enum port_speed spe
 			}
 			if (node_transmuted == BOOL_TRUE) {
 				#ifdef _SET_TDM_DEV
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n\tNode %0d transmute for slice @ [%0d,%0d] shift %0d\n"),
                              map[col][row-1],col,row,(row-1)));
 				#endif
@@ -5573,7 +5573,7 @@ int TDM_scheduler_nodal_slice(unsigned char **map, int freq, enum port_speed spe
 					map[col][row]=map[col][row-1];
 					map[col][row-1]=_TH_NUM_EXT_PORTS;
 					#ifdef _SET_TDM_DEV
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\tReverted illegal transmute at [%0d,%0d]=%0d\n"),
                                  col,row,map[col][row]));
 					#endif
@@ -5615,7 +5615,7 @@ int TDM_scheduler_nodal_slice_lr(unsigned char **map, int freq, enum port_speed 
 			}
 			if (node_transmuted == BOOL_TRUE) {
 				#ifdef _SET_TDM_DEV
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n\tNode %0d transmute for slice @ [%0d,%0d] shift %0d\n"),
                              map[col][row+1],col,row,(row+1)));
 				#endif
@@ -5629,7 +5629,7 @@ int TDM_scheduler_nodal_slice_lr(unsigned char **map, int freq, enum port_speed 
 					map[col][row]=map[col][row+1];
 					map[col][row+1]=_TH_NUM_EXT_PORTS;
 					#ifdef _SET_TDM_DEV
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\tReverted illegal transmute at [%0d,%0d]=%0d\n"),
                                  col,row,map[col][row]));
 					#endif
@@ -5655,7 +5655,7 @@ int TDM_scheduler_nodal_slice_lr(unsigned char **map, int freq, enum port_speed 
 			}
 			if (node_transmuted == BOOL_TRUE) {
 				#ifdef _SET_TDM_DEV
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("\n\tNode %0d transmute for slice @ [%0d,%0d] shift %0d\n"),
                              map[col][row-1],col,row,(row-1)));
 				#endif
@@ -5669,7 +5669,7 @@ int TDM_scheduler_nodal_slice_lr(unsigned char **map, int freq, enum port_speed 
 					map[col][row]=map[col][row-1];
 					map[col][row-1]=_TH_NUM_EXT_PORTS;
 					#ifdef _SET_TDM_DEV
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("\tReverted illegal transmute at [%0d,%0d]=%0d\n"),
                                  col,row,map[col][row]));
 					#endif
@@ -5702,7 +5702,7 @@ int TDM_scheduler_nodal_transmute(unsigned char **vector_map, int freq, enum por
 			vector_map[col][row]=_TH_NUM_EXT_PORTS;
 			node_transmuted = BOOL_TRUE;
 			#ifdef _SET_TDM_DEV
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("transmuted [%0d,%0d]=%0d down\n"),
                          col,row,vector_map[col][row+1]));
 			#endif
@@ -5713,7 +5713,7 @@ int TDM_scheduler_nodal_transmute(unsigned char **vector_map, int freq, enum por
 			vector_map[col][row]=_TH_NUM_EXT_PORTS;
 			node_transmuted = BOOL_TRUE;
 			#ifdef _SET_TDM_DEV
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("transmuted [%0d,%0d]=%0d up\n"),
                          col,row,vector_map[col][row-1]));
 			#endif
@@ -5730,7 +5730,7 @@ int TDM_scheduler_nodal_transmute(unsigned char **vector_map, int freq, enum por
 					vector_map[col][row+1]=_TH_NUM_EXT_PORTS;
 				}
 				#ifdef _SET_TDM_DEV
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("reverted illegal transmute at [%0d,%0d]=%0d\n"),
                              col,row,vector_map[col][row]));
 				#endif
@@ -5950,7 +5950,7 @@ void TDM_scheduler_filter_dither(int tdm_tbl[256], int lr_idx_limit, int accesso
 			tdm_tbl[k]=l;
 		}
 		else {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: Filter applied: Dither (quantization correction)\n")));
 		}
 	}
@@ -5986,7 +5986,7 @@ int TDM_scheduler_filter_fine_dither(int port, int tdm_tbl[256], int lr_idx_limi
 		}
 	}
 	if (fine_dither_done) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Filter applied: Fine dithering (normal), index %0d\n"),
                      port));
 		/* Split new slice at original index */
@@ -6020,7 +6020,7 @@ void TDM_scheduler_filter_ancillary_smooth(int port, int tdm_tbl[256], int lr_id
 			if (TDM_scheduler_slice_size_local((i-j),tdm_tbl,(lr_idx_limit+accessories))==1) {
 				/* Prevent cumulative sop to mop cycle delay */
 				if (++ancillary_slice_counter==2) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Filter applied: Smooth ancillary slots, index %0d\n"),
                                  port));
 					/* Destructively shift slice with ancillary token */
@@ -6050,7 +6050,7 @@ void TDM_scheduler_filter_refactor(int tdm_tbl[256], int lr_idx_limit, int acces
 	int g, i, j, l;
 	unsigned char os_re_pool=0, os_re_tdm_len=0, os_re_spacing=0, os_re_spacing_last=0;
 
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: Filter applied: Refactor table list\n")));
 	for (i=0; i<255; i++) {
 		if (tdm_tbl[i]==OVSB_TOKEN) {
@@ -6104,7 +6104,7 @@ void TDM_scheduler_filter_local_slice_dn(int port, int tdm_tbl[256], int tsc[NUM
 		}
 	}
 	if (pp_prox) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Filter applied: Local Slice, Down, index %0d\n"),
                      port));
 		tdm_tbl[i+1]=tdm_tbl[i];
@@ -6134,7 +6134,7 @@ void TDM_scheduler_filter_local_slice_up(int port, int tdm_tbl[256], int tsc[NUM
 		}
 	}
 	if (pp_prox) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Filter applied: Local Slice, Up, index %0d\n"),
                      port));
 		tdm_tbl[i-1]=tdm_tbl[i];
@@ -6157,7 +6157,7 @@ void TDM_scheduler_filter_local_slice_oversub(int tdm_tbl[256], int lr_idx_limit
 		if ( (TDM_scheduler_slice_size(OVSB_TOKEN,tdm_tbl,lr_idx_limit)>(TDM_scheduler_slice_size(1,tdm_tbl,lr_idx_limit)+1)) ) {
 			g=TDM_scheduler_slice_idx(OVSB_TOKEN,tdm_tbl,lr_idx_limit);
 			if (TDM_scheduler_slice_prox_dn((g-1),tdm_tbl,lr_idx_limit,tsc)) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Filter applied: Local slice oversub index %0d\n"),
                              g));
 				tdm_tbl[g]=tdm_tbl[g-1];
@@ -6173,7 +6173,7 @@ void TDM_scheduler_filter_local_slice_oversub(int tdm_tbl[256], int lr_idx_limit
 			}
 			else if (TDM_scheduler_slice_prox_up(g,tdm_tbl,tsc)) {
 				if (g!=last_g) {
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: Filter applied: Local slice oversub index %0d\n"),
                                  g));
 					tdm_tbl[g-1]=tdm_tbl[g];
@@ -6209,7 +6209,7 @@ int TDM_scheduler_filter_slice_dn(int port, int tdm_tbl[256], int lr_idx_limit, 
 			tdm_tbl[i]=OVSB_TOKEN;
 		}
 		if (slice_translation_done) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: Filter applied: Slice translation, Down, index %0d\n"),
                          port));
 			i++;
@@ -6245,7 +6245,7 @@ int TDM_scheduler_filter_slice_up(int port, int tdm_tbl[256], int lr_idx_limit, 
 				tdm_tbl[i]=OVSB_TOKEN;
 			}
 			if (slice_translation_done) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: Filter applied: Slice translation, Up, index %0d\n"),
                              port));
 				i--;
@@ -6270,41 +6270,41 @@ void TDM_scheduler_vector_dump(FILE *file, unsigned char **map, int idx)
 #ifdef _SET_TDM_DEV
 	int j, v;
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("           ")));
 	for (v=0; v<VEC_MAP_WID; v++) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("%d"), v));
 		if ((v+1)<VEC_MAP_WID) {
 			if ((v+1)/10==0) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("___")));
 			}
 			else {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("__")));
 			}
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
 	for (v=0; v<idx; v++) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\n %d___\t"), v));
 		for (j=0; j<VEC_MAP_WID; j++) {
 			if (map[j][v]!=_TH_NUM_EXT_PORTS) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %03d"), map[j][v]));
 			}
 			else {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" ---")));
 			}
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
 #endif
 }
@@ -6322,7 +6322,7 @@ void print_tsc(FILE *file, int wc_array[NUM_TSC][4])
 	
   	for(i=0; i<NUM_TSC; i++) {
       	for (j=0; j<4; j++) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("Warpcore #%0d, subport #%0d, contains physical port #%0d\n"),
                          i, j, wc_array[i][j]));
       	}
@@ -6346,17 +6346,17 @@ void TH_print_tdm_tbl(FILE *file, int pgw_tdm_tbl[32], const char* name)
 		switch (pgw_tdm_tbl[j])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, TDM Calendar, element #%0d, contains an invalid or disabled port\n"),
                              name, j));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, TDM Calendar, element #%0d, contains an oversubscription token\n"),
                              name, j));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, TDM Calendar, element #%0d, contains physical port #%0d\n"),
                              name, j, pgw_tdm_tbl[j]));
 				break;
@@ -6375,218 +6375,218 @@ void TH_print_tbl_summary(FILE *file, int x0[32], int x1[32], int y0[32], int y1
 {
 	int t;
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: TDM: core bandwidth is %0d\n"),
                  bw));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: X0, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (x0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), x0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: X0, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (ox0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), ox0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: X0, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sx0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), sx0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: X1, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (x1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), x1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: X1, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (ox1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), ox1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: X1, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sx1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), sx1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: Y0, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (y0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), y0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: Y0, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (oy0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), oy0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: Y0, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sy0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), sy0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: Y1, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (y1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), y1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: Y1, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (oy1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), oy1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\nTDM: Y1, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sy1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META(" %0d"), sy1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
 }
 
@@ -7009,11 +7009,11 @@ int TDM_scheduler_table_scan(FILE *file, unsigned short yy, unsigned short spaci
 	do {
 		prox_chk=PASS;
 		TDM_SML_BAR
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: Scanning table pointer %0d\n"),
                      yy));
 		if (yy>=3 && yy<252) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("[%0d] | (%0d)(%0d)(%0d)[[%0d]](%0d)(%0d)(%0d)\n"),
                          which_tsc(stack[stack_pointer],tsc), which_tsc(tdm_tbl[yy-3],tsc),which_tsc(tdm_tbl[yy-2],tsc),which_tsc(tdm_tbl[yy-1],tsc),which_tsc(tdm_tbl[yy],tsc),which_tsc(tdm_tbl[yy+1],tsc),which_tsc(tdm_tbl[yy+2],tsc),which_tsc(tdm_tbl[yy+3],tsc)));		
 		}
@@ -7037,7 +7037,7 @@ int TDM_scheduler_table_scan(FILE *file, unsigned short yy, unsigned short spaci
 		}
 		if ((yy+(spacing*(TDM_scheduler_slots(speed)-1))) >= limit) {
 			TDM_SML_BAR
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("could not schedule %0dG vector for port %0d, breaking table pointer scan\n"),
                          speed, stack[stack_pointer]));
 			break;
@@ -7402,24 +7402,24 @@ void TDM_scheduler_weight_update(unsigned char **map, int lim, int weights[VEC_M
 		weights[i]=TDM_scheduler_map_shortest_distance(map,lim,span,(span-i));
 	}
 	#ifdef _SET_TDM_DEV
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("Analyzing TDM matrix...\n")));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\tvector %0d | subpass %0d | threshold %0d\n"),
                  span,mpass,((lim/lr_slot_cnt)+VECTOR_ISOLATION)));
 	#endif
 	for (i=1; i<=span; i++) {
 		weights_cmp[i]=tdm_abs(weights[i]-weights_last[i]);
 		#ifdef _SET_TDM_DEV
-        LOG_VERBOSE(BSL_LS_SOC_TDM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\tDR_weight_last[%0d]=%03d | DR_weight[%0d]=%03d | DR_weight_cmp[%0d]=%03d\n"),
                      i,weights_last[i],i,weights[i],i,weights_cmp[i]));
 		#endif
 	}
 	#ifdef _SET_TDM_DEV
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
 	#endif
 }
@@ -7642,12 +7642,12 @@ void parse_tdm_tbl(FILE *file, int mgmt_bw, int tdm_tbl[256], int tdm_ovs_a[_TH_
    
 	for (j=0; j<256; j++) {
 		if (tdm_tbl[j]!=ACC_TOKEN) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: PIPE: %d, %s TDM TABLE, element #%0d, contains physical port #%0d\n"),
                          pipe, name, j, tdm_tbl[j]));
 		}
 		else {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: PIPE: %d, %s TDM TABLE, element #%0d, CONTAINS ACCESSORY TOKEN - assigned as "),
                          pipe, name, j));
 			m++;
@@ -7768,49 +7768,49 @@ void parse_tdm_tbl(FILE *file, int mgmt_bw, int tdm_tbl[256], int tdm_ovs_a[_TH_
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 0, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_a[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 1, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_b[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 2, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_c[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 3, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_d[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 4, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_e[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 5, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_f[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 6, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_g[j]));
 	}
 	for (j=0; j<_TH_OS_GROUP_LEN; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: PIPE: %d, %s OVS BUCKET 7, element #%0d, contains physical port #%0d\n"),
                      pipe, name, j, tdm_ovs_h[j]));
 	}
@@ -7828,35 +7828,35 @@ void TDM_scheduler_parse_pipe(FILE *file, enum port_speed speed[_TH_NUM_EXT_PORT
 	int iter, iter2;
 
 	/* Summarize the port config in this quadrant */
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: --- Pipe Config ---: ")));
 	for (iter=pipe_start; iter<=pipe_end; iter++) {
 		if ((((iter-1)%16)==0)) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\nTDM: ")));
 		}		
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("{%03d}\t"),
                      (iter)));
 		if (iter%16==0) {
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\nTDM: ")));
 			for (iter2=(iter-16); iter2<iter; iter2++) {
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("%d\t"),
                              speed[iter2+1]));
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\nTDM: ")));
 			for (iter2=(iter-16); iter2<iter; iter2++) {
 				if ((iter2-1)%4==0) {
 					switch (portmap[iter2-1]) {
 						case 1:
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("LINE\t---\t---\t---\t")));
 							break;
 						case 2:
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("OVSB\t---\t---\t---\t")));
 							break;
 						default:
@@ -7864,17 +7864,17 @@ void TDM_scheduler_parse_pipe(FILE *file, enum port_speed speed[_TH_NUM_EXT_PORT
 					}
 				}
 			}
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("\nTDM: ")));
 			for (iter2=(iter-16); iter2<iter; iter2++) {
 				if ((iter2-1)%4==0) {
 					switch (traffic[which_tsc((iter2+1), tsc)]) {
 						case 999:
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("HIGIG2\t---\t---\t---\t")));
 							break;
 						case 998:
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                         (BSL_META("ETHRNT\t---\t---\t---\t")));
 							break;
 						default:
@@ -7884,7 +7884,7 @@ void TDM_scheduler_parse_pipe(FILE *file, enum port_speed speed[_TH_NUM_EXT_PORT
 			}
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("\n")));
 	TDM_BIG_BAR
 
@@ -7930,7 +7930,7 @@ int TDM_scheduler_wrap(FILE *file, int bw, enum port_speed speed[_TH_NUM_EXT_POR
 				idx1++;
 			}
 			else {
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Line rate queue overflow, ports may have been skipped.\n")));
 			}
 		}
@@ -7940,7 +7940,7 @@ int TDM_scheduler_wrap(FILE *file, int bw, enum port_speed speed[_TH_NUM_EXT_POR
 				idx2++;
 			}
 			else {
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Oversub queue overflow, ports may have been skipped.\n")));
 			}
 		}
@@ -7968,7 +7968,7 @@ int TDM_scheduler_wrap(FILE *file, int bw, enum port_speed speed[_TH_NUM_EXT_POR
 			case 645: lr_idx_limit=(LEN_645MHZ_EN-acc); break; /* 645MHz (160+10)*2.65G */
 			case 545: lr_idx_limit=(LEN_545MHZ_EN-acc); break; /* 545MHz (133+10)*2.65G */	
 			default:
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Invalid frequency\n")));
 				return 0;
 				break;
@@ -7985,7 +7985,7 @@ int TDM_scheduler_wrap(FILE *file, int bw, enum port_speed speed[_TH_NUM_EXT_POR
 			case 645: lr_idx_limit=(LEN_645MHZ_HG-acc); break; /* 645MHz (153+10)*2.65G */
 			case 545: lr_idx_limit=(LEN_545MHZ_HG-acc); break; /* 545MHz (128+10)*2.65G */
 			default:
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("Invalid frequency\n")));
 				return 0;
 				break;
@@ -8225,7 +8225,7 @@ int TH_set_tdm_tbl(th_tdm_globals_t *tdm_globals, th_tdm_pipes_t *tdm_pipe_table
 		checkpoint[i]=1;
 	}
 	for (i=0; i<(_TH_NUM_EXT_PORTS-6); i++) {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("the speed for port %0d is %0d state %0d\n"),
                      i, speed[i], port_state_map[i-1]));
 	}
@@ -8235,7 +8235,7 @@ int TH_set_tdm_tbl(th_tdm_globals_t *tdm_globals, th_tdm_pipes_t *tdm_pipe_table
 	print_tsc(file, tsc_array);
 
 	TDM_BIG_BAR
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("TDM: _____VERBOSE: the chip frequency is %0d\n"),
                  freq));
 	TDM_BIG_BAR
@@ -8259,19 +8259,19 @@ int TH_set_tdm_tbl(th_tdm_globals_t *tdm_globals, th_tdm_pipes_t *tdm_pipe_table
 
 	if (checkpoint[0]==0||checkpoint[1]==0||checkpoint[2]==0||checkpoint[3]==0) {
 		if (checkpoint[0]==0) {
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("Pipe 0 failed to schedule\n")));
         }
 		if (checkpoint[1]==0) {
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("Pipe 1 failed to schedule\n")));
         }
 		if (checkpoint[2]==0) {
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("Pipe 2 failed to schedule\n")));
         }
 		if (checkpoint[3]==0) {
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("Pipe 3 failed to schedule\n")));
         }
 		#ifdef _SET_TDM_DUMP
@@ -8323,7 +8323,7 @@ int set_tdm_tbl_tdm56(enum port_speed speed[_TH_NUM_EXT_PORTS], int tdm_bw,
 			Y Pipe (2) Ports - 65, 69, 73, 77 + 81 + 85 + 131 + 134
 			Z Pipe (3) Ports - 97, 101, 105, 109 + 113 + 125 + 130 + 135 */
 			
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: TDM 56 Hard Coded 24x100G Configuration\n\tPipe 0 Ports - 1, 5, 9, 13 + 0 + 132\n\tPipe 1 Ports - 33, 37, 41, 45 + 129 + 133\n\tPipe 2 Ports - 65, 69, 73, 77 + 131 + 134\n\tPipe 3 Ports - 97, 101, 105, 109 + 130 + 135\n")));
 
 		for (i=0; i<12; i++) {

@@ -822,7 +822,7 @@ int bcm_common_macsec_config_print(uint32 level)
     uint32  flag = BMACSEC_PRINT_PRINTF;
 
 #if defined(BROADCOM_DEBUG)
-    if (LOG_CHECK(BSL_LS_BCM_MACSEC | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_BCM_MACSEC | BSL_INFO)) {
         flag |= BMACSEC_PRINT_DEBUG;
     }
 #endif /* BROADCOM_DEBUG */

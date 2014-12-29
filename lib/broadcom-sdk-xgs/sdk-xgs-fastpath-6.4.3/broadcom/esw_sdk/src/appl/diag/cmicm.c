@@ -196,7 +196,7 @@ mspi_cmd(int unit, args_t *a)
         if (rv != CMD_OK) {
             return rv;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "MSPI: Writing %d bytes from file %s\n"), wbytes, filename));
         for(start_byte=0; start_byte < wbytes; start_byte+=CMICM_MSPI_BLOCK_SIZE) {
@@ -260,7 +260,7 @@ mspi_cmd(int unit, args_t *a)
             cli_out("MSPI: Too many bytes for single Write-read operation\n");
             return(CMD_FAIL);
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "MSPI: Writing %d bytes and Reading %d bytes\n"),
                      wbytes, rbytes));
@@ -269,7 +269,7 @@ mspi_cmd(int unit, args_t *a)
             return CMD_FAIL;
         }
     } else if (wbytes > 0){     /* Write Only */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "MSPI: Writing %d bytes\n"), wbytes));
         for(start_byte=0; start_byte < wbytes; start_byte+=CMICM_MSPI_BLOCK_SIZE) {
@@ -281,7 +281,7 @@ mspi_cmd(int unit, args_t *a)
             }
         }
     } else if (rbytes > 0){     /* Read Only */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "MSPI: Reading %d bytes\n"), rbytes));
         for(start_byte=0; start_byte < rbytes; start_byte+=CMICM_MSPI_BLOCK_SIZE) {
@@ -404,7 +404,7 @@ dpll_cmd(int unit, args_t *a)
     parse_arg_eq_done(&pt);
 
     if (cfg > 0) {
-         LOG_VERBOSE(BSL_LS_SOC_COMMON,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Using Preset %d\n"), cfg));
         mux_sel = preset_configs[cfg-1][0];
@@ -430,12 +430,12 @@ dpll_cmd(int unit, args_t *a)
 
     if (!sal_strcasecmp(c, "write")) {
         rd_op = 0;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Write DPLL\n")));
     } else if (!sal_strcasecmp(c, "read")) {
         rd_op = 1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Read DPLL\n")));
     } else {
@@ -518,7 +518,7 @@ dpll_cmd(int unit, args_t *a)
         wdata[wbytes] = (data & 0xff);
         wbytes += 1;
         rbytes = 0;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "MSPI: Writing %d bytes\n"), wbytes));
         if (soc_mspi_write8(unit, (uint8 *) &wdata[0], wbytes) != SOC_E_NONE) {
@@ -526,12 +526,12 @@ dpll_cmd(int unit, args_t *a)
             return CMD_FAIL;
         }
         /* Dump It */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%02x\n"), data));
     } else { /* Read */
         rbytes = 1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "MSPI: Writing %d bytes and Reading %d bytes\n"),
                      wbytes, rbytes));
@@ -540,7 +540,7 @@ dpll_cmd(int unit, args_t *a)
             return CMD_FAIL;
         }
         data = rdata[0];
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Read %02x\n"), data));
 

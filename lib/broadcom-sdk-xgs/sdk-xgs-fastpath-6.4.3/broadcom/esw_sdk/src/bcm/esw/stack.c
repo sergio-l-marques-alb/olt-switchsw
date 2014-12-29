@@ -204,7 +204,7 @@ _bcm_stk_modport_map_linkscan_handler(int unit,
     int rv;
     rv = _bcm_td_stk_modport_map_linkscan_handler(unit, port, info);
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_BCM_STK,
+        LOG_BSL_WARN(BSL_LS_BCM_STK,
                  (BSL_META_U(unit,
                   "linkscan handler error: Unit %d, port %d, rv %d\n"),
                   unit, port, rv));
@@ -783,7 +783,7 @@ bcm_esw_stk_init(int unit)
     uint8               *stk_scache_ptr;
 #endif /* BCM_WARM_BOOT_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: Init\n"),
                  unit));
@@ -1336,13 +1336,13 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
     int rv = BCM_E_NONE;
     int txp, rxp;
 
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: Port set: p %d. flags 0x%x\n"),
                  unit, port, flags));
 
     if ((!SOC_UNIT_VALID(unit)) || (!BCM_IS_LOCAL(unit))) {
-        LOG_WARN(BSL_LS_BCM_STK,
+        LOG_BSL_WARN(BSL_LS_BCM_STK,
                  (BSL_META_U(unit,
                              "STK: %s unit %d\n"),
                   SOC_UNIT_VALID(unit)?"Invalid":"Remote", unit));
@@ -1357,7 +1357,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
     }
 
     if (!IS_PORT(unit, port)) {
-        LOG_WARN(BSL_LS_BCM_STK,
+        LOG_BSL_WARN(BSL_LS_BCM_STK,
                  (BSL_META_U(unit,
                              "STK: invalid port (%d,%d)\n"),
                   unit, port));
@@ -1366,7 +1366,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
 
     rv = _bcm_esw_stk_init();
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_BCM_STK,
+        LOG_BSL_WARN(BSL_LS_BCM_STK,
                  (BSL_META_U(unit,
                              "STK: init failure (%d)\n"),
                   rv));
@@ -1378,7 +1378,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
 
             /* Setting a non-HG port to stacking implies SL mode */
             if ((flags & BCM_STK_HG) || !IS_GE_PORT(unit, port)) {
-                LOG_WARN(BSL_LS_BCM_STK,
+                LOG_BSL_WARN(BSL_LS_BCM_STK,
                          (BSL_META_U(unit,
                                      "STK: Invalid SL stk cfg. unit %d, port %d\n"),
                           unit, port));
@@ -1389,7 +1389,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
             /* Turn pause off on SL stack ports */
             rv = bcm_esw_port_pause_get(unit, port, &txp, &rxp);
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_STK,
+                LOG_BSL_WARN(BSL_LS_BCM_STK,
                          (BSL_META_U(unit,
                                      "STK: bcm_port_pause_get failure (%d)\n"),
                           rv));
@@ -1399,7 +1399,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
             if ((txp != 0) || (rxp != 0)) {
                 rv = bcm_esw_port_pause_set(unit, port, 0, 0);
                 if (BCM_FAILURE(rv)) {
-                    LOG_WARN(BSL_LS_BCM_STK,
+                    LOG_BSL_WARN(BSL_LS_BCM_STK,
                              (BSL_META_U(unit,
                                          "STK: bcm_port_pause_set failure (%d)\n"),
                               rv));
@@ -1408,7 +1408,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
             }
         } else { /* HG port/HG2 over GE port */
             if (flags & BCM_STK_SL) {
-                LOG_WARN(BSL_LS_BCM_STK,
+                LOG_BSL_WARN(BSL_LS_BCM_STK,
                          (BSL_META_U(unit,
                                      "STK: Invalid HG stk cfg. unit %d, port %d\n"),
                           unit, port));
@@ -1418,7 +1418,7 @@ bcm_esw_stk_port_set(int unit, bcm_port_t port, uint32 flags)
         }
 
         if ((flags & BCM_STK_SIMPLEX) && (flags & BCM_STK_DUPLEX)) {
-            LOG_WARN(BSL_LS_BCM_STK,
+            LOG_BSL_WARN(BSL_LS_BCM_STK,
                      (BSL_META_U(unit,
                                  "STK: Dimplex not supported. unit %d, port %d\n"),
                       unit, port));
@@ -1536,7 +1536,7 @@ bcm_esw_stk_mode_get(int unit, uint32 *flags)
 int
 bcm_esw_stk_mode_set(int unit, uint32 flags)
 {
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: Mode set: flags 0x%x\n"),
                  unit, flags));
@@ -1728,7 +1728,7 @@ bcm_esw_stk_modid_set(int unit, int modid)
                                 modid, -1,
                                 &mod_out, &port_out));
 
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: modid set to %d; mapped %d\n"),
               unit,
@@ -1800,7 +1800,7 @@ bcm_esw_stk_modid_count(int unit, int *num_modid)
 int
 bcm_esw_stk_my_modid_set(int unit, int my_modid)
 {
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: Set my modid %d\n"),
                  unit, my_modid));
@@ -3016,7 +3016,7 @@ _bcm_esw_tr_trunk_override_ucast_get(int unit, bcm_port_t port,
 int
 bcm_esw_stk_modport_set(int unit, int modid, bcm_port_t port)
 {
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: modport set: modid %d to port %d\n"),
               unit,
@@ -3442,7 +3442,7 @@ bcm_esw_stk_modport_clear(int unit, int modid)
     int port;
     int rv;
     int use_modport_set;
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: Clearing mod port info of modid %d.\n"),
                  unit, modid));
@@ -3519,7 +3519,7 @@ bcm_esw_stk_modport_clear_all(int unit)
         return BCM_E_UNIT;
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: Clearing all mod port info.\n"),
                  unit));
@@ -3571,7 +3571,7 @@ bcm_esw_stk_modport_add(int unit, int modid, bcm_port_t port)
 {
     int rv = BCM_E_UNAVAIL;
 
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: modport add: modid %d to port %d\n"),
               unit,
@@ -3695,7 +3695,7 @@ bcm_esw_stk_modport_delete(int unit, int modid, bcm_port_t port)
 {
     int rv = BCM_E_UNAVAIL;
 
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: modport delete: modid %d to port %d\n"),
               unit,
@@ -3820,7 +3820,7 @@ bcm_esw_stk_port_modport_set(int unit, bcm_port_t ing_port,
                              bcm_module_t dest_modid, bcm_port_t dest_port)
 {
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: port modport set: ing port %d modid %d to port %d\n"),
               unit, ing_port, dest_modid, dest_port));
@@ -3932,7 +3932,7 @@ bcm_esw_stk_port_modport_clear(int unit, bcm_port_t ing_port,
                                bcm_module_t dest_modid)
 {
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: port modport clear: ing port %d modid %d\n"),
               unit, ing_port, dest_modid));
@@ -3968,7 +3968,7 @@ int
 bcm_esw_stk_port_modport_clear_all(int unit, bcm_port_t ing_port)
 {
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: port modport clear all: ing port %d\n"),
               unit, ing_port));
@@ -4006,7 +4006,7 @@ bcm_esw_stk_port_modport_add(int unit, bcm_port_t ing_port,
                              bcm_module_t dest_modid, bcm_port_t dest_port)
 {
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: port modport add: ing port %d modid %d to port %d\n"),
               unit, ing_port, dest_modid, dest_port));
@@ -4044,7 +4044,7 @@ bcm_esw_stk_port_modport_delete(int unit, bcm_port_t ing_port,
                                 bcm_module_t dest_modid, bcm_port_t dest_port)
 {
 #if defined(BCM_TRX_SUPPORT) || defined(BCM_BRADLEY_SUPPORT)
-    LOG_INFO(BSL_LS_BCM_STK,
+    LOG_BSL_INFO(BSL_LS_BCM_STK,
              (BSL_META_U(unit,
                          "STK %d: port modport delete: ing port %d modid %d to port %d\n"),
               unit, ing_port, dest_modid, dest_port));
@@ -4825,7 +4825,7 @@ bcm_esw_stk_fmod_smod_mapping_set(int unit, bcm_port_t port,
 
     BCM_MODMAP_FEATURE_CHECK(unit, bcm_stk_fmod_smod_mapping_set);
 
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK unit %d port %d: Mapping fmod %d to smod %d sport %d "
                              "for %d ports\n"), unit, port, fmod, smod, sport, nports));
@@ -5382,7 +5382,7 @@ bcm_esw_stk_modmap_enable_set(int unit,
 
     BCM_MODMAP_FEATURE_CHECK(unit, bcm_stk_modmap_enable_set);
 
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STK %d: %sabling mod mapping port %d\n"),
                  unit, enable ? "En" : "Dis", port));

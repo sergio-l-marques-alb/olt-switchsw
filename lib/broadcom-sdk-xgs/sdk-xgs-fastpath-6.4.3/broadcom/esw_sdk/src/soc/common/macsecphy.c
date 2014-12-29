@@ -130,7 +130,7 @@ soc_macsecphy_init(int unit, soc_port_t port, phy_ctrl_t *pc,
         rv = bmacsec_port_create(p, core_type, pc->macsec_dev_addr, 
                                  pc->macsec_dev_port, iofn);
         if (rv != BMACSEC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "soc_macsecphy_init: "
                                  "MACSEC port create failed for u=%d p=%d rv = %d\n"),
@@ -191,7 +191,7 @@ soc_macsecphy_miim_read(soc_macsec_dev_addr_t dev_addr,
 #ifdef BCM_ROBO_SUPPORT
     if (SOC_IS_ROBO(unit)) {
         if (clause45) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Clause45 is currently not supported!\n")));
         }
@@ -258,7 +258,7 @@ soc_macsecphy_miim_write(soc_macsec_dev_addr_t dev_addr,
 #ifdef BCM_ROBO_SUPPORT
     if (SOC_IS_ROBO(unit)) {
         if (clause45) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Clause45 is currently not supported!\n")));
         }
@@ -291,7 +291,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     bmacsec_mactype_t   macsec_mac = BMACSEC_MAC_CORE_UNKNOWN;
     bmacsec_dev_addr_t  macsec_dev_addr, macsec_dev_idx;
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "%s: u=%d port=%d\n"),
               FUNCTION_NAME(), unit, port));
@@ -305,7 +305,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     if (pc == NULL) {
         pc = INT_PHY_SW_STATE(unit, port);
         if (pc == NULL) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "no PHY driver attached on u=%d p=%d\n"), 
                        unit, port));
@@ -315,7 +315,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
 
     mmi_mdio_addr = soc_property_port_get(unit, port, spn_MACSEC_DEV_ADDR, -1);
     if (mmi_mdio_addr == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "MACSEC_DEV_ADDR property not configured for u=%d p=%d\n"), 
                   unit, port));
@@ -324,7 +324,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     
     port_index = soc_property_port_get(unit, port, spn_MACSEC_PORT_INDEX, -1);
     if (port_index == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "MACSEC_PORT_INDEX property not configured for u=%d p=%d\n"), 
                   unit, port));
@@ -365,7 +365,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     if ((macsec_core == BMACSEC_CORE_UNKNOWN) || (macsec_dev_port_cnt <= 0) || \
             (macsec_mac == BMACSEC_MAC_CORE_UNKNOWN) || \
             (macsec_mmi_io == NULL)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "MACSEC core, MAC or LMI iofu is not predefined!\n")));
     }
@@ -379,7 +379,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     rv = bmacsec_dummyphy_mac_addr_set(macsec_dev_idx, macsec_dev_addr,
            port_index, macsec_dev_port_cnt, macsec_mmi_io, macsec_mac); 
     if(rv != BMACSEC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "bmacsec_phy_mac_addr_set returned error for u=%d p=%d\n"), 
                   unit, port));
@@ -390,7 +390,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
         /* init MACSEC's Line/Switch MAC */
         rv = bmacsec_dummyphy_mac_init(macsec_dev_idx, macsec_enable);
         if(rv != BMACSEC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "failed on init MACSEC's MAC for u=%d p=%d\n"), 
                        unit, port));
@@ -402,7 +402,7 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     rv = soc_macsecphy_dev_control_set(unit, port, 
             SOC_MACSECPHY_DEV_CONTROL_BYPASS, (macsec_enable ? FALSE : TRUE));
     if (!SOC_SUCCESS(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "failed on setting MACSEC Bypass for u=%d p=%d\n"), 
                    unit, port));
@@ -413,12 +413,12 @@ soc_switchmacsec_init(int unit, soc_port_t port)
     rv = soc_macsecphy_init(unit, port, pc, macsec_core, macsec_mmi_io);
  
     if (!SOC_SUCCESS(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_switchmacsec_init: MACSEC init for"
                               " u=%d p=%d FAILED\n"), unit, port));
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "soc_switchmacsec_init: MACSEC init for"
                              " u=%d p=%d SUCCESS\n"), unit, port));

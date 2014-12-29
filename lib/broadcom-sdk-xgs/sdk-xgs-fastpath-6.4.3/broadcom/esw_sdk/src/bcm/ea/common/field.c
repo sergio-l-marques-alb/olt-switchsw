@@ -67,10 +67,10 @@ _bcm_ea_field_operator_equal(
 	int iflag = 0;
 	int mflag = 0;
 	
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("_bcm_ea_field_operator_equal\n")));
 	while (i < len){
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META("mask[%d]=%02X, data[%d]=%02X\n"),
                        i, mask[i], i, data[i]));
 		if (mask[i] == data[i]){
@@ -81,7 +81,7 @@ _bcm_ea_field_operator_equal(
 		}
 		i++;
 	}
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("iflag=%d, len=%d\n"),
                    iflag, len));
 	if ((iflag == len) && (mflag != len)){
@@ -96,11 +96,11 @@ _bcm_ea_field_operator_equal_v2(
 	int i = 0;
 	int mflag;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("_bcm_ea_field_operator_equal_v2\n")));
 	mflag = 0;
 	while (i < len){
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META("mask[%d]=%02X, data[%d]=%02X\n"),
                        i, mask[i], i, data[i]));
 		if (mask[i] == 0xff){
@@ -121,10 +121,10 @@ _bcm_ea_field_operator_nevermatch(
 	int dflag = 0;
 	int mflag = 0;  
 	int fflag = 0;
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("_bcm_ea_field_operator_nevermatch\n")));
 	while (i < len){
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META("mask[%d]=%02X, data[%d]=%02X\n"),
                        i, mask[i], i, data[i]));
 		if (data[i] != 0){
@@ -138,7 +138,7 @@ _bcm_ea_field_operator_nevermatch(
 		}
 		i++;
 	}
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("mflag=%d, dflag=%d, len=%d\n"),
                    mflag, dflag, len));
 	if (fflag == len && mflag == len){
@@ -157,10 +157,10 @@ _bcm_ea_field_operator_notequal(
 	int i = 0;
 	int iflag = 0;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("_bcm_ea_field_operator_notequal\n")));
 	while (i < len){
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META("mask[%d]=%02X, data[%d]=%02X\n"),
                        i, mask[i], i, data[i]));
 		if ((uint8)data[i] == (uint8)(~mask[i])){
@@ -168,7 +168,7 @@ _bcm_ea_field_operator_notequal(
 		}
 		i++;
 	}
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("iflag=%d, len=%d\n"),
                    iflag, len));
 	if (iflag == len){
@@ -184,10 +184,10 @@ _bcm_ea_field_operator_notequal_v2(
 	int i = 0;
 	int mflag = 0;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("_bcm_ea_field_operator_notequal_v2\n")));
 	while (i < len){
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META("mask[%d]=%02X, data[%d]=%02X\n"),
                        i, mask[i], i, data[i]));
 		if ((uint8)mask[i] == 0x55){
@@ -195,7 +195,7 @@ _bcm_ea_field_operator_notequal_v2(
 		}
 		i++;
 	}
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("mflag=%d, len=%d\n"), mflag, len));
 	if (mflag == len){
 		return OPERATOR_TRUE;
@@ -210,10 +210,10 @@ _bcm_ea_field_operator_alwaysmatch(
 	int dflag = 0;
 	int mflag = 0;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("_bcm_ea_field_operator_alwaysmatch\n")));
 	while (i < len) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META("mask[%d]=%02X, data[%d]=%02X\n"),
                        i, mask[i], i, data[i]));
 		if (data[i] == 0){
@@ -224,7 +224,7 @@ _bcm_ea_field_operator_alwaysmatch(
 		}
 		i++;
 	}
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META("mflag=%d, dflag=%d, len=%d\n"),
                    mflag, dflag, len));
 	if (dflag == len && mflag == len){

@@ -257,7 +257,7 @@ bcm_robo_mirror_init(int unit)
 {
     bcm_port_t  port = 0;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_init()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -295,7 +295,7 @@ int bcm_robo_mirror_mode_set(int unit, int mode)
     bcm_pbmp_t  mtp_bmp, t_mtp_bmp;
     bcm_pbmp_t  igr_pbmp, egr_pbmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_mode_set()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -311,7 +311,7 @@ int bcm_robo_mirror_mode_set(int unit, int mode)
     if (mode == BCM_MIRROR_L2) {
         t_mode = TRUE;
     } else if (mode == BCM_MIRROR_L2_L3){
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "No L3 mirror mode for Robo!\n")));
         t_mode = TRUE;
@@ -336,12 +336,12 @@ int bcm_robo_mirror_mode_set(int unit, int mode)
         BCM_PBMP_CLEAR(egr_pbmp);
         if (MIRROR_INFO(unit).flags & _BCM_MIRROR_INGRESS_FROM_FP) {
             /* check if any mirror-to port set from FP */
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "bcmFieldActionMirrorIngress need to enable mirror mode\n")));
             BCM_PBMP_ASSIGN(t_mtp_bmp, MIRROR_INFO(unit).fp_mtp_bmp);
             if (DRV_MIRROR_SET(unit, TRUE, t_mtp_bmp, igr_pbmp, egr_pbmp) < 0) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Fail to set ingress/egress pbm to 0\n")));
             }
@@ -378,7 +378,7 @@ int bcm_robo_mirror_mode_set(int unit, int mode)
 int
 bcm_robo_mirror_mode_get(int unit, int *mode)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_mode_get()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -412,7 +412,7 @@ bcm_robo_mirror_to_set(int unit, bcm_port_t port)
     bcm_pbmp_t  mtp_bmp, t_mtp_bmp;
     int  rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_to_set()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -467,7 +467,7 @@ bcm_robo_mirror_to_get(int unit, bcm_port_t *port)
     int  mod_out, port_out; /* To do a modmap mapping */
     uint32  flags;      /* Mirror destination flags. */
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_to_get()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -530,7 +530,7 @@ bcm_robo_mirror_ingress_set(int unit, bcm_port_t port, int val)
     bcm_pbmp_t  t_pbmp;
     bcm_pbmp_t igr_pbmp, egr_pbmp, mtp_bmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_ingress_set()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -594,7 +594,7 @@ bcm_robo_mirror_ingress_get(int unit, bcm_port_t port, int *val)
     uint32  menable;
     bcm_pbmp_t  igr_pbmp, egr_pbmp, mtp_bmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_ingress_get()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -642,7 +642,7 @@ bcm_robo_mirror_egress_set(int unit, bcm_port_t port, int val)
     bcm_pbmp_t  t_pbmp;
     bcm_pbmp_t  igr_pbmp, egr_pbmp, mtp_bmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_egress_set()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -705,7 +705,7 @@ bcm_robo_mirror_egress_get(int unit, bcm_port_t port, int *val)
     uint32  menable;
     bcm_pbmp_t  igr_pbmp, egr_pbmp, mtp_bmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_egress_get()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -746,7 +746,7 @@ bcm_robo_mirror_egress_get(int unit, bcm_port_t port, int *val)
 int 
 bcm_robo_mirror_pfmt_set(int unit, int val)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_pfmt_set()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -766,7 +766,7 @@ bcm_robo_mirror_pfmt_set(int unit, int val)
 int 
 bcm_robo_mirror_pfmt_get(int unit, int *val)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_pfmt_get()..unavailable\n")));
     return BCM_E_UNAVAIL;
@@ -793,7 +793,7 @@ bcm_robo_mirror_to_pbmp_set(int unit, bcm_port_t port, bcm_pbmp_t pbmp)
     bcm_port_t  p = 0;
     int  rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_to_pbmp_set()..\n")));
 
@@ -850,7 +850,7 @@ bcm_robo_mirror_to_pbmp_set(int unit, bcm_port_t port, bcm_pbmp_t pbmp)
 int 
 bcm_robo_mirror_to_pbmp_get(int unit, bcm_port_t port, bcm_pbmp_t *pbmp)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_to_pbmp_get()..\n")));
 
@@ -915,7 +915,7 @@ bcm_robo_mirror_port_set(int unit, bcm_port_t port,
     int  id; 
     int rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_port_set()..\n")));
 
@@ -1007,7 +1007,7 @@ bcm_robo_mirror_port_get(int unit, bcm_port_t port,
 {
     int enable;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_mirror_port_get()..\n")));
 

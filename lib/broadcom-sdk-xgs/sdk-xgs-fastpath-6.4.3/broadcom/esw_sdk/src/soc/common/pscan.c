@@ -351,7 +351,7 @@ soc_pscan_delay(int unit, int delay)
 
     /* check if already initialized */
     if (!PSCAN_INIT(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "PSCAN not initialized\n")));
         return SOC_E_NONE;
@@ -359,7 +359,7 @@ soc_pscan_delay(int unit, int delay)
 
     pscan_info = PSCAN_INFO(unit);
     if (soc_cmic_uc_msg_active_wait(unit, pscan_info->uc_num) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "uKernel not Ready, PSCAN not started\n")));
         return SOC_E_NONE;
@@ -405,7 +405,7 @@ soc_pscan_port_config(int unit, uint32 port, uint32 flags)
 
     /* check if already initialized */
     if (!PSCAN_INIT(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "PSCAN not initialized\n")));
         return SOC_E_NONE;
@@ -413,7 +413,7 @@ soc_pscan_port_config(int unit, uint32 port, uint32 flags)
 
     pscan_info = PSCAN_INFO(unit);
     if (soc_cmic_uc_msg_active_wait(unit, pscan_info->uc_num) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "uKernel not Ready, PSCAN not started\n")));
         return SOC_E_NONE;
@@ -457,14 +457,14 @@ soc_pscan_port_enable(int unit, uint32 port, int enable)
 
     /* check if already initialized */
     if (!PSCAN_INIT(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "PSCAN not initialized\n")));
         return SOC_E_NONE;
     }
 
     if (port > PSCAN_PORT_BITMAP_BYTE_LEN*8) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "PSCAN invalid port %d\n"), port));
         return SOC_E_INTERNAL;
@@ -501,13 +501,13 @@ soc_pscan_update(int unit)
 
     /* check if already initialized */
     if (!PSCAN_INIT(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "PSCAN not initialized\n")));
         return SOC_E_NONE;
     }
     if (soc_cmic_uc_msg_active_wait(unit, pscan_info->uc_num) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "uKernel not Ready, PSCAN not started\n")));
         return SOC_E_NONE;
@@ -554,7 +554,7 @@ soc_pscan_callback_thread(int unit)
     uint16 port;
     uint32 code;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "PSCAN callback thread starting\n")));
 
@@ -581,7 +581,7 @@ soc_pscan_callback_thread(int unit)
 
     pscan_info->event_thread_kill = 0;
     pscan_info->event_thread_id = NULL;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "PSCAN callback thread stopped\n")));
     sal_thread_exit(0);
@@ -628,7 +628,7 @@ soc_pscan_init(int unit)
     }
     /* Return silently if there is no active CMICm */
     if (uc >= CMICM_NUM_UCS) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "uKernel not Ready, PSCAN not started\n")));
         return SOC_E_NONE;
@@ -675,7 +675,7 @@ soc_pscan_init(int unit)
     if (uc >= CMICM_NUM_UCS) {
         /* Could not find or start PSCAN appl */
         soc_pscan_free_resource(unit);
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "uKernel PSCAN application not available\n")));
         return SOC_E_NONE;
@@ -756,7 +756,7 @@ soc_pscan_detach(int unit)
                 sal_usleep(1000);
             } else {
                 /*timeout*/
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "PSCAN event thread did not exit.\n")));
                 return SOC_E_INTERNAL;

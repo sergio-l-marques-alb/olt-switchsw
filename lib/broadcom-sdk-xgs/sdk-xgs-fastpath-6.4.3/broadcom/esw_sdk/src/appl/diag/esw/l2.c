@@ -83,7 +83,7 @@
                             (unit), (func_name), bcm_errmsg(rv));       \
                     return (CMD_FAIL);                                  \
                 } else {                                                \
-                    if (LOG_CHECK(BSL_LS_BCM_L2 | BSL_VERBOSE)) {       \
+                    if (LOG_BSL_CHECK(BSL_LS_BCM_L2 | BSL_VERBOSE)) {       \
                         cli_out("L2(unit %d) Info: %s() success. \n",   \
                                 (unit), (func_name));                   \
                     }                                                   \
@@ -740,7 +740,7 @@ if_esw_l2(int unit, args_t *a)
 		return CMD_FAIL;
 	    }
 
-            if (LOG_CHECK(BSL_LS_BCM_L2 | BSL_VERBOSE)) {
+            if (LOG_BSL_CHECK(BSL_LS_BCM_L2 | BSL_VERBOSE)) {
                 dump_l2_addr(unit, "DEL: ", &l2addr);
             }
 
@@ -1540,7 +1540,7 @@ done:
                     return CMD_FAIL;
                 }
 
-                if (LOG_CHECK(BSL_LS_BCM_L2 | BSL_VERBOSE)) {
+                if (LOG_BSL_CHECK(BSL_LS_BCM_L2 | BSL_VERBOSE)) {
                     dump_l2_cache_addr(unit, "DEL CACHE: ", &l2caddr);
                 }
 

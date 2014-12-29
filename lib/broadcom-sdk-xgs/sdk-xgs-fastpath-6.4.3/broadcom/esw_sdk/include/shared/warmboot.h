@@ -132,7 +132,7 @@ typedef struct _shr_wb_cache_s {
 
 #define __WB_CHECK_OVERRUN(z,str)				    	       \
     if (ptr+z>end_ptr){							       \
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META_U(unit, \
                               "%s: Incoherent state of scache (%s is not stored correctly).\n"), \
                    FUNCTION_NAME(), str));                               \

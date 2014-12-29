@@ -231,7 +231,7 @@ STATIC void _xgs3_async_thread(void * param);
                 _tx_dv_free(unit, dv); \
             } \
             if (err_msg) { \
-                LOG_ERROR(BSL_LS_BCM_TX, \
+                LOG_BSL_ERROR(BSL_LS_BCM_TX, \
                           (BSL_META_U(unit, \
                                       "bcm_tx: %s\n"), err_msg)); \
             } \
@@ -1607,7 +1607,7 @@ _tx_flags_check(int unit, bcm_pkt_t *pkt)
     if (pkt->flags & BCM_TX_PRIO_INT) {
         if (SOC_IS_DRACO1(unit) || SOC_IS_LYNX(unit)) {
             if (pkt->cos != pkt->prio_int) {
-                LOG_ERROR(BSL_LS_BCM_TX,
+                LOG_BSL_ERROR(BSL_LS_BCM_TX,
                           (BSL_META_U(unit,
                                       "Cannot set cos != prio_int on TX for 5690/74\n")));
                 return BCM_E_PARAM;
@@ -1848,33 +1848,33 @@ _bcm_tx(int unit, bcm_pkt_t *pkt, void *cookie)
         BCM_PBMP_ASSIGN(tx_upbmp, pkt->tx_upbmp);
         BCM_API_XLATE_PORT_PBMP_A2P(unit, &tx_pbmp);
         BCM_API_XLATE_PORT_PBMP_A2P(unit, &tx_upbmp);
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: pkt, u %d. len[0] %d to %s. "),
                              unit, pkt->pkt_data[0].len,
                   SOC_PBMP_FMT(tx_pbmp, fmt)
                   ));
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "%s. flags 0x%x\n"),
                              SOC_PBMP_FMT(tx_upbmp, fmt),
                   pkt->flags));
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: dmod %d, dport %d, chan %d, op %d cos %d\n"),
                              pkt->dest_mod, pkt->dest_port, pkt->dma_channel, pkt->opcode,
                   pkt->cos));
         {
             uint16 i;
-            LOG_INFO(BSL_LS_BCM_TX,
+            LOG_BSL_INFO(BSL_LS_BCM_TX,
                      (BSL_META_U(unit,
                                  "bcm_tx: packet: ")));
             for (i=0; i<pkt->pkt_data[0].len ; i++) {
-                LOG_INFO(BSL_LS_BCM_TX,
+                LOG_BSL_INFO(BSL_LS_BCM_TX,
                          (BSL_META_U(unit,
                                      "%.2x"),pkt->pkt_data[0].data[i]));
             }
-            LOG_INFO(BSL_LS_BCM_TX,
+            LOG_BSL_INFO(BSL_LS_BCM_TX,
                      (BSL_META_U(unit,
                                  "\n")));
         }
@@ -1884,7 +1884,7 @@ _bcm_tx(int unit, bcm_pkt_t *pkt, void *cookie)
         bcm_cpu_tunnel_mode_t mode = BCM_CPU_TUNNEL_PACKET; /* default */
 
         if (pkt->call_back != NULL && cookie != NULL) {
-            LOG_ERROR(BSL_LS_BCM_TX,
+            LOG_BSL_ERROR(BSL_LS_BCM_TX,
                       (BSL_META_U(unit,
                                   "bcm_tx ERROR:  "
                                   "Cookie non-NULL on async tunnel call\n")));
@@ -1940,7 +1940,7 @@ _bcm_tx(int unit, bcm_pkt_t *pkt, void *cookie)
                      BCM_PKT_TX_FABRIC_MAPPED(pkt) && bytes < 60) ||
                     (!BCM_PKT_NO_VLAN_TAG(pkt) && !BCM_PKT_HAS_HGHDR(pkt) && 
                      !BCM_PKT_TX_FABRIC_MAPPED(pkt) && bytes < 64)) {
-                    LOG_ERROR(BSL_LS_BCM_TX,
+                    LOG_BSL_ERROR(BSL_LS_BCM_TX,
                               (BSL_META_U(unit,
                                           "bcm_tx: Discarding %s runt packet %s higig header %d\n"), 
                                           BCM_PKT_NO_VLAN_TAG(pkt) ? "untagged" : "tagged", 
@@ -1991,7 +1991,7 @@ _xgs3_async_tx(int unit, bcm_pkt_t * pkt, void * cookie)
 
     item = sal_alloc(sizeof(_xgs3_async_queue_t), "Async packet info");
     if (item == NULL) {
-        LOG_ERROR(BSL_LS_BCM_TX,
+        LOG_BSL_ERROR(BSL_LS_BCM_TX,
                   (BSL_META_U(unit,
                               "Can't allocate packet info\n")));
         return BCM_E_MEMORY;
@@ -2024,7 +2024,7 @@ _xgs3_async_queue_fetch(int * unit, bcm_pkt_t ** pkt, void ** cookie)
     _xgs3_async_queue_t * item;
 
     if (sal_sem_take(_xgs3_async_tx_sem, sal_sem_FOREVER) < 0) {
-        LOG_ERROR(BSL_LS_BCM_TX,
+        LOG_BSL_ERROR(BSL_LS_BCM_TX,
                   (BSL_META("async fetch: Can't take async TX semaphore\n")));
         return BCM_E_RESOURCE;
     }
@@ -2212,13 +2212,13 @@ _xgs3_async_thread(void * param)
 
     while(1) {
         if ((rv = _xgs3_async_queue_fetch(&unit, &pkt, &cookie)) < 0) {
-            LOG_ERROR(BSL_LS_BCM_TX,
+            LOG_BSL_ERROR(BSL_LS_BCM_TX,
                       (BSL_META_U(unit,
                                   "Async TX: fetch: %s\n"), bcm_errmsg(rv)));
             break;
         }
         if ((rv = _xgs3_tx(unit, pkt, cookie)) < 0) {
-            LOG_ERROR(BSL_LS_BCM_TX,
+            LOG_BSL_ERROR(BSL_LS_BCM_TX,
                       (BSL_META_U(unit,
                                   "Async TX: tx: %s\n"), bcm_errmsg(rv)));
             break;
@@ -2228,7 +2228,7 @@ _xgs3_async_thread(void * param)
     thread = sal_thread_self();
     thread_name[0] = 0;
     sal_thread_name(thread, thread_name, sizeof (thread_name));
-    LOG_ERROR(BSL_LS_BCM_TX,
+    LOG_BSL_ERROR(BSL_LS_BCM_TX,
               (BSL_META_U(unit,
                           "AbnormalThreadExit:%s\n"), thread_name));
     sal_thread_exit(0);
@@ -2344,7 +2344,7 @@ bcm_common_tx_array(int unit, bcm_pkt_t **pkt, int count, bcm_pkt_cb_f all_done_
     }
 
     if (!BCM_IS_LOCAL(unit)) { /* Tunnel the packet to the remote CPU */
-        LOG_ERROR(BSL_LS_BCM_TX,
+        LOG_BSL_ERROR(BSL_LS_BCM_TX,
                   (BSL_META_U(unit,
                               "bcm_tx_array ERROR:  Cannot tunnel\n")));
         return BCM_E_PARAM;
@@ -2480,7 +2480,7 @@ bcm_common_tx_list(int unit, bcm_pkt_t *pkt, bcm_pkt_cb_f all_done_cb, void *coo
     }
 
     if (!BCM_IS_LOCAL(unit)) { /* Tunnel the packet to the remote CPU */
-        LOG_ERROR(BSL_LS_BCM_TX,
+        LOG_BSL_ERROR(BSL_LS_BCM_TX,
                   (BSL_META_U(unit,
                               "bcm_tx_list ERROR:  Cannot tunnel\n")));
         return BCM_E_PARAM;
@@ -2546,7 +2546,7 @@ bcm_common_tx_list(int unit, bcm_pkt_t *pkt, bcm_pkt_cb_f all_done_cb, void *coo
         if (all_done_cb != NULL) {
             pkt_ptr = TX_INFO(dv)->pkt[0];
             if (pkt_ptr == NULL) {
-                LOG_VERBOSE(BSL_LS_BCM_TX,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_TX,
                             (BSL_META_U(unit,
                                         "NULL pkt\n")));
                 pkt_ptr = pkt;
@@ -2607,17 +2607,17 @@ _bcm_tx_chain_send(int unit, dv_t *dv, int async)
 #endif  /* BROADCOM_DEBUG */
 
     if (async) { /* Send packet(s) asynchronously */
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: async send\n")));
         dv->dv_flags |= DV_F_NOTIFY_CHN;
         SOC_IF_ERROR_RETURN(soc_dma_start(unit, -1, dv));
     } else { /* Send sync */
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: sync send\n")));
         SOC_IF_ERROR_RETURN(soc_dma_wait(unit, dv));
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: Sent synchronously.\n")));
         _bcm_tx_chain_done_cb(unit, dv);
@@ -2716,7 +2716,7 @@ _tx_dv_alloc(int unit, int pkt_count, int dcb_count,
 #endif 
 
     if (pkt_count > packet_count_limit) {
-        LOG_ERROR(BSL_LS_BCM_TX,
+        LOG_BSL_ERROR(BSL_LS_BCM_TX,
                   (BSL_META_U(unit,
                               "TX array:  Cannot TX more than %d pkts. "
                               "Attempting %d.\n"), packet_count_limit, pkt_count));
@@ -2939,7 +2939,7 @@ _soc_tx_pkt_setup(int unit, bcm_pkt_t *pkt, soc_tx_param_t *tx_param)
         SOC_DEFAULT_DMA_PFM_GET(unit);
 
     if ((tx_param->pfm & (~PFM_MASK)) != 0) {
-        LOG_WARN(BSL_LS_BCM_TX,
+        LOG_BSL_WARN(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: PFM too big, truncating\n")));
         tx_param->pfm &= PFM_MASK;
@@ -3042,7 +3042,7 @@ _tx_pkt_desc_add(int unit, bcm_pkt_t *pkt, dv_t *dv, int pkt_idx)
         }
         byte_offset = pkt->pkt_data[i].len - ENET_FCS_SIZE;
         if (byte_offset < 0) {
-            LOG_WARN(BSL_LS_BCM_TX,
+            LOG_BSL_WARN(BSL_LS_BCM_TX,
                      (BSL_META_U(unit,
                                  "TX CRC clear: CRC not contiguous or runt pkt\n")));
         } else {
@@ -3108,7 +3108,7 @@ _tx_pkt_desc_add(int unit, bcm_pkt_t *pkt, dv_t *dv, int pkt_idx)
 #endif /* BCM_XGS12_SUPPORT */
 
     if (pkt->pkt_data[0].len < sizeof(bcm_mac_t)) {
-         LOG_INFO(BSL_LS_BCM_TX,
+         LOG_BSL_INFO(BSL_LS_BCM_TX,
                   (BSL_META_U(unit,
                               "_tx_pkt_desc_add: pkt->pkt_data[0].len < sizeof(bcm_mac_t) exit ")));
         return BCM_E_PARAM;
@@ -3118,7 +3118,7 @@ _tx_pkt_desc_add(int unit, bcm_pkt_t *pkt, dv_t *dv, int pkt_idx)
     _get_mac_vlan_ptrs(dv, pkt, &src_mac, &vlan_ptr, &block_offset,
                        &byte_offset, pkt_idx);
     if (block_offset >= pkt->blk_count) {
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "_tx_pkt_desc_add: block_offset >= pkt->blk_count exit ")));
         return BCM_E_PARAM;
@@ -3437,7 +3437,7 @@ _bcm_tx_callback_thread(void *param)
 
     while (1) {
         if (sal_sem_take(tx_cb_sem, sal_sem_FOREVER) < 0) {
-            LOG_ERROR(BSL_LS_BCM_TX,
+            LOG_BSL_ERROR(BSL_LS_BCM_TX,
                       (BSL_META("TX callback thread error\n")));
             break;
         }

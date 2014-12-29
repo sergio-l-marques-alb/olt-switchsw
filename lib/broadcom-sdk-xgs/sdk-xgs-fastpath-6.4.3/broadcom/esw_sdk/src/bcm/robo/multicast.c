@@ -167,7 +167,7 @@ _mcast_repl_vid_set(int unit, bcm_port_t port, int vport_id, bcm_vlan_t vid)
 
     if (repl_vid_idx->count !=0) {
         /* Debug purpose */
-        LOG_ERROR(BSL_LS_BCM_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                   (BSL_META_U(unit, \
                               "ERROR: replication vlan %d(port=%d, vport=%d) be overwritten\n"), \
                    repl_vid_idx->vid,port,vport_id));
@@ -205,7 +205,7 @@ _mcast_repl_vid_cnt_inc(int unit, bcm_port_t port, int vport_id)
 
     if (repl_vid_idx->count == 0xffff) {
         /* Debug purpose */
-        LOG_ERROR(BSL_LS_BCM_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                   (BSL_META_U(unit, \
                               "ERROR: replication vlan %d(port=%d, vport=%d), increase underflow\n"), \
                    repl_vid_idx->vid,port,vport_id));
@@ -228,7 +228,7 @@ _mcast_repl_vid_cnt_dec(int unit, bcm_port_t port, int vport_id)
 
     if (repl_vid_idx->count == 0) {
         /* Debug purpose */
-        LOG_ERROR(BSL_LS_BCM_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                   (BSL_META_U(unit, \
                               "ERROR: replication vlan %d(port=%d, vport=%d), decrease underflow\n"), \
                    repl_vid_idx->vid,port,vport_id));
@@ -363,7 +363,7 @@ _bcm_robo_multicast_egress_op(int unit,
     rv = DRV_MEM_READ(unit, DRV_MEM_MCAST, mc_index, 1, 
             (uint32 *)&mcast_entry);
     if (rv){
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "%s, failed on reading MCAST_PBMP entry%d!\n"),
                    FUNCTION_NAME(), mc_index));
@@ -375,7 +375,7 @@ _bcm_robo_multicast_egress_op(int unit,
             DRV_MEM_FIELD_DEST_BITMAP, (uint32 *)&mcast_entry, 
             (uint32 *)&pbmp);
     if (rv){
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "%s, Failed on field get of MCAST_PBMP entry!\n"),
                    FUNCTION_NAME()));
@@ -419,7 +419,7 @@ _bcm_robo_multicast_egress_op(int unit,
         rv = DRV_MEM_FIELD_SET(unit, DRV_MEM_MCAST, DRV_MEM_FIELD_DEST_BITMAP, 
                 (uint32 *)&mcast_entry, (uint32 *)&pbmp);
         if (rv) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "%s,%d, Failed on field set of MCAST_PBMP entry!\n"),
                        FUNCTION_NAME(), __LINE__));
@@ -428,7 +428,7 @@ _bcm_robo_multicast_egress_op(int unit,
                 (uint32 *)&mcast_entry);
         
         if (rv){
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "%s, failed on writing MCAST_PBMP entry%d!\n"),
                        FUNCTION_NAME(), mc_index));
@@ -493,7 +493,7 @@ bcm_robo_multicast_create(int unit,
         rv = DRV_DEV_PROP_GET(unit, DRV_DEV_PROP_MCAST_REP_NUM, 
                 (uint32 *)&mcrep_num);
         if (rv){
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "%s, %d, device property get problem!\n"),
                        FUNCTION_NAME(), __LINE__));
@@ -642,7 +642,7 @@ bcm_robo_multicast_destroy(int unit, bcm_multicast_t group)
         rv = DRV_DEV_PROP_GET(unit, DRV_DEV_PROP_MCAST_REP_NUM, 
                 (uint32 *)&mcrep_num);
         if (rv){
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "%s, %d, device property get problem!\n"),
                        FUNCTION_NAME(), __LINE__));
@@ -689,7 +689,7 @@ bcm_robo_multicast_destroy(int unit, bcm_multicast_t group)
     rv = DRV_MEM_WRITE(unit, DRV_MEM_MCAST, mc_index, 1, 
             (uint32 *)&mcast_entry);
     if (rv){
-        LOG_INFO(BSL_LS_BCM_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                  (BSL_META_U(unit,
                              "%s: faield on get the mcast_bmp table\n"), FUNCTION_NAME()));
         return rv;
@@ -879,7 +879,7 @@ bcm_robo_multicast_vlan_encap_get(int unit,
 {
     MULTICAST_ROBO_INIT_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s,%d,vlan_port_id=0x%x\n"),
                  FUNCTION_NAME(), __LINE__, vlan_port_id));
@@ -907,7 +907,7 @@ bcm_robo_multicast_vlan_encap_get(int unit,
         *encap_id = _BCM_MULTICAST_ENCAP_VLANPORT_SET(port_in, vid_in, 
                 (untag_in & _BCM_MULTICAST_ENCAP_FLAGS_MASK));
         
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "%s,%d,vid=%d,ut=%d,encap_id=0x%x\n"),
                      FUNCTION_NAME(), __LINE__, vid_in, untag_in, *encap_id));
@@ -957,7 +957,7 @@ bcm_robo_multicast_egress_add(int unit,
     
     MULTICAST_ROBO_INIT_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s,gid=0x%x,port=%d,encap_id=0x%x\n"), 
                  FUNCTION_NAME(), group, port, encap_id));
@@ -1018,7 +1018,7 @@ bcm_robo_multicast_egress_add(int unit,
             pport = _BCM_MULTICAST_ENCAP_PPORT_GET(encap_id);
             is_untag = _BCM_MULTICAST_ENCAP_FLAGS_IS_UNTAG(encap_id);
             vid_in = _BCM_MULTICAST_ENCAP_VLAN_GET(encap_id);
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "%s,pp=%d,ut=%d,vid=%d\n"), 
                          FUNCTION_NAME(), pport, is_untag, vid_in));
@@ -1067,7 +1067,7 @@ bcm_robo_multicast_egress_add(int unit,
                  */
                 vp_op = (is_untag) ? DRV_MCREP_VPORT_OP_UNTAG_VP : 
                         DRV_MCREP_VPORT_OP_VID;
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "%s,%d,VPORT%d VID assignment(ut=%d,vid=%d).\n"), 
                              FUNCTION_NAME(), __LINE__, vport, is_untag, vid_in));
@@ -1086,7 +1086,7 @@ bcm_robo_multicast_egress_add(int unit,
              */
             repl_index = _mcast_repl_vp_group_get(unit, mc_index, port);
             vport_bmp = *((int *)repl_index);
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "%s,%d,VPORT%d for this replication(ut=%d,vid=%d).\n"), 
                          FUNCTION_NAME(), __LINE__, vport, is_untag, vid_in));
@@ -1100,7 +1100,7 @@ bcm_robo_multicast_egress_add(int unit,
             MCAST_REPL_VID_CNT_INC(unit, pport, vport);
 
             if (robo_mcast_repl_config[unit]->mcast_repl_enable == FALSE) {
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "%s, Enable MCast replication!!\n"), 
                              FUNCTION_NAME()));
@@ -1163,7 +1163,7 @@ bcm_robo_multicast_egress_delete(int unit,
     
     MULTICAST_ROBO_INIT_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s,gid=0x%x,port=%d,encap_id=0x%x\n"), 
                  FUNCTION_NAME(), group, port, encap_id));
@@ -1221,7 +1221,7 @@ bcm_robo_multicast_egress_delete(int unit,
             pport = _BCM_MULTICAST_ENCAP_PPORT_GET(encap_id);
             is_untag = _BCM_MULTICAST_ENCAP_FLAGS_IS_UNTAG(encap_id);
             vid_in = _BCM_MULTICAST_ENCAP_VLAN_GET(encap_id);
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "%s,pp=%d,ut=%d,vid=%d\n"), 
                          FUNCTION_NAME(), pport, is_untag, vid_in));
@@ -1248,7 +1248,7 @@ bcm_robo_multicast_egress_delete(int unit,
                 return BCM_E_NOT_FOUND;
             } else {
                 if (!MCAST_REPL_USED_ISSET(unit, mc_index, pport, vport)){
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "%s,VPORT %d not in replication group.\n"), 
                                  FUNCTION_NAME(), vport));
@@ -1269,7 +1269,7 @@ bcm_robo_multicast_egress_delete(int unit,
             vport_bmp = *((int *)repl_index);
 
             vport_bmp &= ~(0x1 << vport);
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "%s,remove VPort %d from replication group.\n"), 
                          FUNCTION_NAME(), vport));
@@ -1292,7 +1292,7 @@ bcm_robo_multicast_egress_delete(int unit,
                 vp_op = (is_untag) ? DRV_MCREP_VPORT_OP_UNTAG_RESET : 
                         DRV_MCREP_VPORT_OP_VID;
                 target_vid = 0;
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "%s,reset VLAN(ut=%d,vid=%d) on VPort %d\n"), 
                              FUNCTION_NAME(), is_untag, target_vid, vport));
@@ -1301,7 +1301,7 @@ bcm_robo_multicast_egress_delete(int unit,
                 MCAST_REPL_VID_SET(unit, pport, vport, target_vid);
                 
                 if (_mcast_repl_system_no_vpset(unit)){
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META_U(unit,
                                           "%s, disable MCast replication!!\n"), 
                                FUNCTION_NAME()));
@@ -1352,7 +1352,7 @@ bcm_robo_multicast_egress_delete_all(int unit, bcm_multicast_t group)
     
     MULTICAST_ROBO_INIT_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s,group=0x%x\n"), FUNCTION_NAME(), group));
     type = _BCM_MULTICAST_TYPE_GET(group);
@@ -1467,7 +1467,7 @@ bcm_robo_multicast_egress_set(int unit,
 
     MULTICAST_ROBO_INIT_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s,gid=%d,port_count=%d\n"), 
                  FUNCTION_NAME(), group, port_count));
@@ -1563,14 +1563,14 @@ bcm_robo_multicast_egress_set(int unit,
                 pport = _BCM_MULTICAST_ENCAP_PPORT_GET(encap_id);
                 is_untag = _BCM_MULTICAST_ENCAP_FLAGS_IS_UNTAG(encap_id);
                 vid_in = _BCM_MULTICAST_ENCAP_VLAN_GET(encap_id);
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "%s,encap[%d]:pp=%d,ut=%d,vid=%d\n"), 
                              FUNCTION_NAME(), i, pport, is_untag, vid_in));
                 
                 if (is_untag) {
                     if (utvp_cnt[pport] != 0) {
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s, encap_id_array invalid! Only one " \
                                              "untag replication on port %d is allowed.\n"),
@@ -1584,7 +1584,7 @@ bcm_robo_multicast_egress_set(int unit,
                 if (vp_cnt[pport] < _TB_SUBPORT_NUM_VPORT_PER_GROUP) {
                     vp_cnt[pport] += 1;
                 } else {                    
-                    LOG_WARN(BSL_LS_BCM_COMMON,
+                    LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                              (BSL_META_U(unit,
                                          "%s, encap_id_array invalid! Up-to %d" \
                                          "replications on port %d is allowed only.\n"),
@@ -1659,7 +1659,7 @@ bcm_robo_multicast_egress_get(int unit,
 
     MULTICAST_ROBO_INIT_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s,gid=0x%x,port_max=%d\n"), 
                  FUNCTION_NAME(), group, port_max));
@@ -2351,7 +2351,7 @@ bcm_robo_multicast_repl_set(int unit, int mc_index, bcm_port_t port,
             ctrl_val = mcast_repl_en;
             rv = DRV_DEV_CONTROL_SET(unit, &ctrl_cnt, &ctrl_type, &ctrl_val);
             if (rv) {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s, %d, SOC Error!\n"), 
                           FUNCTION_NAME(), __LINE__));

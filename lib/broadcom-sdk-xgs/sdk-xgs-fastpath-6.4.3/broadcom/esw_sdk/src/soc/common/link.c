@@ -114,7 +114,7 @@ _soc_link_update(int unit)
     SOC_PBMP_AND(pbm, soc->link_mask2);
 
     if (SOC_IS_ROBO(unit)){
-        LOG_VERBOSE(BSL_LS_SOC_LINK,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_LINK,
                     (BSL_META_U(unit,
                                 "_soc_link_update: link=%s pbm=%s\n"),
                      SOC_PBMP_FMT(soc->link_fwd, pfmtl),
@@ -122,7 +122,7 @@ _soc_link_update(int unit)
 
         return SOC_E_NONE;
     }
-    LOG_VERBOSE(BSL_LS_SOC_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_LINK,
                 (BSL_META_U(unit,
                             "_soc_link_update: link=%s m2=%s pbm=%s\n"),
                  SOC_PBMP_FMT(sop->link_fwd, pfmtl),
@@ -472,7 +472,7 @@ soc_linkscan_pause(int unit)
                     while (soc_pci_read(unit, CMIC_MIIM_SCAN_STATUS_OFFSET) &
                            CMIC_MIIM_SCAN_BUSY) {
                         if (soc_timeout_check(&to)) {
-                           LOG_ERROR(BSL_LS_SOC_COMMON,
+                           LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "soc_linkscan_pause: pausing hw linkscan failed\n")));
                            break;
@@ -499,7 +499,7 @@ soc_linkscan_pause(int unit)
                     while (soc_pci_read(unit, CMIC_SCHAN_CTRL) &
                            SC_MIIM_SCAN_BUSY_TST) {
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "soc_linkscan_pause: pausing hw linkscan failed\n")));
                             break;

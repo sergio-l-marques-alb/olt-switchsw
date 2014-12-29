@@ -279,7 +279,7 @@ _soc_robo_phy_miiaddr_get(int unit, soc_port_t port,
                     page = (PHY_TB_MII_BASEPAGE_EXT_GE + 
                             (port - 24 )) << 8;
                 } else {
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s,%d,Unexpected port property!"),
                               FUNCTION_NAME(), __LINE__));
@@ -328,7 +328,7 @@ soc_robo_miim_write(int unit, uint32 phy_id,
 
     assert(!sal_int_context());
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_robo_miim_write: id=0x%02x addr=0x%02x data=0x%04x\n"),
               phy_id, phy_reg_addr, phy_wr_data));
@@ -336,7 +336,7 @@ soc_robo_miim_write(int unit, uint32 phy_id,
 #if defined(BCM_53101)
     if (SOC_IS_LOTUS(unit) && 
         SOC_MAC_LOW_POWER_ENABLED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Don't allow to write the PHY addr 0x%02x.\n"),
                    phy_reg_addr));
@@ -432,7 +432,7 @@ soc_robo_miim_read(int unit, uint32 phy_id,
     assert(!sal_int_context());
     assert(phy_rd_data);
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "drv_miim_read: id=0x%02x addr=0x%02x\n"),
               phy_id, phy_reg_addr));
@@ -440,7 +440,7 @@ soc_robo_miim_read(int unit, uint32 phy_id,
 #if defined(BCM_53101)
     if (SOC_IS_LOTUS(unit) && 
         SOC_MAC_LOW_POWER_ENABLED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Don't allow to read the PHY addr 0x%02x.\n"),
                    phy_reg_addr));
@@ -499,7 +499,7 @@ soc_robo_miim_read(int unit, uint32 phy_id,
     *phy_rd_data = (*phy_rd_data>>8) | (*phy_rd_data<<8);
 #endif
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "drv_miim_read: spi_addr=0x%04x,read data=0x%04x\n"), 
               addr, *phy_rd_data));
@@ -534,7 +534,7 @@ soc_robo_miim_int_write(int unit, uint32 phy_id,
 
     assert(!sal_int_context());
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_robo_miim_int_write: id=0x%02x addr=0x%02x data=0x%04x\n"),
               phy_id, phy_reg_addr, phy_wr_data));
@@ -614,7 +614,7 @@ soc_robo_miim_int_read(int unit, uint32 phy_id,
     assert(!sal_int_context());
     assert(phy_rd_data);
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_robo_miim_int_read: id=0x%02x addr=0x%02x\n"),
               phy_id, phy_reg_addr));
@@ -668,7 +668,7 @@ soc_robo_miim_int_read(int unit, uint32 phy_id,
     *phy_rd_data = (*phy_rd_data>>8) | (*phy_rd_data<<8);
 #endif
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_robo_miim_int_read: read data=0x%04x\n"), *phy_rd_data));
 
@@ -712,7 +712,7 @@ soc_robo_macsec_miim_read(int unit, uint32 phy_id,
     assert(!sal_int_context());
     assert(phy_rd_data);
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "%s:id=0x%02x addr=0x%02x\n"),
               FUNCTION_NAME(), phy_id, phy_reg_addr));
@@ -742,7 +742,7 @@ soc_robo_macsec_miim_read(int unit, uint32 phy_id,
     *phy_rd_data = (*phy_rd_data>>8) | (*phy_rd_data<<8);
 #endif
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "%s:read data=0x%04x\n"), 
               FUNCTION_NAME(), *phy_rd_data));
@@ -779,7 +779,7 @@ soc_robo_macsec_miim_write(int unit, uint32 phy_id,
 
     assert(!sal_int_context());
 
-    LOG_INFO(BSL_LS_SOC_MIIM,
+    LOG_BSL_INFO(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "%s: id=0x%02x addr=0x%02x data=0x%04x\n"),
               FUNCTION_NAME(), phy_id, phy_reg_addr, phy_wr_data));

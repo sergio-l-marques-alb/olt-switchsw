@@ -307,7 +307,7 @@ typedef struct {
  * {
  *     *data = phy84740_ucode_bin;
  *     *len  = phy84740_ucode_bin_len;
-     LOG_WARN(BSL_LS_SOC_PHY,
+     LOG_BSL_WARN(BSL_LS_SOC_PHY,
               (BSL_META_U(unit,
                           "port %d: user firmware hook routine called\n"),port));
  *     return TRUE;
@@ -534,7 +534,7 @@ _phy84740_mdio_firmware_download(int unit, int port, phy_ctrl_t *pc,
     int rv = SOC_E_NONE;
 
     if (new_fw == NULL || fw_length == 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d MDIO firmware download: invalid firmware\n"),
                   unit, port));
@@ -664,7 +664,7 @@ _phy84740_mdio_lane_firmware_download(int unit, int port, phy_ctrl_t *pc,
          (unit, pc, PHY84740_PMAD_M8051_MSGOUT_REG, &data16));
 
     /* Download done message */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "u=%d p=%d MDIO firmware download done message: 0x%x\n"),
               unit, port, data16));
@@ -695,7 +695,7 @@ _phy84740_mdio_lane_firmware_download(int unit, int port, phy_ctrl_t *pc,
     /* read Rev-ID */
     SOC_IF_ERROR_RETURN
         (READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0xCA1A, &data16));
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "u=%d p=%d MDIO Firmware download revID: 0x%x\n"),
                          unit, port, data16));
@@ -745,7 +745,7 @@ STATIC int _phy84740_rom_firmware_download(int unit, int port, phy_ctrl_t *pc)
             sal_usleep(100000);
             SOC_IF_ERROR_RETURN
                 (READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0xCA13, &data16));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "u=%d p=%d lane%d SPI-ROM download done msg 0x%x\n"),
                       unit, port, lane, data16));
@@ -785,7 +785,7 @@ STATIC int _phy84740_rom_firmware_download(int unit, int port, phy_ctrl_t *pc)
         sal_usleep(100000);
         SOC_IF_ERROR_RETURN
             (READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0xCA13, &data16));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d SPI-ROM download done msg 0x%x\n"),
                              unit, port, data16));
@@ -1114,7 +1114,7 @@ _phy_84740_firmware_is_downloaded(int unit, soc_port_t port, int ext_rom)
     } else if ((data16 & 0xf000) != 0x7000) {
         return 0;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "FW download status=%x: u=%d p=%d\n"), data16, unit, port));
 
@@ -1123,7 +1123,7 @@ _phy_84740_firmware_is_downloaded(int unit, soc_port_t port, int ext_rom)
     if ((rv != SOC_E_NONE) || (data16 != 0x600D)) {
         return 0;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "FW checksum=%x: u=%d p=%d\n"), data16, unit, port));
 
@@ -1132,7 +1132,7 @@ _phy_84740_firmware_is_downloaded(int unit, soc_port_t port, int ext_rom)
     if ((rv != SOC_E_NONE) || (data16 == 0)) {
         return 0;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "FW version=%x: u=%d p=%d\n"), data16, unit, port));
 
@@ -1166,7 +1166,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
     uint32 l2p, l2p_map;
 
     pc = EXT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY84740 init: u=%d p=%d desc=0x%x\n"),
               unit, port, PTR_TO_INT(pc + 1)));
@@ -1193,7 +1193,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
             soc_property_port_get(unit, port, spn_PHY_FCMAP_PASSTHROUGH, 0);
 
         if (PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_PASS1) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY84740 init pass1: u=%d p=%d\n"), unit, port));
 
@@ -1241,7 +1241,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                 PHY84740_PMAD_MODE_40G) {
                 SOC_IF_ERROR_RETURN(_phy_84740_single_to_quad_mode
                                     (pc->unit, pc->port, pc));
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "PHY84740 init pass1 mode S to Q switch: u=%d p=%d\n"),
                           unit, port));
@@ -1255,7 +1255,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
 
     if ((PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_PASS2) ||
         (PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_DEFAULT)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 init pass2: u=%d p=%d\n"), unit, port));
         SOC_IF_ERROR_RETURN(READ_PHY84740_MMF_PMA_PMD_REG
@@ -1271,7 +1271,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
              * However 1G currently is only working with QSFP fiber cable not Cu cable.
              */
             if (!(PHY84740_SINGLE_PORT_MODE(pc))) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "PHY84740 init pass2 mode switch: u=%d p=%d\n"),
                           unit, port));
@@ -1333,7 +1333,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
         /* should be done before reset */
         l2p = soc_property_port_get(unit, port, spn_PHY_LANE0_L2P_MAP, 0);
         if (l2p >= NUM_LANES) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY84740 invalid L2P lane configuration: u=%d p=%d, l2p=%d\n"),
                        unit, port, l2p));
@@ -1389,7 +1389,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
             }
         }
         if (((data16 & MII_CTRL_RESET) != 0) || SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY84740 reset failed: u=%d p=%d\n"),
                       unit, port));
@@ -1467,7 +1467,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                              (unit, port, pc, phy84758_ucode_bin,
                               phy84758_ucode_bin_len));
                     } else {
-                        LOG_WARN(BSL_LS_SOC_PHY,
+                        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "84740: p=%d unknown device id: 0x%x\n"),
                                              port,devid));
@@ -1508,7 +1508,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                 }
             }
             if (ret == SOC_E_FAIL) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "84740: p=%d SPI-ROM load: Bad Checksum lane 0,1,2,3 (0x%x),"
                                      "(0x%x), (0x%x), (0x%x)\n"), port, cksum[0],
@@ -1518,7 +1518,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
         } else {
             rv = READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0xCA1C, &data16);
             if (data16 != 0x600D || SOC_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "84740: p=%d SPI-ROM load: Bad Checksum (0x%x)\n"),
                           port, data16));
@@ -1526,7 +1526,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
             }
         }
 
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%x init u=%d port=%d rom code ver. 0x%x: %s boot\n"),
                   devid, unit, port, ucode_ver,
@@ -1658,18 +1658,18 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
         /* check if module auto detect enabled */
         if (MOD_AUTO_DETECT(pc)) {
             if ((ucode_ver & 0x0fff) < 0x105) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "84740 module auto detect requires ucode ver 0x105 or newer: "
                                       "u=%d p%d\n"), unit, port));
             } else if (!(RX_LOS(pc) && MOD_ABS(pc))) {
                 MOD_AUTO_DETECT(pc) = 0;
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "84740 module auto detect requires mod_abs and rx_lost "
                                       "to be configured: u=%d p%d\n"), unit, port));
             } else if (PHY84740_SINGLE_PORT_MODE(pc)) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "PHY84740 QSFP module auto detect enabled: u=%d p=%d\n"),
                           unit, port));
@@ -1678,7 +1678,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                                                      PHY84740_PMAD_GEN_PURPOSE_MOD_AUTO_DETECT_EN,
                                                      PHY84740_PMAD_GEN_PURPOSE_MOD_AUTO_DETECT_EN);
                 if (SOC_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "PHY84740 setting QSP module auto detect failed: u=%d p%d\n"),
                                unit, port));
@@ -1686,7 +1686,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                     MOD_AUTO_DETECT_MSG(pc) = 1;
                 }
             } else if (devid == PHY84740_ID_84754) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "PHY84740 SFP module auto detect on: u=%d p=%d\n"),
                           unit, port));
@@ -1695,7 +1695,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                                                      PHY84740_MOD_AUTO_DETECT_STS_SFP_EN,
                                                      PHY84740_MOD_AUTO_DETECT_STS_SFP_EN);
                 if (SOC_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "PHY84740 setting SFP module auto detect failed: u=%d p%d\n"),
                                unit, port));
@@ -1703,7 +1703,7 @@ STATIC int phy_84740_init(int unit, soc_port_t port)
                     MOD_AUTO_DETECT_MSG(pc) = 1;
                 }
             } else {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "PHY84740 module auto detect not supported: u=%d p%d\n"),
                            unit, port));
@@ -1796,7 +1796,7 @@ STATIC int phy_84740_an_set(int unit, soc_port_t port, int an)
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_an_set: u=%d p=%d an=%d\n"),
                          unit, port, an));
@@ -2036,7 +2036,7 @@ phy_84740_ability_advert_get(int unit, soc_port_t port,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_ability_advert_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -2131,7 +2131,7 @@ phy_84740_ability_remote_get(int unit, soc_port_t port,
             break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_ability_remote_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -2257,7 +2257,7 @@ phy_84740_ability_advert_set(int unit, soc_port_t port,
                                         MII_ANA_C37_PAUSE));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_advert_set: u=%d p=%d pause=0x%08x adv_reg1=0x%04x\n"),
               unit, port, ability->pause, an_adv));
@@ -2287,7 +2287,7 @@ phy_84740_ability_local_get(int unit, soc_port_t port,
     pc = EXT_PHY_SW_STATE(unit, port);
     int_pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_ability_local_get: u=%d p=%d\n"),
               unit, port));
@@ -2325,7 +2325,7 @@ phy_84740_ability_local_get(int unit, soc_port_t port,
     ability->medium = SOC_PA_MEDIUM_FIBER;
     ability->loopback = SOC_PA_LB_PHY;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_ability_local_get: u=%d p=%d speed=0x%x\n"),
               unit, port, ability->speed_full_duplex));
@@ -2368,7 +2368,7 @@ STATIC int _phy84740_mod_auto_detect_update(int unit, soc_port_t port)
                            (unit, pc, 0x81f2, &mod_130));
                     (void)(READ_PHY84740_MMF_PMA_PMD_REG
                            (unit, pc, 0x81f3, &mod_131));
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "PHY84740 could not detect module, "
                                           "defaulting to SR(4): u=%d p=%d sts=0x%x (0x%x:0x%x)\n"),
@@ -2378,7 +2378,7 @@ STATIC int _phy84740_mod_auto_detect_update(int unit, soc_port_t port)
                     SOC_IF_ERROR_RETURN
                         (READ_PHY84740_MMF_PMA_PMD_REG
                          (unit, pc, PHY84740_PMAD_CHIP_MODE_REG, &data));
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "PHY84740 %s module detected: u=%d p=%d\n"),
                                (data & PHY84740_PMAD_DAC_MODE_MASK) ?
@@ -2391,7 +2391,7 @@ STATIC int _phy84740_mod_auto_detect_update(int unit, soc_port_t port)
             (void)(READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0x81f2, &mod_130));
             (void)(READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0x81f3, &mod_131));
             MOD_AUTO_DETECT_MSG(pc) = 0;
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY84740 i2c failed while detecting module, "
                                   "defaulting to SR(4): u=%d p=%d sts=0x%x (0x%x:0x%x)\n"),
@@ -2400,7 +2400,7 @@ STATIC int _phy84740_mod_auto_detect_update(int unit, soc_port_t port)
     } else {
         if (!MOD_AUTO_DETECT_MSG(pc)) {
             /* module not present */
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY84740 module removed u=%d p=%d\n"),
                        unit, port));
@@ -2564,7 +2564,7 @@ STATIC int phy_84740_link_get(int unit, soc_port_t port, int *link)
 	if (MOD_AUTO_DETECT(pc)) {
 		_phy84740_mod_auto_detect_update(unit, port);
 	}
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_84740_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -2815,7 +2815,7 @@ STATIC int phy_84740_lb_get(int unit, soc_port_t port, int *enable)
         SOC_IF_ERROR_RETURN(PHY84740_MMF(unit, pc));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));
@@ -4994,7 +4994,7 @@ STATIC int phy_84740_diag_ctrl(int unit,        /* unit */
     int lane;
     int intf;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_diag_ctrl: u=%d p=%d ctrl=0x%x\n"),
               unit, port, op_cmd));
@@ -5042,7 +5042,7 @@ STATIC int phy_84740_speed_set(int unit, soc_port_t port, int speed)
     int_pc = INT_PHY_SW_STATE(unit, port);
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_speed_set: u=%d p=%d speed=%d\n"),
                          unit, port, speed));
@@ -5469,7 +5469,7 @@ STATIC int phy_84740_rom_wait(int unit, int port)
         }
     } while (!soc_timeout_check(&to));
     if (!(rd_data & 0x0100)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_84740_rom_program: u = %d p = %d "
                               "timeout 1\n"), unit, port));
@@ -5544,7 +5544,7 @@ STATIC int phy_84740_rom_wait(int unit, int port)
             }
         } while (!soc_timeout_check(&to));
         if (!(rd_data & 0x0100)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "phy_84740_rom_program: u = %d p = %d "
                                   "timeout 2\n"), unit, port));
@@ -5737,13 +5737,13 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
                             (unit, pc, PHY84740_PMAD_CHIP_MODE_REG,
                              &chip_mode));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST start: u=%d p=%d\n"), unit, port));
         /* check the current chip mode, switch to quad if in single port mode */
         if ((chip_mode & PHY84740_PMAD_CHIP_MODE_MASK) ==
             PHY84740_PMAD_MODE_40G) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY84740 BCST mode switch: u=%d p=%d\n"),
                                  unit, port));
@@ -5765,7 +5765,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
         pc->phy_id = phy_id;
         return SOC_E_NONE;
     } else if (cmd == PHYCTRL_UCODE_BCST_uC_SETUP) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST1: u=%d p=%d\n"), unit, port));
         /* clear SPA ctrl reg bit 15 and bit 13.
@@ -5796,7 +5796,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
         SOC_IF_ERROR_RETURN(WRITE_PHY84740_PMA_PMD_CTRLr(unit, pc, 0x8000));
         return SOC_E_NONE;
     } else if (cmd == PHYCTRL_UCODE_BCST_ENABLE) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST2: u=%d p=%d\n"), unit, port));
 
@@ -5815,7 +5815,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
         pc->phy_id = phy_id;
         return SOC_E_NONE;
     } else if (cmd == PHYCTRL_UCODE_BCST_LOAD) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_bcst,device name %s: u=%d p=%d\n"),
                              pc->dev_name ? pc->dev_name : "NULL", unit, port));
@@ -5840,7 +5840,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
             fw_length = phy84784_ucode_bin_len;
         } else {
             /* invalid device name */
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "firmware_bcst,invalid device name %s: u=%d p=%d\n"),
                       pc->dev_name ? pc->dev_name : "NULL", unit, port));
@@ -5882,7 +5882,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
         }
         return SOC_E_NONE;
     } else if (cmd == PHYCTRL_UCODE_BCST_END) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST end: u=%d p=%d\n"), unit, port));
 
@@ -5904,7 +5904,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
                  (unit, pc, PHY84740_PMAD_M8051_MSGOUT_REG, &data16));
 
             /* Download done message */
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MDIO firmware download done message: 0x%x\n"),
                       unit, port, data16));
@@ -5943,7 +5943,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
             /* read Rev-ID */
             SOC_IF_ERROR_RETURN
                 (READ_PHY84740_MMF_PMA_PMD_REG(unit, pc, 0xCA1A, &data16));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MDIO Firmware download revID: 0x%x\n"),
                       unit, port, data16));
@@ -5953,7 +5953,7 @@ STATIC int _phy84740_init_ucode_bcst(int unit, int port, int cmd)
 
         return SOC_E_NONE;
     } else {
-         LOG_WARN(BSL_LS_SOC_PHY,
+         LOG_BSL_WARN(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "u=%d p=%d firmware_bcst: invalid cmd 0x%x\n"),
                               unit, port, cmd));
@@ -6011,7 +6011,7 @@ phy_84740_firmware_set(int unit, int port, int offset, uint8 *array,
 
     /* length should be at least 0xFFFE */
     if (datalen < PHY84740_UCODE_DEVID_ADDR+3) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_set, wrong firmware len=0x%x : u=%d p=%d\n"),
                              datalen, unit, port));
@@ -6023,7 +6023,7 @@ phy_84740_firmware_set(int unit, int port, int offset, uint8 *array,
     uCode_devid = (array[ix] << 16) | (array[ix + 1] << 8) | array[ix + 2];
 
     if (uCode_devid != devid) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_set,u=%d p=%d:  Firmware device "
                              "type(0x%x) does not match configured device type(0x%x)\n"),
@@ -6037,7 +6037,7 @@ phy_84740_firmware_set(int unit, int port, int offset, uint8 *array,
     }
     saved_phy_addr = pc->phy_id;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "firmware_set init,quad port : u=%d p=%d\n"),
                          unit, port));
@@ -6155,7 +6155,7 @@ _phy_84740_firmware_to_rom(int unit, int port, int offset, uint8 *array,
     /* set SPI-ROM write enable */
     SOC_IF_ERROR_RETURN(phy_84740_rom_write_enable_set(unit, port, 1));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "init0: u=%d p=%d\n"),
                          unit, port));
@@ -6207,7 +6207,7 @@ _phy_84740_firmware_to_rom(int unit, int port, int offset, uint8 *array,
         wr_data = (((j & 0x00FF) * 0x0100) | ((j & 0xFF00) / 0x0100));
         SOC_IF_ERROR_RETURN(write_message(unit, pc, wr_data, &rd_data));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "loop: u=%d p=%d,inxj: %d,inxi:%d\n"),
                              unit, port,j,i));
@@ -6330,14 +6330,14 @@ _phy_84740_firmware_to_rom(int unit, int port, int offset, uint8 *array,
     } while (!soc_timeout_check(&to));
 
     if (!(rd_data & 0x0100)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_84740_rom_program: u = %d p = %d "
                               "WRDI command timeout\n"), unit, port));
         return SOC_E_TIMEOUT;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_rom_program: u=%d p=%d done\n"), unit, port));
 
@@ -6362,7 +6362,7 @@ write_message(int unit, phy_ctrl_t *pc, uint16 wrdata, uint16 *rddata)
             break;
     } while (!soc_timeout_check(&to));
     if (!(tmp_data & 0x4)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "write_message failed: wrdata %04x\n"), wrdata));
         return SOC_E_FAIL;
@@ -6409,7 +6409,7 @@ STATIC int phy_84740_probe(int unit, phy_ctrl_t *pc)
     } else if (PHY84740_IS_QUADRA(devid)) {
         /*pc->dev_name = already set;*/
     } else {  /* not found */
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "port %d: BCM84xxx type PHY device detected, please use "
                              "phy_84<xxx> config variable to select the specific type\n"),
@@ -6435,7 +6435,7 @@ _phy_84740_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
     int access_type;
     int data_type;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84740_bsc_read: u=%d p=%d addr=%04x\n"),
                          unit, port, addr));
@@ -6525,7 +6525,7 @@ _phy_84740_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
             }
         }
         if (data16) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "port %d: Fail register 0xcd13 status 0x%x\n"),
                                  port,data16));
@@ -6553,7 +6553,7 @@ _phy_84740_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
     sal_usleep(10000);
 
 #if defined(BROADCOM_DEBUG) || defined(DEBUG_PRINT)
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "BSC command status %d time=%d\n"),
                          (data16 & PHY84740_2W_STAT), SAL_USECS_SUB(end, start)));
@@ -6570,12 +6570,12 @@ _phy_84740_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
                  (unit, pc, (ram_start + i), &data16));
             if (data_type == PHY84740_I2C_16BIT) {
                 ((uint16 *)data_array)[i] = data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "%04x "), data16));
             } else {
                 ((uint8 *)data_array)[i] = (uint8)data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "%02x "), data16));
             }

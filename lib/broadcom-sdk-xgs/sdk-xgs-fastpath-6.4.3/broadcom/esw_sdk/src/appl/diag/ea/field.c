@@ -74,14 +74,14 @@
  */
 #define FP_CHECK_RETURN(unit, retval, funct_name)                  \
     if (BCM_FAILURE(retval)) {                                     \
-        LOG_ERROR(BSL_LS_BCM_FP, \
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                   (BSL_META_U(unit,                                    \
                               "FP(unit %d) Error: %s() failed: %s\n"), \
                    unit,                                               \
                    funct_name, bcm_errmsg(retval)));                   \
         return CMD_FAIL; \
     } else {                                                       \
-            LOG_VERBOSE(BSL_LS_BCM_FP,                             \
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,                             \
                         (BSL_META_U(unit,                               \
                                     "FP(unit %d) verb: %s() success \n"), \
                          unit, funct_name));                            \
@@ -131,7 +131,7 @@
         return CMD_USAGE;                                        \
     }                                                            \
     if (parse_bcm_port((_unit), (_str), &(_port)) < 0) {             \
-        LOG_ERROR(BSL_LS_BCM_FP,                                        \
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,                                        \
                   (BSL_META_U(_unit,                                    \
                               "FP(unit %d) Error: invalid port string: \"%s\"\n"), \
                    _unit, _str));                                       \
@@ -546,7 +546,7 @@ tk371x_fp_qual_ip(int unit, bcm_field_entry_t eid, args_t *args,
         return CMD_USAGE;
     }
     if (parse_ipaddr(subcmd, &data) < 0) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: invalid ip4 addr string: \"%s\"\n"),
                    unit, subcmd));
@@ -557,7 +557,7 @@ tk371x_fp_qual_ip(int unit, bcm_field_entry_t eid, args_t *args,
         return CMD_USAGE;
     }
     if (parse_ipaddr(subcmd, &mask) < 0) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: invalid ip4 addr string: \"%s\"\n"),
                    unit, subcmd));
@@ -844,7 +844,7 @@ tk371x_fp_qual(int unit, args_t *args)
      */
     if(!sal_strcasecmp(qual_str, "clear")) {
         /* BCM.1> fp qual 'eid' clear  */
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:fp_qual_clear 'eid=%d'\n"),
                      unit, eid));
@@ -862,7 +862,7 @@ tk371x_fp_qual(int unit, args_t *args)
             return CMD_USAGE;
         }
         /* BCM.1> fp qual 'eid' delete 'qual_name' */
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:fp_qual_delete  'eid=%d qual=%s'\n"),
                      unit, eid, qual_str));
@@ -1126,7 +1126,7 @@ tk371x_fp_action_add(int unit, args_t *args)
 			return CMD_USAGE;
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: action add eid=%d, action=%s, "
                             "p0=0x%x, p1=0x%x\n"),
@@ -1238,7 +1238,7 @@ tk371x_fp_entry_create(int unit, args_t *args)
 
     if ((subcmd = ARG_GET(args)) == NULL) {
         /* BCM.1> fp entry create 'gid'  */
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: _entry_create gid=%d\n"),
                      unit, gid));
@@ -1247,7 +1247,7 @@ tk371x_fp_entry_create(int unit, args_t *args)
     } else {
         /* BCM.1> fp entry create 'gid' 'eid' */
         eid = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: _entry_create gid=%d, eid=%d\n"),
                      unit, gid, eid));
@@ -1272,7 +1272,7 @@ tk371x_fp_entry_copy(int unit, args_t *args)
     if (subcmd ) {
         /* BCM.1> fp entry copy 'src_eid' 'dst_eid'  */
         dst_eid = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:  bcm_field_entry_copy_id(src_eid=%d, "
                                 "dst_eid=%d)\n"),
@@ -1281,7 +1281,7 @@ tk371x_fp_entry_copy(int unit, args_t *args)
         FP_CHECK_RETURN(unit, retval, "bcm_field_entry_copy_id");
     } else {
         /* BCM.1> fp entry copy 'src_eid' */
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_copy(src_eid=%d)\n"),
                      unit, src_eid));
@@ -1300,7 +1300,7 @@ tk371x_fp_entry_destroy(int unit, args_t *args)
     bcm_field_entry_t           eid;
 
     if ((subcmd = ARG_GET(args)) == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_destroy_all()\n"),
                      unit));
@@ -1309,7 +1309,7 @@ tk371x_fp_entry_destroy(int unit, args_t *args)
         return CMD_OK;
     } else {
         eid = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_destroy(eid=%d)\n"),
                      unit, eid));
@@ -1330,7 +1330,7 @@ tk371x_fp_entry_install(int unit, args_t *args)
     /* BCM.1> fp detach 'eid' */
     FP_GET_NUMB(eid, subcmd, args);
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "_entry_install eid=%d\n"),
                  eid));
@@ -1355,7 +1355,7 @@ tk371x_fp_entry_reinstall(int unit, args_t *args)
 
     FP_GET_NUMB(eid, subcmd, args);
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _entry_reinstall eid=%d\n"),
                  unit, eid));
@@ -1373,7 +1373,7 @@ tk371x_fp_entry_remove(int unit, args_t *args)
 
     FP_GET_NUMB(eid, subcmd, args);
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _entry_remove eid=%d\n"),
                  unit, eid));
@@ -1398,7 +1398,7 @@ tk371x_fp_entry_prio(int unit, args_t *args)
 
     /* BCM.0> fp entry prio <eid> */
     if ((subcmd = ARG_GET(args)) == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_prio_get(eid=%d)\n"),
                      unit, eid));
@@ -1428,7 +1428,7 @@ tk371x_fp_entry_prio(int unit, args_t *args)
         }
 
 
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_prio_set(eid=%d, "
                                 "prio=%d)\n"),
@@ -1453,7 +1453,7 @@ tk371x_fp_entry_inport(int unit, args_t *args)
 
     /* BCM.1> fp entry inport <eid> */
     if ((subcmd = ARG_GET(args)) == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_qualify_InPort_get(eid=%d)\n"),
                      unit, eid));
@@ -1475,7 +1475,7 @@ tk371x_fp_entry_inport(int unit, args_t *args)
         }
 
 
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_qualify_InPort_set(eid=%d, "
                                 "inport=%d)\n"),
@@ -1545,7 +1545,7 @@ tk371x_fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
 
     if ((subcmd = ARG_GET(args)) == NULL) {
         /* BCM.1> fp group create 'prio'  */
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: _group_create pri=%d\n"),
                      unit, pri));
@@ -1555,7 +1555,7 @@ tk371x_fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
         gid = parse_integer(subcmd);
         if ((subcmd = ARG_GET(args)) == NULL) {
             /* BCM.1> fp group create 'prio' 'gid' */
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "FP(unit %d) verb: _group_create_id pri=%d gid=%d\n"),
                          unit, pri, gid));
@@ -1578,7 +1578,7 @@ tk371x_fp_group_destroy(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
     LOG_CLI(("gid=%d\n", gid));
     /* BCM.1> fp group destroy 'gid' */
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:_group_destroy gid=%d\n"),
                  unit, gid));
@@ -1600,7 +1600,7 @@ tk371x_fp_group_get(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.1> fp group create 'prio'  */
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _group_get gid=%d\n"),
                  unit, gid));
@@ -1638,7 +1638,7 @@ tk371x_fp_group_status_get(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.1> fp group status 'gid' */
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:_group_status_get gid=%d\n"),
                  unit, gid));
@@ -1712,7 +1712,7 @@ tk371x_fp_range_group_create(int unit, args_t *args){
         min   = param[1];
         max   = param[2];
         group = param[3];
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_group_create flags=0x%x, "
                                 "min=%d, max=%d group=%d\n"),
@@ -1726,7 +1726,7 @@ tk371x_fp_range_group_create(int unit, args_t *args){
         min   = param[2];
         max   = param[3];
         group = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_group_create_id  rid=%d, "
                                 "flags=0x%x, min=%d, max=%d group=%d\n"),
@@ -1734,7 +1734,7 @@ tk371x_fp_range_group_create(int unit, args_t *args){
         retval = bcm_field_range_group_create_id(unit, rid, flags, min, max, group);
         FP_CHECK_RETURN(unit, retval, "bcm_field_range_group_create_id");
     }
-    LOG_INFO(BSL_LS_BCM_FP,
+    LOG_BSL_INFO(BSL_LS_BCM_FP,
              (BSL_META_U(unit,
                          "RID %d created!\n"),
               rid));
@@ -1760,7 +1760,7 @@ tk371x_fp_range_create(int unit, args_t *args){
         flags = param[0];
         min   = param[1];
         max   = param[2];
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_create flags=0x%x, "
                                 "min=%d, max=%d \n"),
@@ -1773,7 +1773,7 @@ tk371x_fp_range_create(int unit, args_t *args){
         flags = param[1];
         min   = param[2];
         max   = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_create_id rid=%d, "
                                 "flags=0x%x, min=%d, max=%d \n"),
@@ -1797,7 +1797,7 @@ tk371x_fp_range_get(int unit, args_t *args){
     FP_GET_NUMB(rid, subcmd, args);
 
     /* BCM.1> fp range get 'rid'  */
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:fp_range_get 'rid=%d'\n"),
                  unit, rid));
@@ -1823,7 +1823,7 @@ tk371x_fp_range_destroy(int unit, args_t *args){
     FP_GET_NUMB(rid, subcmd, args);
 
     /* BCM.1> fp range destroy 'rid'  */
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:fp_range_destroy 'rid=%d'\n"),
                  unit, rid));

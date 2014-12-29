@@ -134,7 +134,7 @@ soc_th_cosq_sched_mode_set(int unit, soc_port_t port, int level, int index,
     soc_reg_t reg;
     uint32 fval, rval, wrr_mask;
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d MODE=%d WT=%d\n"),
 			 port, (level == 0) ? "r" : "", level - 1,

@@ -1024,7 +1024,7 @@ soc_td2_mpls_hash(int unit, int hash_sel, int key_nbits, void *base_entry,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_mpls_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1203,7 +1203,7 @@ soc_td2_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1377,7 +1377,7 @@ soc_td2_egr_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_egr_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1503,7 +1503,7 @@ soc_td2_ing_vp_vlan_member_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_inv_vp_vlan_member_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1610,7 +1610,7 @@ soc_td2_egr_vp_vlan_member_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_inv_vp_vlan_member_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1717,7 +1717,7 @@ soc_td2_ing_dnat_address_type_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_inv_vp_vlan_member_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1843,7 +1843,7 @@ soc_td2_l2_endpoint_id_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_l2_endpoint_id_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1968,7 +1968,7 @@ soc_td2_endpoint_queue_map_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_td2_endpoint_queue_map_hash: invalid hash_sel %d\n"),
                    hash_sel));

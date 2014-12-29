@@ -1381,7 +1381,7 @@ _soc_memtune_ddr_single_test(soc_memtune_data_t *mt_data)
     rv = (*mt_ctrl->test_fn)(mt_data);
 
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+        LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                   (BSL_META_U(mt_ctrl->unit,
                               "unit %d %s test failure: %s\n"),
                    mt_ctrl->unit, mt_ctrl->intf_name, soc_errmsg(rv)));
@@ -1910,7 +1910,7 @@ _soc_memtune_ddr_main(soc_memtune_data_t *mt_data)
             }
 #endif
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                           (BSL_META_U(mt_ctrl->unit,
                                       "unit %d %s fail to generate config: %s\n"),
                            mt_ctrl->unit, mt_ctrl->intf_name,
@@ -1951,7 +1951,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
     mt_data->sub_interface = 0;
     rv = (*mt_ctrl->prog_hw1_fn)(mt_data); /* dpeo/rbus */
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+        LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                   (BSL_META_U(mt_ctrl->unit,
                               "%s prog hardware failure: %s\n"),
                               mt_ctrl->intf_name,
@@ -1974,7 +1974,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
     mt_ctrl->cur_fail_count = 0;
     rv = (*mt_ctrl->test_fn)(mt_data);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+        LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                   (BSL_META_U(mt_ctrl->unit,
                               "%s dbus test failure: %s\n"),
                               mt_ctrl->intf_name, soc_errmsg(rv)));
@@ -2017,7 +2017,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
              mt_ctrl->fcd_dpeo_cur++) {
             rv = (*mt_ctrl->prog_hw1_fn)(mt_data);  /* dpeo/rbus */
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                           (BSL_META_U(mt_ctrl->unit,
                                       "%s prog hardware failure: "
                                       "%s\n"),
@@ -2028,7 +2028,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
             mt_ctrl->cur_fail_count = 0;
             rv = (*mt_ctrl->test_fn)(mt_data);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                           (BSL_META_U(mt_ctrl->unit,
                                       "%s dpeo test failure: %s\n"),
                                       mt_ctrl->intf_name,
@@ -2106,7 +2106,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
              mt_ctrl->fcd_rbus_cur++) {
             rv = (*mt_ctrl->prog_hw1_fn)(mt_data);  /* dpeo/rbus */
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                           (BSL_META_U(mt_ctrl->unit,
                                       "%s prog hardware failure: "
                                       "%s\n"),
@@ -2117,7 +2117,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
             mt_ctrl->cur_fail_count = 0;
             rv = (*mt_ctrl->test_fn)(mt_data);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                           (BSL_META_U(mt_ctrl->unit,
                                       "%s rbus test failure: %s\n"),
                                       mt_ctrl->intf_name,
@@ -2161,7 +2161,7 @@ _soc_memtune_tcam_single_test(soc_memtune_data_t *mt_data)
     mt_ctrl->cur_fail_count = 0;
     rv = (*mt_ctrl->test_fn)(mt_data);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+        LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                   (BSL_META_U(mt_ctrl->unit,
                               "%s search test failure: %s\n"),
                               mt_ctrl->intf_name, soc_errmsg(rv)));
@@ -2484,7 +2484,7 @@ _soc_memtune_tcam_main(soc_memtune_data_t *mt_data)
         if (mt_data->config) {
             rv = _soc_tr_tune_generate_config(mt_data);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_MEMTUNE,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEMTUNE,
                           (BSL_META_U(mt_ctrl->unit,
                                       "%s fail to generate config: %s\n"),
                            mt_ctrl->intf_name,

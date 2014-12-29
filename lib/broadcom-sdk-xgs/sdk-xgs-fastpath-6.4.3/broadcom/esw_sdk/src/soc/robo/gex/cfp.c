@@ -1036,7 +1036,7 @@ _drv_gex_cfp_read(int unit, uint32 ram_type,
     }
 
     index_max = soc_robo_mem_index_max(unit, mem_id);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "_drv_cfp_read : mem_id = %d, ram_val = %d, index_max = %d\n"),
                  mem_id, ram_val, index_max));
@@ -1758,7 +1758,7 @@ drv_gex_cfp_init(int unit)
         }
         rv = REG_READ_TCAM_CTRLr(unit, &reg_val);
         if (rv< 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_cfp_init : Failed to read the TCAM control regsiter.\n")));
         }
@@ -1768,7 +1768,7 @@ drv_gex_cfp_init(int unit)
             EN_TCAM_CHKSUMf, &temp);
         rv = REG_WRITE_TCAM_CTRLr(unit, &reg_val);
         if (rv< 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_cfp_init : Failed to write the TCAM control regsiter.\n")));
         }
@@ -2939,7 +2939,7 @@ drv_gex_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ALL:
             if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_TCAM, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read TCAM with index = 0x%x, rv = %d. \n"), 
                            index, rv));
@@ -2947,7 +2947,7 @@ drv_gex_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
             }
             if ( (rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -2955,7 +2955,7 @@ drv_gex_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
             }
             if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_METER, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read meter ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -2966,7 +2966,7 @@ drv_gex_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_TCAM:
             if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_TCAM, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -2977,7 +2977,7 @@ drv_gex_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ACT:
             if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -2988,7 +2988,7 @@ drv_gex_cfp_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_METER:
             if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_METER, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_read : failed to read action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3026,7 +3026,7 @@ drv_gex_cfp_entry_search(int unit, uint32 flags, uint32 *index,
 
     if ((rv = _drv_gex_cfp_tcam_search(unit, flags, 
             index, entry)) != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_cfp_entry_search : failed to serach TCAM rv = %d\n"),
                    rv));
@@ -3036,7 +3036,7 @@ drv_gex_cfp_entry_search(int unit, uint32 flags, uint32 *index,
     if ((flags & DRV_CFP_SEARCH_GET) && (rv == SOC_E_NONE)) {
         if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_ACT, *index, entry)) 
             != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_cfp_entry_search:failed to read action ram with index = 0x%x, rv = %d. \n"),
                        *index, rv));
@@ -3044,7 +3044,7 @@ drv_gex_cfp_entry_search(int unit, uint32 flags, uint32 *index,
         }
         if ((rv = _drv_gex_cfp_read(unit, DRV_CFP_RAM_METER, *index, entry)) 
             != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_cfp_entry_search :failed to read meter ram with index = 0x%x, rv = %d. \n"),
                        *index, rv));
@@ -3085,7 +3085,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ALL:
             if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_TCAM, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3093,7 +3093,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
             }
             if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_ACT, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write:failed to write action ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3101,7 +3101,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
             }
             if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_METER, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write :failed to write meter ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3112,7 +3112,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_TCAM:
              if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_TCAM, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3123,7 +3123,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_TCAM_INVALID:
              if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_TCAM_INVALID, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write invalid TCAM with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3134,7 +3134,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_ACT:
              if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_ACT, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write : failed to write ACT ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3145,7 +3145,7 @@ drv_gex_cfp_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_CFP_RAM_METER:
              if ((rv = _drv_gex_cfp_write(unit, DRV_CFP_RAM_METER, 
                                 index, entry, FALSE)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_cfp_entry_write :failed to write METER ram with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -3323,7 +3323,7 @@ drv_gex_cfp_field_get(int unit, uint32 mem_type, uint32 field_type,
 
 
     if (( rv = _drv_gex_cfp_field_mapping(unit, mem_type, field_type, &fld_id)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_cfp_field_get : UNKNOW FIELD ID. \n")));
         return rv;
@@ -3589,7 +3589,7 @@ drv_gex_cfp_field_set(int unit, uint32 mem_type, uint32 field_type,
     }
 
     if (( rv = _drv_gex_cfp_field_mapping(unit, mem_type, field_type, &fld_id)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_cfp_field_set : UNKNOW FIELD ID. \n")));
         return rv;
@@ -3743,7 +3743,7 @@ drv_gex_cfp_meter_set(int unit, drv_cfp_entry_t* entry, uint32 kbits_sec,
     if (kbits_sec) {
         if ((kbits_sec > CFP_53115_METER_RATE_MAX) ||
             (kbits_sec < CFP_53115_METER_RATE_MIN)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_cfp_meter_set : rate unsupported. \n")));
             rv = SOC_E_UNAVAIL;
@@ -3764,7 +3764,7 @@ drv_gex_cfp_meter_set(int unit, drv_cfp_entry_t* entry, uint32 kbits_sec,
     if (kbits_burst) {
         if ((kbits_burst > CFP_53115_METER_BURST_MAX) ||
             (kbits_burst < CFP_53115_METER_BURST_MIN)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_cfp_meter_set : burst size unsupported. \n")));
             rv = SOC_E_UNAVAIL;
@@ -3791,7 +3791,7 @@ drv_gex_cfp_meter_rate_transform(int unit, uint32 kbits_sec, uint32 kbits_burst,
         /*    coverity[unsigned_compare]    */
         if ((kbits_sec > CFP_53115_METER_RATE_MAX) ||
             (kbits_sec < CFP_53115_METER_RATE_MIN)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_cfp_meter_rate_transform : rate unsupported. \n")));
             rv = SOC_E_UNAVAIL;
@@ -3806,7 +3806,7 @@ drv_gex_cfp_meter_rate_transform(int unit, uint32 kbits_sec, uint32 kbits_burst,
         /*    coverity[unsigned_compare]    */
         if ((kbits_burst > CFP_53115_METER_BURST_MAX) ||
             (kbits_burst < CFP_53115_METER_BURST_MIN)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_cfp_meter_rate_transform : burst size unsupported. \n")));
             rv = SOC_E_UNAVAIL;

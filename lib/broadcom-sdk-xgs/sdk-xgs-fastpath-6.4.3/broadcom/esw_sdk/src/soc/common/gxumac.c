@@ -132,8 +132,8 @@ _mac_combo_100g_mac(int unit)
 STATIC int
 _mac_combo_select_mac(int unit, soc_port_t port, soc_mac_mode_t mode)
 {
-    if (LOG_CHECK(BSL_LS_SOC_10G | BSL_VERBOSE) ||
-        LOG_CHECK(BSL_LS_SOC_GE | BSL_VERBOSE)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_10G | BSL_VERBOSE) ||
+        LOG_BSL_CHECK(BSL_LS_SOC_GE | BSL_VERBOSE)) {
         LOG_CLI((BSL_META_U(unit,
                             "_mac_combo_select_mac: unit %d port %s mode %s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -172,7 +172,7 @@ _mac_combo_select_mac(int unit, soc_port_t port, soc_mac_mode_t mode)
         si = &SOC_INFO(unit);
         phy_port = si->port_l2p_mapping[port];
         bindex = SOC_PORT_BINDEX(unit, phy_port);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "cl port: %d, phy_port: %d, bindex %d\n"), 
                      port, phy_port, bindex));
@@ -291,7 +291,7 @@ _mac_combo_mode_get(int unit, soc_port_t port, soc_mac_mode_t *mode)
         si = &SOC_INFO(unit);
         phy_port = si->port_l2p_mapping[port];
         bindex = SOC_PORT_BINDEX(unit, phy_port);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "cl port: %d, phy_port: %d, bindex %d\n"), 
                      port, phy_port, bindex));

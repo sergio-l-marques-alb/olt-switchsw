@@ -796,7 +796,7 @@ bcm_regexdb_add_entry(int unit, int match_idx, int eng_idx,
         ppen = &(*ppen)->next;
     }
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "signature %d added (match_index=%d engid=%d provides=%d \
                          requires=%d match_set_id=%d match_chk_id=%d)\n"),
@@ -1045,7 +1045,7 @@ STATIC int _bcm_tr3_flex_ctr_pool_id_unmap(int unit, int pool_id)
                                              BCM_FLEX_EGRESS_POOL);
         rv = _bcm_esw_stat_flex_pool_operation(unit, &device->flex_pools[i]);
         if (rv != 0) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                     (BSL_META_U(unit,
                                 "unmap: _bcm_esw_stat_flex_pool_operation failed: i = %d, id = %d, flags = 0x%04x, size = %d\n"),
                      i, device->flex_pools[i].pool_id,
@@ -1053,7 +1053,7 @@ STATIC int _bcm_tr3_flex_ctr_pool_id_unmap(int unit, int pool_id)
                      device->flex_pools[i].pool_size));
             return rv;
         } else {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                     (BSL_META_U(unit,
                                 "unmap: _bcm_esw_stat_flex_pool_operation succeeded: i = %d, id = %d, flags = 0x%04x, size = %d\n"),
                      i, device->flex_pools[i].pool_id,
@@ -1140,7 +1140,7 @@ STATIC int _bcm_tr3_flex_ctr_pool_map(int unit, _bcm_tr3_ctr_mode_t mode, int ma
             }
             rv = _bcm_esw_stat_flex_pool_operation(unit, &device->flex_pools[dir]);
             if (rv != 0) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                         (BSL_META_U(unit,
                                     "map: _bcm_esw_stat_flex_pool_operation failed: dir = %d, id = %d, flags = 0x%04x, size = %d\n"),
                          dir, device->flex_pools[dir].pool_id,
@@ -1156,7 +1156,7 @@ STATIC int _bcm_tr3_flex_ctr_pool_map(int unit, _bcm_tr3_ctr_mode_t mode, int ma
                 }
                 return rv;
             } else {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                         (BSL_META_U(unit,
                                     "map: _bcm_esw_stat_flex_pool_operation succeeded: dir = %d, id = %d, flags = 0x%04x, size = %d\n"),
                          dir, device->flex_pools[dir].pool_id,
@@ -1223,7 +1223,7 @@ STATIC int _bcm_tr3_flex_ctr_pool_unmap(int unit)
             rv = _bcm_esw_stat_flex_pool_operation(unit, &device->flex_pools[i]);
 
             if (rv != 0) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                         (BSL_META_U(unit,
                                     "unmap: _bcm_esw_stat_flex_pool_operation failed: i = %d, id = %d, flags = 0x%04x, size = %d\n"),
                          i, device->flex_pools[i].pool_id,
@@ -1232,7 +1232,7 @@ STATIC int _bcm_tr3_flex_ctr_pool_unmap(int unit)
             }
             else
             {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                         (BSL_META_U(unit,
                                     "unmap: _bcm_esw_stat_flex_pool_operation succeeded: i = %d, id = %d, flags = 0x%04x, size = %d\n"),
                          i, device->flex_pools[i].pool_id,
@@ -1533,7 +1533,7 @@ _bcm_tr3_regex_config_set(int unit, bcm_regex_config_t *config)
 
 
     ctr_mode = _bcm_tr3_ctr_mode_get(unit);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "Counter mode = %d, config flags = 0x%x\n"),
               ctr_mode, config->flags));
@@ -1546,7 +1546,7 @@ _bcm_tr3_regex_config_set(int unit, bcm_regex_config_t *config)
              (ctr_mode != _CTR_MODE_BOTH_LEG))) {
             */
         if (ctr_mode != _CTR_MODE_NONE) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "Setting counter mode to none and unmapping\n")));
             _bcm_tr3_ctr_mode_set(unit, _CTR_MODE_NONE);
@@ -1554,7 +1554,7 @@ _bcm_tr3_regex_config_set(int unit, bcm_regex_config_t *config)
         }
         ctr_mode = (config->flags & BCM_REGEX_PER_DIRECTION_COUNTER_ENABLE) ? 
                                     _CTR_MODE_PER_LEG : _CTR_MODE_BOTH_LEG;
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "Counter mode = %d, setting and mapping flex counters\n"),
                   ctr_mode));
@@ -1564,7 +1564,7 @@ _bcm_tr3_regex_config_set(int unit, bcm_regex_config_t *config)
         _bcm_tr3_ctr_mode_set(unit, ctr_mode);
     } else {
         /* free up the pools */
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "No counters enabled, setting counter mode to none and unmapping\n")));
         _bcm_tr3_ctr_mode_set(unit, _CTR_MODE_NONE);
@@ -2236,7 +2236,7 @@ _bcm_tr3_regex_hw_engine_detach(int unit, _bcm_regex_engine_obj_t *pengine)
 #endif
     _bcm_regexdb_entry_t en;
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "resetting engine..")));
 
@@ -2784,7 +2784,7 @@ _bcm_tr3_set_match_action(int unit, int eng_idx, bcm_regex_match_t *match,
             soc_mem_write(unit, mem, MEM_BLOCK_ALL, idx, &match_entry));
 
     /* add to db */
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "Add entry to DB, sig=%d match=%d p=%d r=%d ms=%d mc=%d\n"),
               sigid, match->match_id, match->provides, 
@@ -2854,7 +2854,7 @@ _bcm_regex_dfa_cb_calc_size(uint32 flags, int match_idx, int in_state,
     /* if last state is not same as this state, insert goto IDLE state if necessary*/
     if (cd->last_state != in_state) {
         /*
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META("State %s %d:\n"),
                   (match_idx>=0)? "[FINAL]" : ""),
                   in_state));
@@ -2875,7 +2875,7 @@ _bcm_regex_dfa_cb_calc_size(uint32 flags, int match_idx, int in_state,
     /*
     if (to_state >= 0)
     {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META("\t %d -> %d [%d-%d];\n"),
                   in_state, to_state, from_c, to_c));
     }
@@ -3099,7 +3099,7 @@ _bcm_tr3_regex_compiler_install_cb(uint32 flags, int match_idx, int in_state,
                                               &cd->matches[match_idx], 
                                               &hw_match_idx, 
                                               match_set_id, match_chk_id, sigid)) {
-                        LOG_INFO(BSL_LS_BCM_REGEX,
+                        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                                  (BSL_META("error\n")));
                         return REGEX_CB_ABORT;
                     }
@@ -3143,7 +3143,7 @@ _bcm_tr3_regex_read_hw_dfa(int unit, _bcm_regex_engine_obj_t *pengine,
     for (i = pengine->from_line; i < pengine->from_line + pengine->req_lsz; i++) {
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ALL, i, entry);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_BCM_REGEX,
+            LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                       (BSL_META_U(unit,
                                   "Read ERROR: table %s[%d]: %s\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -3219,37 +3219,37 @@ _bcm_tr3_calc_dfa_memsize(int unit, char **re, uint32 *re_flags,
     if (rv < 0) {
         switch (rv) {
             case REGEX_ERROR_INVALID_CLASS:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: Invalid class.\n")));
                 break;
             case REGEX_ERROR_EXPANSION_FAIL:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: Expansion failed.\n")));
                 break;
             case REGEX_ERROR_NO_POST:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: No post.\n")));
                 break;
             case REGEX_ERROR_NO_DFA:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: No DFA.\n")));
                 break;
             case REGEX_ERROR_NO_NFA:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: No NFA.\n")));
                 break;
             case REGEX_ERROR_NO_MEMORY:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: No memory.\n")));
                 break;
             default:
-                LOG_WARN(BSL_LS_BCM_REGEX,
+                LOG_BSL_WARN(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "Regex: Error.\n")));
                 break;
@@ -3265,7 +3265,7 @@ _bcm_tr3_calc_dfa_memsize(int unit, char **re, uint32 *re_flags,
         return BCM_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "DFA num hw_states/transitions = %d, %d lines\n"),
               cdata.compile_size,
@@ -3301,7 +3301,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
         for (i = 0; i < BCM_TR3_NUM_ENGINE(device); i++) {
             ltmp = BCM_TR3_LOGICAL_ENGINE(device, i);
             if (ltmp == NULL) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "i = %d, logical engine NULL\n"),
                           i));
@@ -3312,7 +3312,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
             }
             ptmp = ltmp->physical_engine;
             if (ptmp == NULL) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "i = %d, Engine id %d : physical engine NULL\n"),
                           i, ltmp->id));
@@ -3327,7 +3327,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
     else
     {
         if (engine_id < 0 || engine_id >= BCM_TR3_MAX_ENGINE) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "engine_id = %d, INVALID\n"),
                       engine_id));
@@ -3336,7 +3336,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
 
         if (_bcm_tr3_find_engine(unit, engine_id, &ltmp) ||
             ((ptmp = ltmp->physical_engine) == NULL)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "engine_id = %d, Engine logical id %d : physical engine NULL\n"),
                       engine_id, ltmp->id));
@@ -3359,7 +3359,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
                 }
                 ptmp = ltmp->physical_engine;
                 if (ptmp == NULL) {
-                    LOG_INFO(BSL_LS_BCM_REGEX,
+                    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                              (BSL_META_U(unit,
                                          "i = %d, Engine id %d, pid NULL\n"),
                               i, ltmp->id));
@@ -3402,7 +3402,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
             }
             ptmp = ltmp->physical_engine;
             if (ptmp == NULL) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "i = %d, Engine id %d, pid NULL\n"),
                           i, ltmp->id));
@@ -3411,7 +3411,7 @@ int _bcm_tr3_get_engine_size_info(int unit, int engine_id,
             if (ptmp->tile != tile) {
                 continue;
             }
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "i = %d, Engine id %d, pid %d : tile %d, size %d\n"),
                       i,
@@ -3470,7 +3470,7 @@ _bcm_tr3_install_dfa(int unit, void *dfa, bcm_regex_match_t *matches,
      *  using this its easy to generate the jump pointers to next state.
      */
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "installing DFA\n")));
     /*
@@ -3484,24 +3484,24 @@ _bcm_tr3_install_dfa(int unit, void *dfa, bcm_regex_match_t *matches,
     user_data.unit = unit;
     user_data.hw_eng = pengine;
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "preprocessing ..")));
     if (bcm_regex_dfa_traverse(dfa, _bcm_tr3_regex_compiler_preprocess_cb,
                                     &user_data)) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "Error\n")));
         return BCM_E_INTERNAL;
     }
 
     /* traverse again and install it */
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "HW Install ..")));
     if (bcm_regex_dfa_traverse(dfa, _bcm_tr3_regex_compiler_install_cb,
                                     &user_data)) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "Error\n")));
         return BCM_E_INTERNAL;
@@ -3706,7 +3706,7 @@ _bcm_tr3_attach_hw_engine(int unit, _bcm_regex_lengine_t *lengine,
     SOC_IF_ERROR_RETURN(_bcm_tr3_regex_engine_get(unit, engidx, &config));
     if ((config.flags & BCM_REGEX_ENGINE_CONFIG_MULTI_PACKET) && 
         (match_set_ids || match_check_ids)) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "Can't use multi-packet with chaining\n")));
         return BCM_E_CONFIG;
@@ -3724,12 +3724,12 @@ _bcm_tr3_attach_hw_engine(int unit, _bcm_regex_lengine_t *lengine,
              * across tiles and optimize resources to see if we can still
              * fit things.
              */
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "Alloc of regex engine failed.. rearrange engines\n")));
             rv = _bcm_tr3_rearrage_engines(unit);
             if (rv) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "rearrange engines failed.\n")));
                 goto fail;
@@ -3753,7 +3753,7 @@ _bcm_tr3_attach_hw_engine(int unit, _bcm_regex_lengine_t *lengine,
         rv = _bcm_tr3_regex_alloc_set_ids(unit, match_set_ids,
                                            matches, count, pengine->hw_idx);
         if (rv) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "Alloc of set_ids failed\n")));
             goto fail;
@@ -3767,7 +3767,7 @@ _bcm_tr3_attach_hw_engine(int unit, _bcm_regex_lengine_t *lengine,
         rv = _bcm_tr3_regex_alloc_check_ids(unit, match_check_ids,
                                             matches, count, pengine->hw_idx, 1);
         if (rv) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "Alloc of check_ids failed\n")));
             goto fail;
@@ -3887,7 +3887,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
 
     if (!(device = REGEX_INFO(unit))) {
         return BCM_E_INIT;
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "unit %d, device not initialized\n"),
                   unit));
@@ -3915,7 +3915,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
 
     rv = _bcm_tr3_find_engine(unit, engid, &lengine);
     if (rv) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "can't find engine %d\n"),
                   engid));
@@ -3928,7 +3928,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     pengine = lengine->physical_engine;
     rv = _bcm_tr3_regex_hw_engine_detach(unit, pengine);
     if (rv) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "can't detach hw_engine %d, rv %d\n"),
                   engid, rv));
@@ -3938,7 +3938,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
 
     if (count <= 0) {
         BCM_REGEX_UNLOCK(unit);
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "no patterns to install\n")));
         return BCM_E_NONE;
@@ -3953,7 +3953,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     for (i = 0; i < count; i++) {
         /* Ensure that the regex is not too long.  It must be a null terminated string. */
         if (sal_strlen(matches[i].pattern) >= sizeof(matches[i].pattern)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "regex %d too long\n"),
                       i));
@@ -3962,7 +3962,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
         }
         if (device->info->flags & BCM_REGEX_USE_POLICY_ID) {
             if (matches[i].action_flags & BCM_REGEX_MATCH_ACTION_NON_POLICY_ACTIONS) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "non-policy action flags set with policy-ID flag\n")));
                 rv = BCM_E_PARAM;
@@ -3979,7 +3979,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
         }
         else {
             if (matches[i].policy_id != -1) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "attempting to use policy_id with no policy-ID flag\n")));
                 rv = BCM_E_PARAM;
@@ -4030,7 +4030,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
 
     req_lsz = (hw_states + BCM_TR3_NUM_RV_PER_LINE-1)/BCM_TR3_NUM_RV_PER_LINE;
     if (req_lsz > _bcm_tr3_get_tile_line_size(unit)) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "required lines %d too large to install\n"),
                   req_lsz));
@@ -4038,7 +4038,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
         goto fail;
     }
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "%d RV entry, %d lines needed\n"),
               hw_states, req_lsz));
@@ -4050,7 +4050,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     if (need_set_ids) {
         cps_match_set_ids = sal_alloc(sizeof(int)*count, "cps_set_ids");
         if (!cps_match_set_ids) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "no memory for match set IDs\n")));
             rv = BCM_E_MEMORY;
@@ -4064,7 +4064,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     if (need_check_ids) {
         cps_match_check_ids = sal_alloc(sizeof(int)*count, "cps_check_ids");
         if (!cps_match_check_ids) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "no memory for match check IDs\n")));
             rv = BCM_E_MEMORY;
@@ -4081,7 +4081,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     rv = _bcm_tr3_attach_hw_engine(unit, lengine, req_lsz, 
                      cps_match_set_ids, cps_match_check_ids, matches, sig_ids, count);
     if (rv) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "could not attach hw_engine, rv %d\n"),
                   rv));
@@ -4091,7 +4091,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     rv = _bcm_tr3_install_dfa(unit, dfa, matches, cps_match_set_ids, cps_match_check_ids,
                               sig_ids, count, lengine->physical_engine);
     if (rv) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "could not install DFA, rv %d\n"),
                   rv));
@@ -4121,7 +4121,7 @@ _bcm_tr3_regex_match_set(int unit, bcm_regex_engine_t engid,
     rv = READ_AXP_SM_REGEX_CONTROL0r(unit, 
                             lengine->physical_engine->hw_idx, &regval);
     if (SOC_FAILURE(rv)) {
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "could not REGEX_CONTROL0 register, rv %d\n"),
                   rv));
@@ -4887,7 +4887,7 @@ _bcm_tr3_ft_session_to_hw(int unit, ft_session_entry_t *hw_entry, int flags,
             age_profile = soc_mem_index_max(unit, FT_AGE_PROFILEm);
         }
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "ticks = %d (0x%x), age_profile = 0x%x\n"),
                   ticks, ticks, age_profile));
@@ -4906,7 +4906,7 @@ _bcm_tr3_ft_session_to_hw(int unit, ft_session_entry_t *hw_entry, int flags,
         soc_FT_SESSIONm_field32_set(unit, hw_entry, FLOW_STATEf,
                                     flow_state);
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "flow_state: 0x%x\n"),
                   flow_state));
@@ -4938,23 +4938,23 @@ _bcm_tr3_ft_session_to_hw(int unit, ft_session_entry_t *hw_entry, int flags,
       port2 = key->src_port;
     }
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "ip1 = 0x%08x\n"),
               ip1));
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "ip2 = 0x%08x\n"),
               ip2));
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "port1 = 0x%04x\n"),
               port1));
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "port2 = 0x%04x\n"),
               port2));
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "protocol = 0x%02x\n"),
               protocol));
@@ -4978,13 +4978,13 @@ _bcm_tr3_ft_session_to_hw(int unit, ft_session_entry_t *hw_entry, int flags,
     _bcm_ft_key_field_set(key_field, _REGEX_KEY_FIELD_V4_OFFSET_IP_2,
                           _REGEX_KEY_FIELD_V4_LENGTH_IP_2, &ip2);
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "direction = 0x%x\n"),
               direction));
     soc_FT_SESSIONm_field32_set(unit, hw_entry, KEY_DIRECTIONf, direction);
     p8 = (uint8*) key_field;
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "key_field = %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
               *p8, *(p8+1), *(p8+2), *(p8+3), *(p8+4), *(p8+5), *(p8+6), *(p8+7), *(p8+8), *(p8+9), *(p8+10), *(p8+11), *(p8+12)));
@@ -5050,7 +5050,7 @@ _bcm_tr3_ft_session_ipv6_to_hw(int unit, ft_session_ipv6_entry_t *hw_entry6,
             age_profile = soc_mem_index_max(unit, FT_AGE_PROFILEm);
         }
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "ticks = %d (0x%x), age_profile = 0x%x\n"),
                   ticks, ticks, age_profile));
@@ -5069,7 +5069,7 @@ _bcm_tr3_ft_session_ipv6_to_hw(int unit, ft_session_ipv6_entry_t *hw_entry6,
         soc_FT_SESSION_IPV6m_field32_set(unit, hw_entry6, FLOW_STATEf,
                                          flow_state);
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "flow_state: 0x%x\n"),
                   flow_state));
@@ -5159,17 +5159,17 @@ _bcm_tr3_ft_session_ipv6_to_hw(int unit, ft_session_ipv6_entry_t *hw_entry6,
                                    &dip6[_REGEX_KEY_LOWER_V6_LENGTH_IP_2/8]);
     }
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "direction = 0x%x\n"),
               direction));
     soc_FT_SESSION_IPV6m_field32_set(unit, hw_entry6, KEY_DIRECTIONf, direction);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "set mem %s field %s\n"),
               soc_mem_name[FT_SESSION_IPV6m], soc_fieldnames[KEYf]));
     soc_FT_SESSION_IPV6m_field_set(unit, hw_entry6, KEYf, key_upper);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "set mem %s field %s\n"),
               soc_mem_name[FT_SESSION_IPV6m], soc_fieldnames[IPV6_LOWER_KEYf]));
@@ -5225,14 +5225,14 @@ _bcm_tr3_ft_session_from_hw(int unit, int flags,
     */
 
     age_profile = soc_FT_SESSIONm_field32_get(unit, hw_entry, AGE_PROFILEf);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "age_profile = 0x%x\n"),
               age_profile));
     SOC_IF_ERROR_RETURN(READ_FT_AGE_PROFILEm(unit, MEM_BLOCK_ALL, age_profile, &ftpm));
     ticks = soc_mem_field32_get(unit, FT_AGE_PROFILEm, &ftpm, TIMEOUTf);
     session->inactivity_timeout = ticks * _REGEX_SESSION_AGE_PROFILE_TICKS_US;
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "ticks = 0x%x, timeout = %d\n"),
               ticks, session->inactivity_timeout));
@@ -5246,12 +5246,12 @@ _bcm_tr3_ft_session_from_hw(int unit, int flags,
     }
 
     soc_mem_field_get(unit, mem, hw_entry, FLOW_STATEf, &flow_state);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "flow_state = 0x%08x\n"),
               flow_state));
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "session->flags = 0x%x\n"),
               session->flags));
@@ -5350,14 +5350,14 @@ _bcm_tr3_ft_session_ipv6_from_hw(int unit, int flags,
     */
 
     age_profile = soc_FT_SESSION_IPV6m_field32_get(unit, hw_entry6, AGE_PROFILEf);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "age_profile = 0x%x\n"),
               age_profile));
     SOC_IF_ERROR_RETURN(READ_FT_AGE_PROFILEm(unit, MEM_BLOCK_ALL, age_profile, &ftpm));
     ticks = soc_mem_field32_get(unit, FT_AGE_PROFILEm, &ftpm, TIMEOUTf);
     session->inactivity_timeout = ticks * _REGEX_SESSION_AGE_PROFILE_TICKS_US;
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "ticks = 0x%x, timeout = %d\n"),
               ticks, session->inactivity_timeout));
@@ -5371,12 +5371,12 @@ _bcm_tr3_ft_session_ipv6_from_hw(int unit, int flags,
     }
 
     soc_mem_field_get(unit, mem, hw_entry6, FLOW_STATEf, &flow_state);
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "flow_state = 0x%08x\n"),
               flow_state));
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "session->flags = 0x%x\n"),
               session->flags));
@@ -5475,13 +5475,13 @@ int _bcm_tr3_regex_session_add(int unit,
             goto end;
         } else if (rv == BCM_E_NOT_FOUND) {
             if ((key->flags & BCM_REGEX_SESSION_KEY_REPLACE) != 0) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "soc_mem_insert ipv6 rv: %d, can't replace non-existent entry\n"),
                           rv));
                 goto end;
             }
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "session_add ipv6\n")));
             rv = soc_mem_insert(unit, mem, MEM_BLOCK_ALL, (void *)&session_entry6);
@@ -5492,11 +5492,11 @@ int _bcm_tr3_regex_session_add(int unit,
             } else {
                 BCM_IF_ERROR_RETURN
                     (_bcm_tr3_ft_session_ipv6_to_hw(unit, &session_entry_lookup6, flags, key, session));
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "session_modify ipv6\n")));
                 rv = soc_mem_insert(unit, mem, MEM_BLOCK_ALL, (void *)&session_entry_lookup6);
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "soc_mem_insert ipv6 rv: %d, OK for modify\n"),
                           rv));
@@ -5517,13 +5517,13 @@ int _bcm_tr3_regex_session_add(int unit,
             goto end;
         } else if (rv == BCM_E_NOT_FOUND) {
             if ((key->flags & BCM_REGEX_SESSION_KEY_REPLACE) != 0) {
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "soc_mem_insert ipv4 rv: %d, can't replace non-existent entry\n"),
                           rv));
                 goto end;
             }
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "session_add ipv4\n")));
             rv = soc_mem_insert(unit, mem, MEM_BLOCK_ALL, (void *)&session_entry);
@@ -5534,11 +5534,11 @@ int _bcm_tr3_regex_session_add(int unit,
             } else {
                 BCM_IF_ERROR_RETURN
                     (_bcm_tr3_ft_session_to_hw(unit, &session_entry_lookup, flags, key, session));
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "session_modify ipv4\n")));
                 rv = soc_mem_insert(unit, mem, MEM_BLOCK_ALL, (void *)&session_entry_lookup);
-                LOG_INFO(BSL_LS_BCM_REGEX,
+                LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                          (BSL_META_U(unit,
                                      "soc_mem_insert ipv4 rv: %d, OK for modify\n"),
                           rv));
@@ -5569,7 +5569,7 @@ int _bcm_tr3_regex_session_policy_update(int unit, int flags, int flow_index,
         mem = FT_SESSION_IPV6m;
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, flow_index, &session_entry6);
         if (BCM_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "soc_mem_read ipv6 rv: %d, can't update non-existent entry\n"),
                       rv));
@@ -5579,7 +5579,7 @@ int _bcm_tr3_regex_session_policy_update(int unit, int flags, int flow_index,
                                          policy);
         rv = soc_mem_write(unit, mem, MEM_BLOCK_ANY, flow_index, &session_entry6);
         if (BCM_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "soc_mem_write ipv6 rv: %d, can't write entry\n"),
                       rv));
@@ -5590,7 +5590,7 @@ int _bcm_tr3_regex_session_policy_update(int unit, int flags, int flow_index,
         mem = FT_SESSIONm;
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, flow_index, &session_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "soc_mem_read ipv4 rv: %d, can't update non-existent entry\n"),
                       rv));
@@ -5600,7 +5600,7 @@ int _bcm_tr3_regex_session_policy_update(int unit, int flags, int flow_index,
                                          policy);
         rv = soc_mem_write(unit, mem, MEM_BLOCK_ANY, flow_index, &session_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "soc_mem_write ipv4 rv: %d, can't write entry\n"),
                       rv));
@@ -5728,7 +5728,7 @@ int _bcm_tr3_regex_session_get_by_index(int unit, int flags, int index,
         mem = FT_SESSION_IPV6m;
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, index, &session_entry6);
         if (BCM_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "soc_mem_read ipv6 rv: %d, can't get non-existent entry\n"),
                       rv));
@@ -5742,7 +5742,7 @@ int _bcm_tr3_regex_session_get_by_index(int unit, int flags, int index,
         mem = FT_SESSIONm;
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, index, &session_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  "soc_mem_read ipv4 rv: %d, can't get non-existent entry\n"),
                       rv));
@@ -5776,7 +5776,7 @@ int _bcm_tr3_regex_session_traverse(int unit,
     index_min6 = soc_mem_index_min(unit, FT_SESSION_IPV6m);
     index_max6 = soc_mem_index_max(unit, FT_SESSION_IPV6m);
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "index_min4: %d, index_max4: %d, index_min6: %d, index_max6: %d\n"),
               index_min4, index_max4, index_min6, index_max6));
@@ -5821,7 +5821,7 @@ int _bcm_tr3_regex_session_traverse(int unit,
         account for the IPV6 upper half when taken as a whole
         */
         type = soc_FT_SESSIONm_field32_get(unit, hw_entry4, KEY_TYPEf);
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "entry: %d, key_type = %d\n"),
                   i, type));
@@ -5848,7 +5848,7 @@ int _bcm_tr3_regex_session_traverse(int unit,
             flow_state = soc_FT_SESSIONm_field32_get(unit, hw_entry4, FLOW_STATEf);
         }
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "flow_state = 0x%08x, static_bit = 0x%x\n"),
                   flow_state, static_bit));
@@ -5873,7 +5873,7 @@ int _bcm_tr3_regex_session_traverse(int unit,
         {
             rv = _bcm_tr3_ft_session_from_hw(unit, _REGEX_GET_KEY_FROM_HW_ENTRY, &info, &key, hw_entry4);
         }
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "rv = %d (0x%08x)\n"),
                   rv, rv));
@@ -6406,7 +6406,7 @@ STATIC int _bcm_tr3_alloc_regex_engine(int unit, int clsz, int extra_lsz,
     }
 
 phy_engine_alloced:
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "engine engine %d allocated\n"),
               peng->hw_idx));
@@ -9288,7 +9288,7 @@ STATIC int _regex_tr3_policy_set_l3_info(int unit, soc_mem_t mem, int value, uin
     BCM_IF_ERROR_RETURN(retval);
 
     if (flags & BCM_L3_MULTIPATH) {
-        LOG_DEBUG(BSL_LS_BCM_REGEX,
+        LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) vverb: Install mpath L3 policy "
                               "(Ecmp_group: %d)))"),
@@ -9296,7 +9296,7 @@ STATIC int _regex_tr3_policy_set_l3_info(int unit, soc_mem_t mem, int value, uin
         RegexPolicySet(unit, mem, buf, ECMPf, 1);
         RegexPolicySet(unit, mem, buf, ECMP_PTRf, nh_ecmp_id);
     } else {
-        LOG_DEBUG(BSL_LS_BCM_REGEX,
+        LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) vverb: Install unipath L3 policy"
                               "(Next hop id: %d)))"),
@@ -9342,14 +9342,14 @@ STATIC int _regex_tr3_policy_egr_nexthop_info_set(int unit, soc_mem_t mem,
             /* Non-Trident devices do not support redirect to ECMP action */
             return (BCM_E_UNAVAIL);
         }
-        LOG_DEBUG(BSL_LS_BCM_REGEX,
+        LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) vverb: Set ECMP (Group id: %d\n)))"),
                    unit, nh_ecmp_id));
     } else {
         /* Regular next hop */
         redirect_to_nhi = (0x1 << 14) | nh_ecmp_id;
-        LOG_DEBUG(BSL_LS_BCM_REGEX,
+        LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) vverb: Set unipath (Nexthop index: %d\n)))"),
                    unit, nh_ecmp_id));
@@ -9888,7 +9888,7 @@ STATIC int _regex_tr3_policy_action_get(int unit, soc_mem_t mem, _regex_policy_t
         return (BCM_E_PARAM);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: BEGIN %s(eid=%d)\n"),
                unit, FUNCTION_NAME(), p_ent->eid));
@@ -10746,7 +10746,7 @@ STATIC int _regex_tr3_policy_action_get(int unit, soc_mem_t mem, _regex_policy_t
 
     pa->flags &= ~_REGEX_ACTION_DIRTY; /* Mark action as installed. */
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: END %s()\n"),
                unit, FUNCTION_NAME()));

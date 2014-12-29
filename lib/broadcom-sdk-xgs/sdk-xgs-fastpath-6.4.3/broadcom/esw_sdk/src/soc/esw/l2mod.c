@@ -697,7 +697,7 @@ _soc_l2mod_fifo_process(int unit, uint32 flags, l2_mod_fifo_entry_t * entry)
             soc_l2x_callback(unit, 0, NULL, &wr_data);
             break;
         default:
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "soc_l2mod_fifo_thread: invalid operation\n")));
             break;
@@ -752,7 +752,7 @@ _soc_l2mod_thread(void * unit_vp)
         /* Read in the fifo contents */
         if ((rv = soc_mem_read_range(unit, L2_MOD_FIFOm, MEM_BLOCK_ANY,
                         index_min, index_max, fifo)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2mod_fifo_thread,DMA failed: %s\n"),
                        soc_errmsg(rv)));
@@ -913,7 +913,7 @@ _soc_l2mod_dma_thread(void *unit_vp)
                 soc_intr_enable(unit, intr_mask);
             }
             if (sal_sem_take(soc->arl_notify, interval) < 0) {
-                LOG_VERBOSE(BSL_LS_SOC_ARL,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                             (BSL_META_U(unit,
                                         "%s polling timeout soc_mem_fifo_delay_value=%d\n"), 
                              soc->l2x_name, soc_mem_fifo_delay_value));
@@ -925,7 +925,7 @@ _soc_l2mod_dma_thread(void *unit_vp)
                 }
 #endif                    
             } else {
-                LOG_VERBOSE(BSL_LS_SOC_ARL,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                             (BSL_META_U(unit,
                                         "%s woken up soc_mem_fifo_delay_value=%d\n"), 
                              soc->l2x_name, soc_mem_fifo_delay_value));
@@ -1152,7 +1152,7 @@ soc_l2mod_stop(int unit)
     int			rv = SOC_E_NONE;
 
     if (SOC_IS_XGS3_SWITCH(unit)) {
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "soc_l2mod_stop: unit=%d\n"), unit));
 
@@ -1219,7 +1219,7 @@ soc_l2mod_start(int unit, uint32 flags, sal_usecs_t interval)
                                       _soc_l2mod_thread, INT_TO_PTR(unit));
             }
             if (soc->l2x_pid == SAL_THREAD_ERROR) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "soc_l2mod_start: Could not start L2MOD thread\n")));
                 return SOC_E_MEMORY;

@@ -420,7 +420,7 @@ drv_harrier_storm_control_enable_set(int unit, uint32 port, uint8 enable)
     uint32  zero_value, reg_value, acc_ctrl = 0;
     int  rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_storm_control_enable_set: \
                          unit = %d, port = %d, %sable\n"), unit, port, (enable) ? "en" : "dis"));
@@ -664,7 +664,7 @@ drv_harrier_storm_control_enable_get(int unit, uint32 port, uint8 *enable)
         IE_RC_ENf, &temp);
     *enable = temp;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_storm_control_enable_get: \
                          unit = %d, port = %d, %sable\n"), unit, port, (*enable) ? "en" : "dis"));
@@ -705,7 +705,7 @@ drv_harrier_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     uint32  quotient_64k, remainder_64k, quotient_1m, remainder_1m;
     int  rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_storm_control_set: \
                          unit = %d, bmp = 0x%x, type = 0x%x, limit = %dK\n"),
@@ -713,7 +713,7 @@ drv_harrier_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
 
     if (((int)limit > HARRIER_RATE_METER_MAX) ||
         ((int)limit < HARRIER_RATE_METER_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_harrier_storm_control_set : rate unsupported.\n")));
         return SOC_E_PARAM;
@@ -721,7 +721,7 @@ drv_harrier_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
 
     if (((int)burst_size > HARRIER_RATE_BURST_MAX) ||
         ((int)burst_size < HARRIER_RATE_BURST_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_harrier_storm_control_set : burst size unsupported.\n")));
         return SOC_E_PARAM;
@@ -1070,7 +1070,7 @@ drv_harrier_storm_control_get(int unit, uint32 port, uint32 *type,
     
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_storm_control_get: \
                          unit = %d, port = %d, type = 0x%x, limit = %dK\n"),

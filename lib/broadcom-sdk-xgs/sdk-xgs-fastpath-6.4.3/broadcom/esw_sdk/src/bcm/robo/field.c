@@ -104,7 +104,7 @@ STATIC bcm_field_entry_t last_allocated_eid[BCM_MAX_NUM_UNITS];
         return BCM_E_UNAVAIL;                                    \
     }                                                            \
     if (_field_control[unit] == NULL) {                          \
-        LOG_ERROR(BSL_LS_BCM_FP,                                    \
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,                                    \
                   (BSL_META("FP Error: unit=%d not initialized\n"), \
                    unit));                                          \
         return BCM_E_INIT;                                       \
@@ -184,7 +184,7 @@ _robo_field_action_alloc(bcm_field_action_t action, uint32 param0, uint32 param1
 {
     *fa = sal_alloc(sizeof (_field_action_t), "field_action");
     if (*fa == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META("FP Error: allocation failure for field_action\n")));
         return BCM_E_MEMORY;
     }
@@ -363,7 +363,7 @@ _robo_field_entry_slice_id_set(int unit, _field_stage_id_t stage_id,
         retval = DRV_FP_ENTRY_TCAM_CONTROL(unit, stage_id, 
             f_ent->drv_entry, DRV_FIELD_ENTRY_TCAM_SLICE_ID_SET, sliceId, &slice_map);
         BCM_IF_ERROR_RETURN(retval);
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "%s mode %x\n"),
                    FUNCTION_NAME(),mode));
@@ -433,7 +433,7 @@ _robo_field_stage_control_get(int unit, _field_stage_id_t stage_id,
 
     /* Check that module was initialized. */
     if (NULL == (_field_control[unit])->stages) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Stage (%d) is not initialized.\n"), 
                    unit, stage_id));
@@ -450,7 +450,7 @@ _robo_field_stage_control_get(int unit, _field_stage_id_t stage_id,
     }
 
     if (NULL == stage_p) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unknown pipeline stage (%d).\n"),
                    unit, stage_id));
@@ -532,7 +532,7 @@ _robo_field_entry_prio_cmp(int prio_first, int prio_second) {
    } else {
        retval = 1;
    }
-   LOG_DEBUG(BSL_LS_BCM_FP,
+   LOG_BSL_DEBUG(BSL_LS_BCM_FP,
              (BSL_META("_robo_field_entry_prio_cmp (first=0x%x ? second=0x%x) retval=%d\n"),
               prio_first, prio_second, retval));
    return retval;
@@ -574,7 +574,7 @@ _robo_field_entry_move(int unit, _field_entry_t *f_ent, int amount, int mode) {
     assert(fs != NULL);
 
     if (amount == 0) {
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "FP Warning: moving entry=%d, same slice_idx=%d(0x%x)\n"),
                   f_ent->eid, f_ent->slice_idx, f_ent->slice_idx));
@@ -593,7 +593,7 @@ _robo_field_entry_move(int unit, _field_entry_t *f_ent, int amount, int mode) {
     }
     
     tcam_idx_new = tcam_idx_old + amount;
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: move entry=%d, slice_idx old: %d  new:%d amount %d\n"),
                f_ent->eid, tcam_idx_old, tcam_idx_new, amount));
@@ -762,7 +762,7 @@ _robo_field_entry_block_move(int unit, _field_group_t *fg,
     if (BCM_FAILURE(rv)) {
         return (rv);
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "%s src_idx %d dst_idx %d entry_amount %d \n"),
                FUNCTION_NAME(), src_idx, dst_idx,entry_amount));
@@ -807,7 +807,7 @@ _robo_field_entry_block_move(int unit, _field_group_t *fg,
                     f_st->hw_index = dst_idx+i;
                 }
             }            
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "stage_fc->field_shared_entries[%d] %p\n"),
                        dst_idx+i, temp_ent));
@@ -849,7 +849,7 @@ _robo_field_entry_block_move(int unit, _field_group_t *fg,
                 }
 
            }            
-           LOG_DEBUG(BSL_LS_BCM_FP,
+           LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                      (BSL_META_U(unit,
                                  "stage_fc->field_shared_entries[%d] %p\n"),
                       dst_idx+i, temp_ent));
@@ -888,7 +888,7 @@ _robo_field_entry_phys_create(int unit, bcm_field_entry_t entry, int prio,
     uint32          temp, slice_map;
 
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: _robo_field_entry_phys_create(entry=%d, prio=%d)\n"),
                entry, prio));
@@ -904,7 +904,7 @@ _robo_field_entry_phys_create(int unit, bcm_field_entry_t entry, int prio,
     /* allocate and zero memory for field entry */
     f_ent = sal_alloc(sizeof (_field_entry_t), "field_entry");
     if (f_ent == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: allocation failure for field_entry\n")));
         return NULL;
@@ -915,12 +915,12 @@ _robo_field_entry_phys_create(int unit, bcm_field_entry_t entry, int prio,
     rv = DRV_FP_ENTRY_MEM_CONTROL(unit, fs->stage_id, 
             DRV_FIELD_ENTRY_MEM_ALLOC, NULL, NULL,&drv_entry);
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: DRV_FIELD_ENTRY_MEM_ALLOC %p\n"),
                drv_entry));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: allocation failure for field drv entry\n")));
         sal_free(f_ent);
@@ -1125,7 +1125,7 @@ _field_meter_install(int unit, _field_stage_id_t stage_id,
 
     int                 rv = BCM_E_UNAVAIL;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "%s eid %d tcam_idx %d chain_idx %d\n"),
                FUNCTION_NAME(),
@@ -1168,7 +1168,7 @@ _robo_field_tcam_policy_install(int unit, _field_stage_id_t stage_id,
     }
     f_ent->fs->inst_flg = 1;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "%s eid %d tcam_idx %d chain_idx %d\n"),
                FUNCTION_NAME(),f_ent->eid, 
@@ -1305,7 +1305,7 @@ _field_selcode_mode_get(int unit, _field_stage_id_t stage_id,
     }
     
     retval = DRV_FP_SELCODE_MODE_GET(unit, stage_id, &qset, flags, slice_id, slice_map, &drv_entry);
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP:_field_selcode_mode_get slice_id %d rv %d %p\n"),
                *slice_id,retval,drv_entry));
@@ -1363,7 +1363,7 @@ _field_selcode_mode_get(int unit, _field_stage_id_t stage_id,
                     }                        
                 }
                 *slice_id = temp;
-                LOG_DEBUG(BSL_LS_BCM_FP,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP:53115 field_selcode_mode_get slice_id %d rv %d %p\n"),
                            *slice_id,retval,drv_entry));
@@ -1411,7 +1411,7 @@ _field_selcode_get(int unit, bcm_field_qset_t qset, _field_group_t *fg) {
             retval = _field_selcode_mode_get(unit, fg->stage_id, qset, fg->mode,
                                                &fg->slices[0].sel_codes.fpf, &fg->slices[0].sel_codes.slice_map);
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: Failure in _field_selcode_get()\n")));
             }
@@ -1425,7 +1425,7 @@ _field_selcode_get(int unit, bcm_field_qset_t qset, _field_group_t *fg) {
                 retval = _field_selcode_mode_get(unit, fg->stage_id, qset, bcmFieldGroupModeDouble,
                                                &fg->slices[0].sel_codes.fpf, &fg->slices[0].sel_codes.slice_map);
                 if (BCM_FAILURE(retval)) {
-                    LOG_ERROR(BSL_LS_BCM_FP,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                           "FP Error: Failure in _field_selcode_get() bcmFieldGroupModeDouble\n")));
                 }
@@ -1535,7 +1535,7 @@ _robo_field_group_stage_get(int unit, bcm_field_qset_t *qset_p,
     }
 
     if (stage_count > 1) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: More than one pipeline stage was specified.\n"),
                    unit));
@@ -1646,7 +1646,7 @@ _robo_field_group_id_generate(int unit, bcm_field_qset_t qset,
     _field_group_t *group_p;  /* Group info. */
 
      if (group == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: group == NULL\n")));
         return BCM_E_PARAM;
@@ -1666,7 +1666,7 @@ _robo_field_group_id_generate(int unit, bcm_field_qset_t qset,
         rv = _field_selcode_mode_get(unit, fg->stage_id, qset, bcmFieldGroupModeSingle,
                                                &slice_id, &slice_map);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: new Qset won't work.\n")));
             return rv;
@@ -1837,7 +1837,7 @@ _robo_field_qual_value32_set(int unit, bcm_field_entry_t entry,
     uint32  fld_data, fld_mask;
     
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "FP: setting qual (%s) values data=0x%x, mask=0x%x\n"), 
                  _robo_field_qual_name(qual),data, mask));
@@ -2010,7 +2010,7 @@ _robo_field_qual_value32_get(int unit, bcm_field_entry_t entry,
         *data = q_data[0];
         *mask = q_mask[0];
     }
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "_field_qual_value32_get : data= 0x%x, mask =0x%x\n"),
                  *data, *mask));
@@ -2039,7 +2039,7 @@ _robo_field_qual_value16_get(int unit, bcm_field_entry_t entry,
         *mask = (uint16)(q_mask[0] & 0xffff);
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "_field_qual_value16_get : data= 0x%x, mask =0x%x\n"),
                  *data, *mask));
@@ -2068,7 +2068,7 @@ _robo_field_qual_value8_get(int unit, bcm_field_entry_t entry,
         *mask = (uint8)(q_mask[0] & 0xff);
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "_field_qual_value8_get : data= 0x%x, mask =0x%x\n"),
                  *data, *mask));
@@ -2123,7 +2123,7 @@ _field_group_prio_make(_field_stage_t *stage_fc, int *pri)
         }
     }
 
-    LOG_ERROR(BSL_LS_BCM_FP,
+    LOG_BSL_ERROR(BSL_LS_BCM_FP,
               (BSL_META("FP Error: No Group available.\n")));
     return BCM_E_RESOURCE;
 }
@@ -2477,7 +2477,7 @@ _robo_field_stage_add(int unit, _field_control_t *fc, _field_stage_id_t stage_id
     /* Allocate stage structure. */
     stage_fc = sal_alloc(sizeof(_field_stage_t), "FP stage info");
     if (NULL == stage_fc) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Allocation failure for stage info\n"),
                    unit));
@@ -3010,11 +3010,11 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                     (sal_memcmp(&temp_chain.tcam_mask, 
                     &drv_entry->cfp_chain->tcam_mask, 
                     sizeof(temp_chain.tcam_mask)))) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "%s, DIFF : index = %d\n"),
                                  FUNCTION_NAME(), index));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "data : old = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3026,7 +3026,7 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                                  drv_entry->cfp_chain->tcam_data[5],
                                  drv_entry->cfp_chain->tcam_data[6], 
                                  drv_entry->cfp_chain->tcam_data[7]));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "data : new = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3034,7 +3034,7 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                                  temp_chain.tcam_data[2], temp_chain.tcam_data[3],
                                  temp_chain.tcam_data[4], temp_chain.tcam_data[5],
                                  temp_chain.tcam_data[6], temp_chain.tcam_data[7]));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "mask : old = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3046,7 +3046,7 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                                  drv_entry->cfp_chain->tcam_mask[5],
                                  drv_entry->cfp_chain->tcam_mask[6], 
                                  drv_entry->cfp_chain->tcam_mask[7]));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "mask : new = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3076,11 +3076,11 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                     (sal_memcmp(&temp_entry.tcam_mask, 
                     &drv_entry->tcam_mask, 
                     sizeof(temp_entry.tcam_mask)))) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "%s, DIFF : index = %d\n"),
                                  FUNCTION_NAME(), index));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "data : old = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3092,7 +3092,7 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                                  drv_entry->tcam_data[5],
                                  drv_entry->tcam_data[6], 
                                  drv_entry->tcam_data[7]));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "data : new = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3100,7 +3100,7 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                                  temp_entry.tcam_data[2], temp_entry.tcam_data[3],
                                  temp_entry.tcam_data[4], temp_entry.tcam_data[5],
                                  temp_entry.tcam_data[6], temp_entry.tcam_data[7]));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "mask : old = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3112,7 +3112,7 @@ _field_tcam_sync_entry(int unit, _field_stage_t *stage_fc, uint32 index)
                                  drv_entry->tcam_mask[5],
                                  drv_entry->tcam_mask[6], 
                                  drv_entry->tcam_mask[7]));
-                    LOG_VERBOSE(BSL_LS_BCM_FP,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                                 (BSL_META_U(unit,
                                             "mask : new = 0x%x, 0x%x, 0x%x, 0x%x, "
                                             "0x%x, 0x%x, 0x%x, 0x%x\n"),
@@ -3211,7 +3211,7 @@ _field_tcam_thread(void *unit_vp)
     fc->tcam_notify = sal_sem_create("tcam notify", sal_sem_BINARY, 0);
 
     if (fc->tcam_notify == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_tcam_thread: semaphore init failed\n")));
         rv = BCM_E_INTERNAL;
@@ -3230,7 +3230,7 @@ _field_tcam_thread(void *unit_vp)
     while ((interval = fc->tcam_interval) != 0) {
         if (SOC_IS_VULCAN(unit)) {
 
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "_field_tcam_thread: Process %d-%d\n"),
                          chunk_index, chunk_index + chunk_size - 1));
@@ -3249,7 +3249,7 @@ _field_tcam_thread(void *unit_vp)
              * is requested to exit, it can do so immediately.
              */
             etime = sal_time_usecs();
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "_field_tcam_thread: unit=%d: done in %d usec\n"),
                          unit,
@@ -3379,7 +3379,7 @@ _field_tcam_thread(void *unit_vp)
             }
 #endif /* BCM_53125 || BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT || NS+ */
         }
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "interval %d\n"),
                    interval/div));
@@ -3388,13 +3388,13 @@ _field_tcam_thread(void *unit_vp)
 
  done:
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_tcam_thread: Operation failed; exiting\n")));
     }
 
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "_field_tcam_thread: exiting\n")));
 
@@ -3419,7 +3419,7 @@ _robo_field_thread_stop(int unit)
     int             rv = BCM_E_NONE;
 
     FIELD_IS_INIT(unit);
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: _robo_field_thread_stop(%d)\n"),
                unit));
@@ -3440,7 +3440,7 @@ _robo_field_thread_stop(int unit)
 
             while (fc->tcam_pid != SAL_THREAD_ERROR) {
                 if (soc_timeout_check(&to)) {
-                    LOG_ERROR(BSL_LS_BCM_FP,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                           "_robo_field_thread_stop: thread did not exit\n")));    
                     rv = BCM_E_INTERNAL;
@@ -3673,7 +3673,7 @@ _robo_field_policer_hw_free (int unit, uint8 level, _field_entry_t *f_ent)
         if (BCM_FAILURE(rv)) {
             return rv;
         }
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "tcam_idx %d  tcam_chain_idx %d\n"),
                    tcam_idx, tcam_chain_idx));
@@ -3681,7 +3681,7 @@ _robo_field_policer_hw_free (int unit, uint8 level, _field_entry_t *f_ent)
         rv = DRV_FP_POLICER_CONTROL(unit, f_ent->fs->stage_id, 
             DRV_FIELD_POLICER_FREE, f_ent->drv_entry, NULL);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: FB failed to install meter.\n")));
             return rv;
@@ -3690,7 +3690,7 @@ _robo_field_policer_hw_free (int unit, uint8 level, _field_entry_t *f_ent)
         rv =  _field_meter_install(unit, f_ent->fs->stage_id, f_ent,
             tcam_idx, tcam_chain_idx);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: FB failed to install meter.\n")));
             return rv;
@@ -3873,7 +3873,7 @@ _bcm_robo_field_policer_create(int unit, bcm_policer_config_t *pol_cfg,
     if (pol_cfg->flags & BCM_POLICER_COLOR_MERGE_OR) {
         return (BCM_E_PARAM);
     }
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "%s flag %x policer_mode %d\n"),
                  FUNCTION_NAME(), flags, pol_cfg->mode));
@@ -3912,7 +3912,7 @@ _bcm_robo_field_policer_create(int unit, bcm_policer_config_t *pol_cfg,
             return (rv);
         }
     }
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "%s pid %d\n"),
                  FUNCTION_NAME(),*pid));
@@ -4495,7 +4495,7 @@ _robo_field_entry_stat_attach(int unit, _field_entry_t *f_ent, int stat_id)
     /* Check if statistics entity can be shared. */
     if (f_st->sw_ref_count > 1) {
         /* statistics can't be shared in ROBO arch*/
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "Statistics can't be shared in ROBO arch")));
         return (BCM_E_PARAM);
@@ -4585,7 +4585,7 @@ _robo_field_stat_value_set(int unit, _field_stat_t *f_st, bcm_field_stat_t stat,
         return (BCM_E_PARAM);
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "%s stat %d value %x %x\n"),
                  FUNCTION_NAME(), stat, 
@@ -4758,7 +4758,7 @@ _robo_field_stat_value_get(int unit, _field_stat_t *f_st, bcm_field_stat_t stat,
     } else {
         policer_mode = bcmPolicerModeCount;
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "%s policer_mode %d\n"),
                FUNCTION_NAME(), policer_mode));
@@ -5061,7 +5061,7 @@ _robo_field_data_qualifier_destroy(int unit, int qid)
             /* if there is still some field groups use it */
             if (!fc->udf[qid].valid) {
                 /* UDF already destroyed */
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: udf=%d not configured in unit=%d.\n"),
                            qid, unit));
@@ -5654,7 +5654,7 @@ bcm_robo_field_data_qualifier_multi_get(int unit, int qual_size, int *qual_array
     /* Parameter checking */
 
     if (qual_count == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: qual_count == NULL.\n"),
                    unit));
@@ -5662,7 +5662,7 @@ bcm_robo_field_data_qualifier_multi_get(int unit, int qual_size, int *qual_array
     }
 
     if (qual_size != 0 && qual_array == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: qual_array == NULL.\n"),
                    unit));
@@ -5741,7 +5741,7 @@ bcm_robo_field_data_qualifier_get(int unit, int qual_id, bcm_field_data_qualifie
     /* Parameter checking */
 
     if (qual == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: qual == NULL.\n"),
                    unit));
@@ -6300,7 +6300,7 @@ _robo_field_action_meter_config(int unit, _field_entry_t *f_ent,
 
     /* mode = 4 & 5 are undefined */
     if (param0 == 4 || param0 == 5 || param0 > 7) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: invalid meter mode=%d\n"),
                    unit, param0));
@@ -6498,7 +6498,7 @@ bcm_robo_field_action_add(int unit,
     int                 retval = BCM_E_NONE;
 
 #ifdef BROADCOM_DEBUG
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_action_add(unit=%d, entry=%d, "
                           "action=%s, p0=%d, p1=%d)\n"),
@@ -6523,7 +6523,7 @@ bcm_robo_field_action_add(int unit,
         if (_field_actions_conflict(unit, stage_id, action, f_ent->actions->action)) {
             if (!_field_actions_conflict_allow(unit, action, param0, param1, fa)) {
                 FP_UNLOCK(fc);
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       
                                        "FP Error: action=%d conflicts with existing action in entry=%d\n"),
@@ -6537,7 +6537,7 @@ bcm_robo_field_action_add(int unit,
     /* Confirm that action is in aset. */
     if (SHR_BITGET(f_ent->group->aset.w, action) == 0) {
 #ifdef BROADCOM_DEBUG
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: action=%s not supported\n"),
                    unit, 
@@ -6589,7 +6589,7 @@ bcm_robo_field_action_add(int unit,
          * slice id value for BCM53115 */
         if ((fg->slices->sel_codes.fpf & 0x3) == 0) {
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: bcmFieldActionNewCalssId can't add "
                                   "to this entry\n")));
@@ -6611,7 +6611,7 @@ bcm_robo_field_action_add(int unit,
                 BCM_MIRROR_PORT_INGRESS, param1);
             if (BCM_FAILURE(retval)) {
                 FP_UNLOCK(fc);
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: failure in bcmFieldActionMirrorIngress \n")));
                 return retval;            
@@ -6628,7 +6628,7 @@ bcm_robo_field_action_add(int unit,
                     BCM_MIRROR_PORT_INGRESS, -1);
                 if (BCM_FAILURE(retval)) {
                     FP_UNLOCK(fc);
-                    LOG_ERROR(BSL_LS_BCM_FP,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                           "FP Error: failure in bcmFieldActionMirrorIngress \n")));
                     return retval;            
@@ -6643,7 +6643,7 @@ bcm_robo_field_action_add(int unit,
     retval = _robo_field_action_alloc(action, param0, param1, &fa);
     if (BCM_FAILURE(retval)) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: failure in _robo_field_action_alloc()\n")));
         return retval;
@@ -6711,7 +6711,7 @@ bcm_robo_field_action_get(int unit,
 
     if (fa == NULL) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: action not in entry=%d\n"),
                    entry));
@@ -6720,7 +6720,7 @@ bcm_robo_field_action_get(int unit,
 
     if (param0 == NULL || param1 == NULL) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: param0 == NULL || param1 == NULL\n")));
         return BCM_E_PARAM;
@@ -6747,7 +6747,7 @@ _robo_field_action_remove(int unit, _field_stage_id_t stage_id,
     while (fa != NULL) {
         if (fa->action == action) { /* found match, destroy action */
 #ifdef BROADCOM_DEBUG
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP: %s remove entry %d action %s\n"),
                    FUNCTION_NAME(),
@@ -6837,14 +6837,14 @@ bcm_robo_field_action_delete(int unit,
 #endif
 
 #ifdef BROADCOM_DEBUG
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_action_remove(unit=%d, entry=%d, action=%s)\n"),
                unit, entry, _robo_field_action_name(action)));
 #endif
 
     if (action < 0 || bcmFieldActionCount <= action) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: unknown action=%d\n"),
                    action));
@@ -7104,7 +7104,7 @@ bcm_robo_field_action_ports_add(int unit,
     _field_control_t     *fc;          /* Field control structure.   */    
     
     if (action != bcmFieldActionRedirectPbmp) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Incorrect action parameter\n")));
         return (BCM_E_UNAVAIL);
@@ -7140,7 +7140,7 @@ bcm_robo_field_action_ports_add(int unit,
     while (fa != NULL) {
         if (_field_actions_conflict(unit, stage_id, action, fa->action)) {
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: action=%d conflicts with existing"
                                    "action in entry=%d\n"), action, entry));
@@ -7153,7 +7153,7 @@ bcm_robo_field_action_ports_add(int unit,
     fa = sal_alloc(sizeof (_field_action_t), "field_action");
     if (fa == NULL) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: allocation failure for field_action\n")));
         return (BCM_E_MEMORY);
@@ -7204,7 +7204,7 @@ bcm_robo_field_action_ports_get(int unit,
     int     rv;
     
     if (action != bcmFieldActionRedirectPbmp) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Incorrect action parameter\n")));
         return (BCM_E_UNAVAIL);
@@ -7231,7 +7231,7 @@ bcm_robo_field_action_ports_get(int unit,
 
     if (fa == NULL) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: action not in entry=%d\n"),
                    entry));
@@ -7240,7 +7240,7 @@ bcm_robo_field_action_ports_get(int unit,
 
     if (pbmp == NULL) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: pbmp == NULL\n")));
         return (BCM_E_PARAM);
@@ -7278,7 +7278,7 @@ bcm_robo_field_stat_create(int unit, bcm_field_group_t group, int nstat,
     _field_control_t    *fc;      /* Field control structure.  */
     int                  rv;      /* Operation return status.  */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "%s\n"),
                FUNCTION_NAME()));
@@ -7633,7 +7633,7 @@ bcm_robo_field_stat_get(int unit, int stat_id, bcm_field_stat_t stat,
         FP_UNLOCK(fc);
         return (rv);
     }
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "%s stat_id %d stat %d\n"),
                  FUNCTION_NAME(), stat_id, stat));
@@ -7834,7 +7834,7 @@ int bcm_robo_field_entry_stat_detach(int unit, bcm_field_entry_t entry,
 
     /* Get field control structure. */
     BCM_IF_ERROR_RETURN (_robo_field_control_get(unit, &fc));
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "%s eid %d statid %d\n"),
                  FUNCTION_NAME(),entry, stat_id));
@@ -7922,7 +7922,7 @@ bcm_robo_field_detach(int unit)
     _field_group_t      *fg;
     int rv;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_detach(%d)\n"),
                unit));
@@ -7933,7 +7933,7 @@ bcm_robo_field_detach(int unit)
     }
 
     if (!soc_feature(unit, soc_feature_field)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: No Field Processor available Unit=%d\n"),
                    unit));
@@ -8039,7 +8039,7 @@ bcm_robo_field_entry_copy(int unit,
     }
 
     if (dst_entry == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: dst_entry == NULL\n")));
         FP_UNLOCK(fc);
@@ -8104,7 +8104,7 @@ bcm_robo_field_entry_copy_id(int unit,
         return (rv);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: %s src:%d dst:%d\n"),
                FUNCTION_NAME(),src_entry, dst_entry));
@@ -8121,7 +8121,7 @@ bcm_robo_field_entry_copy_id(int unit,
         return (rv);
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "_fp_entry_copy : src data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                  ((drv_cfp_entry_t *)(f_ent_src->drv_entry))->tcam_data[0],
@@ -8270,7 +8270,7 @@ bcm_robo_field_entry_create(int unit,
     rv = _robo_field_stage_control_get(unit, fg->stage_id, &stage_fc);
     if (BCM_FAILURE(rv)) {
         FP_UNLOCK(fc); 
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Stage (%d) control get failure.\n"), 
                    unit, fg->stage_id));
@@ -8279,7 +8279,7 @@ bcm_robo_field_entry_create(int unit,
 
     if (stage_fc->field_shared_entries_free == 0) {
         FP_UNLOCK(fc); 
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: No entries free in field.\n")));
         return BCM_E_RESOURCE;
@@ -8288,7 +8288,7 @@ bcm_robo_field_entry_create(int unit,
 
     if (entry == NULL) {
         FP_UNLOCK(fc); 
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: entry == NULL.\n")));
         return BCM_E_PARAM;
@@ -8341,7 +8341,7 @@ bcm_robo_field_entry_create_id(int unit,
     int rv, retval, entry_free, chain_entry_free;
     _field_control_t     *fc;          /* Field control structure.   */    
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_robo_field_entry_create_id(group=%d, entry=%d)\n"),
                group, entry));
@@ -8354,7 +8354,7 @@ bcm_robo_field_entry_create_id(int unit,
     /* Confirm that 'entry' is not already used on unit */
     if(BCM_SUCCESS(_robo_field_entry_get(unit, entry, &f_ent, _FP_SLICE_PRIMARY))){
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: entry=%d already exists.\n"),
                    entry));
@@ -8372,7 +8372,7 @@ bcm_robo_field_entry_create_id(int unit,
     rv = _robo_field_stage_control_get(unit, fg->stage_id, &stage_fc);
     if (BCM_FAILURE(rv)) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Stage (%d) control get failure.\n"), 
                    unit, fg->stage_id));
@@ -8382,7 +8382,7 @@ bcm_robo_field_entry_create_id(int unit,
 
     if (stage_fc->field_shared_entries_free == 0) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: No entries free in field.\n")));
         return BCM_E_RESOURCE;
@@ -8411,7 +8411,7 @@ bcm_robo_field_entry_create_id(int unit,
     /* Find unused entry in slice. */
     if (f_ent->flags & _FP_ENTRY_WITH_CHAIN) {
         if (stage_fc->field_shared_entries_free < 2) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: No enough entries free in field.\n")));
             rv = BCM_E_RESOURCE;
@@ -8427,7 +8427,7 @@ bcm_robo_field_entry_create_id(int unit,
                 }        
             }
             if (null_idx == _FP_INVALID_INDEX) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: No enough entries free in field.\n")));
                 rv = BCM_E_RESOURCE;
@@ -8456,7 +8456,7 @@ bcm_robo_field_entry_create_id(int unit,
     
     if (f_ent->flags & _FP_ENTRY_CHAIN_SLICE) {
         if (stage_fc->field_shared_entries_free < 1) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: No enough entries free in field.\n")));
             rv = BCM_E_RESOURCE;
@@ -8472,7 +8472,7 @@ bcm_robo_field_entry_create_id(int unit,
                 }        
             }
             if (null_idx == _FP_INVALID_INDEX) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: No enough entries free in field.\n")));
                 rv = BCM_E_RESOURCE;
@@ -8509,7 +8509,7 @@ bcm_robo_field_entry_create_id(int unit,
         }
 
         if (f_ent->slice_idx == stage_fc->tcam_bottom){
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: Can not get the slice_idx.\n")));
             rv = BCM_E_RESOURCE;
@@ -8630,7 +8630,7 @@ bcm_robo_field_entry_multi_get(int unit, bcm_field_group_t group,
     {
         if (entry_count == NULL) {
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: entry_count == NULL.\n"),
                        unit));
@@ -8645,7 +8645,7 @@ bcm_robo_field_entry_multi_get(int unit, bcm_field_group_t group,
         {
             if (entry_array == NULL) {
                 FP_UNLOCK(fc);
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: entry_array == NULL.\n"),
                            unit));
@@ -8660,7 +8660,7 @@ bcm_robo_field_entry_multi_get(int unit, bcm_field_group_t group,
             rv = _robo_field_stage_control_get(unit, fg_p->stage_id, &stage_fc);
             if (BCM_FAILURE(rv)) {
                 FP_UNLOCK(fc);
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: Stage (%d) control get failure.\n"), 
                            unit, fg_p->stage_id));
@@ -8731,7 +8731,7 @@ bcm_robo_field_group_create_mode(int unit,
     }
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: new group won't create.\n")));
         return rv;
@@ -8776,7 +8776,7 @@ bcm_robo_field_group_create_mode_id(int unit,
     int                 empty_qset;
 #endif /* DEBUG */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: %s(unit=%d, pri %d mode %d gid=%d)\n"),
                FUNCTION_NAME(),unit, pri, mode,group));
@@ -8815,7 +8815,7 @@ bcm_robo_field_group_create_mode_id(int unit,
         }
     } else if (pri < 0 || stage_fc->tcam_slices <= pri ) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: pri=%d out-of-range.\n"),
                    pri));
@@ -8826,7 +8826,7 @@ bcm_robo_field_group_create_mode_id(int unit,
     fg = sal_alloc(sizeof (_field_group_t), "field_group");
     if (fg == NULL) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Allocation failure for field_group\n")));
         return BCM_E_MEMORY;
@@ -8862,7 +8862,7 @@ bcm_robo_field_group_create_mode_id(int unit,
     if (BCM_FAILURE(retval)) {
         sal_free(fg);
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Failure in _field_selcode_get()\n")));
         return BCM_E_UNAVAIL;
@@ -8901,7 +8901,7 @@ bcm_robo_field_group_create_mode_id(int unit,
     }
 
     if(empty_qset != 0) {
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "FP Warning: Creating group with empty Qset\n")));
     }
@@ -8963,7 +8963,7 @@ bcm_robo_field_entry_destroy(int unit,
     _field_control_t    *fc;         /* Field control structure. */
     int chain_entry = _FP_INVALID_INDEX;
     int chain_slice = _FP_INVALID_INDEX;
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_entry_destroy(unit=%d, entry=%d)\n"),
                unit, entry));
@@ -9051,7 +9051,7 @@ bcm_robo_field_entry_destroy_all(int unit)
     int         rv;
     uint16              slice_idx;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_entry_destroy_all(unit=%d)\n"),
                unit));
@@ -9125,7 +9125,7 @@ bcm_robo_field_entry_install(int unit,
     /* Get unit FP control structure. */
     BCM_IF_ERROR_RETURN(_robo_field_control_get(unit, &fc));
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "%s entry %d\n"),
                FUNCTION_NAME(),entry));
@@ -9147,7 +9147,7 @@ bcm_robo_field_entry_install(int unit,
     rv = _robo_field_entry_tcam_idx_get(stage_fc, f_ent, &tcam_idx,
                         &tcam_chain_idx);
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "tcam_idx %d  tcam_chain_idx %d\n"),
                tcam_idx, tcam_chain_idx));
@@ -9159,7 +9159,7 @@ bcm_robo_field_entry_install(int unit,
     /* Clear the TCAM and Policy entry */
     rv = _field_tcam_policy_clear(unit, fg->stage_id,tcam_idx, tcam_chain_idx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Failed to clear tcam and policy tables.\n")));
         FP_UNLOCK(fc);
@@ -9172,7 +9172,7 @@ bcm_robo_field_entry_install(int unit,
         rv = _robo_field_policer_get(unit, f_ent_pl->pid, &f_pl);
    
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: Failed to get policer config\n")));
             FP_UNLOCK(fc);
@@ -9180,7 +9180,7 @@ bcm_robo_field_entry_install(int unit,
         }
         if ((f_pl->hw_flags & _FP_POLICER_DIRTY) || 
             (f_ent->flags &  _FP_ENTRY_DIRTY)){
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "install meter policer id %d mode %d \n"),
                          f_ent_pl->pid, f_pl->cfg.mode));
@@ -9188,7 +9188,7 @@ bcm_robo_field_entry_install(int unit,
                 DRV_FIELD_POLICER_CONFIG, f_ent->drv_entry, 
                 (drv_policer_config_t *)&(f_pl->cfg));
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: Failed to set policer config \n")));
                 FP_UNLOCK(fc);
@@ -9197,7 +9197,7 @@ bcm_robo_field_entry_install(int unit,
             rv = _field_meter_install(unit, fg->stage_id, f_ent,
                 tcam_idx, tcam_chain_idx);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: FB failed to install meter.\n")));
                 FP_UNLOCK(fc);
@@ -9250,27 +9250,27 @@ bcm_robo_field_entry_install(int unit,
         f_ent->flags |= _FP_ENTRY_INSTALL;
         f_ent->flags |= _FP_ENTRY_ENABLED;
     } else {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: failed to install entry.\n")));
     }
     FP_UNLOCK(fc);
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "bcm_robo_field_entry_install(0-7) : data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x,0x%x, 0x%x\n"),
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[0], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[1], 
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[2], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[3], 
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[4], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[5],
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[6], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[7]));
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "bcm_robo_field_entry_install(8-14) : data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x,0x%x\n"),
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[8], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[9], 
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[10], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[11], 
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[12], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[13],
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_data[14]));
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "bcm_robo_field_entry_install : mask= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x,0x%x, 0x%x\n"),
                  ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_mask[0], ((drv_cfp_entry_t *)(f_ent->drv_entry))->tcam_mask[1], 
@@ -9364,7 +9364,7 @@ bcm_robo_field_entry_policer_attach(int unit, bcm_field_entry_t entry_id,
     /* Check that policer can be shared. */
     if (f_pl->sw_ref_count > 1) {
         /* Policer can't be shared in ROBO arch*/
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "Policer can't be shared in ROBO arch")));
         FP_UNLOCK(fc);
@@ -9564,7 +9564,7 @@ bcm_robo_field_entry_prio_get(int unit, bcm_field_entry_t entry, int *prio)
     int                 rv;          /* Operation return status. */
 
     if (prio == NULL ) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: prio==NULL\n")));
         return BCM_E_PARAM;
@@ -9815,7 +9815,7 @@ bcm_robo_field_entry_prio_set(int unit, bcm_field_entry_t entry, int prio)
          slice_idx_target++){
 
         if (stage_fc->field_shared_entries[slice_idx_target] == NULL) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "Found an empty slice_idx=%d\n"),
                        slice_idx_target));
@@ -9831,7 +9831,7 @@ bcm_robo_field_entry_prio_set(int unit, bcm_field_entry_t entry, int prio)
                 stage_fc->field_shared_entries[slice_idx_target]->prio)
                 > 0) {
                 hit = 1;
-                LOG_DEBUG(BSL_LS_BCM_FP,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "Found target slice_idx=%d %p \n"), 
                            slice_idx_target,stage_fc->field_shared_entries[slice_idx_target]));
@@ -10091,7 +10091,7 @@ bcm_robo_field_entry_reinstall(int unit,
         retval = _robo_field_policer_get(unit, f_ent_pl->pid, &f_pl);
    
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: Failed to get policer config\n")));
             FP_UNLOCK(fc);
@@ -10099,7 +10099,7 @@ bcm_robo_field_entry_reinstall(int unit,
         }
         if ((f_pl->hw_flags & _FP_POLICER_DIRTY) || 
             (f_ent->flags &  _FP_ENTRY_DIRTY)){
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "re-install meter policer id %d mode %d \n"),
                          f_ent_pl->pid, f_pl->cfg.mode));
@@ -10107,7 +10107,7 @@ bcm_robo_field_entry_reinstall(int unit,
                 DRV_FIELD_POLICER_CONFIG, f_ent->drv_entry, 
                 (drv_policer_config_t *)&(f_pl->cfg));
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: Failed to set policer config \n")));
                 FP_UNLOCK(fc);
@@ -10118,7 +10118,7 @@ bcm_robo_field_entry_reinstall(int unit,
             tcam_idx, tcam_chain_idx);
 
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: failed to install meter\n")));
                 FP_UNLOCK(fc);
@@ -10167,7 +10167,7 @@ bcm_robo_field_entry_reinstall(int unit,
         retval = _robo_field_tcam_policy_install(unit, fg->stage_id, f_ent, 
                         tcam_idx, tcam_chain_idx);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: FB failed to install entry\n")));
         } else {
@@ -10219,7 +10219,7 @@ bcm_robo_field_entry_remove(int unit,
     _field_policer_t       *f_pl;      /* Policer descriptor.            */    
     
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_entry_remove(%d, %d)\n"),
                unit, entry));
@@ -10304,7 +10304,7 @@ bcm_robo_field_entry_enable_set(int unit, bcm_field_entry_t entry, int enable_fl
     int slice_idx = _FP_INVALID_INDEX, chain_idx = _FP_INVALID_INDEX;
     int                 rv;          /* Operation return status. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: bcm_field_entry_enable_set "
                           "(entry=%d, enable=%d)\n"),
@@ -10379,7 +10379,7 @@ bcm_robo_field_entry_enable_get(int unit, bcm_field_entry_t entry, int *enable_f
     _field_entry_t      *f_ent;      /* Field entry pointer.     */
     int                 rv;          /* Operation return status. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: bcm_field_entry_enable_get "
                           "(entry=%d)\n"),
@@ -10443,7 +10443,7 @@ bcm_robo_field_group_create(int unit,
     }
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: new group won't create.\n")));
         return rv;
@@ -10524,7 +10524,7 @@ bcm_robo_field_group_destroy(int unit,
     uint32              udf_num;
     int                 rv;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_field_group_destroy(unit=%d, group=%d)\n"),
                unit, group));
@@ -10544,7 +10544,7 @@ bcm_robo_field_group_destroy(int unit,
         fg      = fg->next;
     }
     if (fg == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Group=%d not found in unit=%d.\n"),
                    group, unit));
@@ -10555,7 +10555,7 @@ bcm_robo_field_group_destroy(int unit,
     /* Entries must be freed first (see note above). */
     if (fg->group_status.entry_count != 0) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: %d entries still in group=%d.\n"), 
                    fg->group_status.entry_count,
@@ -10638,7 +10638,7 @@ bcm_robo_field_group_get(int unit,
     int rv;
 
     if (qset == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: qset == NULL\n")));
         return BCM_E_PARAM;
@@ -10701,7 +10701,7 @@ bcm_robo_field_group_mode_get(int unit,
     int rv;
 
     if (mode == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: mode=>NULL\n")));
         return BCM_E_PARAM;
@@ -10785,7 +10785,7 @@ bcm_robo_field_group_set(int unit,
     uint8                   slice;
     int     empty_qset, qual;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "BEGIN bcm_field_group_set(unit=%d, group=%d)\n"),
                unit, group));
@@ -10822,7 +10822,7 @@ bcm_robo_field_group_set(int unit,
 
     /* If no entries have been added to group try requested qset.  */
     if (fg->group_status.entry_count == 0) {
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "FP: bcm_field_group_set() with no entries\n")));
 
@@ -10844,7 +10844,7 @@ bcm_robo_field_group_set(int unit,
 
         /* On failure, re-create the old group. */
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: new Qset won't work on group=%d.\n"),
                        group));
@@ -11016,7 +11016,7 @@ bcm_robo_field_group_action_set(int               unit,
     FP_LOCK(fc);
 
     if (BCM_FAILURE(errcode = _robo_field_group_get(unit, group, &fg))) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: group=%d not found \n"),
                    unit, group));
@@ -11065,7 +11065,7 @@ bcm_robo_field_group_action_get(int               unit,
 
     errcode = _robo_field_group_get(unit, group, &fg);
     if (BCM_FAILURE(errcode)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: group=%d not found \n"),
                    unit, group));
@@ -11200,7 +11200,7 @@ bcm_robo_field_init(int unit)
     }
 
     if (!soc_feature(unit, soc_feature_field)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: No Field Processor available Unit=%d\n"),
                    unit));
@@ -11213,7 +11213,7 @@ bcm_robo_field_init(int unit)
     if (_field_control[unit] != NULL) {
         retval = bcm_robo_field_detach(unit);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Module deinit failed.\n"),
                        unit));
@@ -11224,7 +11224,7 @@ bcm_robo_field_init(int unit)
     /* Allocate a bcm_field_control */
     fc = sal_alloc(sizeof (_field_control_t), "field_control");
     if (fc == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Allocation failure for Field Control\n")));
         return BCM_E_MEMORY;
@@ -11261,7 +11261,7 @@ bcm_robo_field_init(int unit)
     fc->fc_lock = sal_mutex_create("field_control.lock");
     if (fc->fc_lock == NULL) {
         _robo_field_control_free(unit, fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Allocation failure for Field Control Lock\n")));
         return BCM_E_MEMORY;
@@ -11310,7 +11310,7 @@ bcm_robo_field_init(int unit)
                      _field_tcam_thread,
                      INT_TO_PTR(unit));
         if (fc->tcam_pid == SAL_THREAD_ERROR) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: Thread create failed\n")));
              DRV_FP_DEINIT(unit, -1);
@@ -11380,7 +11380,7 @@ bcm_robo_field_qualify_clear(int unit,
     rv = _robo_field_stage_control_get(unit, fg->stage_id, &stage_fc);
     if (BCM_FAILURE(rv)) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Stage (%d) control get failure.\n"), 
                    unit, fg->stage_id));
@@ -11418,7 +11418,7 @@ _robo_field_qualify_frame_type_set(int unit, _field_entry_t *f_ent, int frame_ty
 
     if (type) {
         if ((type & frame_type) == 0) {
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "frame type %x conflict with the previous setting %x!\n"),
                          frame_type, type));
@@ -11940,7 +11940,7 @@ bcm_robo_field_qualify_IpFlags(int unit, bcm_field_entry_t entry,
 
     /* Range check data and mask values. */
     if (data > data_max) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: IpFlags data=%#x out of range (0-%d)."),
                    unit, data, data_max));
@@ -12002,7 +12002,7 @@ bcm_robo_field_qualify_IpType(int unit, bcm_field_entry_t entry,
         return (BCM_E_PARAM);
     }
 #ifdef BROADCOM_DEBUG
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: %s IpType %s"),
                FUNCTION_NAME(), 
@@ -12589,7 +12589,7 @@ bcm_robo_field_qualify_L2Format(int unit, bcm_field_entry_t entry,
               }
               break;
           default:
-              LOG_ERROR(BSL_LS_BCM_FP,
+              LOG_BSL_ERROR(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "FP Error: %d not supported on unit=%d\n"),
                          type, unit));
@@ -12652,7 +12652,7 @@ bcm_robo_field_qualify_L2Format(int unit, bcm_field_entry_t entry,
                         mask = 0x0;
                         break;
                     default:
-                        LOG_ERROR(BSL_LS_BCM_FP,
+                        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                                   (BSL_META_U(unit,
                                               "FP Error: %d not supported on unit=%d\n"),
                                    type, unit));
@@ -13093,14 +13093,14 @@ bcm_robo_field_qualify_SrcIp6(int unit, bcm_field_entry_t entry,
 
     if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)){
         if (data[11] & 0xf0){
-            LOG_WARN(BSL_LS_BCM_FP,
+            LOG_BSL_WARN(BSL_LS_BCM_FP,
                      (BSL_META_U(unit,
                                  "FP WARN: 53242/53262 only support lower 44bit qualifiy_SrcIp6 . "
                                  "Only lower 44 bit will take effect !\n")));
         } else {
             for  (i = 0; i < 10; i++) {
                 if (data[i] != 0) {
-                    LOG_WARN(BSL_LS_BCM_FP,
+                    LOG_BSL_WARN(BSL_LS_BCM_FP,
                              (BSL_META_U(unit,
                                          "FP WARN: 53242/53262 only support lower 44bit qualifiy_SrcIp6. "
                                          "Only lower 44 bit will take effect !\n")));
@@ -13136,7 +13136,7 @@ bcm_robo_field_qualify_SrcIp6High(int unit, bcm_field_entry_t entry,
     
   
     if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)){
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "FP WARN: 53242/53262 only support lower-44 bit qualifiy_SrcIp6")));
         return BCM_E_UNAVAIL;
@@ -13338,7 +13338,7 @@ bcm_robo_field_qualify_SrcIp6Low(int unit, bcm_field_entry_t entry,
 
     if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)){
         if (data[11] & 0xf0){
-            LOG_WARN(BSL_LS_BCM_FP,
+            LOG_BSL_WARN(BSL_LS_BCM_FP,
                      (BSL_META_U(unit,
                                  "FP WARN: 53242/53262 only support lower 44bit qualifiy_SrcIp6. "
                                  "Only lower 44 bit will take effect !\n")));
@@ -13601,7 +13601,7 @@ bcm_robo_field_qualify_IpInfo(int unit, bcm_field_entry_t entry,
     
     /* Range check data and mask values. */
     if (data > data_max || mask > data_max) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: IpInfo data=%#x or mask=%#x out of range (0-%d).\n"
                               "BCM_FIELD_IP_CHECKSUM_OK is not supported in robo\n"),
@@ -14016,12 +14016,12 @@ bcm_robo_field_range_create(int unit, bcm_field_range_t *range,
     int                 rv;
     _field_stage_id_t   stage_id;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "BEGIN bcm_robo_field_range_create(unit=%d, range->%p, "),
                unit,
                range));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "flags=0x%08x, min=0x%x, max=0x%x)\n"),
                flags, min, max));
@@ -14109,12 +14109,12 @@ bcm_robo_field_range_create_id(int unit, bcm_field_range_t range,
     _field_stage_id_t   stage_id;       /* Pipeline stage id.       */
     _field_stage_t      *stage_fc;      /* Stage field control info.*/
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "BEGIN bcm_robo_field_range_create_id(unit=%d, range=%d, "),
                unit,
                range));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "flags=0x%08x, min=0x%x, max=0x%x)\n"),
                flags, min, max));
@@ -14134,7 +14134,7 @@ bcm_robo_field_range_create_id(int unit, bcm_field_range_t range,
         SOC_IS_ROBO53262(unit)) {
         if (flags & BCM_FIELD_RANGE_SRCPORT && 
             flags & BCM_FIELD_RANGE_DSTPORT) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: Can't select both source and destination.\n")));
             return (BCM_E_PARAM);
@@ -14162,7 +14162,7 @@ bcm_robo_field_range_create_id(int unit, bcm_field_range_t range,
     for (fr = stage_fc->ranges; fr != NULL; fr = fr->next) {
         if (fr->rid == range) {
             FP_UNLOCK(fc);  
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: range_id=%d already exists.\n"),
                        range));
@@ -14193,7 +14193,7 @@ bcm_robo_field_range_create_id(int unit, bcm_field_range_t range,
         if (flags & BCM_FIELD_RANGE_OUTER_VLAN) { 
             if (hw_used_vlan >= 4) {
                 FP_UNLOCK(fc);  
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: No hardware range checkers left.\n")));
                 return (BCM_E_RESOURCE);
@@ -14204,7 +14204,7 @@ bcm_robo_field_range_create_id(int unit, bcm_field_range_t range,
            (flags & BCM_FIELD_RANGE_DSTPORT)) {
             if (hw_used_l4port >= 4) {
                 FP_UNLOCK(fc);  
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP Error: No hardware range checkers left.\n")));
                 return (BCM_E_RESOURCE);
@@ -14254,7 +14254,7 @@ bcm_robo_field_range_create_id(int unit, bcm_field_range_t range,
         /* No hardware indexes left. */
         if (hw_index == (ranger_num+start_idx)) {
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: No hardware range checkers left.\n")));
             return (BCM_E_RESOURCE);
@@ -14431,7 +14431,7 @@ bcm_robo_field_range_destroy(int unit, bcm_field_range_t range)
         }
         if (fr == NULL) {        
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: range=%d not found in unit=%d.\n"),
                        range, unit));
@@ -14514,7 +14514,7 @@ bcm_robo_field_range_get(int unit, bcm_field_range_t range,
         }
         if (fr == NULL) {
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: range=%d not found in unit=%d.\n"),
                        range, unit));
@@ -14603,7 +14603,7 @@ bcm_robo_field_group_enable_set(int unit, bcm_field_group_t group, int enable)
         }
     } else {
         if (!enable) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP Error: group is always enabled !\n")));
             FP_UNLOCK(fc);
@@ -14812,7 +14812,7 @@ bcm_robo_field_qualify_TcpHeaderSize(int unit, bcm_field_entry_t entry,
     uint8 data_val, mask_val, tmp;
  
     if ((data & 0xF0) ||(mask& 0xF0)){
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "FP ERROR: data/mask is in the number of 32bit words. It should not be large than 0xF\n")));
         return BCM_E_PARAM;
@@ -17191,7 +17191,7 @@ bcm_robo_field_qualify_SrcIp6High_get(
     uint32      data_field[4], mask_field[4];
   
     if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)){
-        LOG_WARN(BSL_LS_BCM_FP,
+        LOG_BSL_WARN(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "FP WARN: 53242/53262 only support lower-44 bit SrcIp6 qualifier")));
         return BCM_E_UNAVAIL;
@@ -17821,7 +17821,7 @@ bcm_robo_field_qualify_IpType_get(
 
     if (BCM_SUCCESS(rv)) {
 #ifdef BROADCOM_DEBUG
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP: %s IpType %s"),
                    FUNCTION_NAME(), 
@@ -20532,7 +20532,7 @@ _robo_field_entry_backup(int unit, bcm_field_entry_t entry_id)
     /* allocate and zero memory for field entry */
     f_ent_copy = sal_alloc(sizeof (_field_entry_t), "field_entry");
     if (f_ent_copy == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: allocation failure for field_entry\n")));
         return (BCM_E_MEMORY);
@@ -20543,12 +20543,12 @@ _robo_field_entry_backup(int unit, bcm_field_entry_t entry_id)
     rv = DRV_FP_ENTRY_MEM_CONTROL(unit, f_ent_orig->fs->stage_id, 
             DRV_FIELD_ENTRY_MEM_ALLOC, NULL, NULL,&drv_entry);
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: DRV_FIELD_ENTRY_MEM_ALLOC %p\n"),
                drv_entry));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: allocation failure for field drv entry\n")));
         sal_free(f_ent_copy);
@@ -20621,7 +20621,7 @@ _robo_field_entry_backup(int unit, bcm_field_entry_t entry_id)
                                 fa_orig->param1,
                                 &fa);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: failure in _robo_field_action_alloc()\n"),
                        unit));
@@ -20692,7 +20692,7 @@ _robo_field_entry_restore(int unit, bcm_field_entry_t entry_id)
     rv = _robo_field_entry_get(unit, entry_id, &f_ent_orig, _FP_SLICE_PRIMARY);
     if (BCM_FAILURE(rv)) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: failure in "
                                "_robo_field_entry_restore() - rv:%s\n"),
@@ -20713,7 +20713,7 @@ _robo_field_entry_restore(int unit, bcm_field_entry_t entry_id)
                                                     i);
             if (BCM_FAILURE(rv)) {
                 FP_UNLOCK(fc);
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: failure in "
                                        "bcm_robo_field_entry_policer_detach() - rv:%s\n"),
@@ -20730,7 +20730,7 @@ _robo_field_entry_restore(int unit, bcm_field_entry_t entry_id)
                                              f_ent_orig->statistic.sid);
         if (BCM_FAILURE(rv)) {
             FP_UNLOCK(fc);
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: failure in "
                                    "bcm_robo_field_stat_detach() - rv:%s\n"),
@@ -20743,7 +20743,7 @@ _robo_field_entry_restore(int unit, bcm_field_entry_t entry_id)
     rv = bcm_robo_field_action_remove_all(unit, f_ent_orig->eid);
     if (BCM_FAILURE(rv)) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: failure in "
                                "bcm_robo_field_action_remove_all() - rv:%s\n"),
@@ -20755,7 +20755,7 @@ _robo_field_entry_restore(int unit, bcm_field_entry_t entry_id)
     rv = bcm_robo_field_qualify_clear(unit, f_ent_orig->eid);
     if (BCM_FAILURE(rv)) {
         FP_UNLOCK(fc);
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: failure in "
                                "bcm_robo_field_qualify_clear() - rv:%s\n"),
@@ -20841,7 +20841,7 @@ _robo_field_entry_restore(int unit, bcm_field_entry_t entry_id)
                                 fa_copy->param1,
                                 &fa);
         if (BCM_FAILURE(rv)) {
-           LOG_ERROR(BSL_LS_BCM_FP,
+           LOG_BSL_ERROR(BSL_LS_BCM_FP,
                      (BSL_META_U(unit,
                                  "FP(unit %d) Error: failure in _robo_field_action_alloc()\n"),
                       unit));
@@ -21515,18 +21515,18 @@ _robo_field_qset_debug(bcm_field_qset_t qset)
     bcm_field_qualify_t qual;
     int first_qual = 1;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META("{")));
     for (qual = 0; qual < bcmFieldQualifyCount; qual++) {
         if (BCM_FIELD_QSET_TEST(qset, qual)) {
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META("%s%s"),
                          (first_qual ? "" : ", "), 
                          _robo_field_qual_name(qual)));
             first_qual = 0;
         }
     }
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META("}")));
 }
 /*

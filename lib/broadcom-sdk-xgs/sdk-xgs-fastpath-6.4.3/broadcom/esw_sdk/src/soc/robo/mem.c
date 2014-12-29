@@ -256,7 +256,7 @@ _drv_arl_calc_hash_index(int unit, int bin_index, void *entry)
     _drv_arl_hash(hash_value, loop, &hash_result);
     final_hash = hash_result^left_over;
     table_index = ((final_hash * bin_num) + bin_index) % index_count;
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "_drv_arl_calc_hash_index : table_index = 0x%x\n"), table_index));
     return table_index;
@@ -368,7 +368,7 @@ _drv_arl_database_delete(int unit, int index, void *entry)
     } else {
         table_index = _drv_arl_calc_hash_index(unit, index, entry);
     }
-    LOG_INFO(BSL_LS_SOC_TESTS,
+    LOG_BSL_INFO(BSL_LS_SOC_TESTS,
              (BSL_META_U(unit,
                          "%s, arl_index=%d\n"), FUNCTION_NAME(), table_index));
 
@@ -428,7 +428,7 @@ _drv_arl_database_insert(int unit, int index, void *entry)
     } else {
         table_index = _drv_arl_calc_hash_index(unit, index, entry);
     }
-    LOG_INFO(BSL_LS_SOC_TESTS,
+    LOG_BSL_INFO(BSL_LS_SOC_TESTS,
              (BSL_META_U(unit,
                          "%s, arl_index=%d\n"), FUNCTION_NAME(), table_index));
 
@@ -457,7 +457,7 @@ _drv_arl_database_insert(int unit, int index, void *entry)
         rv = DRV_MEM_FIELD_GET(unit, DRV_MEM_ARL, 
                 DRV_MEM_FIELD_VALID, (uint32 *)&old_entry, &valid);
         if (rv){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s, unexpect error(%d) while retrieving valid status!"),
                       FUNCTION_NAME(), rv));

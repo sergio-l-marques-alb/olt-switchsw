@@ -891,7 +891,7 @@ bcmi_xgs5_bfd_callback_thread(int unit)
     int invoke = 0;
     char thread_name[SAL_THREAD_NAME_MAX_LEN];
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "BFD callback thread starting\n")));
     thread_name[0] = 0x0;
@@ -954,13 +954,13 @@ bcmi_xgs5_bfd_callback_thread(int unit)
         }
     }
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_BFD,
+        LOG_BSL_ERROR(BSL_LS_BCM_BFD,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:%s\n"), thread_name)); 
     }
     bfd_info->event_thread_kill = 0;
     bfd_info->event_thread_id = NULL;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "BFD callback thread stopped\n")));
     sal_thread_exit(0);
@@ -1691,7 +1691,7 @@ bcmi_xgs5_bfd_hw_init(int unit)
 
     /* Check that there is at least one COS queue assigned to the CMC */
     if (max_cosq < min_cosq) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: No BFD COS Queue available from uC%d\n"),
                    bfd_info->uc_num));
@@ -1735,7 +1735,7 @@ bcmi_xgs5_bfd_hw_init(int unit)
         }
     }
     if (i < min_cosq) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: No BFD COS Queue available from uC%d\n"),
                    bfd_info->uc_num));
@@ -2469,7 +2469,7 @@ bcmi_xgs5_bfd_mpls_labels_get(int unit, bcm_bfd_endpoint_info_t *endpoint_info,
                                          &mpls[count++]);
         }
     } else {
-        LOG_ERROR(BSL_LS_BCM_BFD,
+        LOG_BSL_ERROR(BSL_LS_BCM_BFD,
                   (BSL_META_U(unit,
                               "MPLS tunnel initiator information get failed\n")));
         return BCM_E_PARAM;
@@ -3611,7 +3611,7 @@ bcmi_xgs5_bfd_init(int unit,
     }
     /* Return silently if there is no active CMICm */
     if (uc >= CMICM_NUM_UCS) {
-        LOG_WARN(BSL_LS_BCM_BFD,
+        LOG_BSL_WARN(BSL_LS_BCM_BFD,
                  (BSL_META_U(unit,
                              "uKernel not Ready, BFD not started\n")));
         return BCM_E_NONE;
@@ -3681,7 +3681,7 @@ bcmi_xgs5_bfd_init(int unit,
     if (uc >= CMICM_NUM_UCS) {
         /* Could not find or start BFD appl */
         bcmi_xgs5_bfd_free_resource(unit);
-        LOG_WARN(BSL_LS_BCM_BFD,
+        LOG_BSL_WARN(BSL_LS_BCM_BFD,
                  (BSL_META_U(unit,
                              "uKernel BFD application not available\n")));
         return BCM_E_NONE;
@@ -3843,7 +3843,7 @@ bcmi_xgs5_bfd_detach(int unit)
                 sal_usleep(1000);
             } else {
                 /*timeout*/
-                LOG_ERROR(BSL_LS_BCM_BFD,
+                LOG_BSL_ERROR(BSL_LS_BCM_BFD,
                           (BSL_META_U(unit,
                                       "BFD event thread did not exit.\n")));
                 return BCM_E_INTERNAL;
@@ -3964,7 +3964,7 @@ bcmi_xgs5_bfd_endpoint_create(int unit,
 
     /* A unique local discriminator should be nonzero */
     if (!endpoint_info->local_discr) {
-        LOG_ERROR(BSL_LS_BCM_BFD,
+        LOG_BSL_ERROR(BSL_LS_BCM_BFD,
                   (BSL_META_U(unit,
                               "BFD local discriminator cannot be zero\n")));
         return BCM_E_PARAM;
@@ -3973,7 +3973,7 @@ bcmi_xgs5_bfd_endpoint_create(int unit,
     /* Local detection multiplier should be set to Default value, if configured value is 0 */
     if (!endpoint_info->local_detect_mult) {
         endpoint_info->local_detect_mult = BFD_DEFAULT_DETECT_MULTIPLIER;
-        LOG_VERBOSE(BSL_LS_BCM_BFD,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_BFD,
                     (BSL_META_U(unit,
                                 "\n BFD Detect Multiplier Set to Default Value %d\n"), 
                                 endpoint_info->local_detect_mult));
@@ -5019,7 +5019,7 @@ bcmi_xgs5_bfd_auth_simple_password_set(int unit,
     /* Password length MUST be from 1 to 16 bytes */
     if ((sp->length == 0) ||
         ( sp->length > _SHR_BFD_AUTH_SIMPLE_PASSWORD_KEY_LENGTH)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "BFD simple password length must be from 1 to 16 bytes\n")));
         return BCM_E_PARAM;

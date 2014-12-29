@@ -1580,18 +1580,18 @@ _soc_triumph2_process_single_parity_error(int unit, int group,
     error = soc_reg_field_get(unit, status_reg, reg_val, PARITY_ERRf);
 
     if (error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, index));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -1641,18 +1641,18 @@ _soc_triumph2_process_single_ecc_error(int unit, int group,
     error = soc_reg_field_get(unit, status_reg, reg_val, ECC_ERRf);
 
     if (error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d %s ECC error\n"),
                    unit, msg, index, double_bit ? "double-bit" : ""));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple ECC errors\n"),
                        unit, msg));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -1772,12 +1772,12 @@ _soc_triumph2_process_single_counter_error(int unit, int group,
             cmap = soc_port_cmap_get(unit, error_port);
             counter_reg = cmap->cmap_base[counter_idx].reg;
             if (SOC_REG_IS_VALID(unit, counter_reg)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s port %d %s parity error\n"),
                            unit, msg, error_port, ctr_str));
                 if (multiple) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s has multiple parity errors\n"),
                                unit, msg));
@@ -1790,19 +1790,19 @@ _soc_triumph2_process_single_counter_error(int unit, int group,
                 (void)soc_ser_correction(unit, &spci);
                 _stat_error_fixed[unit]++;
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s: parity hardware inconsistency\n"),
                            unit, msg));
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s: parity hardware counter index invalid\n"),
                        unit, msg));
         }
     } else if (!schan) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -1857,7 +1857,7 @@ _soc_triumph2_process_dual_parity_error(int unit, int group,
                 if (bitmap & (1 << bits)) {
                     index =
                     bucket_index * size * 2 + bits + (ix * size);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, index));
@@ -1872,7 +1872,7 @@ _soc_triumph2_process_dual_parity_error(int unit, int group,
             }
 
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s has multiple parity errors\n"),
                            unit, msg));
@@ -1905,7 +1905,7 @@ _soc_triumph2_process_mmu_parity_error(int unit, int group,
     status_reg = info[table].intr_status1_reg;
     index_reg = info[table].intr_status0_reg;
     if (index_reg == INVALIDr) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity error\n"),
                               unit, msg));
@@ -1918,7 +1918,7 @@ _soc_triumph2_process_mmu_parity_error(int unit, int group,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                     _SOC_PARITY_INFO_TYPE_MMU_PARITY,
                     info[table].mem, info[table].error_field);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s: parity hardware inconsistency\n"),
                        unit, msg));
@@ -1932,7 +1932,7 @@ _soc_triumph2_process_mmu_parity_error(int unit, int group,
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
             _SOC_PARITY_INFO_TYPE_MMU_PARITY, info[table].mem,
             info[table].error_field);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s entry %d parity error\n"),
                unit, msg, index));
@@ -1988,7 +1988,7 @@ _soc_triumph2_process_parity_error(int unit)
                 if (!soc_reg_field_valid(unit, group_reg,
                                 info[table].error_field) &&
                         (info[table].mem != INVALIDm)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s has bad error field\n"),
                                           unit, SOC_MEM_NAME(unit, info[table].mem)));
@@ -2026,7 +2026,7 @@ _soc_triumph2_process_parity_error(int unit)
                         (READ_START_BY_START_ERROR_64r(unit, &rr64));
                         COMPILER_64_TO_32_HI(msw, rr64);
                         COMPILER_64_TO_32_LO(lsw, rr64);
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d START_BY_START_ERRROR = 0x%x%08x\n"),
                                    unit, msw, lsw));
@@ -2041,7 +2041,7 @@ _soc_triumph2_process_parity_error(int unit)
                         SOC_IF_ERROR_RETURN(WRITE_MEM_FAIL_INT_STATr(unit, regval));
                     }
 
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s asserted\n"),
                                           unit, msg));
@@ -2094,7 +2094,7 @@ _soc_triumph2_process_parity_error(int unit)
                                 info[table].mem,
                                 info[table].error_field);
 
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s%d entry %d parity error\n"),
                                    unit, msg, index, entry_idx));
@@ -2142,7 +2142,7 @@ _soc_triumph2_process_parity_error(int unit)
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                             _SOC_PARITY_INFO_TYPE_MMUWRED,
                             info[table].mem, info[table].error_field);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, entry_idx));
@@ -2280,7 +2280,7 @@ soc_triumph2_stat_nack(int unit, int *fixed)
     _stat_error_fixed[unit] = 0;
 
     if ((rv = _soc_triumph2_mem_nack_error_process(unit, nack_reg_mem, 0)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d STAT SCHAN NACK analysis failure.\n"), unit));
     }
@@ -2312,7 +2312,7 @@ soc_triumph2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
 
         nack_reg_mem.mem = soc_addr_to_mem(unit, address, &block);
         if (nack_reg_mem.mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d mem decode failed "
                                   "SCHAN NACK analysis failure\n"), unit));
@@ -2360,12 +2360,12 @@ soc_triumph2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
 
     if ((rv = _soc_triumph2_mem_nack_error_process(unit, nack_reg_mem, block)) < 0) {
         if (nack_reg_mem.reg_mem == _SOC_SER_REG) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d REG SCHAN NACK analysis failure\n"),
                        unit));
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                        unit, SOC_MEM_NAME(unit, nack_reg_mem.mem),
@@ -2398,7 +2398,7 @@ _soc_triumph2_mem_ecc_force(int unit, soc_port_t block_port,
         (soc_reg_field32_modify(unit, force_sbe_reg,
                         block_port, force_field, 1));
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s.%s not valid\n"),
                    unit,
@@ -2417,7 +2417,7 @@ _soc_triumph2_mem_ecc_force(int unit, soc_port_t block_port,
         (soc_reg_field32_modify(unit, force_dbe_reg,
                         block_port, force_field, 1));
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s.%s not valid\n"),
                    unit, SOC_REG_NAME(unit, force_dbe_reg),
@@ -2455,7 +2455,7 @@ _soc_triumph2_mem_nack_error_test(int unit, _soc_ser_test_t test_type, int *test
                 if ((info[table].control_reg == INVALIDr) ||
                         !soc_reg_field_valid(unit, info[table].control_reg,
                                 info[table].enable_field)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s has no parity toggle\n"),
                                unit, SOC_MEM_NAME(unit, mem)));
@@ -2746,7 +2746,7 @@ _soc_triumph2_esm_process_intr_status(int unit)
             if (msg == NULL) {
                 msg = SOC_FIELD_NAME(unit, intr_reg_info->error_field);
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s asserted\n"), unit, msg));
 
@@ -2769,7 +2769,7 @@ _soc_triumph2_esm_process_intr_status(int unit)
                                     field_info->field));
                     field_len = sal_strlen(field_buf);
                     if (line_len + field_len >= 64) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "    %s\n"), line_buf));
                         line_len = 0;
@@ -2777,7 +2777,7 @@ _soc_triumph2_esm_process_intr_status(int unit)
                     sal_sprintf(&line_buf[line_len], "%s", field_buf);
                     line_len += field_len;
                 }
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "    %s>\n"), line_buf));
             }
@@ -2841,7 +2841,7 @@ soc_triumph2_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -2855,7 +2855,7 @@ soc_triumph2_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;

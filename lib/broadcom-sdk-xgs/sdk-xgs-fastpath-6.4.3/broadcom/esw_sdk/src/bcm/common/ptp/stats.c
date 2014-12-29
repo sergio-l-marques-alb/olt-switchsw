@@ -322,7 +322,7 @@ _bcm_ptp_update_peer_counts(
         if (!inInterrupt) {
             _bcm_ptp_exit_critical(level);
         }
-        LOG_VERBOSE(BSL_LS_BCM_PTP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PTP,
                     (BSL_META_U(unit,
                                 "PTP Peer Statistics full, dropping count\n")));
         return BCM_E_NONE;

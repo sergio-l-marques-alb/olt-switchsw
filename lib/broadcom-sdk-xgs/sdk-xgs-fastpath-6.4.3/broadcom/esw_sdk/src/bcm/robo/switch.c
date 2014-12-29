@@ -294,7 +294,7 @@ _bcm_robo_dos_attack_set(int unit, bcm_port_t port, int dos_attack_type, int par
             /* Dynamically allocate memory for entry_id */
             entry_id = (int *)sal_alloc(entry_size * sizeof(int), "entry_id");
             if (entry_id == NULL) {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "Insufficient memory.\n")));
                 return BCM_E_MEMORY;
@@ -3418,7 +3418,7 @@ _bcm_robo_bypass_modes_set(int unit, uint32 modes)
     int     ctrl_val;
     int     i, temp_type = 0;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "%s, set bypass control items(0x%x) into this chip!\n"),
                  FUNCTION_NAME(), modes));
@@ -3427,7 +3427,7 @@ _bcm_robo_bypass_modes_set(int unit, uint32 modes)
             bcmSwitchFiltersControlList, &support_modes));
     if (support_modes == BCM_FILTER_NONE){
         if (modes != BCM_FILTER_NONE){
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "%s, No bypass control item in this chip!\n"),
                          FUNCTION_NAME()));
@@ -3435,7 +3435,7 @@ _bcm_robo_bypass_modes_set(int unit, uint32 modes)
         }
     } else {
         if (modes & (~support_modes)){
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "%s, Invalid bypass control item(0x%x) in this chip!\n"),
                          FUNCTION_NAME(), (modes & (~support_modes))));
@@ -3485,7 +3485,7 @@ _bcm_robo_bypass_modes_set(int unit, uint32 modes)
                 
             } else {
                 if (modes & temp_type){
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "%s, Bypass control item in this chip "
                                             "at bit%d is not supported\n"),
@@ -3880,7 +3880,7 @@ bcm_robo_switch_control_set(int unit,
     soc_port_t port = 0;
     soc_pbmp_t bmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : %s(),type=%d,arg=%d\n"), 
                  FUNCTION_NAME(), type, arg));
@@ -4264,7 +4264,7 @@ bcm_robo_switch_control_set(int unit,
         if (snoop_action || trap_action){
             if (snoop_action){    /* doing snoop configuration */
             
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "%s,%d,snoop set with mask=0x%X\n"), 
                              FUNCTION_NAME(), __LINE__,snoop_type_mask));
@@ -4274,7 +4274,7 @@ bcm_robo_switch_control_set(int unit,
             
             if (trap_action){    /* doing trap configuration */
             
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "%s,%d,trap set with mask=0x%X\n"), 
                              FUNCTION_NAME(), __LINE__, type_mask));
@@ -4338,7 +4338,7 @@ bcm_robo_switch_control_set(int unit,
         break;
     }
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "bcm_robo_switch_control_set():\n"
                             "\t bcm_type=%d, drv_type=0x%x\n"),
@@ -4375,7 +4375,7 @@ bcm_robo_switch_control_get(int unit,
     int rv = BCM_E_UNAVAIL, temp = 0;
     soc_port_t port = 0;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : %s(),type=%d\n"), FUNCTION_NAME(), type));
 

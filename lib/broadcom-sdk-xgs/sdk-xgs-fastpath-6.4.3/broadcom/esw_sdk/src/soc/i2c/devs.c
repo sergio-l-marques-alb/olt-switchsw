@@ -462,7 +462,7 @@ soc_i2c_device_present(int unit, i2c_saddr_t saddr)
     if(soc_feature(unit, soc_feature_cmicm) && !SOC_IS_SAND(unit)) {
         if ((rv = smbus_quick_command(unit, saddr)) == SOC_E_NONE) {
             /* An ACK was received, there's an I2C device at saddr */
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c 0x%x: detected device\n"),
                       unit, saddr));
@@ -472,7 +472,7 @@ soc_i2c_device_present(int unit, i2c_saddr_t saddr)
 #endif
   if ((rv=soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr))) == SOC_E_NONE) {
     /* An ACK was received, there's an I2C device at saddr */
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META_U(unit,
                            "unit %d i2c 0x%x: detected device\n"),
                 unit, saddr));
@@ -622,7 +622,7 @@ _soc_i2c_probe_device(int unit, int muxed,
         /* An ACK was received, there's a device at this SADDR.      */
         /* We infer the device type solely by its I2C slave address. */
 
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "unit %d i2c 0x%x: found %s: %s\n"),
                   unit,
@@ -654,7 +654,7 @@ _soc_i2c_probe_device(int unit, int muxed,
                            devid,
                            i2c_devices[devid].testdata,
                            i2c_devices[devid].testlen)) < 0) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "unit %d i2c 0x%x: init failed %s - %s\n"),
                           unit,
@@ -662,7 +662,7 @@ _soc_i2c_probe_device(int unit, int muxed,
                           i2c_devices[devid].devname,
                           soc_errmsg(rv)));
             } else {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "unit %d i2c: Loaded driver for 0x%02x - %s\n"),
                           unit, devid, i2c_devices[devid].devname));
@@ -676,7 +676,7 @@ _soc_i2c_probe_device(int unit, int muxed,
            }
         }
         soc_i2c_devdesc_get(unit, devid, &devdesc);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d i2c 0x%x %s: %s\n"),
                      unit,
@@ -750,7 +750,7 @@ _soc_i2c_probe_mux(int unit, int mux_devid_range,
             /* We found this MUX type at a lower level of the tree */
             continue;
         }
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "unit %d i2c: Detected MUX 0x%02x - %s\n"),
                   unit, mux_devid,
@@ -761,14 +761,14 @@ _soc_i2c_probe_mux(int unit, int mux_devid_range,
             mux_data = (1 << mux_channel);
             if ((rv = i2c_devices[mux_devid].driver->write(unit, mux_devid,
                                          0, &mux_data, 1)) < 0) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "unit %d i2c: Could not assign channel %d to %s\n"),
                           unit, mux_channel,
                           i2c_devices[mux_devid].devname));
                 return rv;
             }
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c: Set channel %d of MUX 0x%02x - %s\n"),
                       unit, mux_channel, mux_devid,
@@ -807,7 +807,7 @@ _soc_i2c_probe_mux(int unit, int mux_devid_range,
         mux_data = (1 << mux_channel);
         if ((rv = i2c_devices[mux_devid].driver->write(unit, mux_devid,
                                                        0, &mux_data, 1)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c: Could not assign channel %d to %s\n"),
                       unit, mux_channel,
@@ -854,7 +854,7 @@ soc_i2c_probe(int unit)
 
     /* Check for supported I2c devices */
     if (NUM_I2C_DEVICES > MAX_I2C_DEVICES) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "ERROR: %d exceeds supported I2C devices\n"),
                   NUM_I2C_DEVICES ));
@@ -863,7 +863,7 @@ soc_i2c_probe(int unit)
 
     i2c_probe_info.i2cbus = I2CBUS(unit);
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "unit %d i2c: probing %d I2C devices.\n"),
               unit, NUM_I2C_DEVICES));
@@ -904,7 +904,7 @@ soc_i2c_probe(int unit)
             mux_data = 0; /* Shut down ALL channels */
             if ((rv = i2c_devices[mux_devid].driver->write(unit, mux_devid,
                                              0, &mux_data, 1)) < 0) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "unit %d i2c: Could not disable channels on %s\n"),
                           unit, i2c_devices[mux_devid].devname));
@@ -946,7 +946,7 @@ soc_i2c_probe(int unit)
      * Recursively scan down the MUX tree.
      */
     if ((rv = _soc_i2c_probe_mux(unit, -1, &i2c_probe_info)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "unit %d i2c: Could not probe MUX's\n"), unit));
         return rv;

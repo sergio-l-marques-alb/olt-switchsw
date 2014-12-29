@@ -264,7 +264,7 @@ _drv_tbx_ivm_qual_value_set(int unit, drv_field_qualify_t qual, void *entry,
             return rv;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "_drv_tbx_ivm_qual_value_set : fld_index = 0x%x\n"),
                  fld_index));
@@ -275,7 +275,7 @@ _drv_tbx_ivm_qual_value_set(int unit, drv_field_qualify_t qual, void *entry,
         DRV_VM_FIELD_SET(unit, DRV_VM_RAM_IVM_KEY_MASK, fld_index, 
                                           drv_entry, p_mask));
     
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "_drv_tbx_ivm_qual_value_set : data= 0x%x, 0x%x, \n"),
                drv_entry->key_data[0], drv_entry->key_data[1]));
@@ -330,7 +330,7 @@ _drv_tbx_ivm_qual_value_get(int unit, drv_field_qualify_t qual, void *entry,
             return rv;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "_drv_tbx_ivm_qual_value_get : fld_index = 0x%x\n"),
                  fld_index));
@@ -341,7 +341,7 @@ _drv_tbx_ivm_qual_value_get(int unit, drv_field_qualify_t qual, void *entry,
         DRV_VM_FIELD_GET(unit, DRV_VM_RAM_IVM_KEY_MASK, fld_index, 
                                           drv_entry, p_mask));
     
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "_drv_tbx_ivm_qual_value_get : data= 0x%x, 0x%x, \n"),
                drv_entry->key_data[0], drv_entry->key_data[1]));
@@ -380,7 +380,7 @@ _drv_tbx_evm_qual_value_set(int unit, drv_field_qualify_t qual, void *entry,
      
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "_drv_tbx_evm_qual_value_set : fld_index = 0x%x\n"),
                  fld_index));
@@ -391,7 +391,7 @@ _drv_tbx_evm_qual_value_set(int unit, drv_field_qualify_t qual, void *entry,
         DRV_VM_FIELD_SET(unit, DRV_VM_RAM_EVM_KEY_MASK, fld_index, 
                                           drv_entry, p_mask));
     
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "_drv_tbx_evm_qual_value_set : data= 0x%x, 0x%x,\n"),
                drv_entry->key_data[0], drv_entry->key_data[1]));
@@ -430,7 +430,7 @@ _drv_tbx_evm_qual_value_get(int unit, drv_field_qualify_t qual, void *entry,
      
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "_drv_tbx_evm_qual_value_get : fld_index = 0x%x\n"),
                  fld_index));
@@ -441,7 +441,7 @@ _drv_tbx_evm_qual_value_get(int unit, drv_field_qualify_t qual, void *entry,
         DRV_VM_FIELD_GET(unit, DRV_VM_RAM_EVM_KEY_MASK, fld_index, 
                                           drv_entry, p_mask));
     
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "_drv_tbx_evm_qual_value_get : data= 0x%x, 0x%x,\n"),
                drv_entry->key_data[0], drv_entry->key_data[1]));
@@ -618,7 +618,7 @@ _drv_tb_cfp_entry_slice_id_change(int unit, drv_cfp_entry_t *drv_entry, int new_
 
         drv_entry->slice_id = new_id;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s old_id %d new_id %d\n"),
                      FUNCTION_NAME(), old_id, new_id));        
@@ -650,7 +650,7 @@ _drv_tb_cfp_entry_slice_id_change(int unit, drv_cfp_entry_t *drv_entry, int new_
     } else {
         temp = CFP_53280_SLICE_ID(new_id);
     }
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s set new slice_id %d to tcam\n"),
                FUNCTION_NAME(),temp));
@@ -699,7 +699,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
     id = CFP_53280_SLICE_ID(drv_entry->slice_id);
     frame = CFP_53280_L3_FRAME(drv_entry->slice_id);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s slice_id %d sliceid_map %x flags %x flag_mask %x qual %d\n"),
                FUNCTION_NAME(),drv_entry->slice_id, sliceid_map, flags, flags_mask, qual));    
@@ -728,7 +728,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
         }
         if (valid == -1) {
             conflict = TRUE;
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "common qual only for _DRV_CFP_FRMAE_ANY\n")));
             goto end;
@@ -743,7 +743,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
 
             if (qual_count != 0) {
                 conflict = TRUE;
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_DRV_CFP_FRMAE_ANY is not allowed since the non-common qual has been existed.\n")));
                 goto end;
@@ -753,7 +753,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
         for (i = 0; i < CFP_53280_SLICE_CHAIN_UDF_BASE; i++){
             if (SHR_BITGET(temp_qset.udf_map, i) != 0){
                 conflict = TRUE;
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_DRV_CFP_FRMAE_ANY is not allowed since the udf has been existed.\n")));
                 goto end;
@@ -782,7 +782,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
                 }
                 if(new_id == -1) {
                     conflict = TRUE;
-                    LOG_DEBUG(BSL_LS_SOC_COMMON,
+                    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_DRV_CFP_FRMAE_ANY is not allowed since no availabe slice match.\n")));
                     goto end;
@@ -791,13 +791,13 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
             }
         } else {
             conflict = TRUE;
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_DRV_CFP_FRMAE_ANY is not allowed since no availabe slice match!\n")));
             goto end;
         }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s flag: _DRV_CFP_FRAME_ANY new_id %d (%d) new_frame %d (%d) slice_map %d\n"),
                FUNCTION_NAME(), new_id, id, new_frame, frame, match_slice));
@@ -832,7 +832,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
         }
     
         if (valid == 1) {
-            LOG_DEBUG(BSL_LS_SOC_COMMON,
+            LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_DRV_CFP_FRAME_IPANY is not allowed since fix udf qual has been existed.\n")));
             conflict = TRUE;
@@ -841,7 +841,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
         for (i = 0; i < CFP_53280_SLICE_CHAIN_UDF_BASE; i++){
             if (SHR_BITGET(temp_qset.udf_map, i) != 0){
                 conflict = TRUE;
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_DRV_CFP_FRAME_IPANY is not allowed since the udf has been existed.\n")));
                 goto end;
@@ -891,7 +891,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
             }
             if(new_id == -1) {
                 conflict = TRUE;
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s is not allowed since no availabe slice match.\n"),
                            flag_name));
@@ -901,7 +901,7 @@ _drv_tb_cfp_slice_id_update(int unit, drv_field_qualify_t qual,
         update = TRUE;
     } else {
         conflict = TRUE;
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s is not allowed since no availabe slice match!\n"),
                    flag_name));
@@ -935,7 +935,7 @@ end:
         *slice_id = -1;        
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s id %d flags %x \n"),
                FUNCTION_NAME(),id, drv_entry->flags)); 
@@ -957,7 +957,7 @@ _drv_tb_cfp_slice_id_update_udf(int unit, uint32 udf_idex,
         (uint32 *)&u_slice_id, (uint32 *)&u_slice_map);
     SOC_IF_ERROR_RETURN(rv);    
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           
                            "DRV_FP: %s user idx %d slice_id %d  drv entry slice_id %d map %x\n"),
@@ -1000,7 +1000,7 @@ _drv_tb_cfp_slice_id_update_udf(int unit, uint32 udf_idex,
     if (drv_entry->flags & _DRV_CFP_FIX_UDF_ALL_VALID) {
         for (i = 0; i <COUNTOF(_tb_qual_udf_map); i ++) {
             if (TEST_CFP_53280_FIX_UDF(drv_entry, i)) {
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "DRV_FP: _tb_qual_udf_map %d\n"),
                            i));
@@ -1029,7 +1029,7 @@ _drv_tb_cfp_slice_id_update_udf(int unit, uint32 udf_idex,
         } else {
             temp = CFP_53280_SLICE_ID(new_slice);
         }
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s set new slice_id %d to tcam \n"),
                    FUNCTION_NAME(),temp));
@@ -1061,7 +1061,7 @@ _drv_tb_cfp_qual_value_set(int unit, drv_field_qualify_t qual, void *drv_entry,
     rv = _drv_tb_cfp_qual_field_get(unit, drv_entry, qual, (int *)&fld_index);    
     SOC_IF_ERROR_RETURN(rv);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "_field_qual_value_set : fld_index = 0x%x\n"),
                  fld_index));
@@ -1714,7 +1714,7 @@ _drv_tbx_ivm_action_add(int unit,
         case drvFieldActionNewClassId:           
             if (param1 == _DRV_FP_ACTION_PRIVATE){
                 if (param0 <= MAX_USER_FLOW_ID(unit)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "DRV_FP: private used flow id %d is out of range\n"),
                                param0));
@@ -1722,7 +1722,7 @@ _drv_tbx_ivm_action_add(int unit,
                 }
             } else {
                 if (param0 > MAX_USER_FLOW_ID(unit)){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "DRV_FP: flow id %d is out of range\n"),
                                param0));
@@ -1884,7 +1884,7 @@ _drv_tbx_cfp_action_add(int unit,
         case drvFieldActionNewClassId:
             if (param1 == _DRV_FP_ACTION_PRIVATE){
                 if (param0 <= MAX_USER_FLOW_ID(unit)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "DRV_FP: private used flow id %d is out of range\n"),
                                param0));
@@ -1892,7 +1892,7 @@ _drv_tbx_cfp_action_add(int unit,
                 }
             } else {
                 if (param0 > MAX_USER_FLOW_ID(unit)){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "DRV_FP: flow id %d is out of range\n"),
                                param0));
@@ -2477,7 +2477,7 @@ _drv_tbx_fp_entry_alloc(int unit, int stage_id, void **entry)
        return SOC_E_MEMORY;
     }
     sal_memset (*entry, 0, memsize);
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: _tb_fp_entry_alloc %p\n"),
                *entry));
@@ -2725,7 +2725,7 @@ _drv_tbx_fp_entry_tcam_block_move(int unit, int stage_id, void *tcam_idx_old, in
             return SOC_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s slice_idx src: %d  dst:%d amount %d\n"),
                FUNCTION_NAME(),*((int *)tcam_idx_old), dest_index, *((int *)amount)));
@@ -2766,7 +2766,7 @@ _drv_tbx_fp_entry_tcam_move(int unit, int stage_id, void *drv_entry, int amount,
 
     tcam_idx_new = *tcam_idx_old + amount;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s slice_idx old: %d  new:%d amount %d\n"),
                FUNCTION_NAME(),*tcam_idx_old, tcam_idx_new, amount));
@@ -2807,7 +2807,7 @@ _drv_tbx_fp_entry_ivm_tcam_policy_install(int unit, void *entry, int tcam_idx)
     retval = DRV_VM_ENTRY_WRITE
         (unit, tcam_idx, DRV_VM_RAM_IVM_ACT, drv_entry);
     if (SOC_FAILURE(retval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP Error: Write IVM Act entry index = %d fail.\n"),  
                    tcam_idx));
@@ -2816,7 +2816,7 @@ _drv_tbx_fp_entry_ivm_tcam_policy_install(int unit, void *entry, int tcam_idx)
     retval = DRV_VM_ENTRY_WRITE
         (unit, tcam_idx, DRV_VM_RAM_IVM_ALL, drv_entry);
     if (SOC_FAILURE(retval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP Error: Write IVM Key entry index = %d fail.\n"),  
                    tcam_idx));
@@ -2847,7 +2847,7 @@ _drv_tbx_fp_entry_evm_tcam_policy_install(int unit, void *entry, int tcam_idx)
     retval = DRV_VM_ENTRY_WRITE
         (unit, tcam_idx, DRV_VM_RAM_EVM_ACT, drv_entry);
     if (SOC_FAILURE(retval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP Error: Write EVM Act entry index = %d fail.\n"),  
                    tcam_idx));
@@ -2856,7 +2856,7 @@ _drv_tbx_fp_entry_evm_tcam_policy_install(int unit, void *entry, int tcam_idx)
     retval = DRV_VM_ENTRY_WRITE
         (unit, tcam_idx, DRV_VM_RAM_EVM_ALL, drv_entry);
     if (SOC_FAILURE(retval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP Error: Write EVM Key entry index = %d fail.\n"),  
                    tcam_idx));
@@ -2943,7 +2943,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
             DRV_CFP_FIELD_L3_FRM_FORMAT,
             drv_entry, &temp);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2962,7 +2962,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_FIELD_SET(unit, DRV_CFP_RAM_TCAM_MASK, 
             DRV_CFP_FIELD_L3_FRM_FORMAT, drv_entry, &temp);   
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2973,7 +2973,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2987,7 +2987,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
                 _DRV_FP_ID_CTRL_ALLOC, 0, &chain_id, NULL);
 
             if (SOC_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "FP Error: Can't get chain_id for Tcam entry index = %d fail.\n"),  
                            tcam_idx));
@@ -2999,7 +2999,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
             chain_id = drv_entry->cfp_chain->chain_id;
         }
 
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "DRV_FP: %s get chain_id %d\n"),
                    FUNCTION_NAME(), chain_id));
@@ -3011,7 +3011,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ACTION_SET(unit, DRV_CFP_ACT_CHAIN_ID, 
                         drv_entry, 0, 0);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Can't set chain_id action for Tcam entry %d..\n"),  
                        tcam_idx));
@@ -3022,7 +3022,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ACTION_SET(unit, DRV_CFP_ACT_CLASSFICATION_ID, 
                         drv_entry, chain_id, 0);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: set chain_id %d action fail.\n"),  
                        chain_id));
@@ -3034,7 +3034,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -3050,7 +3050,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = _drv_tb_cfp_qual_value_set(unit, drvFieldQualifyClassId, 
                         drv_entry, (uint32 *)&chain_id, &temp);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: set qualify chain_id %d fail.\n"),  
                        chain_id));
@@ -3071,7 +3071,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_chain_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -3080,7 +3080,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_chain_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -3091,7 +3091,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -3100,7 +3100,7 @@ _drv_tb_fp_entry_cfp_tcam_policy_install(int unit, void *entry, int tcam_idx,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -3119,7 +3119,7 @@ _drv_tbx_fp_entry_cfp_tcam_meter_install(int unit, void *entry, int tcam_idx,
     uint32 temp_meter[2];
     int retval;
    
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s meter %x %x %x\n"),
                  FUNCTION_NAME(),
@@ -3159,7 +3159,7 @@ _drv_tbx_fp_entry_cfp_tcam_reinstall(int unit, void *entry, int tcam_idx,
     retval = DRV_CFP_ENTRY_WRITE
         (unit, tcam_idx, DRV_CFP_RAM_ALL, drv_entry);
     if (SOC_FAILURE(retval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                    tcam_idx));
@@ -3255,7 +3255,7 @@ _drv_tbx_fp_entry_tcam_enable_set(int unit, int stage_id, int tcam_idx,
     if (SOC_FAILURE(rv)) {
         return rv;
     }
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s tcam_idx %d chain_idx %d\n"),
                FUNCTION_NAME(),
@@ -3556,7 +3556,7 @@ _drv_tbx_fp_id_control_init(int unit)
 
     if (MAX_USER_FLOW_ID(unit) > (VM_FLOW_SIZE(unit) - 2)){
         /* for ThunderBolt flow id 4095 is reserved for cpu tx */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "TB_FLOW_ID_SIZE should't large than %d\n"),
                    VM_FLOW_SIZE(unit) - 2));
@@ -4274,7 +4274,7 @@ drv_tbx_fp_qual_value_set(int unit, int stage_id,
     int rv;
     int slice_id;    
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s qual %d \n"),
                FUNCTION_NAME(),qual));
@@ -4415,7 +4415,7 @@ drv_tbx_fp_tcam_parity_check(int unit, drv_fp_tcam_checksum_t *drv_fp_tcam_chksu
 
     rv = REG_READ_TCAM_CHKSUM_STSr(unit, (void *)&reg_val);
     SOC_IF_ERROR_RETURN(rv);
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s reg_val hi %x lo %x\n"),
                FUNCTION_NAME(),COMPILER_64_HI(reg_val),COMPILER_64_LO(reg_val)));    
@@ -4517,7 +4517,7 @@ _drv_tbx_fp_policer_config_b0(int unit, void *entry, drv_policer_config_t *polic
             return SOC_E_PARAM;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s mode %d CIR %s EIR %s \n"),
                  FUNCTION_NAME(), policer_cfg->mode,

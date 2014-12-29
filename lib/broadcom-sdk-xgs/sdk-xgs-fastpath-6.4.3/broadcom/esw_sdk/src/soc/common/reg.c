@@ -264,14 +264,14 @@ _soc_reg_debug(int unit, int access_width, char *op_str,
     }
 
     if (data_hi != 0) {
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "soc_reg%d_%s unit %d: "
                              "%s[0x%x] data=0x%08x_%08x\n"),
                   access_width, op_str, unit,
                   buf, addr, data_hi, data_lo));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "soc_reg%d_%s unit %d: "
                              "%s[0x%x] data=0x%08x\n"),
@@ -297,14 +297,14 @@ _soc_reg_extended_debug(int unit, int access_width, char *op_str,
     }
 
     if (data_hi != 0) {
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "soc_reg%d_%s unit %d: "
                              "%s[%d][0x%x] data=0x%08x_%08x\n"),
                   access_width, op_str, unit,
                   buf, block, addr, data_hi, data_lo));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "soc_reg%d_%s unit %d: "
                              "%s[%d][0x%x] data=0x%08x\n"),
@@ -329,7 +329,7 @@ _soc_reg_above_64_debug(int unit, char *op_str, soc_block_t block,
         soc_reg_sprint_addr(unit, buf, &ainfo);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
              (BSL_META_U(unit,
                          "soc_reg_above_64_%s unit %d: "
                          "%s[0x%x] data="),
@@ -339,7 +339,7 @@ _soc_reg_above_64_debug(int unit, char *op_str, soc_block_t block,
     first_non_zero = 0;
     for(i=SOC_REG_ABOVE_64_MAX_SIZE_U32-1 ; i>=0 ; i--) {
         if(0 == i) {
-            LOG_VERBOSE(BSL_LS_SOC_REG,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                      (BSL_META_U(unit,
                                  "0x%08x\n"),data[i]));
         } else {
@@ -348,7 +348,7 @@ _soc_reg_above_64_debug(int unit, char *op_str, soc_block_t block,
             }
 
             if(1 == first_non_zero) {
-                LOG_VERBOSE(BSL_LS_SOC_REG,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                          (BSL_META_U(unit,
                                      "0x%08x_"),data[i]));
             }
@@ -456,13 +456,13 @@ soc_reg64_read_iterative(int unit, uint32 addr, soc_port_t port,
        if (locked && (diff < 20 * MILLISECOND_USEC)) {
            return SOC_E_NONE;
        }
-       LOG_VERBOSE(BSL_LS_SOC_COMMON,
+       LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                                "soc_reg64_read_iterative: WARNING: "
                                "iteration %d PLL went out of lock"),
                     i));
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_reg64_read_iterative: "
                           "operation failed:\n"))); 
@@ -545,7 +545,7 @@ _soc_reg64_get(int unit, soc_block_t block, int acc, uint32 addr, uint64 *reg)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 &err, NULL, NULL);;
     if (opcode != READ_REGISTER_ACK_MSG || err != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "_soc_reg64_get: "
                               "invalid S-Channel reply, expected READ_REG_ACK:\n")));
@@ -613,13 +613,13 @@ soc_reg64_get_iterative(int unit, soc_block_t block, int acc, uint32 addr,
        if (locked && (diff < 20 * MILLISECOND_USEC)) {
            return SOC_E_NONE;
        }
-       LOG_VERBOSE(BSL_LS_SOC_COMMON,
+       LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                                "soc_reg64_get_iterative: WARNING: "
                                "iteration %d PLL went out of lock"),
                     i));
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_reg64_get_iterative: "
                           "operation failed:\n"))); 
@@ -647,7 +647,7 @@ soc_reg_read(int unit, soc_reg_t reg, uint32 addr, uint64 *data)
     }
 
     if (SOC_REG_IS_ABOVE_64(unit, reg)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reg_read: "
                               "Use soc_reg_above_64_get \n")));
@@ -751,7 +751,7 @@ soc_direct_memreg_get(int unit, int cmic_block, uint32 addr, uint32 dwc_read, in
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL,
                                 &data_byte_len, &err, NULL, NULL);
     if (opcode != READ_REGISTER_ACK_MSG || err != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_direct_reg_get: "
                               "invalid S-Channel reply, expected READ_REG_ACK:\n")));
@@ -907,7 +907,7 @@ _soc_reg32_get(int unit, soc_block_t block, int acc, uint32 addr, uint32 *data)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 &err, NULL, NULL);
     if (opcode != READ_REGISTER_ACK_MSG || err != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "_soc_reg32_get: "
                               "invalid S-Channel reply, expected READ_REG_ACK:\n")));
@@ -950,7 +950,7 @@ soc_reg_get(int unit, soc_reg_t reg, int port, int index, uint64 *data)
     }
 
     if (SOC_REG_IS_ABOVE_64(unit, reg)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reg_get: "
                               "Use soc_reg_above_64_get \n")));
@@ -1186,7 +1186,7 @@ soc_reg32_read(int unit,
                                     NULL, &err, NULL, NULL);
         if (!SOC_FAILURE(rv) && 
             (opcode != READ_REGISTER_ACK_MSG || err != 0)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_reg32_read: "
                                   "invalid S-Channel reply, expected READ_REG_ACK:\n")));
@@ -1355,7 +1355,7 @@ soc_reg64_read(int unit,
         soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL,
                                     NULL, &err, NULL, NULL);
         if (opcode != READ_REGISTER_ACK_MSG || err != 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_reg64_read: "
                                   "invalid S-Channel reply, expected READ_REG_ACK:\n")));
@@ -1438,13 +1438,13 @@ soc_reg64_write_iterative(int unit, uint32 addr, soc_port_t port,
        if (locked && (diff < 20 * MILLISECOND_USEC)) {
            return SOC_E_NONE;
        }
-       LOG_VERBOSE(BSL_LS_SOC_COMMON,
+       LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                                "soc_reg64_write_iterative: WARNING: "
                                "iteration %d PLL went out of lock"),
                     i));
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_reg64_write_iterative: "
                           "operation failed:\n"))); 
@@ -1545,13 +1545,13 @@ soc_reg64_set_iterative(int unit, soc_block_t block, int acc, uint32 addr,
        if (locked && (diff < 20 * MILLISECOND_USEC)) {
            return SOC_E_NONE;
        }
-       LOG_VERBOSE(BSL_LS_SOC_COMMON,
+       LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                                "soc_reg64_set_iterative: WARNING: "
                                "iteration %d PLL went out of lock"),
                     i));
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_reg64_set_iterative: "
                           "operation failed:\n"))); 
@@ -1579,7 +1579,7 @@ soc_reg_write(int unit, soc_reg_t reg, uint32 addr, uint64 data)
     }
 
     if (SOC_REG_IS_ABOVE_64(unit, reg)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reg_write: "
                               "Use soc_reg_above_64_set \n")));
@@ -1625,7 +1625,7 @@ soc_reg_write(int unit, soc_reg_t reg, uint32 addr, uint64 data)
         }
     } else {
         if (COMPILER_64_HI(data)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "soc_reg_write: WARNING: "
                                  "write to 32-bit reg %s with hi order data, 0x%x\n"),
@@ -1700,7 +1700,7 @@ soc_reg_set(int unit, soc_reg_t reg, int port, int index, uint64 data)
     }
 
     if (SOC_REG_IS_ABOVE_64(unit, reg)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reg_set: "
                               "Use soc_reg_above_64_set \n")));
@@ -1767,7 +1767,7 @@ soc_reg_set(int unit, soc_reg_t reg, int port, int index, uint64 data)
     } else {
         uint32 data32;
         if (COMPILER_64_HI(data)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "soc_reg_set: WARNING: "
                                  "write to 32-bit reg %s with hi order data, 0x%x\n"),
@@ -1802,7 +1802,7 @@ soc_reg_set_nocache(int unit, soc_reg_t reg, int port, int index, uint64 data)
     }
 
     if (SOC_REG_IS_ABOVE_64(unit, reg)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reg_set: "
                               "Use soc_reg_above_64_set \n")));
@@ -1860,7 +1860,7 @@ soc_reg_set_nocache(int unit, soc_reg_t reg, int port, int index, uint64 data)
     } else {
         uint32 data32;
         if (COMPILER_64_HI(data)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "soc_reg_set: WARNING: "
                                  "write to 32-bit reg %s with hi order data, 0x%x\n"),
@@ -3667,7 +3667,7 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
 
     /* put together address: base|block|pindex + index */
     base = SOC_REG_INFO(unit, reg).offset;
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "base: %x "), base));
         
@@ -3694,7 +3694,7 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
             base += (index << gransh);
         }
     }
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "addr: %x, block: %d, index: %d, pindex: %d, gransh: %d\n"),
                  base, block, index, pindex, gransh));
@@ -4499,7 +4499,7 @@ soc_reg_addr_get(int unit, soc_reg_t reg, int port, int index, int is_write,
 
     /* put together address: base|block|pindex + index */
     base = SOC_REG_INFO(unit, reg).offset;
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "base: %x "), base));
 
@@ -4526,7 +4526,7 @@ soc_reg_addr_get(int unit, soc_reg_t reg, int port, int index, int is_write,
             base += (index << gransh);
         }
     }
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "addr new: %x, block: %d, index: %d, pindex: %d, gransh: %d\n"),
                  base, *blk, index, pindex, gransh));

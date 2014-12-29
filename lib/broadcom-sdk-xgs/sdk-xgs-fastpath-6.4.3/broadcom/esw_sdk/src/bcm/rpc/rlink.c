@@ -458,7 +458,7 @@ _bcm_rlink_send_notify(int unit,
 {
     _rlink_scan_t	*rscan;
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             "Sending RLINK %s notify for unit %d\n"),
                  TYPE_STR(type), unit));
@@ -470,7 +470,7 @@ _bcm_rlink_send_notify(int unit,
                     continue;
                 }
             }
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     "RLINK to " CPUDB_KEY_FMT_EOLN),
                          CPUDB_KEY_DISP(rscan->cpu)));
@@ -547,7 +547,7 @@ _bcm_rlink_rx_handler(int unit, bcm_pkt_t *pkt, void *cookie)
     
     buf = atp_tx_data_alloc(len);
     if (buf == NULL) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "RLINK Tunnel Src: alloc failed\n")));
         return BCM_RX_NOT_HANDLED;
@@ -877,7 +877,7 @@ _bcm_rlink_scan_add(cpudb_key_t cpu, int unit, rlink_type_t type,
     int                 present;
 
     if(!BCM_CONTROL_UNIT_LEGAL(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "RLINK unit is out of range\n")));
         return;
@@ -885,12 +885,12 @@ _bcm_rlink_scan_add(cpudb_key_t cpu, int unit, rlink_type_t type,
 
     /* For RX in particular, unit must be local */
     if (!BCM_IS_LOCAL(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "RLINK scan add on non-local unit %d, "
                              "type %s\n"), unit, TYPE_STR(type)));
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "RLINK add on unit %d, type %s for CPU "
                             CPUDB_KEY_FMT_EOLN), unit, TYPE_STR(type),
@@ -982,19 +982,19 @@ _bcm_rlink_scan_delete(cpudb_key_t cpu, int unit, rlink_type_t type,
     int			last;
 
     if(!BCM_CONTROL_UNIT_LEGAL(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "RLINK unit is out of range\n")));
         return;
     }
 
     if (!BCM_IS_LOCAL(unit)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "RLINK scan delete on non-local unit %d, "
                              "type %s\n"), unit, TYPE_STR(type)));
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "RLINK scan delete on unit %d, type %s for CPU "
                             CPUDB_KEY_FMT_EOLN), unit, TYPE_STR(type),
@@ -1250,7 +1250,7 @@ _bcm_rlink_send_control(cpudb_key_t cpu, int unit,
     int		len;
     int     i;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "RLINK ctl msg %s, cpu-unit %d, type %s to "
                             CPUDB_KEY_FMT_EOLN), MSG_STR(msg), unit, TYPE_STR(type),
@@ -1364,7 +1364,7 @@ _bcm_rlink_pkt_handler(cpudb_key_t cpu,
     COMPILER_REFERENCE(client_id);
     COMPILER_REFERENCE(cookie);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("RLINK msg IN from "
                           CPUDB_KEY_FMT_EOLN),
                  CPUDB_KEY_DISP(cpu)));
@@ -1375,7 +1375,7 @@ _bcm_rlink_pkt_handler(cpudb_key_t cpu,
 
     bp = bcm_rlink_decode(buf, &msg, &type, &unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "RLINK IN msg %s, local-unit %d, type %s\n"),
                  MSG_STR(msg), unit, TYPE_STR(type)));

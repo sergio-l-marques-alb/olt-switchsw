@@ -555,7 +555,7 @@ soc_cmicm_intr_sbusdma_done(int unit, uint32 ch)
 	    
 	    /* check what types of dma is used on the channel */
 	    if (SOC_FAILURE(soc_sbx_caladan3_sbusdma_cmc_ch_type_get(unit, cmc, ch, &op))) {
-		LOG_INFO(BSL_LS_SOC_INTR,
+		LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "Received unallocated sbusdma interrupt cmc %d ch %d !!\n"),
                           cmc, ch));
@@ -580,7 +580,7 @@ soc_cmicm_intr_sbusdma_done(int unit, uint32 ch)
 			}
 			break;
 		    default:
-			LOG_INFO(BSL_LS_SOC_INTR,
+			LOG_BSL_INFO(BSL_LS_SOC_INTR,
                                  (BSL_META_U(unit,
                                              "Received unallocated sbusdma interrupt !!\n")));
 			break;
@@ -588,7 +588,7 @@ soc_cmicm_intr_sbusdma_done(int unit, uint32 ch)
 	    }
 #endif /* BCM_CALADAN3_SUPPORT */
         } else {
-	    LOG_INFO(BSL_LS_SOC_INTR,
+	    LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "Received unallocated sbusdma interrupt !!\n")));
 	}
@@ -610,7 +610,7 @@ soc_cmicm_intr_sbusdma_done(int unit, uint32 ch)
                 sal_sem_give(SOC_SBUSDMA_DM_INTR(unit));
             }
         } else {
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "Received unallocated sbusdma interrupt !!\n")));
         }
@@ -647,7 +647,7 @@ soc_cmicm_fifo_dma_done(int unit, uint32 ch)
                     0, 0, 0, 0);
                 break; 
                 default:
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "Received unallocated fifo dma interrupt !!\n")));
             }
@@ -661,13 +661,13 @@ soc_cmicm_fifo_dma_done(int unit, uint32 ch)
                     INT_TO_PTR((ch==SOC_MEM_FIFO_DMA_CHANNEL_0)?0:1), 0, 0, 0);
                 break;
                 default:
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "Received unallocated fifo dma interrupt !!\n")));
             }
             break;
             default:
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "Received unallocated fifo dma interrupt !!\n")));
         }
@@ -736,7 +736,7 @@ soc_cmicm_fifo_dma_done(int unit, uint32 ch)
                 }
                 break;
             default:
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "Received unallocated fifo dma interrupt !!\n")));
         }
@@ -770,7 +770,7 @@ soc_cmicm_chip_func_intr(int unit, uint32 val)
             oldmask = soc_cmicm_intr1_disable(unit, irqMask);
 
             /* dispatch interrupt */
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "soc_cmicm_intr type 1 unit %d: dispatch\n"),
                       unit));
@@ -794,7 +794,7 @@ soc_cmicm_chip_func_intr(int unit, uint32 val)
                             _SOC_TR3_ESM_INTR_MASK)) {
                 oldmask = soc_cmicm_intr1_disable(unit, irqMask);
                 /* dispatch interrupt */
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "soc_cmicm_intr type 1 unit %d: dispatch\n"),
                           unit));
@@ -815,7 +815,7 @@ soc_cmicm_chip_func_intr(int unit, uint32 val)
                 oldmask = soc_cmicm_intr1_disable(unit, irqMask);
 
                 /* dispatch interrupt */
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "soc_cmicm_intr type 1 unit %d: dispatch\n"),
                           unit));
@@ -828,7 +828,7 @@ soc_cmicm_chip_func_intr(int unit, uint32 val)
     } else
 #endif /* BCM_TRIUMPH3_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicm_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), unit, irqStat));
@@ -852,7 +852,7 @@ soc_cmicm_intr_link_stat(int unit, uint32 ignored)
 
     /* Clear interrupt */
     READ_CMIC_MIIM_SCAN_STATUSr(unit, &rval);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Status: 0x%08x\n"), rval));
     WRITE_CMIC_MIIM_CLR_SCAN_STATUSr(unit, rval);
@@ -876,7 +876,7 @@ soc_ser_engine_intr(int unit, uint32 val)
 
     (void)soc_cmicm_intr1_disable(unit, irqMask);
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_cmicm_intr unit %d: "
                           "Disabling unhandled interrupt(s): %d\n"),
@@ -904,7 +904,7 @@ soc_cmicm_parity_intr(int unit, uint32 val)
     /* dispatch interrupt if we have handler */
     if (soc_ser_parity_error_cmicm_intr(INT_TO_PTR(unit), 0,
         INT_TO_PTR(oldmask), 0, 0)) {
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_cmicm_intr type 2 unit %d: dispatch\n"),
                   unit));
@@ -920,7 +920,7 @@ soc_cmicm_parity_intr(int unit, uint32 val)
         } else
 #endif
         {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicm_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), 
@@ -951,7 +951,7 @@ soc_cmicdv2_parity_intr(int unit, uint32 val)
     /* dispatch interrupt if we have handler */
     if (soc_ser_parity_error_cmicm_intr(INT_TO_PTR(unit), 0,
         INT_TO_PTR(oldmask), 0, 0)) {
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_cmicdv2_intr type 3 unit %d: dispatch\n"),
                   unit));
@@ -959,7 +959,7 @@ soc_cmicdv2_parity_intr(int unit, uint32 val)
     } else 
 #endif
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicdv2_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), 
@@ -985,7 +985,7 @@ soc_cmicm_block_lo_intr(int unit, uint32 val)
         soc_cmicm_intr3_disable(unit, irqMask & irqStat);
 
         /* dispatch interrupt */
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_cmicm_intr type 3 unit %d: dispatch\n"),
                   unit));
@@ -997,7 +997,7 @@ soc_cmicm_block_lo_intr(int unit, uint32 val)
 	    		        0, 0, 0, 0);                
 	    	    break;
             case SOC_SBX_CALADAN3_OC_INTR_POS:
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "%d: Caladan3 OCM ISR\n"), unit));
 	    	    sal_dpc(soc_sbx_caladan3_ocm_isr, INT_TO_PTR(unit),
@@ -1023,7 +1023,7 @@ soc_cmicm_block_lo_intr(int unit, uint32 val)
 	    		        0, 0, 0, 0);
 	    	    break;
 	        default:
-	    	    LOG_ERROR(BSL_LS_SOC_COMMON,
+	    	    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_cmicm_intr unit %d: "
                                           "Disabling unhandled interrupt(s): %d\n"), 
@@ -1040,7 +1040,7 @@ soc_cmicm_block_lo_intr(int unit, uint32 val)
         
         /* SER interrupts */
         if (val >= 4 && val <= 16) {
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "soc_cmicm_intr type 3 unit %d: dispatch\n"), unit));
             if (soc_ser_parity_error_cmicm_intr(INT_TO_PTR(unit), 0,
@@ -1049,7 +1049,7 @@ soc_cmicm_block_lo_intr(int unit, uint32 val)
                                                 INT_TO_PTR(val))) {
         
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_cmicdv2_intr unit %d: "
                                       "Disabling unhandled interrupt(s): %d\n"), 
@@ -1063,7 +1063,7 @@ soc_cmicm_block_lo_intr(int unit, uint32 val)
     } else
 #endif /* BCM_TOMAHAWK_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicm_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), 
@@ -1094,7 +1094,7 @@ soc_cmicd_block_intr4(int unit, uint32 val)
     /* dispatch interrupt if we have handler */
     if (soc_ser_parity_error_cmicm_intr(INT_TO_PTR(unit), 0,
         INT_TO_PTR(oldmask), INT_TO_PTR(4), INT_TO_PTR(val))) {
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_cmicdv2_intr type 4 unit %d: dispatch\n"),
                   unit));
@@ -1102,7 +1102,7 @@ soc_cmicd_block_intr4(int unit, uint32 val)
     } else 
 #endif
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicdv2_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), 
@@ -1133,7 +1133,7 @@ soc_cmicd_block_intr5(int unit, uint32 val)
     /* dispatch interrupt if we have handler */
     if (soc_ser_parity_error_cmicm_intr(INT_TO_PTR(unit), 0,
         INT_TO_PTR(oldmask), INT_TO_PTR(5), INT_TO_PTR(val))) {
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_cmicdv2_intr type 5 unit %d: dispatch\n"),
                   unit));
@@ -1141,7 +1141,7 @@ soc_cmicd_block_intr5(int unit, uint32 val)
     } else 
 #endif
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicdv2_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), 
@@ -1190,7 +1190,7 @@ soc_cmicm_block_hi_intr(int unit, uint32 val)
         soc_cmicm_intr4_disable(unit, irqMask & irqStat);
 
         /* dispatch interrupt */
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_cmicm_intr type 4 unit %d: dispatch\n"),
                   unit));
@@ -1217,7 +1217,7 @@ soc_cmicm_block_hi_intr(int unit, uint32 val)
         			INT_TO_PTR(val), 0, 0, 0);                
         		break;
     	    default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_cmicm_intr unit %d: "
                                       "Disabling unhandled interrupt(s): %d\n"), 
@@ -1226,7 +1226,7 @@ soc_cmicm_block_hi_intr(int unit, uint32 val)
     	}        
     } else 
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_cmicm_intr unit %d: "
                               "Disabling unhandled interrupt(s): %d\n"), 
@@ -1260,7 +1260,7 @@ soc_cmicm_cmcx_intr0_enable(int unit, int cmc, uint32 mask)
     if (SOC_CONTROL(unit)->soc_flags & SOC_F_POLLED) {
         newMask = 0;
     }
-    LOG_INFO(BSL_LS_SOC_INTR,
+    LOG_BSL_INFO(BSL_LS_SOC_INTR,
              (BSL_META_U(unit,
                          "soc_cmicm_intr0_enable cmc %d unit %d: mask 0x%8x\n"),
               cmc, unit, mask));
@@ -1288,7 +1288,7 @@ soc_cmicm_cmcx_intr0_disable(int unit, int cmc, uint32 mask)
     if (SOC_CONTROL(unit)->soc_flags & SOC_F_POLLED) {
         newMask = 0;
     }
-    LOG_INFO(BSL_LS_SOC_INTR,
+    LOG_BSL_INFO(BSL_LS_SOC_INTR,
              (BSL_META_U(unit,
                          "soc_cmicm_intr0_disable cmc %d unit %d: mask 0x%8x\n"),
               cmc, unit, mask));
@@ -1728,7 +1728,7 @@ soc_cmicm_intr(void *_unit)
             if (irqStat & intr_handler[i].mask) {
 
             /* dispatch interrupt */
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "soc_cmicm_intr type 0 unit %d: dispatch %s\n"),
                       unit, intr_handler[i].intr_name));
@@ -1742,7 +1742,7 @@ soc_cmicm_intr(void *_unit)
              */
             /* coverity[dead_error_condition] */
             if (--poll_limit == 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_cmicm_intr unit %d: "
                                       "ERROR can't clear type 0 interrupt(s): "
@@ -1784,7 +1784,7 @@ check_type1:
         for (; intr_handler[i].mask; i++) {
             if (irqStat & intr_handler[i].mask) {
                 /* dispatch interrupt */
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "soc_cmicm_intr type 1 unit %d: dispatch %s\n"),
                           unit, intr_handler[i].intr_name));
@@ -1794,7 +1794,7 @@ check_type1:
                 
                 /* coverity[dead_error_condition] */
                 if (--poll_limit == 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_cmicm_intr unit %d: "
                                           "ERROR can't clear type 1 interrupt(s): "
@@ -1839,7 +1839,7 @@ check_type2:
         for (; intr_handler[i].mask; i++) {
             if (irqStat & intr_handler[i].mask) {
                 /* dispatch interrupt */
-                LOG_INFO(BSL_LS_SOC_INTR,
+                LOG_BSL_INFO(BSL_LS_SOC_INTR,
                          (BSL_META_U(unit,
                                      "soc_cmicm_intr type 2 unit %d: dispatch %s\n"),
                           unit, intr_handler[i].intr_name));
@@ -1849,7 +1849,7 @@ check_type2:
                 
                 /* coverity[dead_error_condition] */
                 if (--poll_limit == 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_cmicm_intr unit %d: "
                                           "ERROR can't clear type 2 interrupt(s): "
@@ -1896,7 +1896,7 @@ check_type3:
                 if (irqStat & intr_handler[i].mask) {
                     
                     /* dispatch interrupt */
-                    LOG_INFO(BSL_LS_SOC_INTR,
+                    LOG_BSL_INFO(BSL_LS_SOC_INTR,
                              (BSL_META_U(unit,
                                          "soc_cmicm_intr type 3 unit %d: dispatch %s\n"),
                               unit, intr_handler[i].intr_name));
@@ -1905,7 +1905,7 @@ check_type3:
                     (unit, intr_handler[i].intr_data);
                     
                     if (--poll_limit == 0) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "soc_cmicm_intr unit %d: "
                                               "ERROR can't clear type 3 interrupt(s): "
@@ -1950,7 +1950,7 @@ check_type4:
                 if (irqStat & intr_handler[i].mask) {
                     
                     /* dispatch interrupt */
-                    LOG_INFO(BSL_LS_SOC_INTR,
+                    LOG_BSL_INFO(BSL_LS_SOC_INTR,
                              (BSL_META_U(unit,
                                          "soc_cmicm_intr type 4 unit %d: dispatch %s\n"),
                               unit, intr_handler[i].intr_name));
@@ -1959,7 +1959,7 @@ check_type4:
                     (unit, intr_handler[i].intr_data);
                     
                     if (--poll_limit == 0) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "soc_cmicm_intr unit %d: "
                                               "ERROR can't clear type 4 interrupt(s): "
@@ -2002,7 +2002,7 @@ check_type5:
                 if (irqStat & intr_handler[i].mask) {
                     
                     /* dispatch interrupt */
-                    LOG_INFO(BSL_LS_SOC_INTR,
+                    LOG_BSL_INFO(BSL_LS_SOC_INTR,
                              (BSL_META_U(unit,
                                          "soc_cmicm_intr type 5 unit %d: dispatch %s\n"),
                               unit, intr_handler[i].intr_name));
@@ -2011,7 +2011,7 @@ check_type5:
                     (unit, intr_handler[i].intr_data);
                     
                     if (--poll_limit == 0) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "soc_cmicm_intr unit %d: "
                                               "ERROR can't clear type 5 interrupt(s): "
@@ -2055,7 +2055,7 @@ check_arm_type0:
                 for (; intr_handler[i].mask; i++) {
                     if (irqStat & intr_handler[i].mask) {
                         /* dispatch interrupt */
-                        LOG_INFO(BSL_LS_SOC_INTR,
+                        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                                  (BSL_META_U(unit,
                                              "soc_cmicm_intr CMC %d type 0 unit %d: dispatch %s\n"),
                                   unit, cmc, intr_handler[i].intr_name));
@@ -2064,7 +2064,7 @@ check_arm_type0:
                             (unit, ((cmc<<2) + intr_handler[i].intr_data));
                         
                         if (--poll_limit == 0) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "soc_cmicm_intr unit %d: "
                                                   "ERROR can't clear type 3 interrupt(s): "
@@ -2180,7 +2180,7 @@ soc_cmicm_rcpu_intrx_enable(int unit, uint32 offset, uint32 mask, uint32 *mask_r
     if (SOC_CONTROL(unit)->soc_flags & SOC_F_POLLED) {
         newMask = 0;
     }
-    LOG_INFO(BSL_LS_SOC_INTR,
+    LOG_BSL_INFO(BSL_LS_SOC_INTR,
              (BSL_META_U(unit,
                          "soc_cmicm_rcpu_intrx_enable unit %d: mask 0x%8x\n"), unit, mask));
 
@@ -2207,7 +2207,7 @@ soc_cmicm_rcpu_intrx_disable(int unit, uint32 offset, uint32 mask, uint32 *mask_
     if (SOC_CONTROL(unit)->soc_flags & SOC_F_POLLED) {
         newMask = 0;
     }
-    LOG_INFO(BSL_LS_SOC_INTR,
+    LOG_BSL_INFO(BSL_LS_SOC_INTR,
              (BSL_META_U(unit,
                          "soc_cmicm_rcpu_intrx_disable unit %d: mask 0x%8x\n"), unit, mask));
     soc_pci_write(unit, offset, newMask);
@@ -2383,8 +2383,8 @@ soc_cmicm_rcpu_intr(int unit, soc_rcpu_intr_packet_t *intr_pkt)
         if (irqStat & intr_handler[i].mask) {
 
             /* dispatch interrupt */
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-                LOG_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+                LOG_BSL_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_cmicm_rcpu_intr type 0 unit %d: dispatch %s\n"),
                          unit, intr_handler[i].intr_name));
@@ -2414,8 +2414,8 @@ check_rcpu_type1:
         if (irqStat & intr_handler[i].mask) {
     
             /* dispatch interrupt, verbose only */
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-                LOG_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+                LOG_BSL_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_cmicm_rcpu_intr type 1 unit %d: dispatch %s\n"),
                          unit, intr_handler[i].intr_name));
@@ -2442,8 +2442,8 @@ check_rcpu_type2:
         if (irqStat & intr_handler[i].mask) {
     
             /* dispatch interrupt, verbose only */
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-                LOG_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+                LOG_BSL_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_cmicm_rcpu_intr type 2 unit %d: dispatch %s\n"),
                          unit, intr_handler[i].intr_name));
@@ -2470,8 +2470,8 @@ check_rcpu_type3:
         if (irqStat & intr_handler[i].mask) {
     
             /* dispatch interrupt, verbose only */
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-                LOG_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+                LOG_BSL_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_cmicm_rcpu_intr type 3 unit %d: dispatch %s\n"),
                          unit, intr_handler[i].intr_name));
@@ -2501,8 +2501,8 @@ check_rcpu_type4:
         if (irqStat & intr_handler[i].mask) {
     
             /* dispatch interrupt, verbose only */
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-                LOG_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+                LOG_BSL_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_cmicm_rcpu_intr type 4 unit %d: dispatch %s\n"),
                          unit, intr_handler[i].intr_name));
@@ -2535,8 +2535,8 @@ check_rcpu_cmc0:
     for (; intr_handler[i].mask; i++) {
         if (irqStat & intr_handler[i].mask) {
 
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-                LOG_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+                LOG_BSL_CHECK(BSL_LS_SOC_INTR | BSL_INFO)) {
                 /* dispatch interrupt, verbose only */
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_cmicm_rcpu_cmc0_intr type 0 unit %d: dispatch %s\n"),

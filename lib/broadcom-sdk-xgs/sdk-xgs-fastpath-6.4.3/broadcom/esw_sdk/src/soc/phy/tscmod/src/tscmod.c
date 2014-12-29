@@ -265,7 +265,7 @@ _phy_tscmod_ucode_get(int unit, soc_port_t port, uint8 **ppdata, int *len,
     }
     if (ix >= TSCMOD_UCODE_NUM_ENTRIES) {
        if(tsc->verbosity&TSCMOD_DBG_PRINT) {
-          LOG_WARN(BSL_LS_SOC_PHY,
+          LOG_BSL_WARN(BSL_LS_SOC_PHY,
                    (BSL_META_U(unit,
                                "no firmware matches the chip rev number(%x)!!! use default\n"), TSCMOD_REVID(pc)));
        }
@@ -280,7 +280,7 @@ _phy_tscmod_ucode_get(int unit, soc_port_t port, uint8 **ppdata, int *len,
         }
     }
     if (ix < 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "no valid firmware found!!!\n")));
         return SOC_E_NOT_FOUND;
@@ -801,7 +801,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
         pInfo->name[len] = 0;  /* string terminator */
 
         if (len > TSCMOD_LANE_NAME_LEN) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "TSC info string length %d exceeds max length 0x%x: u=%d p=%d\n"),
                        len,TSCMOD_LANE_NAME_LEN,unit, port));
@@ -1073,7 +1073,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
         preemphasis = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_PREEMPHASIS,
                                     "lane", pCfg->preemph[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Port %d   - lane  %d -> preemphasis 0x%x\n"),
                   port, i, preemphasis));
@@ -1084,7 +1084,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
         idriver = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_DRIVER_CURRENT,
                                     "lane", pCfg->idriver[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Port %d   - lane  %d -> idriver 0x%x\n"),
                   port, i, idriver));
@@ -1095,7 +1095,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
         pdriver = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_PRE_DRIVER_CURRENT,
                                     "lane", pCfg->pdriver[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Port %d   - lane  %d -> pdriver 0x%x\n"),
                   port, i, pdriver));
@@ -1106,7 +1106,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
         post2_driver = soc_property_port_suffix_num_get(unit, port, i,
                                     spn_SERDES_POST2_DRIVER_CURRENT,
                                     "lane", pCfg->post2driver[i]);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Port %d   - lane  %d -> post2_driver 0x%x\n"),
                   port, i, post2_driver));
@@ -1207,7 +1207,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
             tx_lane_swap = soc_property_port_suffix_num_get(unit, port, i,
                                         spn_XGXS_TX_LANE_MAP,
                                         "core", pCfg->txlane_map[i]);
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Port %d WarpCore tx lane swap - core %d -> tx_lane_swap 0x%x\n"),
                       port, i, tx_lane_swap));
@@ -1222,7 +1222,7 @@ _phy_tscmod_config_init(int unit, soc_port_t port)
             rx_lane_swap = soc_property_port_suffix_num_get(unit, port, i,
                                         spn_XGXS_RX_LANE_MAP,
                                         "core", pCfg->rxlane_map[i]);
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Port %d WarpCore rx lane swap - core %d -> rx_lane_swap 0x%x\n"),
                       port, i, rx_lane_swap));
@@ -4486,7 +4486,7 @@ _phy_tscmod_an_war_handler(int unit, soc_port_t port, int *link)
 STATIC int
 phy_tscmod_init(int unit, soc_port_t port)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_tscmod_init: u=%d p=%d\n"), unit, port));
     /* init the configuration value */
@@ -11227,7 +11227,7 @@ phy_tscmod_diag_ctrl(
       break;
 
    case PHY_DIAG_CTRL_DSC:
-      LOG_INFO(BSL_LS_SOC_PHY,
+      LOG_BSL_INFO(BSL_LS_SOC_PHY,
                (BSL_META_U(unit,
                            "phy_tscmod_diag_ctrl: "
                            "u=%d p=%d PHY_DIAG_CTRL_DSC 0x%x\n"),
@@ -11441,7 +11441,7 @@ _phy_tscmod_control_set(int unit, soc_port_t port,
         SOC_IF_ERROR_RETURN(
                 phy_tscmod_an_get(unit, port, &an, &an_done));
         if(an) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_wc40_control_set: PHY_CONTROL_AUTONEG_MODE "
                                  "-> disable autoneg u=%d p=%d\n"), unit, port));
@@ -12359,7 +12359,7 @@ phy_tscmod_probe(int unit, phy_ctrl_t *pc)
 
     serdes_id0 = tsc.accData;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_tscmod_probe: u=%d p=%d\n"), pc->unit, pc->port));
 

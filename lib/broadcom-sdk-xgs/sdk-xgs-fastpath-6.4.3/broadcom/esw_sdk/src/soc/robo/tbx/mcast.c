@@ -82,7 +82,7 @@ drv_tbx_mcast_bmp_get(int unit, uint32 *entry, soc_pbmp_t *bmp)
     /* get the multicast id */
     rv = soc_L2_MARL_SWm_field_get(unit, entry, MGIDf, &entry_index);
     if (rv){
-        LOG_INFO(BSL_LS_SOC_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
                  (BSL_META_U(unit,
                              "%s: faield on get the l2 table\n"), FUNCTION_NAME()));
         return rv;
@@ -91,7 +91,7 @@ drv_tbx_mcast_bmp_get(int unit, uint32 *entry, soc_pbmp_t *bmp)
     /* get multicast group entry */
     rv = MEM_READ_MARL_PBMPm(unit, entry_index, (uint32 *)&mcast_entry);
     if (rv){
-        LOG_INFO(BSL_LS_SOC_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
                  (BSL_META_U(unit,
                              "%s: faield on get the mcast_bmp table\n"), FUNCTION_NAME()));
         return rv;
@@ -104,7 +104,7 @@ drv_tbx_mcast_bmp_get(int unit, uint32 *entry, soc_pbmp_t *bmp)
     }
     SOC_PBMP_WORD_SET(*bmp, 0, fld_v32);
 
-    LOG_INFO(BSL_LS_SOC_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
              (BSL_META_U(unit,
                          "%s: unit %d, bmp = 0x%x\n"), FUNCTION_NAME(), unit, 
               SOC_PBMP_WORD_GET(*bmp, 0)));
@@ -140,7 +140,7 @@ drv_tbx_mcast_bmp_set(int unit, uint32 *entry,
     uint32  fld_value = 0, request_autoid = 0;
     
     assert(entry);
-    LOG_INFO(BSL_LS_SOC_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
              (BSL_META_U(unit,
                          "%s: unit %d, bmp = 0x%x flag %x\n"), FUNCTION_NAME(), unit, 
               SOC_PBMP_WORD_GET(bmp, 0), flag));
@@ -214,7 +214,7 @@ drv_tbx_mcast_bmp_set(int unit, uint32 *entry,
     /* get multicast group entry */
     rv = MEM_READ_MARL_PBMPm(unit, entry_index, (uint32 *)&mcast_entry);
     if (rv){
-        LOG_INFO(BSL_LS_SOC_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
                  (BSL_META_U(unit,
                              "%s: faield on get the mcast_bmp table\n"), FUNCTION_NAME()));
         return rv;
@@ -231,7 +231,7 @@ drv_tbx_mcast_bmp_set(int unit, uint32 *entry,
 
     rv = MEM_WRITE_MARL_PBMPm(unit, entry_index,(uint32 *)&mcast_entry);
     if (rv){
-        LOG_INFO(BSL_LS_SOC_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
                  (BSL_META_U(unit,
                              "%s: faield on get the mcast_bmp table\n"), FUNCTION_NAME()));
         return rv;

@@ -228,7 +228,7 @@ topo_cpu_trans_flush(cpudb_ref_t db_ref)
                 (prev_entry->tx_port == entry->tx_port)) {
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META("TX path changed to CPU " CPUDB_KEY_FMT_EOLN),
                          CPUDB_KEY_DISP(entry->base.key)));            
             topo_cpu_trans_purge(entry);
@@ -264,7 +264,7 @@ topo_board_setup(cpudb_ref_t db_ref)
 {
     int rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Topology board setup\n")));
     
     topo_data_set = FALSE;
@@ -276,7 +276,7 @@ topo_board_setup(cpudb_ref_t db_ref)
 
     if (db_ref->local_entry == NULL || db_ref->num_cpus <= 0 ||
         db_ref->num_cpus > CPUDB_CPU_MAX) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO SETUP: Local entry %p, num cpus %d\n"),
                   db_ref->local_entry, db_ref->num_cpus));
         return BCM_E_PARAM;
@@ -290,14 +290,14 @@ topo_board_setup(cpudb_ref_t db_ref)
         /* All local external stack ports have 0 mod id associations. */
         if ((rv = cpudb_entry_copy(&bcm_board_topo_data.local_entry,
                 db_ref->local_entry)) < 0) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("TOPO SETUP: Failed to copy entry\n")));
         } else {
             bcm_board_topo_data.num_cpus = 1;
             topo_data_set = TRUE;
 
             if ((rv = topo_board_program(db_ref, &bcm_board_topo_data)) < 0) {
-                LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                          (BSL_META("TOPO SETUP: Failed topo brd program: %s\n"),
                           bcm_errmsg(rv)));
             }
@@ -310,11 +310,11 @@ topo_board_setup(cpudb_ref_t db_ref)
         /* Generate topo pkt; then parse it to get topo cpu struct */
         if ((rv = topo_pkt_gen(db_ref, db_ref->local_entry,
                                _pkt_buf, TOPO_PKT_BYTES_MAX, &len)) < 0) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("TOPO SETUP: Failed pkt gen\n")));
         } else if ((rv = topo_pkt_parse(db_ref, db_ref->local_entry, _pkt_buf,
                              len, &bcm_board_topo_data, NULL)) < 0) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("TOPO SETUP: Failed pkt parse\n")));
         } else {
             bcm_board_topo_data.num_cpus = db_ref->num_cpus;
@@ -328,7 +328,7 @@ topo_board_setup(cpudb_ref_t db_ref)
     }
     TOPO_DATA_UNLOCK;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO SETUP: Exit rv %d, data set %d\n"),
                  rv, topo_data_set));
     return rv;
@@ -432,7 +432,7 @@ _topo_board_default_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
     cpudb_unit_port_t *sp;
     uint32 flags;
             
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Topology board programming db_ref %p. old_db %p\n"),
                  db_ref, db_ref->old_db));
                
@@ -466,7 +466,7 @@ _topo_board_default_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
                 rv_tmp = nh_tx_src_mod_port_set(sp->unit, sp->port,
                                                 loc_mod_id, -1);
                 if (rv_tmp < 0) {
-                    LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                              (BSL_META("TOPOLOGY WARNING: "
                               "Could not set NH mod/port for (%d, %d): %s\n"),
                               sp->unit, sp->port, bcm_errmsg(rv_tmp)));
@@ -475,7 +475,7 @@ _topo_board_default_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
                 /* Allow default NH source mod id */
                 rv_tmp = nh_tx_src_mod_port_set(sp->unit, sp->port, -1, -1);
                 if (rv_tmp < 0) {
-                    LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                              (BSL_META("TOPOLOGY WARNING: "
                               "Could not clear NH mod/port for (%d, %d): "
                               "%s\n"),
@@ -504,7 +504,7 @@ _topo_board_default_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
             }
         }
         if (!done) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("TOPOLOGY WARNING: Did not find tx stack port for "
                       CPUDB_KEY_FMT " mod %d\n"), CPUDB_KEY_DISP(entry->base.key),
                       entry->dest_mod));
@@ -576,7 +576,7 @@ _topo_board_default_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
             rv = bcm_board_topo_xgs3_48g2(topo_cpu, db_ref);
             break;
         default:
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPOLOGY ERROR: Unknown board\n")));
             rv = BCM_E_NOT_FOUND;
             break;
@@ -597,7 +597,7 @@ topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
     uint32 flags;
     int nh_vlan;
             
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Topology board programming db_ref %p. old_db %p\n"),
                  db_ref, db_ref->old_db));
                
@@ -631,7 +631,7 @@ topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
                 rv_tmp = nh_tx_src_mod_port_set(sp->unit, sp->port,
                                                 loc_mod_id, -1);
                 if (rv_tmp < 0) {
-                    LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                              (BSL_META("TOPOLOGY WARNING: "
                               "Could not set NH mod/port for (%d, %d): %s\n"),
                               sp->unit, sp->port, bcm_errmsg(rv_tmp)));
@@ -640,7 +640,7 @@ topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
                 /* Allow default NH source mod id */
                 rv_tmp = nh_tx_src_mod_port_set(sp->unit, sp->port, -1, -1);
                 if (rv_tmp < 0) {
-                    LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                              (BSL_META("TOPOLOGY WARNING: "
                               "Could not clear NH mod/port for (%d, %d): "
                               "%s\n"),
@@ -669,7 +669,7 @@ topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
             }
         }
         if (!done) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("TOPOLOGY WARNING: Did not find tx stack port for "
                       CPUDB_KEY_FMT " mod %d\n"), CPUDB_KEY_DISP(entry->base.key),
                       entry->dest_mod));
@@ -701,7 +701,7 @@ topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
     nh_tx_dest_install(TRUE, nh_vlan);
      
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO board prg: Board programming failed: %s\n"),
                   bcm_errmsg(rv)));
         bcm_board_topo_set(NULL);
@@ -772,7 +772,7 @@ _topo_set_unit_modid_preference(int unit, int num_modid, int *preference)
             rv = bcm_stk_my_modid_set(unit, new_modid);
             if (rv == BCM_E_BADID) {
                 *preference = CPUDB_TOPO_MODID_EVEN;
-                LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                             (BSL_META_U(unit,
                             "unit %d modid preference is even\n"),
                              unit));
@@ -1007,7 +1007,7 @@ topo_sp_info_update(cpudb_entry_t *entry)
         } else {
             topo_sp[i].tid = -1;
         }
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META_U(unit,
                     "Stack port %d: unit %d, port %d, tid %d\n"),
                      i, unit, port, topo_sp[i].tid));
@@ -1096,7 +1096,7 @@ topo_board_rapid_recovery(cpudb_ref_t db_ref, int unit, bcm_port_t fail_sp)
     bcm_board_topo_get(&topo_cpu);
     if (topo_cpu == NULL) {
         TOPO_DATA_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META_U(unit,
                   "Current topology is null\n")));
         return BCM_E_FAIL;
@@ -1112,7 +1112,7 @@ topo_board_rapid_recovery(cpudb_ref_t db_ref, int unit, bcm_port_t fail_sp)
      */
     if ((fail_sp_idx = topo_sp_idx_find(unit, fail_sp)) < 0) {
         TOPO_DATA_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META_U(unit,
                   "Stack port unit %d, port %d, not found\n"),
                    unit, fail_sp));
@@ -1132,7 +1132,7 @@ topo_board_rapid_recovery(cpudb_ref_t db_ref, int unit, bcm_port_t fail_sp)
         rv = bcm_trunk_get(unit, tid, &t_info, BCM_TRUNK_FABRIC_MAX_PORTCNT,
                            member_array, &member_count);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META_U(unit,
                       "Cannot get trunk information for unit %d, tid %d\n"),
                        unit, tid));
@@ -1156,7 +1156,7 @@ topo_board_rapid_recovery(cpudb_ref_t db_ref, int unit, bcm_port_t fail_sp)
         
         /* Trunk failover requires at least one port left in trunk */
         if (member_count < 1) {
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META_U(unit,
                         "Link failure on unit %d, port %d, is not a "
                          "trunk failover case\n"), unit, fail_sp));
@@ -1174,7 +1174,7 @@ topo_board_rapid_recovery(cpudb_ref_t db_ref, int unit, bcm_port_t fail_sp)
                                            tid, &t_info, member_count,
                                            member_array);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META_U(unit,
                       "Fail to reconfigure system for trunk failover\n")));
             TOPO_DATA_UNLOCK;

@@ -95,7 +95,7 @@ drv_gex_mstp_port_set(int unit, uint32 mstp_gid,
         * BCM_NORTHSTARPLUS
         */
     
-    LOG_INFO(BSL_LS_SOC_STP, \
+    LOG_BSL_INFO(BSL_LS_SOC_STP, \
              (BSL_META_U(unit, \
                          "drv_mstp_port_set : \
                          unit %d, STP id = %d, port = %d, port_state = %d \n"),
@@ -349,7 +349,7 @@ drv_gex_mstp_port_get(int unit, uint32 mstp_gid,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_STP, \
+    LOG_BSL_INFO(BSL_LS_SOC_STP, \
              (BSL_META_U(unit, \
                          "drv_mstp_port_get : \
                          unit %d, STP id = %d, port = %d, port_state = %d \n"),

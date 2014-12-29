@@ -1143,7 +1143,7 @@ bcm_td2_vxlan_init(int unit)
     int rv = BCM_E_NONE;
 
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_ERROR(BSL_LS_BCM_VXLAN,
+        LOG_BSL_ERROR(BSL_LS_BCM_VXLAN,
                   (BSL_META_U(unit,
                               "L3 module must be initialized prior to VXLAN Init\n")));
         return BCM_E_CONFIG;
@@ -7765,7 +7765,7 @@ bcm_td2_vxlan_port_add(int unit, bcm_vpn_t vpn, bcm_vxlan_port_t  *vxlan_port)
 
     BCM_IF_ERROR_RETURN(bcm_xgs3_l3_egress_mode_get(unit, &mode));
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

@@ -319,7 +319,7 @@ board_xgs_probe(board_driver_t *driver, int num, bcm_info_t *info)
         /* The number of supported devices needs to be modulo the number
            of devices on the board. */
         if (PRIVATE(num_supported_device) % PRIVATE(num_device)) {
-            LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                         (BSL_META("%s: devtab not modulo numdev\n"),
                          driver->name));
             return BCM_E_CONFIG;
@@ -341,7 +341,7 @@ board_xgs_probe(board_driver_t *driver, int num, bcm_info_t *info)
             }
             if (match == PRIVATE(num_device)) {
                 /* Found something */
-                LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                             (BSL_META("%s: units match\n"),
                              driver->name));
                 rv = BCM_E_NONE;
@@ -426,7 +426,7 @@ _board_xgs_add_internal_connections(board_driver_t *driver,
 
             if (i_port != BCM_GPORT_TYPE_NONE) {
                 if (replace < 0) {
-                    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                                 (BSL_META("Adding internal connection %d to conn %d\n"),
                                  i, j));
                     /* if internal_connection.from matches conn.from */
@@ -443,29 +443,29 @@ _board_xgs_add_internal_connections(board_driver_t *driver,
         if (d_idx >= 0) {
             /* move up entries over deleted entry */
             for (j=d_idx; j<end; j++) {
-                LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                             (BSL_META("Copying %d to %d\n"),
                              j+1, j));
                 conn[j] = conn[j+1];
             }
             end -= 1;
-            LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                         (BSL_META("Delete, end now %d\n"),
                          end));
         } else if (replace < 0) {
             /* add the internal entry to the end of the list */
-            LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                         (BSL_META("Copying internal %d to %d\n"),
                          i, end));
             sal_memcpy(&conn[end], &internal[i], sizeof(conn[end]));
             end += 1;
-            LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                         (BSL_META("Add internal, end now %d\n"),
                          end));
         }
     }
 
-    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                 (BSL_META("Board: %d internal, %d stack connections\n"),
                  PRIVATE(num_internal_connection),
                  end - PRIVATE(num_internal_connection)));
@@ -702,7 +702,7 @@ board_xgs_start(board_driver_t *driver, uint32 flags)
     BCM_IF_ERROR_RETURN(_board_xgs_initialize(driver));
     BCM_IF_ERROR_RETURN(_board_xgs_banner(driver));
 
-    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                 (BSL_META_U(unit,
                 "%s\n"),
                  PRIVATE(description)));

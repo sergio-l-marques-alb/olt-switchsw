@@ -786,7 +786,7 @@ _soc_hu2_process_oam_interrupt(int unit)
         fidx++;
     }
     if (!found) {
-      LOG_ERROR(BSL_LS_SOC_COMMON,
+      LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Unexpected interrupt received for OAM !!\n")));
     }
@@ -1031,7 +1031,7 @@ soc_hurricane2_ser_mem_clear(int unit, soc_mem_t mem)
         SOC_IF_ERROR_RETURN
             (WRITE_SER_RANGE_ENABLEr(unit, range_enable));
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\t%s: SER[%d-%d]\n"),
                      SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1217,12 +1217,12 @@ _soc_hurricane2_process_single_parity_error(int unit, int group,
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                index, minfo);
         
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, index));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
@@ -1238,7 +1238,7 @@ _soc_hurricane2_process_single_parity_error(int unit, int group,
             (void)soc_ser_correction(unit, &spci);
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -1281,12 +1281,12 @@ _soc_hurricane2_process_single_ecc_error(int unit, int group,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                                index, minfo);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d %s ECC error\n"),
                    unit, msg, index, double_bit ? "double-bit" : ""));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple ECC errors\n"),
                        unit, msg));
@@ -1304,7 +1304,7 @@ _soc_hurricane2_process_single_ecc_error(int unit, int group,
             (void)soc_ser_correction(unit, &spci);
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -1380,7 +1380,7 @@ _soc_hurricane2_process_dual_parity_error(int unit, int group,
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                index, minfo);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, index));
@@ -1398,7 +1398,7 @@ _soc_hurricane2_process_dual_parity_error(int unit, int group,
         }
 
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
@@ -1440,7 +1440,7 @@ _soc_hurricane2_process_mmu_e2efc_error(int unit, int group,
             soc_reg_field_get(unit, err_reg, reg_val, INSTf);
     /* CHECK if the error is valid */
     if (mem_id == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -1454,7 +1454,7 @@ _soc_hurricane2_process_mmu_e2efc_error(int unit, int group,
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                        entry_index, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d MMU E2EFC entry %d parity error\n"),
                unit, entry_index));
@@ -1517,7 +1517,7 @@ _soc_hurricane2_process_mmu_ipmc_error(int unit, int group,
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                        entry_index, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d MMU_%s entry %d parity error\n"),
                unit, SOC_MEM_NAME(unit, target_mem), entry_index));
@@ -1557,7 +1557,7 @@ _soc_hurricane2_process_parity_error(int unit)
     for (group = 0; _soc_hu2_parity_group_info[group].cpi_bit; group++) {
         info = _soc_hu2_parity_group_info[group].info;
         group_reg = _soc_hu2_parity_group_info[group].status_reg;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d %s parity processing\n"),
                                 unit, SOC_REG_NAME(unit, group_reg)));
@@ -1582,7 +1582,7 @@ _soc_hurricane2_process_parity_error(int unit)
                 if (!soc_reg_field_valid(unit, group_reg,
                                          info[table].error_field)) {
                     if (info[table].mem != INVALIDm) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s has bad error field\n"),
                                               unit, SOC_MEM_NAME(unit, info[table].mem)));
@@ -1602,7 +1602,7 @@ _soc_hurricane2_process_parity_error(int unit)
                     msg = SOC_FIELD_NAME(unit, info[table].error_field);
                 }
 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "unit %d %s analysis\n"),
                                         unit, msg));
@@ -1615,7 +1615,7 @@ _soc_hurricane2_process_parity_error(int unit)
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 0,
                                minfo);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s asserted\n"),
                                           unit, msg));
@@ -1780,7 +1780,7 @@ soc_hurricane2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         offset = address & ~0xC0f00000; /* Strip block ID */
         mem = soc_addr_to_mem_extended(unit, block, 0, address);
         if (mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d mem decode failed, "
                                   "SCHAN NACK analysis failure\n"), unit));
@@ -1829,7 +1829,7 @@ soc_hurricane2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                (offset - min_addr), minfo);
         msg = SOC_MEM_NAME(unit, mem);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, (offset - min_addr)));
@@ -1845,12 +1845,12 @@ soc_hurricane2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         if ((rv = _soc_hurricane2_mem_nack_error_process(unit, nack_reg_mem, 
             (soc_block_t)block, reg_mem)) < 0) {
             if (reg_mem == _SOC_HURRICANE2_SER_REG) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d REG SCHAN NACK analysis failure\n"),
                            unit));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                            unit, SOC_MEM_NAME(unit, mem),
@@ -1860,19 +1860,19 @@ soc_hurricane2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     }
     if (reg_mem == _SOC_HURRICANE2_SER_REG) {
         if (nack_reg_mem.reg != INVALIDr) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s REG SCHAN NACK analysis\n"),
                        unit, SOC_REG_NAME(unit, nack_reg_mem.reg)));
             soc_reg32_set(unit, ainfo.reg, ainfo.port, ainfo.idx, 0);
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d invalid register for REG SCHAN NACK analysis\n"),
                        unit));
         }
     } else {
-        LOG_INFO(BSL_LS_SOC_SCHAN,
+        LOG_BSL_INFO(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "unit %d %s entry %d SCHAN NACK analysis\n"),
                   unit, SOC_MEM_NAME(unit, mem),
@@ -1939,7 +1939,7 @@ soc_hurricane2_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -1953,7 +1953,7 @@ soc_hurricane2_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -3007,7 +3007,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
         /* Parsing physical port number */
         phy_port = sal_ctoi(sub_str, &sub_str_end);
         if (sub_str == sub_str_end) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Port %d: Missing physical port information \"%s\"\n"),
                    logical_port, config_str));
@@ -3015,7 +3015,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
             continue;
         }
         if (phy_port < 2 || phy_port > 33) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Port %d: Invalid physical port number %d\n"),
                    logical_port, phy_port));
@@ -3024,7 +3024,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
         }
 
         if (p2l_mapping_custom[phy_port] != -1) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Port %d: Physical port %d is used by port %d\n"),
                    logical_port, phy_port, p2l_mapping_custom[phy_port]));
@@ -3036,7 +3036,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
         sub_str = sub_str_end;
         if (*sub_str != '\0') {
             if (*sub_str != ':') {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                               "Port %d: Bad config string \"%s\"\n"),
                        logical_port, config_str));
@@ -3049,7 +3049,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
         /* Parsing bandwidth */
         port_bandwidth = sal_ctoi(sub_str, &sub_str_end);
         if (sub_str == sub_str_end) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Port %d: Missing bandwidth information \"%s\"\n"),
                    logical_port, config_str));
@@ -3058,7 +3058,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
         }
         if (port_bandwidth != 1 && port_bandwidth != 10 &&
             port_bandwidth != 13 && port_bandwidth != 11) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Port %d: Invalid bandwidth %d Gb\n"),
                    logical_port, port_bandwidth));
@@ -3087,7 +3087,7 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
                     break;
                 }
     	    }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                         "Customized TSC port mapping[%d] = %d, %d\n"),
                         i, hu2_custom_tsc_portmap[i].phy_port_default,
@@ -3095,28 +3095,28 @@ soc_hu2_get_port_mapping(int unit, uint16 dev_id)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                     "P2L mapping: \n")));
     for (index = 0;index < CUSTOM_MAPPING_ARRAY_SIZE;index++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                     "%d "),
                     p2l_mapping[index]));
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                     "\n")));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                     "MAX SPEED: \n")));
     for (index = 0;index < CUSTOM_MAPPING_ARRAY_SIZE;index++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                     "%d "),
                     speed_max[index]));
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                     "\n")));
 
@@ -3414,17 +3414,17 @@ _soc_hu2_tdm_init(int unit, uint16 dev_id)
             }
         }
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "TDM table (size %d):\n"),
                             tdm_size));
     for (i = 0; i < tdm_size; i++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%d "),
                             arr[i]));
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "\n")));
 
@@ -4507,7 +4507,7 @@ soc_hurricane2_misc_init(int unit)
 
 
     if (soc_mspi_init(unit) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "unit %d : MSPI Init Failed\n"), unit)); 
     }
@@ -4593,7 +4593,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
     hu2_oam_handler[unit] = handler;
     rv = READ_IP1_INTR_ENABLEr(unit, &rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLEr)));
@@ -4605,7 +4605,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
     }
     rv = WRITE_IP1_INTR_ENABLEr(unit, rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error writing %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLEr)));
@@ -4840,7 +4840,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
  /* #define HU2_LPM_DEBUG*/
  #ifdef HU2_LPM_DEBUG      
  #define H_INDEX_MATCH(str, tab_index, match_index)      \
-         LOG_ERROR(BSL_LS_SOC_COMMON, \
+         LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                    (BSL_META_U(unit, \
                                "%s index: H %d A %d\n"),   \
                                str, (int)tab_index, match_index)
@@ -4898,7 +4898,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
                                   soc_hu2_lpm_hash_compare_key,
                                   key_hash, pfx, index);
      if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_SOC_COMMON,
+         LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                    (BSL_META_U(u,
                                "\ndel  index: H %d error %d\n"), index, rv));
      }
@@ -5292,7 +5292,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
          if ((i != MAX_PFX_INDEX) && (SOC_HU2_LPM_STATE_START(u, i) == -1)) {
              continue;
          }
-         LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(u,
                                  "PFX = %d P = %d N = %d START = %d END = %d VENT = %d FENT = %d\n"),
                       i,
@@ -5913,7 +5913,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
      if (rv == SOC_E_NONE) {
          /* Entry already present. Update the entry */
          soc_hu2_lpm_state_dump(u);
-         LOG_INFO(BSL_LS_SOC_SOCMEM,
+         LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(u,
                               "\nsoc_hu2_lpm_insert: %d %d\n"),
                               index, pfx));
@@ -5942,7 +5942,7 @@ void soc_hurricane2_oam_handler_register(int unit, soc_hurricane2_oam_handler_t 
      SOC_HU2_LPM_LOCK(u);
      rv = _soc_hu2_lpm_match(u, key_data, e, &index, &pfx);
      if (rv == SOC_E_NONE) {
-         LOG_INFO(BSL_LS_SOC_SOCMEM,
+         LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                   (BSL_META_U(u,
                               "\nsoc_hu2_lpm_delete: %d %d\n"),
                               index, pfx));

@@ -240,7 +240,7 @@ bcm_esmc_rx(
 
     /* Argument checking and error handling. */
     if (ESMC_PDU_SIZE_OCTETS > esmc_pdu_len) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "bcm_esmc_rx(): Insufficient message length (%d).\n"), esmc_pdu_len));
         return BCM_E_PARAM;
@@ -260,19 +260,19 @@ bcm_esmc_rx(
     }
 
     if (ESMC_ETHERTYPE_SLOW_PROTOCOL != ethertype) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "bcm_esmc_rx(): Incorrect Ethertype (0x%04x).\n"), ethertype));
         return BCM_E_PARAM;
     } else if (ESMC_SLOW_PROTOCOL_SUBTYPE_OSSP !=
                esmc_pdu[ESMC_PDU_SLOW_PROTOCOL_SUBTYPE_OFFSET]) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "bcm_esmc_rx(): Unexpected Slow Protocols subtype (0x%02x).\n"),
                      esmc_pdu[ESMC_PDU_SLOW_PROTOCOL_SUBTYPE_OFFSET]));
         return BCM_E_PARAM;
     } else if (sal_memcmp(esmc_pdu, slow_protocol_multicast_mac, sizeof(bcm_mac_t))) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "bcm_esmc_rx(): Incorrect destination MAC (%02x:%02x:%02x:%02x:%02x:%02x).\n"),
                      esmc_pdu[0], esmc_pdu[1], esmc_pdu[2], esmc_pdu[3], esmc_pdu[4], esmc_pdu[5]));

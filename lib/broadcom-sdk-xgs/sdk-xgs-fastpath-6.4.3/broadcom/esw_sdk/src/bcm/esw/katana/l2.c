@@ -262,7 +262,7 @@ _soc_mem_kt_fifo_dma_get_read_ptr(int unit, int chan, void **host_ptr, int *coun
     cfg_reg = _soc_kt_fifo_reg_get (unit, cmc, chan, RD_DMA_CFG_REG);
     data_beats = soc_reg_field_get(unit, cfg_reg, rval, BEAT_COUNTf);
     if (data_beats <= 0) {
-        LOG_ERROR(BSL_LS_BCM_L2,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                   (BSL_META_U(unit,
                               "Invalid BEAT_COUNT (%d) in "
                               "CMIC_CMC%d_FIFO_CH%d_RD_DMA_CFG \n"), data_beats, cmc, chan));

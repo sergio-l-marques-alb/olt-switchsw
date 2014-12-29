@@ -73,7 +73,7 @@ pd63000_read(int unit, int devno,
     ptr = data;
     for (i = 0; i < PD63000_CTN; i++, ptr++) {
         if ((rv = soc_i2c_read_byte(unit, saddr, ptr)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_pd63000_read: "
                                  "failed to read data byte %d.\n"),
@@ -104,7 +104,7 @@ pd63000_write(int unit, int devno,
     I2C_LOCK(unit);
 
     if ((rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr))) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_pd63000_write: "
                              "failed to generate start.\n"),
@@ -116,7 +116,7 @@ pd63000_write(int unit, int devno,
     ptr = data;
     for (i = 0; i < len; i++, ptr++) {
         if ((rv = soc_i2c_write_one_byte(unit, *ptr) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_pd63000_write: "
                                  "failed to send byte %d.\n"),
@@ -154,7 +154,7 @@ pd63000_init(int unit, int devno,
     soc_i2c_devdesc_set(unit, devno, "PD63000 PoE MCU");
 
     if ((rv = pd63000_read(unit, devno, 0, pkt, &l)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_pd63000_init: "
                              "failed to read init packet.\n"), unit));
@@ -163,7 +163,7 @@ pd63000_init(int unit, int devno,
 
     if ((rv = pd63000_write(unit, devno, 0, 
                             init_vector, PD63000_CTN)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_pd63000_init: "
                              "failed to send power init packet.\n"), unit));
@@ -178,7 +178,7 @@ pd63000_init(int unit, int devno,
     }
 
     if ((rv = pd63000_read(unit, devno, 0, pkt, &l)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_pd63000_init: "
                              "failed to read power init packet.\n"), unit));

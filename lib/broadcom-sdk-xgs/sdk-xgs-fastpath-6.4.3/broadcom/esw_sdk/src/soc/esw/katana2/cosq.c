@@ -640,7 +640,7 @@ soc_kt2_sched_weight_get(int unit, int level, int index, int *weight)
 
     *weight = soc_mem_field32_get(unit, mem_weight, &entry, C_WEIGHTf);
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "sched_weight_get L%d index=%d wt=%d\n"),
               level, index, *weight));

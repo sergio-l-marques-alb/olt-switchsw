@@ -441,7 +441,7 @@ tsce_show_serdes_info(phy_ctrl_t *pc, tsce_dev_info_t *pInfo, phymod_core_info_t
     pInfo->name[len] = 0;  /* string terminator */
 
     if (len > TSCE_LANE_NAME_LEN) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("TSCE info string length %d exceeds max length 0x%x: u=%d p=%d\n"),
                    len,TSCE_LANE_NAME_LEN, pc->unit, pc->port));
         return SOC_E_MEMORY;
@@ -1372,7 +1372,7 @@ phy_tsce_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (phy_tsce_ability_advert_set(unit, port, &ability));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_tsce_init: u=%d p=%d\n"), unit, port));
 
@@ -2484,7 +2484,7 @@ phy_tsce_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_tsce_ability_local_get:unit=%d p=%d sp=%08x\n"),
               unit, port, ability->speed_full_duplex));
@@ -6905,7 +6905,7 @@ phy_tsce_cleanup(soc_phymod_ctrl_t *pmc)
     for (idx = 0; idx < pmc->num_phys ; idx++) {
         phy = pmc->phy[idx];
         if (phy == NULL) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(pmc->unit,
                                  "phy object is empty")));
             continue;
@@ -7290,7 +7290,7 @@ _tsce_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "qsgmiie_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,
@@ -7380,7 +7380,7 @@ _tsce_notify_speed(int unit, soc_port_t port, uint32 speed)
     pCfg = (tsce_config_t *) pc->driver_data;
     fiber = pCfg->fiber_pref;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "_qsgmiie_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -7517,7 +7517,7 @@ phy_tsce_diag_ctrl(
 {
     switch(op_cmd) {
         case PHY_DIAG_CTRL_DSC:
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_temod_diag_ctrl: "
                                  "u=%d p=%d PHY_DIAG_CTRL_DSC 0x%x\n"),
@@ -7525,7 +7525,7 @@ phy_tsce_diag_ctrl(
 			SOC_IF_ERROR_RETURN(tsce_uc_status_dump(unit, port, arg));
             break;
         case PHY_DIAG_CTRL_PCS:
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_temod_diag_ctrl: "
                                  "u=%d p=%d PHY_DIAG_CTRL_PCS 0x%x\n"),

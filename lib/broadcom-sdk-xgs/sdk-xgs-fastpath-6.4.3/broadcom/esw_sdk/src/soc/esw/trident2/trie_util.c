@@ -86,22 +86,22 @@ int taps_show_prefix(uint32 max_key_size, uint32 *key, uint32 length)
 	return SOC_E_PARAM;
     }
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("prefix length %d key 0x"), length));
 
     key_words = (length+31)/32;
     max_words = (max_key_size+31)/32;
     for (word = 0; word < max_words; word++) {
 	if (word == (max_words-key_words)) {
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("%x"), key[word]));
 	} else if (word > (max_words-key_words)) {
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("%08x"), key[word]));
 	}
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("\n")));
 
     return SOC_E_NONE;
@@ -149,7 +149,7 @@ int taps_key_shift(uint32 max_key_size, uint32 *key, uint32 length, int32 shift)
     }
 
     if (_taps_util_debug) {
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Original key before shift:\n")));
 	taps_show_prefix(max_key_size, key, length);
     }
@@ -199,7 +199,7 @@ int taps_key_shift(uint32 max_key_size, uint32 *key, uint32 length, int32 shift)
     }
 
     if (_taps_util_debug) {
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Resulted key after shift:\n")));
 	taps_show_prefix(max_key_size, key, length-shift);
     }
@@ -254,11 +254,11 @@ int taps_key_match(uint32 max_key_size, uint32 *key1, uint32 length1,
     int index;
 
     if (_taps_util_debug) {
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("key1:\n")));
 	taps_show_prefix(max_key_size, key1, length1);
 
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("key2:\n")));
 	taps_show_prefix(max_key_size, key2, length2);
     }
@@ -276,7 +276,7 @@ int taps_key_match(uint32 max_key_size, uint32 *key1, uint32 length1,
 	rv = taps_key_shift(max_key_size, tmp_key2, length2, (length2-length1));
     }
     if (rv != SOC_E_NONE) {
-      LOG_VERBOSE(BSL_LS_SOC_COMMON,
+      LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                   (BSL_META("taps key shift failed 0x%x\n"),rv));
     }
 
@@ -284,7 +284,7 @@ int taps_key_match(uint32 max_key_size, uint32 *key1, uint32 length1,
 	if (tmp_key1[index] != tmp_key2[index]) {
 	    /* some bits not matching */
 	    if (_taps_util_debug) {
-		LOG_VERBOSE(BSL_LS_SOC_COMMON,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META("Key1 and key2 not matching:\n")));
 	    }
 	    return FALSE;
@@ -293,7 +293,7 @@ int taps_key_match(uint32 max_key_size, uint32 *key1, uint32 length1,
     
     /* all matched */
     if (_taps_util_debug) {
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Key1 and key2 matched:\n")));
     }
     return TRUE;

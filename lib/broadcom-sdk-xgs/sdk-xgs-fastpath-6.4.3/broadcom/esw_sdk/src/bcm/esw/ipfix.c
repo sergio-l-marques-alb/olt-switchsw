@@ -3052,11 +3052,11 @@ _bcm_ipfix_fifo_dma_thread(void *unit_vp)
         }
 
         if (sal_sem_take(SOC_CONTROL(unit)->ipfixIntr, interval) < 0) {
-            LOG_VERBOSE(BSL_LS_BCM_DMA,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_DMA,
                         (BSL_META_U(unit,
                                     "IPFIX polling timeout\n")));
         } else {
-            LOG_VERBOSE(BSL_LS_BCM_DMA,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_DMA,
                         (BSL_META_U(unit,
                                     "IPFIX woken up\n")));
         }
@@ -3262,7 +3262,7 @@ bcm_ipfix_export_fifo_control(int unit, sal_usecs_t interval)
                                                 _bcm_ipfix_fifo_dma_thread,
                                                 INT_TO_PTR(unit));
             if (ipfix_ctrl->pid == SAL_THREAD_ERROR) {
-                LOG_ERROR(BSL_LS_BCM_IPFIX,
+                LOG_BSL_ERROR(BSL_LS_BCM_IPFIX,
                           (BSL_META_U(unit,
                                       "Could not start thread\n")));
                 return BCM_E_MEMORY;
@@ -3301,7 +3301,7 @@ int _bcm_esw_ipfix_deinit(int unit)
     {
         if (soc_timeout_check(&timeout) != 0)
         {
-            LOG_ERROR(BSL_LS_BCM_IPFIX,
+            LOG_BSL_ERROR(BSL_LS_BCM_IPFIX,
                       (BSL_META_U(unit,
                                   "IPFIX thread did not exit.\n")));
 
@@ -3349,7 +3349,7 @@ void _bcm_ipfix_sw_dump(int unit)
     int rate_id_exists = 0;
 
     if (NULL == ipfix_ctrl) {
-        LOG_ERROR(BSL_LS_BCM_IPFIX,
+        LOG_BSL_ERROR(BSL_LS_BCM_IPFIX,
                   (BSL_META_U(unit,
                               "IPFIX module not initialized.\n")));
         return;

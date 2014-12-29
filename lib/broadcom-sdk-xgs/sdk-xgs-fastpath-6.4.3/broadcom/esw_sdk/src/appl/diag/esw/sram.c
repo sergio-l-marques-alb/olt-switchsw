@@ -219,18 +219,18 @@ cmd_sram(int unit, args_t *a)
         tr_sram_bist.d0f_1 = data[1];
         tr_sram_bist.d0r_0 = data[2];
         tr_sram_bist.d0r_1 = data[3];
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Program data register ES0_DTU_LTE_D0:\n")));
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "D0R_1 = 0x%x, D0R_0 = 0x%x, D0F_1 = 0x%x, D0F_0 = 0x%x\n"),
                   tr_sram_bist.d0r_1, tr_sram_bist.d0r_0,
                   tr_sram_bist.d0f_1, tr_sram_bist.d0f_1));
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Program address register CSE_DTU_LTE_ADR0:\n")));
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "DTU_LTE_ADR0 = 0x%x\n"), (addr0 & 0xfffff)));
         if (ds1 && (addr1 != -1)) {
@@ -245,18 +245,18 @@ cmd_sram(int unit, args_t *a)
             tr_sram_bist.d1f_1 = data[1];
             tr_sram_bist.d1r_0 = data[2];
             tr_sram_bist.d1r_1 = data[3];
-             LOG_INFO(BSL_LS_APPL_TESTS,
+             LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Program data register CSE_DTU_LTE_D1:\n")));
-             LOG_INFO(BSL_LS_APPL_TESTS,
+             LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "D1R_1 = 0x%x, D1R_0 = 0x%x, D1F_1 = 0x%x, D1F_0 = 0x%x\n"),
                        tr_sram_bist.d1r_1, tr_sram_bist.d1r_0,
                        tr_sram_bist.d1f_1, tr_sram_bist.d1f_0));
-             LOG_INFO(BSL_LS_APPL_TESTS,
+             LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Program address register CSE_DTU_LTE_ADR1:\n")));
-             LOG_INFO(BSL_LS_APPL_TESTS,
+             LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "DTU_LTE_ADR1 = 0x%x\n"), (addr1 & 0xfffff)));
         }
@@ -277,18 +277,18 @@ cmd_sram(int unit, args_t *a)
     }
 #endif /* BCM_TRIUMPH_SUPPORT */
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Start the test with...\n")));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "test_mode = %d, adr_mode = %d, latency7 = %d\n"),
               (test_mode & 3), (adr_mode & 3), late & 7));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "wdoebr = 0x%x, wdoebf = 0x%x wdmr = 0x%x\n"),
               wdoebr, wdoebf, wdmr));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "wdmf = 0x%x, rdmr = 0x%x rdmf = 0x%x\n"),
               wdmf, rdmr, rdmf));

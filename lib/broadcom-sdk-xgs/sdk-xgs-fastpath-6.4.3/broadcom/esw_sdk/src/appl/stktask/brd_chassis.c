@@ -174,7 +174,7 @@ bcm_board_chassis_get_ip(cpudb_ref_t new_db,
     max_slots = COUNTOF(chassis_ip_default_if0);
     slot = cpudb_base_ptr->slot_id;
     if ((slot < 0) || (slot >= max_slots )) {
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META("ATP-Socket ERROR: Invalid destination slot %d\n"),
                    slot));
         return BCM_E_FAIL;
@@ -195,7 +195,7 @@ bcm_board_chassis_atptrans_socket_update(cpudb_ref_t new_db, cpudb_ref_t old_db)
     bcm_ip_t         ip_addr;
 
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TKS ATP-Socket Update: new_db %p. old_db %p\n"),
                  new_db, old_db));
 
@@ -248,7 +248,7 @@ bcm_board_chassis_atptrans_socket_update(cpudb_ref_t new_db, cpudb_ref_t old_db)
             if (BCM_SUCCESS(rv)) {
                 atptrans_socket_install(new_cpu_ptr->base.key, ip_addr, 0x0);
             } else {
-                LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                           (BSL_META("Invalid IP address.  Cannot install ATP over "
                                     "Sockets for CPU key" CPUDB_KEY_FMT_EOLN),
                            CPUDB_KEY_DISP(new_cpu_ptr->base.key)));

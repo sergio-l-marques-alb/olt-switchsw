@@ -106,7 +106,7 @@ soc_dport_map_port(int unit, soc_port_t dport, soc_port_t port)
     /* Check for valid ports */
     if (dport < 0 || dport >= SOC_DPORT_MAX ||
         port < 0 || port >= SOC_PBMP_PORT_MAX) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_dport_map_port: Invalid port mapping %d -> %d\n"),
                   dport, port));

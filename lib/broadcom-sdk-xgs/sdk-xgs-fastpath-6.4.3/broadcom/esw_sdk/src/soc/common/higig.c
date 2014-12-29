@@ -383,7 +383,7 @@ soc_higig2_field_set(int unit, soc_higig2_hdr_t *hg2,
         break;
 
     default:
-	LOG_WARN(BSL_LS_SOC_COMMON,
+	LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "hg_set: unit %d: Unknown higig2 field=%d val=0x%x\n"),
                   unit, field, val));
@@ -600,7 +600,7 @@ soc_higig2_field_get(int unit, soc_higig2_hdr_t *hg2,
     case HG_new_dscp:
         return hg2->ppd_overlay4.data_container.offload_engine.new_dscp;
     default:
-	LOG_WARN(BSL_LS_SOC_COMMON,
+	LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "hg_get: unit %d: Unknown higig2 field=%d\n"),
                   unit, field));
@@ -898,7 +898,7 @@ soc_higig_field_set(int unit, soc_higig_hdr_t *hg,
                                                         = (val >> 0) & 0xFF;
                                 break;
     default:
-	LOG_WARN(BSL_LS_SOC_COMMON,
+	LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "hg_set: unit %d: Unknown higig field=%d val=0x%x\n"),
                   unit, field, val));
@@ -968,7 +968,7 @@ soc_higig_field_get(int unit, soc_higig_hdr_t *hg,
                                         (hg->hgp_overlay1.vc_label_15_8 << 8) |
                                         (hg->hgp_overlay1.vc_label_7_0)); 
     default:
-	LOG_WARN(BSL_LS_SOC_COMMON,
+	LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "hg_get: unit %d: Unknown higig field=%d\n"),
                   unit, field));

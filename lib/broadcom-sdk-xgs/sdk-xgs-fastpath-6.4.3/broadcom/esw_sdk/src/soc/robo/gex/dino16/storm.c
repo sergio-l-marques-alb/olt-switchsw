@@ -172,7 +172,7 @@ drv_dino16_storm_control_enable_set(int unit, uint32 port, uint8 enable)
     uint32  temp;
     uint32  reg_value;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_dino16_storm_control_enable_set: \
                          unit = %d, port = %d, %sable\n"), unit, port, (enable) ? "en" : "dis"));
@@ -224,7 +224,7 @@ drv_dino16_storm_control_enable_get(int unit, uint32 port, uint8 *enable)
 
     *enable = temp;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_dino16_storm_control_enable_get: \
                          unit = %d, port = %d, %sable\n"), unit, port, (*enable) ? "en" : "dis"));
@@ -258,7 +258,7 @@ drv_dino16_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     uint32  port;
     uint32  disable_type = 0, burst_kbyte;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_dino16_storm_control_set: \
                          unit = %d, bmp = 0x%x, type = 0x%x, limit = %dK\n"), 
@@ -438,7 +438,7 @@ drv_dino16_storm_control_get(int unit, uint32 port, uint32 *type,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_dino16_storm_control_get: \
                          unit = %d, port = %d, type = 0x%x, limit = %dK\n"), 

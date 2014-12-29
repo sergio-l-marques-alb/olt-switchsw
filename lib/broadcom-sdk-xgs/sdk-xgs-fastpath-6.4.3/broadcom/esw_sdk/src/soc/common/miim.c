@@ -85,7 +85,7 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
     /* Pause link scanning */
     rv = soc_linkctrl_linkscan_pause(unit);
     if (rv != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_linkctrl_linkscan_pause failed\n")));
         return rv;
@@ -112,14 +112,14 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
     real_bus_id = PHY_ID_BUS_NUM(phy_id);
 
     if (clause45){
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_dcmn_miim_operation cl45 %s: "
                          "(id=0x%02x readr=0x%x dtype=0x%x data=0x%04x clause45=%d, real_phy_id=%d, real_bus_id=%d)\n"),
               is_write ? "write" : "read ", phy_id, SOC_PHY_CLAUSE45_REGAD(phy_reg_addr), SOC_PHY_CLAUSE45_DEVAD(phy_reg_addr), *phy_data, clause45,
               real_phy_id,real_bus_id));
     } else {
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_dcmn_miim_operation cl22 %s: "
                          "(id=0x%02x addr=0x%02x data=0x%04x clause45=%d, real_phy_id=%d, real_bus_id=%d)\n"),
@@ -158,7 +158,7 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -179,7 +179,7 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
         }
         
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -190,13 +190,13 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
 
     if (rv == SOC_E_TIMEOUT) {
         if(is_write) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_dcmn_miim_operation write, "
                                   "timeout (id=0x%02x addr=0x%02x data=0x%04x)\n"),
                        phy_id, phy_reg_addr, *phy_data));
         } else /*read*/{
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_dcmn_miim_operation read, "
                                   "timeout (id=0x%02x addr=0x%02x)\n"),
@@ -208,7 +208,7 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
     /* read data */
     if(SOC_E_NONE == rv && !is_write) {
         *phy_data = (uint16)soc_pci_read(unit, SOC_REG_INFO(unit,CMIC_MIIM_READ_DATAr).offset);
-        LOG_VERBOSE(BSL_LS_SOC_MIIM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                      (BSL_META_U(unit,
                                  "soc_dcmn_miim_operation read data: %d \n"),*phy_data)); 
     }
@@ -218,7 +218,7 @@ soc_dcmn_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
 
     lsrv = soc_linkctrl_linkscan_continue(unit);
     if(SOC_E_NONE != lsrv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_linkctrl_linkscan_continue failed\n")));
         rv = lsrv;
@@ -249,7 +249,7 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
     /* Pause link scanning */
     rv = soc_linkctrl_linkscan_pause(unit);
     if (rv != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_linkctrl_linkscan_pause failed\n")));
         return rv;
@@ -276,14 +276,14 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
     real_bus_id = PHY_ID_BUS_NUM(phy_id);
 
     if (clause45){
-        LOG_DEBUG(BSL_LS_SOC_MIIM,
+        LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                  (BSL_META_U(unit,
                              "soc_dcmn_cmicm_miim_operation cl45 %s: "
                              "(id=0x%02x readr=0x%x dtype=0x%x data=0x%04x clause45=%d, real_phy_id=%d, real_bus_id=%d)\n"),
                   is_write ? "write" : "read ", phy_id, SOC_PHY_CLAUSE45_REGAD(phy_reg_addr), SOC_PHY_CLAUSE45_DEVAD(phy_reg_addr), *phy_data, clause45,
                   real_phy_id,real_bus_id));
     } else {
-        LOG_DEBUG(BSL_LS_SOC_MIIM,
+        LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                  (BSL_META_U(unit,
                              "soc_dcmn_cmicm_miim_operation cl22 %s: "
                              "(id=0x%02x addr=0x%02x data=0x%04x clause45=%d, real_phy_id=%d, real_bus_id=%d)\n"),
@@ -322,7 +322,7 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -343,7 +343,7 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
         }
         
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -357,13 +357,13 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
 
     if (rv == SOC_E_TIMEOUT) {
         if(is_write) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_dcmn_miim_operation write, "
                                   "timeout (id=0x%02x addr=0x%02x data=0x%04x)\n"),
                        phy_id, phy_reg_addr, *phy_data));
         } else /*read*/{
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_dcmn_miim_operation read, "
                                   "timeout (id=0x%02x addr=0x%02x)\n"),
@@ -375,7 +375,7 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
     /* read data */
     if(SOC_E_NONE == rv && !is_write) {
         *phy_data = (uint16)soc_pci_read(unit, CMIC_CMCx_MIIM_READ_DATA_OFFSET(cmc));
-        LOG_VERBOSE(BSL_LS_SOC_MIIM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                      (BSL_META_U(unit,
                                  "soc_dcmn_miim_operation read data: %d \n"),*phy_data)); 
 
@@ -386,7 +386,7 @@ soc_dcmn_cmicm_miim_operation(int unit, int is_write, int clause, uint32 phy_id,
 
     lsrv = soc_linkctrl_linkscan_continue(unit);
     if(SOC_E_NONE != lsrv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_linkctrl_linkscan_continue failed\n")));
         rv = lsrv;
@@ -562,7 +562,7 @@ soc_rcpu_miim_write(int unit, uint16 phy_id,
 
     assert(!sal_int_context());
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_rcpu_miim_write: id=0x%02x addr=0x%02x data=0x%04x\n"),
               phy_id, phy_reg_addr, phy_wr_data));
@@ -649,7 +649,7 @@ soc_rcpu_miim_write(int unit, uint16 phy_id,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -669,7 +669,7 @@ soc_rcpu_miim_write(int unit, uint16 phy_id,
         }
 
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -679,7 +679,7 @@ soc_rcpu_miim_write(int unit, uint16 phy_id,
         soc_pci_write(unit, CMIC_RPE_MIIM_CTRL_OFFSET, val);
     }
     if (rv == SOC_E_TIMEOUT) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "MiimTimeOut:soc_rcpu_miim_write, "
                               "timeout (id=0x%02x addr=0x%02x data=0x%04x)\n"),
@@ -730,7 +730,7 @@ soc_rcpu_miim_read(int unit, uint16 phy_id,
     assert(!sal_int_context());
     assert(phy_rd_data);
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_rcpu_miim_read: id=0x%02x addr=0x%02x  "),
               phy_id, phy_reg_addr));
@@ -812,7 +812,7 @@ soc_rcpu_miim_read(int unit, uint16 phy_id,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -832,7 +832,7 @@ soc_rcpu_miim_read(int unit, uint16 phy_id,
         }
 
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -843,7 +843,7 @@ soc_rcpu_miim_read(int unit, uint16 phy_id,
     }
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "MiimTimeOut:soc_rcpu_miim_read, "
                               "timeout (id=0x%02x addr=0x%02x)\n"),
@@ -852,7 +852,7 @@ soc_rcpu_miim_read(int unit, uint16 phy_id,
     } else {
         *phy_rd_data = (uint16)soc_pci_read(unit, CMIC_RPE_MIIM_READ_DATA_OFFSET);
 
-        LOG_VERBOSE(BSL_LS_SOC_MIIM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                  (BSL_META_U(unit,
                              "data=0x%04x\n"), *phy_rd_data));
     }
@@ -905,7 +905,7 @@ soc_rcpu_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
         return SOC_E_NONE;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_miimc45_write: id=0x%02x phy_devad=0x%02x "
                          "addr=0x%02x data=0x%04x\n"),
@@ -984,7 +984,7 @@ soc_rcpu_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -1004,7 +1004,7 @@ soc_rcpu_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
         }
 
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -1015,7 +1015,7 @@ soc_rcpu_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
     }
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "MiimTimeOut:soc_miimc45_write, "
                               "timeout (id=0x%02x addr=0x%02x data=0x%04x)\n"),
@@ -1065,7 +1065,7 @@ soc_rcpu_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
     assert(!sal_int_context());
     assert(phy_rd_data);
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_rcpu_miimc45_read: id=0x%02x "
                          "phy_devad=0x%02x addr=0x%02x\n"),
@@ -1144,7 +1144,7 @@ soc_rcpu_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
                              SOC_CONTROL(unit)->miimTimeout) != 0) {
                 rv = SOC_E_TIMEOUT;
             } else {
-                LOG_DEBUG(BSL_LS_SOC_MIIM,
+                LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                             (BSL_META_U(unit,
                                         "  Interrupt received\n")));
             }
@@ -1164,7 +1164,7 @@ soc_rcpu_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
             }
 
             if (rv == SOC_E_NONE) {
-                LOG_DEBUG(BSL_LS_SOC_MIIM,
+                LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                             (BSL_META_U(unit,
                                         "  Done in %d polls\n"), to.polls));
             }
@@ -1175,7 +1175,7 @@ soc_rcpu_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
         }
 
         if (rv == SOC_E_TIMEOUT) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_rcpu_miimc45_read, "
                                   "timeout (id=0x%02x addr=0x%02x)\n"),
@@ -1184,7 +1184,7 @@ soc_rcpu_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
         } else {
             *phy_rd_data = (uint16)soc_pci_read(unit, CMIC_RPE_MIIM_READ_DATA_OFFSET);
 
-            LOG_VERBOSE(BSL_LS_SOC_MIIM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                      (BSL_META_U(unit,
                                  "soc_rcpu_miimc45_read: read data=0x%04x\n"), *phy_rd_data));
         }
@@ -1507,7 +1507,7 @@ soc_miim_write(int unit, uint16 phy_id,
 
 #ifdef BCM_ROBO_SUPPORT
     if (SOC_IS_ROBO(unit)) {
-        LOG_VERBOSE(BSL_LS_SOC_MIIM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                  (BSL_META_U(unit,
                              "soc_miim_write: id=0x%02x, drive to ROBO miim_write.\n"),
                   phy_id));
@@ -1523,7 +1523,7 @@ soc_miim_write(int unit, uint16 phy_id,
 #if defined(BCM_ESW_SUPPORT) || defined (BCM_DFE_SUPPORT)
     assert(!sal_int_context());
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_miim_write: id=0x%02x addr=0x%02x data=0x%04x\n"),
               phy_id, phy_reg_addr, phy_wr_data));
@@ -1647,7 +1647,7 @@ soc_miim_write(int unit, uint16 phy_id,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -1686,7 +1686,7 @@ soc_miim_write(int unit, uint16 phy_id,
             }
         }
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -1703,7 +1703,7 @@ soc_miim_write(int unit, uint16 phy_id,
         }
     }
     if (rv == SOC_E_TIMEOUT) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "MiimTimeOut:soc_miim_write, "
                               "timeout (id=0x%02x addr=0x%02x data=0x%04x)\n"),
@@ -1760,7 +1760,7 @@ soc_miim_read(int unit, uint16 phy_id,
     assert(phy_rd_data);
 
 #ifdef BCM_ROBO_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_miim_read: id=0x%02x, drive to ROBO miim_read.\n"),
               phy_id));
@@ -1775,7 +1775,7 @@ soc_miim_read(int unit, uint16 phy_id,
     }
 #endif
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_DFE_SUPPORT)
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_miim_read: id=0x%02x addr=0x%02x  "),
               phy_id, phy_reg_addr));
@@ -1903,7 +1903,7 @@ soc_miim_read(int unit, uint16 phy_id,
                          SOC_CONTROL(unit)->miimTimeout) != 0) {
             rv = SOC_E_TIMEOUT;
         } else {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Interrupt received\n")));
         }
@@ -1943,7 +1943,7 @@ soc_miim_read(int unit, uint16 phy_id,
         }
 
         if (rv == SOC_E_NONE) {
-            LOG_DEBUG(BSL_LS_SOC_MIIM,
+            LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                         (BSL_META_U(unit,
                                     "  Done in %d polls\n"), to.polls));
         }
@@ -1961,7 +1961,7 @@ soc_miim_read(int unit, uint16 phy_id,
     }
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "MiimTimeOut:soc_miim_read, "
                               "timeout (id=0x%02x addr=0x%02x)\n"),
@@ -1977,7 +1977,7 @@ soc_miim_read(int unit, uint16 phy_id,
             *phy_rd_data = (uint16)soc_pci_read(unit, CMIC_MIIM_READ_DATA);
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_MIIM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                  (BSL_META_U(unit,
                              "data=0x%04x\n"), *phy_rd_data));
     }
@@ -2030,7 +2030,7 @@ soc_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
         return SOC_E_NONE;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_miimc45_write: id=0x%02x phy_devad=0x%02x "
                          "addr=0x%02x data=0x%04x\n"),
@@ -2199,7 +2199,7 @@ soc_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
                              SOC_CONTROL(unit)->miimTimeout) != 0) {
                 rv = SOC_E_TIMEOUT;
             } else {
-                LOG_DEBUG(BSL_LS_SOC_MIIM,
+                LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                             (BSL_META_U(unit,
                                         "  Interrupt received\n")));
             }
@@ -2239,7 +2239,7 @@ soc_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
             }
 
             if (rv == SOC_E_NONE) {
-                LOG_DEBUG(BSL_LS_SOC_MIIM,
+                LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                             (BSL_META_U(unit,
                                         "  Done in %d polls\n"), to.polls));
             }
@@ -2257,7 +2257,7 @@ soc_miimc45_write(int unit, uint16 phy_id, uint8 phy_devad,
         }
 
         if (rv == SOC_E_TIMEOUT) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_miimc45_write, "
                                   "timeout (id=0x%02x addr=0x%02x data=0x%04x)\n"),
@@ -2311,7 +2311,7 @@ soc_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
     assert(!sal_int_context());
     assert(phy_rd_data);
 
-    LOG_VERBOSE(BSL_LS_SOC_MIIM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
              (BSL_META_U(unit,
                          "soc_miimc45_read: id=0x%02x "
                          "phy_devad=0x%02x addr=0x%02x\n"),
@@ -2479,7 +2479,7 @@ soc_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
                              SOC_CONTROL(unit)->miimTimeout) != 0) {
                 rv = SOC_E_TIMEOUT;
             } else {
-                LOG_DEBUG(BSL_LS_SOC_MIIM,
+                LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                             (BSL_META_U(unit,
                                         "  Interrupt received\n")));
             }
@@ -2519,7 +2519,7 @@ soc_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
             }
 
             if (rv == SOC_E_NONE) {
-                LOG_DEBUG(BSL_LS_SOC_MIIM,
+                LOG_BSL_DEBUG(BSL_LS_SOC_MIIM,
                             (BSL_META_U(unit,
                                         "  Done in %d polls\n"), to.polls));
             }
@@ -2537,7 +2537,7 @@ soc_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
         }
 
         if (rv == SOC_E_TIMEOUT) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MiimTimeOut:soc_miimc45_read, "
                                   "timeout (id=0x%02x addr=0x%02x)\n"),
@@ -2553,7 +2553,7 @@ soc_miimc45_read(int unit, uint16 phy_id, uint8 phy_devad,
                 *phy_rd_data = (uint16)soc_pci_read(unit, CMIC_MIIM_READ_DATA);
             }
 
-            LOG_VERBOSE(BSL_LS_SOC_MIIM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_MIIM,
                      (BSL_META_U(unit,
                                  "soc_miimc45_read: read data=0x%04x\n"), *phy_rd_data));
         }

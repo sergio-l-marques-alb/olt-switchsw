@@ -107,7 +107,7 @@ bcmx_bcm_ls_cb(int unit, bcm_port_t port, bcm_port_info_t *info)
     bcmx_lport_t lport;
     lsx_handler_t *cb; /* List of handlers */
 
-    LOG_VERBOSE(BSL_LS_BCMX_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCMX_LINK,
                 (BSL_META_U(unit,
                             "BCMX LS callback, u %d. p %d\n"), unit, port));
 
@@ -172,7 +172,7 @@ bcmx_linkscan_register(bcmx_link_notify_f ln_cb)
 
     LSX_CHECK_INIT;
 
-    LOG_VERBOSE(BSL_LS_BCMX_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCMX_LINK,
                 (BSL_META("BCMX LS reg, %p\n"),
                  ln_cb));
 
@@ -223,7 +223,7 @@ bcmx_linkscan_unregister(bcmx_link_notify_f ln_cb)
 
     LSX_CHECK_INIT;
 
-    LOG_VERBOSE(BSL_LS_BCMX_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCMX_LINK,
                 (BSL_META("BCMX LS unreg, %p\n"),
                  ln_cb));
 
@@ -279,7 +279,7 @@ bcmx_linkscan_enable_set(int us)
 
     LSX_CHECK_INIT;
 
-    LOG_VERBOSE(BSL_LS_BCMX_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCMX_LINK,
                 (BSL_META("BCMX LS enable set, %d\n"),
                  us));
 
@@ -438,7 +438,7 @@ bcmx_linkscan_device_add(int bcm_unit)
     if (lsx_interval >= 0) { /* Has been initialized */
         rv = bcm_linkscan_enable_set(bcm_unit, lsx_interval);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META("WARN: BCMX LS dev add enable, %d: %s\n"),
                       rv, bcm_errmsg(rv)));
         }
@@ -448,7 +448,7 @@ bcmx_linkscan_device_add(int bcm_unit)
     rv = bcm_linkscan_register(bcm_unit, bcmx_bcm_ls_cb);
 
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("WARN: BCMX LS device add reg, %d: %s\n"),
                   rv, bcm_errmsg(rv)));
     }
@@ -480,20 +480,20 @@ bcmx_linkscan_dump(void)
     lsx_handler_t *ent;
 
     if (lsx_lock == NULL) {
-        LOG_INFO(BSL_LS_BCMX_COMMON,
+        LOG_BSL_INFO(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX linkscan not initialized\n")));
         return;
     }
 
-    LOG_INFO(BSL_LS_BCMX_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCMX_COMMON,
              (BSL_META("BCMX linkscan interval %d%s\n"),
               lsx_interval,
               lsx_interval < 0 ? " (un-init)" : ""));
 
-    LOG_INFO(BSL_LS_BCMX_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCMX_COMMON,
              (BSL_META("LSX handler list:  \n")));
     for (ent = lsx_handler; ent != NULL; ent = ent->lh_next) {
-        LOG_INFO(BSL_LS_BCMX_COMMON,
+        LOG_BSL_INFO(BSL_LS_BCMX_COMMON,
                  (BSL_META("    Fn %p.\n"),
                   ent->lh_f));
     }

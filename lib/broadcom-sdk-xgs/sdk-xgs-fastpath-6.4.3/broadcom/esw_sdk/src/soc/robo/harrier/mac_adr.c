@@ -80,7 +80,7 @@ drv_harrier_mac_set(int unit, soc_pbmp_t pbmp, uint32 mac_type, uint8* mac, uint
     int     customeap_en = 0;
 
     if (mac_type != DRV_MAC_SECURITY_CLEAR) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "drv_mac_set: unit %d, bmp = 0x%x 0x%x, type = %d,  \
                                 mac =%02x-%02x-%02x-%02x-%02x-%02x\n"),
@@ -89,7 +89,7 @@ drv_harrier_mac_set(int unit, soc_pbmp_t pbmp, uint32 mac_type, uint8* mac, uint
                      *(mac+3), *(mac+4), *(mac+5)));
         SAL_MAC_ADDR_TO_UINT64(mac, mac_field);
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "drv_mac_set: unit %d, bmp = %x %x, type = %d"),
                      unit, SOC_PBMP_WORD_GET(pbmp, 1), SOC_PBMP_WORD_GET(pbmp, 0), mac_type));
@@ -335,7 +335,7 @@ drv_harrier_mac_get(int unit, uint32 val, uint32 mac_type, soc_pbmp_t *bmp, uint
             SOC_PBMP_WORD_SET(*bmp, 0, fld_v32);
         }
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_mac_get: unit %d, port = %d, type = %d,  \
                             mac =%02x-%02x-%02x-%02x-%02x-%02x\n"),

@@ -179,7 +179,7 @@ phy_8703_init(int unit, soc_port_t port)
             (MODIFY_PHY8703_PMD_TX_CTRLr(unit, pc, 0x0100, 0x0100));
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "8703: u=%d port%d: init.\n"),
                          unit, port));
@@ -206,7 +206,7 @@ phy_8703_link_get(int unit, soc_port_t port, int *link)
     uint16      pma_mii_stat, pcs_mii_stat, pxs_mii_stat, link_stat;
     phy_ctrl_t *pc;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8703_link_get: u=%d port%d: link:%s\n"),
               unit, port, ""));
@@ -236,7 +236,7 @@ phy_8703_link_get(int unit, soc_port_t port, int *link)
 
     *link = (link_stat & MII_STAT_LA) ? TRUE : FALSE;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8703_link_get: u=%d port%d: link:%s\n"),
               unit, port, *link ? "Up": "Down"));
@@ -300,7 +300,7 @@ phy_8703_lb_set(int unit, soc_port_t port, int enable)
     uint16     tmp;
     phy_ctrl_t *pc; 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8703_lb_set: u=%d port%d: %s PCS/PMA/PMD loopback.\n"),
               unit, port, enable ? "Enabling": "Disabling"));
@@ -341,7 +341,7 @@ phy_8703_lb_get(int unit, soc_port_t port, int *enable)
 
     *enable = (tmp & MII_CTRL_PMA_LOOPBACK) ? TRUE : FALSE;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8703_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));

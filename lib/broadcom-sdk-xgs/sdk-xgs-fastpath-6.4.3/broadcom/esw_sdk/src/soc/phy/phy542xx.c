@@ -322,7 +322,7 @@ phy_bcm542xx_reg_read(int unit, phy_ctrl_t *pc,uint32 flags, uint16 reg_bank,
     } 
 
     if ( SOC_FAILURE(rv) ) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_bcm542xx_reg_read: failed:"
                              "phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -423,7 +423,7 @@ phy_bcm542xx_reg_write(int unit, phy_ctrl_t *pc,uint32 flags, uint16 reg_bank,
     } 
 
     if ( SOC_FAILURE(rv) ) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_bcm542xx_reg_write: failed:"
                              "phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -533,7 +533,7 @@ phy_bcm542xx_reg_modify(int unit, phy_ctrl_t *pc,uint32 flags, uint16 reg_bank,
     }
 
     if ( SOC_FAILURE(rv) ) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_bcm542xx_reg_modify: failed:"
                              "phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -1236,7 +1236,7 @@ _phy_bcm542xx_medium_check(int unit, soc_port_t port, int *medium)
                   SOC_PORT_MEDIUM_COPPER; 
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit, "_phy_bcm542xx_medium_check: "
                             "u=%d p=%d fiber_pref=%d fiber=%d\n"),
                  unit, port, pc->fiber.preferred,
@@ -1476,7 +1476,7 @@ _phy_bcm542xx_no_reset_setup(int unit, soc_port_t port)
     phy_ctrl_t    *pc;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "%s: u=%d p=%d medium=%s\n"),
               __func__, unit, port,
               PHY_COPPER_MODE(unit, port) ? "COPPER" : "FIBER"));
@@ -2144,7 +2144,7 @@ phy_bcm542xx_reset_setup(int unit, soc_port_t port,
                                       SOC_PHY_CONTROL_PORT_OFFSET, 
                                       index ));
     } else {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_bcm542xx_reset_setup: Config property "
                              "'phy_port_primary_and_offset' "
@@ -2361,7 +2361,7 @@ phy_bcm542xx_init(int unit, soc_port_t port)
     int        fiber_preferred;
     PHY_BCM542XX_DEV_DESC_t *pDesc;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xxx_init: u=%d p=%d\n"),
                          unit, port));
 
@@ -2406,7 +2406,7 @@ phy_bcm542xx_init(int unit, soc_port_t port)
         pc->automedium   = soc_property_port_get(unit, port, spn_PHY_AUTOMEDIUM, 0);
         pc->fiber_detect = soc_property_port_get(unit, port, spn_PHY_FIBER_DETECT, -4);
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_542xx_init: u=%d p=%d type=bcm542xx%s "
                          "automedium=%d fiber_pref=%d detect=%d\n"),
@@ -2607,7 +2607,7 @@ phy_bcm542xx_enable_set(int unit, soc_port_t port, int enable)
             SOC_IF_ERROR_RETURN
                 (PHY_ENABLE_SET(int_pc->pd, unit, port, enable));
         }
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit, "phy_bcm542xx_enable_set: "
                                    "Power %s fiber medium, u=%d p=%d\n"),
                   (enable) ? "up" : "down", unit, port));
@@ -2679,7 +2679,7 @@ _phy_bcm542xx_medium_change(int unit, soc_port_t port, int force_update,
                 SOC_IF_ERROR_RETURN
                     (_phy_bcm542xx_medium_config_update(unit, port, &pc->copper));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit, "_phy_bcm542xx_link_auto_detect: "
                                        "u=%d p=%d [F->C]\n"),
                       unit, port));
@@ -2698,7 +2698,7 @@ _phy_bcm542xx_medium_change(int unit, soc_port_t port, int force_update,
                 SOC_IF_ERROR_RETURN
                     (_phy_bcm542xx_medium_config_update(unit, port, &pc->fiber));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit, "_phy_bcm542xx_link_auto_detect: "
                                        "u=%d p=%d [C->F]\n"),
                       unit, port));
@@ -2803,7 +2803,7 @@ phy_bcm542xx_link_get(int unit, soc_port_t port, int *link)
         }
     } /* if ( automedium ) */
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit, "phy_bcm542xx_link_get: "
                                   "u=%d p=%d mode=%s%s link=%d\n"),
                  unit, port,
@@ -2879,7 +2879,7 @@ phy_bcm542xx_duplex_set(int unit, soc_port_t port, int duplex)
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_duplex_set: u=%d p=%d d=%d\n"),
               unit, port, duplex));
     return ( SOC_E_NONE );
@@ -3082,7 +3082,7 @@ phy_bcm542xx_speed_set(int unit, soc_port_t port, int speed)
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_bcm542xx_speed_set: u=%d p=%d s=%d fiber=%d\n"),
               unit, port, speed, PHY_FIBER_MODE(unit, port)));
@@ -3182,7 +3182,7 @@ phy_bcm542xx_speed_get(int unit, soc_port_t port, int *speed)
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_speed_get: u=%d p=%d sp=%d\n"),
               unit, port, *speed));
     return ( SOC_E_NONE );
@@ -3236,7 +3236,7 @@ phy_bcm542xx_master_set(int unit, soc_port_t port, int master)
         pc->copper.master = master;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_master_set: "
                                "u=%d p=%d master=%d fiber=%d\n"),
               unit, port, master, PHY_FIBER_MODE(unit, port)));
@@ -3362,7 +3362,7 @@ phy_bcm542xx_autoneg_set(int unit, soc_port_t port, int autoneg)
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_bcm542xx_autoneg_set: u=%d p=%d autoneg=%d\n"),
               unit, port, autoneg));
@@ -3546,7 +3546,7 @@ phy_bcm542xx_ability_advert_set(int unit, soc_port_t port,
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_adv_local_set: u=%d p=%d "
                                "ability_hd_speed=0x%x, ability_fd_speed=0x%x, "
                                "ability_pause=0x%x\n"),
@@ -3664,7 +3664,7 @@ phy_bcm542xx_ability_advert_get(int unit, soc_port_t port, soc_port_ability_t *a
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_adv_local_get: u=%d p=%d "
                                "ability_hd_speed=0x%x, ability_fd_speed=0x%x, "
                                "ability_pause=0x%x\n"),
@@ -3829,7 +3829,7 @@ phy_bcm542xx_ability_remote_get(int unit, soc_port_t port,
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_adv_remote_get: u=%d p=%d "
                                "ability_hd_speed=0x%x ability_fd_speed=0x%x "
                                "ability_pause=0x%x\n"),
@@ -3903,7 +3903,7 @@ phy_bcm542xx_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *ab
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_ability_local_get: u=%d p=%d "
                                "ability_hd_speed=0x%x, ability_fd_speed=0x%x, "
                                "ability_pause=0x%x\n"),
@@ -3984,7 +3984,7 @@ phy_bcm542xx_lb_set(int unit, soc_port_t port, int enable)
                 }
             }
             if ( ! link ) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "phy_bcm542xx_lb_set: u=%d p=%d TIMEOUT\n"),
                           unit, port));
@@ -3997,7 +3997,7 @@ phy_bcm542xx_lb_set(int unit, soc_port_t port, int enable)
         return SOC_E_INTERNAL;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "phy_bcm542xx_lb_set: u=%d p=%d en=%d rv=%d\n"), 
               unit, port, enable, rv));
     return rv; 
@@ -7983,7 +7983,7 @@ phy_bcm542xx_rdb_reg_set(int unit, soc_port_t port, int rdb, int value){
     phy_bcm542xx_direct_reg_write(unit, pc,(uint16)rdb, (uint16)(value & 0xffff));
     phy_bcm542xx_direct_reg_read(unit, pc,(uint16)rdb, &valuer);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit, "u=%d p=%d rdb=0x%04x value read back=0x%04x\n"),
               unit, port, (uint16) rdb, valuer));
     return SOC_E_NONE;
@@ -7998,7 +7998,7 @@ phy_bcm542xx_rdb_reg_get(int unit, soc_port_t port, int rdb) {
 
     phy_bcm542xx_direct_reg_read(unit, pc,(uint16)rdb, &value);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,"u=%d p=%d rdb=0x%04x value=0x%04x\n"),
               unit, port, (uint16)rdb, value));
     return SOC_E_NONE;

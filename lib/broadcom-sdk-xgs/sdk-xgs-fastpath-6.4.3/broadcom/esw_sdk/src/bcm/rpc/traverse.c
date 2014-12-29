@@ -421,7 +421,7 @@ _bcm_rlink_traverse_server_message(int unit, _rlink_travc_t *client,
 
     remunit = BCM_CONTROL(unit)->unit;
     cpu = *(cpudb_key_t *)BCM_CONTROL(unit)->drv_control;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "TRAVERSE server_message %d\n"), ty));
     (void)bcm_rlink_encode(req->tx_buf, RLINK_MSG_TRAVERSE, ty, remunit);
@@ -435,7 +435,7 @@ _bcm_rlink_traverse_server_message(int unit, _rlink_travc_t *client,
     rv = atp_tx(cpu, RLINK_CLIENT_ID, tx_buf, tx_len, 0, NULL, NULL);
     atp_tx_data_free(tx_buf);
     if (BCM_SUCCESS(rv)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE server_message sleeping %d\n"),
                      rlink_traverse_client_timeout));
@@ -444,7 +444,7 @@ _bcm_rlink_traverse_server_message(int unit, _rlink_travc_t *client,
         } else {
             /* error if no response received */
             if (req->rx_buf == NULL) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "TRAVERSE server_message not received\n")));
                 rv = BCM_E_TIMEOUT;
@@ -528,7 +528,7 @@ bcm_rlink_traverse_request_start(int unit,
     int i;
     _rlink_travc_t *trav = NULL;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "TRAVERSE request_start\n")));
 
@@ -562,7 +562,7 @@ bcm_rlink_traverse_request_start(int unit,
         rv = BCM_E_MEMORY;
         goto error;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "TRAVERSE request id:%x:%x\n"),
                  req->c_id, req->s_id));
@@ -648,7 +648,7 @@ bcm_rlink_traverse_reply_get(int unit, bcm_rlink_traverse_data_t *req)
     _rlink_travc_t *parent = (_rlink_travc_t *)req->parent;
     int rv;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "TRAVERSE reply_get\n")));
     ASSERT_TRAVC(parent);
@@ -723,7 +723,7 @@ bcm_rlink_traverse_request_done(int unit, int trav_rv,
     _rlink_travc_t *parent = (_rlink_travc_t *)req->parent;
     int rv;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "TRAVERSE request_done\n")));
     ASSERT_TRAVC(parent);
@@ -810,7 +810,7 @@ _bcm_rlink_traverse_client_message(_rlink_travs_t *server, rlink_type_t ty)
     assert(req != NULL);
     (void)bcm_rlink_encode(req->tx_buf, RLINK_MSG_TRAVERSE, ty, req->unit);
     req->tx_len = req->tx_ptr - req->tx_buf;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE client_message waking travs\n")));
 #if 0
     if (ty == RLINK_TYPE_MORE) {
@@ -826,7 +826,7 @@ _bcm_rlink_traverse_client_message(_rlink_travs_t *server, rlink_type_t ty)
     if (ty == RLINK_TYPE_MORE) {
         int s_rv;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE client_message sleeping travt\n")));
         s_rv = RLINK_TRAVT_SLEEP;
         /* If a message was received, then the data pointer has been
@@ -857,7 +857,7 @@ bcm_rlink_traverse_reply_check(bcm_rlink_traverse_data_t *data, int size)
     _rlink_travs_t *parent;
     int rv = BCM_E_NONE;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE reply_check%s\n"),
                  data ? "" : " - no data"));
 
@@ -905,7 +905,7 @@ bcm_rlink_traverse_reply_done(bcm_rlink_traverse_data_t *data, int rv)
 {
     _rlink_travs_t *parent;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE reply_done%s\n"),
                  data ? "" : " - no data"));
     if (data) {
@@ -945,7 +945,7 @@ bcm_rlink_traverse_device_clear(int unit)
     RLINK_TRAVS_UNLOCK;
 
     if (BCM_SUCCESS(rv)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE server_clear waking travt\n")));
         RLINK_TRAVT_WAKE;
@@ -990,7 +990,7 @@ _bcm_rlink_travs_thread(void *cookie)
 
 	/* execute traverse */
 	if (cur) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("TRAVERSE begin\n")));
 	    cur->handler(&cur->reply);
             RLINK_TRAVS_LOCK;
@@ -998,13 +998,13 @@ _bcm_rlink_travs_thread(void *cookie)
                 _rlink_travs_req_current = NULL;
             }
             RLINK_TRAVS_UNLOCK;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("TRAVERSE end\n")));
             cur->magic = ~cur->magic;
             sal_free(cur);
             cur = NULL;
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("TRAVERSE travs_thread sleeping\n")));
             RLINK_TRAVT_SLEEP;
         }
@@ -1019,15 +1019,15 @@ _bcm_rlink_travs_thread_signal(void)
 {
     int rv;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE signal waking travt\n")));
     RLINK_TRAVT_WAKE;
 
     /* wait for traverse server to signal back */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE signal sleeping travs\n")));
     rv = RLINK_TRAVS_SLEEP;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE signal woken up travs\n")));
 
     return rv < 0 ? BCM_E_TIMEOUT : BCM_E_NONE;
@@ -1048,7 +1048,7 @@ _bcm_rlink_set_current_len(int len)
     if (len > _rlink_trav_info[_rlink_trav_info_offset].len) {
         /* .len may not be entirely accurate, but should be at least an
            overestimate */
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("TRAVERSE set_current_len len=%d actual=%d\n"),
                   _rlink_trav_info[_rlink_trav_info_offset].len, len));
     }
@@ -1109,7 +1109,7 @@ bcm_rlink_traverse_server_clear(void)
     }
     RLINK_TRAVS_UNLOCK;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE server_clear\n")));
     return BCM_E_NONE;
 }
@@ -1121,7 +1121,7 @@ _bcm_rlink_trav_done(bcm_rlink_traverse_data_t *data)
     (void)bcm_rlink_encode(data->tx_buf,
                            RLINK_MSG_TRAVERSE,
                            RLINK_TYPE_DONE, data->unit);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE sync traverse done\n")));
     /* mark done */
     _rlink_trav_info_offset = 0;
@@ -1147,7 +1147,7 @@ _bcm_rlink_trav_send_reply(bcm_rlink_traverse_data_t *data)
     BCM_PACK_U32(parent->msgp, 0);
     BCM_PACK_U32(parent->msgp, _rlink_trav_info[_rlink_trav_info_offset].num);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE sync traverse send reply %d/%d\n"),
                  _rlink_trav_info_offset,_rlink_trav_info_length));
     _rlink_trav_info_offset++;
@@ -1164,7 +1164,7 @@ _bcm_rlink_traverse_run(_rlink_travs_t *trav)
     bcm_rlink_traverse_data_t reply;
     bcm_rlink_traverse_data_t *replyp = &reply;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE traverse run sync begin\n")));
     assert(_rlink_trav_info);
     assert(_rlink_trav_buffer);
@@ -1191,7 +1191,7 @@ _bcm_rlink_traverse_run(_rlink_travs_t *trav)
     _rlink_trav_info_length = _rlink_trav_info_offset+1;
     _rlink_trav_info_offset = 0;
     _bcm_rlink_trav_send_reply(trav->reply);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("TRAVERSE traverse run sync end\n")));
 
     return BCM_E_NONE;
@@ -1271,7 +1271,7 @@ bcm_rlink_traverse_request(rlink_type_t type,
             atp_rx_free(rx_buf, rx_pkt);
             if (BCM_SUCCESS(rv)) {
                 assert(actual > 0);
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META("TRAVERSE traverse_request %d\n"),
                              actual));
                 rv = atp_tx(cpu, RLINK_CLIENT_ID, tx_buf, actual, 0,
@@ -1280,7 +1280,7 @@ bcm_rlink_traverse_request(rlink_type_t type,
             atp_tx_data_free(tx_buf);
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("TRAVERSE traverse_request could not alloc tx\n")));
         atp_rx_free(rx_buf, rx_pkt);
         rv = BCM_E_MEMORY;
@@ -1373,18 +1373,18 @@ _bcm_rlink_trav_msg_start(bcm_rlink_traverse_data_t *data)
         /* If stale transaction timeouts are enabled, check to see if
            trav is stale. If not, return BUSY, otherwise clear it out. */
         duration = SAL_USECS_SUB(sal_time_usecs(), trav->atime);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_start: cur:%d\n"),
                      duration));
         if (rlink_traverse_transaction_timeout <= 0 ||
             (rlink_traverse_transaction_timeout > 0 &&
              duration > 0 && duration < rlink_traverse_transaction_timeout)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("TRAVERSE msg_start: busy\n")));
             _bcm_rlink_trav_prep_error(data, BCM_E_BUSY);
             return BCM_E_NONE;
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META("TRAVERSE msg_start: old transaction\n")));
             /* For old transactions, just recycle the old server record.
                Buffered server doesn't need to do anything. */
@@ -1453,7 +1453,7 @@ _bcm_rlink_travs_get(bcm_rlink_traverse_data_t *data, _rlink_travs_t **tp)
         _bcm_rlink_trav_msg_prep_reply(data);
         *tp = trav;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("TRAVERSE could not find id %x:%x\n"),
                    data->c_id, data->s_id));
         _bcm_rlink_trav_prep_error(data, BCM_E_NOT_FOUND);
@@ -1483,7 +1483,7 @@ _bcm_rlink_trav_msg_next(bcm_rlink_traverse_data_t *data)
 
     rv = _bcm_rlink_travs_get(data, &trav);
     if (BCM_SUCCESS(rv)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_next waking travt id=%x:%x\n"),
                      data->c_id, data->s_id));
 #if RLINK_TRAV_THREADED_SERVER
@@ -1492,7 +1492,7 @@ _bcm_rlink_trav_msg_next(bcm_rlink_traverse_data_t *data)
         _bcm_rlink_trav_send_reply(data);
 #endif /* RLINK_TRAV_THREADED_SERVER */
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_next id %x:%x not found\n"),
                      data->c_id, data->s_id));
     }
@@ -1533,7 +1533,7 @@ _bcm_rlink_trav_msg_quit(bcm_rlink_traverse_data_t *data)
         _bcm_rlink_trav_done(data);
 #endif /* RLINK_TRAV_THREADED_SERVER */
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_quit id %x:%x not found\n"),
                      data->c_id, data->s_id));
     }
@@ -1564,7 +1564,7 @@ _bcm_rlink_travc_get(bcm_rlink_traverse_data_t *data, _rlink_travc_t **tp)
         trav->data->parent = (void *)trav;
         *tp = trav;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("TRAVERSE could not find c_id %x\n"),
                    data->c_id));
     }
@@ -1595,7 +1595,7 @@ _bcm_rlink_trav_msg_error(bcm_rlink_traverse_data_t *data)
 
         BCM_UNPACK_U32(trav->data->rx_ptr, trav->rrv);
         trav->state = client_done;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_err (%d) waking\n"),
                      trav->rrv));
         RLINK_TRAVC_WAKE(trav);
@@ -1629,7 +1629,7 @@ _bcm_rlink_trav_msg_more(bcm_rlink_traverse_data_t *data)
         BCM_UNPACK_U32(trav->data->rx_ptr, trav->rrv);
         BCM_UNPACK_U32(trav->data->rx_ptr, trav->num);
     
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_more (%d) waking\n"),
                      trav->rrv));
         /* Prepare next TX message */
@@ -1668,7 +1668,7 @@ _bcm_rlink_trav_msg_done(bcm_rlink_traverse_data_t *data)
 
         BCM_UNPACK_U32(trav->data->rx_ptr, trav->rrv);
         BCM_UNPACK_U32(trav->data->rx_ptr, trav->num);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("TRAVERSE msg_done (%d) waking\n"),
                      trav->rrv));
         trav->state = trav->num > 0 ? client_run : client_done;
@@ -1710,49 +1710,49 @@ bcm_rlink_traverse_message(bcm_pkt_t *rx_pkt,
     BCM_UNPACK_U32(data.rx_ptr, data.s_id);
     switch (type) {
     case RLINK_TYPE_START:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE START %d (%x:%x)\n"),
                      unit, data.c_id, data.s_id));
         rv = _bcm_rlink_trav_msg_start(&data);
         break;
     case RLINK_TYPE_NEXT:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE NEXT %d (%x:%x)\n"),
                      unit, data.c_id, data.s_id));
         rv = _bcm_rlink_trav_msg_next(&data);
         break;
     case RLINK_TYPE_QUIT:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE QUIT %d (%x:%x)\n"),
                      unit, data.c_id, data.s_id));
         rv = _bcm_rlink_trav_msg_quit(&data);
         break;
     case RLINK_TYPE_ERROR:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE ERROR %d (%x:%x)\n"),
                      unit, data.c_id, data.s_id));
         rv = _bcm_rlink_trav_msg_error(&data);
         break;
     case RLINK_TYPE_MORE:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE MORE %d (%x:%x)\n"),
                      unit, data.c_id, data.s_id));
         rv = _bcm_rlink_trav_msg_more(&data);
         break;
     case RLINK_TYPE_DONE:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE DONE %d (%x:%x)\n"),
                      unit, data.c_id, data.s_id));
         rv = _bcm_rlink_trav_msg_done(&data);
         break;
     default:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TRAVERSE %d? %d\n"), type, unit));
         rv = BCM_E_NOT_FOUND;

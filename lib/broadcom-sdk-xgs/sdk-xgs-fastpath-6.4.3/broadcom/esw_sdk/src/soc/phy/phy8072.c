@@ -257,12 +257,12 @@ _8073_A0_xaui_check(int unit, int port)
     }
 
     start = sal_time_usecs();
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "xaui w/a in progress \n")));
     for (count = 0; count < 12; count++) {
         soc_timeout_init(&to, 5000000, 0);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              ".")));
         do {
@@ -277,7 +277,7 @@ _8073_A0_xaui_check(int unit, int port)
                     (READ_PHY8072_PMA_PMD_REG(unit, pc, 0xC841, &data16));
                 if (data16 & (1<<15)) {
                     end = sal_time_usecs();
-                    LOG_INFO(BSL_LS_SOC_PHY,
+                    LOG_BSL_INFO(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "\nxaui w/a completed successfully u=%d,p=%d"
                                          " time taken = %d\n"), unit, port,
@@ -288,7 +288,7 @@ _8073_A0_xaui_check(int unit, int port)
         } while (!soc_timeout_check(&to));
     }
 
-    LOG_WARN(BSL_LS_SOC_PHY,
+    LOG_BSL_WARN(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "\nWarning! : u=%d, p=%d:"
                          "8073A0 XAUI Work Around may not have completed\n"), unit, port));
@@ -377,7 +377,7 @@ phy_8072_init(int unit, soc_port_t port)
                      unit, port,data16));
 
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "ROM_CODE read : u=%d p=%d 0x%x Expected 0xBCB0\n"),
                       unit, port, data16));
@@ -442,7 +442,7 @@ phy_8072_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (phy_8072_ability_advert_set(unit, port, &ability));
                                                                                 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "8072: u=%d port%d: init.\n"), unit, port));
 
@@ -671,7 +671,7 @@ phy_8072_lb_get(int unit, soc_port_t port, int *enable)
     *enable = ((tmp & (0xf << 8)) == (6 << 8));
 #endif /* PHY_8072_XAUI_LOOPBACK */
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));
@@ -725,7 +725,7 @@ phy_8072_linkup_evt(int unit, soc_port_t port)
         SOC_IF_ERROR_RETURN
             (soc_phyctrl_notify(unit, port, phyEventSpeed, 10000));
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_linkup_evt: u=%d p=%d\n"),
               unit, port));
@@ -990,7 +990,7 @@ phy_8072_speed_set(int unit, soc_port_t port, int speed)
     phy_ctrl_t  *int_pc;
     int rv = SOC_E_NONE;
                                                                                 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_speed_set: u=%d p=%d speed=%d\n"),
                          unit, port,speed));
@@ -1156,7 +1156,7 @@ phy_8072_speed_get(int unit, soc_port_t port, int *speed)
         }
     }
                                                                        
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_speed_get: u=%d p=%d speed=%d\n"),
               unit, port, *speed));
@@ -1217,7 +1217,7 @@ phy_8072_an_set(int unit, soc_port_t port, int an)
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -1334,7 +1334,7 @@ phy_8072_ability_advert_get(int unit, soc_port_t port,
             break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_advert_get: u=%d p=%d speed=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -1419,7 +1419,7 @@ phy_8072_ability_advert_set(int unit, soc_port_t port,
         (MODIFY_PHY8072_AN_REG(unit, pc, 0xFFE4, an_adv_cl37,
                             MII_ANA_C37_ASYM_PAUSE | MII_ANA_C37_PAUSE));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_advert_set: u=%d p=%d pause=0x%08x adv_reg1=0x%04x\n"),
               unit, port, ability->pause, an_adv));
@@ -1446,7 +1446,7 @@ phy_8072_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
 
     pc = EXT_PHY_SW_STATE(unit, port);
                                                                                       
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_local_get: u=%d p=%d\n"),
               unit, port));
@@ -1474,7 +1474,7 @@ phy_8072_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
     ability->loopback  = SOC_PA_LB_PHY;
     ability->flags     = SOC_PA_AUTONEG;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_local_get: u=%d p=%d speed=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex,ability->pause));
@@ -1505,7 +1505,7 @@ phy_8072_ability_remote_get(int unit, soc_port_t port, soc_port_ability_t *abili
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_remote_get: u=%d p=%d\n"),
               unit, port));
@@ -1574,7 +1574,7 @@ phy_8072_ability_remote_get(int unit, soc_port_t port, soc_port_ability_t *abili
         (READ_PHY8072_AN_REG(unit, pc, AN_STATUS_REG, &lp_abil));
     ability->flags     = (lp_abil & AN_LP_AN_ABILITY) ? SOC_PA_AUTONEG : 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_ability_remote_get: u=%d p=%d speed=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -1619,7 +1619,7 @@ phy_8072_rom_wait(int unit, int port)
         }
     } while (!soc_timeout_check(&to));
     if (!(rd_data & 0x0100)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy 8072 : u = %d p = %d timeout 1\n"),
                               unit, port));
@@ -1715,7 +1715,7 @@ phy_8072_rom_wait(int unit, int port)
             }
         } while (!soc_timeout_check(&to));
         if (!(rd_data & 0x0100)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "phy 8072 : u = %d p = %d timeout 2\n"),
                                   unit, port));
@@ -1962,7 +1962,7 @@ phy_8072_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
     /* set SPI-ROM write enable */ 
     SOC_IF_ERROR_RETURN(phy_8072_rom_write_enable_set(unit, port, 1));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "init0: u=%d p=%d\n"),
                          unit, port));
@@ -2014,7 +2014,7 @@ phy_8072_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
         wr_data = (((j & 0x00FF) * 0x0100) | ((j & 0xFF00) / 0x0100));
         SOC_IF_ERROR_RETURN(write_message(unit, pc, wr_data, &rd_data));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "loop: u=%d p=%d,inxj: %d,inxi:%d\n"),
                              unit, port,j,i));
@@ -2127,7 +2127,7 @@ phy_8072_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
             (MODIFY_PHY8072_PMA_PMD_REG(unit, pc, 0xc840, 0x000c, 0x000c));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8072_rom_program: u=%d p=%d done\n"), unit, port));
 
@@ -2154,7 +2154,7 @@ write_message(int unit, phy_ctrl_t *pc, uint16 wrdata, uint16 *rddata)
             break;
     } while (!soc_timeout_check(&to));
     if (!(tmp_data & 0x4)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "write_message failed: wrdata %04x\n"), wrdata));
         return SOC_E_FAIL;

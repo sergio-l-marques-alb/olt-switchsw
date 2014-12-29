@@ -268,7 +268,7 @@ drv_blackbird2_port_cross_connect_set(int unit,uint32 port,soc_pbmp_t bmp)
     uint32 temp = 0;
     uint32  field_val = 0;
     
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_blackbird2_port_cross_connect_set: unit=%d port = %d, bmp=%x\n"),
               unit, port, SOC_PBMP_WORD_GET(bmp, 0)));
@@ -319,7 +319,7 @@ drv_blackbird2_port_cross_connect_get(int unit,uint32 port,soc_pbmp_t *bmp)
     uint32 reg_value = 0;
     uint32 temp = 0;
     
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_blackbird2_port_cross_connect_get: unit=%d port = %d\n"),
               unit, port));

@@ -2225,7 +2225,7 @@ typedef enum _field_counters_multi_pipe_memacc_type_e {
                 if((_ptr_) != NULL) {                        \
                     sal_memset((_ptr_), 0, (_size_));        \
                 }  else {                                    \
-                    LOG_ERROR(BSL_LS_BCM_FP, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                               (BSL_META("FP Error: Allocation failure %s\n"), (_descr_))); \
                 }                                          \
             } while (0)
@@ -2517,7 +2517,7 @@ typedef struct _field_action_s {
 #define PolicyCheck(_unit_, _mem_, _field_, _value_)                      \
     if (0 == ((uint32)(_value_) <=                                        \
               (uint32)PolicyMax((_unit_), (_mem_), (_field_)))) {         \
-        LOG_ERROR(BSL_LS_BCM_FP,                                        \
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,                                        \
                   (BSL_META("FP(unit %d) Error: Policy _value_ %d > %d (max) mem (%d)" \
                         "field (%d).\n"), _unit_, (_value_),            \
                 (uint32)PolicyMax((_unit_), (_mem_), (_field_)), (_mem_), \

@@ -2689,7 +2689,7 @@ _tr3_l2_delete_all_by_hw(int unit, int vfi)
         rv = soc_tr3_l2_port_age(unit, L2_BULK_CONTROLr, INVALIDr);
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del L2_ENTRY_1_L2_BRIDGE: %d\n"), 
                      diff_time));
@@ -2707,7 +2707,7 @@ _tr3_l2_delete_all_by_hw(int unit, int vfi)
         rv = soc_tr3_l2_port_age(unit, L2_BULK_CONTROLr, INVALIDr);
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del L2_ENTRY_1_L2_VFI: %d\n"), 
                      diff_time));
@@ -2751,7 +2751,7 @@ _tr3_l2_delete_all_by_hw(int unit, int vfi)
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
         
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del L2_ENTRY_2_L2_BRIDGE: %d\n"), 
                      diff_time));
@@ -2770,7 +2770,7 @@ _tr3_l2_delete_all_by_hw(int unit, int vfi)
         /* Delete entries for SOC_MEM_KEY_L2_ENTRY_2_L2_VFI */
         rv = soc_tr3_l2_port_age(unit, L2_BULK_CONTROLr, INVALIDr);
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del L2_ENTRY_2_L2_VFI: %d\n"), 
                      diff_time));
@@ -2825,7 +2825,7 @@ _tr3_l2_delete_all_by_hw(int unit, int vfi)
         rv = soc_tr3_l2_port_age(unit, L2_BULK_CONTROLr, INVALIDr);
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del EXT_L2_ENTRY_1: %d\n"), 
                      diff_time));
@@ -2842,7 +2842,7 @@ _tr3_l2_delete_all_by_hw(int unit, int vfi)
         rv = soc_tr3_l2_port_age(unit, L2_BULK_CONTROLr, INVALIDr);
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del EXT_L2_ENTRY_1: %d\n"), 
                      diff_time));
@@ -2907,7 +2907,7 @@ _ext_l2_2_bulk:
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
         _BCM_ALL_L2X_MEM_UNLOCK(unit);
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del EXT_L2_ENTRY_2: %d\n"), 
                      diff_time));
@@ -2925,7 +2925,7 @@ _ext_l2_2_bulk:
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
         _BCM_IF_ERROR_ALL_L2X_UNLOCK_RETURN(rv);
         _BCM_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Time taken for bulk del EXT_L2_ENTRY_2: %d\n"), 
                      diff_time));
@@ -4287,7 +4287,7 @@ _bcm_tr3_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
     bcm_mac_t mac_mask;
     uint32 port_mask;
 
-    LOG_INFO(BSL_LS_BCM_L2,
+    LOG_BSL_INFO(BSL_LS_BCM_L2,
              (BSL_META_U(unit,
                          "_bcm_tr3_my_station_lookup: unit=%d "
                          "mac=%02x:%02x:%02x:%02x:%02x:%02x vlan=%d port=%d "
@@ -4379,7 +4379,7 @@ _bcm_tr3_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
         if (i == entry_words) {
             /* Target entry is found, no more action needed */
             *entry_index = index0;
-            LOG_INFO(BSL_LS_BCM_L2,
+            LOG_BSL_INFO(BSL_LS_BCM_L2,
                      (BSL_META_U(unit,
                                  "_bcm_tr3_my_station_lookup: found entry_index=%d\n"),
                       *entry_index));
@@ -4402,7 +4402,7 @@ _bcm_tr3_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
                     /* Both free entry and alternate entry are found */
                     *entry_index = index0;
                     *alt_index = index1;
-                    LOG_INFO(BSL_LS_BCM_L2,
+                    LOG_BSL_INFO(BSL_LS_BCM_L2,
                              (BSL_META_U(unit,
                                          "_bcm_tr3_my_station_lookup: not found "
                                          "entry_index=%d alt_index=%d\n"),
@@ -4428,7 +4428,7 @@ _bcm_tr3_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
                 /* both free entry and alternate entry are found */
                 *entry_index = free_index;
                 *alt_index = index0;
-                LOG_INFO(BSL_LS_BCM_L2,
+                LOG_BSL_INFO(BSL_LS_BCM_L2,
                          (BSL_META_U(unit,
                                      "_bcm_tr3_my_station_lookup: not found "
                                      "entry_index=%d alt_index=%d\n"),
@@ -4445,7 +4445,7 @@ _bcm_tr3_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
     if (alt_index != NULL) {
         *alt_index = index1;
     }
-    LOG_INFO(BSL_LS_BCM_L2,
+    LOG_BSL_INFO(BSL_LS_BCM_L2,
              (BSL_META_U(unit,
                          "_bcm_tr3_my_station_lookup: not found "
                          "entry_index=%d alt_index=%d\n"),
@@ -7832,7 +7832,7 @@ _bcm_tr3_l2e_ppa_match(int unit, _soc_tr3_l2_replace_t *rep_st, int mem)
                 }
             }
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "tr_l2e_ppa_match 1: imin=%d imax=%d nmatches=%d flags=0x%x\n"),
                      imin, imax, nmatches, rep_st->flags));
@@ -7961,7 +7961,7 @@ _bcm_tr3_l2e_ppa_match(int unit, _soc_tr3_l2_replace_t *rep_st, int mem)
                 }
             }
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "tr_l2e_ppa_match 2: imin=%d imax=%d nmatches=%d flags=0x%x\n"),
                      imin, imax, nmatches, rep_st->flags));
@@ -8927,7 +8927,7 @@ _soc_tr3_l2_sync_mem_cache(int unit, _soc_tr3_l2_replace_t *rep_st)
             continue;
         }
         /* Match found, delete or replace entry */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Match found in L2_1 bulk cache op: %d\n"), idx));
         if (rep_st->flags & BCM_L2_REPLACE_DELETE) {
@@ -8979,7 +8979,7 @@ _soc_tr3_l2_sync_mem_cache(int unit, _soc_tr3_l2_replace_t *rep_st)
             continue;
         }
         /* Match found, delete or replace entry */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Match found in L2_2 bulk cache op: %d\n"), idx));
         if (rep_st->flags & BCM_L2_REPLACE_DELETE) {
@@ -10417,7 +10417,7 @@ bcm_tr3_l2_ring_replace(int unit, bcm_l2_ring_t *l2_ring)
         if (!SOC_IS_KATANA2(unit)) {
             rv = _tr3_l2_delete_all_by_hw(unit, vfi);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_BCM_L2,
+                LOG_BSL_ERROR(BSL_LS_BCM_L2,
                           (BSL_META_U(unit,
                                       "Error deleting entries: %d\n"), rv));
             }
@@ -10447,7 +10447,7 @@ bcm_tr3_l2_ring_replace(int unit, bcm_l2_ring_t *l2_ring)
             if (!SOC_IS_KATANA2(unit)) {
                 rv = _tr3_l2_delete_all_by_hw(unit, vfi);
                 if (rv < 0) {
-	            LOG_ERROR(BSL_LS_BCM_L2,
+	            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                               (BSL_META_U(unit,
                                           "Error deleting entries: %d\n"), rv));
  	        }

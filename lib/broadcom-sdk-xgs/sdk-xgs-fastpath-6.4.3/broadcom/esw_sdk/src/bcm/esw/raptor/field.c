@@ -1627,7 +1627,7 @@ int _field_raven_meter_recover(int unit, _field_entry_t *entry_p,
             BCM_IF_ERROR_RETURN(_field_policer_id_alloc(unit, &policer_id));
         }
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Creating policer id %d.\n"),
                    policer_id));
@@ -2499,7 +2499,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Beginning ingress stage recovery.\n")));
 
@@ -2561,7 +2561,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
 
     for (slice_index = 0; slice_index < stage_fc->tcam_slices; ++slice_index)
     {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "  Checking slice %d...\n"),
                    slice_index));
@@ -2574,7 +2574,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
             /* Don't need selectors for second slice of double or for
                second and third slices of triple */
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "    Not a primary slice.\n")));
 
@@ -2610,7 +2610,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
         {
             /* No valid groups and entries in the slice */
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "    No valid groups and entries in slice.\n")));
 
@@ -2761,7 +2761,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
                 continue;
             }
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "      Checking entry %d...\n"),
                        entry_index));
@@ -2785,7 +2785,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
             }
 
             SOC_PBMP_FMT(entry_pbmp, pbmp_string);
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "Entry PBMP: %s\n"),
                        pbmp_string));
@@ -2794,7 +2794,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
 
             for (fg_p = fc->groups; fg_p != NULL; fg_p = fg_p->next)
             {
-                LOG_DEBUG(BSL_LS_BCM_FP,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "        Checking group %d...\n"),
                            fg_p->gid));
@@ -2809,7 +2809,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
                 }
 
                 SOC_PBMP_FMT(fg_p->pbmp, pbmp_string);
-                LOG_DEBUG(BSL_LS_BCM_FP,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "Group PBMP: %s\n"),
                            pbmp_string));
@@ -2846,7 +2846,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
             if (fg_p == NULL)
             {
                 /* This should never happen */
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "Could not find a matching group for entry %d.\n"),
                            entry_index));
@@ -2872,7 +2872,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
                 goto cleanup;
             }
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "        Entry matches group %d.\n"),
                        fg_p->gid));
@@ -2887,7 +2887,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
 
                 if (BCM_FAILURE(rv))
                 {
-                    LOG_ERROR(BSL_LS_BCM_FP,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                           "Failed to retrieve entry info.")));
                     sal_free(entries_p);
@@ -3071,7 +3071,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
             entry_p->prio = fc->l2warm ? prio :
                 (vslice_index << 10) | (fs_p->entry_count - entry_index);
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "        Entry id = %d, priority = %d.\n"),
                        entry_p->eid,
@@ -3095,7 +3095,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
     /* Now go over the expanded slices */
     for (slice_index = 0; slice_index < stage_fc->tcam_slices; ++slice_index)
     {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "  Checking slice %d...\n"),
                    slice_index));
@@ -3127,7 +3127,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
         {
             /* No valid entries in the slice */
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "    No valid entries in slice.\n")));
 
@@ -3143,7 +3143,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
 
             if (BCM_FAILURE(rv))
             {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "Failed to retrieve group IDs in slice %d."),
                            slice_index));
@@ -3200,7 +3200,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
                 continue;
             }
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "      Checking entry %d...\n"),
                        entry_index));
@@ -3224,7 +3224,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
             }
 
             SOC_PBMP_FMT(entry_pbmp, pbmp_string);
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "Entry PBMP: %s\n"),
                        pbmp_string));
@@ -3247,7 +3247,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
                 goto cleanup;
             }
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "        Entry matches group %d.\n"),
                        fg_p->gid));
@@ -3262,7 +3262,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
 
                 if (BCM_FAILURE(rv))
                 {
-                    LOG_ERROR(BSL_LS_BCM_FP,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                           "Failed to retrieve entry info.")));
                     sal_free(entries_p);
@@ -3425,7 +3425,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
             entry_p->prio = fc->l2warm ? prio :
                 (vslice_index << 10) | (fs_p->entry_count - entry_index);
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "        Entry id = %d, priority = %d.\n"),
                        entry_p->eid,
@@ -3476,7 +3476,7 @@ int _field_raven_stage_reinit(int unit, _field_control_t *fc,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Ingress stage recovery complete.\n")));
 
@@ -3498,7 +3498,7 @@ cleanup:
         soc_cm_sfree(unit, fp_policy_table_buffer);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Leaving ingress stage recovery.\n")));
 
@@ -3537,7 +3537,7 @@ _field_raptor_qualify_ip_type(int unit, _field_entry_t *f_ent,
     /* Confirm that IpType is in group's Qset. */
     fg = f_ent->group;
     if (!BCM_FIELD_QSET_TEST(fg->qset, bcmFieldQualifyIpType)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: IpType not in entry=%d Qset.\n"),
                    unit, f_ent->eid));
@@ -4940,7 +4940,7 @@ _field_raptor_action_get(int unit, _field_entry_t *f_ent, int tcam_idx,
     uint32    redir_field;
     uint8     raptor_actions_enable = TRUE;    
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: BEGIN _field_raptor_action_get(eid=%d, tcam_idx=0x%x, "),
                unit, f_ent->eid, tcam_idx));
@@ -5410,7 +5410,7 @@ _field_raptor_action_get(int unit, _field_entry_t *f_ent, int tcam_idx,
               PolicySet(unit, FP_POLICY_TABLEm, p_entry, NEWDSCP_TOSf, fa->param[0]);
               break;
           default:
-              LOG_ERROR(BSL_LS_BCM_FP,
+              LOG_BSL_ERROR(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "FP(unit %d) Error: Unknown action (%d)\n"),
                          unit, (uint32)fa->action));
@@ -5420,7 +5420,7 @@ _field_raptor_action_get(int unit, _field_entry_t *f_ent, int tcam_idx,
 
     fa->flags &= ~_FP_ACTION_DIRTY; /* Mark action as installed. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: END _field_raptor_action_get()\n"),
                unit));

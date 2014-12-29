@@ -205,7 +205,7 @@ pca9505_read(int unit, int devno, uint16 addr, uint8 *data, uint32 *len)
 
     rv = soc_i2c_read_byte_data(unit, saddr, addr, data);
     *len = 1; /* Byte device */
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "iop@0x%x: read 0x%x from addr 0x%x\n"), saddr, *data, addr));
     soc_i2c_device(unit, devno)->rbyte++;   
@@ -223,7 +223,7 @@ pca9505_write(int unit, int devno, uint16 addr, uint8 *data, uint32 len)
     saddr = soc_i2c_addr(unit, devno);
 
     rv = soc_i2c_write_byte_data(unit, saddr, addr, *data);
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "iop@0x%x: wrote 0x%x to addr 0x%x\n"), saddr, *data, addr));
     soc_i2c_device(unit, devno)->tbyte++;   
@@ -304,7 +304,7 @@ pca9505_init(int unit, int devno, void* data, int len)
     /* Configure port IO pin direction and mask */
     for (port = 0; port < PCA9505_PORT_MAX; port++) {
 
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "iop: Initializing port %d \n"), port));
         /* Disable polarity inversion */
@@ -312,7 +312,7 @@ pca9505_init(int unit, int devno, void* data, int len)
                                &value, 1);
 
         /* Configure reasonable value for output */
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "iop: Setting known output on %d : 0x%x \n"), 
                   port, pca9505_port_config[dev_idx][port].defaults));
@@ -327,7 +327,7 @@ pca9505_init(int unit, int devno, void* data, int len)
         }
         rv = pca9505_write(unit, devno, PCA9505_IOP_BASE + port, 
                            &pca9505_port_config[dev_idx][port].defaults, 1);
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "iop: Setting interrupt mask on %d : 0x%x \n"), 
                   port, pca9505_port_config[dev_idx][port].mask_intr));

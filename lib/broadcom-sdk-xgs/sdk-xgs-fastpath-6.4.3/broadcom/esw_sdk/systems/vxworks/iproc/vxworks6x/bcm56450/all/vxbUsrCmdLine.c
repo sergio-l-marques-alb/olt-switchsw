@@ -853,11 +853,11 @@ modification history
 #ifdef VXB_LEGACY_ACCESS
 #ifdef  VXB_ACCESS_DEBUG 
 
-    #define VXB_ACCESS_PCI_LOG_ERROR(fmt,a,b,c,d,e,f)  logMsg(fmt,a,b,c,d,e,f)
+    #define VXB_ACCESS_PCI_LOG_BSL_ERROR(fmt,a,b,c,d,e,f)  logMsg(fmt,a,b,c,d,e,f)
 
 #else
 
-    #define VXB_ACCESS_PCI_LOG_ERROR(fmt,a,b,c,d,e,f)
+    #define VXB_ACCESS_PCI_LOG_BSL_ERROR(fmt,a,b,c,d,e,f)
 
 #endif
 
@@ -1329,7 +1329,7 @@ LOCAL STATUS    pciRegisterProbe
         (pProbeDatum == NULL) || (pRetVal == (char *   )NULL) ||
         (pFlags == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -1342,7 +1342,7 @@ LOCAL STATUS    pciRegisterProbe
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe : Invalid upstream \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe : Invalid upstream \
                             device pointer\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -1377,7 +1377,7 @@ LOCAL STATUS    pciRegisterProbe
         /* return ERROR if the pRegBase element is not located */
         if (status != OK)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe :pRegBase is invalid\n",
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe :pRegBase is invalid\n",
                                      0,0,0,0,0,0);
             return ERROR;
             }
@@ -1405,7 +1405,7 @@ LOCAL STATUS    pciRegisterProbe
                                          (char *   )&value,
                                          &flags) != OK)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe: Unable to write \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe: Unable to write \
                                  0xFFFFFFFF to BAR", 0,0,0,0,0,0);
 
             /* release the lock */
@@ -1426,7 +1426,7 @@ LOCAL STATUS    pciRegisterProbe
                                         (char *   )&value,
                                         &flags) != OK)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe:Unable to read BAR\n",
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe:Unable to read BAR\n",
                                      0,0,0,0,0,0);
 
             /* release the lock */
@@ -1455,7 +1455,7 @@ LOCAL STATUS    pciRegisterProbe
                                          (char *   )&bar,
                                          &flags) != OK)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe:Unable to write \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe:Unable to write \
                            bar value to BAR\n", 0,0,0,0,0,0);
 
             /* release the lock */
@@ -1505,7 +1505,7 @@ LOCAL STATUS    pciRegisterProbe
         if ((byteOffset >= value) ||
             ((byteOffset + transactionSize) >= value))
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe :invalid size \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe :invalid size \
                                      or byteOffset\n", 0,0,0,0,0,0);
             return ERROR;
             }
@@ -1547,7 +1547,7 @@ LOCAL STATUS    pciRegisterProbe
                                                     pRetVal,
                                                     pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterProbe : Upstream bus probe \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterProbe : Upstream bus probe \
                     returned error\n", 0,0,0,0,0,0);
         return ERROR;
         }
@@ -1611,7 +1611,7 @@ LOCAL STATUS    pciRegisterRead8
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead8: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead8: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -1624,7 +1624,7 @@ LOCAL STATUS    pciRegisterRead8
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead8: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead8: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -1658,7 +1658,7 @@ LOCAL STATUS    pciRegisterRead8
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead8: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead8: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -1683,7 +1683,7 @@ LOCAL STATUS    pciRegisterRead8
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead8: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead8: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -1709,7 +1709,7 @@ LOCAL STATUS    pciRegisterRead8
                                                  pDataBuf,
                                                  pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead8: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead8: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -1758,7 +1758,7 @@ LOCAL STATUS    pciRegisterRead16
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead16: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead16: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -1771,7 +1771,7 @@ LOCAL STATUS    pciRegisterRead16
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead16: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead16: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -1811,7 +1811,7 @@ LOCAL STATUS    pciRegisterRead16
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead16: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead16: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -1836,7 +1836,7 @@ LOCAL STATUS    pciRegisterRead16
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead16: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead16: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -1862,7 +1862,7 @@ LOCAL STATUS    pciRegisterRead16
                                                   pDataBuf,
                                                   pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead16: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead16: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -1919,7 +1919,7 @@ LOCAL STATUS    pciRegisterRead32
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead32: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead32: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -1932,7 +1932,7 @@ LOCAL STATUS    pciRegisterRead32
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead32: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead32: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -1972,7 +1972,7 @@ LOCAL STATUS    pciRegisterRead32
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead32: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead32: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -1997,7 +1997,7 @@ LOCAL STATUS    pciRegisterRead32
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead32: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead32: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2023,7 +2023,7 @@ LOCAL STATUS    pciRegisterRead32
                                                   pDataBuf,
                                                   pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead32: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead32: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2083,7 +2083,7 @@ LOCAL STATUS    pciRegisterRead64
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead64: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead64: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -2096,7 +2096,7 @@ LOCAL STATUS    pciRegisterRead64
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead64: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead64: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2136,7 +2136,7 @@ LOCAL STATUS    pciRegisterRead64
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead64: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead64: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2161,7 +2161,7 @@ LOCAL STATUS    pciRegisterRead64
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead64: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead64: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2187,7 +2187,7 @@ LOCAL STATUS    pciRegisterRead64
                                                   pDataBuf,
                                                   pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterRead64: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterRead64: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2247,7 +2247,7 @@ LOCAL STATUS    pciRegisterWrite8
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite8: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite8: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -2260,7 +2260,7 @@ LOCAL STATUS    pciRegisterWrite8
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite8: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite8: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2293,7 +2293,7 @@ LOCAL STATUS    pciRegisterWrite8
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite8: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite8: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2318,7 +2318,7 @@ LOCAL STATUS    pciRegisterWrite8
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite8: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite8: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2347,7 +2347,7 @@ LOCAL STATUS    pciRegisterWrite8
                                                   pDataBuf,
                                                   pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite8: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite8: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2365,7 +2365,7 @@ LOCAL STATUS    pciRegisterWrite8
                                                  &dataRead,
                                                  &temporaryFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite8: reading back \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite8: reading back \
         from the register failed\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2423,7 +2423,7 @@ LOCAL STATUS    pciRegisterWrite16
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite16: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite16: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -2436,7 +2436,7 @@ LOCAL STATUS    pciRegisterWrite16
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite16: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite16: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2470,7 +2470,7 @@ LOCAL STATUS    pciRegisterWrite16
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite16: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite16: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2495,7 +2495,7 @@ LOCAL STATUS    pciRegisterWrite16
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite16: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite16: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2531,7 +2531,7 @@ LOCAL STATUS    pciRegisterWrite16
                                                    pDataBuf,
                                                    pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite16: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite16: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2551,7 +2551,7 @@ LOCAL STATUS    pciRegisterWrite16
                                                   &dataRead,
                                                   &temporaryFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite16: reading back \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite16: reading back \
         from the register failed\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2609,7 +2609,7 @@ LOCAL STATUS    pciRegisterWrite32
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite32: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite32: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -2622,7 +2622,7 @@ LOCAL STATUS    pciRegisterWrite32
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite32: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite32: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2656,7 +2656,7 @@ LOCAL STATUS    pciRegisterWrite32
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite32: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite32: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2681,7 +2681,7 @@ LOCAL STATUS    pciRegisterWrite32
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite32: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite32: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2718,7 +2718,7 @@ LOCAL STATUS    pciRegisterWrite32
                                                    pDataBuf,
                                                    pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite32: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite32: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2738,7 +2738,7 @@ LOCAL STATUS    pciRegisterWrite32
                                                   &dataRead,
                                                   &temporaryFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite32: reading back \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite32: reading back \
         from the register failed\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2795,7 +2795,7 @@ LOCAL STATUS    pciRegisterWrite64
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite64: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite64: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -2808,7 +2808,7 @@ LOCAL STATUS    pciRegisterWrite64
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite64: pUpstreamDevPtr is \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite64: pUpstreamDevPtr is \
                                   invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2841,7 +2841,7 @@ LOCAL STATUS    pciRegisterWrite64
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite64: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite64: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2866,7 +2866,7 @@ LOCAL STATUS    pciRegisterWrite64
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite64: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite64: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -2901,7 +2901,7 @@ LOCAL STATUS    pciRegisterWrite64
                                                    pDataBuf,
                                                    pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite64: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite64: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -2921,7 +2921,7 @@ LOCAL STATUS    pciRegisterWrite64
                                                   &dataRead,
                                                   &temporaryFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciRegisterWrite64: reading back \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciRegisterWrite64: reading back \
         from the register failed\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3050,7 +3050,7 @@ LOCAL STATUS    pciVolatileRegisterRead
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterRead: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterRead: \
                               Invalid parameter\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3063,7 +3063,7 @@ LOCAL STATUS    pciVolatileRegisterRead
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterRead: pUpstreamDevPtr \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterRead: pUpstreamDevPtr \
                             is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3129,7 +3129,7 @@ LOCAL STATUS    pciVolatileRegisterRead
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterRead: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterRead: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3154,7 +3154,7 @@ LOCAL STATUS    pciVolatileRegisterRead
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterRead: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterRead: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3181,7 +3181,7 @@ LOCAL STATUS    pciVolatileRegisterRead
                                               pDataBuf,
                                               pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterRead: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterRead: upstream bus \
                     access routine vol read returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3242,7 +3242,7 @@ LOCAL STATUS    pciVolatileRegisterWrite8
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite8: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite8: \
                               Invalid parameter\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3255,7 +3255,7 @@ LOCAL STATUS    pciVolatileRegisterWrite8
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite8: pUpstreamDevPtr \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite8: pUpstreamDevPtr \
                             is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3278,7 +3278,7 @@ LOCAL STATUS    pciVolatileRegisterWrite8
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite8: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite8: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3303,7 +3303,7 @@ LOCAL STATUS    pciVolatileRegisterWrite8
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite8: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite8: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3330,7 +3330,7 @@ LOCAL STATUS    pciVolatileRegisterWrite8
                                                (char *    )pDataBuf,
                                                pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite8: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite8: upstream bus \
                     access routine for write returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3369,7 +3369,7 @@ LOCAL STATUS    pciVolatileRegisterWrite16
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite16: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite16: \
               Invalid parameter\n", 0,0,0,0,0,0);
         return ERROR;
         }
@@ -3382,7 +3382,7 @@ LOCAL STATUS    pciVolatileRegisterWrite16
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite16: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite16: \
         pUpstreamDevPtr is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3405,7 +3405,7 @@ LOCAL STATUS    pciVolatileRegisterWrite16
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite16: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite16: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3430,7 +3430,7 @@ LOCAL STATUS    pciVolatileRegisterWrite16
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite16: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite16: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3467,7 +3467,7 @@ LOCAL STATUS    pciVolatileRegisterWrite16
                                                (char *    )pDataBuf,
                                                pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite16: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite16: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3513,7 +3513,7 @@ LOCAL STATUS    pciVolatileRegisterWrite32
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite32: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite32: \
               Invalid parameter\n", 0,0,0,0,0,0);
         return ERROR;
         }
@@ -3526,7 +3526,7 @@ LOCAL STATUS    pciVolatileRegisterWrite32
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite32: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite32: \
         pUpstreamDevPtr is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3549,7 +3549,7 @@ LOCAL STATUS    pciVolatileRegisterWrite32
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite32: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite32: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3574,7 +3574,7 @@ LOCAL STATUS    pciVolatileRegisterWrite32
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite32: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite32: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3612,7 +3612,7 @@ LOCAL STATUS    pciVolatileRegisterWrite32
                                                (char *    )pDataBuf,
                                                pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite32: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite32: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3659,7 +3659,7 @@ LOCAL STATUS    pciVolatileRegisterWrite64
         (pDataBuf == NULL) ||
         (pFlags   == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite64: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite64: \
               Invalid parameter\n", 0,0,0,0,0,0);
         return ERROR;
         }
@@ -3672,7 +3672,7 @@ LOCAL STATUS    pciVolatileRegisterWrite64
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite64: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite64: \
         pUpstreamDevPtr is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3695,7 +3695,7 @@ LOCAL STATUS    pciVolatileRegisterWrite64
 
         if (pDevInfo->pAccess->pCookie == NULL)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite64: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite64: \
                              Invalid cookie\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3720,7 +3720,7 @@ LOCAL STATUS    pciVolatileRegisterWrite64
 
         if (baseAddressIndex >= 6)
             {
-            VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite64: \
+            VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite64: \
                              baseAddressIndex is incorrect\n",0,0,0,0,0,0);
             return ERROR;
             }
@@ -3758,7 +3758,7 @@ LOCAL STATUS    pciVolatileRegisterWrite64
                                                (char *    )pDataBuf,
                                                pFlags) != OK)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciVolatileRegisterWrite64: upstream bus \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciVolatileRegisterWrite64: upstream bus \
                         access routine returned error\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3797,7 +3797,7 @@ LOCAL STATUS    pciDevControl
     if ((devID == NULL) ||
         (pBusDevControl == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciDevControl: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciDevControl: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
 
@@ -3890,7 +3890,7 @@ LOCAL STATUS    pciBusIntEnable
     if ((pDevInfo == NULL) ||
         (pPciIntrInfo == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntEnable: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntEnable: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -3905,7 +3905,7 @@ LOCAL STATUS    pciBusIntEnable
         (pPciIntrInfo->intIndex >= pInterruptInfo->numVectors))
 
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntEnable: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntEnable: \
                     Invalid pointer information\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3918,7 +3918,7 @@ LOCAL STATUS    pciBusIntEnable
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntEnable: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntEnable: \
         pUpstreamDevPtr is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3963,7 +3963,7 @@ LOCAL STATUS    pciBusIntDisable
     if ((pDevInfo == NULL) ||
         (pPciIntrInfo == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntDisable: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntDisable: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -3977,7 +3977,7 @@ LOCAL STATUS    pciBusIntDisable
     if ((pInterruptInfo == NULL) ||
         (pPciIntrInfo->intIndex >= pInterruptInfo->numVectors))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntDisable: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntDisable: \
                     Invalid pointer information\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -3990,7 +3990,7 @@ LOCAL STATUS    pciBusIntDisable
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntDisable: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntDisable: \
         pUpstreamDevPtr is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4036,7 +4036,7 @@ LOCAL STATUS    pciBusIntAcknowledge
     if ((pDevInfo == NULL) ||
         (pPciIntrInfo == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntAcknowledge: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntAcknowledge: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -4049,7 +4049,7 @@ LOCAL STATUS    pciBusIntAcknowledge
 
     if (pInterruptInfo == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntAcknowledge: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntAcknowledge: \
                     Invalid pointer information\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4062,7 +4062,7 @@ LOCAL STATUS    pciBusIntAcknowledge
 
     if (pUpstreamDevPtr == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntAcknowledge: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntAcknowledge: \
         pUpstreamDevPtr is invalid\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4105,7 +4105,7 @@ LOCAL STATUS    pciBusIntConnect
     if ((pDevInfo == NULL) ||
         (pPciIntrInfo == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntConnect: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntConnect: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -4118,7 +4118,7 @@ LOCAL STATUS    pciBusIntConnect
 
     if (pInterruptInfo == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntConnect: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntConnect: \
                     Invalid pointer information\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4127,7 +4127,7 @@ LOCAL STATUS    pciBusIntConnect
 
     if (pPciIntrInfo->intIndex >= pInterruptInfo->numVectors)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntConnect: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntConnect: \
                     Invalid interrupt index\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4165,7 +4165,7 @@ LOCAL STATUS    pciBusIntDisconnect
     if ((pDevInfo == NULL) ||
         (pPciIntrInfo == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntDisConnect: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntDisConnect: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -4178,7 +4178,7 @@ LOCAL STATUS    pciBusIntDisconnect
 
     if (pInterruptInfo == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntDisConnect: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntDisConnect: \
                     Invalid pointer information\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4187,7 +4187,7 @@ LOCAL STATUS    pciBusIntDisconnect
 
     if (pPciIntrInfo->intIndex >= pInterruptInfo->numVectors)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntDisConnect: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntDisConnect: \
                     Invalid interrupt index\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4227,7 +4227,7 @@ LOCAL STATUS    pciBusIntVectorGet
     if ((pDevInfo == NULL) ||
         (pPciIntVecInfo == NULL))
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntVectorGet: Invalid parameter\n",
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntVectorGet: Invalid parameter\n",
                                  0,0,0,0,0,0);
         return ERROR;
         }
@@ -4240,7 +4240,7 @@ LOCAL STATUS    pciBusIntVectorGet
 
     if (pInterruptInfo == NULL)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntVectorGet: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntVectorGet: \
                     Invalid pointer information\n",0,0,0,0,0,0);
         return ERROR;
         }
@@ -4249,7 +4249,7 @@ LOCAL STATUS    pciBusIntVectorGet
 
     if (pPciIntVecInfo->intIndex >= pInterruptInfo->numVectors)
         {
-        VXB_ACCESS_PCI_LOG_ERROR("pciBusIntVectorGet: \
+        VXB_ACCESS_PCI_LOG_BSL_ERROR("pciBusIntVectorGet: \
                     Invalid interrupt index\n",0,0,0,0,0,0);
         return ERROR;
         }

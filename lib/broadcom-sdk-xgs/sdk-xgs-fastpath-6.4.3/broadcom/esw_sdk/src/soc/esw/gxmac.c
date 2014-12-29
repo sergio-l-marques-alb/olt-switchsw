@@ -183,7 +183,7 @@ soc_unicore_reset(int unit, soc_port_t port)
     int                 rxequal, offsctl;
     int                 reset_sleep_usec;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac: unit %d port %s: unicore reset\n"),
                  unit, SOC_PORT_NAME(unit, port)));
@@ -466,7 +466,7 @@ soc_unicore_reset(int unit, soc_port_t port)
                        (soc_miim_modify(unit, phy_addr, 0x10, 
                                         0x8000 | hw_map, 0x80ff));
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d port %s: Invalid RX lane map 0x%04x.\n"),
                                unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -492,7 +492,7 @@ soc_unicore_reset(int unit, soc_port_t port)
                        (soc_miim_modify(unit, phy_addr, 0x11, 
                                         0x8000 | hw_map, 0x80ff));
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d port %s: Invalid TX lane map 0x%04x.\n"),
                                unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -513,7 +513,7 @@ soc_unicore_reset(int unit, soc_port_t port)
             (soc_miim_write(unit, phy_addr, 0x1f, 0x0000));
     
         if (SAL_BOOT_QUICKTURN) {
-            LOG_VERBOSE(BSL_LS_SOC_10G,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                         (BSL_META_U(unit,
                         "SIMULATION: xmac: unit %d port %s: "
                          "skipped waiting for pll lock\n"),
@@ -613,7 +613,7 @@ soc_unicore_pll_lock_wait(int unit, int port)
         SOC_IF_ERROR_RETURN		/* Restore original block select */
             (soc_miim_write(unit, phy_addr, 0x1f, block_select));
 
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d port %s: Unicore PLL did not lock "
                               "PLL_STAT %04x\n"),
@@ -622,7 +622,7 @@ soc_unicore_pll_lock_wait(int unit, int port)
         return SOC_E_TIMEOUT;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "unit %d port %s: Unicore PLL locked in %d usec\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1430,7 +1430,7 @@ gxmac_init(int unit, soc_port_t port)
     uint64              rx_ctrl, tx_ctrl, mac_ctrl;
     int                 encap;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_init: unit %d port %s\n"),
                  unit, SOC_PORT_NAME(unit, port)));
@@ -1614,7 +1614,7 @@ gxmac_enable_set(int unit, soc_port_t port, int enable)
 
             /* Check for drain error */
             if (drain_cells) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: port %d:%s: "
                                       "timeout draining packets (%d cells remain)\n"),
@@ -1667,7 +1667,7 @@ gxmac_enable_get(int unit, soc_port_t port, int *enable)
     SOC_IF_ERROR_RETURN(READ_MAC_CTRLr(unit, port, &ctrl));
     *enable |= soc_reg64_field32_get(unit, MAC_CTRLr, ctrl, RXENf);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_enable_get:u=%d port=%d enable=%c\n"),
                  unit, port, *enable ? 'T' : 'F'));
@@ -1696,7 +1696,7 @@ gxmac_duplex_set(int unit, soc_port_t port, int duplex)
     COMPILER_REFERENCE(port);
     COMPILER_REFERENCE(duplex);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_duplex_set: unit %d port %s %s duplex\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1760,7 +1760,7 @@ gxmac_duplex_get(int unit, soc_port_t port, int *duplex)
             *duplex = soc_reg_field_get(unit, FE_MAC2r, fe_mac2, FULL_DUPf);
         }
     } 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_duplex_get: unit %d port %s %s duplex\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1836,7 +1836,7 @@ gxmac_pause_set(int unit, soc_port_t port, int pause_tx, int pause_rx)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_pause_set: unit %d port %s RX=%s TX=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1870,7 +1870,7 @@ gxmac_pause_get(int unit, soc_port_t port, int *pause_tx, int *pause_rx)
     *pause_tx = soc_reg_field_get(unit, GMACC1r, gmacc1, FCTXf);
     *pause_rx = soc_reg_field_get(unit, GMACC1r, gmacc1, FCRXf);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_pause_get: unit %d port %s RX=%s TX=%s\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -1943,7 +1943,7 @@ gxmac_speed_set(int unit, soc_port_t port, int speed)
     /* Re-enable MAC */
     SOC_IF_ERROR_RETURN(gxmac_enable_set(unit, port, enable));
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_speed_set: unit %d port %s speed %dMb\n"),
                  unit, SOC_PORT_NAME(unit, port), speed));
@@ -1970,7 +1970,7 @@ gxmac_speed_get(int unit, soc_port_t port, int *speed)
 
     rv = soc_unicore_speed_get(unit, port, speed, NULL);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_speed_get: unit %d port %s speed %dMb\n"),
                  unit, SOC_PORT_NAME(unit, port), *speed));
@@ -1999,7 +1999,7 @@ gxmac_loopback_set(int unit, soc_port_t port, int lb)
     uint32 gmacc0, ogmacc0;
     uint32 fe_mac1, ofe_mac1;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_loopback_set: unit %d port %s %s loopback\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -2062,7 +2062,7 @@ gxmac_loopback_get(int unit, soc_port_t port, int *lb)
     local = soc_reg64_field32_get(unit, MAC_CTRLr, ctrl, LCLLOOPf);
     *lb = local | remote;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_loopback_get: unit %d port %s %s loopback\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -2122,7 +2122,7 @@ gxmac_pause_addr_set(int unit, soc_port_t port, sal_mac_addr_t mac)
     SOC_IF_ERROR_RETURN(WRITE_MAC_TXMACSAr(unit, port, macsa));
     SOC_IF_ERROR_RETURN(WRITE_MAC_RXMACSAr(unit, port, macsa));
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_pause_addr_set: unit %d port %s MAC=<"
                  "%02x:%02x:%02x:%02x:%02x:%02x>\n"),
@@ -2165,7 +2165,7 @@ gxmac_pause_addr_get(int unit, soc_port_t port, sal_mac_addr_t mac)
     mac[4] = (uint8)(lsw >> 8);
     mac[5] = (uint8)(lsw >> 0);
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_pause_addr_get: unit %d port %s MAC=<"
                  "%02x:%02x:%02x:%02x:%02x:%02x>\n"),
@@ -2197,7 +2197,7 @@ gxmac_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
     uint32 ogmacc0, ogpcsc;
 
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_interface_set: unit %d port %s %s interface\n"),
                  unit, SOC_PORT_NAME(unit, port), gxmac_port_if_names[pif]));
@@ -2270,7 +2270,7 @@ gxmac_interface_get(int unit, soc_port_t port, soc_port_if_t *pif)
 
     
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_interface_get: unit %d port %s %s interface\n"),
                  unit, SOC_PORT_NAME(unit, port), gxmac_port_if_names[*pif]));
@@ -2597,7 +2597,7 @@ gxmac_encap_set(int unit, soc_port_t port, int mode)
     }
 
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_encap_set: unit %d port %s %s encapsulation\n"),
                  unit, SOC_PORT_NAME(unit, port), gxmac_encap_mode[mode]));
@@ -2678,7 +2678,7 @@ gxmac_encap_get(int unit, soc_port_t port, int *mode)
     }
 
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_encap_get: unit %d port %s %s encapsulation\n"),
                  unit, SOC_PORT_NAME(unit, port), gxmac_encap_mode[*mode]));
@@ -2815,7 +2815,7 @@ gxmac_control_set(int unit, soc_port_t port,
     uint32 reg32, copy32;
     uint64 reg64, copy64;
 
-    LOG_VERBOSE(BSL_LS_SOC_10G,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
                 (BSL_META_U(unit,
                 "gxmac_control_set: unit %d port %s: %d = %d\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -2914,7 +2914,7 @@ gxmac_control_get(int unit, soc_port_t port,
         break;
     }
 
- LOG_VERBOSE(BSL_LS_SOC_10G,
+ LOG_BSL_VERBOSE(BSL_LS_SOC_10G,
              (BSL_META_U(unit,
              "gxmac_control_get: unit %d port %s: %d = %d: rv = %d\n"),
               unit, SOC_PORT_NAME(unit, port),

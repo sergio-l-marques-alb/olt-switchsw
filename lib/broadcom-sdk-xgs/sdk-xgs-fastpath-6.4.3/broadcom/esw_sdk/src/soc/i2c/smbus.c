@@ -134,7 +134,7 @@ smbus_timeout_recovery(int unit)
 
         READ_CMIC_I2CM_SMBUS_BIT_BANG_CONTROLr(unit, &rval);
         if (soc_reg_field_get(unit, CMIC_I2CM_SMBUS_BIT_BANG_CONTROLr, rval, SMBDAT_INf) == 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: smbus_timeout_recovery: SDA is still low.\n"), unit));
             rv = SOC_E_TIMEOUT;
@@ -227,7 +227,7 @@ smbus_quick_command(int unit, uint8 saddr)
     uint32 rval;
     int rt = 5;
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: smbus_quick_command @ %02x\n"),
               unit, saddr));
@@ -288,7 +288,7 @@ soc_i2c_write_byte(int unit, i2c_saddr_t saddr, uint8 data)
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_write_byte @ %02x\n"),
               unit, saddr));
@@ -304,7 +304,7 @@ soc_i2c_write_byte(int unit, i2c_saddr_t saddr, uint8 data)
 
 #ifdef BCM_CMICM_SUPPORT
     if(soc_feature(unit, soc_feature_cmicm) && !SOC_IS_SAND(unit)) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_write_byte: saddr 0x%02x, data 0x%02x\n"),
                   unit, (int) saddr, (int) data));
@@ -331,7 +331,7 @@ retry:
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_byte:"
                                  " failed to generate start.\n"),
@@ -341,7 +341,7 @@ retry:
         }
 
         if ( (rv = soc_i2c_write_one_byte(unit, data) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_byte:"
                                  " failed to write data byte.\n"),
@@ -385,7 +385,7 @@ soc_i2c_read_byte(int unit, i2c_saddr_t saddr, uint8* data)
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_read_byte @ %02x\n"),
               unit, saddr));
@@ -421,7 +421,7 @@ retry:
             rv = SOC_E_TIMEOUT;
         }
 
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "i2c%d: soc_i2c_read_byte: saddr 0x%02x, data 0x%02x\n"),
                   unit, (int) saddr, (int) *data));
@@ -430,7 +430,7 @@ retry:
 #endif
     {
         if ((rv = soc_i2c_start(unit, SOC_I2C_RX_ADDR(saddr))) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_byte:"
                                  " failed to generate start.\n"),
@@ -441,7 +441,7 @@ retry:
 
         if ((rv = soc_i2c_read_one_byte(unit, data, 
                                         I2C_FINAL_READ)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_byte:"
                                  " failed to read data byte.\n"),
@@ -492,7 +492,7 @@ soc_i2c_write_word(int unit, i2c_saddr_t saddr, uint16 value)
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_write_word @ %02x\n"),
               unit, saddr));
@@ -533,7 +533,7 @@ retry:
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_word_data: "
                                  "failed to generate start.\n"),
@@ -544,7 +544,7 @@ retry:
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, b1) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_write_word_data: "
                                      "failed to send data MSB.\n"),
@@ -553,7 +553,7 @@ retry:
     	}
     	
     	if ( (rv = soc_i2c_write_one_byte(unit, b0) ) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_word_data: "
                                  "failed to send data LSB.\n"),
@@ -600,7 +600,7 @@ soc_i2c_read_word(int unit, i2c_saddr_t saddr, uint16* value)
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_read_word @ %02x\n"),
               unit, saddr));
@@ -643,7 +643,7 @@ retry:
 #endif
     {
         if ((rv = soc_i2c_start(unit, SOC_I2C_RX_ADDR(saddr))) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_word: "
                                  "failed to generate start.\n"),
@@ -654,7 +654,7 @@ retry:
 
         if ( (rv = soc_i2c_read_short(unit, value, 
     				  I2C_FINAL_READ)) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_word: "
                                  "failed to read data word.\n"),
@@ -702,7 +702,7 @@ soc_i2c_read_byte_data(int unit, i2c_saddr_t saddr, uint8 com, uint8* value)
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_read_byte_data @ %02x\n"),
               unit, saddr));
@@ -747,7 +747,7 @@ retry:
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_byte_data: "
                                  "failed to generate start.\n"),
@@ -758,7 +758,7 @@ retry:
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, com) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_read_byte_data: "
                                      "failed to send com byte.\n"),
@@ -766,7 +766,7 @@ retry:
     	    break;
     	}
     	if( (rv = soc_i2c_rep_start(unit, SOC_I2C_RX_ADDR(saddr) ) ) < 0 ){
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_byte_data: "
                                  "failed to gen rep start.\n"),
@@ -775,7 +775,7 @@ retry:
     	}
     	if ( (rv = soc_i2c_read_one_byte(unit, value, 
     					 I2C_FINAL_READ)) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_byte_data: "
                                  "failed to read data byte.\n"),
@@ -825,7 +825,7 @@ soc_i2c_write_byte_data(int unit, i2c_saddr_t saddr, uint8 com, uint8 value)
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_write_byte_data @ %02x\n"),
               unit, saddr));
@@ -866,7 +866,7 @@ retry:
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_byte_data: "
                                  "failed to generate start.\n"),
@@ -877,7 +877,7 @@ retry:
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, com) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_write_byte_data: "
                                      "failed to send com byte.\n"),
@@ -885,7 +885,7 @@ retry:
     	    break;
     	}
     	if ( (rv = soc_i2c_write_one_byte(unit, value) ) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_byte_data: "
                                  "failed to send data byte.\n"),
@@ -971,7 +971,7 @@ soc_i2c_read_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16* value)
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_word_data: "
                                  "failed to generate start.\n"),
@@ -982,7 +982,7 @@ soc_i2c_read_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16* value)
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, com) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_read_word_data: "
                                      "failed to send com byte.\n"),
@@ -990,7 +990,7 @@ soc_i2c_read_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16* value)
     	    break;
     	}
     	if( (rv = soc_i2c_rep_start(unit, SOC_I2C_RX_ADDR(saddr) ) ) < 0 ){
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_word_data: "
                                  "failed to gen rep start.\n"),
@@ -999,7 +999,7 @@ soc_i2c_read_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16* value)
     	}
     	if( (rv = soc_i2c_read_short(unit, value, 
     				     I2C_FINAL_READ)) < 0){
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_read_word_data: "
                                  "failed to read data word.\n"),
@@ -1082,7 +1082,7 @@ soc_i2c_write_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16 value)
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_word_data: "
                                  "failed to generate start.\n"),
@@ -1093,7 +1093,7 @@ soc_i2c_write_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16 value)
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, com) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_write_word_data: "
                                      "failed to send com byte.\n"),
@@ -1101,7 +1101,7 @@ soc_i2c_write_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16 value)
     	    break;
     	}
     	if ( (rv = soc_i2c_write_one_byte(unit, b0) ) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_word_data: "
                                  "failed to send data LSB.\n"),
@@ -1110,7 +1110,7 @@ soc_i2c_write_word_data(int unit, i2c_saddr_t saddr, uint8 com, uint16 value)
     	}
 
     	if ( (rv = soc_i2c_write_one_byte(unit, b1) ) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_write_word_data: "
                                  "failed to send data MSB.\n"),
@@ -1169,7 +1169,7 @@ soc_i2c_block_read(int unit, i2c_saddr_t saddr,
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_block_read %02x bytes @ %02x - %02x\n"),
               unit, (int)*count, saddr, com));
@@ -1215,7 +1215,7 @@ retry:
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_block_read: "
                                  "failed to generate start.\n"),
@@ -1226,7 +1226,7 @@ retry:
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, com) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_block_read: "
                                      "failed to send com byte.\n"),
@@ -1236,7 +1236,7 @@ retry:
 
     	if( (rv = soc_i2c_rep_start(unit, SOC_I2C_RX_ADDR(saddr))) 
     	    < 0 ){
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_block_read: "
                                  "failed to gen rep start.\n"),
@@ -1246,7 +1246,7 @@ retry:
     	/* Read expected byte count from chip */
     	if ( (rv = soc_i2c_read_one_byte(unit, count, 
     					 I2C_MORE_TO_READ)) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_block_read: "
                                  "failed to read data count byte.\n"),
@@ -1262,7 +1262,7 @@ retry:
     	        ack = I2C_MORE_TO_READ;
     	    }
     	    if ( (rv = soc_i2c_read_one_byte(unit, ptr, ack) ) < 0 ) {
-    	        LOG_INFO(BSL_LS_SOC_I2C,
+    	        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_block_read: "
                                      "failed to read data byte %d.\n"),
@@ -1322,7 +1322,7 @@ soc_i2c_block_write(int unit, i2c_saddr_t saddr,
     int rt = 5;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "i2c%d: soc_i2c_block_write %02x bytes @ %02x - %02x\n"),
               unit, count, saddr, com));
@@ -1368,7 +1368,7 @@ retry:
 #endif
     {
         if ( (rv = soc_i2c_start(unit, SOC_I2C_TX_ADDR(saddr) ) ) < 0 ) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_block_write: "
                                  "failed to generate start.\n"),
@@ -1379,7 +1379,7 @@ retry:
 
         do {
             if ( (rv = soc_i2c_write_one_byte(unit, com) ) < 0 ) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_block_write: "
                                      "failed to send com byte.\n"),
@@ -1388,7 +1388,7 @@ retry:
     	}
 
     	if ( (rv = soc_i2c_write_one_byte(unit, count) ) < 0 ) {
-    	    LOG_INFO(BSL_LS_SOC_I2C,
+    	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "i2c%d: soc_i2c_block_write: "
                                  "failed to send count byte.\n"),
@@ -1398,7 +1398,7 @@ retry:
     	ptr = data;
     	for( i = 0; i < (int) count; i++, ptr++) {
     	    if ( (rv = soc_i2c_write_one_byte(unit, *ptr) ) < 0 ) {
-    	        LOG_INFO(BSL_LS_SOC_I2C,
+    	        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "i2c%d: soc_i2c_block_write: "
                                      "failed to send byte %d.\n"),

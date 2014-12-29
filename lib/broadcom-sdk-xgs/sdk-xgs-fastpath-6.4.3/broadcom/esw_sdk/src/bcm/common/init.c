@@ -81,11 +81,11 @@ bcm_module_name(int unit, int module_num)
 
         i = sizeof(_bcm_module_names) / sizeof(_bcm_module_names[0]) - 1;
 
-        LOG_ERROR(BSL_LS_BCM_INIT,
+        LOG_BSL_ERROR(BSL_LS_BCM_INIT,
                   (BSL_META_U(unit,
                               "bcm_module_name: BCM_MODULE_NAMES_INITIALIZER(%d) and BCM_MODULE__COUNT(%d) mis-match\n"), i, BCM_MODULE__COUNT));
         for(;i >= 0;i--) {
-            LOG_ERROR(BSL_LS_BCM_INIT,
+            LOG_BSL_ERROR(BSL_LS_BCM_INIT,
                       (BSL_META_U(unit,
                                   "%2d. %s\n"), i, _bcm_module_names[i]));
         }

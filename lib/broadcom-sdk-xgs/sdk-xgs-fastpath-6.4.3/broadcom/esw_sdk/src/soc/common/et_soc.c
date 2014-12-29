@@ -232,7 +232,7 @@ et_soc_attach(int unit)
         return SOC_E_NONE;
     }
 #endif
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "----- interrupt connect-------\n")));
     /* register our interrupt handler */
@@ -622,7 +622,7 @@ et_soc_done_knet_tx(int unit, uint32 seq_no)
         }
         dv = dv->dv_next;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "done_knet_tx seq_no %d found %d\n"),seq_no,found));
     if (found){
@@ -646,7 +646,7 @@ et_soc_done_knet_tx(int unit, uint32 seq_no)
         last_tx_seq_no = seq_no;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "et_soc_done_knet_tx et_soc->txq_done_cnt %d\n"),
                  et_soc->txq_done_cnt));
@@ -1248,7 +1248,7 @@ et_soc_rx_chain(int unit, eth_dv_t *dv_chain)
     max_channels = 1;
 #endif
     if ((chan < 0) || (chan >= max_channels)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "et_soc_rx_chain: invalid dma channel\n")));
         chan =
@@ -1278,7 +1278,7 @@ et_soc_rx_chain(int unit, eth_dv_t *dv_chain)
         if (!et_soc->rxq_done_tail[chan]) {
             et_soc->rxq_done_tail[chan] = et_soc->rxq_tail[chan];
         }
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "chain updated rxq_head:%p rxq_tail %p \n"
                              "rxq_done_head:%p rxq_done_tail:%p\n"),
@@ -1325,7 +1325,7 @@ et_soc_rx_chain_get(int unit, int chan, int flags)
     max_channels = 1;
 #endif
     if ((chan < 0) || (chan >= max_channels)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "et_soc_rx_chain_get(): invalid dma channel\n")));
         return dv;
@@ -1339,7 +1339,7 @@ et_soc_rx_chain_get(int unit, int chan, int flags)
     if (SOC_KNET_MODE(et_soc->dev)) {
         eth_dv_t *dv_avail;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "et_soc_rx_chain_get chan %d flags %x \n"),
                      chan, flags));
@@ -1353,7 +1353,7 @@ et_soc_rx_chain_get(int unit, int chan, int flags)
                     et_soc->rxq_done_tail[chan] = dv_avail->dv_next;
                 }                
             }
-            LOG_VERBOSE(BSL_LS_SOC_DMA,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                         (BSL_META_U(unit,
                                     "rx_fill : %p\n"),
                          (void *)dv_avail));
@@ -1362,14 +1362,14 @@ et_soc_rx_chain_get(int unit, int chan, int flags)
 
         if (flags == ET_RXCHAIN_F_GET_DONE_DV) { 
             if(et_soc->rxq_head[chan] == et_soc->rxq_done_head[chan]){
-                LOG_INFO(BSL_LS_SOC_DMA,
+                LOG_BSL_INFO(BSL_LS_SOC_DMA,
                          (BSL_META_U(unit,
                                      "done_chain rxq_head:%p rxq_tail %p \n"
                                      "rxq_done_head:%p rxq_done_tail:%p\n"),
                           (void *)et_soc->rxq_head[chan],(void *)et_soc->rxq_tail[chan],
                           (void *)et_soc->rxq_done_head[chan],(void *)et_soc->rxq_done_tail[chan]));
 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "return NULL dv \n")));
                 return NULL;
@@ -1409,7 +1409,7 @@ et_soc_knet_rx_event_update(int unit, int chan, uint32 seq_no)
         /* update the et_soc->rxq_done_head */
         dv_avail = et_soc->rxq_done_head[chan];
         while (dv_avail){
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "request req_no %d dv %p seq_no %d\n"),
                          seq_no,(void *)dv_avail,dv_avail->dv_seq_no));
@@ -1419,14 +1419,14 @@ et_soc_knet_rx_event_update(int unit, int chan, uint32 seq_no)
                 break;
             }            
             if (dv_avail == et_soc->rxq_done_tail[chan]){
-                LOG_VERBOSE(BSL_LS_SOC_DMA,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                             (BSL_META_U(unit,
                                         "can't found till rxq_done_tail %p %d\n"),
                              (void *)dv_avail,dv_avail->dv_seq_no));
                 break;
             }
             if (dv_avail == et_soc->rxq_tail[chan]){
-                LOG_VERBOSE(BSL_LS_SOC_DMA,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                             (BSL_META_U(unit,
                                         "can't found till rxq_tail %p %d\n"),
                              (void *)dv_avail,dv_avail->dv_seq_no));
@@ -1435,7 +1435,7 @@ et_soc_knet_rx_event_update(int unit, int chan, uint32 seq_no)
             dv_avail = dv_avail->dv_next;
         }
         if (found) {
-            LOG_INFO(BSL_LS_SOC_DMA,
+            LOG_BSL_INFO(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "before rxq_head:%p rxq_tail %p \n"
                                  "rxq_done_head:%p rxq_done_tail:%p\n"),
@@ -1451,12 +1451,12 @@ et_soc_knet_rx_event_update(int unit, int chan, uint32 seq_no)
                     et_soc->rxq_done_head[chan] = dv_avail->dv_next;
                 }
             }
-            LOG_INFO(BSL_LS_SOC_DMA,
+            LOG_BSL_INFO(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "dv_avail %p next %p\n"),
                       (void *)dv_avail,(void *)dv_avail->dv_next));
 
-            LOG_INFO(BSL_LS_SOC_DMA,
+            LOG_BSL_INFO(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "updated rxq_head:%p rxq_tail %p \n"
                                  "rxq_done_head:%p rxq_done_tail:%p\n"),
@@ -1465,7 +1465,7 @@ et_soc_knet_rx_event_update(int unit, int chan, uint32 seq_no)
 
         }
     }
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "event update rxq_done_head[%d]:%p" 
                          " rxq_head[%d]:%p found %d \n"),
@@ -1509,7 +1509,7 @@ void et_soc_knet_rxfill(int unit, int chan)
         }
         dv->dv_seq_no = cmdrx_seqno[chan];
         dcb->desc_seqno = cmdrx_seqno[chan]++;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "set RXFILL dv %p seq_no %d dcb %x\n"),
                      (void *)dv,dv->dv_seq_no, soc_cm_l2p(et_soc->dev,(void *)dcb)));
@@ -1542,13 +1542,13 @@ et_soc_done_knet_rx(int unit, int chan)
             ET_SOC_DMA_LOCK(et_soc);
             continue;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "et_soc_done_knet_rx ==> sendup \n")));
         et_soc_sendup(et_soc, dv);
     
         if (++sendup > 16) {
-            LOG_INFO(BSL_LS_SOC_DMA,
+            LOG_BSL_INFO(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "et_soc_done_knet_rx ==> sendup %d\n\n"),sendup));
 
@@ -1557,7 +1557,7 @@ et_soc_done_knet_rx(int unit, int chan)
         ET_SOC_DMA_LOCK(et_soc);
     }
     ET_SOC_DMA_UNLOCK(et_soc);
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "et_soc_done_knet_rx ==> sendup %d\n\n"),sendup));
 

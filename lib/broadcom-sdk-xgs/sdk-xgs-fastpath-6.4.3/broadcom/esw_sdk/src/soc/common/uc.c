@@ -506,7 +506,7 @@ soc_uc_iproc_reset(int unit, int uC)
         return (SOC_E_FAIL);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "iproc_reset uC %d\n"), uC));
 
@@ -580,13 +580,13 @@ soc_uc_iproc_l2cache_purge(int unit, uint32 start, uint32 len)
     }
 
     READ_IHOST_L2C_CACHE_IDr(unit, &regval);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "iproc_reset L2C_CACHE_ID 0x%08x\n"), regval));
 
     READ_IHOST_L2C_CONTROLr(unit, &regval);
     if (regval & 0x01) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "L2 cache enabled, clean %d bytes at 0x%08x\n"),
                      len, start));
@@ -597,7 +597,7 @@ soc_uc_iproc_l2cache_purge(int unit, uint32 start, uint32 len)
     }
     else {
         /* L2 cache disabled, skip */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "L2 cache disabled 0x%08x\n"), regval));
     }
@@ -652,7 +652,7 @@ soc_uc_iproc_start(int unit, int uC, uint32 iproc_address)
         return (SOC_E_FAIL);
     } 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "iproc_start uC %d addr 0x%08x\n"), uC, iproc_addr));
 

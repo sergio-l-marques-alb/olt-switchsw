@@ -238,7 +238,7 @@ drv_tbx_storm_control_enable_set(int unit, uint32 port, uint8 enable)
     uint32  index, field_val32;
     int  rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_tbx_storm_control_enable_set: \
                          unit = %d, port = %d, %sable\n"), unit, port, (enable) ? "en" : "dis"));
@@ -330,7 +330,7 @@ drv_tbx_storm_control_enable_get(int unit, uint32 port, uint8 *enable)
     SOC_IF_ERROR_RETURN(rv);
     *enable = field_val32;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_tbx_storm_control_enable_get: \
                          unit = %d, port = %d, %sable\n"), unit, port, (*enable) ? "en" : "dis"));
@@ -366,7 +366,7 @@ drv_tbx_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     uint32  bucket_field_bkt_size = 0, bucket_field_ref_cnt = 0;
     int  rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_tbx_storm_control_set: \
                          unit = %d, bmp = 0x%x, type = 0x%x, limit = %dK, burst = %dK\n"),
@@ -381,7 +381,7 @@ drv_tbx_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     /* coverity[unsigned_compare] */
     if ((limit > TB_RATE_METER_MAX(unit)) ||
         (limit < TB_RATE_METER_MIN(unit))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_tbx_storm_control_set : rate unsupported.\n")));
         return SOC_E_PARAM;
@@ -396,7 +396,7 @@ drv_tbx_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     /* coverity[unsigned_compare] */
     if ((burst_size > TB_RATE_BURST_MAX(unit)) ||
         (burst_size < TB_RATE_BURST_MIN(unit))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_tbx_storm_control_set : burst size unsupported.\n")));
         return SOC_E_PARAM;
@@ -566,7 +566,7 @@ drv_tbx_storm_control_get(int unit, uint32 port, uint32 *type,
         *burst_size = (field_val32 * TB_RATE_BUCKET_UNIT_SIZE(unit) * 8) / 1000;
     
     }
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_tbx_storm_control_get: \
                          unit = %d, port = %d, type = 0x%x, limit = %dK, burst = %dK\n"),

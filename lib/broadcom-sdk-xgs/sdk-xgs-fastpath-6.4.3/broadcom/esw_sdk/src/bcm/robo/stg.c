@@ -633,7 +633,7 @@ int bcm_robo_stg_init(int unit)
     int  alloc_size;
     uint32  drv_value;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_init()..\n")));
     if (!SOC_UNIT_VALID(unit)) {
@@ -765,7 +765,7 @@ bcm_robo_stg_clear(int unit)
     bcm_stg_info_t  *si = &robo_stg_info[unit];
     bcm_stg_t  stg;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_clear()..\n")));
     CHECK_INIT(unit, si);
@@ -830,7 +830,7 @@ bcm_robo_stg_default_get(int unit, bcm_stg_t *stg_ptr)
 {
     bcm_stg_info_t	*si = &robo_stg_info[unit];
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_default_get()..\n")));
     CHECK_INIT(unit, si);
@@ -861,7 +861,7 @@ bcm_robo_stg_default_set(int unit, bcm_stg_t stg)
     CHECK_INIT(unit, si);
     CHECK_STG(si, stg);
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_default_set()..\n")));
     if (!STG_BITMAP_TST(si, stg)) {
@@ -899,7 +899,7 @@ bcm_robo_stg_vlan_add(int unit, bcm_stg_t stg, bcm_vlan_t vid)
     bcm_stg_info_t  *si = &robo_stg_info[unit];
     int  rv = 0;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_vlan_add()..\n")));
     CHECK_INIT(unit, si);
@@ -930,7 +930,7 @@ bcm_robo_stg_vlan_remove(int unit, bcm_stg_t stg, bcm_vlan_t vid)
    bcm_stg_info_t  *si = &robo_stg_info[unit];
     int  rv;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_vlan_remove()..\n")));
     CHECK_INIT(unit, si);
@@ -961,7 +961,7 @@ bcm_robo_stg_vlan_remove_all(int unit, bcm_stg_t stg)
     int  rv = 0;
     bcm_vlan_t	  vid;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_vlan_remove_all()..\n")));
     CHECK_INIT(unit, si);
@@ -1017,7 +1017,7 @@ bcm_robo_stg_vlan_list(int unit, bcm_stg_t stg,
     bcm_vlan_t	  v;
     int  n;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_vlan_list()..\n")));
     CHECK_INIT(unit, si);
@@ -1081,7 +1081,7 @@ bcm_robo_stg_vlan_list_destroy(int unit, bcm_vlan_t *list, int count)
     COMPILER_REFERENCE(unit);
     COMPILER_REFERENCE(count);
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_vlan_list_destroy()..\n")));
     if (list != NULL) {
@@ -1110,7 +1110,7 @@ bcm_robo_stg_create(int unit, bcm_stg_t *stg_ptr) /* Generate new ID */
     bcm_stg_t  stg;
     int  rv;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_create()..\n")));
     CHECK_INIT(unit, si);
@@ -1152,7 +1152,7 @@ bcm_robo_stg_create_id(int unit, bcm_stg_t stg)	/* Use specific ID */
    bcm_stg_info_t  *si = &robo_stg_info[unit];
     int  rv = BCM_E_NONE;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_create_id()..\n")));
     CHECK_INIT(unit, si);
@@ -1193,7 +1193,7 @@ bcm_robo_stg_destroy(int unit, bcm_stg_t stg)
     bcm_stg_info_t  *si = &robo_stg_info[unit];
     int  rv;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_destroy()..\n")));
     CHECK_INIT(unit, si);
@@ -1242,7 +1242,7 @@ bcm_robo_stg_list(int unit, bcm_stg_t **list, int *count)
     bcm_stg_t  stg;
     int  n;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_list()..\n")));
     CHECK_INIT(unit, si);
@@ -1293,7 +1293,7 @@ bcm_robo_stg_list_destroy(int unit, bcm_stg_t *list, int count)
     COMPILER_REFERENCE(unit);
     COMPILER_REFERENCE(count);
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_list_destroy()..\n")));
     if (list != NULL) {
@@ -1324,7 +1324,7 @@ bcm_robo_stg_stp_set(int unit, bcm_stg_t stg,
     bcm_stg_info_t  *si = &robo_stg_info[unit];
     int  rv;
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_stp_set()..port = %d, state = %d\n"),
               port, stp_state));
@@ -1396,7 +1396,7 @@ bcm_robo_stg_stp_get(int unit, bcm_stg_t stg,
 
     rv = _bcm_robo_stg_stp_get(unit, stg, port, stp_state);
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_stp_get()..port = %d, state = %d\n"),
               port, *stp_state));
@@ -1420,7 +1420,7 @@ bcm_robo_stg_count_get(int unit, int *max_stg)
 {
     bcm_stg_info_t  *si = &robo_stg_info[unit];
 
-    LOG_INFO(BSL_LS_BCM_STP,
+    LOG_BSL_INFO(BSL_LS_BCM_STP,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_stg_count_get()..\n")));
     CHECK_INIT(unit, si);

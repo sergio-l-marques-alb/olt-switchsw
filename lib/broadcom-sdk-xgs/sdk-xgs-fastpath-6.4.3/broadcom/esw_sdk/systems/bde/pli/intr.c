@@ -91,7 +91,7 @@ intr_dispatch(void *v_void)
     verinet_t *v = (verinet_t *)v_void;
     int s;
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("intr_dispatch: running, sema=%p\n"),
               v->intrDispatchSema));
 
@@ -109,7 +109,7 @@ intr_dispatch(void *v_void)
 	 * suspend all other threads and spl() resume them.
 	 */
 
-        LOG_INFO(BSL_LS_SYS_VERINET,
+        LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                  (BSL_META("intr_dispatch: ISR=%p ISR_data=%p\n"),
                   v->ISR, v->ISR_data));
 
@@ -120,7 +120,7 @@ intr_dispatch(void *v_void)
 	}
     }
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("intr_dispatch: thread exiting ....\n")));
     sal_sem_destroy(v->intrDispatchSema);
     cli_out("INTC dispatcher shutdown.\n");
@@ -163,14 +163,14 @@ intr_handler(void *v_void)
     }
 
     while (!v->intrFinished) {
-        LOG_INFO(BSL_LS_SYS_VERINET,
+        LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                  (BSL_META("intr_handler: wait...\n")));
 
 	if (wait_command(sockfd, &cmd) < 0) {
 	    break;	/* Error message already printed */
 	}
 
-        LOG_INFO(BSL_LS_SYS_VERINET,
+        LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                  (BSL_META("intr_handler: request opcode 0x%x\n"),
                   cmd.opcode));
 
@@ -183,7 +183,7 @@ intr_handler(void *v_void)
 	    write_command(sockfd, &cmd);
 
 	    if (v->intrSkipTest) {
-                LOG_INFO(BSL_LS_SYS_VERINET,
+                LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                          (BSL_META("Test interrupt received (ignoring)\n")));
 		v->intrSkipTest = 0;
 		break;
@@ -191,7 +191,7 @@ intr_handler(void *v_void)
 
 	    /* Wake up dispatch thread */
 
-            LOG_INFO(BSL_LS_SYS_VERINET,
+            LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                      (BSL_META("Wake dispatch\n")));
 
 	    sal_sem_give(v->intrDispatchSema);
@@ -228,7 +228,7 @@ intr_set_vector(verinet_t *v, pli_isr_t isr, void *isr_data)
      * Set interrupt vector
      */
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("intr_set_vector: dev=%d isr=%p isr_data=%p\n"),
               (int)(v - verinet), isr, isr_data));
 
@@ -306,13 +306,13 @@ intr_listener(void *v_void)
 	    if (SAL_THREAD_ERROR == v->intrHandlerThread) {
 		cli_out("start_isr_service: thread creation error\n");
 	    } else{
-                LOG_INFO(BSL_LS_SYS_VERINET,
+                LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                          (BSL_META("Interrupt request thread dispatched.\n")));
 	    }
 	}
     }
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("INTC listener shutdown.\n")));
     sal_thread_exit(0);
 }

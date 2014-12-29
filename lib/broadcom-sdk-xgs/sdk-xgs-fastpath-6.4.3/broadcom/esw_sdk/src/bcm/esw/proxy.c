@@ -761,7 +761,7 @@ _bcm_esw_proxy_client_install_xgs3(int unit,
     rv = _bcm_esw_proxy_client_create_xgs3(unit, info);
 
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_BCM_L3,
+        LOG_BSL_WARN(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "Proxy: could not install client: %s\n"),
                   bcm_errmsg(rv)));

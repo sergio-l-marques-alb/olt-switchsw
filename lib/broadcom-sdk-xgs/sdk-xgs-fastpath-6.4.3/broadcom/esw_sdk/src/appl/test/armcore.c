@@ -158,17 +158,17 @@ arm_core_test(int u, args_t *args, void *pa)
         }
         switch (rc) {
         case MOS_TEST_RC_OK:
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(u,
                                  "test %d PASS\n"), r));
             break;
         case MOS_TEST_RC_FAILURE:
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(u,
                                  "test %d FAIL\n"), r));
             break;
         case MOS_TEST_RC_INVALID:
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(u,
                                  "test %d SKIP\n"), r));
             break;

@@ -821,7 +821,7 @@ robo_eav_tx(int unit, args_t *args)
     ENET_SET_MACADDR(ep->en_shost, station_mac);
     
     if ((rv = bcm_tx(unit, &pkt, NULL)) != BCM_E_NONE) {        
-        LOG_ERROR(BSL_LS_APPL_COMMON,
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
                               "bcm_tx failed: Unit %d: %s\n"),                   
                    unit, bcm_errmsg(rv)));        

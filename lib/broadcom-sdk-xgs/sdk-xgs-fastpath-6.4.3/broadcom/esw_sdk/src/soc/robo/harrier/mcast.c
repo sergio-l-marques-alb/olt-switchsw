@@ -100,7 +100,7 @@ drv_harrier_mcast_bmp_get(int unit, uint32 *entry, soc_pbmp_t *bmp)
         SOC_PBMP_WORD_SET(*bmp, 0, fld_v32);
     }
     
-    LOG_INFO(BSL_LS_SOC_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
              (BSL_META_U(unit,
                          "drv_mcast_bmp_get: unit %d, bmp = 0x%x 0x%x\n"),
               unit, SOC_PBMP_WORD_GET(*bmp, 0), SOC_PBMP_WORD_GET(*bmp, 1)));
@@ -135,7 +135,7 @@ drv_harrier_mcast_bmp_set(int unit, uint32 *entry, soc_pbmp_t bmp, uint32 flag)
     uint64  fld_v64;
     
     assert(entry);
-    LOG_INFO(BSL_LS_SOC_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_SOC_L2TABLE,
              (BSL_META_U(unit,
                          "drv_mcast_bmp_set: unit %d, bmp = 0x%x 0x%x flag %x\n"),
               unit, SOC_PBMP_WORD_GET(bmp, 0), SOC_PBMP_WORD_GET(bmp, 1), flag));

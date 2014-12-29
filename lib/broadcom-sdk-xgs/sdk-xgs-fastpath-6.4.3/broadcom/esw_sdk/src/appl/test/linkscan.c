@@ -228,7 +228,7 @@ ls_test_init(int u, args_t *args, void **pa)
     if (bsl_check(bslLayerAppl, bslSourceTests, bslSeverityNormal, u)) {
         char    s[FORMAT_PBMP_MAX];
         (void)format_pbmp(u, s, sizeof(s), pbmp);
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(u,
                              "Running on ports: %s\n"), s));
     }
@@ -274,7 +274,7 @@ ls_test_init(int u, args_t *args, void **pa)
                     ls_work[u] = NULL;
                     return(-1);
                 }
-                LOG_WARN(BSL_LS_APPL_TESTS,
+                LOG_BSL_WARN(BSL_LS_APPL_TESTS,
                          (BSL_META_U(u,
                                      "Port %d skipped due to unsupported PHY reads.\n"), p));
                 continue;
@@ -296,7 +296,7 @@ ls_test_init(int u, args_t *args, void **pa)
             ls_work[u] = NULL;
             return(-1);
         }
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(u,
                              "unit %d port %s has phy id 0x%04x 0x%04x\n"),
                   u, SOC_PORT_NAME(u, p), ls->ls_id0[p], ls->ls_id1[p]));

@@ -189,7 +189,7 @@ _phy_5482_medium_check(int unit, soc_port_t port, int *medium)
                   SOC_PORT_MEDIUM_COPPER;
     } 
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_5482_medium_check: "
                             "u=%d p=%d fiber_pref=%d 0x1c(11111)=%04x fiber=%d\n"),
@@ -462,7 +462,7 @@ _phy_5482_no_reset_setup(int unit, soc_port_t port)
     phy_ctrl_t    *pc;
     uint16         data, mask;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_5482_reset_setup: u=%d p=%d medium=%s\n"),
                          unit, port,
@@ -708,7 +708,7 @@ phy_5482_init(int unit, soc_port_t port)
     int                 fiber_capable;
     int                 fiber_preferred;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_init: u=%d p=%d\n"),
                          unit, port));
@@ -746,7 +746,7 @@ phy_5482_init(int unit, soc_port_t port)
             soc_property_port_get(unit, port, spn_PHY_FIBER_DETECT, 0);
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_init: "
                          "u=%d p=%d type=5482%s automedium=%d fiber_pref=%d detect=%d\n"),
@@ -831,7 +831,7 @@ phy_5482_enable_set(int unit, soc_port_t port, int enable)
         SOC_IF_ERROR_RETURN
             (MODIFY_PHY5482_MII_CTRLr(unit, pc, power, MII_CTRL_PD));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_5482_enable_set: "
                              "Power %s copper medium\n"), (enable) ? "up" : "down"));
@@ -842,7 +842,7 @@ phy_5482_enable_set(int unit, soc_port_t port, int enable)
             (MODIFY_PHY5482_2ND_SERDES_1000X_CTRLr(unit, pc, power, 
                                                    MII_CTRL_PD));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_5482_enable_set: "
                              "Power %s fiber medium\n"), (enable) ? "up" : "down"));
@@ -892,7 +892,7 @@ _phy_5482_fiber_100fx_setup(int unit, soc_port_t port)
 
     pc          = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_5482_1000x_to_100fx: u=%d p=%d \n"),
                  unit, port));
@@ -950,7 +950,7 @@ _phy_5482_fiber_1000x_setup(int unit, soc_port_t port)
 
     pc          = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_5482_fiber_1000x_setup: u=%d p=%d \n"),
                  unit, port));
@@ -1012,7 +1012,7 @@ _phy_5482_medium_change(int unit, soc_port_t port, int force_update)
                 SOC_IF_ERROR_RETURN
                     (_phy_5482_medium_config_update(unit, port, &pc->copper));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_5482_link_auto_detect: u=%d p=%d [F->C]\n"),
                       unit, port));
@@ -1029,7 +1029,7 @@ _phy_5482_medium_change(int unit, soc_port_t port, int force_update)
                 SOC_IF_ERROR_RETURN
                     (_phy_5482_medium_config_update(unit, port, &pc->fiber));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_5482_link_auto_detect: u=%d p=%d [C->F]\n"),
                       unit, port));
@@ -1108,7 +1108,7 @@ phy_5482_link_get(int unit, soc_port_t port, int *link)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_5482_link_get: u=%d p=%d mode=%s%s link=%d\n"),
                  unit, port,
@@ -1165,7 +1165,7 @@ phy_5482_duplex_set(int unit, soc_port_t port, int duplex)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_duplex_set: u=%d p=%d d=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -1283,7 +1283,7 @@ phy_5482_speed_set(int unit, soc_port_t port, int speed)
             (WRITE_PHY5482_1000X_MII_CTRLr(unit, pc, mii_ctrl));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_speed_set: u=%d p=%d s=%d fiber=%d rv=%d\n"),
               unit, port, speed, PHY_FIBER_MODE(unit, port), rv));
@@ -1332,7 +1332,7 @@ phy_5482_speed_get(int unit, soc_port_t port, int *speed)
             *speed = 1000;
             break;
         default:
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_5482_speed_get: u=%d p=%d invalid speed\n"),
                       unit, port));
@@ -1370,7 +1370,7 @@ phy_5482_master_set(int unit, soc_port_t port, int master)
             pc->copper.master = master;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_master_set: u=%d p=%d master=%d fiber=%d rv=%d\n"),
               unit, port, master, PHY_FIBER_MODE(unit, port), rv));
@@ -1477,7 +1477,7 @@ phy_5482_autoneg_set(int unit, soc_port_t port, int autoneg)
         pc->fiber.autoneg_enable = autoneg ? TRUE : FALSE;
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_autoneg_set: u=%d p=%d autoneg=%d rv=%d\n"),
               unit, port, autoneg, rv));
@@ -1591,7 +1591,7 @@ phy_5482_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
             pc->fiber.autoneg_advert = mode & ADVERT_ALL_FIBER;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_adv_local_set: u=%d p=%d mode=0x%x, rv=%d\n"),
               unit, port, mode, rv));
@@ -1779,7 +1779,7 @@ phy_5482_lb_set(int unit, soc_port_t port, int enable)
                 }
             }
             if (!link) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "phy_5482_lb_set: u=%d p=%d TIMEOUT\n"),
                           unit, port));
@@ -1788,7 +1788,7 @@ phy_5482_lb_set(int unit, soc_port_t port, int enable)
             }
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_lb_set: u=%d p=%d en=%d rv=%d\n"), 
               unit, port, enable, rv));

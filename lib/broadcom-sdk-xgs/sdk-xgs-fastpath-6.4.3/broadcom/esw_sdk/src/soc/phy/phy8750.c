@@ -345,7 +345,7 @@ phy_8750_init(int unit, soc_port_t port)
         }
     }
     if (((data16 & MII_CTRL_RESET) != 0) || SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY8750/8726 reset failed: u=%d p=%d\n"),
                   unit, port));
@@ -384,7 +384,7 @@ phy_8750_init(int unit, soc_port_t port)
     if (ucode_ver >= 0x0301) {
         rv = READ_PHY8750_MMF_PMA_PMD_REG(unit, pc, 0xCA1C, &data16);
         if (data16 != 0x600D || SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "8750: p=%d SPI-ROM load: Bad Checksum (0x%x)\n"),
                                  port, data16));
@@ -393,14 +393,14 @@ phy_8750_init(int unit, soc_port_t port)
               */
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "8750: p=%d SPI-ROM load: Invalid Ucode version (0x%x)\n"),
                              port, ucode_ver));
              /* let it continue to allow other ports to initialize */
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "8750: u=%d port%d rom code ver: 0x%x: init.\n"),
                          unit, port, ucode_ver));
@@ -499,7 +499,7 @@ phy_8750_an_set(int unit, soc_port_t port, int an)
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_an_set: u=%d p=%d an=%d\n"),
                          unit, port, an));
@@ -577,7 +577,7 @@ phy_8750_ability_advert_get(int unit, soc_port_t port,
             break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_ability_advert_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -632,7 +632,7 @@ phy_8750_ability_remote_get(int unit, soc_port_t port,
         (READ_PHY8750_MMF_AN_REG(unit, pc, PHY8750_AN_STATUS_REG, &lp_abil));
     ability->flags     = (lp_abil & 0x1) ? SOC_PA_AUTONEG : 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_ability_remote_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -705,7 +705,7 @@ phy_8750_ability_advert_set(int unit, soc_port_t port,
                               MII_ANA_C37_HD ));
     PHY8750_MMF(unit, pc);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_ability_advert_set: u=%d p=%d pause=0x%08x adv_reg1=0x%04x\n"),
               unit, port, ability->pause, an_adv));
@@ -731,7 +731,7 @@ phy_8750_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
     phy_ctrl_t *pc;
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_ability_local_get: u=%d p=%d\n"),
               unit, port));
@@ -755,7 +755,7 @@ phy_8750_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
     ability->medium    = SOC_PA_MEDIUM_FIBER;
     ability->loopback  = SOC_PA_LB_PHY;
                                                                                
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_ability_local_get: u=%d p=%d speed=0x%x\n"),
               unit, port, ability->speed_full_duplex));
@@ -839,7 +839,7 @@ phy_8750_link_get(int unit, soc_port_t port, int *link)
         *link = (link_stat & MII_STAT_LA) ? TRUE : FALSE;
     } 
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_8750_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -945,7 +945,7 @@ phy_8750_lb_get(int unit, soc_port_t port, int *enable)
         (READ_PHY8750_PMA_PMD_CTRLr(unit, pc, &tmp));
     *enable = (tmp & PHY8750_MII_CTRL_PMA_LOOPBACK) ? TRUE : FALSE;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));
@@ -1115,7 +1115,7 @@ phy_8750_speed_set(int unit, soc_port_t port, int speed)
     int rv = SOC_E_NONE;
 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_speed_set: u=%d p=%d speed=%d\n"), 
                          unit, port,speed));
@@ -1306,7 +1306,7 @@ _phy8754_mdio_firmware_download(int unit, int port, int offset, uint8 *array,int
         (READ_PHY8750_MMF_PMA_PMD_REG(unit, pc, 
                                  PHY8750_PMAD_M8051_MSGOUT_REG, &data16));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy8754_mdio_firmware_download: p=%d msgout 0x%x\n"), 
                          port,data16));
@@ -1366,7 +1366,7 @@ phy_8750_rom_wait(int unit, int port)
         }
     } while (!soc_timeout_check(&to));
     if (!(rd_data & 0x0100)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_8750_rom_program: u = %d p = %d "
                               "timeout 1\n"), unit, port));
@@ -1434,7 +1434,7 @@ phy_8750_rom_wait(int unit, int port)
             }
         } while (!soc_timeout_check(&to));
         if (!(rd_data & 0x0100)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "phy_8750_rom_program: u = %d p = %d "
                                   "timeout 2\n"), unit, port));
@@ -1759,7 +1759,7 @@ phy_8750_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
     /* set SPI-ROM write enable */
     SOC_IF_ERROR_RETURN(phy_8750_rom_write_enable_set(unit, port, 1));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "init0: u=%d p=%d\n"),
                          unit, port));
@@ -1811,7 +1811,7 @@ phy_8750_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
         wr_data = (((j & 0x00FF) * 0x0100) | ((j & 0xFF00) / 0x0100));
         SOC_IF_ERROR_RETURN(write_message(unit, pc, wr_data, &rd_data));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "loop: u=%d p=%d,inxj: %d,inxi:%d\n"),
                              unit, port,j,i));
@@ -1923,7 +1923,7 @@ phy_8750_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
     SOC_IF_ERROR_RETURN
         (MODIFY_PHY8750_MMF_PMA_PMD_REG(unit, pc, 0xC848, 0xc0fd, 0xffff)); 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8750_rom_program: u=%d p=%d done\n"), unit, port));
 
@@ -1950,7 +1950,7 @@ write_message(int unit, phy_ctrl_t *pc, uint16 wrdata, uint16 *rddata)
             break;
     } while (!soc_timeout_check(&to));
     if (!(tmp_data & 0x4)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "write_message failed: wrdata %04x\n"), wrdata));
         return SOC_E_FAIL;

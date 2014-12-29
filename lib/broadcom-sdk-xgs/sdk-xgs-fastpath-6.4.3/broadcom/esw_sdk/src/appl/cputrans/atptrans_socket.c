@@ -444,7 +444,7 @@ recv_pkt_hdr(int fd, atp_sock_pkt_hdr_t *hdr)
         CPUDB_KEY_UNPACK(&hdr_buffer[PKT_SRC_KEY_OFS], hdr->src_key);
         UNPACK_LONG(&hdr_buffer[PKT_CLIENT_ID_OFS], hdr->client_id); 
         
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket: Receive packet header on socket %d, "
                             "data length %d, src_key %x:%x, client id %d\n"),
                    fd, hdr->len, hdr->src_key.key[4], hdr->src_key.key[5],
@@ -452,14 +452,14 @@ recv_pkt_hdr(int fd, atp_sock_pkt_hdr_t *hdr)
         
         rv = BCM_E_NONE;
     } else if (n_recv == 0) {    /* EOF */
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP-Socket: Connection socket %d received FIN\n"),
                      fd));
     } else if (n_recv < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: System error\n")));
     } else {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot read packet header\n")));
     }
     
@@ -495,20 +495,20 @@ recv_pkt_data(int fd, uint8 *buffer, int n_expected)
     n_recv = read_n(fd, buffer, n_expected);
     
     if (n_expected == n_recv) {
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket: Receive packet data on socket %d, "
                             "length %d\n"), fd, n_expected));
         rv = BCM_E_NONE;
     } else if (n_recv == 0) {    /* EOF */
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP-Socket: Connection socket %d received FIN\n"),
                      fd));
     } else if (n_recv < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: System error\n")));
     } else {
         /* Length of data read is not what was expected */
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Expected packet data length %d, "
                             "received %d bytes\n"), n_expected, n_recv));
     }
@@ -549,7 +549,7 @@ send_pkt_data(int client_id, int fd, uint8 *buffer, int data_len)
     hdr_size = sizeof(hdr_buffer);
     n_wrote = write_n(fd, (void *)hdr_buffer, hdr_size);
     if (n_wrote < hdr_size) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot send packet header\n")));
         return BCM_E_FAIL;
     }
@@ -557,13 +557,13 @@ send_pkt_data(int client_id, int fd, uint8 *buffer, int data_len)
     /* Send packet data */
     n_wrote = write_n(fd, buffer, data_len);
     if (n_wrote < data_len) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot send packet data, "
                    "payload length %d, sent %d\n"), data_len, n_wrote));
         return BCM_E_FAIL;
     }
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Send packet on socket %d, "
                         "payload length %d, src key " CPUDB_KEY_FMT
                         ", client id %d\n"), fd, data_len,
@@ -617,7 +617,7 @@ rx_conn_thread(void *cookie)
 
     rx_sock = conn_ptr->sock_fd;
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Start RX Connection Thread, socket %d\n"),
                  rx_sock));
     thread = sal_thread_self();
@@ -636,7 +636,7 @@ rx_conn_thread(void *cookie)
         data_len = hdr.len;
         buffer = atp_rx_data_alloc(data_len);
         if (buffer == NULL) {
-            LOG_ERROR(BSL_LS_TKS_ATP,
+            LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                       (BSL_META("AbnormalThreadExit:%s ERROR: Cannot allocate receive "
                        "buffer\n"), thread_name));
             rv = BCM_E_MEMORY;
@@ -715,11 +715,11 @@ rx_conn_thread(void *cookie)
     }
 
     ip_to_str(dest_ip_str, dest_ip);
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Destroy connection to '%s', socket %d\n"),
                dest_ip_str, rx_sock));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("AbnormalThreadExit:%s\n"),
                    thread_name)); 
     }   
@@ -768,7 +768,7 @@ conn_destroy(atp_sock_db_entry_t *db_ptr)
     }
     
     if (i >= ATP_SOCK_STOP_RETRIES_MAX) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot destroy connection on "
                    "socket %d\n"), db_ptr->conn.sock_fd));
         return BCM_E_FAIL;
@@ -829,7 +829,7 @@ conn_create(atp_sock_db_entry_t *db_ptr, int sock_fd)
     
     conn_ptr = &db_ptr->conn;
     if (conn_ptr->flags & ATP_SOCK_CONN_VALID) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR:  Connection already exists\n")));
         return BCM_E_EXISTS;
     }
@@ -850,7 +850,7 @@ conn_create(atp_sock_db_entry_t *db_ptr, int sock_fd)
         conn_ptr->flags = ATP_SOCK_CONN_CLEAR;
         conn_ptr->sock_fd = -1;
         conn_ptr->rx_thread_name[0]='\0';
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot create connection thread\n")));
         return BCM_E_FAIL;
     }
@@ -867,7 +867,7 @@ conn_create(atp_sock_db_entry_t *db_ptr, int sock_fd)
     }
 
     ip_to_str(dest_ip_str, db_ptr->ip);
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Created connection to '%s', socket %d, "
                         "thread '%s'\n"),
                dest_ip_str, conn_ptr->sock_fd,
@@ -906,13 +906,13 @@ conn_request(atp_sock_db_entry_t *db_ptr)
 
     ip_to_str(dest_ip_str, db_ptr->ip);
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Connection request to '%s'\n"),
                  dest_ip_str));
 
     /* Open socket */
     if ((conn_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot open socket (err=%d)\n"),
                    conn_sock));
         return conn_sock;
@@ -928,7 +928,7 @@ conn_request(atp_sock_db_entry_t *db_ptr)
 
     if ((rv = connect(conn_sock, 
                       (struct sockaddr *) &server_addr, addr_len)) < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot connect to '%s' (err=%d)\n"),
                    dest_ip_str, rv));
         close(conn_sock);
@@ -937,7 +937,7 @@ conn_request(atp_sock_db_entry_t *db_ptr)
 
     rv = conn_create(db_ptr, conn_sock);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot create TX connection to '%s', "
                    "closing socket %d\n"), dest_ip_str, conn_sock));
         close(conn_sock);
@@ -945,7 +945,7 @@ conn_request(atp_sock_db_entry_t *db_ptr)
     }
 
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Connection established with '%s' on socket "
                  "%d\n"), dest_ip_str, conn_sock));
 
@@ -1164,7 +1164,7 @@ db_entry_create(atp_sock_db_entry_t **list,
     
     db_insert_front(list, entry);
     
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Added CPU key " CPUDB_KEY_FMT "\n"),
                CPUDB_KEY_DISP(entry->cpu_key)));
     
@@ -1263,7 +1263,7 @@ accept_connection(int listen_sock)
                 (struct sockaddr *) &client_addr, &addr_len);
     
     if (rv < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP-Socket:  Accept returned error on socket %d "
                      "(rv=%d)\n"), listen_sock, rv));
         return BCM_E_FAIL;
@@ -1276,12 +1276,12 @@ accept_connection(int listen_sock)
     dest_ip = ntohl(client_addr.sin_addr.s_addr);
     ip_to_str(dest_ip_str, dest_ip);
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Connection request from client '%s' on "
                  "socket %d\n"), dest_ip_str, conn_sock));
     
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP-Socket WARNING: Invalid IP address '%s', closing "
                   "socket %d\n"), dest_ip_str, conn_sock));
         close(conn_sock);
@@ -1296,7 +1296,7 @@ accept_connection(int listen_sock)
                                       atp_sock_cpu_key_null, dest_ip,
                                       ATP_SOCK_DB_CLEAR)) == NULL) {
             ATP_SOCK_UNLOCK;
-            LOG_WARN(BSL_LS_TKS_ATP,
+            LOG_BSL_WARN(BSL_LS_TKS_ATP,
                      (BSL_META("ATP-Socket ERROR: Cannot create new entry, "
                       "closing socket %d\n"), conn_sock));
             close(conn_sock);
@@ -1307,7 +1307,7 @@ accept_connection(int listen_sock)
     /* Check that connection does not exist */
     if (db_ptr->conn.flags & ATP_SOCK_CONN_VALID) {
         ATP_SOCK_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP-Socket ERROR: Connection already exists, closing "
                   "socket %d\n"), conn_sock));
         close(conn_sock);
@@ -1318,7 +1318,7 @@ accept_connection(int listen_sock)
     rv = conn_create(db_ptr, conn_sock);
     if (BCM_FAILURE(rv)) {
         ATP_SOCK_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP-Socket WARNING: Cannot create connection to '%s', "
                   "closing socket %d\n"), dest_ip_str, conn_sock));
         close(conn_sock);
@@ -1359,7 +1359,7 @@ server_conn_thread(void *cookie)
 
     /* Open socket */
     if ((rv = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot open Server listening socket "
                    "(err=%d)\n"), rv));
         atp_sock_server_thread_id = SAL_THREAD_ERROR;
@@ -1384,7 +1384,7 @@ server_conn_thread(void *cookie)
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);      
     if ((rv = bind (listen_sock, 
                     (struct sockaddr *) &server_addr, addr_len)) < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot bind Server listening "
                    "socket %d (err=%d)\n"), listen_sock, rv));
         close(listen_sock);
@@ -1395,7 +1395,7 @@ server_conn_thread(void *cookie)
 
     /* Set the socket to listen for connection requests */
     if ((rv = listen(listen_sock, ATP_SOCK_BACKLOG)) < 0) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot set Server listening mode "
                    "on socket %d (err=%d)\n"), listen_sock, rv));
         close(listen_sock);
@@ -1407,7 +1407,7 @@ server_conn_thread(void *cookie)
     atp_sock_server_lport = listen_port;
     atp_sock_server_lsock = listen_sock;
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Server ready, listening on socket %d\n"),
                  atp_sock_server_lsock));
 
@@ -1423,7 +1423,7 @@ server_conn_thread(void *cookie)
     }
     close(atp_sock_server_lsock);
     
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Exit Server Thread '%s', "
                  "close socket %d\n"), atp_sock_server_thread_name,
                  atp_sock_server_lsock));
@@ -1506,7 +1506,7 @@ atptrans_socket_tx_atp(cpudb_key_t dest_key,
 
     ATP_SOCK_UNLOCK;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Send packet on socket %d\n"),
                conn_sock));
     
@@ -1538,7 +1538,7 @@ cleanup (void)
 {
     atp_sock_db_entry_t    *db_ptr;
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Cleanup\n")));
 
     ATP_SOCK_LOCK;
@@ -1578,7 +1578,7 @@ cleanup (void)
 STATIC int
 init(void)
 {
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Init\n")));
 
     /* System resources cleanup, if needed */
@@ -1592,7 +1592,7 @@ init(void)
         atp_sock_mlock = NULL;
     }
     if ((atp_sock_mlock = sal_mutex_create("ATP_Socket_mlock")) == NULL) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot create mutex\n")));
         return BCM_E_MEMORY;
     }
@@ -1707,7 +1707,7 @@ atptrans_socket_server_start(void)
 {
     int rv;
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Start Server\n")));
 
     rv = _atptrans_socket_host();
@@ -1726,7 +1726,7 @@ atptrans_socket_server_start(void)
 
     if (ATP_SOCK_SERVER_RUNNING) {
         ATP_SOCK_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP-Socket: Server thread is already running\n")));
         return BCM_E_EXISTS;
     }
@@ -1740,14 +1740,14 @@ atptrans_socket_server_start(void)
 
     if (atp_sock_server_thread_id == SAL_THREAD_ERROR) {
         ATP_SOCK_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot create Server thread\n")));
         return BCM_E_FAIL;
     }
 
     ATP_SOCK_UNLOCK;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Created Server Thread '%s'\n"),
                atp_sock_server_thread_name));
 
@@ -1781,14 +1781,14 @@ atptrans_socket_server_stop(void)
         return BCM_E_NONE;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Stop Server\n")));
 
     ATP_SOCK_LOCK;
 
     if (!ATP_SOCK_SERVER_RUNNING) {
         ATP_SOCK_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP-Socket: Server not running\n")));
         return BCM_E_NONE;
     }
@@ -1808,7 +1808,7 @@ atptrans_socket_server_stop(void)
     }
 
     if (i >= ATP_SOCK_STOP_RETRIES_MAX) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot stop Server Thread in %d ms\n"),
                    (ATP_SOCK_STOP_RETRIES_MAX * ATP_SOCK_RETRY_WAIT_US)/1000));
         return BCM_E_FAIL;
@@ -1877,7 +1877,7 @@ atptrans_socket_config_set(int priority, int listen_port)
         atp_sock_cfg_lport = listen_port;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Configuration set to priority %d, "
                  "listen_port %d\n"),
                  atp_sock_cfg_thread_pri, atp_sock_cfg_lport));
@@ -1944,7 +1944,7 @@ atptrans_socket_install(cpudb_key_t dest_cpu_key,
         }
     }
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Install CPU key "
                         CPUDB_KEY_FMT_EOLN),
                CPUDB_KEY_DISP(dest_cpu_key)));
@@ -1957,7 +1957,7 @@ atptrans_socket_install(cpudb_key_t dest_cpu_key,
                                   ATP_SOCK_DB_CPU_VALID |
                                   ATP_SOCK_DB_INSTALL | flags )) == NULL) {
         ATP_SOCK_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot add new entry for CPU key "
                             CPUDB_KEY_FMT_EOLN),
                    CPUDB_KEY_DISP(dest_cpu_key)));
@@ -1987,7 +1987,7 @@ atptrans_socket_install(cpudb_key_t dest_cpu_key,
     ATP_SOCK_UNLOCK;
 
     ip_to_str(dest_ip_str, db_ptr->ip);
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP-Socket: Installed on CPU key " CPUDB_KEY_FMT "), '%s'\n"),
                  CPUDB_KEY_DISP(db_ptr->cpu_key), dest_ip_str));
 
@@ -2025,12 +2025,12 @@ atptrans_socket_uninstall(cpudb_key_t dest_cpu_key)
     atp_sock_db_entry_t  *db_ptr;
 
     if (!ATP_SOCK_INIT_DONE) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR:  Not initialized\n")));
         return BCM_E_FAIL;
     }
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                  (BSL_META("ATP-Socket: Uninstall CPU key "
                            CPUDB_KEY_FMT_EOLN),
                   CPUDB_KEY_DISP(dest_cpu_key)));
@@ -2040,7 +2040,7 @@ atptrans_socket_uninstall(cpudb_key_t dest_cpu_key)
     if ((db_ptr = db_cpu_key_lookup(atp_sock_db_list, 
                                     dest_cpu_key)) == NULL) {
         ATP_SOCK_UNLOCK;
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP-Socket ERROR: Cannot find valid entry for CPU key "
                             CPUDB_KEY_FMT_EOLN),
                    CPUDB_KEY_DISP(dest_cpu_key)));
@@ -2052,7 +2052,7 @@ atptrans_socket_uninstall(cpudb_key_t dest_cpu_key)
     ATP_SOCK_UNLOCK;
 
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP-Socket: Uninstalled failed\n")));
         return BCM_E_FAIL;
     }
@@ -2092,7 +2092,7 @@ atptrans_socket_local_cpu_key_set(cpudb_key_t const cpu_key)
     CPUDB_KEY_COPY(atp_sock_local_cpu_key, cpu_key);
     ATP_SOCK_UNLOCK;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP-Socket: Set local CPU key " CPUDB_KEY_FMT "\n"),
                CPUDB_KEY_DISP(atp_sock_local_cpu_key)));
 
@@ -2121,43 +2121,43 @@ atptrans_socket_show(void)
 
     /* Initialize if needed */
     if (!ATP_SOCK_INIT_DONE) {
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("ATP over Sockets not initialized\n")));
         return;
     }
 
     /* Server */
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("ATP-Socket Server\n")));
     if (atptrans_socket_server_running()) {
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("    Listening Port    %d\n"),
                   atp_sock_server_lport));
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("    Listening Socket  %d\n"),
                   atp_sock_server_lsock));
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("    Thread-Name       %s\n"),
                   atp_sock_server_thread_name));
     } else {
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("    Not running\n")));
     }
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("\n")));
 
     /* Database List */
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("ATP-Socket Database\n")));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("    CPU Key            IP Address       Flags  Socket  "
               "Thread\n")));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("    -----------------  ---------------  -----  ------  "
               "-----------\n")));
     ATP_SOCK_DB_FOREACH_ENTRY(atp_sock_db_list, db_ptr) {
         ip_to_str(ip_str, db_ptr->ip);
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("    %2.2x:%2.2x:%2.2x:%2.2x:%2.2x:%2.2x  %-15s  0x%3.3x"),
                   SAL_MAC_ADDR_LIST(db_ptr->cpu_key.key),
                   ip_str,
@@ -2165,16 +2165,16 @@ atptrans_socket_show(void)
 
         /* Connection */
         if (db_ptr->conn.flags & ATP_SOCK_CONN_VALID) {
-            LOG_INFO(BSL_LS_TKS_ATP,
+            LOG_BSL_INFO(BSL_LS_TKS_ATP,
                      (BSL_META("  %6d  %-11s"),
                       db_ptr->conn.sock_fd,
                       db_ptr->conn.rx_thread_name));
         }
 
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("\n")));
     }
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("\n")));
 
     return;

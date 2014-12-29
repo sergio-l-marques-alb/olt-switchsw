@@ -117,7 +117,7 @@ phy_xgxs1_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (phy_xgxs1_lb_set(unit, port, FALSE));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs1_init: u=%d p=%d\n"),
               unit, port));

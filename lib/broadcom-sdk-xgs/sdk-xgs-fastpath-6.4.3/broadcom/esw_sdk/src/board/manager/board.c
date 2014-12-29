@@ -478,10 +478,10 @@ board_probe(void)
         {
             int i;
 
-            LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                         (BSL_META("Board probe:\n")));
             for (i=0; i<count; i++) {
-                LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                             (BSL_META("  %2d: %s\n"),
                              i, board_device_name(i)));
             }
@@ -491,7 +491,7 @@ board_probe(void)
         /* For each set of registered drivers */
         for (reg=driver_reg; reg != NULL; reg=reg->next) {
             if (!reg->driver->probe) {
-                LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                             (BSL_META("Board %s probe missing\n"),
                              reg->driver->name));
                 continue;

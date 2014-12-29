@@ -88,7 +88,7 @@ drv_polar_queue_port_prio_to_queue_set(int unit, uint8 port, uint8 prio,
        which may be bigger the uint8 and then reuslts in a compilation error */
     uint32  port32 = port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_port_prio_to_queue_set: \
                             unit %d, port = %d, prio = %d, queue_n = %d\n"), 
@@ -248,7 +248,7 @@ drv_polar_queue_port_prio_to_queue_get(int unit, uint8 port, uint8 prio,
     }
     *queue_n = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_port_prio_to_queue_get: \
                             unit %d, port = %d, prio = %d, *queue_n = %d\n"), 
@@ -293,7 +293,7 @@ drv_polar_queue_mode_set(int unit, soc_pbmp_t bmp, uint32 flag,
 {
     uint32  reg_value, temp, p, internal_cpu_port_num;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_mode_set: \
                             unit %d, bmp = 0x%x, flag = 0x%x, queue mode = %d\n"),
@@ -419,7 +419,7 @@ drv_polar_queue_mode_get(int unit, uint32 port, uint32 flag,
         *mode = DRV_QUEUE_MODE_WRR;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_mode_get: \
                             unit %d, port = %d, flag = 0x%x, queue mode = %d\n"),
@@ -467,7 +467,7 @@ drv_polar_queue_WRR_weight_set(int unit, uint32 port_type,
     uint32  reg_value, p;
     uint32  max_weight = 0, internal_cpu_port_num;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_WRR_weight_set: \
                             unit %d, port type = %d, bmp = 0x%x, queue = %d, weight = %d\n"),
@@ -640,7 +640,7 @@ drv_polar_queue_WRR_weight_get(int unit, uint32 port_type,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_WRR_weight_get: \
                             unit %d, port type = %d, port = %d, queue = %d, weight = %d\n"),
@@ -673,7 +673,7 @@ drv_polar_queue_prio_set(int unit, uint32 port, uint8 prio, uint8 queue_n)
     uint32  p;
     soc_pbmp_t  pbmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_prio_set: \
                             unit %d, port = %d, priority = %d, queue = %d\n"),
@@ -735,7 +735,7 @@ drv_polar_queue_prio_get(int unit, uint32 port, uint8 prio, uint8 *queue_n)
     SOC_IF_ERROR_RETURN(DRV_QUEUE_PORT_PRIO_TO_QUEUE_GET
         (unit, p, new_prio, queue_n));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_prio_get: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -771,7 +771,7 @@ drv_polar_queue_mapping_type_set(int unit, soc_pbmp_t bmp,
     SOC_IF_ERROR_RETURN(DRV_DEV_PROP_GET
         (unit, DRV_DEV_PROP_INTERNAL_CPU_PORT_NUM, &internal_cpu_port_num));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_mapping_type_set: \
                             unit %d, bmp = 0x%x, type = %d, %sable\n"),
@@ -1007,7 +1007,7 @@ drv_polar_queue_mapping_type_get(int unit, uint32 port,
             return SOC_E_PARAM;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_mapping_type_get: \
                             unit %d, port = %d, type = %d, %sable\n"),
@@ -1038,7 +1038,7 @@ drv_polar_queue_count_set(int unit, uint32 port_type, uint8 count)
 {
     uint32  sch2_num_cosq;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_count_set: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, count));
@@ -1079,7 +1079,7 @@ drv_polar_queue_count_get(int unit, uint32 port_type, uint8 *count)
 
     *count = (uint8) sch2_num_cosq;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_polar_queue_count_get: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, *count));

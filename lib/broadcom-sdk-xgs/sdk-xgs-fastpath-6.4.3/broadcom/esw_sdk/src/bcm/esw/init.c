@@ -184,14 +184,14 @@ _bcm_lock_deinit(int unit)
 }
 
 #define _DEINIT_INFO_VERB(_mod) \
-    LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                 (BSL_META_U(unit, \
                             "bcm_detach: Deinitializing %s...\n"),   \
                  _mod));
 
 #define _DEINIT_CHECK_ERR(_rv, _mod) \
     if (_rv != BCM_E_NONE && _rv != BCM_E_UNAVAIL) { \
-        LOG_WARN(BSL_LS_BCM_INIT, \
+        LOG_BSL_WARN(BSL_LS_BCM_INIT, \
                  (BSL_META_U(unit, \
                              "Warning: Deinitializing %s returned %d\n"), \
                   _mod, _rv)); \
@@ -418,7 +418,7 @@ _bcm_esw_modules_deinit(int unit)
     _DEINIT_CHECK_ERR(rv, "rcpu");
 #endif /* BCM_RCPU_SUPPORT && BCM_XGS3_SWITCH_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "bcm_detach: All modules deinitialized.\n")));
     
@@ -433,7 +433,7 @@ _bcm_esw_modules_deinit(int unit)
 
 #define _THREAD_STOP_CHECK_ERR(_rv, _mod) \
     if (_rv != BCM_E_NONE && _rv != BCM_E_UNAVAIL) { \
-        LOG_WARN(BSL_LS_BCM_INIT, \
+        LOG_BSL_WARN(BSL_LS_BCM_INIT, \
                  (BSL_META_U(unit, \
                              "Warning: Stopping %s thread returned %d\n"), \
                   _mod, _rv)); \
@@ -492,7 +492,7 @@ _bcm_esw_threads_shutdown(int unit)
     if (init) {                                                             \
         sal_usecs_t stime;                                                  \
         int         rv;                                                     \
-        LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                     (BSL_META_U(unit, \
                                 "bcm_init: (%s)\n"),               \
                                 shr_bprof_stats_name(dispname)));           \
@@ -507,14 +507,14 @@ _bcm_esw_threads_shutdown(int unit)
                      shr_bprof_stats_name(dispname),                      \
                      SAL_USECS_SUB(sal_time_usecs(), stime)));             \
         } else {                                                            \
-            LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                         (BSL_META_U(unit, \
                                     "bcm_init: %8s   took %10d usec\n"),                 \
                          shr_bprof_stats_name(dispname),                     \
                          SAL_USECS_SUB(sal_time_usecs(), stime)));            \
         }                                                                   \
     } else {                                                                \
-        LOG_WARN(BSL_LS_BCM_INIT, \
+        LOG_BSL_WARN(BSL_LS_BCM_INIT, \
                  (BSL_META_U(unit, \
                              "bcm_init: skipped %s init\n"),         \
                              shr_bprof_stats_name(dispname)));                           \
@@ -525,7 +525,7 @@ _bcm_esw_threads_shutdown(int unit)
     if (init) {                                                             \
         sal_usecs_t stime;                                                  \
         int         rv;                                                     \
-        LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                     (BSL_META_U(unit, \
                                 "bcm_init: (%s)\n"),               \
                                 shr_bprof_stats_name(dispname)));           \
@@ -534,13 +534,13 @@ _bcm_esw_threads_shutdown(int unit)
             rv = rtn(unit);                                                 \
             BCM_CHECK_ERROR_RETURN(rv);                                     \
         }                                                                   \
-        LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                     (BSL_META_U(unit, \
                                 "bcm_init: %8s   took %10d usec\n"),\
                                 shr_bprof_stats_name(dispname),                     \
                      SAL_USECS_SUB(sal_time_usecs(), stime)));            \
     } else {                                                                \
-        LOG_WARN(BSL_LS_BCM_INIT, \
+        LOG_BSL_WARN(BSL_LS_BCM_INIT, \
                  (BSL_META_U(unit, \
                              "bcm_init: skipped %s init\n"),                \
                              shr_bprof_stats_name(dispname)));                    \
@@ -553,7 +553,7 @@ _bcm_esw_threads_shutdown(int unit)
     if (init) {                                                             \
         sal_usecs_t stime;                                                  \
         int         rv;                                                     \
-        LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                     (BSL_META_U(unit, \
                                 "bcm_init: (%s)\n"),               \
                                 shr_bprof_stats_name(dispname)));                        \
@@ -568,14 +568,14 @@ _bcm_esw_threads_shutdown(int unit)
                      shr_bprof_stats_name(dispname),                      \
                      SAL_USECS_SUB(sal_time_usecs(), stime)));             \
         } else {                                                            \
-            LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                         (BSL_META_U(unit, \
                                     "bcm_init: %8s   took %10d usec\n"),                 \
                          shr_bprof_stats_name(dispname),                     \
                          SAL_USECS_SUB(sal_time_usecs(), stime)));            \
         }                                                                   \
     } else {                                                                \
-        LOG_WARN(BSL_LS_BCM_INIT, \
+        LOG_BSL_WARN(BSL_LS_BCM_INIT, \
                  (BSL_META_U(unit, \
                              "bcm_init: skipped %s init\n"),         \
                              shr_bprof_stats_name(dispname)));                    \
@@ -586,7 +586,7 @@ _bcm_esw_threads_shutdown(int unit)
     if (init) {                                                             \
         sal_usecs_t stime;                                                  \
         int         rv;                                                     \
-        LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                     (BSL_META_U(unit, \
                                 "bcm_init: (%s)\n"),               \
                                 shr_bprof_stats_name(dispname)));           \
@@ -595,13 +595,13 @@ _bcm_esw_threads_shutdown(int unit)
             rv = rtn(unit);                                                 \
             BCM_IF_ERROR_RETURN(rv);                                        \
         }                                                                   \
-        LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                     (BSL_META_U(unit, \
                                 "bcm_init: %8s   took %10d usec\n"),\
                                 shr_bprof_stats_name(dispname),                     \
                      SAL_USECS_SUB(sal_time_usecs(), stime)));            \
     } else {                                                                \
-        LOG_WARN(BSL_LS_BCM_INIT, \
+        LOG_BSL_WARN(BSL_LS_BCM_INIT, \
                  (BSL_META_U(unit, \
                              "bcm_init: skipped %s init\n"),                \
                              shr_bprof_stats_name(dispname)));                    \
@@ -1339,7 +1339,7 @@ bcm_esw_info_get(int unit, bcm_info_t *info)
         int rv;                                                         \
         rv = (_rtn)(unit);                                              \
         if (rv < 0 && rv != BCM_E_UNAVAIL) {                            \
-            LOG_ERROR(BSL_LS_BCM_INIT, \
+            LOG_BSL_ERROR(BSL_LS_BCM_INIT, \
                       (BSL_META_U(unit, \
                                   "bcm_clear %d: %s failed %d. %s\n"),    \
                                   unit, _name, rv, bcm_errmsg(rv)));              \

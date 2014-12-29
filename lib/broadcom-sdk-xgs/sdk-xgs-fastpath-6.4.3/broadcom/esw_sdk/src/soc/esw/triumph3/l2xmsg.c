@@ -147,7 +147,7 @@ static l2_entry_data_t tr3_l2x_data[SOC_MAX_NUM_DEVICES];
 #define L2X_ENTRY_CALLBACK_SET(_u_, _index_)                     \
 {                                                                \
     SHR_BITSET(tr3_l2x_data[(_u_)].cb_map_int, (_index_));       \
-    LOG_INFO(BSL_LS_SOC_ARL, \
+    LOG_BSL_INFO(BSL_LS_SOC_ARL, \
              (BSL_META_U(unit, \
                          "set_entry_callback: u:%d i=%d\n"),      \
                          _u_, _index_));                                   \
@@ -156,7 +156,7 @@ static l2_entry_data_t tr3_l2x_data[SOC_MAX_NUM_DEVICES];
 #define L2X_ENTRY_DELETED_SET(_u_, _index_)                      \
 {                                                                \
     SHR_BITSET(tr3_l2x_data[(_u_)].del_map_int, (_index_));      \
-    LOG_VERBOSE(BSL_LS_SOC_ARL, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL, \
                 (BSL_META_U(unit, \
                             "set_entry_deleted: u:%d i=%d\n"),       \
                             _u_, _index_));                                   \
@@ -165,7 +165,7 @@ static l2_entry_data_t tr3_l2x_data[SOC_MAX_NUM_DEVICES];
 #define EXT_L2X_1_ENTRY_CALLBACK_SET(_u_, _index_)               \
 {                                                                \
     SHR_BITSET(tr3_l2x_data[(_u_)].cb_map_ext1, (_index_));      \
-    LOG_INFO(BSL_LS_SOC_ARL, \
+    LOG_BSL_INFO(BSL_LS_SOC_ARL, \
              (BSL_META_U(unit, \
                          "set_entry_callback: u:%d i=%d\n"),      \
                          _u_, _index_));                                   \
@@ -174,7 +174,7 @@ static l2_entry_data_t tr3_l2x_data[SOC_MAX_NUM_DEVICES];
 #define EXT_L2X_1_ENTRY_DELETED_SET(_u_, _index_)                \
 {                                                                \
     SHR_BITSET(tr3_l2x_data[(_u_)].del_map_ext1, (_index_));     \
-    LOG_VERBOSE(BSL_LS_SOC_ARL, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL, \
                 (BSL_META_U(unit, \
                             "set_entry_deleted: u:%d i=%d\n"),       \
                             _u_, _index_));                                   \
@@ -183,7 +183,7 @@ static l2_entry_data_t tr3_l2x_data[SOC_MAX_NUM_DEVICES];
 #define EXT_L2X_2_ENTRY_CALLBACK_SET(_u_, _index_)               \
 {                                                                \
     SHR_BITSET(tr3_l2x_data[(_u_)].cb_map_ext2, (_index_));      \
-    LOG_INFO(BSL_LS_SOC_ARL, \
+    LOG_BSL_INFO(BSL_LS_SOC_ARL, \
              (BSL_META_U(unit, \
                          "set_entry_callback: u:%d i=%d\n"),      \
                          _u_, _index_));                                   \
@@ -192,7 +192,7 @@ static l2_entry_data_t tr3_l2x_data[SOC_MAX_NUM_DEVICES];
 #define EXT_L2X_2_ENTRY_DELETED_SET(_u_, _index_)                \
 {                                                                \
     SHR_BITSET(tr3_l2x_data[(_u_)].del_map_ext2, (_index_));     \
-    LOG_VERBOSE(BSL_LS_SOC_ARL, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL, \
                 (BSL_META_U(unit, \
                             "set_entry_deleted: u:%d i=%d\n"),       \
                             _u_, _index_));                                   \
@@ -325,7 +325,7 @@ soc_l2_entry_callback(int unit, uint32 flags, soc_mem_t mem_type,
     l2_entry_data_t *ad = &tr3_l2x_data[unit];
     int        i;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s %s %s\n"), FUNCTION_NAME(), entry_del ? "DEL" : "",
                  entry_add ? "ADD" : ""));
@@ -1085,7 +1085,7 @@ soc_tr3_l2x_sync_delete(int unit, soc_mem_t mem, uint32 *del_entry, int index,
     uint32        *tab_p, kt;
     soc_mem_t     mem_type;   
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_tr3_l2x_sync_delete: unit=%d index=%d\n"),
                          unit, index));
@@ -1196,7 +1196,7 @@ soc_tr3_l2x_stop(int unit)
     int           mode;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_tr3_l2x_stop: unit=%d\n"), unit));
 
@@ -1226,7 +1226,7 @@ soc_tr3_l2x_stop(int unit)
 
         while (soc->l2x_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "soc_tr3_l2x_stop: thread will not exit\n")));
                 rv = SOC_E_INTERNAL;
@@ -1260,7 +1260,7 @@ soc_tr3_l2x_start(int unit, uint32 flags, sal_usecs_t interval)
     int           mode;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_tr3_l2x_start: unit=%d flags=0x%x interval=%d\n"),
               unit, flags, interval));
@@ -1321,7 +1321,7 @@ soc_tr3_l2x_start(int unit, uint32 flags, sal_usecs_t interval)
                                              _soc_tr3_l2x_thread,
                                              INT_TO_PTR(unit));
             if (soc->l2x_pid == SAL_THREAD_ERROR) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "soc_tr3_l2x_start: Could not start L2X thread\n")));
                 SOC_CONTROL_UNLOCK(unit);
@@ -1721,7 +1721,7 @@ _soc_tr3_l2x_thread(void *unit_vp)
 
     index_count_int = soc_mem_index_count(unit, L2_ENTRY_1m);
     if (index_count_int <= 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_tr3_l2x_thread: Internal L2 table size is 0 \n")));
         tr3_l2x_data[unit].int_avail = FALSE;
@@ -1754,7 +1754,7 @@ _soc_tr3_l2x_thread(void *unit_vp)
     if (shadow_tab == NULL || chunk_buf_int == NULL || 
         del_map_int == NULL || chunk_del_map_int == NULL || 
         cb_map_int == NULL || chunk_cb_map_int == NULL) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:soc_l2x_thread: not enough memory \n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1789,7 +1789,7 @@ skip_l2_int:
 
     index_count_ext1 = soc_mem_index_count(unit, EXT_L2_ENTRY_1m);
     if (index_count_ext1 <= 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_tr3_l2x_thread: External L2_1 table size is 0 \n")));
         tr3_l2x_data[unit].ext1_avail = FALSE;
@@ -1822,7 +1822,7 @@ skip_l2_int:
     if (shadow_tab == NULL || chunk_buf_ext1 == NULL || 
         del_map_ext1 == NULL || chunk_del_map_ext1 == NULL || 
         cb_map_ext1 == NULL || chunk_cb_map_ext1 == NULL) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:soc_l2x_thread: not enough memory \n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1857,7 +1857,7 @@ skip_l2_ext1:
 
     index_count_ext2 = soc_mem_index_count(unit, EXT_L2_ENTRY_2m);
     if (index_count_ext2 <= 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_tr3_l2x_thread: External L2_2 table size is 0 \n")));
         tr3_l2x_data[unit].ext2_avail = FALSE;
@@ -1890,7 +1890,7 @@ skip_l2_ext1:
     if (shadow_tab == NULL || chunk_buf_ext2 == NULL || 
         del_map_ext2 == NULL || chunk_del_map_ext2 == NULL || 
         cb_map_ext2 == NULL || chunk_cb_map_ext2 == NULL) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:soc_l2x_thread: not enough memory \n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1945,13 +1945,13 @@ skip_l2_ext2:
         if (tr3_l2x_data[unit].int_avail == FALSE) {
             goto skip_l2_int_loop;
         }
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_l2x_thread: Process INT %d-%d\n"),
                      chunk_index_int, chunk_index_int + chunk_size_int - 1));
         SOC_MEM_L2_INT_LOCK(unit);
         if (SOC_L2_DEL_SYNC_LOCK(soc) < 0) {
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2x_thread: unable to take mutex\n")));
             SOC_MEM_L2_INT_UNLOCK(unit);
@@ -1967,7 +1967,7 @@ skip_l2_ext2:
                                      chunk_buf_int)) < 0) {
             SOC_L2_DEL_SYNC_UNLOCK(soc);
             SOC_MEM_L2_INT_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2x_thread: DMA failed: %s\n"),
                                   soc_errmsg(rv)));
@@ -2016,7 +2016,7 @@ skip_l2_int_loop:
         if (tr3_l2x_data[unit].ext1_avail == FALSE) {
             goto skip_l2_ext1_loop;
         }
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_l2x_thread: Process EXT1 %d-%d\n"),
                      chunk_index_ext1, chunk_index_ext1 + chunk_size_ext1 - 1));
@@ -2024,7 +2024,7 @@ skip_l2_int_loop:
         /* First work on EXT_L2_ENTRY_1 */
         SOC_MEM_L2_EXT_1_LOCK(unit);
         if (SOC_L2_DEL_SYNC_LOCK(soc) < 0) {
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2x_thread: unable to take mutex\n")));
             SOC_MEM_L2_INT_UNLOCK(unit);
@@ -2040,7 +2040,7 @@ skip_l2_int_loop:
                                      chunk_buf_ext1)) < 0) {
             SOC_L2_DEL_SYNC_UNLOCK(soc);
             SOC_MEM_L2_EXT_1_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2x_thread: DMA failed: %s\n"),
                                   soc_errmsg(rv)));
@@ -2137,14 +2137,14 @@ skip_l2_ext1_loop:
         if (tr3_l2x_data[unit].ext2_avail == FALSE) {
             goto continue_loop;
         }
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_l2x_thread: Process EXT2 %d-%d\n"),
                      chunk_index_ext2, chunk_index_ext2 + chunk_size_ext2 - 1));
         /* Then work on EXT_L2_ENTRY_2 */
         SOC_MEM_L2_EXT_2_LOCK(unit);
         if (SOC_L2_DEL_SYNC_LOCK(soc) < 0) {
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2x_thread: unable to take mutex\n")));
             SOC_MEM_L2_INT_UNLOCK(unit);
@@ -2160,7 +2160,7 @@ skip_l2_ext1_loop:
                                      chunk_buf_ext2)) < 0) {
             SOC_L2_DEL_SYNC_UNLOCK(soc);
             SOC_MEM_L2_EXT_2_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "AbnormalThreadExit:soc_l2x_thread: DMA failed: %s\n"),
                                   soc_errmsg(rv)));
@@ -2255,7 +2255,7 @@ continue_loop:
          * is requested to exit, it can do so immediately.
          */
 
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_l2x_thread: unit=%d: done in %d usec\n"), unit,
                      SAL_USECS_SUB(etime, stime)));
@@ -2361,7 +2361,7 @@ skip_cleanup_l2_ext:
     (void)sal_sem_give(soc->l2x_lock);
 
 no_cleanup_exit:
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_l2x_thread: exiting\n")));
 
@@ -2377,7 +2377,7 @@ soc_tr3_l2mod_fifo_process(int unit, uint32 flags, l2_mod_fifo_entry_t *entry)
     uint32 fval[SOC_MAX_MEM_FIELD_WORDS];
     l2_combo_entry_t l2_entry, old_l2_entry, temp_l2_entry;
 
-    LOG_VERBOSE(BSL_LS_SOC_ARL,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                 (BSL_META_U(unit,
                             "Processing L2 MOD FIFO message..\n")));
    
@@ -2388,7 +2388,7 @@ soc_tr3_l2mod_fifo_process(int unit, uint32 flags, l2_mod_fifo_entry_t *entry)
                  soc_L2_MOD_FIFOm_field_get(unit, entry, L2_ENTRYf,
                                             l2_entry.ext_l2_entry_2.entry_data);
 
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "External L2 entry type 2.\n")));
             } else {
@@ -2396,12 +2396,12 @@ soc_tr3_l2mod_fifo_process(int unit, uint32 flags, l2_mod_fifo_entry_t *entry)
                 soc_L2_MOD_FIFOm_field_get(unit, entry, L2_ENTRYf,
                                            l2_entry.ext_l2_entry_1.entry_data);
 
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "External L2 entry type 1.\n")));
             }            
         } else {
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "Unexpected external L2 entry data in L2 MOD FIFO !!\n")));
         }
@@ -2410,14 +2410,14 @@ soc_tr3_l2mod_fifo_process(int unit, uint32 flags, l2_mod_fifo_entry_t *entry)
             soc_L2_MOD_FIFOm_field_get(unit, entry, L2_ENTRYf,
                                        l2_entry.l2_entry_2.entry_data);
             mem_type = L2_ENTRY_2m;
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "Internal L2 entry type 2.\n")));
         } else {
             soc_L2_MOD_FIFOm_field_get(unit, entry, L2_ENTRYf,
                                        l2_entry.l2_entry_1.entry_data);
             mem_type = L2_ENTRY_1m;
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "Internal L2 entry type 1.\n")));
         }
@@ -2478,7 +2478,7 @@ soc_tr3_l2mod_fifo_process(int unit, uint32 flags, l2_mod_fifo_entry_t *entry)
                             "\n")));
     }
     if (mem_type == INVALIDm) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "Unable to determine L2 mem type !!\n")));
         return;
@@ -2583,7 +2583,7 @@ soc_tr3_l2_overflow_interrupt_handler(int unit)
     soc_mem_t mem_type = INVALIDm;
 
     if (!SOC_CONTROL(unit)->l2_overflow_active) {
-        LOG_ERROR(BSL_LS_SOC_L2, \
+        LOG_BSL_ERROR(BSL_LS_SOC_L2, \
                   (BSL_META_U(unit, \
                               "Received L2 overflow event with no app handler or"\
                               " processing inactive !!\n")));
@@ -2817,13 +2817,13 @@ _soc_tr3_l2e_ppa_update(int unit, soc_mem_t mem, int index, uint32 *entry)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "tr3_l2e_ppa %d: index=%d oldvlan=%d min:max %d:%d\n"),
                  mem == EXT_L2_ENTRY_1m ? 1 : 2,
                  index, oldvlan, ppa_vlan->vlan_min[oldvlan],
                  ppa_vlan->vlan_max[oldvlan]));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "tr3_l2e_ppa %d: ent=0x%x mac=%x:%x:%x:%x:%x:%x "
                             "vlan=%d min:max %d:%d\n"),

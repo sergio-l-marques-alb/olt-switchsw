@@ -112,7 +112,7 @@ soc_td2_l2_overflow_interrupt_handler(int unit)
     l2x_entry_t l2x_entry;
 
     if (!SOC_CONTROL(unit)->l2_overflow_active) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "Received L2 overflow event with no app handler or"   \
                               " processing inactive !!\n")));

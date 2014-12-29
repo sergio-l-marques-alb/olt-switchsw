@@ -291,7 +291,7 @@ ddr_test_init(int unit, args_t *a, void **p)
     if (dt == NULL) {
         dt = sal_alloc(sizeof(ddr_test_params_t), "ddrtest");
         if (dt == NULL) {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "%s: cannot allocate memory test data\n"), ARG_CMD(a)));
             return -1;
@@ -491,7 +491,7 @@ int DumpDDRResults(int unit,
     /* print results for each iteration */
     for(ci = ci_start; ci < ci_end; ci++) {
         if (iter_count != -1 ) {
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Iteration:%d CI%d Fail:0x%08x%08x Pass:0x%08x%08x Timedout:0x%08x%08x\n"),
                       iter_count,ci,
@@ -499,7 +499,7 @@ int DumpDDRResults(int unit,
                       COMPILER_64_HI(pPassedCount[ci]),COMPILER_64_LO(pPassedCount[ci]),
                       COMPILER_64_HI(pTimedOutCount[ci]),COMPILER_64_LO(pTimedOutCount[ci])));
         } else { /* running continuously */
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "CI%d Fail:0x%08x%08x Pass:0x%08x%08x \n"),ci,
                       COMPILER_64_HI(pFailedCount[ci]),COMPILER_64_LO(pFailedCount[ci]),
@@ -580,20 +580,20 @@ int DDRTest(ddr_test_params_t *testparams) {
     } else {
         ci_start = dt->ci_interface;
         ci_end = ci_start+1;
-        LOG_WARN(BSL_LS_APPL_TESTS,
+        LOG_BSL_WARN(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Testing only CI%d interface\n"),ci_start));
     }
     ddr_test = dt->ddr_test_mode;
     uDDRIter = dt->ddr_iter & uDDRMask;
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Running Test %s\n"), DDRMemTestStr[ddr_test]));
 
     if (dt->pattern != DEFAULT_PATTERN ) {
         pattern = dt->pattern & 0xffffffff;
         if (DDR_STANDARD_TEST != ddr_test) {
-            LOG_WARN(BSL_LS_APPL_TESTS,
+            LOG_BSL_WARN(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "NOTE: Test data is not used during data bus test\n")));
         }
@@ -626,10 +626,10 @@ int DDRTest(ddr_test_params_t *testparams) {
 
     if (DDR_STANDARD_TEST == ddr_test ||
         DDR_DATA_EQ_ADDR == ddr_test) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("start_addr=0x%x,addr_step_inc=0x%x,burst_size=%d\n"),uStartAddr,uStepSize,uDDRBurstSize));
         if (DDR_STANDARD_TEST == ddr_test) {
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META("using pattern=0x%8x, and alt_pattern=0x%8x\n"),pattern,~pattern));
         }
     }
@@ -668,7 +668,7 @@ int DDRTest(ddr_test_params_t *testparams) {
         /* start the test for this iteration */
         if (( rv = StartDDRFunctionalTest(dt, ci_start,
                                           ci_end, ddr_test)) < 0 ) {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "%s failed to start %s test.\n"),SOC_CHIP_STRING(unit),
                        DDRMemTestStr[ddr_test]));
@@ -684,7 +684,7 @@ int DDRTest(ddr_test_params_t *testparams) {
                                             uTimedOutCount,
                                             uPassedCount)) < 0 ) {
           
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "%s failed %s test.\n"),SOC_CHIP_STRING(unit),
                        DDRMemTestStr[ddr_test]));
@@ -712,7 +712,7 @@ int DDRTest(ddr_test_params_t *testparams) {
         /* start the test to run continuously */
         if (( rv = StartDDRFunctionalTest(dt, ci_start,
                                           ci_end, ddr_test)) < 0 ) {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "%s failed to start %s test.\n"),SOC_CHIP_STRING(unit),
                        DDRMemTestStr[ddr_test]));
@@ -740,7 +740,7 @@ int DDRTest(ddr_test_params_t *testparams) {
                                                 uTimedOutCount,
                                                 uPassedCount)) < 0 ) {
               
-                LOG_ERROR(BSL_LS_APPL_TESTS,
+                LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                           (BSL_META_U(unit,
                                       "%s failed %s test.\n"),SOC_CHIP_STRING(unit),
                            DDRMemTestStr[ddr_test]));
@@ -806,7 +806,7 @@ int DDRIndirectTest(ddr_test_params_t *testparams) {
     } else {
       ci_start = dt->ci_interface;
       ci_end = ci_start+1;
-      LOG_WARN(BSL_LS_APPL_TESTS,
+      LOG_BSL_WARN(BSL_LS_APPL_TESTS,
                (BSL_META_U(unit,
                            "Testing only CI%d interface\n"),ci_start));
     }
@@ -826,7 +826,7 @@ int DDRIndirectTest(ddr_test_params_t *testparams) {
     for(ci=ci_start;ci<ci_end;ci++) {
         WRITE_DDR40_PHY_WORD_LANE_0_READ_FIFO_CLEARr(unit, ci, 0);
         WRITE_DDR40_PHY_WORD_LANE_1_READ_FIFO_CLEARr(unit, ci, 0);
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("Filling ci%d\n"), ci));
         for (bank=start_bank;bank<end_bank;bank++) {
             for(row=0;row<max_row;row++) {
@@ -841,7 +841,7 @@ int DDRIndirectTest(ddr_test_params_t *testparams) {
                             uDataWR[i] = pattern;
                         }
                     }
-                    LOG_INFO(BSL_LS_APPL_TESTS,
+                    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                              (BSL_META("Filling ci%d bank[%d],row[0x%x],cols[0x%x-0x%x] \n"),
                               ci,bank,row,col<<4,(col<<4)+0xf));
 
@@ -858,7 +858,7 @@ int DDRIndirectTest(ddr_test_params_t *testparams) {
 
     /* Read back and compare, verify each CI's DDR Memory */
     for(ci=ci_start;ci<ci_end;ci++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("Verifying ci%d\n"), ci));
         for (bank=start_bank;bank<end_bank;bank++) {
             for(row=0;row<max_row;row++) {
@@ -866,7 +866,7 @@ int DDRIndirectTest(ddr_test_params_t *testparams) {
                     pla_addr = bank;
                     pla_addr |= col << 3;
                     pla_addr |= row << 9;
-                    LOG_INFO(BSL_LS_APPL_TESTS,
+                    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                              (BSL_META("Verifing ci%d bank[%d],row[0x%x],cols[0x%x-0x%x] \n"),
                               ci,bank,row,col<<4,(col<<4)+0xf));
                     stat = soc_ddr40_read(unit,ci,pla_addr,&uDataRD[0],&uDataRD[1],&uDataRD[2],
@@ -879,11 +879,11 @@ int DDRIndirectTest(ddr_test_params_t *testparams) {
                     for (i = 0; i < 8; i++ ) {
                         comp_data = bUseAddrAsData ? pla_addr : pattern;
                         if (uDataRD[i] != comp_data) {
-                            LOG_ERROR(BSL_LS_APPL_TESTS,
+                            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                       (BSL_META_U(unit,
                                                   "Data compare failure at "
                                                   "pla_addr:(0x%x)\n"),pla_addr));
-                            LOG_ERROR(BSL_LS_APPL_TESTS,
+                            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                       (BSL_META_U(unit,
                                                   "Expected (0x%x) got (0x%x)\n"),
                                        comp_data,uDataRD[i]));
@@ -916,7 +916,7 @@ ddr_test(int unit, args_t *a, void *p)
     if (soc && !(soc->soc_flags & SOC_F_INITED)) {
         rv = soc_reset_init(unit);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "Unit %d: soc reset failed got (%d)\n"), unit, rv));
             return -1;
@@ -947,7 +947,7 @@ ddr_test(int unit, args_t *a, void *p)
 int
 ddr_test_done(int unit, void *p)
 {
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "DDR Mem Tests Done\n")));
     sal_free(ddr_test_params[unit]);
@@ -1117,7 +1117,7 @@ ddr_bist_test_init(int unit, args_t *a, void **p)
     if (dt == NULL) {
         dt = sal_alloc(sizeof(ddr_test_params_t), "ddrtest");
         if (dt == NULL) {
-            LOG_ERROR(BSL_LS_APPL_TESTS,
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                       (BSL_META_U(unit,
                                   "%s: cannot allocate memory test data\n"), ARG_CMD(a)));
             return -1;
@@ -1248,7 +1248,7 @@ ddr_bist_test_done(int unit, void *p)
     }
 #endif
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "DDR Bist Tests Done\n")));
     sal_free(ddr_test_params[unit]);
@@ -1287,7 +1287,7 @@ int ddr_bist_test(int unit, args_t *a, void *p)
                 dt->run_info.bist_start_address = 0x0;
                 dt->run_info.bist_end_address =  SOC_DDR3_NUM_COLUMNS(unit) * SOC_DDR3_NUM_ROWS(unit) * SOC_DDR3_NUM_BANKS(unit) / 8 - 1;
                 if (dt->run_info.bist_end_address > max_bist_end_addr ) {
-                    LOG_ERROR(BSL_LS_APPL_TESTS,
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                               (BSL_META_U(unit,
                                           "bist_end_address:%x exceeded max bist addr:%x"
                                           " so Resetting to max \n"),
@@ -1315,7 +1315,7 @@ int ddr_bist_test(int unit, args_t *a, void *p)
                  }
             } else { /* All Address */
                 if (dt->run_info.bist_end_address > max_bist_end_addr ) {
-                    LOG_ERROR(BSL_LS_APPL_TESTS,
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                               (BSL_META_U(dt->unit,
                                           "bist_end_address:%x exceeded max bist addr:%x"
                                           " so Resetting to max \n"),
@@ -1323,7 +1323,7 @@ int ddr_bist_test(int unit, args_t *a, void *p)
                     dt->run_info.bist_end_address = max_bist_end_addr;
                 } 
                 if (dt->run_info.bist_start_address > max_bist_start_addr ) {
-                    LOG_ERROR(BSL_LS_APPL_TESTS,
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                               (BSL_META_U(dt->unit,
                                           "bist_start_address:%x exceeded max bist addr:%x"
                                           " so Resetting to max - 1 \n"),

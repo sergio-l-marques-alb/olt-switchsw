@@ -175,12 +175,12 @@ drv_robo_port_probe(int unit, soc_port_t p, int *okay)
      * Currently initializing MAC after PHY is required.
      */
 
-    LOG_VERBOSE(BSL_LS_SOC_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PORT,
                 (BSL_META_U(unit,
                             "Init port %d MAC...\n"), p));
 
     if ((rv = soc_robo_mac_probe(unit, p, &macd)) < 0) {
-        LOG_WARN(BSL_LS_SOC_PORT,
+        LOG_BSL_WARN(BSL_LS_SOC_PORT,
                  (BSL_META_U(unit,
                              "Unit %d Port %s: Failed to probe MAC: %s\n"),
                   unit, SOC_PORT_NAME(unit, p), soc_errmsg(rv)));
@@ -190,7 +190,7 @@ drv_robo_port_probe(int unit, soc_port_t p, int *okay)
     SOC_ROBO_PORT_MAC_DRIVER(unit, p) = macd;
 
     if ((rv = MAC_INIT(macd, unit, p)) < 0) {
-        LOG_WARN(BSL_LS_SOC_PORT,
+        LOG_BSL_WARN(BSL_LS_SOC_PORT,
                  (BSL_META_U(unit,
                              "Unit %d Port %s: Failed to initialize MAC: %s\n"),
                   unit, SOC_PORT_NAME(unit, p), soc_errmsg(rv)));
@@ -307,7 +307,7 @@ drv_port_advertise_set(int unit, soc_pbmp_t bmp, uint32 prop_mask)
     int             rv = SOC_E_NONE;
     int             port;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_advertise_set: unit = %d, bmp = %x %x, adv_value = %x\n"),
               unit, SOC_PBMP_WORD_GET(bmp, 0), SOC_PBMP_WORD_GET(bmp, 1), prop_mask));
@@ -344,13 +344,13 @@ drv_port_advertise_get(int unit, int port_n, uint32 *prop_val)
 {
     int     rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_advertise_get\n")));
 
     SOC_ROBO_PORT_INIT(unit);
     rv = soc_phyctrl_adv_local_get(unit, port_n, prop_val);
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_advertise_get: unit = %d, port = %d, adv_value = %x\n"),
               unit, port_n, *prop_val));
@@ -382,7 +382,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
     int rv;
     mac_driver_t *p_mac = NULL;      
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_sw_mac_update: unit = %d, bmp = %x %x\n"),
               unit, SOC_PBMP_WORD_GET(bmp, 0), SOC_PBMP_WORD_GET(bmp, 1)));
@@ -391,7 +391,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
         rv = soc_phyctrl_speed_get(unit, port, &speed);
         p_mac = SOC_ROBO_PORT_MAC_DRIVER(unit, port);
         if (SOC_FAILURE(rv) && (SOC_E_UNAVAIL != rv)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "u=%d p=%d phyctrl_speed_get rv=%d\n"),unit, port, rv));
             return rv;
@@ -407,7 +407,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
             }
         }
         if (SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MAC_SPEED_SET speed=%d rv=%d\n"),
                       unit, port, speed, rv));
@@ -416,7 +416,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
 
         rv =   (soc_phyctrl_duplex_get(unit, port, &duplex));
         if (SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "u=%d p=%d phyctrl_duplex_get rv=%d\n"),
                       unit, port, rv));
@@ -426,7 +426,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
             rv = (MAC_DUPLEX_SET(p_mac, unit, port, duplex));
         }
         if (SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MAC_DUPLEX_SET %s sp=%d rv=%d\n"), 
                       unit, port, 
@@ -461,7 +461,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
  int 
  drv_port_oper_mode_set(int unit, soc_pbmp_t bmp, uint32 oper_mode)
 {
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_oper_mode_set : unit %d, bmp = %x,  mode = %d not support\n"),
               unit, SOC_PBMP_WORD_GET(bmp, 0), oper_mode));
@@ -490,7 +490,7 @@ drv_port_sw_mac_update(int unit, soc_pbmp_t bmp)
 int 
 drv_port_oper_mode_get(int unit, int port_n, uint32 *oper_mode)
 {
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_oper_mode_get : unit %d, port = %x,  mode = %d not support\n"),
               unit, port_n, *oper_mode));
@@ -539,7 +539,7 @@ drv_port_bitmap_get(int unit, uint32 port_type, soc_pbmp_t * bitmap)
             *bitmap = PBMP_ALL(unit);
             break;
     }
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_bitmap_get: unit = %d, port type = %d, bmp = %x %x\n"),
               unit, port_type, SOC_PBMP_WORD_GET(*bitmap, 0), SOC_PBMP_WORD_GET(*bitmap, 1)));

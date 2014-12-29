@@ -170,7 +170,7 @@ eep24c64_read(int unit, int devno,
     a0 = (uint8) (addr & 0x00ff);
     a1 = (uint8) ((addr & 0xff00) >> 8);
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "eep24c64_read: addr=0x%x (a0=0x%x,a1=0x%x) len=%d\n"),
               addr, a0, a1, (int)*len));
@@ -213,7 +213,7 @@ eep24c64_read(int unit, int devno,
          * read at using the SOC_I2C_TX_ADDR (saddr_w)
          */
         if ( (rv = soc_i2c_start(unit, saddr_w)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "eep24c64_read(%d,%d,%x,%p,%d): "
                                  "failed to generate start.\n"),
@@ -223,7 +223,7 @@ eep24c64_read(int unit, int devno,
         }
         /* Word Protocol: Address MSB */
         if ( (rv = soc_i2c_write_one_byte(unit, a1)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "eep24c64_read(%d,%d,%x,%p,%d): "
                                  "failed to send a1 byte.\n"),
@@ -233,7 +233,7 @@ eep24c64_read(int unit, int devno,
         }
         /* Address LSB */
         if( (rv = soc_i2c_write_one_byte(unit, a0)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "eep24c64_read(%d,%d,%x,%p,%d): "
                                  "failed to send a0 byte.\n"),
@@ -246,7 +246,7 @@ eep24c64_read(int unit, int devno,
          * the device's read address (note: saddr_r)
          */
         if( (rv = soc_i2c_rep_start(unit, saddr_r)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "eep24c64_read(%d,%d,%x,%p,%d): "
                                  "failed to generate rep start.\n"),
@@ -322,7 +322,7 @@ eep24c64_write(int unit, int devno,
 
     bus_addr = SOC_I2C_TX_ADDR(soc_i2c_addr(unit, devno));
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "eep24c64_write: addr=0x%x data=%p len=%d npages=%d\n"),
               caddr, (void *)data, (int)len, numpages));
@@ -350,7 +350,7 @@ eep24c64_write(int unit, int devno,
 	a1 = (uint8) ((caddr & 0xff00) >> 8);
 	a0 = (uint8) (caddr & 0x00ff);
 
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "eep24c64_write: unit=%d cpage=%d START on page_addr=0x%x"
                              " nbytes=%d\n"), unit, cpage, caddr, nbytes));
@@ -390,7 +390,7 @@ eep24c64_write(int unit, int devno,
         {
             /* Generate Start, for Write address */
             if( (rv = soc_i2c_start(unit, bus_addr)) < 0){
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "eep24c64_write(%d,%d,%x,%d,%d): "
                                      "failed to gen start\n"),
@@ -400,7 +400,7 @@ eep24c64_write(int unit, int devno,
             }
             /* Send MSB (a1), wait for ACK */
             if( (rv = soc_i2c_write_one_byte(unit, a1)) < 0){
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "eep24c64_write(%d,%d,%x,%d,%d): "
                                      "failed to send a1 byte\n"),
@@ -409,7 +409,7 @@ eep24c64_write(int unit, int devno,
             }
             /* Send LSB (a0), wait for ACK */
             if( (rv = soc_i2c_write_one_byte(unit, a0)) < 0){
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "eep24c64_write(%d,%d,%x,%d,%d): "
                                      "failed to send a0 byte\n"),
@@ -419,14 +419,14 @@ eep24c64_write(int unit, int devno,
             /* Send up to PAGE_SIZE data bytes, wait for ACK */
             for ( b = 0; b < nbytes; b++, ptr++, caddr++ ) {
                 if ( (rv = soc_i2c_write_one_byte(unit, *ptr)) < 0){
-                    LOG_INFO(BSL_LS_SOC_I2C,
+                    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                              (BSL_META_U(unit,
                                          "eep24c64_write(%d,%d,%d,%d,%d): "
                                          "tx data byte error\n"),
                               unit, devno, caddr, (uint32)*ptr, b));
                 goto error;
                 }
-                LOG_VERBOSE(BSL_LS_SOC_I2C,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_I2C,
                             (BSL_META_U(unit,
                                         "eep24c64_write(u=%d,id=%d,page=%d "
                                         "caddr=%d,data=0x%x,idx=%d)\n"),
@@ -447,7 +447,7 @@ error:
              * which point the internal write cycle has finished.
              */
             rv = eep24c64_ack_poll(unit, bus_addr);
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "eep24c64_ack_poll: "
                                  "%d address cycles for wr latency.\n"), rv));
@@ -534,7 +534,7 @@ eep24c64_get_params(uint32 u, uint32 d, eep24c64_t* c)
 	return SOC_E_PARAM;
 
     if ( (r = eep24c64_read(u, d, 0, (uint8*)c, (uint32 *)&l)) < 0 ) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(u,
                              "eep24c64_get_params: %s\n"), soc_errmsg(r)));
 	return r;
@@ -546,7 +546,7 @@ eep24c64_get_params(uint32 u, uint32 d, eep24c64_t* c)
     sum = eep24c64_chksum(sum,(uint8 *)&c->name, LC2464_NAME_LEN);
 
     if ( sum != savesum ) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(u,
                                 "%s: NOTICE: EEPROM contents invalid or bad checksum\n"),
                      soc_i2c_devname(u, d)));
@@ -604,7 +604,7 @@ eep24c64_set_params(uint32 u, uint32 d, eep24c64_t* c)
 	stime = sal_time_double(); \
 	(rtn); \
 	etime = sal_time_double(); \
-	LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                     (BSL_META("%s: %s took %.2f sec %.2fKB/sec\n"), \
 name, op, etime - stime, \
                      sz / (etime - stime) / 1024)); \
@@ -615,7 +615,7 @@ name, op, etime - stime, \
 	stime = sal_time_usecs(); \
 	(rtn); \
 	etime = sal_time_usecs(); \
-	LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                     (BSL_META("%s: %s took %u usec %dKB/sec\n"), \
 name, op, etime - stime, \
                      sz * (SECOND_USEC / 1024) / (etime - stime))); \
@@ -678,7 +678,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	inbuf = (uint8*)sal_alloc(len, "i2c");
 	/* Fragmented (page and then some) write .. */
 	for(i = 0; i <= LC2464_DEVICE_RW_SIZE/8; i+= len){
-	    LOG_INFO(BSL_LS_SOC_I2C,
+	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "eep24c64_init: unit=%d bytes=%d\n"), unit, i));
 	    /* Write buffer to EEPROM */
@@ -689,7 +689,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	    /* Verify each byte */
 	    for( j = 0; j < len; j++){
 		if ( inbuf[j] != outbuf[j]){
-		    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+		    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "%s: ERROR: EEPROM miscompare "
                                             "off=%d expected=0x%x "
@@ -702,7 +702,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	sal_free(inbuf);
 #endif
 
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: testing data integrity, %d bytes\n"),
                      devname, LC2464_DEVICE_RW_SIZE));
@@ -723,7 +723,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	sal_memset(inbuf, 0x0, len);
 	pattern = (uint8) sal_time_usecs();
 	sal_memset(outbuf,pattern, len);
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: writing %d bytes pattern=0x%x\n"),
                      devname, len, pattern));
@@ -734,12 +734,12 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	if (rlen == LC2464_DEVICE_RW_SIZE )
 	    ;	/* write was ok */
 	else if (rlen > 0)
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%s: ERROR: only %d out of %d bytes written!\n"),
                          devname, rlen, len));
 	else
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%s: ERROR: write failed: %s\n"),
                          devname, soc_errmsg(rlen)));
@@ -748,7 +748,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	sal_memset(inbuf, 0x0, len);
 	rlen = len;
 
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: reading %d bytes\n"), devname, rlen));
 
@@ -758,12 +758,12 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	if (rlen == LC2464_DEVICE_RW_SIZE)
 	    ;	/* read was ok */
 	else if (rlen > 0)
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%s: ERROR: only %d out of %d bytes read!\n"),
                          devname, rlen, len));
 	else
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%s: ERROR: read failed: %s\n"),
                          devname, soc_errmsg(rlen)));
@@ -771,7 +771,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	i = 0;
 	for( j = 0; j < LC2464_DEVICE_RW_SIZE; j++){
 	    if ( inbuf[j] != outbuf[j]){
-		LOG_VERBOSE(BSL_LS_SOC_COMMON,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "%s: ERROR: miscompare at offset=%d "
                                         "expected=0x%x got 0x%x (addr=%d in page)\n"),
@@ -782,7 +782,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	}
 
 	if(i == 0)
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%s: test passed (%d bytes verified)\n"),
                          devname, len));
@@ -796,7 +796,7 @@ eep24c64_init(int unit, int devno, void* data, int len)
 	sal_memset(config.name, 0x0,LC2464_NAME_LEN);
 
 	if(sal_strlen(soc_i2c_devname(unit,devno)) > LC2464_NAME_LEN ) {
-        LOG_WARN(BSL_LS_SOC_I2C,
+        LOG_BSL_WARN(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "Device name %s too long, trimming it .... \n"),
                   soc_i2c_devname(unit , devno)));

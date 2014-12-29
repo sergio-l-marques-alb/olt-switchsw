@@ -93,7 +93,7 @@ soc_fcmapphy_init(int unit, soc_port_t port, phy_ctrl_t *pc,
                                  pc->fcmap_uc_dev_addr, 
                                  pc->fcmap_dev_port, iofn);
         if (rv != BFCMAP_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "soc_fcmapphy_init: "
                                  "FCMAP port create failed for u=%d p=%d rv = %d\n"),

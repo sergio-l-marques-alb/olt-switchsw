@@ -245,7 +245,7 @@ chassis_cfm_xgs2(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     bcm_board_cfm_info_t info;
     bcm_port_config_t    config;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5675 BCM956000 CFM\n")));
     bcm_board_cfm_info(db_ref, &info);
 
@@ -291,7 +291,7 @@ chassis_cfm_xgs3(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     bcm_board_cfm_info_t info;
     bcm_port_config_t    config;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56700 BCM956010 CFM\n")));
     bcm_board_cfm_info(db_ref, &info);
 
@@ -359,7 +359,7 @@ bcm_board_topo_lm2x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[3];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5674 2XE board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_lm2x);
 
@@ -378,7 +378,7 @@ chassis_lm6x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[7];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5674 6XE board topology handler\n")));
 
     unit = 0;            /* board fabric unit */
@@ -400,7 +400,7 @@ chassis_lm_xgs2_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[5];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 48GE BCM956000 Chassis Line Card\n")));
 
     unit = 0;            /* board fabric unit */
@@ -616,9 +616,9 @@ chassis_lm_xgs3_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     unit0_modid = tp_cpu->local_entry.mod_ids[FB_UNIT0];
     unit1_modid = tp_cpu->local_entry.mod_ids[FB_UNIT1];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56504 48GE BCM956000 Chassis Line Card\n")));
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("      master on slot %d\n"),
                  master_slot));
 
@@ -678,9 +678,9 @@ chassis_lm_xgs3_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 
     master_slot = db_ref->master_entry ?
         db_ref->master_entry->base.slot_id : -1;
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56501 12XE BCM956000 Chassis Line Card\n")));
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("      master on slot %d\n"),
                  master_slot));
 
@@ -718,7 +718,7 @@ chassis_lm_56800_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     bcm_port_t           port;
     bcm_port_config_t    config;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56800 LM\n")));
 
     unit = 0;            /* board fabric unit */

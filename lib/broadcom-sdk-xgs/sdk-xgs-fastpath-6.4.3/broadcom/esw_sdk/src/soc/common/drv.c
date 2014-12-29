@@ -134,7 +134,7 @@ soc_misc_init(int unit)
 {
     int rv = SOC_E_UNAVAIL;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_misc_init\n")));
 
@@ -484,7 +484,7 @@ soc_property_get_str(int unit, const char *name)
 
         if (sal_snprintf(name_exp, SOC_PROPERTY_NAME_MAX,  
                          "%s.%d", name, unit) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s.%d. "
                           "Max soc property length:%d\n"), 
@@ -611,7 +611,7 @@ soc_property_obj_attr_get(int unit, const char *prefix, const char *obj,
     if (index != -1) {
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                          "%s.%s%d.%s", prefix, obj, index, attr) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s.%s%d.%s. "
                           "Max soc property length:%d\n"), 
@@ -624,7 +624,7 @@ soc_property_obj_attr_get(int unit, const char *prefix, const char *obj,
     if (str == NULL) {
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                          "%s.%s.%s", prefix, obj, attr) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s.%s.%s. "
                           "Max soc property length:%d\n"), 
@@ -858,7 +858,7 @@ soc_property_port_get_str(int unit, soc_port_t port,
         
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                          "%s_%s", name, SOC_PORT_NAME(unit, port)) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s_%s. "
                           "Max soc property length:%d\n"), 
@@ -875,7 +875,7 @@ soc_property_port_get_str(int unit, soc_port_t port,
         {
             if (sal_snprintf(prop_alter, SOC_PROPERTY_NAME_MAX, 
                              "%s_%s", name, SOC_PORT_NAME_ALTER(unit, port)) >= SOC_PROPERTY_NAME_MAX) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Unsupported soc_property length for %s_%s. "
                               "Max soc property length:%d\n"), 
@@ -917,7 +917,7 @@ soc_property_port_get_str(int unit, soc_port_t port,
     /* check length of <name>.port<port>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s.port%d", name, port+1) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s.port%d. "
                       "Max soc property length:%d\n"), 
@@ -936,7 +936,7 @@ soc_property_port_get_str(int unit, soc_port_t port,
         if (SOC_PORT(unit, port, pno) == port) {
             if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                              "%s_port%d", name, pno+1) >= SOC_PROPERTY_NAME_MAX) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Unsupported soc_property length for %s.port%d. "
                               "Max soc property length:%d\n"), 
@@ -955,7 +955,7 @@ soc_property_port_get_str(int unit, soc_port_t port,
     
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%d", name, port) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%d. "
                       "Max soc property length:%d\n"), 
@@ -1053,7 +1053,7 @@ soc_property_port_obj_attr_get(int unit, soc_port_t port, const char *prefix,
     if (index != -1) {
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                          "%s.%s%d.%s", prefix, obj, index, attr) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s.%s%d.%s. "
                           "Max soc property length:%d\n"), 
@@ -1067,7 +1067,7 @@ soc_property_port_obj_attr_get(int unit, soc_port_t port, const char *prefix,
     if (str == NULL) {
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                          "%s.%s.%s", prefix, obj, attr) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s.%s.%s. "
                           "Max soc property length:%d\n"), 
@@ -1143,7 +1143,7 @@ soc_property_cos_get_str(int unit, soc_cos_t cos,
     /* check length of <name>.cos<cos>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s.cos%d", name, (cos + 1)) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s.cos%d. "
                           "Max soc property length:%d\n"), 
@@ -1227,7 +1227,7 @@ soc_property_suffix_num_get(int unit, int num, const char *name,
     /* try "name_'suffix'0" */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s%1d", name, suffix, num) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s%1d. "
                       "Max soc property length:%d\n"), 
@@ -1241,7 +1241,7 @@ soc_property_suffix_num_get(int unit, int num, const char *name,
     /* try "name.port%d.suffix" for explicit match first */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s.port%d.%s", name, num+1, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s.port%d.%s. "
                       "Max soc property length:%d\n"),  
@@ -1255,7 +1255,7 @@ soc_property_suffix_num_get(int unit, int num, const char *name,
     /* try "name_'suffix'" */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s", name, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s. "
                       "Max soc property length:%d\n"),  
@@ -1305,7 +1305,7 @@ soc_property_suffix_num_get_only_suffix(int unit, int num, const char *name,
     /* check length of <name>_<suffix><num>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s%1d", name, suffix, num) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s%1d. "
                       "Max soc property length:%d\n"), 
@@ -1320,7 +1320,7 @@ soc_property_suffix_num_get_only_suffix(int unit, int num, const char *name,
     /* check length of <name>.port<num>.<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s.port%d.%s", name, num+1, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s.port%d.%s. "
                       "Max soc property length:%d\n"), 
@@ -1335,7 +1335,7 @@ soc_property_suffix_num_get_only_suffix(int unit, int num, const char *name,
     /* check length of <name>_<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s", name, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s. "
                       "Max soc property length:%d\n"), 
@@ -1382,7 +1382,7 @@ soc_property_suffix_num_str_get(int unit, int num, const char *name,
     /* check length of <name>_<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s%1d", name, suffix, num) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s%1d. "
                       "Max soc property length:%d\n"), 
@@ -1398,7 +1398,7 @@ soc_property_suffix_num_str_get(int unit, int num, const char *name,
     /* check length of <name>.port<num>.<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s.port%d.%s", name, num+1, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s.port%d.%s. "
                       "Max soc property length:%d\n"), 
@@ -1413,7 +1413,7 @@ soc_property_suffix_num_str_get(int unit, int num, const char *name,
     /* check length of <name>_<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s", name, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s. "
                       "Max soc property length:%d\n"), 
@@ -1465,7 +1465,7 @@ soc_property_suffix_num_only_suffix_str_get(int unit, int num, const char *name,
     /* try "name_'suffix'0" */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s%1d", name, suffix, num) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s%1d. "
                       "Max soc property length:%d\n"), 
@@ -1479,7 +1479,7 @@ soc_property_suffix_num_only_suffix_str_get(int unit, int num, const char *name,
     /* try "name.port%d.suffix" for explicit match first */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s.port%d.%s", name, num+1, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s.port%d.%s. "
                       "Max soc property length:%d\n"), 
@@ -1493,7 +1493,7 @@ soc_property_suffix_num_only_suffix_str_get(int unit, int num, const char *name,
     /* try "name_'suffix'" */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s", name, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s. "
                       "Max soc property length:%d\n"), 
@@ -1544,7 +1544,7 @@ soc_property_port_suffix_num_get(int unit, soc_port_t port,
     /* check length of <name>_<suffix><num>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s%1d", name, suffix, num) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s%1d. "
                       "Max soc property length:%d\n"), 
@@ -1566,7 +1566,7 @@ soc_property_port_suffix_num_get(int unit, soc_port_t port,
     /* check length of <name>_<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s", name, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s. "
                       "Max soc property length:%d\n"), 
@@ -1633,7 +1633,7 @@ soc_property_port_suffix_num_get_str(int unit, soc_port_t port,
     /* check length of <name>_<suffix><num>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s%1d", name, suffix, num) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s%1d. "
                       "Max soc property length:%d\n"), 
@@ -1655,7 +1655,7 @@ soc_property_port_suffix_num_get_str(int unit, soc_port_t port,
     /* check length of <name>_<suffix>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_%s", name, suffix) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_%s. "
                       "Max soc property length:%d\n"), 
@@ -1715,7 +1715,7 @@ soc_property_uc_get_str(int unit, int uc,
         /* check length of <name>_pci\0 */
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX,  
                          "%s_pci", name) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s_pci. "
                           "Max soc property length:%d\n"), 
@@ -1731,7 +1731,7 @@ soc_property_uc_get_str(int unit, int uc,
         /* check length of <name>_uc<uc>\0 */
         if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                          "%s_uc%d", name, (uc - 1)) >= SOC_PROPERTY_NAME_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "Unsupported soc_property length for %s_uc%d. "
                           "Max soc property length:%d\n"), 
@@ -1813,7 +1813,7 @@ soc_property_ci_get_str(int unit, int ci,
     /* check length of <name>_ci<ci>\0 */
     if (sal_snprintf(prop, SOC_PROPERTY_NAME_MAX, 
                      "%s_ci%d", name, ci) >= SOC_PROPERTY_NAME_MAX) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
           (BSL_META_U(unit,
                       "Unsupported soc_property length for %s_ci%d. "
                       "Max soc property length:%d\n"), 
@@ -2626,7 +2626,7 @@ soc_xgxs_lcpll_lock_check(int unit)
         }
 
         if (!locked) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "fbx_lcpll_lock_check: LCPLL not locked on unit %d "
                                   "status = 0x%08x\n"),
@@ -3349,7 +3349,7 @@ soc_wc_xgxs_pll_check(int unit, soc_port_t port, int reg_idx)
 
     phy_port = SOC_INFO(unit).port_l2p_mapping[port];
     block = SOC_PORT_BLOCK(unit, phy_port);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s TXPLL not locked\n"),
                unit, SOC_BLOCK_NAME(unit, block)));
@@ -3389,7 +3389,7 @@ soc_wc_xgxs_power_down(int unit, soc_port_t port, int reg_idx)
     soc_reg64_field32_set(unit, reg, &rval64, TXD1G_FIFO_RSTBf, 0);
     soc_reg64_field32_set(unit, reg, &rval64, TXD10G_FIFO_RSTBf, 0);
     SOC_IF_ERROR_RETURN(soc_reg_set(unit, reg, port, 0, rval64));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Power down wc for port: %d\n"), port));
     return SOC_E_NONE;
@@ -3648,7 +3648,7 @@ soc_tsc_xgxs_pll_check(int unit, soc_port_t port, int reg_idx)
         retry--;
     }
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d TSC %d TXPLL not locked\n"),
                unit, SOC_INFO(unit).port_serdes[port]));

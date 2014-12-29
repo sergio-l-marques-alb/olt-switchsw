@@ -81,7 +81,7 @@ bcm_board_topo_12g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
     int mod;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 12GE+1HG board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_12g_stk);
 
@@ -125,7 +125,7 @@ bcm_board_topo_24g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[3];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 24GE+2HG board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_24g_stk);
 
@@ -176,7 +176,7 @@ bcm_board_topo_48g_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[5];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 48GE+4HG board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_48g_stk);
 
@@ -208,7 +208,7 @@ bcm_board_topo_24g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
     int *mod_ids;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS B2B 569x 24GE board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_24g);
 
@@ -254,7 +254,7 @@ bcm_board_topo_48f_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
     int mod;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5665 48FE+4GE+HG board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_48f_stk);
 
@@ -317,7 +317,7 @@ bcm_board_topo_24g2x_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[5];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 24GE+2XE board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_24g2x_stk);
 
@@ -375,7 +375,7 @@ bcm_board_topo_48g2x_stk(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[7];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 48GE+2XE board topology handler\n")));
     bcm_topo_map_set(_bcm_board_topomap_48g2x_stk);
 
@@ -403,7 +403,7 @@ bcm_board_topo_8h(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     int    unit;
     int    unitport[1];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5670 8HG board topology handler\n")));
     bcm_topo_map_set(bcm_board_topomap_stk);
 
@@ -430,7 +430,7 @@ bcm_board_topo_xgs2_12g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
     int    mod;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS2 5695 12GE+1HG SDK\n")));
     bcm_topo_map_set(_bcm_board_topomap_xgs2_12g);
 

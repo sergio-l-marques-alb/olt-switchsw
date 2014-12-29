@@ -1135,7 +1135,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_mode (
     uint32        total_counters=0;
     switch(egr_attr->packet_attr_type) {
     case bcmStatFlexPacketAttrTypeUncompressed:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Creating Egress uncompressed mode \n")));
          BCM_IF_ERROR_RETURN(_bcm_esw_stat_flex_create_egress_uncompress_mode(
@@ -1145,7 +1145,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_mode (
                              &total_counters));
          break;
     case bcmStatFlexPacketAttrTypeCompressed:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Creating Egress compressed mode \n")));
          BCM_IF_ERROR_RETURN(_bcm_esw_stat_flex_create_egress_compress_mode(
@@ -1155,7 +1155,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_mode (
                              &total_counters));
          break;
     case bcmStatFlexPacketAttrTypeUdf:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Creating Egress udf mode \n")));
          BCM_IF_ERROR_RETURN(_bcm_esw_stat_flex_create_egress_udf_mode(
@@ -1173,7 +1173,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_mode (
                         total_counters,
                         egr_attr));
     /* *mode |= 0x80; */
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "\n Done %d \n"),
                *mode));

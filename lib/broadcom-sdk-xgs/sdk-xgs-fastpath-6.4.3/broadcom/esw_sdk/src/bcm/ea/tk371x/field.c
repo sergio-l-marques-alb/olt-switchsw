@@ -101,7 +101,7 @@ static _bcm_tk371x_field_control_t     *_field_control = NULL;
         return BCM_E_UNAVAIL;                                    \
     }                                                            \
     if (_field_control == NULL) {                          \
-        LOG_ERROR(BSL_LS_BCM_FP, \
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                   (BSL_META_U(unit, \
                               "FP Error: unit=%d not initialized\n"),   \
                    unit));   \
@@ -172,7 +172,7 @@ _bcm_tk371x_field_qset_dump(char *prefix, bcm_field_qset_t qset, char *suffix)
 int
 _bcm_tk371x_field_control_get(int unit, _bcm_tk371x_field_control_t *fc)
 {
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: _bcm_tk371x_field_control_get(%d)\n"),
                unit));
@@ -202,7 +202,7 @@ _bcm_tk371x_field_action_name(bcm_field_action_t action)
 
     static char *action_text[] = BCM_FIELD_ACTION_STRINGS;
     assert(COUNTOF(action_text)     == bcmFieldActionCount);
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META("FP: _bcm_tk371x_field_action_name\n")));
     return (action >= bcmFieldActionCount ? "??" : action_text[action]);
 }
@@ -224,7 +224,7 @@ _bcm_tk371x_field_action_name(bcm_field_action_t action)
 int
 _bcm_tk371x_field_control_free(int unit, _bcm_tk371x_field_control_t *fc)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_control_free(unit=%d)\n"),
 	           unit));
@@ -256,7 +256,7 @@ _bcm_tk371x_field_range_get(int unit, bcm_field_range_t rid,
 	_bcm_tk371x_field_control_t 	*fc = _field_control;
 	_bcm_tk371x_field_range_t		*fr = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_entry_get(unit=%d)\n"),
 	           unit));
@@ -715,7 +715,7 @@ _bcm_tk371x_field_entry_get(int unit, bcm_field_entry_t eid,
 	_bcm_tk371x_field_group_t		*fg = NULL;
 	_bcm_tk371x_field_entry_t		*fe = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_entry_get(unit=%d)\n"),
 	           unit));
@@ -749,7 +749,7 @@ _bcm_tk371x_field_entry_qual_get(int unit, bcm_field_entry_t eid,
 	_bcm_tk371x_field_group_t		*fg = NULL;
 	_bcm_tk371x_field_entry_t		*fe = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_entry_qual_get(unit=%d)\n"),
 	           unit));
@@ -774,7 +774,7 @@ _bcm_tk371x_field_entry_qual_get(int unit, bcm_field_entry_t eid,
     		    if (FALSE == found) {
     		        return (BCM_E_PARAM);
     		    }
-    		    LOG_DEBUG(BSL_LS_BCM_FP,
+    		    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     		              (BSL_META_U(unit,
     		                          "FP: Has found(eid=%d, qset=%d)\n"),
     		               eid, qual));
@@ -796,7 +796,7 @@ _bcm_tk371x_field_entry_group_id_get(int unit, bcm_field_entry_t eid, bcm_field_
 	_bcm_tk371x_field_group_t		*fg = NULL;
 	_bcm_tk371x_field_entry_t		*fe = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_entry_group_id_get(unit=%d)\n"),
 	           unit));
@@ -825,7 +825,7 @@ _bcm_tk371x_field_entry_qualify_update(
 	_bcm_tk371x_field_entry_t	*entry_P;
 	_bcm_tk371x_field_entry_cond_t	*fe_cond;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_entry_qualify_update(unit=%d)\n"),
 	           unit));
@@ -872,7 +872,7 @@ bcm_tk371x_field_entry_destroy_all(int unit)
 	_bcm_tk371x_field_control_t 	*fc = _field_control;
 	_bcm_tk371x_field_group_t		*group;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_destroy_all(unit=%d)\n"),
 	           unit));
@@ -915,7 +915,7 @@ bcm_tk371x_field_group_destroy(
 	_bcm_tk371x_field_entry_t		*entry;
 	int ret_val;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_group_destroy(unit=%d)\n"),
 	           unit));
@@ -943,7 +943,7 @@ bcm_tk371x_field_group_destroy(
         fg      = fg->next;
     }
     if (fg == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: Group=%d not found in unit=%d.\n"),
                    group, unit));
@@ -977,7 +977,7 @@ _bcm_tk371x_field_group_get(int unit, bcm_field_group_t gid)
 	_bcm_tk371x_field_control_t 	*fc = _field_control;
 	_bcm_tk371x_field_group_t		*fg = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_group_get(unit=%d)\n"),
 	           unit));
@@ -1013,7 +1013,7 @@ _bcm_tk371x_field_group_id_generate(int unit, bcm_field_group_t *group)
 {
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_group_id_generate(unit=%d)\n"),
 	           unit));
@@ -1026,7 +1026,7 @@ _bcm_tk371x_field_group_id_generate(int unit, bcm_field_group_t *group)
     		break;
     	}
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: Generate ID is %d\n"),
                *group));
@@ -1151,7 +1151,7 @@ _bcm_tk371x_field_bcmActionToRuleAction_update(
 	int i = 0;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_bcmActionToRuleAction_update(unit=%d)\n"),
 	           unit));
@@ -1173,13 +1173,13 @@ _bcm_tk371x_field_bcmActionToRuleAction_update(
 #ifdef BROADCOM_DEBUG
 	for (i = 0; i < _TK371X_MAX_ACTIONS; i++){
 		if (act[i] == _FP_ACTION_INVALID_VAL){
-			LOG_DEBUG(BSL_LS_BCM_FP,
+			LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 			          (BSL_META_U(unit,
 			                      "FP:act[%d] =  _FP_ACTION_INVALID_VAL\n"),
 			           i));
 			break;
 		}else{
-			LOG_DEBUG(BSL_LS_BCM_FP,
+			LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 			          (BSL_META_U(unit,
 			                      "FP:act[%d] =  %s\n"),
 			           i, _bcm_tk371x_field_action_name(act[i])));
@@ -1433,14 +1433,14 @@ _bcm_tk371x_field_bcmActionToRuleAction_update(
     	 * Rule 3: Delete Tag; Add Tag (Replace Tag 17)
     	 * */
 #ifdef BROADCOM_DEBUG
-		LOG_DEBUG(BSL_LS_BCM_FP,
+		LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 		          (BSL_META_U(unit,
 		                      "1:\n")));
-		LOG_DEBUG(BSL_LS_BCM_FP,
+		LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 		          (BSL_META_U(unit,
 		                      "(uint16)fe->bcm_action->param0=%d\n"),
 		           (uint16)fe->bcm_action->param0));
-		LOG_DEBUG(BSL_LS_BCM_FP,
+		LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 		          (BSL_META_U(unit,
 		                      "(uint16)fe->bcm_action->next->param0=%d\n"),
 		           (uint16)fe->bcm_action->next->param0));
@@ -1460,14 +1460,14 @@ _bcm_tk371x_field_bcmActionToRuleAction_update(
     	 * Rule 3: Delete Tag; Add Tag (Replace Tag 17)
     	 * */
 #ifdef BROADCOM_DEBUG
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "2:\n")));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "(uint16)fe->bcm_action->param0=%d\n"),
     	           (uint16)fe->bcm_action->param0));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "(uint16)fe->bcm_action->next->param0=%d\n"),
     	           (uint16)fe->bcm_action->next->param0));
@@ -1667,7 +1667,7 @@ _bcm_tk371x_field_action_insert(int unit,
 	if (fc == NULL){
 		return BCM_E_INIT;
 	}
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: _bcm_tk371x_field_action_insert(unit=%d)\n"),
 	           unit));
@@ -1726,7 +1726,7 @@ bcm_tk371x_field_action_add(
 	uint8 soc_action;
 	int rv = BCM_E_NONE;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_action_add(unit=%d)\n"),
 	           unit));
@@ -1795,7 +1795,7 @@ int _bcm_tk371x_field_action_delete(
 {
 	_bcm_tk371x_field_action_t	*fa_act, *act_prev = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META("FP: Enter _bcm_tk371x_field_action_delete\n")));
 	if (fe == NULL){
 		return BCM_E_NONE;
@@ -1860,7 +1860,7 @@ bcm_tk371x_field_action_delete(
 	uint8 soc_action;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_action_delete(unit=%d)\n"),
 	           unit));
@@ -1890,7 +1890,7 @@ bcm_tk371x_field_action_delete(
     if (rv != BCM_E_NONE){
     	return rv;
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: _bcm_tk371x_field_entry_get find entry id = %d\n"),
                fe->entry_id));
@@ -1939,7 +1939,7 @@ bcm_tk371x_field_action_get(
 	_bcm_tk371x_field_action_t		*act_P = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_action_get(unit=%d)\n"),
 	           unit));
@@ -2004,7 +2004,7 @@ bcm_tk371x_field_action_remove(
 	    bcm_field_entry_t entry,
 	    bcm_field_action_t action)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_action_remove(unit=%d)\n"),
 	           unit));
@@ -2037,7 +2037,7 @@ bcm_tk371x_field_action_remove_all(
 	_bcm_tk371x_field_action_t		*act_P = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_action_remove_all(unit=%d)\n"),
 	           unit));
@@ -2081,7 +2081,7 @@ bcm_tk371x_field_detach(int unit)
 	_bcm_tk371x_field_range_t		*fr = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_detach(unit=%d)\n"),
 	           unit));
@@ -2092,7 +2092,7 @@ bcm_tk371x_field_detach(int unit)
     }
 
     if (!soc_feature(unit, soc_feature_field)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: No Field Processor available Unit=%d\n"),
                    unit));
@@ -2166,7 +2166,7 @@ bcm_tk371x_field_entry_copy(
 	_bcm_tk371x_field_entry_t 		*fe_src = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_copy(unit=%d)\n"),
 	           unit));
@@ -2181,7 +2181,7 @@ bcm_tk371x_field_entry_copy(
         return (rv);
     }
     if (dst_entry == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: dst_entry == NULL\n")));
         return BCM_E_PARAM;
@@ -2229,7 +2229,7 @@ bcm_tk371x_field_entry_copy_id(
 	int rv;
 	uint8 soc_action;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_copy_id(unit=%d)\n"),
 	           unit));
@@ -2243,7 +2243,7 @@ bcm_tk371x_field_entry_copy_id(
     if (BCM_FAILURE(rv)) {
         return (rv);
     }
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: %s src:%d dst:%d\n"),
 	           FUNCTION_NAME(),src_entry, dst_entry));
@@ -2328,7 +2328,7 @@ bcm_tk371x_field_entry_create(
 	int group_flag = 1;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_create(unit=%d)\n"),
 	           unit));
@@ -2417,7 +2417,7 @@ bcm_tk371x_field_entry_create_id(
 	int group_flag = 1;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_create_id(unit=%d)\n"),
 	           unit));
@@ -2496,7 +2496,7 @@ bcm_tk371x_field_entry_destroy(
 	_bcm_tk371x_field_group_t		*group = NULL;
 	_bcm_tk371x_field_action_t		*act, *act_P = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_destroy(unit=%d)\n"),
 	           unit));
@@ -2591,7 +2591,7 @@ bcm_tk371x_field_entry_dump(
 	int i = 1, j = 0;
 	int rv = 0;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_dump(unit=%d)\n"),
 	           unit));
@@ -2754,7 +2754,7 @@ bcm_tk371x_field_entry_install(
 
 #ifdef BROADCOM_DEBUG
 	int j = 0;
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_install(unit=%d)\n"),
 	           unit));
@@ -2804,68 +2804,68 @@ bcm_tk371x_field_entry_install(
     	i++;
     }
 #ifdef BROADCOM_DEBUG
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "pathId=%d\n"),
                unit));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "LinkId=%d\n"),
                0));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "LogicalPortIndex.index=%02X\n"),
                index.index));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "LogicalPortIndex.objType=%02X\n"),
                index.objType));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "TkPortRuleInfo.actuion=%02X\n"),
                rule_info.action));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "TkPortRuleInfo.param.vid_cos=%04X\n"),
                rule_info.param.vid_cos));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "TkPortRuleInfo.priority=%02X\n"),
                rule_info.priority));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "TkPortRuleInfo.volatiles=%02X\n"),
                rule_info.volatiles));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "TkPortRuleInfo.ruleCondition.conditionCount=%d\n"),
                rule_info.ruleCondition.conditionCount));
     for (i = 0; i < rule_info.ruleCondition.conditionCount; i++){
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.ruleCondition.conditionList[%d].field=%02X\n"),
     	           i, rule_info.ruleCondition.conditionList[i].field));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.ruleCondition.conditionList[%d].operator=%02X\n"),
     	           i, rule_info.ruleCondition.conditionList[i].operator));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.ruleCondition.conditionList[%d].comon.value"),
     	           i));
     	for (j = 0; j < 8; j++){
-    		LOG_DEBUG(BSL_LS_BCM_FP,
+    		LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     		          (BSL_META_U(unit,
     		                      "[%d]=%02X"),
     		           j, rule_info.ruleCondition.conditionList[i].common.value[j]));
     	}
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "\n")));
     }
 #endif
     rv = TkExtOamPortRuleAdd(unit, 0, index, &rule_info);
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Call TkExtOamPortRuleAdd: rv=%d\n"),
                rv));
@@ -2952,7 +2952,7 @@ bcm_tk371x_field_entry_multi_get(
 	_bcm_tk371x_field_group_t		*fg = NULL;
 	_bcm_tk371x_field_entry_t 		*fe_t = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_multi_get(unit=%d)\n"),
 	           unit));
@@ -3019,7 +3019,7 @@ bcm_tk371x_field_entry_prio_get(
 	_bcm_tk371x_field_entry_t 		*fe = NULL;
 	int ret_val;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_prio_get(unit=%d)\n"),
 	           unit));
@@ -3057,7 +3057,7 @@ bcm_tk371x_field_entry_prio_set(
 	_bcm_tk371x_field_entry_t 		*fe = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_prio_set(unit=%d)\n"),
 	           unit));
@@ -3114,7 +3114,7 @@ bcm_tk371x_field_entry_reinstall(
 	_bcm_tk371x_field_entry_t 		*fe = NULL;
 	int rv = BCM_E_NOT_FOUND;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_reinstall(unit=%d)\n"),
 	           unit));
@@ -3170,7 +3170,7 @@ bcm_tk371x_field_entry_remove(
 #ifdef BROADCOM_DEBUG
     int i;
 	int j = 0;
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_entry_remove(unit=%d)\n"),
 	           unit));
@@ -3189,62 +3189,62 @@ bcm_tk371x_field_entry_remove(
     if ((entry_P->flags & _TK371X_ENTRY_FLAG_INSTALLED) &&
     		(entry_P->flags & _TK371X_ENTRY_FLAG_NOT_EMPTY)){
 #ifdef BROADCOM_DEBUG
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "pathId=%d\n"),
     	           unit));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "LinkId=%d\n"),
     	           0));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "LogicalPortIndex.index=%02X\n"),
     	           entry_P->backup->index.index));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "LogicalPortIndex.objType=%02X\n"),
     	           entry_P->backup->index.objType));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.actuion=%02X\n"),
     	           entry_P->backup->info.action));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.param.vid_cos=%04X\n"),
     	           entry_P->backup->info.param.vid_cos));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.priority=%02X\n"),
     	           entry_P->backup->info.priority));
-    	LOG_DEBUG(BSL_LS_BCM_FP,
+    	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
     	          (BSL_META_U(unit,
     	                      "TkPortRuleInfo.volatiles=%02X\n"),
     	           entry_P->backup->info.volatiles));
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "TkPortRuleInfo.ruleCondition.conditionCount=%d\n"),
                    entry_P->backup->info.ruleCondition.conditionCount));
         for (i = 0; i < entry_P->backup->info.ruleCondition.conditionCount; i++){
-        	LOG_DEBUG(BSL_LS_BCM_FP,
+        	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
         	          (BSL_META_U(unit,
         	                      "TkPortRuleInfo.ruleCondition.conditionList[%d].field=%02X\n"),
         	           i, entry_P->backup->info.ruleCondition.conditionList[i].field));
-        	LOG_DEBUG(BSL_LS_BCM_FP,
+        	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
         	          (BSL_META_U(unit,
         	                      "TkPortRuleInfo.ruleCondition.conditionList[%d].operator=%02X\n"),
         	           i, entry_P->backup->info.ruleCondition.conditionList[i].operator));
-        	LOG_DEBUG(BSL_LS_BCM_FP,
+        	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
         	          (BSL_META_U(unit,
         	                      "TkPortRuleInfo.ruleCondition.conditionList[%d].comon.value"),
         	           i));
         	for (j = 0; j < 8; j++){
-        		LOG_DEBUG(BSL_LS_BCM_FP,
+        		LOG_BSL_DEBUG(BSL_LS_BCM_FP,
         		          (BSL_META_U(unit,
         		                      "[%d]=%02X"),
         		           j, entry_P->backup->info.ruleCondition.conditionList[i].common.value[j]));
         	}
-        	LOG_DEBUG(BSL_LS_BCM_FP,
+        	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
         	          (BSL_META_U(unit,
         	                      "\n")));
         }
@@ -3347,14 +3347,14 @@ bcm_tk371x_field_group_create(
     int     rv;
     bcm_field_group_t gid;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP: bcm_tk371x_field_group_create(unit=%d)\n"),
                unit));
     FIELD_IS_INIT(unit);
     rv = _bcm_tk371x_field_group_id_generate(unit, &gid);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: new group won't create.\n")));
         return rv;
@@ -3502,7 +3502,7 @@ bcm_tk371x_field_group_dump(
 	_bcm_tk371x_field_entry_t		*fe = NULL;
 	int e_count = 0;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_group_dump(unit=%d)\n"),
 	           unit));
@@ -3557,7 +3557,7 @@ bcm_tk371x_field_group_get(
 	bcm_field_qset_t	qsets;
 	int rv = 0;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: %s(unit=%d,  gid=%d)\n"),
 	           FUNCTION_NAME(),unit, group));
@@ -3613,7 +3613,7 @@ bcm_tk371x_field_group_install(
 	_bcm_tk371x_field_entry_t	*fe = NULL;
 	int rv = BCM_E_NONE;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: %s(unit=%d,  gid=%d)\n"),
 	           FUNCTION_NAME(),unit, group));
@@ -3668,7 +3668,7 @@ bcm_tk371x_field_group_remove(
 	_bcm_tk371x_field_entry_t	*fe = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: %s(unit=%d,  gid=%d)\n"),
 	           FUNCTION_NAME(),unit, group));
@@ -3731,7 +3731,7 @@ bcm_tk371x_field_group_set(
 	int retval;
 
 	fg = NULL;
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "BEGIN bcm_field_group_set(unit=%d, group=%d)\n"),
 	           unit, group));
@@ -3793,7 +3793,7 @@ bcm_tk371x_field_group_status_get(
 	_bcm_tk371x_field_entry_t	*fe = NULL;
 	int retval = BCM_E_NONE;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "BEGIN bcm_tk371x_field_group_status_get(unit=%d, group=%d)\n"),
 	           unit, group));
@@ -3850,7 +3850,7 @@ bcm_tk371x_field_group_status_get(
 void
 bcm_tk371x_field_group_status_t_init(bcm_field_group_status_t *fgroup)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META("BEGIN bcm_tk371x_field_group_status_t_init\n")));
 	if (fgroup != NULL){
 		sal_memset(fgroup, 0, sizeof(bcm_field_group_status_t));
@@ -3885,7 +3885,7 @@ bcm_tk371x_field_group_traverse(
     int idx;                   /* Group array iterator.    */
     int rv = BCM_E_NONE;       /* Operation return status. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "BEGIN bcm_tk371x_field_group_status_get(unit=%d)\n"),
                unit));
@@ -3962,7 +3962,7 @@ bcm_tk371x_field_init(int unit)
 	int retval;
 	_bcm_tk371x_field_control_t 	*fc = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_init(unit=%d)\n"),
 	           unit));
@@ -3972,7 +3972,7 @@ bcm_tk371x_field_init(int unit)
     }
 
     if (!soc_feature(unit, soc_feature_field)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP Error: No Field Processor available Unit=%d\n"),
                    unit));
@@ -3983,7 +3983,7 @@ bcm_tk371x_field_init(int unit)
     if (_field_control != NULL) {
         retval = bcm_tk371x_field_detach(unit);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Module deinit failed.\n"),
                        unit));
@@ -3993,7 +3993,7 @@ bcm_tk371x_field_init(int unit)
 	/* Allocate a bcm_field_control */
 	fc = sal_alloc(sizeof (_bcm_tk371x_field_control_t), "field_control");
 	if (fc == NULL) {
-		LOG_ERROR(BSL_LS_BCM_FP,
+		LOG_BSL_ERROR(BSL_LS_BCM_FP,
 		          (BSL_META_U(unit,
 		                      "FP Error: Allocation failure for Field Control\n")));
 		return BCM_E_MEMORY;
@@ -4030,7 +4030,7 @@ bcm_tk371x_field_qset_add_udf(
 {
 	_bcm_tk371x_field_control_t *fc = _field_control;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_qset_add_udf(unit=%d)\n"),
 	           unit));
@@ -4059,7 +4059,7 @@ bcm_tk371x_field_qset_add_udf(
 void
 bcm_tk371x_field_qset_t_init(bcm_field_qset_t *qset)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META("FP: bcm_tk371x_field_qset_t_init\n")));
 	if (qset != NULL){
 		sal_memset(qset, 0, sizeof(bcm_field_qset_t));
@@ -4088,7 +4088,7 @@ bcm_tk371x_field_qset_udf_get(
 	    int *udf_arr,
 	    int *udf_count)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_qset_udf_get(unit=%d)\n"),
 	           unit));
@@ -4119,7 +4119,7 @@ bcm_tk371x_field_qualifier_delete(
 	_bcm_tk371x_field_entry_cond_t *fe_cond, *fe_cond_prev = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "BEGIN bcm_tk371x_field_qualifier_delete(unit=%d, entry=%d qual_id=%d)\n"),
 	           unit, entry, qual_id));
@@ -4179,7 +4179,7 @@ bcm_tk371x_field_qualify_DSCP(
 	int len = sizeof(uint8);
 	uint8 match;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "(unit=%d,entry=%08X,data=%02X,mask=%02X)\n"),
 	           unit,
@@ -4224,7 +4224,7 @@ bcm_tk371x_field_qualify_DSCP_get(
 	int ret_val;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp(unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4276,7 +4276,7 @@ bcm_tk371x_field_qualify_DstIp(
 	int rv;
 	int len = sizeof(bcm_ip_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4353,7 +4353,7 @@ bcm_tk371x_field_qualify_DstIp6High(
 	uint8 match;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp6High (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4396,7 +4396,7 @@ bcm_tk371x_field_qualify_DstIp6High_get(
 	int ret_val;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp6High_get (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4447,7 +4447,7 @@ bcm_tk371x_field_qualify_DstIp6Low(
 	uint8 match;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp6Low (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4488,7 +4488,7 @@ bcm_tk371x_field_qualify_DstIp6Low_get(
 	int ret_val;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp6Low_get (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4535,7 +4535,7 @@ bcm_tk371x_field_qualify_DstIp6_get(
 {
 	int ret_val;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp6_get (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4577,7 +4577,7 @@ bcm_tk371x_field_qualify_DstIp_get(
 	int ret_val;
 	int len = sizeof(bcm_ip_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp_get (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4631,7 +4631,7 @@ bcm_tk371x_field_qualify_DstMac(
 	uint8 match;
 	int len = sizeof(bcm_mac_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstMac (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4672,7 +4672,7 @@ bcm_tk371x_field_qualify_DstMac_get(
 	int ret_val;
 	int len = sizeof(bcm_mac_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstMac_get (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4722,7 +4722,7 @@ bcm_tk371x_field_qualify_EtherType(
 	uint8 match;
 	int len = sizeof(uint16);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_EtherType (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4764,7 +4764,7 @@ bcm_tk371x_field_qualify_EtherType_get(
 	int ret_val;
 	int len = sizeof(uint16);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_EtherType_get (unit=%d,entry=%08X)\n"),
 	           unit, entry));
@@ -4791,7 +4791,7 @@ bcm_tk371x_field_qualify_EtherType_get(
 static int
 _bcm_tk371x_field_port_info_update(
 		_bcm_tk371x_field_entry_t *fe, bcm_port_t port){
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META("_bcm_tk371x_field_port_info_update\n")));
 	if (port >= _BCM_TK371X_LLID_PORT_BASE){
 		fe->linkid = port - _BCM_TK371X_LLID_PORT_BASE;
@@ -4834,13 +4834,13 @@ bcm_tk371x_field_qualify_InPort(
 	_bcm_tk371x_field_entry_t	*fe = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_InPort(%d,%d,%d%d)\n"),
 	           unit, entry, data, mask));
     /* coverity[result_independent_of_operands] */
     if (0 == SOC_PORT_VALID(unit, data)){
-		LOG_ERROR(BSL_LS_BCM_FP,
+		LOG_BSL_ERROR(BSL_LS_BCM_FP,
 		          (BSL_META_U(unit,
 		                      "FP Error: the port index is more then the max port number.\n")));
 		return BCM_E_PARAM;
@@ -4906,7 +4906,7 @@ bcm_tk371x_field_qualify_InPort_get(
 	_bcm_tk371x_field_entry_t	*fe = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_InPort_get(%d,%d)\n"),
 	           unit, entry));
@@ -4989,7 +4989,7 @@ bcm_tk371x_field_qualify_InPorts(
 	    bcm_pbmp_t data,
 	    bcm_pbmp_t mask)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_InPorts(%d,%d)\n"),
 	           unit, entry));
@@ -5018,7 +5018,7 @@ bcm_tk371x_field_qualify_InPorts_get(
 	    bcm_pbmp_t *data,
 	    bcm_pbmp_t *mask)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_InPorts_get(%d,%d)\n"),
 	           unit, entry));
@@ -5052,7 +5052,7 @@ bcm_tk371x_field_qualify_Ip6FlowLabel(
 	uint8 match;
 	int len = sizeof(uint32);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_Ip6FlowLabel(%d,%d)\n"),
 	           unit, entry));
@@ -5096,7 +5096,7 @@ bcm_tk371x_field_qualify_Ip6FlowLabel_get(
 	int ret_val;
 	int len = sizeof(uint32);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_Ip6FlowLabel_get(%d,%d)\n"),
 	           unit, entry));
@@ -5146,11 +5146,11 @@ bcm_tk371x_field_qualify_Ip6NextHeader(
 	uint8 match;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_Ip6NextHeader(%d,%d)\n"),
 	           unit, entry));
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "(%d,%08X,%016X,%016X)\n"),
 	           unit,
@@ -5197,7 +5197,7 @@ bcm_tk371x_field_qualify_Ip6NextHeader_get(
 	int ret_val;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_Ip6NextHeader_get(%d,%d)\n"),
 	           unit, entry));
@@ -5231,7 +5231,7 @@ bcm_tk371x_field_qualify_Ip6TrafficClass(
 	uint8 match;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_Ip6TrafficClass(%d,%d)\n"),
 	           unit, entry));
@@ -5274,7 +5274,7 @@ bcm_tk371x_field_qualify_Ip6TrafficClass_get(
 	int ret_val;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_Ip6TrafficClass_get(%d,%d)\n"),
 	           unit, entry));
@@ -5328,7 +5328,7 @@ bcm_tk371x_field_qualify_IpProtocol(
 	uint8 match;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_IpProtocol(%d,%d)\n"),
 	           unit, entry));
@@ -5348,7 +5348,7 @@ bcm_tk371x_field_qualify_IpProtocolCommon(
 	    bcm_field_entry_t entry,
 	    bcm_field_IpProtocolCommon_t protocol)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_IpProtocolCommon(%d,%d)\n"),
 	           unit, entry));
@@ -5375,7 +5375,7 @@ bcm_tk371x_field_qualify_IpProtocolCommon_get(
 	    bcm_field_entry_t entry,
 	    bcm_field_IpProtocolCommon_t *protocol)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_IpProtocolCommon_get(%d,%d)\n"),
 	           unit, entry));
@@ -5411,7 +5411,7 @@ bcm_tk371x_field_qualify_IpProtocol_get(
 	int ret_val;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_IpProtocol_get(%d,%d)\n"),
 	           unit, entry));
@@ -5455,7 +5455,7 @@ bcm_tk371x_field_qualify_IpType(
 	    bcm_field_entry_t entry,
 	    bcm_field_IpType_t type)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_IpType(%d,%d)\n"),
 	           unit, entry));
@@ -5482,7 +5482,7 @@ bcm_tk371x_field_qualify_IpType_get(
 	    bcm_field_entry_t entry,
 	    bcm_field_IpType_t *type)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_IpType_get(%d,%d)\n"),
 	           unit, entry));
@@ -5516,7 +5516,7 @@ bcm_tk371x_field_qualify_L4DstPort(
 	uint8 match;
 	int len = sizeof(bcm_l4_port_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_L4DstPort(%d,%d)\n"),
 	           unit, entry));
@@ -5559,7 +5559,7 @@ bcm_tk371x_field_qualify_L4DstPort_get(
 	int ret_val;
 	int len = sizeof(bcm_l4_port_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_L4DstPort_get(%d,%d)\n"),
 	           unit, entry));
@@ -5595,7 +5595,7 @@ bcm_tk371x_field_qualify_L4SrcPort(
 	uint8 match;
 	int len = sizeof(bcm_l4_port_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_L4SrcPort(%d,%08X,%08X,%08X)\n"),
 	           unit,
@@ -5642,7 +5642,7 @@ bcm_tk371x_field_qualify_L4SrcPort_get(
 	int ret_val;
 	int len = sizeof(bcm_l4_port_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_L4SrcPort_get(%d,%d)\n"),
 	           unit, entry));
@@ -5697,7 +5697,7 @@ bcm_tk371x_field_qualify_OuterVlanId(
 	uint8 match;
 	int len = sizeof(bcm_vlan_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_OuterVlanId(%d,%08X,%08X,%08X)\n"),
 	           unit,
@@ -5745,7 +5745,7 @@ bcm_tk371x_field_qualify_OuterVlanId_get(
 	int len = sizeof(bcm_vlan_t);
 
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_OuterVlanId_get(%d,%d)\n"),
 	           unit, entry));
@@ -5799,7 +5799,7 @@ bcm_tk371x_field_qualify_OuterVlanPri(
 	uint8 match;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_OuterVlanPri(%d,%08X,%016X,%016X)\n"),
 	           unit,
@@ -5845,7 +5845,7 @@ bcm_tk371x_field_qualify_OuterVlanPri_get(
 	int ret_val;
 	int len = sizeof(uint8);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_OuterVlanPri_get(%d,%d)\n"),
 	           unit, entry));
@@ -5903,7 +5903,7 @@ bcm_tk371x_field_qualify_RangeCheck(
 	int i = 0;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_RangeCheck(%d,%d)\n"),
 	           unit, entry));
@@ -5967,7 +5967,7 @@ bcm_tk371x_field_qualify_RangeCheck_get(
 	_bcm_tk371x_field_control_t *fc = _field_control;
 	_bcm_tk371x_field_range_t	*fr = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_RangeCheck_get(%d,%d)\n"),
 	           unit, entry));
@@ -6022,7 +6022,7 @@ bcm_tk371x_field_qualify_SrcIp(
 	int rv;
 	int len = sizeof(bcm_ip_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcIp(%d,%08X,%08X,%08X)\n"),
 	           unit,
@@ -6142,7 +6142,7 @@ bcm_tk371x_field_qualify_SrcIp6High_get(
 	int ret_val;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcIp6High_get(%d,%d)\n"),
 	           unit, entry));
@@ -6193,7 +6193,7 @@ bcm_tk371x_field_qualify_SrcIp6Low(
 	uint8 match;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcIp6Low(%d,%d)\n"),
 	           unit, entry));
@@ -6234,7 +6234,7 @@ bcm_tk371x_field_qualify_SrcIp6Low_get(
 	int ret_val;
 	int len = sizeof(bcm_ip6_t) / 2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcIp6Low_get(%d,%d)\n"),
 	           unit, entry));
@@ -6281,7 +6281,7 @@ bcm_tk371x_field_qualify_SrcIp6_get(
 {
 	int ret_val;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcIp6_get(%d,%d)\n"),
 	           unit, entry));
@@ -6324,7 +6324,7 @@ bcm_tk371x_field_qualify_SrcMac(
 	uint8 match;
 	int len = sizeof(bcm_mac_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcMac(%d,%d)\n"),
 	           unit, entry));
@@ -6366,7 +6366,7 @@ bcm_tk371x_field_qualify_SrcMac_get(
 	int ret_val;
 	int len = sizeof(bcm_mac_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_SrcMac_get(%d,%d)\n"),
 	           unit, entry));
@@ -6415,7 +6415,7 @@ bcm_tk371x_field_qualify_clear(
 	_bcm_tk371x_field_entry_cond_t  *cond = NULL;
 	int rv;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_clear(%d,%d)\n"),
 	           unit, entry));
@@ -6465,11 +6465,11 @@ bcm_tk371x_field_range_create(
     _bcm_tk371x_field_control_t    *fc = _field_control;
     int                 			rv;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "BEGIN bcm_tk371x_field_range_create(unit=%d, range->0x%x,"),
                unit, *range));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "flags=0x%08x, min=0x%x, max=0x%x)\n"),
                flags, min, max));
@@ -6546,12 +6546,12 @@ bcm_tk371x_field_range_create_id(
     uint8 			min_cos, max_cos;
     uint16 			min_vid, max_vid;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "BEGIN bcm_tk371x_field_range_create_id(unit=%d, range=%d, "),
                unit,
                range));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "flags=0x%08x, min=0x%x, max=0x%x)\n"),
                flags, min, max));
@@ -6627,7 +6627,7 @@ bcm_tk371x_field_range_destroy(
     _bcm_tk371x_field_tk_match_t   *tk_match, *tk_match_prev = NULL;
 
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "bcm_tk371x_field_range_destroy(%d,%d)\n"),
                unit, range));
@@ -6692,7 +6692,7 @@ bcm_tk371x_field_range_get(
 	_bcm_tk371x_field_control_t    *fc = _field_control;
 	_bcm_tk371x_field_range_t      *fr = NULL;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_range_get(%d,%d)\n"),
 	           unit, range));
@@ -6740,7 +6740,7 @@ bcm_tk371x_field_show(
 	int r_count = 0;
 	int m_count = 0;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_show(unit=%d)\n"),
 	           unit));
@@ -6810,7 +6810,7 @@ bcm_tk371x_field_qualify_SrcIpEqualDstIp_get(
 		bcm_field_entry_t field_entry,
 		uint32 *flags)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_qualify_SrcIpEqualDstIp_get(unit=%d)\n"),
 	           unit));
@@ -6823,7 +6823,7 @@ bcm_tk371x_field_qualify_SrcIpEqualDstIp(
 		bcm_field_entry_t field_entry,
 		uint32 flags)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_qualify_SrcIpEqualDstIp(unit=%d)\n"),
 	           unit));
@@ -6861,7 +6861,7 @@ bcm_tk371x_field_group_create_mode_id(
 		bcm_field_group_mode_t mode,
 		bcm_field_group_t field_group)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_group_create_mode_id(unit=%d)\n"),
 	           unit));
@@ -6899,7 +6899,7 @@ bcm_tk371x_field_group_create_mode(
 		bcm_field_group_mode_t mode,
 		bcm_field_group_t *group)
 {
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_group_create_mode(unit=%d)\n"),
 	           unit));
@@ -6935,7 +6935,7 @@ bcm_tk371x_field_qualify_SrcIp_get(
 	int ret_val;
 	int len = sizeof(bcm_ip_t);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_qualify_SrcIp_get(unit=%d)\n"),
 	           unit));
@@ -6973,7 +6973,7 @@ bcm_tk371x_field_qualify_VlanFormat(int unit,
 	uint16 vlanid;
 	int rv1, rv2;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_VlanFormat(unit=%d,entry=%08X,data=%02X,mask=%02X)\n"),
 	           unit,
@@ -7074,7 +7074,7 @@ bcm_tk371x_field_qualify_VlanFormat_get(int unit,
 	int qset = 0;
 	int dflag, vflag;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "FP: bcm_tk371x_field_qualify_VlanFormat_get(unit=%d)\n"),
 	           unit));
@@ -7136,7 +7136,7 @@ bcm_tk371x_field_qualify_LlidValue(int unit,
 	int len = sizeof(uint16);
 	uint8 match;
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_LlidValue"
 	                       "(unit=%d,entry=%08X,data=%04X,mask=%04X)\n"),
@@ -7179,7 +7179,7 @@ bcm_tk371x_field_qualify_LlidValue_get(int unit,
 	int ret_val;
 	int len = sizeof(uint16);
 
-	LOG_DEBUG(BSL_LS_BCM_FP,
+	LOG_BSL_DEBUG(BSL_LS_BCM_FP,
 	          (BSL_META_U(unit,
 	                      "bcm_tk371x_field_qualify_DstIp(unit=%d,entry=%08X)\n"),
 	           unit, entry));

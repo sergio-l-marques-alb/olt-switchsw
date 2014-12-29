@@ -218,7 +218,7 @@ ltc388x_wait_for_not_busy(int unit, int devno)
     }
 
     if ((mfr_status & 0x70) != 0x70) {
-         LOG_WARN(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "unit %d i2c %s :"
+         LOG_BSL_WARN(BSL_LS_SOC_COMMON, (BSL_META_U(unit, "unit %d i2c %s :"
                  "ltc388x is busy !\n"),
                  unit, soc_i2c_devname(unit, devno)));
         rv = SOC_E_TIMEOUT;
@@ -246,7 +246,7 @@ ltc388x_read(int unit, int devno, uint16 addr, uint8* data, uint32* len)
         /* reads a single byte from a device, from a designated register*/
         rv = soc_i2c_read_byte_data(unit, saddr, addr, data);
         dev->rbyte++;
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC388X_read: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d, "
                     "rv = %d\n"),
@@ -256,7 +256,7 @@ ltc388x_read(int unit, int devno, uint16 addr, uint8* data, uint32* len)
         /* reads a single word from a device, from a designated register*/
         rv = soc_i2c_read_word_data(unit, saddr, addr,(uint16 *)data);
         dev->rbyte +=2;
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC388X_read: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d, "
                     "rv = %d\n"),
@@ -264,7 +264,7 @@ ltc388x_read(int unit, int devno, uint16 addr, uint8* data, uint32* len)
                     saddr, addr, *(uint16 *)data, *len, rv));
     } else {
         /* not supported for now */
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC388X_read fail: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d\n"),
                     unit, soc_i2c_devname(unit,devno),
@@ -288,18 +288,18 @@ ltc388x_write(int unit, int devno, uint16 addr, uint8* data, uint32 len)
 
     if (len == 0) {
         /* simply writes command code to device */
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, "i2c %s: LTC388X write: "
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, "i2c %s: LTC388X write: "
                     "saddr = 0x%x, addr = 0x%x, len = %d\n"),
                     soc_i2c_devname(unit, devno), saddr, addr, len));
         rv = soc_i2c_write_byte(unit, saddr, addr);
     } else if (len == 1) {
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, "i2c %s: LTC388X write: "
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, "i2c %s: LTC388X write: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d\n"),
                     soc_i2c_devname(unit, devno), saddr, addr, *data, len));
         rv = soc_i2c_write_byte_data(unit, saddr, addr,*data);
         dev->tbyte++;
     } else if (len == 2) {
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, "i2c %s: LTC388X write: "
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, "i2c %s: LTC388X write: "
                     "saddr = 0x%x, addr = 0x%x, data = 0x%x, len = %d\n"),
                     soc_i2c_devname(unit, devno),
                     saddr, addr, *(uint16 *)data, len));
@@ -334,7 +334,7 @@ ltc388x_check_page(int unit, int devno, int ch)
 
     if (page != ch) {
         page = ch;
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
                     "LTC388X %d set page to %d\n"),
                     soc_i2c_addr(unit, devno), page));
         rv = ltc388x_write(unit, devno, PMBUS_CMD_PAGE, &page, sizeof(char));
@@ -869,11 +869,11 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
         if (DEV_DAC_PARAMS(dev)) {
 #ifdef COMPILER_HAS_DOUBLE
             fval = *((double*)data);
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                             "CALIBRATE_MAX setting %f\n"), fval));
 #else
             fval = *((int *)data);
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                             "CALIBRATE_MAX setting %d\n"), fval));
 #endif
             DEV_DAC_PARAMS(dev)[len].max = fval;
@@ -885,11 +885,11 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
         if (DEV_DAC_PARAMS(dev)) {
 #ifdef COMPILER_HAS_DOUBLE
             fval = *((double*)data);
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                             "CALIBRATE_MIN setting %f\n"), fval));
 #else
             fval = *((int *)data);
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                             "CALIBRATE_MIN setting %d\n"), fval));
 #endif
             DEV_DAC_PARAMS(dev)[len].min = fval;
@@ -905,7 +905,7 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
                 (DEV_DAC_PARAMS(dev)[len].dac_max_hwval - 
                     DEV_DAC_PARAMS(dev)[len].dac_min_hwval);
 #ifdef COMPILER_HAS_DOUBLE
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                         "unit %d i2c %s: LTC388X calibration on function %s:"
                         "(max=%f,min=%f,step=%f)\n"),
                         unit, soc_i2c_devname(unit,devno),
@@ -914,7 +914,7 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
                         DEV_DAC_PARAMS(dev)[len].min,
                         DEV_DAC_PARAMS(dev)[len].step));
 #else
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                         "unit %d i2c %s: LTC388X calibration on function %s:"
                         "(max=%d,min=%d,step=%d)\n"),
                         unit, soc_i2c_devname(unit,devno),
@@ -931,21 +931,21 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
 #ifdef COMPILER_HAS_DOUBLE
             fval = *((double*)data); /* in V */
             voltage = V_TO_L16(fval);
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                         "unit %d i2c %s: LTC388x ioctl I2C_DAC_IOC_SET_VOUT: "
                         "voltage = %d, len = %d\n"),
                         unit, soc_i2c_devname(unit,devno), voltage, len));
 #else
             fval = *((int *)data); /* in uV */
             voltage = UV_TO_L16(fval);
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                         "unit %d i2c %s: LTC388X ioctl I2C_DAC_IOC_SET_VOUT: "
                         "voltage = %d, len = %d\n"),
                         unit, soc_i2c_devname(unit,devno), voltage, len));
 #endif
             if ((voltage > DEV_DAC_PARAMS(dev)[len].dac_max_hwval)  ||
                     (voltage < DEV_DAC_PARAMS(dev)[len].dac_min_hwval)) {
-                LOG_ERROR(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                                 "unit %d i2c %d: LTC388X given voltage %d "
                                 "beyond range for ch %d, %d, %d\n"),
                             unit, devno, voltage, len,
@@ -1104,7 +1104,7 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
             if ((voltage < DEV_DAC_PARAMS(dev)[len].dac_min_hwval)||
                     (voltage > DEV_DAC_PARAMS(dev)[len].dac_max_hwval)) {
 #ifdef  COMPILER_HAS_DOUBLE
-                LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                           "unit %d i2c %d: LTC388X given voltage %2.3f V "
                           "beyond range( max=%2.3f V, min=%2.3f V) for "
                           "voltage VDD_%s \n"), unit, devno, 
@@ -1113,7 +1113,7 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
                           (double) DEV_DAC_PARAMS(dev)[len].dac_min_hwval/4096, 
                           DEV_DAC_PARAMS(dev)[len].name));
 #else
-                LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                           "unit %d i2c %d: LTC388X given voltage %d mV "
                           "beyond range( max=%d mV, min=%d mV ) for " 
                           "voltage  VDD_%s \n"), unit, devno, 
@@ -1128,7 +1128,7 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
             }
             dac = voltage;
             /* Show what we are doing, for now ... */
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                         "unit %d i2c %s: LTC388X ioctl "
                         "I2C_DAC_IOC_SET_VOUT : voltage = %d, len = %d\n"),
                         unit, soc_i2c_devname(unit,devno), voltage, len));
@@ -1205,7 +1205,7 @@ ltc388x_ioctl(int unit, int devno, int opcode, void* data, int len)
         break;
 
     default:
-        LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit,
                     "unit %d i2c %s: LTC388X_ioctl: invalid opcode (%d)\n"),
                     unit, soc_i2c_devname(unit,devno), opcode));
         break;
@@ -1232,7 +1232,7 @@ ltc388x_init(int unit, int devno, void* data, int len)
     if (dev->priv_data == NULL) {
         dev->priv_data = sal_alloc(sizeof(device_data_t), devname);
         if (dev->priv_data == NULL) {
-            LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
                         "Fail to allocate private data fo dev %s\n"), 
                         soc_i2c_devname(unit, devno)));
             rv = SOC_E_MEMORY;
@@ -1240,7 +1240,7 @@ ltc388x_init(int unit, int devno, void* data, int len)
         }
         DEV_MUTEX(dev) = sal_mutex_create(devname);
         if (DEV_MUTEX(dev) == NULL) {
-            LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
                         "Fail to create %s mutex lock\n"), 
                         soc_i2c_devname(unit, devno)));
             rv = SOC_E_MEMORY;
@@ -1253,13 +1253,13 @@ ltc388x_init(int unit, int devno, void* data, int len)
     sal_mutex_take(DEV_MUTEX(dev), sal_mutex_FOREVER);
     if ((rv=ltc388x_write(unit, devno, PMBUS_CMD_CLEAR_FAULTS, 
             (void *)&dac, 0)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
             "Error: Failed to clear fault for LTC388X Device name:%s.\n"),
             soc_i2c_devname(unit, devno)));
         goto err_unlock;
     }
     if ((rv=ltc388x_wait_for_not_busy(unit, devno)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, (BSL_META_U(unit, 
             "Error: LTC388X device name %s Device is busy.\n"),
             soc_i2c_devname(unit, devno)));
         goto err_unlock;
@@ -1277,7 +1277,7 @@ ltc388x_init(int unit, int devno, void* data, int len)
         soc_i2c_devdesc_set(unit, devno, devname);
     }
     
-    LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
+    LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
             "ltc388x_init: %s, devNo=0x%x\n"), 
             soc_i2c_devname(unit,devno), devno));
     
@@ -1329,7 +1329,7 @@ ltc388x_check_device_id(int unit, int devno, char *id, char *model)
         if (rv == SOC_E_NONE) {
             block_data[block_size] = '\0';
             if (sal_strcmp((char *)block_data, id) != 0) {
-                LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
+                LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
                     "I2C %s(0x%02x) MFR_ID(%d) is read "
                     "as [%s], not the expected value [%s]\n"), 
                                     soc_i2c_devname(unit, devno), saddr, 
@@ -1338,7 +1338,7 @@ ltc388x_check_device_id(int unit, int devno, char *id, char *model)
             }
         }
         else {
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
                 "Fail to get MFR_ID for I2C device addr 0x%02x\n"), saddr));
             goto match_fail; 
         }
@@ -1350,7 +1350,7 @@ ltc388x_check_device_id(int unit, int devno, char *id, char *model)
         if (rv == SOC_E_NONE) {
             block_data[block_size] = '\0';
             if (sal_strcmp((char *)block_data, model) != 0) {
-                LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
+                LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
                                     "I2C %s(0x%02x) MFR_MODEL(%d) read "
                                     "as [%s], not the expected value [%s]\n"), 
                                     soc_i2c_devname(unit, devno), saddr, 
@@ -1359,7 +1359,7 @@ ltc388x_check_device_id(int unit, int devno, char *id, char *model)
             }
         }
         else {
-            LOG_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
+            LOG_BSL_VERBOSE(BSL_LS_SOC_I2C, (BSL_META_U(unit, 
                 "Fail to get MFR_MODEL for I2C device addr 0x%02x\n"), saddr));
             goto match_fail;
         }

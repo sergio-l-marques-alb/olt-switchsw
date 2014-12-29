@@ -266,7 +266,7 @@ bcm_esw_knet_netif_create(int unit, bcm_knet_netif_t *netif)
         netif_create.netif.type = KCOM_NETIF_T_META;
         break;
     default:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Unsupported interface type\n")));
         return BCM_E_PARAM;
@@ -495,7 +495,7 @@ bcm_esw_knet_filter_create(int unit, bcm_knet_filter_t *filter)
         filter_create.filter.dest_type = KCOM_DEST_T_CB;
         break;
     default:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Unsupported destination type\n")));
         return BCM_E_PARAM;
@@ -512,12 +512,12 @@ bcm_esw_knet_filter_create(int unit, bcm_knet_filter_t *filter)
         filter_create.filter.mirror_type = KCOM_DEST_T_API;
         break;
     case BCM_KNET_DEST_T_CALLBACK:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Cannot mirror to callback\n")));
         return BCM_E_PARAM;
     default:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Unsupported mirror type\n")));
         return BCM_E_PARAM;
@@ -555,7 +555,7 @@ bcm_esw_knet_filter_create(int unit, bcm_knet_filter_t *filter)
     /* Check if specified reason is supported */
     if (filter->match_flags & BCM_KNET_FILTER_M_REASON) {
         if ((reason + reason_hi) == 0) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "KNET: Unsupported Rx reason\n")));
             return BCM_E_PARAM;
@@ -1067,7 +1067,7 @@ bcm_esw_knet_filter_create(int unit, bcm_knet_filter_t *filter)
 
     if (filter->match_flags & ~BCM_KNET_FILTER_M_RAW) {
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Unsupported DCB format\n")));
 
@@ -1125,14 +1125,14 @@ bcm_esw_knet_filter_create(int unit, bcm_knet_filter_t *filter)
 
     /* Dump raw data for debugging purposes */
     for (idx = 0; idx < BYTES2WORDS(oob_size); idx++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "OOB[%d]: 0x%08x [0x%08x]\n"), idx,
                      filter_create.filter.data.w[idx],
                      filter_create.filter.mask.w[idx]));
     }
     for (idx = 0; idx < filter_create.filter.pkt_data_size; idx++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "PKT[%d]: 0x%02x [0x%02x]\n"),
                      idx + filter_create.filter.pkt_data_offset,

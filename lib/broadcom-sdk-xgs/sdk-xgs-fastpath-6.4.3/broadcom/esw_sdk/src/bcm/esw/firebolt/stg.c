@@ -168,7 +168,7 @@ _bcm_xgs3_stg_stp_set(int unit, bcm_stg_t stg, bcm_port_t port,
     /* Read ports states for the stp group. */
     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, stg, entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_L2,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                   (BSL_META_U(unit,
                               "Error: (%d) reading port states for stg(%d)\n"), rv, stg));
         soc_mem_unlock(unit, mem);

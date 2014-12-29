@@ -127,7 +127,7 @@ pcf8574_init(int unit, int devno,
 	    pcf8574_write(unit, devno, 0, &lpt_val, 1);
 	}
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 MUX control");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: mux control 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
@@ -139,7 +139,7 @@ pcf8574_init(int unit, int devno,
 	/* Now read what is being driven onto the quasi-inputs */
 	pcf8574_read(unit, devno, 0, &lpt_val, &bytes);
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 Baseboard ID");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: baseboard id 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
@@ -150,7 +150,7 @@ pcf8574_init(int unit, int devno,
 	 * no need to manually initialize the HCLK PCF8574.
 	 */
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 HCLK control");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: hclk control 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
@@ -163,31 +163,31 @@ pcf8574_init(int unit, int devno,
 	}
 	pcf8574_write(unit, devno, 0, &lpt_val, 1);
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 POE control");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: poe control 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
     } else if (saddr == I2C_LPT_SADDR4) {
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 synthesizer frequency selector M");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: synth freq select B 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
     } else if (saddr == I2C_LPT_SADDR5) {
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 synthesizer frequency selector N");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: synth freq select A 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
     } else if (saddr == I2C_LPT_SADDR6) {
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 PPD clock delay");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: clock selector 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));
     } else if (saddr == I2C_LPT_SADDR7) {
 	soc_i2c_devdesc_set(unit, devno, "PCF8574 PPD clock divider");
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s: clock selector 0x%x\n"),
                      soc_i2c_devname(unit, devno), lpt_val));

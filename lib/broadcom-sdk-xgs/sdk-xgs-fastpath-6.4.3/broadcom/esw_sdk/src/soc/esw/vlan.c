@@ -74,7 +74,7 @@ soc_fb_vlan_mac_entry_hash(int unit, int hash_sel, vlan_mac_entry_t *entry)
         key[i] = mac[5 - i];
     }
     index = soc_fb_vlan_mac_hash(unit, hash_sel, key);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "VLAN_MAC hash_sel %d hash index %d\n"),
                             hash_sel, index));
@@ -124,7 +124,7 @@ soc_fb_vlanmac_entry_bank_ins(int unit, uint8 banks, vlan_mac_entry_t *entry)
 
     /* Buckets of 4 entry each */
     bucket = soc_fb_vlan_mac_entry_hash(unit, hash_sel, entry);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_fb_vlanmac_entry_ins: bucket %d\n"), bucket));
 
@@ -150,7 +150,7 @@ soc_fb_vlanmac_entry_bank_ins(int unit, uint8 banks, vlan_mac_entry_t *entry)
     }
 
     index = bucket * 4 + free_slot;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_fb_vlanmac_entry_ins: write slot %d, index %d\n"),
                  free_slot, index));
@@ -213,7 +213,7 @@ soc_fb_vlanmac_entry_del(int unit, vlan_mac_entry_t *entry)
                 (soc_fb_rv_vlanmac_hash_sel_get(unit, 1, &hash_sel));
         } 
         bucket = soc_fb_vlan_mac_entry_hash(unit, hash_sel, entry);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_fb_vlanmac_entry_del: bucket %d\n"), 
                      bucket));
@@ -278,7 +278,7 @@ soc_fb_vlanmac_entry_lkup(int unit, vlan_mac_entry_t *entry,
         }
         *index_ptr = -1;
         bucket = soc_fb_vlan_mac_entry_hash(unit, hash_sel, entry);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_fb_vlanmac_entry_del: bucket %d\n"), 
                      bucket));

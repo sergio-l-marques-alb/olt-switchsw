@@ -157,14 +157,14 @@ dmac_handler(void *v_void)
     uint32 i;
 
     while (!finished){    
-        LOG_INFO(BSL_LS_SYS_VERINET,
+        LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                  (BSL_META("dmac_handler: wait...\n")));
 
 	if (wait_command(sockfd, &cmd) < 0) {
 	    break;	/* Error message already printed */
 	}
 
-        LOG_INFO(BSL_LS_SYS_VERINET,
+        LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                  (BSL_META("dmac_handler: request opcode 0x%x\n"),
                   cmd.opcode));
 
@@ -174,7 +174,7 @@ dmac_handler(void *v_void)
 	    dmaAddr = cmd.args[0];
 	    /* Read data from shared memory at Addr */
 	    dmaData = _dma_getw(dmaAddr);
-            LOG_INFO(BSL_LS_SYS_VERINET,
+            LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                      (BSL_META("**DMA_RD: 0x%x = 0x%x\n"),
                       dmaAddr, dmaData));
 	    /* Send back a response */
@@ -188,7 +188,7 @@ dmac_handler(void *v_void)
 	    dmaData = cmd.args[1]; /* Data */
 	    /* Write the data to shared memory */
 	    _dma_putw(dmaAddr, dmaData);
-            LOG_INFO(BSL_LS_SYS_VERINET,
+            LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                      (BSL_META("**DMA_WR: 0x%x = 0x%x\n"),
                       dmaAddr, dmaData));
 	    /* Send back a response */
@@ -200,7 +200,7 @@ dmac_handler(void *v_void)
 	    /* Read DMA memory as a string.  Would be nice to use memcpy */
 	    dmaAddr = cmd.args[0];
             byte_ptr = (uint8 *)&cmd.args[1];
-            LOG_INFO(BSL_LS_SYS_VERINET,
+            LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                      (BSL_META("**DMA_RD_B: 0x%x, %d bytes\n"),
                       dmaAddr, cmd.argcount));
             for (i = 0; i < cmd.argcount; i++) {
@@ -217,7 +217,7 @@ dmac_handler(void *v_void)
 	    dmaAddr = cmd.args[0]; /* Address */
 	    byte_ptr = (uint8 *)&cmd.args[1]; /* Data */
 	    /* Write the data to shared memory */
-            LOG_INFO(BSL_LS_SYS_VERINET,
+            LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                      (BSL_META("**DMA_WR_B: 0x%x, %d bytes\n"),
                       dmaAddr, cmd.argcount));
             for (i = 0; i < cmd.argcount; i++) {
@@ -316,12 +316,12 @@ dmac_listener(void *v_void)
 	    if (SAL_THREAD_ERROR == v->dmacHandler) {
 		cli_out("Thread creation error!\n");
 	    } else {
-                LOG_INFO(BSL_LS_SYS_VERINET,
+                LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                          (BSL_META("DMAC request thread dispatched.\n")));
 	    }
 	}
     }
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("DMA listener shutdown.\n")));
     sal_thread_exit(0);
 }

@@ -239,7 +239,7 @@ _phy_84334_medium_check(int unit, soc_port_t port, int *medium)
                   SOC_PORT_MEDIUM_COPPER; 
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_84334_medium_check: "
                             "u=%d p=%d fiber_pref=%d fiber=%d\n"),
@@ -479,7 +479,7 @@ _phy_84334_no_reset_setup(int unit, soc_port_t port, int fiber)
     int rv = SOC_E_NONE;
     int fiber_capable = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_84334_reset_setup: u=%d p=%d medium=%s\n"),
                          unit, port,
@@ -550,7 +550,7 @@ phy_84334_init(int unit, soc_port_t port)
     int         status;
     uint32      mac_config_flag = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_init: u=%d p=%d\n"),
                          unit, port));
@@ -572,7 +572,7 @@ phy_84334_init(int unit, soc_port_t port)
     PHY_EXT_BOOT(pc) = phy_ext_boot;
 
     if (mmi_mdio_addr == -1) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_init: "
                              "MACSEC_DEV_ADDR property "
@@ -582,7 +582,7 @@ phy_84334_init(int unit, soc_port_t port)
 
     port_index = soc_property_port_get(unit, port, spn_MACSEC_PORT_INDEX, -1);
     if (port_index == -1) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_init: "
                              "MACSEC_PORT_INDEX property not configured for "
@@ -616,7 +616,7 @@ phy_84334_init(int unit, soc_port_t port)
                                    mac_config_flag );
 
     if(rv != BMACSEC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_init: bmacsec_phy_mac_addr_set "
                              "returned error for u=%d p=%d\n"), unit, port));
@@ -639,7 +639,7 @@ phy_84334_init(int unit, soc_port_t port)
     pc->fiber_detect =
         soc_property_port_get(unit, port, spn_PHY_FIBER_DETECT, 0);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_init: "
                          "u=%d p=%d type=84334%s automedium=%d fiber_pref=%d detect=%d\n"),
@@ -657,7 +657,7 @@ phy_84334_init(int unit, soc_port_t port)
     /* prepare for download(init check) */
     rv = bmacsec_phy84334_init_check(phy_dev_addr, &status);
     if(rv != BMACSEC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_init: bmacsec_phy84334_init_check "
                              "returned error %d for u=%d p=%d\n"), rv, unit, port));
@@ -691,7 +691,7 @@ phy_84334_init(int unit, soc_port_t port)
         /* reset port */
         rv = bmacsec_phy84334_reset_no_wait(phy_dev_addr);
         if(rv != BMACSEC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_84334_init: bmacsec_phy84334_reset_no_wait "
                                  "returned error %d for u=%d p=%d\n"), rv, unit, port));
@@ -799,7 +799,7 @@ phy_84334_init(int unit, soc_port_t port)
         rv = bmacsec_phy84334_phy_mdi_pair_set(phy_dev_addr, phy_mdi_pair_map);
 
         if(rv != BMACSEC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_84334_init: bmacsec_phy84334_phy_mdi_pair_set "
                                  "returned error %d for u=%d p=%d\n"), rv, unit, port));
@@ -860,12 +860,12 @@ phy_84334_init(int unit, soc_port_t port)
                 break;
         }
         if (!SOC_SUCCESS(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "soc_macsecphy_init: MACSEC init for"
                               " u=%d p=%d FAILED "), unit, port));
         } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "soc_macsecphy_init: MACSEC init for"
                              " u=%d p=%d SUCCESS "), unit, port));
@@ -948,7 +948,7 @@ phy_84334_enable_set(int unit, soc_port_t port, int enable)
                 (PHY_ENABLE_SET(int_pc->pd, unit, port, enable));
         }
     
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_enable_set: "
                              "Power %s fiber medium\n"), (enable) ? "up" : "down"));
@@ -1027,7 +1027,7 @@ _phy_84334_medium_change(int unit, soc_port_t port, int force_update,
                 SOC_IF_ERROR_RETURN
                     (_phy_84334_medium_config_update(unit, port, &pc->copper));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_84334_link_auto_detect: u=%d p=%d [F->C]\n"),
                       unit, port));
@@ -1047,7 +1047,7 @@ _phy_84334_medium_change(int unit, soc_port_t port, int force_update,
                 SOC_IF_ERROR_RETURN
                     (_phy_84334_medium_config_update(unit, port, &pc->fiber));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_84334_link_auto_detect: u=%d p=%d [C->F]\n"),
                       unit, port));
@@ -1144,7 +1144,7 @@ phy_84334_link_get(int unit, soc_port_t port, int *link)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_84334_link_get: u=%d p=%d mode=%s%s link=%d\n"),
                  unit, port,
@@ -1207,7 +1207,7 @@ phy_84334_duplex_set(int unit, soc_port_t port, int duplex)
         pc->copper.force_duplex = duplex;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_duplex_set: u=%d p=%d d=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -1311,7 +1311,7 @@ phy_84334_speed_set(int unit, soc_port_t port, int speed)
             pc->fiber.force_speed = speed;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_speed_set: u=%d p=%d s=%d fiber=%d rv=%d\n"),
               unit, port, speed, PHY_FIBER_MODE(unit, port), rv));
@@ -1354,12 +1354,12 @@ phy_84334_speed_get(int unit, soc_port_t port, int *speed)
     rv = bmacsec_phy84334_speed_get(phy_dev_addr, port_mode, speed);
 
     if(!BMACSEC_E_SUCCESS(rv)) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_speed_get: u=%d p=%d invalid speed\n"),
                   unit, port));
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84334_speed_get: u=%d p=%d speed=%d"),
                   unit, port, *speed));
@@ -1404,7 +1404,7 @@ phy_84334_master_set(int unit, soc_port_t port, int master)
         pc->copper.master = master;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_master_set: u=%d p=%d master=%d fiber=%d rv=%d\n"),
               unit, port, master, PHY_FIBER_MODE(unit, port), rv));
@@ -1493,7 +1493,7 @@ phy_84334_autoneg_set(int unit, soc_port_t port, int autoneg)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_autoneg_set: u=%d p=%d autoneg=%d rv=%d\n"),
               unit, port, autoneg, rv));
@@ -1922,7 +1922,7 @@ phy_84334_lb_set(int unit, soc_port_t port, int enable)
             (phy_84334_linkup(unit, port));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84334_lb_set: u=%d p=%d en=%d rv=%d\n"), 
               unit, port, enable, rv));
@@ -2703,13 +2703,13 @@ phy_84334_firmware_set(int unit, int port, int offset, uint8 *data,int len)
 
     rv = bmacsec_phy84334_firmware_set(phy_dev_addr, offset, data, len);
     if (rv != BMACSEC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY84334 firmware upgrade possibly failed:"
                                  "u=%d p=%d\n"), unit, port));
         return (SOC_E_FAIL);
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY84334 firmware upgrade successful:"
                          "u=%d p=%d\n"), unit, port));

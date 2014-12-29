@@ -77,7 +77,7 @@
 int
 _bcm_robo_stat_detach(int unit)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : _bcm_robo_stat_detach()..\n")));
     return BCM_E_NONE;
@@ -131,7 +131,7 @@ int bcm_robo_stat_init(int unit)
     sal_usecs_t     interval;
     uint32          flags;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_init()..\n")));
     if (soc_property_get_str(unit, spn_BCM_STAT_PBMP) == NULL) {
@@ -175,7 +175,7 @@ int bcm_robo_stat_clear(int unit, bcm_port_t port)
     BCM_IF_ERROR_RETURN(
         _bcm_robo_stat_gport_validate(unit, port, &port));
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_clear()..\n")));
 
@@ -223,7 +223,7 @@ int bcm_robo_stat_sync(int unit)
 {
     pbmp_t null_pbmp;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_sync()..\n")));
 
@@ -266,7 +266,7 @@ int bcm_robo_stat_get(int unit, bcm_port_t port,
     BCM_IF_ERROR_RETURN(
         _bcm_robo_stat_gport_validate(unit, port, &port));
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_get()..\n")));
     BCM_IF_ERROR_RETURN(DRV_COUNTER_GET
@@ -299,7 +299,7 @@ int bcm_robo_stat_get32(int unit, bcm_port_t port,
     int		rv;
     uint64	val64;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_get32()..\n")));
     rv = bcm_stat_get(unit, port, type, &val64);
@@ -417,7 +417,7 @@ bcm_robo_stat_sync_get(int unit, bcm_port_t port,
 {
     int sync_hw = TRUE; /* Read counter from the device */
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_sync_get()..\n")));
 
@@ -457,7 +457,7 @@ bcm_robo_stat_sync_get32(int unit, bcm_port_t port,
     int     rv;
     uint64  val64;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_esw_stat_sync_get32()..\n")));
 
@@ -489,7 +489,7 @@ bcm_robo_stat_sync_multi_get(int unit, bcm_port_t port, int nstat,
 {
     int stix;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_sync_multi_get()..\n")));
 
@@ -531,7 +531,7 @@ bcm_robo_stat_sync_multi_get32(int unit, bcm_port_t port,
 {
     int stix;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_stat_sync_multi_get32()..\n")));
 

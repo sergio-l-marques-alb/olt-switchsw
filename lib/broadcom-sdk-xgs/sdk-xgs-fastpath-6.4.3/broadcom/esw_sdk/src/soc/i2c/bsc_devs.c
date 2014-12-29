@@ -306,7 +306,7 @@ soc_bsc_probe(int unit)
 
 		retv =  bsc_devices[devno].driver->init(unit, devno);
 		if (retv < 0) {
-			LOG_INFO(BSL_LS_SOC_I2C,
+			LOG_BSL_INFO(BSL_LS_SOC_I2C,
                                  (BSL_META_U(unit,
                                              "unit %d i2c 0x%x: init failed %s on channel: 0x%02x\n"),
                                   unit,
@@ -314,7 +314,7 @@ soc_bsc_probe(int unit)
                                   bsc_devices[devno].devname,
                                   bsc_devices[devno].chan));
 		}
-		LOG_INFO(BSL_LS_SOC_I2C,
+		LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "unit %d bsc 0x%x: found %s on channel 0x%02x: %s\n"),
                           unit,

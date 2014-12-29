@@ -523,7 +523,7 @@ cputrans_tx_pkt_list_alloc(uint8 *pkt_buf, int len, int seg_len,
     }
     first_pkt->alloc_ptr = pkt_buf;
     if (first_pkt->next == first_pkt) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT pkt list alloc: Internal corruption in pointers\n")));
         CPUTRANS_ERROR_INCR;
     }
@@ -553,19 +553,19 @@ cputrans_tx_pkt_list_free(bcm_pkt_t *pkt)
     int count = 0;
 
     if (pkt == NULL) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT pkt list free: Packet NULL\n")));
         return;
     }
     if (pkt->next == pkt) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT pkt list free: Circular list\n")));
         pkt->next = NULL;
         pkt->_last_pkt = pkt;
         CPUTRANS_ERROR_INCR;
     }
     if (pkt->_last_pkt == NULL) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT pkt list free: No last pkt\n")));
         pkt->_last_pkt = pkt;
         CPUTRANS_ERROR_INCR;
@@ -578,7 +578,7 @@ cputrans_tx_pkt_list_free(bcm_pkt_t *pkt)
 
     for (t_pkt = pkt; t_pkt != NULL; t_pkt = t_pkt->next) {
         if (count++ > tx_pool_size) {
-            LOG_INFO(BSL_LS_TKS_CTPKT,
+            LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                      (BSL_META("CT pkt list free: List too long\n")));
             CPUTRANS_ERROR_INCR;
             return;
@@ -800,20 +800,20 @@ cputrans_rx_pkt_free(bcm_pkt_t *pkt)
     int idx;
 
     if (pkt == NULL) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT free: Packet NULL\n")));
         return;
     }
 
     if (!_rx_setup_done) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT free: Not initialized\n")));
         return;
     }
 
     idx = PTR_TO_INT(pkt->cookie2);
     if (idx >= _rx_lists) {
-        LOG_INFO(BSL_LS_TKS_CTPKT,
+        LOG_BSL_INFO(BSL_LS_TKS_CTPKT,
                  (BSL_META("CT free: bad CT index: %d > %d\n"),
                   idx, _rx_lists));
         return;
@@ -955,7 +955,7 @@ cputrans_rx_register(const char *name,
             tmp_rv = cputrans_rx_unit_register(unit, name, callback,
                                                priority, cookie, flags);
             if (tmp_rv < 0) {
-                LOG_VERBOSE(BSL_LS_TKS_CTPKT,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_CTPKT,
                             (BSL_META("CPU Trans reg failed %d, unit %d: %s\n"),
                              rv, unit, bcm_errmsg(rv)));
                 rv = tmp_rv;
@@ -967,7 +967,7 @@ cputrans_rx_register(const char *name,
         tmp_rv = cputrans_rx_unit_register(-1, name, callback, priority,
                                            cookie, flags);
         if (tmp_rv < 0) {
-            LOG_VERBOSE(BSL_LS_TKS_CTPKT,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_CTPKT,
                         (BSL_META("CPU Trans reg failed %d, dflt unit: %s\n"),
                          rv, bcm_errmsg(rv)));
             rv = tmp_rv;

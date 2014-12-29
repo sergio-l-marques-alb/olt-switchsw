@@ -341,14 +341,14 @@ _bcm_kt_port_downsizer_check_port(int unit, int port, bcm_pkt_t *pkt) {
     if(!enable) {
 #ifdef BCM_PORT_DEFAULT_DISABLE
        if (bcm_esw_port_enable_set(unit, port, TRUE) < 0) {
-           LOG_ERROR(BSL_LS_BCM_PORT,
+           LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Port %d could not be enabled\n"), port));
        }
 #endif
     }
     if (bcm_esw_port_loopback_set(unit, port, BCM_PORT_LOOPBACK_PHY) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d LoopBack Set Failed\n"), port));
     }
@@ -358,7 +358,7 @@ _bcm_kt_port_downsizer_check_port(int unit, int port, bcm_pkt_t *pkt) {
         BCM_PBMP_PORT_ADD(pkt->tx_pbmp, port);
         rv = bcm_esw_tx(unit, pkt, NULL);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "Tx Error %d\n"), rv));
             return BCM_E_FAIL;
@@ -373,7 +373,7 @@ _bcm_kt_port_downsizer_check_port(int unit, int port, bcm_pkt_t *pkt) {
     if ((COMPILER_64_HI(tpok) != 0) || (COMPILER_64_LO(tpok) != 10) ||
         (COMPILER_64_HI(rpok) != 0) || (COMPILER_64_LO(rpok) != 10) ||
         (COMPILER_64_HI(rfcs) != 0) || (COMPILER_64_LO(rfcs) != 0) ) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Port %d Stat Mismatch\n"), port));
         rv = BCM_E_FAIL;
@@ -385,19 +385,19 @@ _bcm_kt_port_downsizer_check_port(int unit, int port, bcm_pkt_t *pkt) {
     soc_mem_field32_set(unit, ING_EGRMSKBMAPm, entry, BITMAP_W1f, 0);
     SOC_IF_ERROR_RETURN(WRITE_ING_EGRMSKBMAPm(unit, MEM_BLOCK_ANY, port, entry));
     if (bcm_esw_l2_addr_delete_by_port(unit, -1, port, 0) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d L2 entry delete Failed\n"), port));
     }
     if (bcm_esw_port_loopback_set(unit, port, BCM_PORT_LOOPBACK_NONE) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d LoopBack Set Failed\n"), port));
     }
     if(!enable) {
 #ifdef BCM_PORT_DEFAULT_DISABLE
        if (bcm_esw_port_enable_set(unit, port, FALSE) < 0) {
-           LOG_ERROR(BSL_LS_BCM_PORT,
+           LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Port %d could not be disabled\n"), port));
        }
@@ -405,7 +405,7 @@ _bcm_kt_port_downsizer_check_port(int unit, int port, bcm_pkt_t *pkt) {
 #endif
     }
     if (bcm_esw_stat_clear(unit, port) < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %d Stat Clear Failed\n"), port));
     }
@@ -465,7 +465,7 @@ int _bcm_kt_port_downsizer_blk_reinit(int unit, int blk_num, int blk_port, bcm_p
         /* Probe and initialize MAC and PHY drivers for ports that were OK */
         PBMP_ITER(blk_pbmp, port) {
             if ((rv = _bcm_port_mode_setup(unit, port, TRUE)) < 0) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Warning: Port %s: "
                                      "Failed to set initial mode: %s\n"),
@@ -474,7 +474,7 @@ int _bcm_kt_port_downsizer_blk_reinit(int unit, int blk_num, int blk_port, bcm_p
 #ifdef BCM_RCPU_SUPPORT
             if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
                 if ((rv = soc_phyctrl_enable_set(unit, port, TRUE)) < 0) {
-                    LOG_WARN(BSL_LS_BCM_PORT,
+                    LOG_BSL_WARN(BSL_LS_BCM_PORT,
                              (BSL_META_U(unit,
                                          "Warning: Port %s: "
                                          "Failed to set Phyctrl Enable: %s\n"),
@@ -490,7 +490,7 @@ int _bcm_kt_port_downsizer_blk_reinit(int unit, int blk_num, int blk_port, bcm_p
             port_enable = TRUE;
 #endif
             if ((rv = bcm_esw_port_enable_set(unit, port, port_enable)) < 0) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Warning: Port %s: "
                                      "Failed to %s port: %s\n"),
@@ -501,7 +501,7 @@ int _bcm_kt_port_downsizer_blk_reinit(int unit, int blk_num, int blk_port, bcm_p
 #ifdef BCM_RCPU_SUPPORT
             if ((uint32)port == soc_property_get(unit, spn_RCPU_PORT, -1)) {
                 if ((rv = bcm_esw_port_frame_max_set(unit, port, BCM_PORT_JUMBO_MAXSZ)) < 0) {
-                    LOG_WARN(BSL_LS_BCM_PORT,
+                    LOG_BSL_WARN(BSL_LS_BCM_PORT,
                              (BSL_META_U(unit,
                                          "Warning: Port %s: "
                                          "Failed to set Max Frame: %s\n"),
@@ -558,7 +558,7 @@ int _bcm_kt_port_downsizer_chk_reinit(int unit, uint32 *tx_pkt)
         }
     }
     if ((mxq2cnt != 4)  || (mxq3cnt != 4)) {
-         LOG_VERBOSE(BSL_LS_SOC_COMMON,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping Downsizer logic \n")));
          return BCM_E_NONE;
@@ -587,7 +587,7 @@ int _bcm_kt_port_downsizer_chk_reinit(int unit, uint32 *tx_pkt)
         }
 
         if (fail) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Block MXQPORT%d failed.. Trying HotSwap Reset\n"),
                          blk_num));
@@ -601,7 +601,7 @@ int _bcm_kt_port_downsizer_chk_reinit(int unit, uint32 *tx_pkt)
                 }
             }
             if (fail) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Block MXQPORT%d failed.. "
                                         "Trying Full Block Reset\n"), blk_num));
@@ -616,14 +616,14 @@ int _bcm_kt_port_downsizer_chk_reinit(int unit, uint32 *tx_pkt)
                         }
                     }
                     if (fail) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "Block MXQPORT%d failed after WAR\n"),
                                      blk_num));
                         return BCM_E_FAIL;
                     }
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Block MXQPORT%d OK\n"), blk_num));
         }
@@ -663,13 +663,13 @@ bcm_kt_port_downsizer_chk_reinit(int unit) {
     soc_cm_sflush(unit, tx_pkt, KT_WAR_BUF_SIZE);
     rv = _bcm_kt_port_downsizer_chk_reinit(unit, tx_pkt);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port Downsizer WAR Failed\n")));
     }
 
     soc_cm_sfree(unit, tx_pkt);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Port Downsizer WAR: took %d usec\n"),
                             SAL_USECS_SUB(sal_time_usecs(), stime)));

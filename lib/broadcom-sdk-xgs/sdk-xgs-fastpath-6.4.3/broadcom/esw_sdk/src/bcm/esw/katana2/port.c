@@ -314,7 +314,7 @@ _bcm_kt2_port_lanes_set_post_operation(int unit, bcm_port_t port)
     /* Delay of 100ms */
     soc_timeout_init(&to, timeout_usec, min_polls);
     if(soc_timeout_check(&to)) {
-       LOG_ERROR(BSL_LS_BCM_PORT,
+       LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_kt2_port_lanes_set_post_operation:TimeOut InternalError\n")));
        return SOC_E_INTERNAL; 
@@ -1044,7 +1044,7 @@ int __bcm_kt2_port_lanes_set(int unit, bcm_port_t port, int lanes)
              do {
                  soc_timeout_init(&to, timeout_usec, min_polls);
                  if(soc_timeout_check(&to)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "TimeOut InternalError\n")));
                     return BCM_E_INTERNAL;
@@ -1072,7 +1072,7 @@ int __bcm_kt2_port_lanes_set(int unit, bcm_port_t port, int lanes)
              soc_timeout_init(&to, timeout_usec, min_polls);
              for (try=0; try<100 && try_count < 10 ; try++) {
                  if(soc_timeout_check(&to)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "TimeOut InternalError\n")));
                     return SOC_E_INTERNAL; 
@@ -1261,7 +1261,7 @@ int __bcm_kt2_port_lanes_set(int unit, bcm_port_t port, int lanes)
     do {
        soc_timeout_init(&to, timeout_usec, min_polls);
        if(soc_timeout_check(&to)) {
-          LOG_ERROR(BSL_LS_BCM_PORT,
+          LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "TimeOut InternalError\n")));
           return BCM_E_INTERNAL;
@@ -1679,7 +1679,7 @@ int __bcm_kt2_port_lanes_set(int unit, bcm_port_t port, int lanes)
          if (xfi_mode[mxqblock-8]==1) {
              soc_timeout_init(&to, timeout_usec, min_polls);
              if(soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_BCM_PORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                           (BSL_META_U(unit,
                                       "_bcm_kt2_port_lanes_set:TimeOut InternalError\n")));
                 return SOC_E_INTERNAL; 

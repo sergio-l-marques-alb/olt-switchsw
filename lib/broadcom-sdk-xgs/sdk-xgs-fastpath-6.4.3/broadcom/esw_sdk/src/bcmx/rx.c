@@ -161,7 +161,7 @@ bcmx_rx_register(const char *name,
 
 #if defined(BROADCOM_DEBUG)
     if (flags & BCM_RCO_F_INTR) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX RX: Intr RX handler will "
                            "not receive tunnelled pkts: %s\n"),
                   name));
@@ -284,7 +284,7 @@ bcmx_rx_start(void)
     BCMX_UNIT_ITER(unit, i) {
         tmp_rv = bcmx_rx_device_add(unit);
         if (BCM_FAILURE(BCMX_RX_SET_ERROR_CHECK(unit, tmp_rv, &rv))) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META_U(unit,
                                  "BCMX RX: Unit %d add failed: %s\n"),
                       unit, bcm_errmsg(tmp_rv)));
@@ -323,7 +323,7 @@ bcmx_rx_stop(void)
     BCMX_UNIT_ITER(unit, i) {
         tmp_rv = bcmx_rx_device_remove(unit);
         if (BCM_FAILURE(BCMX_RX_DELETE_ERROR_CHECK(unit, tmp_rv, &rv))) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META_U(unit,
                                  "BCMX RX: Unit %d remove failed: %s\n"),
                       unit, bcm_errmsg(tmp_rv)));
@@ -370,7 +370,7 @@ bcmx_rx_device_add(int unit)
                                      rco->rco_cookie,
                                      rco->rco_flags);
             if (BCM_FAILURE(BCMX_RX_SET_ERROR_CHECK(unit, tmp_rv, &rv))) {
-                LOG_WARN(BSL_LS_BCMX_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                          (BSL_META_U(unit,
                                      "BCMX RX: Unit %d register failed: %s\n"),
                           unit, bcm_errmsg(tmp_rv)));
@@ -420,7 +420,7 @@ bcmx_rx_device_remove(int unit)
                                    rco->rco_function,
                                    rco->rco_priority);
         if (BCM_FAILURE(BCMX_RX_DELETE_ERROR_CHECK(unit, tmp_rv, &rv))) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META_U(unit,
                                  "BCMX RX: Unit %d unregister failed: %s\n"),
                       unit, bcm_errmsg(tmp_rv)));

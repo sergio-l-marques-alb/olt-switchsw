@@ -1968,7 +1968,7 @@ memories_rw_test(int unit, args_t *a, void *pa)
 
         COMPILER_REFERENCE(pa);
     
-        LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Memories read/write test\n")));
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Memories read/write test\n")));
 
         /*
          * If try_reg returns -1, there was a register access failure rather
@@ -1988,7 +1988,7 @@ memories_rw_test(int unit, args_t *a, void *pa)
           }
           
           if ((rv = soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS, SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0) {
-              LOG_ERROR(BSL_LS_APPL_COMMON, (BSL_META_U(unit, "ERROR: Unable to access regs, unit %d \n"), unit));
+              LOG_BSL_ERROR(BSL_LS_APPL_COMMON, (BSL_META_U(unit, "ERROR: Unable to access regs, unit %d \n"), unit));
               test_error(unit, "Register read/write test failed\n");
               return rv;
           }
@@ -2142,7 +2142,7 @@ exit:
         res = err_val; \
         exit_place = err_num; \
         soc_sand_set_error_code_into_error_word(res, &rv); \
-        LOG_ERROR(BSL_LS_APPL_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON, \
                   (BSL_META("error in function disable_ecc_dynamic_mechanism()\n"))); \
         goto exit;  \
     }
@@ -2335,7 +2335,7 @@ memories_rw_first_last_test(int unit, args_t *a, void *pa)
         }
         parse_arg_eq_done(&pt);
 
-        LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Memories read/write first and last test\n")));
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Memories read/write first and last test\n")));
     
         if (help_status == 1) {
             cli_out("%s\n",tr7_test_usage);
@@ -2344,7 +2344,7 @@ memories_rw_first_last_test(int unit, args_t *a, void *pa)
 #endif                
         COMPILER_REFERENCE(pa);
     
-        LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Memories read/write first and last test\n")));
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Memories read/write first and last test\n")));
 
         /*
          * If try_reg returns -1, there was a register access failure rather
@@ -2360,11 +2360,11 @@ memories_rw_first_last_test(int unit, args_t *a, void *pa)
           soc_counter_stop(unit);
           if ((enablereset == 1) && !SOC_IS_JERICHO(unit)) {
               if ((rv = soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS,SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0) {
-                  LOG_ERROR(BSL_LS_APPL_COMMON, (BSL_META_U(unit, "ERROR: Unable to reinit unit %d \n"), unit));
+                  LOG_BSL_ERROR(BSL_LS_APPL_COMMON, (BSL_META_U(unit, "ERROR: Unable to reinit unit %d \n"), unit));
                   goto done;
               }
           } else {
-              LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Skip device reset\n")));
+              LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "Skip device reset\n")));
           }
 
           rv = enable_dynamic_memories_access(unit);
@@ -2460,7 +2460,7 @@ mem_flipflop_test(int unit, args_t *a, void *pa)
         time(&current_time);
         
         /* COMPILER_REFERENCE(pa); */
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Memories read/write first and last test, %s\n"),ctime((const time_t *)&current_time)));
 
@@ -2506,7 +2506,7 @@ mem_flipflop_test(int unit, args_t *a, void *pa)
               } */
 
               if ((rv = soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS,SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0) {
-                  LOG_ERROR(BSL_LS_APPL_COMMON,
+                  LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                             (BSL_META_U(unit,
                                         "ERROR: Unable to reinit unit %d \n"), unit));
                   goto done;

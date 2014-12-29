@@ -331,7 +331,7 @@ bcm_robo_auth_init(int unit)
     bcm_port_t  port;
     uint32 value[SOC_PBMP_WORD_MAX];
     int i;
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_init()..\n")));
             
@@ -414,7 +414,7 @@ bcm_robo_auth_detach(int unit)
     
     AUTH_SUPPORT(unit);
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_detach()..\n")));
     t_pbm = PBMP_E_ALL(unit);
@@ -480,7 +480,7 @@ bcm_robo_auth_mode_set(int unit, int port, uint32 mode)
     uint32          state, mask = 0;
     bcm_port_t  loc_port;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_mode_set()..port=%d, mode=0x%x\n"),
                  port, mode));
@@ -684,7 +684,7 @@ bcm_robo_auth_mode_get(int unit, int port, uint32 *modep)
 
     *modep = robo_auth_info[unit].portAuth[port].flags;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_mode_get()....port=%d, mode=0x%x\n"),
                  port, *modep));
@@ -715,7 +715,7 @@ int
 bcm_robo_auth_unauth_callback(int unit,
                     bcm_auth_cb_t func, void *cookie)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_unauth_callback()..\n")));
 
@@ -751,7 +751,7 @@ bcm_robo_auth_egress_set(int unit, int port, int enable)
     bcm_pbmp_t      t_pbm;
     uint32          status;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_egress_set()..\n")));
 
@@ -806,7 +806,7 @@ bcm_robo_auth_egress_set(int unit, int port, int enable)
 int 
 bcm_robo_auth_egress_get(int unit, int port, int *enable)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_egress_get()..\n")));
 
@@ -855,7 +855,7 @@ bcm_robo_auth_mac_add(int unit, int port, bcm_mac_t mac)
     uint32          max_sec_mac = 0;
     bcm_port_t  p;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_mac_add()..\n")));
 
@@ -973,7 +973,7 @@ bcm_robo_auth_mac_delete(int unit, int port, bcm_mac_t mac)
     bcm_pbmp_t      t_pbm;
     auth_mac_p      entry;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_mac_delete()..\n")));
 
@@ -1044,7 +1044,7 @@ bcm_robo_auth_mac_delete_all(int unit, int port)
 {
     bcm_pbmp_t      t_pbm;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_auth_mac_delete_all()..\n")));
 

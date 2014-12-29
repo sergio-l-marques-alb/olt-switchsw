@@ -965,7 +965,7 @@ mem_search_valid_get:
                 /* check the parameter for output entry buffer */
                 rep_entry = (l2_arl_sw_entry_t *)entry + i;
                 if (rep_entry == NULL){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s,entries buffer not allocated!\n"), 
                               FUNCTION_NAME()));
@@ -1077,7 +1077,7 @@ mem_search_valid_get:
             uint32 temp_static1 = 0;
             uint32 temp_static2 = 0;
         
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "DRV_MEM_OP_REPLACE\n")));
 
@@ -1632,7 +1632,7 @@ _drv_harrier_mem_table_reset(int unit, uint32 mem)
         PBMP_E_ITER(unit, port) {
             rv = DRV_ARL_LEARN_COUNT_SET(unit, port, DRV_PORT_SA_LRN_CNT_RESET, 0);
             if (rv != SOC_E_NONE){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "Failed on reset ARL LRN_CNT on port %d\n"), port));
                 
@@ -1734,7 +1734,7 @@ _drv_harrier_mem_marl_delete_all(int unit)
 
         ARL_SW_TABLE_UNLOCK(soc);
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc arl table not allocated")));
         rv = SOC_E_FAIL;
@@ -1804,7 +1804,7 @@ _drv_harrier_cfp_read(int unit, uint32 mem,
                 sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
                 if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                         DRV_CFP_RAM_TCAM, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1820,7 +1820,7 @@ _drv_harrier_cfp_read(int unit, uint32 mem,
                 sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
                 if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                         DRV_CFP_RAM_ACT, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1832,7 +1832,7 @@ _drv_harrier_cfp_read(int unit, uint32 mem,
                 sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
                 if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                         DRV_CFP_RAM_METER, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1844,7 +1844,7 @@ _drv_harrier_cfp_read(int unit, uint32 mem,
                 sal_memset(&counter, 0, sizeof(uint32));
                 if ((rv = DRV_CFP_STAT_GET(unit, DRV_CFP_STAT_INBAND, 
                         (entry_id + i), &counter)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1856,7 +1856,7 @@ _drv_harrier_cfp_read(int unit, uint32 mem,
                 sal_memset(&counter, 0, sizeof(uint32));
                 if ((rv = DRV_CFP_STAT_GET(unit, DRV_CFP_STAT_OUTBAND, 
                         (entry_id + i), &counter)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1933,7 +1933,7 @@ _drv_harrier_cfp_write(int unit, uint32 mem,
                 sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
                 if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                         DRV_CFP_RAM_TCAM, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1946,7 +1946,7 @@ _drv_harrier_cfp_write(int unit, uint32 mem,
                 }
                 if ((rv = DRV_CFP_ENTRY_WRITE(unit, (entry_id + i), 
                         DRV_CFP_RAM_TCAM, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_write(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1958,7 +1958,7 @@ _drv_harrier_cfp_write(int unit, uint32 mem,
                 sal_memcpy(cfp_entry.act_data, data_ptr, entry_len);
                 if ((rv = DRV_CFP_ENTRY_WRITE(unit, (entry_id + i), 
                         DRV_CFP_RAM_ACT, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_write(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1970,7 +1970,7 @@ _drv_harrier_cfp_write(int unit, uint32 mem,
                 sal_memcpy(cfp_entry.meter_data, data_ptr, entry_len);
                 if ((rv = DRV_CFP_ENTRY_WRITE(unit, (entry_id + i), 
                         DRV_CFP_RAM_METER, &cfp_entry)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_write(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1982,7 +1982,7 @@ _drv_harrier_cfp_write(int unit, uint32 mem,
                 sal_memcpy(&counter, data_ptr, entry_len);
                 if ((rv = DRV_CFP_STAT_SET(unit, DRV_CFP_STAT_INBAND, 
                         (entry_id + i), counter)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -1994,7 +1994,7 @@ _drv_harrier_cfp_write(int unit, uint32 mem,
                 sal_memcpy(&counter, data_ptr, entry_len);
                 if ((rv = DRV_CFP_STAT_SET(unit, DRV_CFP_STAT_OUTBAND, 
                         (entry_id + i), counter)) < 0){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_drv_harrier_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                                mem, entry_id + i));
@@ -2025,7 +2025,7 @@ _drv_harrier_cfp_field_get(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.tcam_data, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_GET(unit, 
                     DRV_CFP_RAM_TCAM, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2038,7 +2038,7 @@ _drv_harrier_cfp_field_get(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.tcam_mask, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_GET(unit, 
                     DRV_CFP_RAM_TCAM_MASK, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2051,7 +2051,7 @@ _drv_harrier_cfp_field_get(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.act_data, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_GET(unit, 
                     DRV_CFP_RAM_ACT, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2064,7 +2064,7 @@ _drv_harrier_cfp_field_get(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.meter_data, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_GET(unit, 
                     DRV_CFP_RAM_METER, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2097,7 +2097,7 @@ _drv_harrier_cfp_field_set(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.tcam_data, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_SET(unit, 
                     DRV_CFP_RAM_TCAM, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2111,7 +2111,7 @@ _drv_harrier_cfp_field_set(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.tcam_mask, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_SET(unit, 
                     DRV_CFP_RAM_TCAM_MASK, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2125,7 +2125,7 @@ _drv_harrier_cfp_field_set(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.act_data, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_SET(unit, 
                     DRV_CFP_RAM_ACT, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2139,7 +2139,7 @@ _drv_harrier_cfp_field_set(int unit, uint32 mem, uint32 field_index,
             sal_memcpy(cfp_entry.meter_data, entry, entry_len);
             if ((rv = DRV_CFP_FIELD_SET(unit, 
                     DRV_CFP_RAM_METER, field_index, &cfp_entry, fld_data)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_harrier_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                            mem, field_index));
@@ -2296,7 +2296,7 @@ _drv_harrier_arl_read(int unit, uint32 entry_id,
     uint8 *vmap;
     int entry_size;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "_drv_harrier_arl_read(entry_id=0x%x,count=%d)\n"),
               entry_id, count));
@@ -2428,7 +2428,7 @@ _drv_harrier_arl_write(int unit, uint32 entry_id,
     uint8 *vmap;
     int entry_size;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_write(entry_id=0x%x,count=%d)\n"),
               entry_id, count));
@@ -2591,7 +2591,7 @@ drv_harrier_mem_read(int unit, uint32 mem,
     uint32 *entry32;
     soc_control_t           *soc = SOC_CONTROL(unit);
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_read(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -2885,7 +2885,7 @@ drv_harrier_mem_write(int unit, uint32 mem,
     uint32 *entry32;
     soc_control_t           *soc = SOC_CONTROL(unit);
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_write(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -3674,7 +3674,7 @@ drv_harrier_mem_clear(int unit, uint32 mem)
 {
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_clear : mem=0x%x\n"), mem));
     switch(mem) {
@@ -3793,7 +3793,7 @@ drv_harrier_mem_insert(int unit, uint32 mem, uint32 *entry, uint32 flags)
     uint32          st_override_status = 0, src_port = 0 ;
     soc_control_t   *soc = SOC_CONTROL(unit);
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_insert : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -4232,7 +4232,7 @@ drv_harrier_mem_insert(int unit, uint32 mem, uint32 *entry, uint32 flags)
                 if (SOC_FAILURE(rv)){
                     goto mem_insert_exit;
                 }   
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "%s,port%d,SA_LRN_CNT decrease one!\n"),
                           FUNCTION_NAME(), ori_port));
@@ -4245,7 +4245,7 @@ drv_harrier_mem_insert(int unit, uint32 mem, uint32 *entry, uint32 flags)
         if (SOC_FAILURE(rv)){
             goto mem_insert_exit;
         }   
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,port%d,SA_LRN_CNT %s one!\n"),
                   FUNCTION_NAME(), src_port, 
@@ -4303,7 +4303,7 @@ drv_harrier_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
     uint32      src_port= 0, vlanid = 0;
     int         is_ucast = 0, is_dynamic = 0;
     
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "drv_mem_delete : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -4488,7 +4488,7 @@ drv_harrier_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                     soc_ARLA_ENTRY_0r_field_get(unit, (uint32 *)&entry_reg,
                         ARL_STATICf, &temp);
                     if (temp) {
-                        LOG_INFO(BSL_LS_SOC_MEM,
+                        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                                  (BSL_META_U(unit,
                                              "\t Entry exist with static=%d\n"),
                                   temp));
@@ -4507,7 +4507,7 @@ drv_harrier_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                     soc_ARLA_ENTRY_1r_field_get(unit, (uint32 *)&entry_reg,
                         ARL_STATICf, &temp);
                     if (temp) {
-                        LOG_INFO(BSL_LS_SOC_MEM,
+                        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                                  (BSL_META_U(unit,
                                              "\t Entry exist with static=%d\n"),
                                   temp));
@@ -4558,7 +4558,7 @@ drv_harrier_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                     if (SOC_FAILURE(rv)){
                         goto mem_delete_exit;
                     }
-                    LOG_INFO(BSL_LS_SOC_ARL,
+                    LOG_BSL_INFO(BSL_LS_SOC_ARL,
                              (BSL_META_U(unit,
                                          "%s,port%d, SA_LRN_CNT decreased one!\n"),
                               FUNCTION_NAME(), temp));

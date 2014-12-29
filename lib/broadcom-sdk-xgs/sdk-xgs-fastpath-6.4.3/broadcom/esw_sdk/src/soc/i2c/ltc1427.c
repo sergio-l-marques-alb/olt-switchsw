@@ -207,7 +207,7 @@ ltc1427_ioctl(int unit, int devno,
                 (dac_params[len].use_max ? -1 : 1) *
                 (dac_params[len].max - dac_params[len].min) / 
                 (dac_params[len].dac_max_hwval - dac_params[len].dac_min_hwval);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d i2c %s: LTC1427 calibration on function %s:"
                                     "(max=%"I2C_DATA_F",min=%"I2C_DATA_F",step=%"I2C_DATA_F")\n"),
@@ -224,7 +224,7 @@ ltc1427_ioctl(int unit, int devno,
 	fval = *((I2C_DATA_T*)data);
         if (dac_params) {
             if ((fval < dac_params[len].min)||(fval > dac_params[len].max)){
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "unit %d i2c %s: calibration/range error :"
                                         "requested=%"I2C_DATA_F" (max=%"I2C_DATA_F"),"
@@ -248,7 +248,7 @@ ltc1427_ioctl(int unit, int devno,
             dac &= LTC1427_VALID_BITS; /* Clear bits to make 10bit value */
 
             /* Show what we are doing, for now ... */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d i2c %s: Set V_%s:"
                                     "request=%"I2C_DATA_F" dac=0x%x (max=%"I2C_DATA_F","
@@ -267,7 +267,7 @@ ltc1427_ioctl(int unit, int devno,
 	break;
 
     default:
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d i2c %s: ltc1427_ioctl: invalid opcode (%d)\n"),
                      unit, soc_i2c_devname(unit,devno),

@@ -166,13 +166,13 @@ soc_internal_write_reg(pcid_info_t *pcid_info, uint32 address, uint32 *data)
     soc_regaddrinfo_get(pcid_info->unit, &ainfo, address);
 
     if (!ainfo.valid || ainfo.reg < 0) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("Attempt to write to unknown S-channel address 0x%x\n"),
                   address));
     } else if (SOC_REG_IS_VALID(pcid_info->unit, ainfo.reg) &&
         SOC_REG_INFO(pcid_info->unit, ainfo.reg).flags &
                SOC_REG_FLAG_RO) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("Attempt to write to read-only S-channel address 0x%x\n"),
                   address));
     }
@@ -228,7 +228,7 @@ soc_internal_write_reg(pcid_info_t *pcid_info, uint32 address, uint32 *data)
                     soc_reg_field_set(pcid_info->unit, COMMAND_CONFIGr,
                                          &cc_rst, SW_RESETf, 0);
                     if (cc_rst) {
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META("UNIMAC: Attempt to Modify COMMAND_CONFIG without MAC in reset old = 0x%08X new = 0x%08X\n"), old_data[0], data[0]));
                     }
                 }
@@ -398,12 +398,12 @@ soc_internal_read_reg(pcid_info_t *pcid_info, uint32 address, uint32 *data)
     soc_regaddrinfo_get(pcid_info->unit, &ainfo, address);
 
     if (!ainfo.valid || ainfo.reg < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("Attempt to read from unknown S-channel address 0x%x\n"),
                    address));
     } else if (SOC_REG_IS_VALID(pcid_info->unit, ainfo.reg) &&
         SOC_REG_INFO(pcid_info->unit, ainfo.reg).flags & SOC_REG_FLAG_WO) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("Attempt to read from write-only S-channel address 0x%x\n"),
                   address));
     }
@@ -676,7 +676,7 @@ soc_internal_read_reg(pcid_info_t *pcid_info, uint32 address, uint32 *data)
         }
 #endif  /* BCM_TRIUMPH2_SUPPORT */
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("RPC error: soc_internalreg_read failed %d. \n"), rv));
     }
 
@@ -1040,7 +1040,7 @@ soc_internal_read_aggrmem(pcid_info_t *pcid_info, uint32 addr, uint32 *data)
                         nfield++;
                         sal_free(asflds); sal_free(sflds);
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_internal_read_aggrmem:mem=%d"
                                           "Unable to handle Aggregate Mem component %d\n"),
@@ -1053,7 +1053,7 @@ soc_internal_read_aggrmem(pcid_info_t *pcid_info, uint32 addr, uint32 *data)
     } while (m[0] != INVALIDm);
 
     /* Not found in the table of aggregate memories */
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_internal_read_aggrmem:mem=%d missing in Aggregate Mem List\n"),
                mem));
@@ -1192,7 +1192,7 @@ soc_internal_write_aggrmem(pcid_info_t *pcid_info, uint32 addr, uint32 *data)
                         nfield++;
                         sal_free(asflds); sal_free(sflds);
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_internal_write_aggrmem:mem=%d"
                                           "Unable to handle Aggregate Mem component %d\n"),
@@ -1209,7 +1209,7 @@ soc_internal_write_aggrmem(pcid_info_t *pcid_info, uint32 addr, uint32 *data)
     } while (m[0] != INVALIDm);
 
     /* Not found in the table of aggregate memories */
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_internal_write_aggrmem:mem=%d missing in Aggregate Mem List\n"),
                mem));
@@ -1252,7 +1252,7 @@ soc_internal_fifo_pop(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *result)
     uint32   tmp[SOC_MAX_MEM_WORDS];
     int      unit = pcid_info->unit;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Ingress IPFIX fifo pop\n")));
 
@@ -1271,7 +1271,7 @@ soc_internal_fifo_pop(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *result)
             count = &l2mod_fifo_count[unit];
             break;
         default:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Pop not supported on this memory\n")));
 /*             PCIM(pcid_info, CMIC_SCHAN_CTRL) |= SC_MSG_NAK_TST; */
@@ -1294,11 +1294,11 @@ soc_internal_fifo_pop(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *result)
                                               i), tmp);
         }
         *count -= 1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Fifo entry popped.\n")));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Fifo Empty\n")));
         return 1;
@@ -1316,7 +1316,7 @@ soc_internal_fifo_push(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *entry)
     uint32    tmp[SOC_MAX_MEM_WORDS];
     int       unit = pcid_info->unit;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Ingress IPFIX fifo push\n")));
 
@@ -1334,7 +1334,7 @@ soc_internal_fifo_push(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *entry)
             count = &l2mod_fifo_count[unit];
             break;
         default:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Pop not supported on this memory\n")));
 /*            PCIM(pcid_info, CMIC_SCHAN_CTRL) |= SC_MSG_NAK_TST; */
@@ -1343,7 +1343,7 @@ soc_internal_fifo_push(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *entry)
     }
 
     if (*count == soc_mem_index_count(unit, mem)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Fifo Full\n")));
         return 1;
@@ -1361,7 +1361,7 @@ soc_internal_fifo_push(pcid_info_t * pcid_info, soc_mem_t mem, uint32 *entry)
                                           SOC_MEM_BLOCK_ANY(unit, mem),
                                           0), entry);
         *count += 1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Fifo entry pushed.\n")));
     }
@@ -1422,7 +1422,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
     switch (opcode) {
     case WRITE_REGISTER_CMD_MSG:
        if (pcid_info->opt_pli_verbose)
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "S-Channel operation: WRITE_REGISTER_CMD 0x%x\n"),
                        msg->writecmd.address));
@@ -1433,7 +1433,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         break;
     case READ_REGISTER_CMD_MSG:
        if (pcid_info->opt_pli_verbose)
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "S-Channel operation: READ_REGISTER_CMD 0x%x\n"),
                        msg->readcmd.address));
@@ -1444,7 +1444,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         break;
     case WRITE_MEMORY_CMD_MSG:
        if (pcid_info->opt_pli_verbose)
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "S-Channel operation: WRITE_MEMORY_CMD 0x%x\n"),
                        msg->writecmd.address));
@@ -1455,7 +1455,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         break;
     case READ_MEMORY_CMD_MSG:
        if (pcid_info->opt_pli_verbose)
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "S-Channel operation: READ_MEMORY_CMD 0x%x\n"),
                        msg->readcmd.address));
@@ -1465,7 +1465,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
                                             msg->readresp.data);
         break;
     case ARL_INSERT_CMD_MSG:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "S-Channel operation: ARL_INSERT_CMD_MSG\n")));
 #ifdef    BCM_FIREBOLT_SUPPORT
@@ -1479,14 +1479,14 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         }
 #endif    /* BCM_FIREBOLT_SUPPORT */
         if (SOC_IS_XGS_FABRIC(pcid_info->unit)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Bad call for Hercules: ARL_INSERT_CMD_MSG\n")));
             break;
         }
         break;
     case ARL_DELETE_CMD_MSG:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "S-Channel operation: ARL_DELETE_CMD_MSG\n")));
 #ifdef    BCM_FIREBOLT_SUPPORT
@@ -1500,7 +1500,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         }
 #endif    /* BCM_FIREBOLT_SUPPORT */
         if (SOC_IS_XGS_FABRIC(pcid_info->unit)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Bad call for Hercules: ARL_DELETE_CMD_MSG\n")));
             break;
@@ -1520,14 +1520,14 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
 #endif    /* BCM_FIREBOLT_SUPPORT */
     case ARL_LOOKUP_CMD_MSG:
         if (SOC_IS_XGS_FABRIC(pcid_info->unit)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Bad call for Hercules: ARL_LOOKUP_CMD_MSG\n")));
             break;
         }
         break;
     case L3_INSERT_CMD_MSG:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "S-Channel operation: L3_INSERT_CMD_MSG\n")));
 #ifdef    BCM_FIREBOLT_SUPPORT
@@ -1546,13 +1546,13 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
             break;
         }
 #endif    /* BCM_FIREBOLT_SUPPORT */
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "Bad call for Non-XGS3: L3_INSERT_CMD_MSG\n")));
         rv = -1;
         break;
     case L3_DELETE_CMD_MSG:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "S-Channel operation: L3_DELETE_CMD_MSG\n")));
 #ifdef    BCM_FIREBOLT_SUPPORT
@@ -1564,7 +1564,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
             break;
         }
 #endif    /* BCM_FIREBOLT_SUPPORT */
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "Bad call for Non-XGS3: L3_DELETE_CMD_MSG\n")));
         rv = -1;
@@ -1587,7 +1587,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
 #if defined(BCM_TRX_SUPPORT)
     case TABLE_INSERT_CMD_MSG:
         if (soc_feature(unit, soc_feature_generic_table_ops)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "S-Channel operation: TABLE_INSERT_CMD_MSG\n")));
 
@@ -1696,7 +1696,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         }
     case TABLE_DELETE_CMD_MSG:
         if (soc_feature(unit, soc_feature_generic_table_ops)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "S-Channel operation: TABLE_DELETE_CMD_MSG\n")));
 
@@ -1802,7 +1802,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         }
     case TABLE_LOOKUP_CMD_MSG:
         if (soc_feature(unit, soc_feature_generic_table_ops)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "S-Channel operation: TABLE_LOOKUP_CMD_MSG\n")));
 
@@ -1909,7 +1909,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         }
     case FIFO_POP_CMD_MSG:
         if (soc_feature(unit, soc_feature_mem_push_pop)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "S-Channel operation: FIFO_POP_CMD_MSG\n")));
 
@@ -1926,7 +1926,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         break;
     case FIFO_PUSH_CMD_MSG:
         if (soc_feature(unit, soc_feature_mem_push_pop)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "S-Channel operation: FIFO_PUSH_CMD_MSG\n")));
             
@@ -1943,7 +1943,7 @@ schan_op(pcid_info_t *pcid_info, int unit, schan_msg_t* data)
         break;
 #endif /* BCM_TRX_SUPPORT */
     default:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "S-Channel operation: message not handled: %s (%d)\n"),
                      soc_schan_op_name(opcode), opcode));
@@ -1997,7 +1997,7 @@ soc_internal_table_dma(pcid_info_t *pcid_info)
     dma_count = PCIM(pcid_info, CMIC_ARL_DMA_CNT) & 0x1fffffff;
     dma_beats = PCIM(pcid_info, CMIC_ARL_DMA_CNT) >> 29;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("Table DMA: schan_addr=0x%x count=0x%x beats=%d dest=0x%x\n"),
                  table_addr, dma_count, dma_beats, dma_addr));
 
@@ -2063,7 +2063,7 @@ soc_internal_xgs3_table_dma(pcid_info_t *pcid_info)
     dma_incr = (PCIM(pcid_info, CMIC_TABLE_DMA_ENTRY_COUNT) >> 24) & 0x1f;
     dma_beats = (PCIM(pcid_info, CMIC_TABLE_DMA_CFG) >> 16) & (0x1f);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("Table DMA: schan_addr=0x%x count=0x%x inc=%d beats=%d dest=0x%x\n"),
                  table_addr, dma_count, dma_incr, dma_beats, dma_addr));
 
@@ -2127,7 +2127,7 @@ soc_internal_xgs3_cmicm_table_dma(pcid_info_t *pcid_info)
     block = (PCIM(pcid_info, CMIC_CMC0_TABLE_DMA_SBUS_CMD_CONFIG_OFFSET) >> 3) & 0x3f;
     acc_type = PCIM(pcid_info, CMIC_CMC0_TABLE_DMA_SBUS_CMD_CONFIG_OFFSET) & 7;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("Table DMA: schan_addr=0x%x block: %d acc_type=%d "
                           "count=0x%x inc=%d beats=%d dest=0x%x\n"),
                  table_addr, block, acc_type, dma_count, dma_incr, dma_beats,
@@ -2212,7 +2212,7 @@ soc_internal_xgs3_tslam_dma(pcid_info_t *pcid_info)
         table_addr = table_addr + (dma_count - 1) * (1 << dma_incr);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("Table DMA: schan_addr=0x%x count=0x%x inc=%d beats=%d dest=0x%x\n"),
                  table_addr, dma_count, dma_incr, dma_beats, dma_addr));
 
@@ -2290,7 +2290,7 @@ soc_internal_xgs3_cmicm_tslam_dma(pcid_info_t *pcid_info)
         table_addr = table_addr + (dma_count - 1) * (1 << dma_incr);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("Table DMA: schan_addr=0x%x block=%d acc_type=%d "
                           "count=0x%x inc=%d beats=%d dest=0x%x\n"),
                  table_addr, block, acc_type, dma_count, dma_incr, dma_beats,
@@ -2419,7 +2419,7 @@ soc_internal_cmicm_sbusdma(pcid_info_t *pcid_info, uint32 reg)
         index_incr = -index_incr;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("SBUS DMA: mem=%d index=0x%x sbus_addr=0x%x dst_blk=%d acc_type=%d"
                           "dma_cout=0x%x beats=%d sbus_incr=%d host_addr=0x%x host_incr=%d\n"),
                  mem, index, sbus_addr, dst_blk, acc_type, dma_count, beats, sbus_incr,
@@ -2502,7 +2502,7 @@ void
 soc_internal_schan_ctrl_write(pcid_info_t *pcid_info, uint32 value)
 {
     if (value & 0x80) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Set SCHAN_CTRL bit %d\n"), value & 0x1f));
         switch (value & 0xff) {
         case SC_MSG_START_SET:
@@ -2542,7 +2542,7 @@ soc_internal_schan_ctrl_write(pcid_info_t *pcid_info, uint32 value)
             break;
         }
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Clear SCHAN_CTRL bit %d\n"), value & 0x1f));
         PCIM(pcid_info, CMIC_SCHAN_CTRL) &= ~(1 << (value & 0x1f));
         switch (value & 0xff) {
@@ -2566,7 +2566,7 @@ void
 soc_internal_cmicm_schan_ctrl_write(pcid_info_t *pcid_info, uint32 reg, uint32 value)
 {
     if (value & SC_CMCx_MSG_START) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("SCHAN_CTRL msg start.\n")));
         if ((pcid_info->schan_cb) && 
             (pcid_info->schan_cb(pcid_info, pcid_info->unit, NULL) == 0)) {
@@ -2581,7 +2581,7 @@ soc_internal_cmicm_schan_ctrl_write(pcid_info_t *pcid_info, uint32 reg, uint32 v
             }
         }
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("SCHAN_CTRL msg done.\n")));
         PCIM(pcid_info, CMIC_CMC0_SCHAN_CTRL_OFFSET) &= 
                 ~(SC_CMCx_MSG_DONE | SC_CMCx_MSG_SER_CHECK_FAIL | 
@@ -2672,7 +2672,7 @@ soc_internal_memory_fetch(pcid_info_t *pcid_info, uint32 addr, uint8 *b,
         return;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("soc_internal_memory_fetch: addr=0x%08x length=%d\n"),
                  addr, length));
 
@@ -2691,7 +2691,7 @@ soc_internal_memory_fetch(pcid_info_t *pcid_info, uint32 addr, uint8 *b,
 
         rv = dma_readmem(pcid_info->client->dmasock, addr, &data);
         if (rv != RPC_OK) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("RPC error: soc_internal_memory_fetch failed. \n")));
             pcid_info->opt_rpc_error = 1;
             break;
@@ -2725,20 +2725,20 @@ soc_internal_bytes_fetch(pcid_info_t *pcid_info, uint32 addr, uint8 *buf,
         return;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("soc_internal_bytes_fetch: addr=0x%08x length=%d\n"),
                  addr, length));
 
     read_len = dma_read_bytes(pcid_info->client->dmasock, addr, buf, length);
 
     if (read_len != length) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("soc_internal_bytes_fetch: length mismatch.  want %d. got %d\n"),
                    length, read_len));
     }
 
     if (read_len < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("RPC error: soc_internal_bytes_fetch failed. \n")));
         pcid_info->opt_rpc_error = 1;
     }
@@ -2755,13 +2755,13 @@ soc_internal_bytes_store(pcid_info_t *pcid_info, uint32 addr, uint8 *buf,
         return;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("soc_internal_bytes_store: addr=0x%08x length=%d\n"),
                  addr, length));
 
     rv = dma_write_bytes(pcid_info->client->dmasock, addr, buf, length);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("RPC error: soc_internal_bytes_store failed. \n")));
         pcid_info->opt_rpc_error = 1;
     }
@@ -2778,7 +2778,7 @@ soc_internal_memory_store(pcid_info_t *pcid_info, uint32 addr, uint8 *b,
         return;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("soc_internal_memory_store: addr=0x%08x length=%d\n"),
                  addr, length));
 
@@ -2793,7 +2793,7 @@ soc_internal_memory_store(pcid_info_t *pcid_info, uint32 addr, uint8 *b,
         rv = dma_writemem(pcid_info->client->dmasock,
                      addr, soc_internal_endian_swap(pcid_info, data, mode));
         if (rv != RPC_OK) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("RPC error: soc_internal_memory_store failed. \n")));
             pcid_info->opt_rpc_error = 1;
             break;
@@ -2820,17 +2820,17 @@ soc_internal_send_int(pcid_info_t *pcid_info)
         return;
     }
     if (PCIM(pcid_info, CMIC_IRQ_MASK) & PCIM(pcid_info, CMIC_IRQ_STAT)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Send interrupt: msk 0x%x stat 0x%x\n"),
                      PCIM(pcid_info, CMIC_IRQ_MASK), PCIM(pcid_info, CMIC_IRQ_STAT)));
         rv = send_interrupt(pcid_info->client->intsock, 0);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("RPC error: soc_internal_send_int failed. \n")));
             pcid_info->opt_rpc_error = 1;
         }
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Interrupt masked: msk 0x%x stat 0x%x\n"),
                      PCIM(pcid_info, CMIC_IRQ_MASK), PCIM(pcid_info, CMIC_IRQ_STAT)));
     }
@@ -2849,18 +2849,18 @@ soc_internal_cmicm_send_int(pcid_info_t *pcid_info, uint32 reg)
     case CMIC_CMC0_PCIE_IRQ_MASK0_OFFSET:
         if (pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK0_OFFSET) & 
             pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT0_OFFSET)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("Send interrupt: msk0 0x%x stat0 0x%x\n"),
                          pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK0_OFFSET), 
                          pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT0_OFFSET)));
             rv = send_interrupt(pcid_info->client->intsock, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("RPC error: soc_internal_send_int failed. \n")));
                 pcid_info->opt_rpc_error = 1;
             }
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("Interrupt masked: msk0 0x%x stat0 0x%x\n"),
                          pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK0_OFFSET), 
                          pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT0_OFFSET)));
@@ -2869,18 +2869,18 @@ soc_internal_cmicm_send_int(pcid_info_t *pcid_info, uint32 reg)
     case CMIC_CMC0_PCIE_IRQ_MASK1_OFFSET:
         if (pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK1_OFFSET) & 
             pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT1_OFFSET)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("Send interrupt: msk1 0x%x stat1 0x%x\n"),
                          pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK1_OFFSET), 
                          pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT1_OFFSET)));
             rv = send_interrupt(pcid_info->client->intsock, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("RPC error: soc_internal_send_int failed. \n")));
                 pcid_info->opt_rpc_error = 1;
             }
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("Interrupt masked: msk1 0x%x stat1 0x%x\n"),
                          pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK1_OFFSET), 
                          pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT1_OFFSET)));
@@ -2889,18 +2889,18 @@ soc_internal_cmicm_send_int(pcid_info_t *pcid_info, uint32 reg)
     case CMIC_CMC0_PCIE_IRQ_MASK2_OFFSET:
         if (pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK2_OFFSET) & 
             pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT2_OFFSET)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("Send interrupt: msk2 0x%x stat2 0x%x\n"),
                          pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK2_OFFSET), 
                          pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT2_OFFSET)));
             rv = send_interrupt(pcid_info->client->intsock, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("RPC error: soc_internal_send_int failed. \n")));
                 pcid_info->opt_rpc_error = 1;
             }
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("Interrupt masked: msk2 0x%x stat2 0x%x\n"),
                          pcid_reg_read(pcid_info, CMIC_CMC0_PCIE_IRQ_MASK2_OFFSET), 
                          pcid_reg_read(pcid_info, CMIC_CMC0_IRQ_STAT2_OFFSET)));
@@ -2937,7 +2937,7 @@ soc_internal_extended_write_reg(pcid_info_t *pcid_info,
                                      address);
     
         if (!ainfo.valid || ainfo.reg < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("Attempt to write to unknown S-channel "
                                 "block %d acc_type %d address 0x%x\n"),
                        block, acc_type, address));
@@ -2945,7 +2945,7 @@ soc_internal_extended_write_reg(pcid_info_t *pcid_info,
         } else if (SOC_REG_IS_VALID(pcid_info->unit, ainfo.reg) &&
             SOC_REG_INFO(pcid_info->unit, ainfo.reg).flags &
                    SOC_REG_FLAG_RO) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("Attempt to write to read-only S-channel address 0x%x\n"),
                        address));
         }
@@ -3065,14 +3065,14 @@ soc_internal_extended_read_reg(pcid_info_t *pcid_info,
                                      address);
 
         if (!ainfo.valid || ainfo.reg < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("Attempt to read from unknown S-channel "
                                 "block %d acc_type %d address 0x%x\n"),
                        block, acc_type, address));
             return SOC_E_NOT_FOUND;
         } else if (SOC_REG_IS_VALID(pcid_info->unit, ainfo.reg) &&
             SOC_REG_INFO(pcid_info->unit, ainfo.reg).flags & SOC_REG_FLAG_WO) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("Attempt to read from write-only S-channel address 0x%x\n"),
                        address));
         }
@@ -3481,7 +3481,7 @@ soc_internal_extended_read_aggrmem(pcid_info_t *pcid_info,
                         sal_free(asflds);
                         sal_free(sflds);
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "soc_internal_extended_read_aggrmem:mem=%d"
                                               "Unable to handle Aggregate Mem component %d\n"),
@@ -3494,7 +3494,7 @@ soc_internal_extended_read_aggrmem(pcid_info_t *pcid_info,
         } while (m[0] != INVALIDm);
     
         /* Not found in the table of aggregate memories */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_internal_extended_read_aggrmem:mem=%d missing in Aggregate Mem List\n"),
                    mem));
@@ -3652,7 +3652,7 @@ soc_internal_extended_write_aggrmem(pcid_info_t *pcid_info,
                         sal_free(asflds);
                         sal_free(sflds);
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "soc_internal_extended_write_mem:mem=%d"
                                               "Unable to handle Aggregate Mem component %d\n"),
@@ -3667,7 +3667,7 @@ soc_internal_extended_write_aggrmem(pcid_info_t *pcid_info,
         } while (m[0] != INVALIDm);
     
         /* Not found in the table of aggregate memories */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_internal_write_aggrmem:mem=%d missing in Aggregate Mem List\n"),
                    mem));        

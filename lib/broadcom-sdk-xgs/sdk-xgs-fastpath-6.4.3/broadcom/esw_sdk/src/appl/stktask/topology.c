@@ -86,7 +86,7 @@ topo_lock_init(void)
         topo_lock = sal_mutex_create("topo_lock");
     }
     if (topo_lock == NULL) {
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META("TOPO: Could not create topology mutex\n")));
     }
 }
@@ -127,7 +127,7 @@ tp_index_init(cpudb_ref_t db_ref)
 
 #if defined(BROADCOM_DEBUG)
     if (entry_count != db_ref->num_cpus) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO WARNING: Bad cpu count: db %d. local %d\n"),
                   db_ref->num_cpus, entry_count));
     }
@@ -179,13 +179,13 @@ tp_weights_init(cpudb_ref_t db_ref, weight_t *weights)
             if ((sp->flags & CPUDB_SPF_CUT_PORT) &&
                 (sp_base->bflags & CPUDB_UPF_DISABLE_IF_CUT)) {
                 /* This pops up with redundant SL stack links */
-                LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                             (BSL_META("skipping cut ports with flag\n")));
                 continue;
             }
             CPUDB_KEY_SEARCH(db_ref, sp->tx_cpu_key, dest_entry);
             if (dest_entry == NULL) {
-                LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                          (BSL_META("TOPO WARNING: Could not find tx key "
                                    CPUDB_KEY_FMT_EOLN),
                           CPUDB_KEY_DISP(sp->tx_cpu_key)));
@@ -212,7 +212,7 @@ tp_weights_init(cpudb_ref_t db_ref, weight_t *weights)
                     TP_TX_CXN(db_ref, d_idx, s_idx) = sp->tx_stk_idx;
                     TP_RX_CXN(db_ref, s_idx, d_idx) = i;
                 } else {
-                    LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                              (BSL_META("TOPO WARNING: Duplex port already marked, "
                               "src (%d,%d), dest (%d,%d)\n"), s_idx, i,
                               d_idx, sp->tx_stk_idx));
@@ -471,7 +471,7 @@ tp_forced_up(cpudb_ref_t db_ref)
     CPUDB_FOREACH_ENTRY(db_ref, src_entry) {
         src_idx = src_entry->topo_idx;
         if (src_idx < 0) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO ERROR: Could not find src key "
                                 CPUDB_KEY_FMT_EOLN),
                        CPUDB_KEY_DISP(src_entry->base.key)));
@@ -486,7 +486,7 @@ tp_forced_up(cpudb_ref_t db_ref)
             if (sp->flags & CPUDB_SPF_TX_ENABLED) { /* Forced enabled */
                 CPUDB_KEY_SEARCH(db_ref, sp->tx_cpu_key, dest_entry);
                 if (dest_entry == NULL) {
-                    LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                               (BSL_META("TOPO ERROR: Could not find dest key "
                                         CPUDB_KEY_FMT_EOLN),
                                CPUDB_KEY_DISP(sp->tx_cpu_key)));
@@ -495,7 +495,7 @@ tp_forced_up(cpudb_ref_t db_ref)
 
                 dest_idx = dest_entry->topo_idx;
                 if (TP_REACHABLE(db_ref, src_idx, dest_idx)) {
-                    LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                              (BSL_META("TOPO WARNING: "
                                        "Multiple paths in pre-enabled links: "
                                        CPUDB_KEY_FMT " to " CPUDB_KEY_FMT_EOLN),
@@ -538,7 +538,7 @@ tp_process_edges(cpudb_ref_t db_ref)
             }
             CPUDB_KEY_SEARCH(db_ref, sp->tx_cpu_key, dest_entry);
             if (dest_entry == NULL) {
-                LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                          (BSL_META("TOPO WARNING: Could not find tx key "
                                    CPUDB_KEY_FMT_EOLN),
                           CPUDB_KEY_DISP(sp->tx_cpu_key)));
@@ -644,7 +644,7 @@ depth_first(cpudb_ref_t db_ref, cpudb_entry_t *entry)
         if (EDGE_NOT_USED(sp)) {
             CPUDB_KEY_SEARCH(db_ref, sp->tx_cpu_key, other_end);
             if (other_end == NULL) {
-                LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                           (BSL_META("TOPO ERROR: Could not find TX key "
                                     CPUDB_KEY_FMT_EOLN),
                            CPUDB_KEY_DISP(sp->tx_cpu_key)));
@@ -718,7 +718,7 @@ topology_create(cpudb_ref_t db_ref)
 
     TOPO_LOCK;
     if (db_ref->topo_cookie != NULL) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO WARNING: structure already active\n")));
         _topology_destroy(db_ref);
     }
@@ -734,7 +734,7 @@ topology_create(cpudb_ref_t db_ref)
 
     if (db_ref->num_cpus < 2) {  /* Only 1 CPU; standalone */
         TOPO_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: Single CPU mode\n")));
         return BCM_E_NONE;
     }
@@ -758,7 +758,7 @@ topology_create(cpudb_ref_t db_ref)
     TP_RX_CXN_INIT(db_ref, bytes);
     
     if (tp_find_cut_ports(db_ref) < 0) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO WARNING: Spanning-tree/cut-port failed\n")));
     }
     
@@ -772,7 +772,7 @@ topology_create(cpudb_ref_t db_ref)
     if (!tp_all_destinations_reachable(db_ref)) {
         _topology_destroy(db_ref);
         TOPO_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO WARNING: Cannot reach all CPUs.\n")));
         return BCM_E_FAIL;
     }
@@ -935,7 +935,7 @@ generic_topology_mod_ids_assign(cpudb_ref_t db_ref)
 
             if (entry->mod_ids[unit] < 0) {
                 cpudb_key_format(entry->base.key, keybuf, sizeof(keybuf));
-                LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                          (BSL_META_U(unit,
                          "TOPO WARN: no available modids for cpu %s, "
                           "unit %d (needs %d)\n"), keybuf, unit,

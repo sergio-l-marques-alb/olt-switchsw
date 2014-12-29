@@ -130,7 +130,7 @@ _soc_rcpu_tp_rx(int rx_unit, uint8 *pkt, int pkt_len, void *cookie)
         (SOC_RCPU_OP_CMIC_REPLY == info.operation)) {
 
         if (info.flags & SOC_RCPU_FLAG_BUSY) {
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "****RCPU REPLY BUSY****\n")));
             }
@@ -143,7 +143,7 @@ _soc_rcpu_tp_rx(int rx_unit, uint8 *pkt, int pkt_len, void *cookie)
          *     If FAIL, then set length appropriately
          */
         if (info.flags & SOC_RCPU_FLAG_FAIL) {
-            if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "****RCPU REPLY FAIL****\n")));
                 soc_dma_ether_dump(0, "RCPU_REP ", pkt, pkt_len, 0);
@@ -354,7 +354,7 @@ soc_rcpu_init(int unit)
 
         SOC_RCPU_CONTROL(unit)->lock = sal_mutex_create("rcpu_unit_mutex");
         if (SOC_RCPU_CONTROL(unit)->lock == NULL) {
-            LOG_ERROR(BSL_LS_SOC_RCPU,
+            LOG_BSL_ERROR(BSL_LS_SOC_RCPU,
                       (BSL_META_U(unit,
                                   "soc_rcpu_init: Failed to create mutex.\n")));
             return SOC_E_MEMORY;
@@ -362,7 +362,7 @@ soc_rcpu_init(int unit)
 
         if ((SOC_RCPU_CONTROL(unit)->schan_reply =
                 sal_sem_create("RCPU SCHAN", sal_sem_BINARY, 0)) == NULL) {
-            LOG_ERROR(BSL_LS_SOC_RCPU,
+            LOG_BSL_ERROR(BSL_LS_SOC_RCPU,
                       (BSL_META_U(unit,
                                   "soc_rcpu_init: Failed to create semaphore.\n")));
             return SOC_E_MEMORY;
@@ -524,8 +524,8 @@ soc_rcpu_schan_op(int unit, schan_msg_t *msg, int dwc_write, int dwc_read)
     }
 
 #if defined(SOC_RCPU_BENCHMARK)
-    if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-        LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+        LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_INFO)) {
         time_start = sal_time_usecs();
     }
 #endif /* SOC_RCPU_BENCHMARK */
@@ -586,8 +586,8 @@ soc_rcpu_schan_op(int unit, schan_msg_t *msg, int dwc_write, int dwc_read)
     SCHAN_UNLOCK(unit);
 
 #if defined(SOC_RCPU_BENCHMARK)
-    if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-        LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+        LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_INFO)) {
         time_end = sal_time_usecs();
         LOG_CLI((BSL_META_U(unit,
                             "RCPU schan-op (%d, %d) took %d usecs\n"),
@@ -636,8 +636,8 @@ _soc_rcpu_cmic_op(int unit, int read_op, uint32 addr, uint32 *val32)
     }
 
 #if defined(SOC_RCPU_BENCHMARK)
-    if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-        LOG_CHECK(BSL_LS_SOC_PCI | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+        LOG_BSL_CHECK(BSL_LS_SOC_PCI | BSL_INFO)) {
         time_start = sal_time_usecs();
     }
 #endif /* SOC_RCPU_BENCHMARK */
@@ -664,7 +664,7 @@ _soc_rcpu_cmic_op(int unit, int read_op, uint32 addr, uint32 *val32)
                                         (void*)&tx_buf);
 
         if (!tx_buf) {
-            LOG_ERROR(BSL_LS_SOC_RCPU,
+            LOG_BSL_ERROR(BSL_LS_SOC_RCPU,
                       (BSL_META_U(unit,
                                   "rcpu_cmic_read: Failed to allocate memory.\n")));
             SCHAN_UNLOCK(unit);
@@ -699,8 +699,8 @@ _soc_rcpu_cmic_op(int unit, int read_op, uint32 addr, uint32 *val32)
     SCHAN_UNLOCK(unit);
 
 #if defined(SOC_RCPU_BENCHMARK)
-    if (LOG_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
-        LOG_CHECK(BSL_LS_SOC_PCI | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_RCPU | BSL_INFO) &&
+        LOG_BSL_CHECK(BSL_LS_SOC_PCI | BSL_INFO)) {
         time_end = sal_time_usecs();
         LOG_CLI((BSL_META_U(unit,
                             "RCPU cmic-op took %d usecs\n"), 

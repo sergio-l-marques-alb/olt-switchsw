@@ -414,7 +414,7 @@ phy_54680_toplvl_reg_read(int unit, soc_port_t port, int flags, uint8 reg_offset
     uint16 reg_data, status;
     int         rv = SOC_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered phy_54680_toplvl_reg_read: "
                             "unit %d, port %d, flags %x reg_offset %u\n"), 
@@ -482,7 +482,7 @@ phy_54680_toplvl_reg_write(int unit, soc_port_t port, int flags, uint8 reg_offse
 #endif
     int         rv = SOC_E_NONE;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered phy_54680_toplvl_reg_write: "
                             "unit %d, port %d, flags %x reg_offset %u, data %u\n"), 
@@ -724,7 +724,7 @@ _phy_53125_eee_war(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN(
         WRITE_PHY_REG(unit, pc, MII_CTRL_REG, phy_reg));
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "_phy_53125_eee_war port %d\n"),port));
     return SOC_E_NONE;
@@ -763,7 +763,7 @@ _phy_northstar_eee_war(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN(
         WRITE_PHY_REG(unit, pc, 0x15, 0x4000));
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "_phy_northstar_eee_war port %d\n"), port));
 
@@ -783,7 +783,7 @@ _phy_nsp_eee_war(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN(
         WRITE_PHY_REG(unit, pc, 0x15, 0x4000));
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "_phy_nsp_eee_war port %d\n"), port));
 
@@ -814,7 +814,7 @@ _phy_54680_mdi_pair_set(int unit, soc_port_t port, uint32 mdi_pair_map)
             WRITE_PHY_REG(unit, pc, 0x15, reg_val));
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "_phy_54680_mdi_pair_set port %d\n"), port));
 
@@ -874,7 +874,7 @@ _phy_54680_reset_setup(int unit, soc_port_t port)
         SOC_IF_ERROR_RETURN
             (phy_54680_control_set( unit, port, SOC_PHY_CONTROL_PORT_OFFSET, index ));
     } else {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "_phy_54680_reset_setup: Config property 'phy_port_primary_and_offset' not set for u=%d, p=%d\n"),
                              unit, port));
@@ -1256,7 +1256,7 @@ phy_54680_enable_set(int unit, soc_port_t port, int enable)
                     (READ_PHY54680_MII_STATr(unit, pc, &mii_stat));
 
                 if (soc_timeout_check(&to)) {
-                    LOG_WARN(BSL_LS_SOC_PHY,
+                    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "phy54680.c: link didn't go down after power down: u=%d p=%d\n"),
                               unit, port));

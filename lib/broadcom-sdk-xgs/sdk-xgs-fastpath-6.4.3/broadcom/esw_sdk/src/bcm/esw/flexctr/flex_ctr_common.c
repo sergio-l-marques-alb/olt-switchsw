@@ -1104,7 +1104,7 @@ _bcm_esw_get_flex_counter_fields(
     switch(table) {
     case MPLS_ENTRYm:
     case MPLS_ENTRY_EXTDm:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "MPLS_ENTRYm   ")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1120,7 +1120,7 @@ _bcm_esw_get_flex_counter_fields(
              return BCM_E_CONFIG;
          }
          key_type=soc_mem_field32_get(unit,table,data,view_field);
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "key_type %d "),
                     key_type));
@@ -1137,7 +1137,7 @@ _bcm_esw_get_flex_counter_fields(
          } else if (sal_strcmp(memp->views[key_type],"IPV6UC") == 0) {
              key_type_index = 5;
          } else {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "KEY TYPE NOT OK %d"),
                         key_type));
@@ -1151,7 +1151,7 @@ _bcm_esw_get_flex_counter_fields(
                              base_idx;
          break;
     case EGR_L3_NEXT_HOPm:
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "EGR_L3_NEXT_HOP   =>")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1178,7 +1178,7 @@ _bcm_esw_get_flex_counter_fields(
          } else {
              return BCM_E_CONFIG;
          }
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "key_type %d "),
                     key_type));
@@ -1190,7 +1190,7 @@ _bcm_esw_get_flex_counter_fields(
                              base_idx;
          break;
     case EGR_VLAN_XLATEm:
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "EGR_VLAN_XLATEm ==")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1202,7 +1202,7 @@ _bcm_esw_get_flex_counter_fields(
              return BCM_E_CONFIG;
          }
          key_type=soc_mem_field32_get(unit,table,data,view_field);
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "key_type %d "),
                     key_type));
@@ -1221,7 +1221,7 @@ _bcm_esw_get_flex_counter_fields(
                              base_idx;
          break;
     case VLAN_XLATEm:
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "VLAN_XLATEm ==")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1245,7 +1245,7 @@ _bcm_esw_get_flex_counter_fields(
         }
 #endif
 
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "key_type %d "),
                     key_type));
@@ -1266,7 +1266,7 @@ _bcm_esw_get_flex_counter_fields(
                              base_idx;
          break;
     case VLAN_XLATE_EXTDm:
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "VLAN_XLATE_EXTDm   ")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1284,7 +1284,7 @@ _bcm_esw_get_flex_counter_fields(
          }
          break;
     case EGR_DVP_ATTRIBUTE_1m:
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "EGR_DVP_ATTRIBUTE_1m   ")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1326,7 +1326,7 @@ _bcm_esw_get_flex_counter_fields(
 
     case L3_ENTRY_IPV4_MULTICASTm:
 
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "L3_ENTRY_IPV4_MULTICAST  ")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1337,7 +1337,7 @@ _bcm_esw_get_flex_counter_fields(
          }
 
          key_type = soc_mem_field32_get(unit, table, data, view_field);
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "key_type %d "),
                     key_type));
@@ -1363,7 +1363,7 @@ _bcm_esw_get_flex_counter_fields(
 
     case L3_ENTRY_IPV6_MULTICASTm:
 
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "L3_ENTRY_IPV6_MULTICAST  ")));
          memp = &SOC_MEM_INFO(unit, table);
@@ -1374,7 +1374,7 @@ _bcm_esw_get_flex_counter_fields(
          }
 
          key_type = soc_mem_field32_get(unit, table, data, view_field);
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "key_type %d "),
                     key_type));
@@ -1425,7 +1425,7 @@ _bcm_esw_get_flex_counter_fields(
     if ((soc_mem_field_valid(unit,table,*offset_mode_field) == FALSE) ||
         (soc_mem_field_valid(unit,table,*pool_number_field) == FALSE) ||
         (soc_mem_field_valid(unit,table,*base_idx_field) == FALSE)) {
-        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "INTERNAL Error i.e. "
                               "required offset,pool,base_idx fields are not valid \n")));
@@ -1546,12 +1546,12 @@ static bcm_error_t
 _bcm_esw_stat_flex_insert_stat_id(uint32 *scache_ptr,uint32 stat_counter_id)
 {
     uint32 index=0;
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META("Inserting %d "),
                stat_counter_id));
     for (index=0;index<BCM_STAT_FLEX_COUNTER_MAX_SCACHE_SIZE;index++) {
          if (scache_ptr[index] == 0) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META("Inserted \n")));
              scache_ptr[index] = stat_counter_id;
              break;
@@ -1579,12 +1579,12 @@ static bcm_error_t
 _bcm_esw_stat_flex_delete_stat_id(uint32 *scache_ptr,uint32 stat_counter_id)
 {
     uint32 index=0;
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META("Deleting ID:%d "),
                stat_counter_id));
     for (index=0;index<BCM_STAT_FLEX_COUNTER_MAX_SCACHE_SIZE;index++) {
          if (scache_ptr[index] == stat_counter_id) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META("Deleted \n")));
              scache_ptr[index] = 0;
              break;
@@ -1629,7 +1629,7 @@ bcm_error_t _bcm_esw_stat_flex_install_stat_id(int unit,uint32  *scache_ptr)
     uint32 mode=0;
 
     if (_bcm_esw_stat_sync_version_above_equal(unit,BCM_WB_VERSION_1_3)) {
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META_U(unit,
                                 "NEW Version\n")));
         for (mode=0; mode < BCM_STAT_FLEX_COUNTER_MAX_MODE ; mode++) {
@@ -1661,7 +1661,7 @@ bcm_error_t _bcm_esw_stat_flex_install_stat_id(int unit,uint32  *scache_ptr)
             flex_group_mode_related_info++;
        }
     } else {
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META_U(unit,
                                 "OLD Version so skipping NEW FLEX Layout..\n")));
     }
@@ -1674,7 +1674,7 @@ bcm_error_t _bcm_esw_stat_flex_install_stat_id(int unit,uint32  *scache_ptr)
                       &offset_mode,&pool_number,&base_index);
              if (_bcm_esw_stat_validate_object(unit,object,&direction) !=
                  BCM_E_NONE) {
-                 LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "Invalid object %d so skipping it \n"),
                             object));
@@ -1718,13 +1718,13 @@ bcm_error_t _bcm_esw_stat_flex_install_stat_id(int unit,uint32  *scache_ptr)
                                 [pool_number].used_by_tables |=
                                 flex_used_by_table[object];
              }
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Installing: mode:%d group_mode:%d pool:%d"
                                     "object:%d base:%d\n"),offset_mode,group_mode,
                         pool_number, object,base_index));
              if (total_counters == 0) {
-                 LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "Counter=0.Mode not configured in h/w."
                                         "skipping it\n")));
@@ -2254,12 +2254,12 @@ static bcm_error_t _bcm_esw_stat_flex_enable_pool(
          return BCM_E_PARAM;
     }
     if ( enable ) {
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "...Enabling pool:%s \n"),
                    SOC_REG_NAME(unit, flex_pool_ctr_update_control_reg)));
     } else {
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "...Disabling pool:%s \n"),
                    SOC_REG_NAME(unit, flex_pool_ctr_update_control_reg)));
@@ -2329,7 +2329,7 @@ _bcm_esw_stat_flex_retrieve_total_counters(
     flex_ctr_offset_table_entry = soc_cm_salloc(unit,alloc_size,
                                                 "flex_ctr_offset_table_entry");
     if (flex_ctr_offset_table_entry == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Memory Allocation failed:flex_ctr_offset_table_entry\n")));
         return  BCM_E_INTERNAL;
@@ -2341,7 +2341,7 @@ _bcm_esw_stat_flex_retrieve_total_counters(
                      (offset_mode <<8),
                      (offset_mode <<8)+ (256) - 1,
                      flex_ctr_offset_table_entry) != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Memory Reading failed:flex_ctr_offset_table_entry \n")));
         soc_cm_sfree(unit,flex_ctr_offset_table_entry);
@@ -2446,7 +2446,7 @@ _bcm_esw_stat_flex_check_egress_table(
 #endif /* BCM_TRIDENT2_SUPPORT */
           (egress_table == EGR_VLAN_XLATEm)  ||
           (egress_table == EGR_PORTm))) {
-           LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "Invalid Flex Counter Ingress Memory %s\n"),
                       SOC_MEM_UFNAME(unit, egress_table)));
@@ -2460,7 +2460,7 @@ _bcm_esw_stat_flex_check_egress_table(
     egress_entry_full_data = soc_cm_salloc(unit,egress_entry_data_size *
                                   (max_index - min_index + 1),"egress_table");
     if (egress_entry_full_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, egress_table)));
@@ -2509,7 +2509,7 @@ _bcm_esw_stat_flex_check_egress_table(
             flex_egress_modes[unit][offset_mode].total_counters =
                _bcm_esw_stat_flex_retrieve_total_counters(
                   unit, bcmStatFlexDirectionEgress, pool_number, offset_mode);
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Max_offset_table_value %d\n"),
                        flex_egress_modes[unit][offset_mode].
@@ -2530,7 +2530,7 @@ _bcm_esw_stat_flex_check_egress_table(
                       used_by_tables |= flex_used_by_table[object];
         SHR_BITSET(flex_pool_stat[unit][bcmStatFlexDirectionEgress]
                       [pool_number].used_by_objects, object);
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Table:%s index=%d mode:%d pool_number:%d base_idx:%d\n"),
                    SOC_MEM_UFNAME(unit, egress_table),
@@ -2601,7 +2601,7 @@ _bcm_esw_stat_flex_check_ingress_table(
           (ingress_table == VRFm)  ||
           (ingress_table == VFIm)  ||
           (ingress_table == VLAN_TABm))) {
-           LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "Invalid Flex Counter Ingress Memory %s\n"),
                       SOC_MEM_UFNAME(unit, ingress_table)));
@@ -2616,7 +2616,7 @@ _bcm_esw_stat_flex_check_ingress_table(
     ingress_entry_full_data = soc_cm_salloc(unit,ingress_entry_data_size *
                                   (max_index - min_index + 1),"ingress_table");
     if (ingress_entry_full_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, ingress_table)));
@@ -2687,7 +2687,7 @@ _bcm_esw_stat_flex_check_ingress_table(
                    _bcm_esw_stat_flex_retrieve_total_counters(
                     unit, bcmStatFlexDirectionIngress,
                     pool_number, offset_mode)  ;
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Max_offset_table_value %d\n"),
                        flex_ingress_modes[unit][offset_mode].
@@ -2709,7 +2709,7 @@ _bcm_esw_stat_flex_check_ingress_table(
                       used_by_tables |= flex_used_by_table[object];
         SHR_BITSET(flex_pool_stat[unit][bcmStatFlexDirectionIngress]
                       [pool_number].used_by_objects, object);
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Table:%s:index=%d mode:%d pool_number:%d base_idx:%d\n"),
                    SOC_MEM_UFNAME(unit, ingress_table),
@@ -2752,7 +2752,7 @@ _bcm_esw_stat_flex_check_ingress_table(
                                          &stat_counter_id);
             rv = _bcm_esw_ifp_color_map_set(unit, stat_counter_id, &color_map);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Unable to reconstruct ifp color map for"
                                       " policy table index - %d, pool - %d"
@@ -2929,7 +2929,7 @@ _bcm_esw_stat_flex_init_uncmprsd_mode(
         }
         flex_ingress_modes[unit][mode].ing_attr.uncmprsd_attr_selectors.
                      uncmprsd_attr_bits_selector = uncmprsd_attr_bits_selector;
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "uncmprsd_attr_bits_selector:%x \n"),
                    uncmprsd_attr_bits_selector));
@@ -3064,13 +3064,13 @@ _bcm_esw_stat_flex_init_uncmprsd_mode(
         }
         flex_egress_modes[unit][mode].egr_attr.uncmprsd_attr_selectors.
                     uncmprsd_attr_bits_selector = uncmprsd_attr_bits_selector;
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "uncmprsd_attr_bits_selector:%x \n"),
                    uncmprsd_attr_bits_selector));
         return;
     }
-    LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Ooops. Control Must not reach over here \n")));
 }
@@ -3252,17 +3252,17 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             pkt_attr_bits.ifp_cng ) ||
            (flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
             pkt_attr_bits.int_pri ))         {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "cng:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
                        cmprsd_attr_selectors.pkt_attr_bits.cng));
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ifp_cng:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
                        cmprsd_attr_selectors.pkt_attr_bits.ifp_cng));
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "int_pri:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
@@ -3272,7 +3272,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             ing_pri_cng_map_dma = soc_cm_salloc( unit, alloc_size,
                                                  "ING_FLEX_CTR_PRI_CNG_MAPm");
             if (ing_pri_cng_map_dma == NULL) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "ING_FLEX_CTR_PRI_CNG_MAPm:DMAAllocationFail\n")));
                 return;
@@ -3284,7 +3284,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                     soc_mem_index_min(unit,ING_FLEX_CTR_PRI_CNG_MAPm),
                     soc_mem_index_max(unit,ING_FLEX_CTR_PRI_CNG_MAPm),
                     ing_pri_cng_map_dma) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "ING_FLEX_CTR_PRI_CNG_MAPm:Read failuer \n")));
                 soc_cm_sfree(unit,ing_pri_cng_map_dma);
@@ -3299,7 +3299,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                  flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
                                    pri_cnf_attr_map[index]=(uint8)map_value;
                  if (map_value) {
-                     LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                     LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "Index:%dValue:%d\n"),
                                 index,map_value));
@@ -3313,17 +3313,17 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             pkt_attr_bits.outer_dot1p) ||
            (flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
             pkt_attr_bits.inner_dot1p)) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "vlan_format:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
                        cmprsd_attr_selectors.pkt_attr_bits.vlan_format));
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "outer_dot1p:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
                        cmprsd_attr_selectors.pkt_attr_bits.outer_dot1p));
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "inner_dot1p:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
@@ -3333,7 +3333,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             ing_pkt_pri_map_dma = soc_cm_salloc( unit, alloc_size,
                                                  "ING_FLEX_CTR_PKT_PRI_MAPm");
             if (ing_pkt_pri_map_dma == NULL) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "ING_FLEX_CTR_PKT_PRI_MAPm:DMAAllocationFail\n")));
                 return;
@@ -3345,7 +3345,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                     soc_mem_index_min(unit,ING_FLEX_CTR_PKT_PRI_MAPm),
                     soc_mem_index_max(unit,ING_FLEX_CTR_PKT_PRI_MAPm),
                     ing_pkt_pri_map_dma) != SOC_E_NONE) {
-                LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "ING_FLEX_CTR_PKT_PRI_MAPm:Read failuer \n")));
                 soc_cm_sfree(unit,ing_pkt_pri_map_dma);
@@ -3360,7 +3360,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                  flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
                                    pkt_pri_attr_map[index]=(uint8)map_value;
                  if (map_value){
-                     LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                     LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "Index:%dValue:%d\n"),
                                 index,map_value));
@@ -3370,7 +3370,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
        }
        if (flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
            pkt_attr_bits.ing_port) {
-           LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "ing_port:%d \n"),
                       flex_ingress_modes[unit][mode].
@@ -3381,7 +3381,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
            ing_port_map_dma = soc_cm_salloc( unit, alloc_size,
                                              "ING_FLEX_CTR_PORT_MAPm");
            if (ing_port_map_dma == NULL) {
-               LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "ING_FLEX_CTR_PORT_MAPm:DMA Allocation failuer\n")));
                return;
@@ -3393,7 +3393,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                    soc_mem_index_min(unit,ING_FLEX_CTR_PORT_MAPm),
                    soc_mem_index_max(unit,ING_FLEX_CTR_PORT_MAPm),
                    ing_port_map_dma) != SOC_E_NONE) {
-               LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "ING_FLEX_CTR_PORT_MAPm:Read failuer \n")));
                soc_cm_sfree(unit,ing_port_map_dma);
@@ -3408,7 +3408,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                 flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
                                   port_attr_map[index]=(uint8)map_value;
                 if (map_value) {
-                    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                               (BSL_META_U(unit,
                                           "Index:%dValue:%d\n"),
                                index,map_value));
@@ -3420,7 +3420,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             pkt_attr_bits.tos_dscp ) ||
            (flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
             pkt_attr_bits.tos_ecn)) {
-           LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "tos_dscp:%d tos_ecn:%d \n"),
                       flex_ingress_modes[unit][mode].ing_attr.
@@ -3432,7 +3432,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
            ing_tos_map_dma = soc_cm_salloc( unit, alloc_size,
                                             "ING_FLEX_CTR_TOS_MAPm");
            if (ing_tos_map_dma == NULL) {
-               LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "ING_FLEX_CTR_TOS_MAP:DMA Allocation failuer \n")));
                return;
@@ -3444,7 +3444,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                   soc_mem_index_min(unit,ING_FLEX_CTR_TOS_MAPm),
                   soc_mem_index_max(unit,ING_FLEX_CTR_TOS_MAPm),
                   ing_tos_map_dma) != SOC_E_NONE) {
-              LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "ING_FLEX_CTR_TOS_MAPm:Read failuer \n")));
               soc_cm_sfree(unit,ing_tos_map_dma);
@@ -3459,7 +3459,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                 flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
                                    tos_attr_map[index]=(uint8)map_value;
                 if (map_value) {
-                   LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                   LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                              (BSL_META_U(unit,
                                          "Index:%dValue:%d\n"),
                               index,map_value));
@@ -3473,17 +3473,17 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              pkt_attr_bits.svp_type) ||
            (flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
              pkt_attr_bits.drop)) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "pkt_resolution:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
                        cmprsd_attr_selectors.pkt_attr_bits.pkt_resolution));
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "svp_type:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
                        cmprsd_attr_selectors.pkt_attr_bits.svp_type));
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "drop:%d \n"),
                        flex_ingress_modes[unit][mode].ing_attr.
@@ -3493,7 +3493,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             ing_pkt_res_map_dma = soc_cm_salloc( unit, alloc_size,
                                                  "ING_FLEX_CTR_PKT_RES_MAPm");
             if (ing_pkt_res_map_dma == NULL) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "ING_FLEX_CTR_PKT_RES_MAPm:DMA AllocationFail\n")));
                 return;
@@ -3505,7 +3505,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                    soc_mem_index_min(unit,ING_FLEX_CTR_PKT_RES_MAPm),
                    soc_mem_index_max(unit,ING_FLEX_CTR_PKT_RES_MAPm),
                    ing_pkt_res_map_dma) != SOC_E_NONE) {
-               LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "ING_FLEX_CTR_PKT_RES_MAPm:Read failuer \n")));
                soc_cm_sfree(unit,ing_pkt_res_map_dma);
@@ -3520,7 +3520,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                 flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
                                    pkt_res_attr_map[index]=(uint8)map_value;
                 if (map_value) {
-                    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                               (BSL_META_U(unit,
                                           "Index:%dValue:%d\n"),
                                index,map_value));
@@ -3530,7 +3530,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
        }
        if (flex_ingress_modes[unit][mode].ing_attr.cmprsd_attr_selectors.
            pkt_attr_bits.ip_pkt) {
-           LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "ip_pkt:%d \n"),
                       flex_ingress_modes[unit][mode].ing_attr.
@@ -3670,12 +3670,12 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
               pkt_attr_bits.cng) ||
             (flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
               pkt_attr_bits.int_pri) ) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "cng:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
                         cmprsd_attr_selectors.pkt_attr_bits.cng));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "int_pri:%d \n"),
                         flex_egress_modes[unit][mode].
@@ -3686,7 +3686,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              egr_pri_cng_map_dma = soc_cm_salloc( unit, alloc_size,
                                                   "EGR_FLEX_CTR_PRI_CNG_MAPm");
              if (egr_pri_cng_map_dma == NULL) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "EGR_FLEX_CTR_PRI_CNG_MAPm:DMAAllocationFail\n")));
                  return;
@@ -3699,7 +3699,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                      soc_mem_index_min(unit,EGR_FLEX_CTR_PRI_CNG_MAPm),
                      soc_mem_index_max(unit,EGR_FLEX_CTR_PRI_CNG_MAPm),
                      egr_pri_cng_map_dma) != SOC_E_NONE) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "EGR_FLEX_CTR_PRI_CNG_MAPm:Read failuer \n")));
                  soc_cm_sfree(unit,egr_pri_cng_map_dma);
@@ -3714,7 +3714,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                   flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
                                    pri_cnf_attr_map[index]=(uint8)map_value;
                   if (map_value) {
-                      LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "Index:%dValue:%d\n"),
                                  index,map_value));
@@ -3728,17 +3728,17 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              pkt_attr_bits.outer_dot1p) ||
             (flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
              pkt_attr_bits.inner_dot1p)) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "vlan_format:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
                         cmprsd_attr_selectors.pkt_attr_bits.vlan_format));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "outer_dot1p:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
                         cmprsd_attr_selectors.pkt_attr_bits.outer_dot1p));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "inner_dot1p:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
@@ -3748,7 +3748,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              egr_pkt_pri_map_dma = soc_cm_salloc( unit, alloc_size,
                                                  "EGR_FLEX_CTR_PKT_PRI_MAPm");
              if (egr_pkt_pri_map_dma == NULL) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "EGR_FLEX_CTR_PKT_PRI_MAPm:DMAAllocationFail\n")));
                  return;
@@ -3760,7 +3760,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                      soc_mem_index_min(unit,EGR_FLEX_CTR_PKT_PRI_MAPm),
                      soc_mem_index_max(unit,EGR_FLEX_CTR_PKT_PRI_MAPm),
                      egr_pkt_pri_map_dma) != SOC_E_NONE) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "EGR_FLEX_CTR_PKT_PRI_MAPm:Read failuer \n")));
                  soc_cm_sfree(unit,egr_pkt_pri_map_dma);
@@ -3775,7 +3775,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                   flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
                                    pkt_pri_attr_map[index]=(uint8)map_value;
                   if (map_value) {
-                      LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "Index:%dValue:%d\n"),
                                  index,map_value));
@@ -3785,7 +3785,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
         }
         if (flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
             pkt_attr_bits.egr_port) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "egr_port:%d \n"),
                        flex_egress_modes[unit][mode].
@@ -3796,7 +3796,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             egr_port_map_dma = soc_cm_salloc( unit, alloc_size,
                                               "EGR_FLEX_CTR_PORT_MAPm");
             if (egr_port_map_dma == NULL) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "EGR_FLEX_CTR_PORT_MAPm:DMA AllocationFail\n")));
                 return;
@@ -3808,7 +3808,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                     soc_mem_index_min(unit,EGR_FLEX_CTR_PORT_MAPm),
                     soc_mem_index_max(unit,EGR_FLEX_CTR_PORT_MAPm),
                     egr_port_map_dma) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "EGR_FLEX_CTR_PKT_PRI_MAPm:Read failuer \n")));
                 soc_cm_sfree(unit,egr_port_map_dma);
@@ -3823,7 +3823,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                  flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
                                   port_attr_map[index] = (uint8)map_value;
                  if (map_value) {
-                     LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                     LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "Index:%dValue:%d\n"),
                                 index,map_value));
@@ -3835,7 +3835,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              pkt_attr_bits.tos_dscp)  ||
             (flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
              pkt_attr_bits.tos_ecn)) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "tos_dscp:%d tos_ecn:%d \n"),
                        flex_egress_modes[unit][mode].egr_attr.
@@ -3847,7 +3847,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
             egr_tos_map_dma = soc_cm_salloc( unit, alloc_size,
                                              "EGR_FLEX_CTR_TOS_MAPm");
             if (egr_tos_map_dma == NULL) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "EGR_FLEX_CTR_TOS_MAPm:DMA Allocation failuer\n")));
                 return;
@@ -3859,7 +3859,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                    soc_mem_index_min(unit,EGR_FLEX_CTR_TOS_MAPm),
                    soc_mem_index_max(unit,EGR_FLEX_CTR_TOS_MAPm),
                    egr_tos_map_dma) != SOC_E_NONE) {
-               LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "EGR_FLEX_CTR_TOS_MAPm:Read failuer \n")));
                soc_cm_sfree(unit,egr_tos_map_dma);
@@ -3873,7 +3873,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                  flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
                                   tos_attr_map[index] = (uint8)map_value;
                  if (map_value) {
-                     LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                     LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "Index:%dValue:%d\n"),
                                 index,map_value));
@@ -3889,23 +3889,23 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              pkt_attr_bits.dvp_type) ||
             (flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
              pkt_attr_bits.drop) ) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "pkt_resolution:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
                         cmprsd_attr_selectors.pkt_attr_bits.
                         pkt_resolution));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "svp_type:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
                         cmprsd_attr_selectors.pkt_attr_bits.svp_type));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "dvp_type:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
                         cmprsd_attr_selectors.pkt_attr_bits.dvp_type));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "drop:%d \n"),
                         flex_egress_modes[unit][mode].egr_attr.
@@ -3915,7 +3915,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
              egr_pkt_res_map_dma = soc_cm_salloc( unit, alloc_size,
                                                  "EGR_FLEX_CTR_PKT_RES_MAPm");
              if (egr_pkt_res_map_dma == NULL) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "EGR_FLEX_CTR_PKT_RES_MAPm:DMAAllocationFail\n")));
                  return;
@@ -3927,7 +3927,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                      soc_mem_index_min(unit,EGR_FLEX_CTR_PKT_RES_MAPm),
                      soc_mem_index_max(unit,EGR_FLEX_CTR_PKT_RES_MAPm),
                      egr_pkt_res_map_dma) != BCM_E_NONE) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "EGR_FLEX_CTR_TOS_MAPm:Read failuer \n")));
                  soc_cm_sfree(unit,egr_pkt_res_map_dma);
@@ -3943,7 +3943,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
                                    pkt_res_attr_map[index]= (uint8)map_value;
 
                   if (map_value) {
-                      LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "Index:%dValue:%d\n"),
                                  index,map_value));
@@ -3953,7 +3953,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
         }
         if (flex_egress_modes[unit][mode].egr_attr.cmprsd_attr_selectors.
             pkt_attr_bits.ip_pkt ) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ip_pkt:%d \n"),
                        flex_egress_modes[unit][mode].
@@ -3962,7 +3962,7 @@ _bcm_esw_stat_flex_init_cmprsd_mode(
         }
         return;
     }
-    LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Ooops. Control Must not reach over here \n")));
 }
@@ -4006,7 +4006,7 @@ _bcm_esw_stat_flex_init_udf_mode(
              }
          }
     }
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "UDF0 : 0x%04x UDF1 0x%04x \n"),
                udf0,udf1));
@@ -4036,7 +4036,7 @@ _bcm_esw_stat_flex_init_udf_mode(
              udf_pkt_attr_bits.udf1 = udf1;
         return;
     }
-    LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Ooops. Control Must not reach over here \n")));
 }
@@ -4063,7 +4063,7 @@ _bcm_esw_stat_flex_check_egress_l3_next_hop_table(int unit)
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index < soc_mem_index_count(unit,EGR_L3_NEXT_HOPm));
 
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked EGRESS:EGR_L3_NEXT_HOP %d entries..\n"),
                index-1));
@@ -4091,7 +4091,7 @@ _bcm_esw_stat_flex_check_egress_vlan_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index< soc_mem_index_count(unit,EGR_VLANm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked EGRESS:EGR_VLAN %d entries..\n"),
                index-1));
@@ -4119,7 +4119,7 @@ _bcm_esw_stat_flex_check_ingress_vlan_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while(index<soc_mem_index_count(unit,VLAN_TABm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:VLAN_TAB %d entries..\n"),
                index-1));
@@ -4146,7 +4146,7 @@ _bcm_esw_stat_flex_check_ingress_vrf_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,VRFm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:VRF %d entries..\n"),
                index-1));
@@ -4173,7 +4173,7 @@ _bcm_esw_stat_flex_check_egress_vfi_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,EGR_VFIm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked EGRESS:EGR_VFI %d entries..\n"),
                index-1));
@@ -4200,7 +4200,7 @@ static void
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,VFIm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:VFI %d entries..\n"),
                index-1));
@@ -4227,7 +4227,7 @@ _bcm_esw_stat_flex_check_ingress_l3_iif_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,L3_IIFm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:L3_IIF %d entries..\n"),
                index-1));
@@ -4254,7 +4254,7 @@ _bcm_esw_stat_flex_check_ingress_source_vp_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,SOURCE_VPm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:SOURCE_VP %d entries..\n"),
                index-1));
@@ -4293,7 +4293,7 @@ _bcm_esw_stat_flex_check_ingress_mpls_entry_table(int unit)
         } while (index<soc_mem_index_count(unit,MPLS_ENTRY_EXTDm));
     }
 #endif
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:MPLS_ENTRY %d entries..\n"),
                index-1));
@@ -4320,7 +4320,7 @@ _bcm_esw_stat_flex_check_ingress_vfp_policy_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,VFP_POLICY_TABLEm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:VFP_POLICY_TABLE %d entries..\n"),
                index-1));
@@ -4347,7 +4347,7 @@ _bcm_esw_stat_flex_check_ingress_ifp_policy_table(int unit)
              index, index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index < soc_mem_index_count(unit, IFP_POLICY_TABLEm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:IFP_POLICY_TABLE %d entries..\n"),
                index-1));
@@ -4375,7 +4375,7 @@ _bcm_esw_stat_flex_check_egress_vlan_xlate_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,EGR_VLAN_XLATEm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked EGRESS:EGR_VLAN_XLATE %d entries..\n"),
                index-1));
@@ -4414,7 +4414,7 @@ _bcm_esw_stat_flex_check_ingress_vlan_xlate_table(int unit)
         } while (index<soc_mem_index_count(unit,VLAN_XLATE_EXTDm));
     }
 #endif
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:VLAN_XLATE_TABLE %d entries..\n"),
                index-1));
@@ -4441,7 +4441,7 @@ _bcm_esw_stat_flex_check_egress_port_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while (index<soc_mem_index_count(unit,EGR_PORTm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked EGRESS:EGR_PORT %d entries..\n"),
                index-1));
@@ -4468,7 +4468,7 @@ _bcm_esw_stat_flex_check_ingress_port_table(int unit)
              index,index + BCM_STAT_FLEX_WARMBOOT_READ_CHUNK - 1);
         index += BCM_STAT_FLEX_WARMBOOT_READ_CHUNK;
     } while(index<soc_mem_index_count(unit,PORT_TABm));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Checked INGRESS:PORT_TABLE %d entries..\n"),
                index-1));
@@ -4513,7 +4513,7 @@ _bcm_esw_stat_flex_set_mem_update(int unit, soc_mem_t table, uint32 index,
         hw_val[1] = COMPILER_64_LO(flex_values.byte_counter_value); \
         soc_mem_field_set(unit, mem, (uint32 *)&entry_temp[i], \
                           BYTE_COUNTERf, hw_val); \
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR, \
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR, \
                   (BSL_META_U(unit, \
                               "Byte Count Value\t:TABLE:%sINDEX:%d COUTER-%d" \
                                "(@Pool:%dDirection:%dActualOffset%d)" \
@@ -4546,7 +4546,7 @@ _bcm_esw_stat_flex_set_mem_update(int unit, soc_mem_t table, uint32 index,
         /* Change Read Hw Copy */ \
         soc_mem_field_set(unit, mem, (uint32 *)&entry_temp[i], \
                           PACKET_COUNTERf, &flex_values.pkt_counter_value); \
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR, \
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR, \
                   (BSL_META_U(unit, \
                               "Packet Count Value\t:TABLE:%sINDEX:%d" \
                                "COUTER-%d (@Pool:%dDirection:%d" \
@@ -4709,7 +4709,7 @@ _bcm_esw_stat_flex_set(
     uint32                    offset_index=0;
 
     if (flex_temp_counter[unit][direction] == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Not initilized or attached yet\n")));
         return BCM_E_CONFIG;
@@ -4799,7 +4799,7 @@ _bcm_esw_ext_stat_flex_set(
     max_packet_mask -= 1;
 
     if ((offset_mode == 0) && (base_idx == 0)) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "EXT_FP_POLICY table: pool_number:%d: IsNotConfigured"
                                 " for flex counter \n"),
@@ -4819,7 +4819,7 @@ _bcm_esw_ext_stat_flex_set(
     } else {
         offset_index = flex_ctr_offset_info.offset_index;
         if (offset_index >= total_entries) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Wrong OFFSET_INDEX.Must be <Total Counters %d \n"),
                        total_entries));
@@ -4863,7 +4863,7 @@ _bcm_esw_ext_stat_flex_set(
                          unit,mem,
                          (uint32 *)&flex_temp_counter[unit][direction][loop],
                          BYTE_COUNTERf, hw_val);
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Byte Count Value\t:TABLE:EXT_FP_POLICY COUNTER-%d"
                                     "(@ Pool:%d Direction:%d ActualOffset%d)"
@@ -4894,7 +4894,7 @@ _bcm_esw_ext_stat_flex_set(
                             (uint32 *)&flex_temp_counter[unit][direction][loop],
                             PACKET_COUNTERf,
                             &flex_values[loop].pkt_counter_value);
-                    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                               (BSL_META_U(unit,
                                           "Packet Count Value\t:TABLE:EXT_FP_POLICY "
                                            "COUNTER-%d (@ Pool:%d Direction:%d "
@@ -4939,13 +4939,13 @@ bcm_error_t _bcm_esw_stat_flex_sync(int unit)
                                    BCM_STAT_FLEX_COUNTER_MAX_SCACHE_SIZE);
     uint32 mode=0;
     uint32 sel=0;
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "_bcm_esw_stat_flex_sync \n")));
     if ((handle == 0) ||
         (flex_scache_allocated_size == 0) ||
         (flex_scache_ptr[unit] == NULL)) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Scache memory was not allocate in init!! \n")));
          return BCM_E_CONFIG;
@@ -4993,7 +4993,7 @@ bcm_error_t _bcm_esw_stat_flex_sync(int unit)
          }
          flex_group_mode_related_info++;
     }
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "OK \n")));
     return BCM_E_NONE;
@@ -5025,7 +5025,7 @@ bcm_error_t _bcm_esw_stat_flex_cleanup(int unit)
     int         buffer_id;
 #endif /* BCM_TRIDENT2_SUPPORT */
 
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "_bcm_esw_stat_flex_cleanup \n")));
     num_pools[bcmStatFlexDirectionIngress]=SOC_INFO(unit).
@@ -5167,7 +5167,7 @@ bcm_error_t _bcm_esw_stat_flex_cleanup(int unit)
         sal_free(flex_egress_modes[unit]);
         flex_egress_modes[unit] = NULL;
     }
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "OK \n")));
     return BCM_E_NONE;
@@ -5399,7 +5399,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_object_update(
             /*already set*/
             if ((share && (object_config.share_criteria != 0)) ||
                 (!share && (object_config.exclude_criteria != 0))) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "\"%s\" has already been set or "
                                       "duplicated object in HW\n"), 
@@ -5410,7 +5410,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_object_update(
     }
 
     if (num <= 1) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Too little objects in the property string. "
                               "Object count %d\n"), 
@@ -5541,7 +5541,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_property_get(
             sub_str += split_len;
         }
         else {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ERROR! Missing share information. "
                                   "Soc property \"%s\"\n"), 
@@ -5554,7 +5554,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_property_get(
             sub_str++;
         }
         else {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ERROR! Illegal syntax. Soc property \"%s\"\n"), 
                                   property_str)); 
@@ -5575,7 +5575,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_property_get(
                         if (share) {
                             if (SHR_BITGET(object_bmp, j) &&
                                 SHR_BITGET(object_share, j)) {
-                                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                           (BSL_META_U(unit,
                                                       "ERROR! Duplicated object. "
                                                       "Soc property \"%s\"\n"), 
@@ -5587,7 +5587,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_property_get(
                         else {
                             if (SHR_BITGET(object_bmp, j) &&
                                 SHR_BITGET(object_exclude, j)) {
-                                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                           (BSL_META_U(unit,
                                                       "ERROR! Duplicated object. "
                                                       "Soc property \"%s\"\n"), 
@@ -5624,7 +5624,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_property_get(
                     continue;
                 }
                 else {
-                    LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                               (BSL_META_U(unit,
                                           "ERROR! Illegal string information. "
                                           "Soc property \"%s\"\n"), 
@@ -5637,7 +5637,7 @@ STATIC bcm_error_t _bcm_esw_stat_flex_property_get(
         }
 
         if(i >= count) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ERROR! Object not found. Soc property \"%s\" \"%s\"\n"),
                                   property_str, sub_str));
@@ -5695,7 +5695,7 @@ static bcm_error_t is_legacy_ifp_color_mode_configured(int unit, uint32 mode,
     flex_ctr_offset_table_entry = soc_cm_salloc(unit, alloc_size,
                                                 "flex_ctr_offset_table_entry");
     if (NULL == flex_ctr_offset_table_entry) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Memory Allocation failed:flex_ctr_offset_table_entry\n")));
         return BCM_E_MEMORY;
@@ -5711,7 +5711,7 @@ static bcm_error_t is_legacy_ifp_color_mode_configured(int unit, uint32 mode,
                            (mode << BCM_STAT_FLEX_MAX_PKT_ATTR_SEL_KEY_SIZE) +
                            BCM_STAT_FLEX_MAX_COUNTER - 1,
                            flex_ctr_offset_table_entry) != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Memory Reading failed:flex_ctr_offset_table_entry \n")));
         soc_cm_sfree(unit, flex_ctr_offset_table_entry);
@@ -5779,7 +5779,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 	char *config_str;
 
 
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "_bcm_esw_stat_flex_init \n")));
     _bcm_esw_stat_flex_init_pkt_attr_bits(unit);
@@ -5798,7 +5798,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     size_pool[bcmStatFlexDirectionEgress] = SOC_INFO(unit).
                                             size_flex_egress_pool;
 
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "INFO: ingress_pools:%d num_flex_egress_pools:%di "
                           "size_flex_ingress_pool:%d size_flex_egress_pool:%d"
@@ -5812,7 +5812,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                BCM_STAT_FLEX_COUNTER_MAX_POOL));
     if ((num_pools[bcmStatFlexDirectionIngress] == 0) ||
         (num_pools[bcmStatFlexDirectionEgress] == 0)) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "INFO:Number of CounterPools missing.PleaseDefine it\n")));
          return BCM_E_INTERNAL;
@@ -5821,7 +5821,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
          BCM_STAT_FLEX_COUNTER_MAX_POOL) ||
         (num_pools[bcmStatFlexDirectionEgress] >
          BCM_STAT_FLEX_COUNTER_MAX_POOL)) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "INFO: Number of pools exceeding its max value %d \n"),
                     BCM_STAT_FLEX_COUNTER_MAX_POOL));
@@ -5869,7 +5869,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 #if defined(BCM_TRIDENT2_SUPPORT)
          if (SOC_IS_TD2_TT2(unit)) {
              if (flex_temp_counter_dual[unit][direction] != NULL){
-                 LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "WARN:Freeing flex_temp_counter AllocatedMemory\n")));
                  soc_cm_sfree(unit,flex_temp_counter_dual[unit][direction]);
@@ -5879,7 +5879,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                                 alloc_size,
                                                 "Advanced FlexTemp packet counter");
              if (flex_temp_counter_dual[unit][direction] == NULL) {
-                 LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Advanced Flex current PacketCounterAllocationFail"
                                       "for unit:%d, dir:%d pool:%d\n"),
@@ -5892,7 +5892,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 #endif /* BCM_TRIDENT2_SUPPORT*/
 
          if (flex_temp_counter[unit][direction] != NULL){
-             LOG_WARN(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "WARN:Freeing flex_temp_counter AllocatedMemory\n")));
              soc_cm_sfree(unit,flex_temp_counter[unit][direction]);
@@ -5902,7 +5902,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                             alloc_size,
                                             "Advanced FlexTemp packet counter");
          if (flex_temp_counter[unit][direction] == NULL) {
-             LOG_WARN(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Advanced Flex current PacketCounterAllocationFail"
                                   "for unit:%d, dir:%d pool:%d\n"),
@@ -5911,20 +5911,20 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
              return BCM_E_MEMORY;
          }
          sal_memset(flex_temp_counter[unit][direction], 0, alloc_size);
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Temp counter size:%d \n"),
                     alloc_size));
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Byte counter size:%d \n"),
                     (int)sizeof(uint64)*size_pool[direction]));
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Packet counter size:%d\n"),
                     (int)sizeof(uint32)*size_pool[direction]));
          for (pool_id = 0; pool_id < num_pools[direction]; pool_id++) {
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     ".")));
               /* Disable all counter pools */
@@ -5951,7 +5951,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                      0,num_ctr-1,
                      8, /* Max 256 counters */
                      "flex-counter") != BCM_E_NONE) {
-                  LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "Unrecoverable error. "
                                         "Couldn'tCreate AllignedList:FlexCounter\n")));
@@ -5992,7 +5992,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                    */
                   if (bcmStatFlexDirectionIngress == direction) {
                       if (ifp_color_map[unit][pool_id] != NULL) {
-                          LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                          LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "WARN:Freeing Allocated IFP"
                                                " color map database\n")));
@@ -6002,7 +6002,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                            soc_cm_salloc(unit, sizeof(uint8) * num_ctr,
                                          "IFP Color map database");
                       if (NULL == ifp_color_map[unit][pool_id]) {
-                          LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                          LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                     (BSL_META_U(unit,
                                                 "Allocation failed for IFP"
                                                 " color map database\n")));
@@ -6015,7 +6015,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
               }
 #endif
               if (flex_byte_counter[unit][direction][pool_id] != NULL) {
-                  LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "WARN:Freeing AllocatedByteCountersMemory\n")));
                   soc_cm_sfree(unit,
@@ -6025,7 +6025,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                    soc_cm_salloc(unit, sizeof(uint64) * num_ctr,
                                  "Advanced Flex byte counter");
               if (flex_byte_counter[unit][direction][pool_id] == NULL) {
-                  LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "Advanced Flex ByteCounterAllocationFailed for"
                                         "unit:%d,dir:%d pool:%d:\n"),
@@ -6037,7 +6037,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                          sizeof(uint64) * num_ctr);
 
               if (flex_packet_counter[unit][direction][pool_id] != NULL) {
-                  LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "WARN:FreeingAllocatedPacketCountersMemory\n")));
                   soc_cm_sfree(unit,
@@ -6047,7 +6047,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                    soc_cm_salloc(unit, sizeof(uint32) * num_ctr,
                                  "Advanced Flex packet counter");
               if (flex_packet_counter[unit][direction][pool_id] == NULL) {
-                  LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "Advanced Flex ByteCounterAllocation failed for"
                                         "unit:%d, dir:%d pool:%d\n"),
@@ -6059,7 +6059,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                          sizeof(uint32) * num_ctr);
 
               if (flex_packet64_counter[unit][direction][pool_id] != NULL) {
-                  LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "WARN:FreeingAllocatedPacketCountersMemory\n")));
                   soc_cm_sfree(unit,
@@ -6069,7 +6069,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                    soc_cm_salloc(unit, sizeof(uint64) * num_ctr,
                                  "Advanced Flex packet counter");
               if (flex_packet64_counter[unit][direction][pool_id] == NULL) {
-                  LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "Advanced Flex ByteCounterAllocation failed for"
                                         "unit:%d, dir:%d pool:%d\n"),
@@ -6084,7 +6084,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
               if (SOC_IS_TOMAHAWK(unit)) {
                   if (residual_packet_counter[unit][direction][pool_id] !=
                       NULL) {
-                      LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "WARN:Free residual pkt counter mem\n")));
                       soc_cm_sfree(unit,
@@ -6095,7 +6095,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                      "Advanced Flex packet counter");
                   if (residual_packet_counter[unit][direction][pool_id] ==
                       NULL) {
-                      LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "residual pkt counter Allocation failed for"
                                             "unit:%d, dir:%d pool:%d\n"),
@@ -6107,7 +6107,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                              0, sizeof(uint64) * num_ctr);
 
                   if (residual_byte_counter[unit][direction][pool_id] != NULL) {
-                      LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "WARN:Free residual byte counter mem\n")));
                       soc_cm_sfree(unit,
@@ -6118,7 +6118,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                        soc_cm_salloc(unit,sizeof(uint64) * num_ctr,
                                      "residual byte counter");
                   if (residual_byte_counter[unit][direction][pool_id] == NULL) {
-                      LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "residual ByteCounterAllocationFailed for"
                                             "unit:%d,dir:%d pool:%d:\n"),
@@ -6133,7 +6133,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 
               if (flex_base_index_reference_count[unit][direction]
                                                  [pool_id] != NULL) {
-                  LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "WARN:Freeing Allocated"
                                         "flex_base_index_reference_count memory\n")));
@@ -6144,7 +6144,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                    sal_alloc(sizeof(uint16) * num_ctr,
                              "BaseIndexAllocation");
               if (flex_packet_counter[unit][direction][pool_id] == NULL){
-                  LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                  LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "BaseIndex allocation failed for"
                                         "unit:%d, dir:%d pool:%d\n"),
@@ -6161,7 +6161,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                      buffer_id++) {
                     if (flex_byte_counter_x[unit][direction][pool_id][buffer_id]
                                                                       != NULL) {
-                        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                  (BSL_META_U(unit,
                                              "WARN:Freeing Allocated Byte Counters"
                                              " Memory\n")));
@@ -6174,7 +6174,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                        "Advanced Flex byte counter x");
                     if (flex_byte_counter_x[unit][direction][pool_id][buffer_id]
                                                                       == NULL) {
-                         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Advanced Flex ByteCounterAllocation"
                                                " Failed "
@@ -6188,7 +6188,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 
                     if (flex_byte_counter_y[unit][direction][pool_id][buffer_id]
                                                                       != NULL) {
-                        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                  (BSL_META_U(unit,
                                              "WARN:Freeing Allocated Byte Counters"
                                              " Memory\n")));
@@ -6200,7 +6200,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                         "Advanced Flex byte counter y");
                     if (flex_byte_counter_y[unit][direction][pool_id][buffer_id]
                                                                       == NULL) {
-                        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                   (BSL_META_U(unit,
                                               "Advanced Flex ByteCounterAllocationFailed"
                                               " for unit:%d,dir:%d pool:%d: buff:%d:\n"),
@@ -6213,7 +6213,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 
                     if (flex_pkt_counter_x[unit][direction][pool_id][buffer_id]
                                                                       != NULL) {
-                        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                  (BSL_META_U(unit,
                                              "WARN:Freeing AllocatedByteCountersMemory"
                                              "\n")));
@@ -6226,7 +6226,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                        "Advanced Flex packet counter x");
                     if (flex_pkt_counter_x[unit][direction][pool_id][buffer_id]
                                                                       == NULL) {
-                        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                   (BSL_META_U(unit,
                                               "Advanced Flex ByteCounterAllocationFailed"
                                               " for unit:%d,dir:%d pool:%d: buff:%d:\n"),
@@ -6239,7 +6239,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
 
                     if (flex_pkt_counter_y[unit][direction][pool_id][buffer_id]
                                                                       != NULL) {
-                        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                                  (BSL_META_U(unit,
                                              "WARN:Freeing AllocatedByteCountersMemory"
                                              "\n")));
@@ -6252,7 +6252,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                        "Advanced Flex packet counter y");
                     if (flex_pkt_counter_y[unit][direction][pool_id][buffer_id]
                                                                       == NULL) {
-                        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                   (BSL_META_U(unit,
                                               "Advanced Flex ByteCounterAllocationFailed"
                                               " for unit:%d,dir:%d pool:%d: buff:%d:\n"),
@@ -6266,14 +6266,14 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
             }
 #endif /* BCM_TRIDENT2_SUPPORT*/
          }
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "\n")));
     }
 
     /* First retrieve mode related information */
     if (SOC_WARM_BOOT(unit)) {
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "WARM booting...")));
         for (direction = bcmStatFlexDirectionIngress;
@@ -6307,7 +6307,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                       }
                  }
                  if (selector_count > 0) {
-                     LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                     LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "Selector count :%d .. "),
                                 selector_count));
@@ -6316,7 +6316,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                              unit,
                              _pkt_selector_key_reg[direction][mode],
                              selector_key_value,USE_UDF_KEYf) == 1) {
-                         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Direction:%d-Mode:%d UDF MODE is "
                                                 "configured \n"),direction,mode));
@@ -6332,7 +6332,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                              unit,
                              _pkt_selector_key_reg[direction][mode],
                              selector_key_value,USE_COMPRESSED_PKT_KEYf) == 1) {
-                             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                        (BSL_META_U(unit,
                                                    "Direction:%d-Mode:%d"
                                                     "COMPRESSED MODE is "
@@ -6345,7 +6345,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                                       selector_x_en_field_value,
                                       selector_for_bit_x_field_value);
                          } else {
-                             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                        (BSL_META_U(unit,
                                                    "Direction:%d-Mode:%d"
                                                     "UNCOMPRESSED MODE is "
@@ -6386,7 +6386,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                          }
                      }
 #endif
-                     LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                     LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                                (BSL_META_U(unit,
                                            "Direction:%d-Mode:%d is unconfigured \n"),
                                 direction,mode));
@@ -6452,7 +6452,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     if (config_str != NULL) {
         rv = _bcm_esw_stat_flex_property_get(unit, config_str, CONFIG_ING_OBJECT);
         if (rv != BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ERR: Parsing property string(ing) failed")));
             _bcm_esw_stat_flex_cleanup(unit);
@@ -6463,7 +6463,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     if (config_str != NULL) {
         rv = _bcm_esw_stat_flex_property_get(unit, config_str, CONFIG_EGR_OBJECT);
         if (rv != BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "ERR: Parsing property string(egr) failed")));
             _bcm_esw_stat_flex_cleanup(unit);
@@ -6472,7 +6472,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     }
 
     if(local_scache_ptr[unit] != NULL) {
-       LOG_WARN(BSL_LS_BCM_FLEXCTR,
+       LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                 (BSL_META_U(unit,
                             "WARN: Freeing flex_scache_ptr existing memory")));
        sal_free(local_scache_ptr[unit]);
@@ -6480,7 +6480,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     local_scache_size= sizeof(uint32)*BCM_STAT_FLEX_COUNTER_MAX_SCACHE_SIZE;
     local_scache_ptr[unit] = sal_alloc(local_scache_size,"Flex scache memory");
     if (local_scache_ptr[unit]  == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "ERR: Couldnot allocate flex_scache_ptr existing memory")));
         _bcm_esw_stat_flex_cleanup(unit);
@@ -6488,7 +6488,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     }
     sal_memset(local_scache_ptr[unit],0,local_scache_size);
 #ifdef BCM_WARM_BOOT_SUPPORT
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "WARM Booting... \n")));
     /* rv = soc_scache_recover(unit); */
@@ -6500,20 +6500,20 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
         local_scache_size +=  sizeof(bcm_stat_flex_group_mode_related_info_t) *
                               BCM_STAT_FLEX_COUNTER_MAX_MODE *
                               BCM_STAT_FLEX_COUNTER_MAX_DIRECTION ;
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "ColdBoot: Modified Local Scache Size %d \n"),
                    local_scache_size));
         SOC_IF_ERROR_RETURN(soc_stable_size_get(unit, &stable_size));
         if (stable_size == 0) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "STABLE size is zero.Probably NotConfigured yet\n")));
             return BCM_E_NONE;
         }
         SOC_IF_ERROR_RETURN(soc_stable_used_get(unit, &stable_used_size));
         if ((stable_size - stable_used_size) < local_scache_size) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Not enough scache memory left...\n")));
              _bcm_esw_stat_flex_cleanup(unit);
@@ -6521,7 +6521,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
         }
         rv = soc_scache_alloc(unit, handle,local_scache_size);
         if (!((rv== BCM_E_NONE) || (rv == BCM_E_EXISTS))) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Seems to be some internal problem:.\n")));
              _bcm_esw_stat_flex_cleanup(unit);
@@ -6540,7 +6540,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                             &flex_scache_allocated_size);
         /* You may get  BCM_E_NOT_FOUND for level 1 warm boot */
         if (rv == BCM_E_NOT_FOUND) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Seems to be Level-1 Warm boot...continuing..\n")));
              LOG_CLI((BSL_META_U(unit,
@@ -6548,7 +6548,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
              return BCM_E_NONE;
         }
         if (rv != BCM_E_NONE) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Seems to be some internal problem:.\n")));
              _bcm_esw_stat_flex_cleanup(unit);
@@ -6559,7 +6559,7 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
                               sizeof(bcm_stat_flex_group_mode_related_info_t) *
                               BCM_STAT_FLEX_COUNTER_MAX_MODE *
                               BCM_STAT_FLEX_COUNTER_MAX_DIRECTION ;
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "WarmBoot: Modified Local Scache Size %d\n"),
                        local_scache_size));
@@ -6582,17 +6582,17 @@ bcm_error_t _bcm_esw_stat_flex_init(int unit)
     }
     /* soc_scache_commit(unit); */
 #else
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "COLD Booting... \n")));
 #endif
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "OK \n")));
 
     /* Just an Info */
     if (SOC_CONTROL(unit)->tableDmaMutex == NULL) { /* enabled */
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "WARNING:DMA will not be used for BulkMemoryReading\n")));
     }
@@ -6781,7 +6781,7 @@ bcm_error_t _bcm_esw_stat_flex_update_offset_table(
     if (index == num_pools[direction]) {
          return BCM_E_PARAM;
     }
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "...Updating offset_table:%s:%d \n"),
                SOC_MEM_UFNAME(unit,flex_ctr_offset_table_mem),
@@ -6889,7 +6889,7 @@ bcm_error_t _bcm_esw_stat_flex_update_selector_keys_enable_fields(
     uint8  field_index[8]={0};
 
     if ((*ctr_current_bit_selector_position) + ctr_pkt_attr_total_bits > 8) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Total bits exceeding 8 \n")));
          return BCM_E_INTERNAL;
@@ -6905,7 +6905,7 @@ bcm_error_t _bcm_esw_stat_flex_update_selector_keys_enable_fields(
         field_mask = field_mask >> 1;
     }
     if (total_field_bits != ctr_pkt_attr_total_bits ) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Total bits exceeding not matching with mask bits \n")));
         return BCM_E_INTERNAL;
@@ -6953,7 +6953,7 @@ bcm_error_t _bcm_esw_stat_flex_egress_reserve_mode(
             bcm_stat_flex_egr_attr_t *egr_attr)
 {
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -6986,7 +6986,7 @@ bcm_error_t _bcm_esw_stat_flex_ingress_reserve_mode(
             bcm_stat_flex_ing_attr_t *ing_attr)
 {
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -7035,7 +7035,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
                                              num_flex_egress_pools;
 
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -7044,7 +7044,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
     switch(direction) {
     case bcmStatFlexDirectionIngress:
          if (flex_ingress_modes[unit][mode].available == 0) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "flex counter mode %d not configured yet\n"),
                         mode));
@@ -7054,7 +7054,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
              /* not an error in case two or more counters are created before
               * deleting one.
               */
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "FlexCounterMode:%d:IsBeingUsed.ReferenceCount:%d:\n"),
                         mode,flex_ingress_modes[unit][mode].reference_count));
@@ -7095,12 +7095,12 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
                             ing_attr.packet_attr_type;
          switch(packet_attr_type) {
          case bcmStatFlexPacketAttrTypeUncompressed:
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "\n Unreserving Ingress uncmprsd mode \n")));
               break;
          case bcmStatFlexPacketAttrTypeUdf:
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "\n Unreserving Ingress udf mode \n")));
               break;
@@ -7110,7 +7110,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
               ing_pkt_attr_bits=ing_cmprsd_attr_selectors->pkt_attr_bits;
               zero=0;
 
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "\n Unreserving Ingress cmprsd mode \n")));
 
@@ -7174,7 +7174,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
              LOG_CLI((BSL_META_U(unit,
                                  "Ingress: Freed Attr Selectors \n")));
          }
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "\n Done \n")));
          break;
@@ -7217,12 +7217,12 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
                             packet_attr_type;
          switch(packet_attr_type) {
          case bcmStatFlexPacketAttrTypeUncompressed:
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "\nUnreserving Egress uncmprsd mode \n")));
               break;
          case bcmStatFlexPacketAttrTypeUdf:
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "\n Unreserving Egress UDF mode \n")));
               break;
@@ -7230,7 +7230,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
               egr_cmprsd_attr_selectors= &(flex_egress_modes[unit][mode].
                                            egr_attr.cmprsd_attr_selectors);
               egr_pkt_attr_bits= egr_cmprsd_attr_selectors->pkt_attr_bits;
-              LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+              LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                         (BSL_META_U(unit,
                                     "\n Unreserving Egress cmprsd mode \n")));
 
@@ -7298,7 +7298,7 @@ bcm_error_t _bcm_esw_stat_flex_unreserve_mode(
              LOG_CLI((BSL_META_U(unit,
                                  "Egress: Freed Attr Selectors \n")));
          }
-         LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "\n Done \n")));
          break;
@@ -7315,7 +7315,7 @@ bcm_error_t _bcm_esw_stat_flex_update_ingress_flex_info(
             bcm_stat_group_mode_attr_selector_t *attr_selectors)
 {
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -7323,7 +7323,7 @@ bcm_error_t _bcm_esw_stat_flex_update_ingress_flex_info(
     }
     if (flex_ingress_modes[unit][mode].available==0) {
 #if 0
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    mode));
@@ -7352,7 +7352,7 @@ bcm_error_t _bcm_esw_stat_flex_update_egress_flex_info(
             bcm_stat_group_mode_attr_selector_t *attr_selectors)
 {
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -7360,7 +7360,7 @@ bcm_error_t _bcm_esw_stat_flex_update_egress_flex_info(
     }
     if (flex_egress_modes[unit][mode].available==0) {
 #if 0
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    mode));
@@ -7402,7 +7402,7 @@ bcm_error_t _bcm_esw_stat_flex_get_ingress_mode_info(
             bcm_stat_flex_ingress_mode_t *flex_ingress_mode)
 {
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -7410,7 +7410,7 @@ bcm_error_t _bcm_esw_stat_flex_get_ingress_mode_info(
     }
     if (flex_ingress_modes[unit][mode].available==0) {
 #if 0
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    mode));
@@ -7441,7 +7441,7 @@ bcm_error_t _bcm_esw_stat_flex_get_egress_mode_info(
             bcm_stat_flex_egress_mode_t *flex_egress_mode)
 {
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
@@ -7449,7 +7449,7 @@ bcm_error_t _bcm_esw_stat_flex_get_egress_mode_info(
     }
     if (flex_egress_modes[unit][mode].available==0) {
 #if 0
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    mode));
@@ -7805,7 +7805,7 @@ bcm_error_t _bcm_esw_stat_counter_set(
          direction= bcmStatFlexDirectionEgress;
          break;
     default:
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid Flex Counter Memory %s\n"),
                     SOC_MEM_UFNAME(unit, table)));
@@ -7822,14 +7822,14 @@ bcm_error_t _bcm_esw_stat_counter_set(
     entry_data_size = WORDS2BYTES(BYTES2WORDS(SOC_MEM_INFO(unit,table).bytes));
     entry_data = sal_alloc(entry_data_size,"flex-counter-table");
     if (entry_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, table)));
         return BCM_E_INTERNAL;
     }
     if (flex_temp_counter[unit][direction] == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Not initilized or attached yet\n")));
         sal_free(entry_data);
@@ -7842,7 +7842,7 @@ bcm_error_t _bcm_esw_stat_counter_set(
                 entry_data) == SOC_E_NONE) {
         if (soc_mem_field_valid(unit,table,VALIDf)) {
             if (soc_mem_field32_get(unit,table,entry_data,VALIDf)==0) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Table %s  with index %d is Not valid \n"),
                            SOC_MEM_UFNAME(unit, table),index));
@@ -7853,7 +7853,7 @@ bcm_error_t _bcm_esw_stat_counter_set(
         _bcm_esw_get_flex_counter_fields_values(
                  unit,index,table,entry_data, &offset_mode,&pool_number,&base_idx);
         if ((offset_mode == 0) && (base_idx == 0)) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Table:%s:Index:%d:IsNotConfiguredForFlexCounter \n"),
                         SOC_MEM_UFNAME(unit, table),index));
@@ -7868,7 +7868,7 @@ bcm_error_t _bcm_esw_stat_counter_set(
         }
         offset_index = counter_index;
         if (offset_index >= total_entries) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Wrong OFFSET_INDEX. Must be < Total Counters %d \n"),
                        total_entries));
@@ -7958,7 +7958,7 @@ bcm_error_t _bcm_esw_stat_counter_set(
                     hw_val);
             }
 #endif /* BCM_TRIDENT2_SUPPORT*/
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Byte Count Value\t:TABLE:%sINDEX:%d "
                                    "(@Pool:%dDirection:%dActualOffset%d) : %x:%x \n"),
@@ -8006,7 +8006,7 @@ bcm_error_t _bcm_esw_stat_counter_set(
                     &hw_val[0]);
             }
 #endif /* BCM_TRIDENT2_SUPPORT*/
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Packet Count Value\t:TABLE:%sINDEX:%d "
                                    "(@Pool:%dDirection:%dActualOffset%d) : %x \n"),
@@ -8131,7 +8131,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
          direction= bcmStatFlexDirectionEgress;
          break;
     default:
-         LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "Invalid Flex Counter Memory %s\n"),
                       SOC_MEM_UFNAME(unit, table)));
@@ -8140,7 +8140,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
     entry_data_size = WORDS2BYTES(BYTES2WORDS(SOC_MEM_INFO(unit,table).bytes));
     entry_data = sal_alloc(entry_data_size,"flex-counter-table");
     if (entry_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, table)));
@@ -8153,7 +8153,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
                 entry_data) == SOC_E_NONE) {
         if (soc_mem_field_valid(unit,table,VALIDf)) {
             if (soc_mem_field32_get(unit,table,entry_data,VALIDf)==0) {
-                LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "Table %s  with index %d is Not valid \n"),
                              SOC_MEM_UFNAME(unit, table),index));
@@ -8170,7 +8170,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
                  &pool_number,
                  &base_idx);
         if ((offset_mode == 0) && (base_idx == 0)) {
-             LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Table:%s:Index:%d:is NotConfiguredForFlexCounter \n"),
                           SOC_MEM_UFNAME(unit, table),index));
@@ -8187,7 +8187,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
          }
          offset_index = counter_index;
          if (offset_index >= total_entries) {
-             LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Invalid offset_index[%d]. total_entries[%d]\n"),
                           offset_index, total_entries));
@@ -8211,7 +8211,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
                       COMPILER_64_LO(flex_byte_counter[unit]
                                      [direction][pool_number]
                                      [base_idx+offset_index+loop]));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Byte Count Value\t:TABLE:%sINDEX:%d COUTER-%d"
                                     "(@Pool:%dDirection:%dActualOffset%d) : %x:%x \n"),
@@ -8226,7 +8226,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
          } else {
              value->packets= flex_packet_counter[unit][direction][pool_number]
                                                 [base_idx+offset_index+loop];
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Packet Count Value\t:TABLE:%sINDEX:%d COUTER-%d"
                                     "(@Pool:%dDirection:%dActualOffset%d) : %x \n"),
@@ -8244,7 +8244,7 @@ bcm_error_t _bcm_esw_stat_counter_get(
                       COMPILER_64_LO(flex_packet64_counter[unit]
                                      [direction][pool_number]
                                      [base_idx+offset_index+loop]));
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Packet64 Count Value\t:TABLE:%sINDEX:%d COUNTER-%d"
                                     "(@Pool:%dDirection:%dActualOffset%d) : %x:%x \n"),
@@ -8303,7 +8303,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_get(
                                       &offset_mode,&pool_number,&base_idx);
     /* Validate object id first */
     if (_bcm_esw_stat_validate_object(unit,object,&direction) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid bcm_stat_object_t passed %d \n"),
                    object));
@@ -8311,7 +8311,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_get(
     }
     /* Validate group_mode */
     if (_bcm_esw_stat_validate_group(unit,group_mode) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid bcm_stat_group_mode_t passed %d \n"),
                    group_mode));
@@ -8330,7 +8330,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_get(
     }
     offset_index = counter_index;
     if (offset_index >= total_entries) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Wrong OFFSET_INDEX.Must be < Total Counters %d \n"),
                    total_entries));
@@ -8351,7 +8351,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_get(
                  COMPILER_64_LO(flex_byte_counter[unit]
                                 [direction][pool_number]
                                 [base_idx+offset_index]));
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Byte Count Value\t:COUTER-%d"
                                "(@Pool:%dDirection:%dActualOffset%d) : %x:%x \n"),
@@ -8364,7 +8364,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_get(
     } else {
         value->packets= flex_packet_counter[unit][direction][pool_number]
                                            [base_idx+offset_index];
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Packet Count Value\t:COUTER-%d"
                                "(@Pool:%dDirection:%dActualOffset%d) : %x \n"),
@@ -8380,7 +8380,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_get(
                  COMPILER_64_LO(flex_packet64_counter[unit]
                                 [direction][pool_number]
                                 [base_idx+offset_index]));
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Byte Count Value\t:COUNTER-%d"
                                "(@Pool:%dDirection:%dActualOffset%d) : %x:%x \n"),
@@ -8444,7 +8444,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_set(
                                       &offset_mode,&pool_number,&base_idx);
     /* Validate object id first */
     if (_bcm_esw_stat_validate_object(unit,object,&direction) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid bcm_stat_object_t passed %d \n"),
                    object));
@@ -8452,7 +8452,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_set(
     }
     /* Validate group_mode */
     if (_bcm_esw_stat_validate_group(unit,group_mode) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid bcm_stat_group_mode_t passed %d \n"),
                    group_mode));
@@ -8471,14 +8471,14 @@ bcm_error_t _bcm_esw_stat_counter_raw_set(
     }
     offset_index = counter_index;
     if (offset_index >= total_entries) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Wrong OFFSET_INDEX.Must be < Total Counters %d \n"),
                    total_entries));
         return BCM_E_PARAM;
     }
     if (flex_temp_counter[unit][direction] == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Not initilized or attached yet\n")));
         return BCM_E_CONFIG;
@@ -8570,7 +8570,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_set(
                     hw_val);
         }
 #endif /* BCM_TRIDENT2_SUPPORT */
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Byte Count Value\t:COUTER-%d"
                                "(@Pool:%dDirection:%dActualOffset%d) : %x:%x \n"),
@@ -8617,7 +8617,7 @@ bcm_error_t _bcm_esw_stat_counter_raw_set(
                     &(value->packets));
         }
 #endif /* BCM_TRIDENT2_SUPPORT */
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Packet Count Value\t:COUTER-%d"
                                "(@Pool:%dDirection:%dActualOffset%d) : %x \n"),
@@ -8773,7 +8773,7 @@ void tomahawk_stat_flex_callback (int unit)
          direction < bcmStatFlexDirectionCount;
          direction++) {
          if (flex_temp_counter[unit][direction] == NULL) {
-             LOG_WARN(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Not Initilized or attached \n")));
              continue;
@@ -8842,7 +8842,7 @@ void tomahawk_stat_flex_callback (int unit)
                   rv = soc_counter_generic_get(unit, pkt_ctr_id, ctrl_info,
                                                0, index, &pkt_ctr_new);
                   if (rv != BCM_E_NONE) {
-                      LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "Unable to retrieve evicted"
                                             " packet counter values unit - %d,"
@@ -8853,7 +8853,7 @@ void tomahawk_stat_flex_callback (int unit)
                   rv = soc_counter_generic_get(unit, byte_ctr_id, ctrl_info,
                                                0, index, &byte_ctr_new);
                   if (rv != BCM_E_NONE) {
-                      LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                      LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "Unable to retrieve evicted"
                                             " byte counter values unit - %d,"
@@ -9014,7 +9014,7 @@ _bcm_flex_stat_data32_rollover(uint32 pre, uint32 cur,
     } else if (cur > pre) {
         COMPILER_64_SET(cur64, 0, (cur - pre));
     } else {
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META("Roll over  happend \n")));
         COMPILER_64_SET(cur64, 0, cur);
         COMPILER_64_SET(pre64, 0, pre);
@@ -9062,15 +9062,15 @@ _bcm_flex_stat_data64_rollover(uint64 pre, uint64 cur,
     COMPILER_64_AND(pre, max_byte_mask);
     COMPILER_64_AND(cur, max_byte_mask);
     if (COMPILER_64_GT(pre, cur)) {
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META("Roll over  happend \n")));
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META("...Read Byte Count    : %x:%x\n"),
                      COMPILER_64_HI(cur),
                      COMPILER_64_LO(cur)));
         COMPILER_64_ADD_64(cur, roll_size);
         COMPILER_64_SUB_64(cur,pre);
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META("...Diffed Byte Count    : %x:%x\n"),
                      COMPILER_64_HI(cur),
                      COMPILER_64_LO(cur)));
@@ -9080,7 +9080,7 @@ _bcm_flex_stat_data64_rollover(uint64 pre, uint64 cur,
     /* Add difference (if it is) */
     if (!COMPILER_64_IS_ZERO(cur)) {
         COMPILER_64_ADD_64(*sum, cur);
-        LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                     (BSL_META("New Byte Count Value : %x:%x\n"),
                      COMPILER_64_HI(*sum),
                      COMPILER_64_LO(*sum)));
@@ -9228,7 +9228,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 
     for ( ; direction < max_directions; direction++) {
         if (flex_temp_counter[unit][direction] == NULL) {
-            LOG_WARN(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "Not Initilized or attached \n")));
             continue;
@@ -9236,7 +9236,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 #if defined(BCM_TRIDENT2_SUPPORT)
         if (!SOC_IS_TOMAHAWK(unit) && SOC_IS_TD2_TT2(unit)) {
             if (flex_temp_counter_dual[unit][direction] == NULL) {
-                LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Not Initilized or attached \n")));
                 continue;
@@ -9260,7 +9260,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                 continue;
             }
 #if 0
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "%d-%d.."),
                        direction,pool_id));
@@ -9340,7 +9340,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 
                 if (flex_byte_counter_x[unit][direction][pool_id][toggle]
                                                                   == NULL) {
-                    LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                              (BSL_META_U(unit,
                                          "Not Initilized or attached \n")));
                     continue;
@@ -9348,7 +9348,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 
                 if (flex_pkt_counter_x[unit][direction][pool_id][toggle]
                                                                     == NULL) {
-                    LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                              (BSL_META_U(unit,
                                          "Not Initilized or attached \n")));
                     continue;
@@ -9356,7 +9356,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 
                 if (flex_byte_counter_y[unit][direction][pool_id][toggle]
                                                                   == NULL) {
-                    LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                              (BSL_META_U(unit,
                                          "Not Initilized or attached \n")));
                     continue;
@@ -9364,7 +9364,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 
                 if (flex_pkt_counter_y[unit][direction][pool_id][toggle]
                                                                     == NULL) {
-                    LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                              (BSL_META_U(unit,
                                          "Not Initilized or attached \n")));
                     continue;
@@ -9411,7 +9411,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
 #endif /* BCM_TRIDENT2_SUPPORT*/
                 if (flex_packet_counter[unit][direction][pool_id][index]
                     != packet_count) {
-                    LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                 (BSL_META_U(unit,
                                             "Direction:%dPool:%d==>"
                                              "Old Packet Count Value\t:"
@@ -9479,17 +9479,17 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                                                   [direction][pool_id][index]));
                    COMPILER_64_AND(prev_masked_packet64_count,max_packet64_mask);
                    if (COMPILER_64_GT(prev_masked_packet64_count, packet64_count)) {
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Roll over  happend \n")));
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "...Read Packet64 Count    : %x:%x\n"),
                                     COMPILER_64_HI(packet64_count),
                                     COMPILER_64_LO(packet64_count)));
                        COMPILER_64_ADD_64(packet64_count,max_packet64_size);
                        COMPILER_64_SUB_64(packet64_count,prev_masked_packet64_count);
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "...Diffed 64-Packet Count    : %x:%x\n"),
                                     COMPILER_64_HI(packet64_count),
@@ -9499,7 +9499,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                    }
                    /* Add difference (if it is) */
                    if (!COMPILER_64_IS_ZERO(packet64_count)) {
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Direction:%dPool:%d==>"
                                                 "Old 64-Packet Count Value\t"
@@ -9512,7 +9512,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                        COMPILER_64_ADD_64(flex_packet64_counter[unit]
                                           [direction][pool_id][index],
                                           packet64_count);
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "New 64-Packet Value : %x:%x\n"),
                                     COMPILER_64_HI(flex_packet64_counter[unit]
@@ -9530,17 +9530,17 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                                                   [direction][pool_id][index]));
                    COMPILER_64_AND(prev_masked_byte_count,max_byte_mask);
                    if (COMPILER_64_GT(prev_masked_byte_count, byte_count)) {
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Roll over  happend \n")));
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "...Read Byte Count    : %x:%x\n"),
                                     COMPILER_64_HI(byte_count),
                                     COMPILER_64_LO(byte_count)));
                        COMPILER_64_ADD_64(byte_count,max_byte_size);
                        COMPILER_64_SUB_64(byte_count,prev_masked_byte_count);
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "...Diffed Byte Count    : %x:%x\n"),
                                     COMPILER_64_HI(byte_count),
@@ -9550,7 +9550,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                    }
                    /* Add difference (if it is) */
                    if (!COMPILER_64_IS_ZERO(byte_count)) {
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Direction:%dPool:%d==>"
                                                 "Old Byte Count Value\t"
@@ -9563,7 +9563,7 @@ _bcm_esw_stat_flex_counter_collect(int                       unit,
                        COMPILER_64_ADD_64(flex_byte_counter[unit]
                                           [direction][pool_id][index],
                                           byte_count);
-                       LOG_VERBOSE(BSL_LS_BCM_FLEXCTR,
+                       LOG_BSL_VERBOSE(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "New Byte Count Value : %x:%x\n"),
                                     COMPILER_64_HI(flex_byte_counter[unit]
@@ -9871,7 +9871,7 @@ bcm_error_t _bcm_esw_stat_flex_get_table_info(
          break;
 #endif /* BCM_TRIDENT2_SUPPORT */
     default:
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid Object is passed %d\n"),
                     object));
@@ -9920,19 +9920,19 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
           (egress_table == EGR_NAT_PACKET_EDIT_INFOm) ||
 #endif
           (egress_table == EGR_PORTm))) {
-           LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "Invalid Flex Counter Egress Memory %s\n"),
                       SOC_MEM_UFNAME(unit, egress_table)));
            return BCM_E_PARAM;
     }
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Deallocating EGRESS counter for Table %s with index %d \n"),
                SOC_MEM_UFNAME(unit, egress_table),index));
     egress_entry_data_size = WORDS2BYTES(BYTES2WORDS(
                              SOC_MEM_INFO(unit, egress_table).bytes));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Deallocating EgressCounter Table:%s:with"
                            "index:%d:ENTRY_BYTES:%d\n"),
@@ -9940,7 +9940,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
                index,egress_entry_data_size));
     egress_entry_data = sal_alloc(egress_entry_data_size,"egress_table");
     if (egress_entry_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, egress_table)));
@@ -9954,7 +9954,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
         if (soc_mem_field_valid(unit, egress_table, VALIDf)) {
             if (soc_mem_field32_get(unit, egress_table, egress_entry_data,
                                     VALIDf)==0) {
-                LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Table %s  with index %d is Not valid \n"),
                            SOC_MEM_UFNAME(unit, egress_table), index));
@@ -9966,7 +9966,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
                  unit,index,egress_table,egress_entry_data,
                  &offset_mode,&pool_number,&base_idx);
         if ((offset_mode == 0) && (base_idx == 0)) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Table:%s:Index:%d:is NotConfiguredForFlexCtrYet\n"),
                         SOC_MEM_UFNAME(unit, egress_table), index));
@@ -9987,7 +9987,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
         /* Clear Counter Values when reference count is zero */
         if ((flex_base_index_reference_count[unit]
                 [bcmStatFlexDirectionEgress] [pool_number][base_idx]) == 0 ) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Clearing Counter Tables %s contents:Offset:%d Len:%d\n"),
                        SOC_MEM_UFNAME(unit, egress_table),
@@ -10009,14 +10009,14 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
         if (soc_mem_write(unit, egress_table, MEM_BLOCK_ALL,
                       _bcm_esw_stat_flex_table_index_map(unit,egress_table,index),
                       egress_entry_data) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Table:%s:Index:%d: encounter some problem \n"),
                        SOC_MEM_UFNAME(unit, egress_table), index));
             sal_free(egress_entry_data);
             return    BCM_E_INTERNAL;
         }
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Deallocated Table:%s:Index:%d:mode:%d"
                                "reference_count %d \n"),
@@ -10046,7 +10046,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_egress_table_counters(
                                            [pool_number][base_idx] == 0) {
             if (_bcm_esw_stat_flex_insert_stat_id(
                         local_scache_ptr[unit],stat_counter_id) != BCM_E_NONE) {
-                LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "WARMBOOT:Couldnot add entry in scache memory."
                                       "Attach it\n")));
@@ -10089,7 +10089,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
     uint32                          stat_counter_id=0;
 
     if (flex_egress_modes[unit][offset_mode].available==0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex CounterMode:%d:Not configured yet\n"),
                    offset_mode));
@@ -10098,7 +10098,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
     if (shr_aidxres_list_elem_state(flex_aidxres_list_handle
                                     [unit][bcmStatFlexDirectionEgress]
                                     [pool_number],base_idx) != BCM_E_EXISTS) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Wrong base index %u \n"),
                    base_idx));
@@ -10106,7 +10106,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
     }
     if (flex_base_index_reference_count[unit]
         [bcmStatFlexDirectionEgress][pool_number][base_idx] != 0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Reference count is  %d.. Please detach entries first..\n"),
                    flex_base_index_reference_count[unit]
@@ -10140,7 +10140,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
          break;
 #endif
     default:
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid Flex Counter Egress Memory %s\n"),
                     SOC_MEM_UFNAME(unit, egress_table)));
@@ -10151,7 +10151,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
     if (shr_aidxres_list_free(flex_aidxres_list_handle
                               [unit][bcmStatFlexDirectionEgress][pool_number],
                               base_idx) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Freeing memory Table:%s:encounter problem due entry not found or due to some other issue  \n"),
                    SOC_MEM_UFNAME(unit, egress_table)));
@@ -10162,7 +10162,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
                   object,offset_mode,pool_number,base_idx,&stat_counter_id);
     if (_bcm_esw_stat_flex_delete_stat_id(
                  local_scache_ptr[unit],stat_counter_id) != BCM_E_NONE) {
-        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "WARMBOOT: Couldnot Delete entry in scache memory.\n")));
     }
@@ -10170,7 +10170,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_egress_table_counters(
                            [unit][bcmStatFlexDirectionEgress][pool_number],
                            NULL,NULL,NULL,NULL,
                            &free_count,&alloc_count,&largest_free,NULL);
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Pool status free_count:%d alloc_count:%d largest_free:%d"
                            "used_by_tables:%d used_entries:%d\n"),
@@ -10257,7 +10257,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
          (ingress_table == VRFm)  ||
          (ingress_table == VFIm)  ||
          (ingress_table == VLAN_TABm))) {
-          LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+          LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                     (BSL_META_U(unit,
                                 "Invalid Flex Counter Ingress Memory %s\n"),
                      SOC_MEM_UFNAME(unit, ingress_table)));
@@ -10265,7 +10265,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
     }
     ingress_entry_data_size = WORDS2BYTES(BYTES2WORDS(
                               SOC_MEM_INFO(unit, ingress_table).bytes));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Deallocating IngressCounter Table:%s:Index:%d:"
                            " ENTRY_BYTES:%d \n"),
@@ -10273,7 +10273,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
                index,ingress_entry_data_size));
     ingress_entry_data = sal_alloc(ingress_entry_data_size,"ingress_table");
     if (ingress_entry_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, ingress_table)));
@@ -10286,7 +10286,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
         if (soc_mem_field_valid(unit,ingress_table,VALIDf)) {
             if (soc_mem_field32_get(unit,ingress_table,ingress_entry_data,
                                     VALIDf) == 0) {
-                LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Table %s  with index %d is Not valid \n"),
                            SOC_MEM_UFNAME(unit, ingress_table),index));
@@ -10298,7 +10298,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
                  unit,index,ingress_table,ingress_entry_data,
                  &offset_mode,&pool_number,&base_idx);
         if ((offset_mode == 0) && (base_idx == 0)) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Table:%s:Index %d IsNotConfiguredForFlexCounter\n"),
                         SOC_MEM_UFNAME(unit, ingress_table),index));
@@ -10318,7 +10318,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
         /* Clear Counter Values */
         if ((flex_base_index_reference_count[unit]
                 [bcmStatFlexDirectionIngress] [pool_number][base_idx]) == 0 ) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Clearing Counter Tables %s contents:Offset:%d Len:%d\n"),
                        SOC_MEM_UFNAME(unit, ingress_table),
@@ -10350,7 +10350,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
         if (soc_mem_write(unit,ingress_table, MEM_BLOCK_ALL,
                           _bcm_esw_stat_flex_table_index_map(unit,ingress_table,index),
                           ingress_entry_data) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Table:%s:Index %d encounter some problem \n"),
                        SOC_MEM_UFNAME(unit, ingress_table),index));
@@ -10358,7 +10358,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
             return    BCM_E_INTERNAL;
         }
 
-       LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+       LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "Deallocated for Table:%sIndex:%d:"
                               "mode %d reference_count %d\n"),
@@ -10389,7 +10389,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters(
                                            [pool_number][base_idx] == 0) {
             if (_bcm_esw_stat_flex_insert_stat_id(
                         local_scache_ptr[unit],stat_counter_id) != BCM_E_NONE) {
-                LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "WARMBOOT: Couldnot add entry in scache memory."
                                       "Attach it\n")));
@@ -10429,7 +10429,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
     uint32 used_by_table = 0, stat_counter_id = 0;
 
     if (flex_ingress_modes[unit][offset_mode].available==0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    offset_mode));
@@ -10439,7 +10439,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
             flex_aidxres_list_handle[unit][bcmStatFlexDirectionIngress]
             [pool_number],
             base_idx) != BCM_E_EXISTS) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Wrong base index %u \n"),
                    base_idx));
@@ -10447,7 +10447,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
     }
     if (flex_base_index_reference_count[unit][bcmStatFlexDirectionIngress]
                                        [pool_number][base_idx] != 0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Reference count is  %d.. Please detach entries first..\n"),
                    flex_ingress_modes[unit][offset_mode].reference_count));
@@ -10526,7 +10526,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
          break;
 #endif
     default:
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid Table is passed %d \n"),
                     ingress_table));
@@ -10535,7 +10535,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
     if (shr_aidxres_list_free(flex_aidxres_list_handle
                               [unit][bcmStatFlexDirectionIngress][pool_number],
                               base_idx) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Freeing memory Table:%s:encounter some problem due to entry not found or some other issue  \n"),
                    SOC_MEM_UFNAME(unit, ingress_table)));
@@ -10546,7 +10546,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
                   object,offset_mode,pool_number,base_idx,&stat_counter_id);
     if (_bcm_esw_stat_flex_delete_stat_id(
                  local_scache_ptr[unit],stat_counter_id) != BCM_E_NONE) {
-        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "WARMBOOT: Couldnot Delete entry in scache memory.\n")));
     }
@@ -10554,7 +10554,7 @@ bcm_error_t _bcm_esw_stat_flex_destroy_ingress_table_counters(
                            [unit][bcmStatFlexDirectionIngress][pool_number],
                            NULL,NULL,NULL,NULL,
                            &free_count,&alloc_count,&largest_free,NULL);
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Current Pool status free_count:%d alloc_count:%d"
                            "largest_free:%d used_by_tables:%d used_entries:%d\n"),
@@ -10621,14 +10621,14 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
     uint32               pool_number_l=0;
 
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
         return BCM_E_PARAM;
     }
     if (flex_egress_modes[unit][mode].available==0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex CounterMode:%d:Not configured yet\n"),
                    mode));
@@ -10637,7 +10637,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
     if (shr_aidxres_list_elem_state(flex_aidxres_list_handle
                                     [unit][bcmStatFlexDirectionEgress]
                                     [pool_number],base_idx) != BCM_E_EXISTS) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Wrong base index %u \n"),
                    base_idx));
@@ -10645,7 +10645,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
     }
     egress_entry_data_size = WORDS2BYTES(BYTES2WORDS(
                              SOC_MEM_INFO(unit, egress_table).bytes));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           ".Allocating EgressCounter Table:%s:Index:%d:Mode:%d"
                            " ENTRY_BYTES %d\n"),
@@ -10653,7 +10653,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
                egress_entry_data_size));
     egress_entry_data = sal_alloc(egress_entry_data_size,"egress_table");
     if (egress_entry_data == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for Table:%s "),
                    SOC_MEM_UFNAME(unit, egress_table)));
@@ -10664,7 +10664,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
     if (soc_mem_read(unit, egress_table, MEM_BLOCK_ANY,
                 _bcm_esw_stat_flex_table_index_map(unit,egress_table,index),
                 egress_entry_data) != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Read failure for Table %s with index %d \n"),
                    SOC_MEM_UFNAME(unit, egress_table),index));
@@ -10674,7 +10674,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
     if (soc_mem_field_valid(unit,egress_table,VALIDf)) {
         if (soc_mem_field32_get(unit,egress_table,egress_entry_data,
                                 VALIDf)==0) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Table %s  with index %d is Not valid \n"),
                        SOC_MEM_UFNAME(unit, egress_table),index));
@@ -10686,7 +10686,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
                  unit,index,egress_table,egress_entry_data,
                  &offset_mode_l,&pool_number_l,&base_idx_l);
     if (base_idx_l != 0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Table:%s HasAlreadyAllocatedWithIndex:%d base %d mode %d."
                                "First dealloc it \n"),SOC_MEM_UFNAME(unit, egress_table),
@@ -10715,7 +10715,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_egress_table_counters(
                                        [pool_number][base_idx] == 0) {
         if (_bcm_esw_stat_flex_delete_stat_id(local_scache_ptr[unit],
                                               stat_counter_id) != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "WARMBOOT:Couldnot Delete entry in scache memory\n")));
         }
@@ -10845,7 +10845,7 @@ bcm_error_t  _bcm_esw_stat_flex_pool_operation(
                  0,size_pool-1,
                  8, /* Max 256 counters */
                  "flex-counter") != BCM_E_NONE) {
-                 LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                 LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                            (BSL_META_U(unit,
                                        "Unrecoverable error. Couldn'tCreate "
                                         "AllignedList:FlexCounter\n")));
@@ -10879,7 +10879,7 @@ bcm_error_t  _bcm_esw_stat_flex_pool_operation(
                          0,size_pool-1,
                          block_factor,
                          "flex-counter") != BCM_E_NONE) {
-                         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+                         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                                    (BSL_META_U(unit,
                                                "Unrecoverable error. Couldn'tCreate "
                                                 "AllignedList:FlexCounter\n")));
@@ -10963,14 +10963,14 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_table_counters(
     flex_object_config_t object_config = {0};
 
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
         return BCM_E_PARAM;
     }
     if (flex_egress_modes[unit][mode].available==0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex CounterMode:%d:Not configured yet\n"),
                    mode));
@@ -11048,7 +11048,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_table_counters(
          break;
 
    default:
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid Table is passed %d \n"),
                     egress_table));
@@ -11084,7 +11084,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_table_counters(
                flex_pool_stat[unit][bcmStatFlexDirectionEgress]
                     [pool_number_l].used_entries += flex_egress_modes
                                                     [unit][mode].total_counters;
-               LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Allocated  counter Table:%s with pool_number:%d"
                                       "mode:%d base_idx:%d ref_count %d\n"),
@@ -11096,7 +11096,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_table_counters(
                                            [pool_number_l],
                    NULL,NULL,NULL,NULL,&free_count,&alloc_count,&largest_free,
                    NULL);
-               LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Current Pool status free_count:%d alloc_count:%d"
                                       "largest_free:%d used_by_tables:%d"
@@ -11117,7 +11117,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_table_counters(
                BCM_STAT_FLEX_COUNTER_UNLOCK(unit);
                if (_bcm_esw_stat_flex_insert_stat_id(
                    local_scache_ptr[unit], stat_counter_id) != BCM_E_NONE) {
-                   LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                   LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "WARMBOOT:Couldnot add entry in scache memory"
                                          "Attach it\n")));
@@ -11127,7 +11127,7 @@ bcm_error_t _bcm_esw_stat_flex_create_egress_table_counters(
       }
       pool_number_l = (pool_number_l+1) % num_flex_egress_pools;
     } while(pool_number_l != default_pool_number);
-    LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Pools exhausted for Table:%s\n"),
                SOC_MEM_UFNAME(unit, egress_table)));
@@ -11222,7 +11222,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters_update(
     if ((flex_base_index_reference_count[unit]
             [bcmStatFlexDirectionIngress] [pool_number][base_idx]) == 0 ) {
 
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Clearing Counter Tables for EXT_FP_POLICY: Offset:%d "
                                "Len:%d\n"),
@@ -11235,7 +11235,7 @@ bcm_error_t _bcm_esw_stat_flex_detach_ingress_table_counters_update(
 
         flex_counter_value = sal_alloc(alloc_size,"counter-table-values");
         if (flex_counter_value == NULL) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Failed: AllocateCounterMemoryForTable:EXT_FP_POLICY: "
                                    "pool_number:%d mode:%d base_idx:%d\n"),
@@ -11309,14 +11309,14 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
     uint32               pool_number_l=0;
 
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
         return BCM_E_PARAM;
     }
     if (flex_ingress_modes[unit][mode].available==0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    mode));
@@ -11326,7 +11326,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
             flex_aidxres_list_handle[unit][bcmStatFlexDirectionIngress]
             [pool_number],
             base_idx) != BCM_E_EXISTS) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Wrong base index %u \n"),
                    base_idx));
@@ -11336,7 +11336,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
     ingress_entry_data_size = WORDS2BYTES(BYTES2WORDS(
                               SOC_MEM_INFO(unit, ingress_table).bytes));
     if (ingress_entry_data1  == NULL ) {
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               ".Attaching INGRESS counter for Table:%s with index:%d"
                                "mode:%d ENTRY_BYTES %d \n"),
@@ -11344,7 +11344,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
                    ingress_entry_data_size));
         ingress_entry_data = sal_alloc(ingress_entry_data_size,"ingress_table");
         if (ingress_entry_data == NULL) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Failed to allocate memory for Table:%s "),
                        SOC_MEM_UFNAME(unit, ingress_table)));
@@ -11355,7 +11355,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
         if (soc_mem_read(unit, ingress_table, MEM_BLOCK_ANY,
                          _bcm_esw_stat_flex_table_index_map(unit,ingress_table,index),
                          ingress_entry_data) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Read failure for Table %s with index %d \n"),
                        SOC_MEM_UFNAME(unit, ingress_table),index));
@@ -11369,7 +11369,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
     if (soc_mem_field_valid(unit,ingress_table,VALIDf)) {
         if (soc_mem_field32_get(unit,ingress_table,ingress_entry_data_temp,
             VALIDf)==0) {
-            LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "Table %s  with index %d is Not valid \n"),
                        SOC_MEM_UFNAME(unit, ingress_table),index));
@@ -11383,7 +11383,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
                unit,index,ingress_table,ingress_entry_data_temp,
                &offset_mode_l,&pool_number_l,&base_idx_l);
     if (base_idx_l != 0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Table:%s Has already allocated with index:%d"
                                "base %d mode %d."
@@ -11507,7 +11507,7 @@ bcm_error_t _bcm_esw_stat_flex_attach_ingress_table_counters1(
                                        [pool_number][base_idx] == 0) {
         if (_bcm_esw_stat_flex_delete_stat_id(
             local_scache_ptr[unit],stat_counter_id) != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "WARMBOOT:Couldnot Delete entry in scache memory\n")));
         }
@@ -11598,14 +11598,14 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_table_counters(
 #endif
 
     if (mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    mode));
         return BCM_E_PARAM;
     }
     if (flex_ingress_modes[unit][mode].available==0) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "flex counter mode %d not configured yet\n"),
                    mode));
@@ -11784,7 +11784,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_table_counters(
              break;
 #endif
         default:
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Invalid Table is passed %d \n"),
                         ingress_table));
@@ -11840,7 +11840,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_table_counters(
                flex_pool_stat[unit][bcmStatFlexDirectionIngress]
                     [pool_number_l].used_entries += flex_ingress_modes
                                                     [unit][mode].total_counters;
-               LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Allocated  counter for Table:%s "
                                       "pool_number:%d mode:%d base_idx:%d ref_cnt:%d\n"),
@@ -11851,7 +11851,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_table_counters(
                    [bcmStatFlexDirectionIngress][pool_number_l],
                    NULL,NULL,NULL,NULL,&free_count,&alloc_count,&largest_free,
                    NULL);
-               LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+               LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                          (BSL_META_U(unit,
                                      "Current Pool status free_count:%d alloc_count:%d"
                                       "largest_free:%d used_by_tables:%d"
@@ -11872,7 +11872,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_table_counters(
                BCM_STAT_FLEX_COUNTER_UNLOCK(unit);
                if (_bcm_esw_stat_flex_insert_stat_id(
                    local_scache_ptr[unit],stat_counter_id) != BCM_E_NONE) {
-                   LOG_WARN(BSL_LS_BCM_FLEXCTR,
+                   LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                             (BSL_META_U(unit,
                                         "WARMBOOT:Couldnot add entry in scache memory"
                                          ".Attach it\n")));
@@ -11891,7 +11891,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_table_counters(
        }
        pool_number_l = (pool_number_l + 1) % num_flex_ingress_pools;
     } while (pool_number_l != default_pool_number);
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Pools exhausted for Table:%s\n"),
                SOC_MEM_UFNAME(unit,ingress_table)));
@@ -12120,7 +12120,7 @@ bcm_error_t _bcm_esw_stat_flex_set_group_mode(
     /* Better to check */
     if(!((group_mode >= bcmStatGroupModeSingle) &&
          (group_mode <= (bcm_stat_group_mode_t) bcmStatGroupModeFlex4))) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid bcm_stat_group_mode_t passed %d \n"),
                     group_mode));
@@ -12157,7 +12157,7 @@ bcm_error_t _bcm_esw_stat_flex_reset_group_mode(
     /* Better to check */
     if(!((group_mode >= bcmStatGroupModeSingle) &&
          (group_mode <= (bcm_stat_group_mode_t) bcmStatGroupModeFlex4))) {
-         LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+         LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                    (BSL_META_U(unit,
                                "Invalid bcm_stat_group_mode_t passed %d \n"),
                     group_mode));
@@ -12494,19 +12494,19 @@ bcm_error_t _bcm_esw_stat_flex_get_egress_object(
          break;
     case EGR_L3_NEXT_HOPm:
          if (sal_strcmp(memp->views[key_type],"WLAN") == 0) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "WLAN view")));
              *object=bcmStatObjectEgrWlan;
          } else if (sal_strcmp(memp->views[key_type],"MIM") == 0) {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "MIM view")));
              *object=bcmStatObjectEgrMim;
         }
 #if defined(BCM_TRIUMPH3_SUPPORT) && defined(INCLUDE_L3)
         else if (sal_strcmp(memp->views[key_type],"SD_TAG") == 0) {
-            LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                       (BSL_META_U(unit,
                                   "SD_TAG view\n")));
             if (_bcm_vp_used_get(unit, dvp,_bcmVpTypeVxlan)) {
@@ -12519,7 +12519,7 @@ bcm_error_t _bcm_esw_stat_flex_get_egress_object(
          }
 #endif
 		 else {
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Other view %s \n"),
                         memp->views[key_type]));

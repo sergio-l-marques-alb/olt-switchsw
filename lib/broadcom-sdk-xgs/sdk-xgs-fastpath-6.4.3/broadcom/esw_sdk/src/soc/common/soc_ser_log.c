@@ -286,115 +286,115 @@ soc_ser_log_print_tlv(void *buffer)
     char *data = (char*)buffer + sizeof(soc_ser_log_tlv_hdr_t);
     int index;
     
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("Tlv Header:\n")));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\ttype: %d\n"), (int)(tlv_hdr->type)));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tlength: %d\n"), (int)(tlv_hdr->length)));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("\tvalue: \n")));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("Tlv Data:\n")));
     switch (tlv_hdr->type) {
     case SOC_SER_LOG_TLV_MEMORY:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tSOC_SER_LOG_TLV_MEMORY\n")));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tmemory: %d\n"),
                    (int)(((soc_ser_log_tlv_memory_t*)(data))->memory)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tindex: %d\n"),
                    (int)(((soc_ser_log_tlv_memory_t*)(data))->index)));
         break;
     case SOC_SER_LOG_TLV_REGISTER:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tSOC_SER_LOG_TLV_REGISTER\n")));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tregister: %d\n"),
                    (int)(((soc_ser_log_tlv_register_t*)(data))->reg)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tindex: %d\n"),
                    (int)(((soc_ser_log_tlv_register_t*)(data))->index)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tport: %d\n"),
                    (int)(((soc_ser_log_tlv_register_t*)(data))->port)));
         break;
     case SOC_SER_LOG_TLV_CONTENTS:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tSOC_SER_LOG_TLV_CONTENTS\n\t\t")));
         for (index = 0; index < tlv_hdr->length; index++) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%02x "), *((char*)(data + index))));
             if ((index%16)==15) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("\n\t\t")));
             }
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\n")));
         break;
     case SOC_SER_LOG_TLV_SER_FIFO:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tSOC_SER_LOG_TLV_SER_FIFO\n\t\t")));
         for (index = 0; index < tlv_hdr->length; index++) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%02x "), *((char*)(data + index))));
             if ((index%16)==15) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("\n\t\t")));
             }
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\n")));
         break;
     case SOC_SER_LOG_TLV_CACHE:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tSOC_SER_LOG_TLV_CACHE\n\t\t")));
         for (index = 0; index < tlv_hdr->length; index++) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%02x "), *((char*)(data + index))));
             if ((index%16)==15) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("\n\t\t")));
             }
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\n")));
         break;
     case SOC_SER_LOG_TLV_GENERIC:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tSOC_SER_LOG_TLV_GENERIC\n")));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tflags: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->flags)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\ttime: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->time)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tboot_count: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->boot_count)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\taddress: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->address)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tacc_type: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->acc_type)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tblock_type: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->block_type)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tparity_type: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->parity_type)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tser_response_flag: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->ser_response_flag)));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\t\tcorrected: %d\n"),
                    (int)(((soc_ser_log_tlv_generic_t*)(data))->corrected)));
         break;
     default:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("\tUnknown type\n")));
     }
     return SOC_E_NONE;
@@ -420,7 +420,7 @@ soc_ser_log_print_all(int unit)
         }
 
         soc_ser_log_get_entry(unit, id, size, buffer);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Log Entry ID:%d\n"), id));
         soc_ser_log_print_entry(buffer);
@@ -468,7 +468,7 @@ soc_ser_log_init(int unit, void *location, int size)
 
     if(unit >= SOC_MAX_NUM_DEVICES)
     {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                   "SER Logging failed to check parameter Unit(%d)\n"), unit));
         return SOC_E_PARAM;
@@ -476,7 +476,7 @@ soc_ser_log_init(int unit, void *location, int size)
     
     if(1 == init_done[unit])
     {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                    "SER Logging had been initialized\n")));
         return SOC_E_NONE;
@@ -484,7 +484,7 @@ soc_ser_log_init(int unit, void *location, int size)
     
     mut = sal_mutex_create("SER_LOG_MUTEX");
     if (mut == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "SER Logging failed to create mutex\n")));
         return SOC_E_RESOURCE;

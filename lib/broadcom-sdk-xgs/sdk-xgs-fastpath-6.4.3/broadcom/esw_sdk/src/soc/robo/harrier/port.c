@@ -91,7 +91,7 @@ STATIC int
 _drv_harrier_set_MAC_auto_negotiation(int unit, int port, int enable)
 {
 
-  LOG_INFO(BSL_LS_SOC_PORT,
+  LOG_BSL_INFO(BSL_LS_SOC_PORT,
            (BSL_META_U(unit,
                        "_drv_harrier_set_MAC_auto_negotiation.\n")));
   
@@ -697,7 +697,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
 #endif  /* #if ROBO_INTFE_NO_FE10_LOOPBACK_CONFIRMED */
     mac_driver_t *p_mac = NULL;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_port_set: unit=%d bmp=%x %x\n"), \
               unit, SOC_PBMP_WORD_GET(bmp, 0), SOC_PBMP_WORD_GET(bmp, 1)));
@@ -706,7 +706,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
 
     switch (prop_type) {
         case DRV_PORT_PROP_SPEED:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SPEED\n")));
 
@@ -764,7 +764,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break;
 
         case DRV_PORT_PROP_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_DUPLEX\n")));
             switch (prop_val) {
@@ -804,7 +804,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break;
         case DRV_PORT_PROP_AUTONEG:
         case DRV_PORT_PROP_RESTART_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_AUTONEG\n")));
             /* RE_AN in PHY driver to set AN will be executed also */
@@ -817,7 +817,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_TX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_TX_PAUSE\n")));
             PBMP_ITER(bmp, port) {
@@ -836,7 +836,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_RX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_RX_PAUSE\n")));
             PBMP_ITER(bmp, port) {
@@ -855,7 +855,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_LOCAL_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: LOCAL_ADVER\n")));
             PBMP_ITER(bmp, port) {
@@ -864,35 +864,35 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_REMOTE_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: REMOTE_ADVER not support\n")));
             /* can not set remote advert */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_PORT_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PORT_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_MAC_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_MAC_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_PHY_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_INTERFACE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_INTERFACE\n")));
             PBMP_ITER(bmp, port) {
@@ -901,7 +901,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break;
         case DRV_PORT_PROP_MAC_ENABLE:
             /* This case is called for _bcm_robo_port_update() only. */
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_MAC_ENABLE\n")));
             PBMP_ITER(bmp, port) {
@@ -920,7 +920,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_ENABLE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_ENABLE\n")));
             PBMP_ITER(bmp, port) {
@@ -967,7 +967,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
         case DRV_PORT_PROP_ENABLE_TXRX:
         case DRV_PORT_PROP_EGRESS_PCP_REMARK:
         case DRV_PORT_PROP_EGRESS_CFI_REMARK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_ENABLE_SET\n")));
             PBMP_ITER(bmp, port) {
@@ -976,7 +976,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_IPG_FE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_IPG_FE\n")));
             if (SOC_PBMP_EQ(bmp, PBMP_ALL(unit))) { /* per system */
@@ -1000,7 +1000,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_IPG_GE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_IPG_GE\n")));
             if (SOC_PBMP_EQ(bmp, PBMP_ALL(unit))) { /* per system */
@@ -1020,7 +1020,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_JAM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_JAM\n")));
             
@@ -1043,7 +1043,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_BPDU_RX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_BPDU_RX\n")));
             if (SOC_PBMP_EQ(bmp, PBMP_ALL(unit))) {
@@ -1063,7 +1063,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_MAC_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_MAC_LOOPBACK\n")));
             PBMP_ITER(bmp, port) {
@@ -1081,7 +1081,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_PHY_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_LOOPBACK\n")));
             PBMP_ITER(bmp, port) {
@@ -1099,7 +1099,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
                         soc_MIICTLr_field_get(unit, &reg_value, F_SPD_SELf, 
                                 &temp);
                         if (!temp) {    /* F_SPD_SEL == b0 means speed=10 */
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "No loopback on port%d for speed=10!\n"),
                                       port));
@@ -1112,13 +1112,13 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_PHY_MEDIUM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_MEDIUM not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PHY_MDIX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_MDIX\n")));
             PBMP_ITER(bmp, port) {
@@ -1126,13 +1126,13 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_PHY_MDIX_STATUS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_MDIX_STATUS not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_MS not support\n")));
             PBMP_ITER(bmp, port) {
@@ -1140,7 +1140,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MODE_NONE\n")));
             PBMP_ITER(bmp, port) {
@@ -1148,19 +1148,19 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_STATIC_ACCEPT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MODE_STATIC_ACCEPT\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_STATIC_REJECT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MODE_STATIC_REJECT\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_DYNAMIC_SA_NUM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MODE_DYNAMIC_SA_NUM\n")));
             PBMP_ITER(bmp, port) {
@@ -1169,7 +1169,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_DYNAMIC_SA_MATCH:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MODE_DYNAMIC_SA_MATCH\n")));
             PBMP_ITER(bmp, port) {
@@ -1177,7 +1177,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_EXTEND:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MAC_MODE_EXTEND\n")));
             PBMP_ITER(bmp, port) {
@@ -1186,7 +1186,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break;
 
         case DRV_PORT_PROP_SEC_MAC_MODE_SIMPLIFY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_SEC_MAC_MODE_SIMPLIFY\n")));
             PBMP_ITER(bmp, port) {
@@ -1194,7 +1194,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP\n")));
             PBMP_ITER(bmp, port) {
@@ -1210,7 +1210,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU\n")));
             PBMP_ITER(bmp, port) {
@@ -1237,7 +1237,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break;
 
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION\n")));
             /* harrier can be at action in one of NONE, CPU-ONLY and DROP */
@@ -1271,7 +1271,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break; 
 
         case DRV_PORT_PROP_PHY_LINKUP_EVT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_LINKUP_EVT\n")));
             PBMP_ITER(bmp, port) {
@@ -1283,7 +1283,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_PHY_LINKDN_EVT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_LINKDN_EVT\n")));
             PBMP_ITER(bmp, port) {
@@ -1295,7 +1295,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_PHY_RESET:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_PHY_RESET\n")));
             PBMP_ITER(bmp, port) {
@@ -1303,13 +1303,13 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_DTAG_MODE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_DTAG_MODE\n")));
             rv = _drv_harrier_port_property_enable_set(unit, 0, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_ISP_PORT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_DTAG_ISP_PORT\n")));
             PBMP_ITER(bmp, port) {
@@ -1318,7 +1318,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_DTAG_TPID:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_DTAG_TPID\n")));
             if ((rv = REG_READ_ISP_VIDr(unit, &reg_value)) < 0) {
@@ -1332,13 +1332,13 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_802_1X_MODE :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_802_1X_MODE\n")));
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_802_1X_BLK_RX :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_802_1X_BLK_RX\n")));
             rv = SOC_E_PARAM;
@@ -1364,7 +1364,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             }
             break;
         case DRV_PORT_PROP_INGRESS_VLAN_CHK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_set: PROP_INGRESS_VLAN_CHK\n")));
             if ((rv = REG_READ_VLAN_CTRL4r(unit, &reg_value)) < 0) {
@@ -1617,7 +1617,7 @@ drv_harrier_port_set(int unit, soc_pbmp_t bmp, uint32 prop_type, uint32 prop_val
             break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_harrier_port_set: Exit\n")));
     return rv;
@@ -1653,7 +1653,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
     uint64  reg_value64;
     mac_driver_t *p_mac = NULL;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_harrier_port_get: unit=%d port=%d\n"), unit, port));
 
@@ -1661,7 +1661,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
     p_mac = SOC_ROBO_PORT_MAC_DRIVER(unit, port);
     switch (prop_type) {
         case DRV_PORT_PROP_SPEED:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Speed\n")));
             temp = 0;
@@ -1687,7 +1687,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Duplex\n")));
             temp = 0;
@@ -1709,7 +1709,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Autoneg\n")));
             
@@ -1719,7 +1719,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
                         DRV_PORT_STATUS_AUTONEG_DISABLED;
             break;
         case DRV_PORT_PROP_TX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: TX Pause\n")));
             if (p_mac != NULL) {
@@ -1734,7 +1734,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_RX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: RX Pause\n")));
             if (p_mac != NULL) {
@@ -1749,13 +1749,13 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_LOCAL_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Local Advertise\n")));
             rv = soc_phyctrl_adv_local_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_REMOTE_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Remote Advertise\n")));
             /* if auto-negotiation is ON and negotiation is completed */
@@ -1763,7 +1763,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             rv = soc_phyctrl_adv_remote_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PORT_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Port Ability\n")));
             rv = soc_phyctrl_ability_get(unit, port, &phy_ability);
@@ -1783,7 +1783,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             *prop_val |= phy_ability & SOC_PM_ABILITY_PHY;
             break;
         case DRV_PORT_PROP_MAC_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: MAC Ability\n")));
             if (p_mac != NULL) {
@@ -1799,13 +1799,13 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             *prop_val = mac_ability;
             break;
         case DRV_PORT_PROP_PHY_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PHY Ability\n")));
             rv = soc_phyctrl_ability_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_INTERFACE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Interface\n")));
             if (p_mac != NULL) {
@@ -1820,7 +1820,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             } 
             break;
         case DRV_PORT_PROP_ENABLE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Enable\n")));
             rv = soc_phyctrl_enable_get(unit, port, (int *) prop_val);
@@ -1832,14 +1832,14 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
         case DRV_PORT_PROP_ENABLE_TXRX:
         case DRV_PORT_PROP_EGRESS_PCP_REMARK:
         case DRV_PORT_PROP_EGRESS_CFI_REMARK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: Enable Get\n")));
             rv = _drv_harrier_port_property_enable_get(
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_IPG_FE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: IPG FE\n")));
             if ((rv = REG_READ_SWMODEr(unit, &reg_value)) < 0) {
@@ -1866,7 +1866,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_IPG_GE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: IPG GE\n")));
             if ((rv = REG_READ_SWMODEr(unit, &reg_value)) < 0) {
@@ -1889,7 +1889,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_JAM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: JAM\n")));
             if (p_mac != NULL) {
@@ -1905,7 +1905,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             } 
             break;
         case DRV_PORT_PROP_BPDU_RX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: BPDU RX\n")));
             if ((rv = REG_READ_GMNGCFGr(unit, &reg_value)) < 0) {
@@ -1920,13 +1920,13 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_RESTART_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_RESTART_AUTONEG not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MAC_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_MAC_LOOPBACK\n")));
             if (p_mac != NULL) {
@@ -1941,56 +1941,56 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_PHY_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_PHY_LOOPBACK\n")));
             rv = soc_phyctrl_loopback_get(unit, port, (int *) prop_val);
             break;
         case DRV_PORT_PROP_PHY_MEDIUM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_PHY_MEDIUM\n")));
             rv = soc_phyctrl_medium_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PHY_MDIX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_PHY_MDIX\n")));
             rv = soc_phyctrl_mdix_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PHY_MDIX_STATUS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_PHY_MDIX_STATUS\n")));
             rv = soc_phyctrl_mdix_status_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_MS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_MS\n")));
             rv = soc_phyctrl_master_get(unit, port, (int *) prop_val);
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_SEC_MODE_NONE\n")));
             rv = _drv_harrier_port_security_mode_get(
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_STATIC_ACCEPT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_SEC_MODE_STATIC_ACCEPT\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_STATIC_REJECT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_SEC_MODE_STATIC_REJECT\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_DYNAMIC_SA_NUM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_SEC_MODE_DYNAMIC_SA_NUM\n")));
             /* worse case
@@ -2004,14 +2004,14 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_DYNAMIC_SA_MATCH:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_SEC_MODE_DYNAMIC_SA_MATCH\n")));
             rv = _drv_harrier_port_security_mode_get(
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP\n")));
 
@@ -2030,7 +2030,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             *prop_val = (temp) ? TRUE : FALSE;
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU\n")));
             temp = 0;
@@ -2057,7 +2057,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION:
             /* harrier can be at action in one of NONE, CPU-ONLY and DROP */
             
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION\n")));
             temp = 0;
@@ -2080,32 +2080,32 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             break;
 
         case DRV_PORT_PROP_PHY_CABLE_DIAG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_PHY_CABLE_DIAG\n")));
             rv = soc_phyctrl_cable_diag(unit, port, 
                                         (soc_port_cable_diag_t *)prop_val);
             break;
         case DRV_PORT_PROP_PHY_LINK_CHANGE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_PHY_LINKCHANGE\n")));
             rv = soc_phyctrl_link_change(unit, port, (int *) prop_val);
             break;
         case DRV_PORT_PROP_DTAG_MODE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_DTAG_MODE\n")));
             rv = _drv_harrier_port_property_enable_get(unit, 0, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_ISP_PORT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_DTAG_ISP_PORT\n")));
             rv = _drv_harrier_port_property_enable_get(unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_TPID:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_DTAG_TPID\n")));
             if ((rv = REG_READ_ISP_VIDr(unit, &reg_value)) < 0) {
@@ -2117,13 +2117,13 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             *prop_val = temp;
             break;
         case DRV_PORT_PROP_802_1X_MODE :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_802_1X_MODE\n")));
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_802_1X_BLK_RX :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_802_1X_BLK_RX\n")));
             rv = SOC_E_PARAM;
@@ -2146,7 +2146,7 @@ int drv_harrier_port_get(int unit, int port, uint32 prop_type, uint32 *prop_val)
             }
             break;
         case DRV_PORT_PROP_INGRESS_VLAN_CHK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_get: PROP_INGRESS_VLAN_CHK\n")));
             if ((rv = REG_READ_VLAN_CTRL4r(unit, &reg_value)) < 0) {
@@ -2268,12 +2268,12 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
         *val = TRUE;
         rv = drv_robo_port_sw_detach(unit);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Port detach failed!\n")));
             *val = FALSE;
         }
-        LOG_INFO(BSL_LS_SOC_PORT,
+        LOG_BSL_INFO(BSL_LS_SOC_PORT,
                  (BSL_META_U(unit,
                              "drv_harrier_port_status_get: DETACH %s\n"),
                   *val ? "OK" : "FAIL"));
@@ -2293,7 +2293,7 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
      
 
     /* remarked for performance issue when debugging LinkScan
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_status_get: unit = %d, port = %d\n"),
               unit, port));
@@ -2306,7 +2306,7 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
             rv = soc_phyctrl_loopback_get(unit, port, (int *) &port_lb_phy);
 
             if (port_lb_phy){
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "port%d at loopback status.\n"), port));
                 reg_addr = DRV_REG_ADDR(unit, INDEX(LNKSTSr), 0, 0);
@@ -2381,7 +2381,7 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
             }
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, Can't get the PHY speed!\n"), FUNCTION_NAME())); 
                 return rv;
@@ -2392,13 +2392,13 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
                     (speed == 100) ? DRV_PORT_STATUS_SPEED_100M :
                                     DRV_PORT_STATUS_SPEED_10M;
                 
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_hrrier_port_status_get: SPEED = %d\n"),
                       *val));
             break;
         case DRV_PORT_STATUS_LINK_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_status_get: DUPLEX\n")));
             
@@ -2413,7 +2413,7 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
             }
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, Can't get the PHY duplex!\n"), FUNCTION_NAME())); 
                 return rv;
@@ -2428,12 +2428,12 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
             rv = drv_robo_port_probe(unit, port, &okay);
             *val = okay;
             if (rv < 0) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "Port probe failed on port %s\n"),
                           SOC_PORT_NAME(unit, port)));
             }
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_status_get: PROBE %s\n"),
                       *val ? "OK" : "FAIL"));
@@ -2447,7 +2447,7 @@ drv_harrier_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *v
             }
             break;
         case DRV_PORT_STATUS_PHY_DRV_NAME:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_harrier_port_status_get: PHY_DRV_NAME\n")));
             SOC_ROBO_PORT_INIT(unit);            

@@ -603,14 +603,14 @@ _tx_first_pbm(int unit, bcm_pbmp_t pbm, bcm_pbmp_t *rpbm)
 
     BCM_PBMP_CLEAR(*rpbm);
     DPORT_BCM_PBMP_ITER(unit, pbm, dport, p) {
-        LOG_INFO(BSL_LS_APPL_TX,
+        LOG_BSL_INFO(BSL_LS_APPL_TX,
                  (BSL_META_U(unit,
                              "First to port %d\n"), p));
         BCM_PBMP_PORT_ADD(*rpbm, p);
         return;
     }
 
-    LOG_INFO(BSL_LS_APPL_TX,
+    LOG_BSL_INFO(BSL_LS_APPL_TX,
              (BSL_META_U(unit,
                          "Warning: first pbm null\n")));
 }
@@ -634,7 +634,7 @@ _tx_next_port(int unit, bcm_pbmp_t *newpbm, bcm_pbmp_t allpbm)
     DPORT_BCM_PBMP_ITER(unit, *newpbm, ndport, np) {
         DPORT_BCM_PBMP_ITER(unit, allpbm, dport, p) {
             if (found) {
-                LOG_INFO(BSL_LS_APPL_TX,
+                LOG_BSL_INFO(BSL_LS_APPL_TX,
                          (BSL_META_U(unit,
                                      "Next to port %d\n"), p));
                 BCM_PBMP_CLEAR(*newpbm);
@@ -647,7 +647,7 @@ _tx_next_port(int unit, bcm_pbmp_t *newpbm, bcm_pbmp_t allpbm)
 
     /* If we get here, must be resetting. */
     _tx_first_pbm(unit, allpbm, newpbm);
-    LOG_INFO(BSL_LS_APPL_TX,
+    LOG_BSL_INFO(BSL_LS_APPL_TX,
              (BSL_META_U(unit,
                          "Resetting to pbm %s\n"), SOC_PBMP_FMT(*newpbm, pfmt)));
     return 1;
@@ -1136,7 +1136,7 @@ do_tx(xd_t *xd)
         sizeof(uint32) /* CRC */;
 
     if (xd->xd_ppsm) { /* save base info. setup first port. */
-        LOG_INFO(BSL_LS_APPL_TX,
+        LOG_BSL_INFO(BSL_LS_APPL_TX,
                  (BSL_META_U(xd->xd_unit,
                              "Per port source is active\n")));
         xd->xd_ppsm_pbm = pkt_info->tx_pbmp;
@@ -1200,7 +1200,7 @@ do_tx(xd_t *xd)
             /* change xd_pbm to next port. reset src mac if at base port */
             if (_tx_next_port(xd->xd_unit, &pkt_info->tx_pbmp,
                               xd->xd_ppsm_pbm)) {
-                LOG_INFO(BSL_LS_APPL_TX,
+                LOG_BSL_INFO(BSL_LS_APPL_TX,
                          (BSL_META_U(xd->xd_tx_unit,
                                      "resetting mac\n")));
                 ENET_COPY_MACADDR(xd->xd_mac_src_base, xd->xd_mac_src);

@@ -2792,12 +2792,12 @@ _soc_trident_parity_process_parity(int unit, int source, int block_info_idx,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                entry_idx, minfo);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s entry %d parity error\n"),
                        prefix_str, mem_str_ptr, entry_idx));
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str_ptr));
@@ -2851,7 +2851,7 @@ _soc_trident_parity_process_parity(int unit, int source, int block_info_idx,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -2919,18 +2919,18 @@ _soc_trident_parity_process_ecc(int unit, int block_info_idx, int pipe,
                                entry_idx, minfo);
             if (double_bit) {
                 spci.double_bit = 1;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d double-bit ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple ECC errors\n"),
                            prefix_str, mem_str_ptr));
@@ -2971,7 +2971,7 @@ _soc_trident_parity_process_ecc(int unit, int block_info_idx, int pipe,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -3050,7 +3050,7 @@ _soc_trident_parity_process_hash(int unit, int block_info_idx, int pipe,
                         if (multiple) {
                             spci.flags |= SOC_SER_ERR_MULTI;
                         }
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "%s %s entry %d parity error\n"),
                                               prefix_str, mem_str, entry_idx));
@@ -3076,7 +3076,7 @@ _soc_trident_parity_process_hash(int unit, int block_info_idx, int pipe,
                 }    
             }        
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str));
@@ -3089,7 +3089,7 @@ _soc_trident_parity_process_hash(int unit, int block_info_idx, int pipe,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -3134,24 +3134,24 @@ _soc_trident_parity_process_edatabuf(int unit, int block_info_idx, int pipe,
                            SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 0, 
                            minfo);
         if (double_bit) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s double-bit ECC error\n"),
                        prefix_str, mem_str));
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s ECC error\n"),
                        prefix_str, mem_str));
         }
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s has multiple ECC errors\n"),
                        prefix_str, mem_str));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -3229,7 +3229,7 @@ _soc_trident_parity_process_counter(int unit, soc_block_t blocktype,
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                entry_idx, minfo);
             counter_name = SOC_REG_NAME(unit, counter_reg);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s port %d %s entry %d parity error\n"),
                        prefix_str, mem_str, port_idx, counter_name,
@@ -3260,21 +3260,21 @@ _soc_trident_parity_process_counter(int unit, soc_block_t blocktype,
                                    spci.log_id, 0);
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str));
             }
             _stat_error_fixed[unit]++;
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s parity hardware inconsistency\n"),
                        prefix_str, mem_str));
         }
     } else {
         if (!schan) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s parity hardware inconsistency\n"),
                        prefix_str, mem_str));
@@ -3369,7 +3369,7 @@ _soc_trident_parity_process_mmu_thdo(int unit, int block_info_idx,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                            SOC_SWITCH_EVENT_DATA_ERROR_LOG, log_id, 0);
 
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s entry %d parity error\n"), prefix_str,
                               SOC_MEM_NAME(unit, thdo[i].mem), entry_idx));
@@ -3437,7 +3437,7 @@ _soc_trident_parity_process_start_err(int unit, int block_info_idx,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                            SOC_SWITCH_EVENT_DATA_ERROR_LOG, log_id, 0);
 
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s port %d start error detected\n"), prefix_str,
                               port));
@@ -3483,11 +3483,11 @@ _soc_trident_parity_process_mmu_wred(int unit, int block_info_idx,
     soc_info_t *si = &SOC_INFO(unit);
 
     SOC_IF_ERROR_RETURN(READ_WRED_PARITY_ERROR_BITMAPr(unit, &rval));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "wred bitmap: 0x%08x\n"), rval));
     SOC_IF_ERROR_RETURN(READ_WRED_PARITY_ERROR_INFOr(unit, &rval));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "wred info: 0x%08x\n"), rval));
     log = rval;
@@ -3569,14 +3569,14 @@ _soc_trident_parity_process_mmu_wred(int unit, int block_info_idx,
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, log, minfo);
                                
     spci.blk_type = SOC_BLK_MMU;
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s port %d index %d parity error\n"), prefix_str,
                           SOC_REG_NAME(unit, spci.reg), spci.port, spci.index));
     (void)soc_ser_correction(unit, &spci);
     
     spci.reg = clear_reg;
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s port %d index %d parity error\n"), prefix_str,
                           SOC_REG_NAME(unit, spci.reg), spci.port, spci.index));
@@ -3616,7 +3616,7 @@ _soc_trident_parity_process_mmu_thdi(int unit, int block_info_idx,
     SOC_IF_ERROR_RETURN(READ_PARITY_ERROR_STATUS_0r(unit, &rval64));
     rval = COMPILER_64_LO(rval64);
     if (rval) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "thdi pipe 0 status: 0x%08x\n"), rval));
         if (soc_reg_field_get(unit, PARITY_ERROR_STATUS_0r, rval, RESET_FLOOR_HITf)) {
@@ -3643,7 +3643,7 @@ _soc_trident_parity_process_mmu_thdi(int unit, int block_info_idx,
             sizeof(soc_ser_log_tlv_hdr_t) *3);
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_PARITY, rval, minfo);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s port %d index %d parity error\n"), prefix_str,
                               SOC_REG_NAME(unit, spci.reg), spci.port, spci.index));
@@ -3658,7 +3658,7 @@ _soc_trident_parity_process_mmu_thdi(int unit, int block_info_idx,
     SOC_IF_ERROR_RETURN(READ_PARITY_ERROR_STATUS_1r(unit, &rval64));
     rval = COMPILER_64_LO(rval64);
     if (rval) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "thdi pipe 1 status: 0x%08x\n"), rval));
         if (soc_reg_field_get(unit, PARITY_ERROR_STATUS_0r, rval, RESET_FLOOR_HITf)) {
@@ -3686,7 +3686,7 @@ _soc_trident_parity_process_mmu_thdi(int unit, int block_info_idx,
 
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_PARITY, rval, minfo);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s port %d index %d parity error\n"), prefix_str,
                               SOC_REG_NAME(unit, spci.reg), spci.port, spci.index));
@@ -3711,7 +3711,7 @@ __soc_trident_parity_process_mmu_mtro(int unit, int block_info_idx,
     uint32 minfo;
     
     _soc_mem_parity_info(unit, block_info_idx, 0, info->group_reg_status_field, &minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s port %d index %d parity error\n"), prefix_str,
                           SOC_REG_NAME(unit, spci.reg), spci.port, spci.index));
@@ -3746,7 +3746,7 @@ _soc_trident_parity_process_mmu_mtro(int unit, int block_info_idx,
     spci.blk_type = SOC_BLK_MMU;
     
     SOC_IF_ERROR_RETURN(READ_EGRSHAPEPARITYERRORPTRr(unit, &addr));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MTRO addr: %d\n"), addr));
     
@@ -3940,7 +3940,7 @@ __soc_trident_parity_process_mmu_es(int unit, int block_info_idx,
     uint32 minfo;
     
     _soc_mem_parity_info(unit, block_info_idx, 0, info->group_reg_status_field, &minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s port %d index %d parity error\n"), prefix_str,
                           SOC_REG_NAME(unit, spci.reg), spci.port, spci.index));
@@ -3978,7 +3978,7 @@ _soc_trident_parity_process_mmu_es(int unit, int block_info_idx,
     
     SOC_IF_ERROR_RETURN(READ_ES_S2_MEMORY_PARITY_STATUS_0r(unit, &rval64));
     if (!COMPILER_64_IS_ZERO(rval64)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ES S2 pipe 0 status: 0x%02x%08x\n"),
                                 COMPILER_64_HI(rval64), COMPILER_64_LO(rval64)));
@@ -4025,7 +4025,7 @@ _soc_trident_parity_process_mmu_es(int unit, int block_info_idx,
     }
     SOC_IF_ERROR_RETURN(READ_ES_S2_MEMORY_PARITY_STATUS_1r(unit, &rval64));
     if (!COMPILER_64_IS_ZERO(rval64)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ES S2 pipe 1 status: 0x%02x%08x\n"),
                                 COMPILER_64_HI(rval64), COMPILER_64_LO(rval64)));
@@ -4072,7 +4072,7 @@ _soc_trident_parity_process_mmu_es(int unit, int block_info_idx,
     }
     SOC_IF_ERROR_RETURN(READ_ES_S3_MEMORY_PARITY_STATUS_0r(unit, &rval64));
     if (!COMPILER_64_IS_ZERO(rval64)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ES S3 pipe 0 status: 0x%04x%08x\n"),
                                 COMPILER_64_HI(rval64), COMPILER_64_LO(rval64)));
@@ -4167,7 +4167,7 @@ _soc_trident_parity_process_mmu_es(int unit, int block_info_idx,
     }
     SOC_IF_ERROR_RETURN(READ_ES_S3_MEMORY_PARITY_STATUS_1r(unit, &rval64));
     if (!COMPILER_64_IS_ZERO(rval64)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ES S3 pipe 1 status: 0x%04x%08x\n"),
                                 COMPILER_64_HI(rval64), COMPILER_64_LO(rval64)));
@@ -4338,7 +4338,7 @@ _soc_trident_parity_process_mmu_ipmc(int unit, int block_info_idx,
                          &minfo);
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, rval, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s index %d parity error\n"), prefix_str,
                           SOC_MEM_NAME(unit, spci.mem), spci.index));
@@ -4386,7 +4386,7 @@ _soc_trident_parity_process_mmu_vlan(int unit, int block_info_idx,
                          &minfo);
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, rval, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s index %d parity error\n"), prefix_str,
                           SOC_MEM_NAME(unit, spci.mem), spci.index));
@@ -4429,7 +4429,7 @@ _soc_trident_parity_process_mmu_aging(int unit, int block_info_idx,
         index = soc_reg_field_get(unit, PERR_PTR_CTRr, rval, PTRf);
         spci.mem = MMU_AGING_CTRm;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                               prefix_str, "mmu aging"));
@@ -4441,7 +4441,7 @@ _soc_trident_parity_process_mmu_aging(int unit, int block_info_idx,
                          &minfo);
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, status, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s index %d parity error\n"), prefix_str,
                           SOC_MEM_NAME(unit, spci.mem), spci.index));
@@ -4484,7 +4484,7 @@ _soc_trident_parity_process_mmu_ctr(int unit, int block_info_idx,
     } else if (memid == 0x8) {
         spci.mem = MMU_CTR_COLOR_DROP_MEMm;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                               prefix_str, "mmu ctr"));
@@ -4496,7 +4496,7 @@ _soc_trident_parity_process_mmu_ctr(int unit, int block_info_idx,
                          &minfo);
     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, status, minfo);
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s index %d parity error\n"), prefix_str,
                           SOC_MEM_NAME(unit, spci.mem), spci.index));     
@@ -4619,7 +4619,7 @@ _soc_trident_parity_process_info(int unit, soc_block_t blocktype,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                SOC_SWITCH_EVENT_DATA_ERROR_LOG, log_id, 0);
 
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s asserted\n"), prefix_str, mem_str));
             break;
@@ -5055,7 +5055,7 @@ soc_trident_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         offset = address & ~0xC0f00000; /* Strip block ID */
         mem = soc_addr_to_mem(unit, address, &block);
         if (mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d mem decode failed, "
                                   "SCHAN NACK analysis failure\n"), unit));
@@ -5083,7 +5083,7 @@ soc_trident_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     if (reg_mem == _SOC_TD_SER_MEM) {
         if ((rv = _soc_trident_mem_nack_error_process(unit, FALSE, reg_mem,
                       nack_reg_mem, block, pipe)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                        unit, SOC_MEM_NAME(unit, mem),
@@ -5093,13 +5093,13 @@ soc_trident_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         /* In stat collection case there is no address info, thus try both pipes */
         if ((rv = _soc_trident_mem_nack_error_process(unit, FALSE, reg_mem, 
                       nack_reg_mem, block, 0)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d pipe: 0 REG SCHAN NACK analysis failure.\n"), unit));
         }
         if ((rv = _soc_trident_mem_nack_error_process(unit, FALSE, reg_mem,
                       nack_reg_mem, block, 1)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d pipe: 1 REG SCHAN NACK analysis failure.\n"), unit));
         }
@@ -5122,13 +5122,13 @@ soc_trident_stat_nack(int unit, int *fixed)
     nack_reg_mem.reg = -1;
     if ((rv = _soc_trident_mem_nack_error_process(unit, TRUE, _SOC_TD_SER_REG,
                                                   nack_reg_mem, 0, 0)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d pipe: 0 STAT SCHAN NACK analysis failure.\n"), unit));
     }
     if ((rv = _soc_trident_mem_nack_error_process(unit, TRUE, _SOC_TD_SER_REG,
                                                   nack_reg_mem, 0, 1)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d pipe: 1 STAT SCHAN NACK analysis failure.\n"), unit));
     }
@@ -5542,7 +5542,7 @@ _soc_trident_clear_all_memory(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -5556,7 +5556,7 @@ _soc_trident_clear_all_memory(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -10557,7 +10557,7 @@ _soc_td_mem_nack_error_test(int unit, _soc_ser_test_t test_type)
                 for (i = 0; ser_test_skipped_mems[i].mem != INVALIDm; i++) {
                     if (((ser_test_skipped_mems[i].mem == memTable) &&
                         (ser_test_skipped_mems[i].acc_type == acc_type))) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "SER test disabled for memory %s, skipping.\n"),
                                                 SOC_MEM_NAME(unit,memTable)));
@@ -10815,7 +10815,7 @@ soc_td_ser_test(int unit, _soc_ser_test_t test_type)
     for(i = 0; i < num_tcams; i++) {
         if (i >= MAX_HW_TCAMS) {
             tcam_skipped++;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "SER test disabled for TCAM memory %s, skipping.\n"),
                          SOC_MEM_NAME(unit, tcam_info[i].mem)));

@@ -493,12 +493,12 @@ soc_intr_schan_error(int unit, uint32 ignored)
      */
 
     if ((!soc->mmu_error_block) || (opc != MEMORY_FAIL_NOTIFY)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: V/E=%d SRC=%d DST=%d "),
                    unit, vld, src, dst));
 
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "OPCODE=%d(%s) ERRCODE=0x%x\n"),
                    opc, soc_schan_op_name(opc), err));
@@ -506,7 +506,7 @@ soc_intr_schan_error(int unit, uint32 ignored)
 
 #ifdef BCM_XGS3_SWITCH_SUPPORT
         if (SOC_IS_XGS3_SWITCH(unit)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "UNIT %d SCHAN ERROR: Unknown reason\n"),
                        unit));
@@ -514,7 +514,7 @@ soc_intr_schan_error(int unit, uint32 ignored)
 #endif
 #ifdef BCM_SIRIUS_SUPPORT
         if (SOC_IS_SIRIUS(unit)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "UNIT %d SCHAN ERROR: Unknown reason\n"),
                        unit));
@@ -529,7 +529,7 @@ soc_intr_schan_error(int unit, uint32 ignored)
          * pointer came in.
          */
         soc->stat.err_cfap++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: CFAP oversubscribed\n"),
                    unit));
@@ -540,7 +540,7 @@ soc_intr_schan_error(int unit, uint32 ignored)
          */
         soc->stat.err_sdram++;
         slot = soc_pci_read(unit, CMIC_MEM_FAIL);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: SDRAM checksum error, "
                               "slot=0x%x (GBP index 0x%x)\n"),
@@ -551,7 +551,7 @@ soc_intr_schan_error(int unit, uint32 ignored)
          * Unexpected first cell
          */
         soc->stat.err_fcell++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: Unexpected first cell\n"),
                    unit));
@@ -562,28 +562,28 @@ soc_intr_schan_error(int unit, uint32 ignored)
          * receiving and end cell for the previous packet.
          */
         soc->stat.err_sr++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: MMU soft reset\n"),
                    unit));
         break;
     case SOC_SCERR_CBP_CELL_CRC:
         soc->stat.err_cellcrc++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: CBP Cell CRC error\n"),
                    unit));
         break;
     case SOC_SCERR_CBP_HEADER_PARITY:
         soc->stat.err_cbphp++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: CBP Header parity error\n"),
                    unit));
         break;
     case SOC_SCERR_MMU_NPKT_CELLS:
         soc->stat.err_npcell++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: "
                               "MMU sent cells not in packet\n"),
@@ -594,28 +594,28 @@ soc_intr_schan_error(int unit, uint32 ignored)
         break;
     case SOC_SCERR_CELL_PTR_CRC:
         soc->stat.err_cpcrc++;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "UNIT %d SCHAN ERROR: Cell data CRC error\n"),
                        unit));
         break;
     case SOC_SCERR_CELL_DATA_CRC:
         soc->stat.err_cdcrc++;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "UNIT %d SCHAN ERROR: Cell data CRC error\n"),
                        unit));
         break;
     case SOC_SCERR_FRAME_DATA_CRC:
         soc->stat.err_fdcrc++;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "UNIT %d SCHAN ERROR: Frame data CRC error\n"),
                        unit));
         break;
     case SOC_SCERR_CELL_PTR_BLOCK_CRC:
         soc->stat.err_cpbcrc++;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "UNIT %d SCHAN ERROR: "
                                   "Cell pointer block CRC error\n"),
@@ -626,14 +626,14 @@ soc_intr_schan_error(int unit, uint32 ignored)
         break;
     case SOC_SCERR_MULTIPLE_ERR:
         soc->stat.err_multi++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: Multiple errors: 0x%x\n"),
                    unit, err));
         break;
     case SOC_SCERR_INVALID:
         soc->stat.err_invalid++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "UNIT %d SCHAN ERROR: Unknown memory error\n"),
                    unit));
@@ -1028,7 +1028,7 @@ _soc_pci_report_error(void *p_unit, void *stat, void *type,
     }
 
     if (errcnt_cur == PTR_TO_INT(errcnt_dpc) + 1) {
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "UNIT %d ERROR interrupt: "
                           "CMIC_DMA_STAT = 0x%08x "
@@ -1037,7 +1037,7 @@ _soc_pci_report_error(void *p_unit, void *stat, void *type,
                PTR_TO_INT(stat),
                errtype, dmatype));
     } else {
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "UNIT %d ERROR interrupt: "
                           "%d PCI %s Errors on %s\n"),
@@ -1159,7 +1159,7 @@ _soc_intr_mmu_analyze(void *p_unit, void *p2, void *p3, void *p4, void *p5)
     COMPILER_REFERENCE(p5);
  
     if (soc_mmu_error_all(unit) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "MMU error analysis failed, MMU interrupt disabled\n")));
     } else {
@@ -1206,7 +1206,7 @@ soc_intr_arl_error(int unit, uint32 ignored)
     soc_intr_disable(unit, IRQ_ARL_ERROR);
     
     
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "UNIT %d ARL ERROR (bucket overflow or parity error\n"),
                unit));
@@ -1244,13 +1244,13 @@ soc_intr_bit21(int unit, uint32 ignored)
     soc_intr_disable(unit, IRQ_FIFO_CH0_DMA);
 
     soc->stat.intr_fifo_dma[0]++;
-    LOG_INFO(BSL_LS_SOC_INTR,
+    LOG_BSL_INFO(BSL_LS_SOC_INTR,
              (BSL_META_U(unit,
                          "irq_fifo_ch0_dma unit %d\n"), unit));
 
         /* IRQ_FIFO_CH0_DMA */
     if (soc_sbx_sirius_process_cs_dma_fifo(unit) != SOC_E_NONE) {
-        LOG_INFO(BSL_LS_SOC_COUNTER,
+        LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "irq_fifo_ch0_dma: unit=%d CS FIFO busy\n"), unit));
     }
@@ -1510,7 +1510,7 @@ soc_intr_block_lo_enable(int unit, uint32 mask)
     oldMask = SOC_IRQ1_MASK(unit);
     SOC_IRQ1_MASK(unit) |= mask;
     newMask = SOC_IRQ1_MASK(unit);
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META("%s(): oldMask=0x%x, mask=0x%x, newMask=0x%x\n"),
                  FUNCTION_NAME(), oldMask, mask, newMask));
     /* In polled mode, the hardware IRQ mask is always zero */
@@ -1559,7 +1559,7 @@ soc_intr_block_lo_disable(int unit, uint32 mask)
     oldMask = SOC_IRQ1_MASK(unit);
     SOC_IRQ1_MASK(unit) &= ~mask;
     newMask = SOC_IRQ1_MASK(unit);
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META("%s(): oldMask=0x%x, mask=0x%x, newMask=0x%x\n"),
                  FUNCTION_NAME(), oldMask, mask, newMask));
     /* In polled mode, the hardware IRQ mask is always zero */
@@ -1608,7 +1608,7 @@ soc_intr_block_hi_enable(int unit, uint32 mask)
     oldMask = SOC_IRQ2_MASK(unit);
     SOC_IRQ2_MASK(unit) |= mask;
     newMask = SOC_IRQ2_MASK(unit);
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META("%s(): oldMask=0x%x, mask=0x%x, newMask=0x%x\n"),
                  FUNCTION_NAME(), oldMask, mask, newMask));
     /* In polled mode, the hardware IRQ mask is always zero */
@@ -1658,7 +1658,7 @@ soc_intr_block_hi_disable(int unit, uint32 mask)
     oldMask = SOC_IRQ2_MASK(unit);
     SOC_IRQ2_MASK(unit) &= ~mask;
     newMask = SOC_IRQ2_MASK(unit);
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META("%s(): oldMask=0x%x, mask=0x%x, newMask=0x%x\n"),
                  FUNCTION_NAME(), oldMask, mask, newMask));
     /* In polled mode, the hardware IRQ mask is always zero */
@@ -1764,7 +1764,7 @@ soc_intr(void *_unit)
          * Bit found, dispatch interrupt
          */
 
-        LOG_INFO(BSL_LS_SOC_INTR,
+        LOG_BSL_INFO(BSL_LS_SOC_INTR,
                  (BSL_META_U(unit,
                              "soc_intr unit %d: dispatch %s\n"),
                   unit, soc_intr_handlers[i].intr_name));
@@ -1778,7 +1778,7 @@ soc_intr(void *_unit)
          */
 
         if (--poll_limit == 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_intr unit %d: "
                                   "ERROR can't clear interrupt(s): "
@@ -1830,7 +1830,7 @@ soc_intr(void *_unit)
              * Bit found, dispatch interrupt
              */
             
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "soc_intr unit %d: dispatch %s\n"),
                       unit, soc_intr_block_lo_handlers[i].intr_name));
@@ -1844,7 +1844,7 @@ soc_intr(void *_unit)
              */
             
             if (--poll_limit == 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_intr unit %d: "
                                   "ERROR can't clear interrupt(s): "
@@ -1895,7 +1895,7 @@ soc_intr(void *_unit)
              * Bit found, dispatch interrupt
              */
             
-            LOG_INFO(BSL_LS_SOC_INTR,
+            LOG_BSL_INFO(BSL_LS_SOC_INTR,
                      (BSL_META_U(unit,
                                  "soc_intr unit %d: dispatch %s\n"),
                       unit, soc_intr_block_hi_handlers[i].intr_name));
@@ -1909,7 +1909,7 @@ soc_intr(void *_unit)
              */
             
             if (--poll_limit == 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_intr unit %d: "
                                   "ERROR can't clear interrupt(s): "
@@ -1976,7 +1976,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
     int interrupt_action;
 
     if(!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return;
@@ -1984,7 +1984,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
 
     blk = PTR_TO_INT(d1);
 
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META_U(unit,
                             "enter \n")));
 
@@ -1996,7 +1996,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
     }
 
     if (NULL == bi) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Interrupt for unknown block %d\n"),
                    blk));
@@ -2004,7 +2004,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
     }
         /* Coverity : 21737 */                            
     if (NULL == SOC_CONTROL(unit)->interrupts_info->interrupt_db_info) {
-        LOG_ERROR(BSL_LS_SOC_INTR,                
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,                
                        (BSL_META_U(unit, "No interrupts for device\n")));
              return;                                  
     }
@@ -2016,7 +2016,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
 
         rc = soc_interrupt_is_valid(unit, bi, interrupt, &is_valid);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return;
@@ -2027,7 +2027,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
 
         rc = soc_interrupt_is_enabled(unit, bi->number, interrupt, &is_enabled);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return;
@@ -2043,7 +2043,7 @@ void soc_cmn_block_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
             rc = soc_reg_above_64_get(unit, interrupt->reg, bi->number, interrupt->reg_index, data);
             if(SOC_FAILURE(rc)) { 
                 prev_interrupt = NULL;
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rc)));
                 return;
@@ -2090,13 +2090,13 @@ void soc_cmn_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
     flags = SOC_ACTIVE_INTERRUPTS_GET_UNMASKED_ONLY; 
     rc = soc_active_interrupts_get(unit, flags, max_interrupts_size, interrupts, &total_interrupts);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META_U(unit,
                             "interrupt_num=%d, max_interrupts_size=%d, total_interrupts=%d\n"),
                  interrupt_num, max_interrupts_size, total_interrupts));
@@ -2109,7 +2109,7 @@ void soc_cmn_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
     if(interrupt_num > 1) {
         rc = soc_sort_interrupts_according_to_priority(unit, interrupts, interrupt_num);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return;
@@ -2162,7 +2162,7 @@ void soc_cmn_error(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
 int soc_interrupt_is_valid(int unit, const soc_block_info_t* bi, const soc_interrupt_db_t* inter, int* is_valid /*out*/)
 {
     if (bi == NULL || inter == NULL || is_valid == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2190,14 +2190,14 @@ int soc_interrupt_get(int unit, int block_instance , const soc_interrupt_db_t* i
     int rc = SOC_E_NONE;
 
     if (inter == NULL || inter_val == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if(!SOC_REG_IS_VALID(unit, inter->reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2205,7 +2205,7 @@ int soc_interrupt_get(int unit, int block_instance , const soc_interrupt_db_t* i
 
     rc = soc_reg_above_64_get(unit, inter->reg, block_instance, inter->reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -2245,7 +2245,7 @@ int soc_interrupt_force_get(int unit, int block_instance, const soc_interrupt_db
     int curr_bit;
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2255,7 +2255,7 @@ int soc_interrupt_force_get(int unit, int block_instance, const soc_interrupt_db
 
     if (inter->reg_test != INVALIDr) {
         if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Invalid mask register for the device\n")));
             return SOC_E_INTERNAL;
@@ -2263,7 +2263,7 @@ int soc_interrupt_force_get(int unit, int block_instance, const soc_interrupt_db
 
         rc = soc_reg_above_64_get(unit, inter->reg_test, block_instance, inter->mask_reg_index, data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2274,7 +2274,7 @@ int soc_interrupt_force_get(int unit, int block_instance, const soc_interrupt_db
                        SOC_REG_INFO(unit, inter->reg).nFields,
                        finfop);
         if (finfop == NULL) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Invalid Field Name for the event\n")));
             return SOC_E_INTERNAL;
@@ -2302,14 +2302,14 @@ int soc_interrupt_enable(int unit, int block_instance, const soc_interrupt_db_t*
     int rc = SOC_E_NONE;
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2317,7 +2317,7 @@ int soc_interrupt_enable(int unit, int block_instance, const soc_interrupt_db_t*
 
     rc = soc_reg_above_64_get(unit, inter->mask_reg, block_instance, inter->mask_reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -2335,7 +2335,7 @@ int soc_interrupt_enable(int unit, int block_instance, const soc_interrupt_db_t*
 
     rc = soc_reg_above_64_set(unit, inter->mask_reg, block_instance,  inter->mask_reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -2365,7 +2365,7 @@ int soc_interrupt_force(int unit, int block_instance, const soc_interrupt_db_t* 
     int curr_bit;
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2373,7 +2373,7 @@ int soc_interrupt_force(int unit, int block_instance, const soc_interrupt_db_t* 
 
     if (inter->reg_test != INVALIDr) {
         if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Invalid mask register for the device\n")));
             return SOC_E_INTERNAL;
@@ -2381,7 +2381,7 @@ int soc_interrupt_force(int unit, int block_instance, const soc_interrupt_db_t* 
 
         rc = soc_reg_above_64_get(unit, inter->reg_test, block_instance, inter->reg_index, data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2392,7 +2392,7 @@ int soc_interrupt_force(int unit, int block_instance, const soc_interrupt_db_t* 
                        SOC_REG_INFO(unit, inter->reg).nFields,
                        finfop);
         if (finfop == NULL) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Invalid Field Name for the event\n")));
             return SOC_E_INTERNAL;
@@ -2410,7 +2410,7 @@ int soc_interrupt_force(int unit, int block_instance, const soc_interrupt_db_t* 
         } else if (action == 1){ /* disable force*/
             SHR_BITCLR(data, curr_bit);
         } else {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Invalid action\n")));
             return SOC_E_INTERNAL;
@@ -2418,7 +2418,7 @@ int soc_interrupt_force(int unit, int block_instance, const soc_interrupt_db_t* 
 
         rc = soc_reg_above_64_set(unit, inter->reg_test, block_instance,  inter->reg_index, data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2438,14 +2438,14 @@ int soc_interrupt_disable(int unit, int block_instance, const soc_interrupt_db_t
     int rc = SOC_E_NONE;
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2453,7 +2453,7 @@ int soc_interrupt_disable(int unit, int block_instance, const soc_interrupt_db_t
 
     rc = soc_reg_above_64_get(unit, inter->mask_reg, block_instance, inter->mask_reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -2470,7 +2470,7 @@ int soc_interrupt_disable(int unit, int block_instance, const soc_interrupt_db_t
 
     rc = soc_reg_above_64_set(unit, inter->mask_reg, block_instance,  inter->mask_reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -2484,14 +2484,14 @@ int soc_interrupt_is_enabled(int unit, int block_instance, const soc_interrupt_d
     int rc = SOC_E_NONE;
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2499,7 +2499,7 @@ int soc_interrupt_is_enabled(int unit, int block_instance, const soc_interrupt_d
 
     rc = soc_reg_above_64_get(unit, inter->mask_reg, block_instance, inter->mask_reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -2566,7 +2566,7 @@ int soc_interrupt_clear_on_write(int unit, int block_instance, int interrupt_id)
     soc_interrupt_db_t *inter, *interrupts;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -2574,7 +2574,7 @@ int soc_interrupt_clear_on_write(int unit, int block_instance, int interrupt_id)
 
     interrupts = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2583,7 +2583,7 @@ int soc_interrupt_clear_on_write(int unit, int block_instance, int interrupt_id)
     /*verify interrupt_id*/
     soc_nof_interrupts(unit, &nof_interrupts);
     if ((interrupt_id > nof_interrupts) || interrupt_id < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "event_id is unavail\n")));
         return SOC_E_UNAVAIL;
@@ -2591,14 +2591,14 @@ int soc_interrupt_clear_on_write(int unit, int block_instance, int interrupt_id)
 
     inter = &(interrupts[interrupt_id]);
     if (!SOC_REG_IS_VALID(unit, inter->reg)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid register for the device\n")));
         return SOC_E_INTERNAL;
     }
 
     if (!SOC_REG_IS_VALID(unit, inter->mask_reg)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2617,7 +2617,7 @@ int soc_interrupt_clear_on_write(int unit, int block_instance, int interrupt_id)
 
     rc = soc_reg_above_64_set(unit, inter->reg, block_instance,  inter->reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -2632,7 +2632,7 @@ int soc_interrupt_clear_on_reg_write(int unit, int block_instance, int interrupt
     soc_interrupt_db_t *inter, *interrupts;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -2640,7 +2640,7 @@ int soc_interrupt_clear_on_reg_write(int unit, int block_instance, int interrupt
 
     interrupts = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2649,7 +2649,7 @@ int soc_interrupt_clear_on_reg_write(int unit, int block_instance, int interrupt
     /*verify interrupt_id*/
     soc_nof_interrupts(unit, &nof_interrupts);
     if ((interrupt_id > nof_interrupts) || interrupt_id < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "event_id is unavail\n")));
         return SOC_E_UNAVAIL;
@@ -2657,7 +2657,7 @@ int soc_interrupt_clear_on_reg_write(int unit, int block_instance, int interrupt
 
     inter = &(interrupts[interrupt_id]);
     if(!SOC_REG_IS_VALID(unit, ((soc_interrupt_clear_reg_write_t*)inter->interrupt_clear_param1)->status_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2669,7 +2669,7 @@ int soc_interrupt_clear_on_reg_write(int unit, int block_instance, int interrupt
                               inter->reg_index, 
                               ((soc_interrupt_clear_reg_write_t*)inter->interrupt_clear_param1)->data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -2685,7 +2685,7 @@ int soc_interrupt_clear_on_clear(int unit, int block_instance, int interrupt_id)
     soc_interrupt_db_t *inter, *interrupts;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -2693,7 +2693,7 @@ int soc_interrupt_clear_on_clear(int unit, int block_instance, int interrupt_id)
 
     interrupts = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2702,7 +2702,7 @@ int soc_interrupt_clear_on_clear(int unit, int block_instance, int interrupt_id)
     /*verify interrupt_id*/
     soc_nof_interrupts(unit, &nof_interrupts);
     if ((interrupt_id > nof_interrupts) || interrupt_id < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "event_id is unavail\n")));
         return SOC_E_UNAVAIL;
@@ -2710,13 +2710,13 @@ int soc_interrupt_clear_on_clear(int unit, int block_instance, int interrupt_id)
 
     inter = &(interrupts[interrupt_id]);
     if(!SOC_REG_IS_VALID(unit, inter->reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid register for the device\n")));
         return SOC_E_INTERNAL;
     }
     if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2727,7 +2727,7 @@ int soc_interrupt_clear_on_clear(int unit, int block_instance, int interrupt_id)
 
     rc = soc_reg_above_64_get(unit, inter->reg, block_instance, inter->reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -2742,7 +2742,7 @@ int soc_interrupt_clear_on_clear(int unit, int block_instance, int interrupt_id)
 
     rc = soc_reg_above_64_set(unit, inter->reg, block_instance,  inter->reg_index, data);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
     }
@@ -2762,7 +2762,7 @@ int soc_interrupt_clear_on_read_fifo(int unit, int block_instance, int interrupt
     int inter_get;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -2770,7 +2770,7 @@ int soc_interrupt_clear_on_read_fifo(int unit, int block_instance, int interrupt
 
     interrupts = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2779,20 +2779,20 @@ int soc_interrupt_clear_on_read_fifo(int unit, int block_instance, int interrupt
     /*verify interrupt_id*/
     soc_nof_interrupts(unit, &nof_interrupts);
     if ((interrupt_id > nof_interrupts) || interrupt_id < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "event_id is unavail\n")));
         return SOC_E_UNAVAIL;
     }
     inter = &(interrupts[interrupt_id]);
     if(!SOC_REG_IS_VALID(unit, inter->reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid register for the device\n")));
         return SOC_E_INTERNAL;
     }
     if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2801,7 +2801,7 @@ int soc_interrupt_clear_on_read_fifo(int unit, int block_instance, int interrupt
     for(read_count = 0; read_count < ((soc_interrupt_clear_read_fifo_t*)(inter->interrupt_clear_param1))->read_count; read_count++){
         rc = soc_reg_above_64_get(unit, ((soc_interrupt_clear_read_fifo_t*)(inter->interrupt_clear_param1))->fifo_reg, block_instance, inter->reg_index, data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2809,7 +2809,7 @@ int soc_interrupt_clear_on_read_fifo(int unit, int block_instance, int interrupt
 
         rc = soc_interrupt_get(unit, block_instance , inter, &inter_get);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2835,7 +2835,7 @@ int soc_interrupt_clear_on_read_array_index(int unit, int block_instance, int in
     int inter_get;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -2843,7 +2843,7 @@ int soc_interrupt_clear_on_read_array_index(int unit, int block_instance, int in
 
     interrupts = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2852,20 +2852,20 @@ int soc_interrupt_clear_on_read_array_index(int unit, int block_instance, int in
     /*verify interrupt_id*/
     soc_nof_interrupts(unit, &nof_interrupts);
     if ((interrupt_id > nof_interrupts) || interrupt_id < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "event_id is unavail\n")));
         return SOC_E_UNAVAIL;
     }
     inter = &(interrupts[interrupt_id]);
     if(!SOC_REG_IS_VALID(unit, inter->reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid register for the device\n")));
         return SOC_E_INTERNAL;
     }
     if(!SOC_REG_IS_VALID(unit, inter->mask_reg)){
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid mask register for the device\n")));
         return SOC_E_INTERNAL;
@@ -2878,7 +2878,7 @@ int soc_interrupt_clear_on_read_array_index(int unit, int block_instance, int in
                                   ((soc_interrupt_clear_array_index_t*)(inter->interrupt_clear_param1))->reg_index, 
                                   data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2886,7 +2886,7 @@ int soc_interrupt_clear_on_read_array_index(int unit, int block_instance, int in
 
         rc = soc_interrupt_get(unit, block_instance , inter, &inter_get);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -2932,14 +2932,14 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
 #endif /* BCM_ARAD_SUPPORT */
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
     }
 
     if (interrupts == NULL || total_interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2947,7 +2947,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
 
     interrupts_arr = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts_arr == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -2955,7 +2955,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
 
     interrupt_tree = SOC_CONTROL(unit)->interrupts_info->interrupt_tree_info;
     if (interrupt_tree == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3006,7 +3006,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
         cmic_irq_stat[1] = soc_pci_read(unit, CMIC_IRQ_STAT_2);
     }
     for (j = 0; j < 4; j++) {
-        LOG_VERBOSE(BSL_LS_SOC_INTR, 
+        LOG_BSL_VERBOSE(BSL_LS_SOC_INTR, 
                     (BSL_META_U(unit,
                                 "%s(): cmic_irq_stat[%u]=0x%x\n"),
                      FUNCTION_NAME(), j, cmic_irq_stat[j]));
@@ -3033,7 +3033,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
         blk=bi->cmic;
 
         if ((!SHR_BITGET(cmic_irq_stat, blk) && (is_unmasked_flag == 1)) || (interrupt_tree[blk].int_reg == INVALIDr)){
-            LOG_DEBUG(BSL_LS_SOC_INTR,
+            LOG_BSL_DEBUG(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "no interrupt for blk=%d\n"),
                        blk));
@@ -3041,7 +3041,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
             continue;
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_INTR,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                     (BSL_META_U(unit,
                                 "blk=%d, bi->number=%d,\n"),
                      blk, bi->number));
@@ -3058,14 +3058,14 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
 
         rc = soc_reg_above_64_get(unit, interrupt_tree[blk].int_reg, int_port, interrupt_tree[blk].index, block_int_data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
         rc = soc_reg_above_64_get(unit, interrupt_tree[blk].int_mask_reg, int_port, interrupt_tree[blk].index, block_int_mask_data);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3076,7 +3076,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
         if (is_unmasked_flag) {
             SOC_REG_ABOVE_64_AND(block_int_bitmap, block_int_mask_data);
         }
-        LOG_VERBOSE(BSL_LS_SOC_INTR,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                     (BSL_META_U(unit,
                                 "block_int_data=0x%x, block_int_mask_data=0x%x, block_int_bitmap=0x%x,\n"),
                      block_int_data[0], block_int_mask_data[0], block_int_bitmap[0]));
@@ -3084,7 +3084,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
         for (; int_bit_idx < SOC_INTERRUPT_INTERRUPT_PER_REG_NUM_MAX; int_bit_idx++) {
             int_id = interrupt_tree[blk].int_id[int_bit_idx];
             if (int_id == -1) {
-                LOG_VERBOSE(BSL_LS_SOC_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                             (BSL_META_U(unit,
                                         "Reached hidden interrupt. int_bit_idx=%d,\n"),
                              int_bit_idx));
@@ -3093,7 +3093,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
 
             vector_id = interrupts_arr[int_id].vector_id;
             if ((!(block_int_bitmap[0] & (1<<int_bit_idx))) && (!(vector_id == 1 && is_unmasked_flag == 0))) {
-                LOG_DEBUG(BSL_LS_SOC_INTR,
+                LOG_BSL_DEBUG(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "no interrupt for int_bit_idx=%d\n"),
                            int_bit_idx));
@@ -3101,12 +3101,12 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
             }
 
 #if !defined(SOC_NO_NAMES)
-            LOG_VERBOSE(BSL_LS_SOC_INTR,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                         (BSL_META_U(unit,
                                     "\tgettind int_id: blk=%d, int_bit_idx=%d, int_id=%d, name=%s, vector_id=%d,\n"),
                          blk, int_bit_idx, int_id, interrupts_arr[int_id].name, vector_id));
 #else
-            LOG_VERBOSE(BSL_LS_SOC_INTR,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                         (BSL_META_U(unit,
                                     "\tgettind int_id: blk=%d, int_bit_idx=%d, int_id=%d, vector_id=%d,\n"),
                          blk, int_bit_idx, int_id, vector_id));
@@ -3115,11 +3115,11 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
             /* Senity check between the interrupt field and the register bit */
             SOC_FIND_FIELD(interrupts_arr[int_id].field, SOC_REG_INFO(unit, interrupts_arr[int_id].reg).fields, SOC_REG_INFO(unit, interrupts_arr[int_id].reg).nFields, finfop);
             if ((finfop->len == 0x1) && (finfop->bp != int_bit_idx)) {
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "Error: Where finfop->len=%d. finfop->bp=%d != int_bit_idx=%d.\n"),
                            finfop->len, finfop->bp, int_bit_idx));
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "No match between interrupt bit and interrupt field\n")));
                 return SOC_E_UNAVAIL;
@@ -3135,7 +3135,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
                     cont_prev_i_blk = i;
                     cont_prev_bit_idx = int_bit_idx;
                     cont_prev_vector_bit_idx = vector_int_bit_idx;
-                    LOG_VERBOSE(BSL_LS_SOC_INTR,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                                 (BSL_META_U(unit,
                                             "\tinterrupts[%d].index=%d, interrupts[%d].id=%d,\n"),
                                  index, interrupts[index].index, index, interrupts[index].id));
@@ -3145,14 +3145,14 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
                 /* vecotr int  */
                 rc = soc_reg_above_64_get(unit, interrupts_arr[int_id].vector_info->int_reg, int_port, interrupts_arr[int_id].vector_info->index, vector_int_data);
                 if (SOC_FAILURE(rc)) {
-                    LOG_ERROR(BSL_LS_SOC_INTR,
+                    LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                               (BSL_META_U(unit,
                                           "%s\n"), soc_errmsg(rc)));
                     return rc;
                 }
                 rc = soc_reg_above_64_get(unit, interrupts_arr[int_id].vector_info->int_mask_reg, int_port, interrupts_arr[int_id].vector_info->index, vector_int_mask_data);
                 if (SOC_FAILURE(rc)) {
-                    LOG_ERROR(BSL_LS_SOC_INTR,
+                    LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                               (BSL_META_U(unit,
                                           "%s\n"), soc_errmsg(rc)));
                     return rc;
@@ -3163,14 +3163,14 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
                 if (is_unmasked_flag) {
                     SOC_REG_ABOVE_64_AND(vector_int_bitmap, vector_int_mask_data);
                 }
-                LOG_VERBOSE(BSL_LS_SOC_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                             (BSL_META_U(unit,
                                         "\t\tvector_int_data=0x%x, vector_int_mask_data=0x%x, vector_int_bitmap=0x%x,\n"),
                              vector_int_data[0], vector_int_mask_data[0], vector_int_bitmap[0]));
 
                 for (; vector_int_bit_idx < SOC_INTERRUPT_INTERRUPT_PER_REG_NUM_MAX; vector_int_bit_idx++) {
                     if (!(vector_int_bitmap[0] & (1<<vector_int_bit_idx))) {
-                        LOG_DEBUG(BSL_LS_SOC_INTR,
+                        LOG_BSL_DEBUG(BSL_LS_SOC_INTR,
                                   (BSL_META_U(unit,
                                               "no interrupt for vector_int_bit_idx=%d\n"),
                                    vector_int_bit_idx));
@@ -3179,7 +3179,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
 
                     vector_int_id = interrupts_arr[int_id].vector_info->int_id[vector_int_bit_idx];
                     if (vector_int_id == -1) {
-                        LOG_VERBOSE(BSL_LS_SOC_INTR,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                                     (BSL_META_U(unit,
                                                 "Reached hidden interrupt. vector_int_bit_idx=%d,\n"),
                                      vector_int_bit_idx));
@@ -3187,12 +3187,12 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
                     }
 
 #if !defined(SOC_NO_NAMES)
-                    LOG_VERBOSE(BSL_LS_SOC_INTR,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                                 (BSL_META_U(unit,
                                             "\t\tblk=%d, int_id=%d, vector_int_bit_idx=%d, vector_int_id=%d, name=%s,\n"),
                                  blk, int_id, vector_int_bit_idx, vector_int_id, interrupts_arr[vector_int_id].name));
 #else
-                    LOG_VERBOSE(BSL_LS_SOC_INTR,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                                 (BSL_META_U(unit,
                                             "\t\tblk=%d, int_id=%d, vector_int_bit_idx=%d, vector_int_id=%d,\n"),
                                  blk, int_id, vector_int_bit_idx, vector_int_id));
@@ -3201,11 +3201,11 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
                     /* Senity check between the interrupt field and the register bit */
                     SOC_FIND_FIELD(interrupts_arr[vector_int_id].field, SOC_REG_INFO(unit, interrupts_arr[vector_int_id].reg).fields, SOC_REG_INFO(unit, interrupts_arr[vector_int_id].reg).nFields, finfop);
                     if ((finfop->len == 0x1) && (finfop->bp != vector_int_bit_idx)) {
-                        LOG_ERROR(BSL_LS_SOC_INTR,
+                        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                                   (BSL_META_U(unit,
                                               "Error: Where finfop->len=%d. finfop->bp=%d != vector_int_bit_idx=%d.\n"),
                                    finfop->len, finfop->bp, vector_int_bit_idx));
-                        LOG_ERROR(BSL_LS_SOC_INTR,
+                        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                                   (BSL_META_U(unit,
                                               "No match between interrupt bit and interrupt field\n")));
                         return SOC_E_UNAVAIL;
@@ -3217,7 +3217,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
                         cont_prev_i_blk = i;
                         cont_prev_bit_idx = int_bit_idx;
                         cont_prev_vector_bit_idx = vector_int_bit_idx;
-                        LOG_VERBOSE(BSL_LS_SOC_INTR,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                                     (BSL_META_U(unit,
                                                 "\t\tinterrupts[%d].index=%d, interrupts[%d].id=%d,\n"),
                                      index, interrupts[index].index, index, interrupts[index].id));
@@ -3232,7 +3232,7 @@ soc_active_interrupts_get(int unit, int flags, int max_interrupts_size, soc_inte
     }
 
     *total_interrupts = index;
-    LOG_VERBOSE(BSL_LS_SOC_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                 (BSL_META_U(unit,
                             "index=%d, *total_interrupts=%d, cont_prev_i_blk=%d, cont_prev_bit_idx=%d, cont_prev_vector_bit_idx=%d.\n"),
                  index, *total_interrupts, cont_prev_i_blk, cont_prev_bit_idx, cont_prev_vector_bit_idx));
@@ -3248,14 +3248,14 @@ soc_interrupt_info_get(int unit, int interrupt_id, soc_interrupt_db_t *inter)
     int rc = SOC_E_NONE;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
     }
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3263,7 +3263,7 @@ soc_interrupt_info_get(int unit, int interrupt_id, soc_interrupt_db_t *inter)
 
     interrupts_arr = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts_arr == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3271,13 +3271,13 @@ soc_interrupt_info_get(int unit, int interrupt_id, soc_interrupt_db_t *inter)
 
     rc = soc_nof_interrupts(unit, &nof_interrupts);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
     }
     if (interrupt_id > nof_interrupts) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "interrupt_id is unavail\n")));
         return SOC_E_UNAVAIL;
@@ -3307,7 +3307,7 @@ soc_get_interrupt_id(int unit, soc_reg_t reg, int reg_index, soc_field_t field, 
     int rc = SOC_E_NONE;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -3315,14 +3315,14 @@ soc_get_interrupt_id(int unit, soc_reg_t reg, int reg_index, soc_field_t field, 
 
     interrupts_arr = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts_arr == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if (interrupt_id == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3332,7 +3332,7 @@ soc_get_interrupt_id(int unit, soc_reg_t reg, int reg_index, soc_field_t field, 
     /* look for interrupt id*/
     rc = soc_nof_interrupts(unit, &nof_interrupts);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -3349,7 +3349,7 @@ soc_get_interrupt_id(int unit, soc_reg_t reg, int reg_index, soc_field_t field, 
     }
 
     if(*interrupt_id == -1) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "interrupt ID was not found\n")));
         return SOC_E_UNAVAIL;
@@ -3368,7 +3368,7 @@ soc_get_interrupt_id_specific(int unit, int reg_adress, int reg_block, int field
     int rc = SOC_E_NONE;
 
     if (!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -3376,7 +3376,7 @@ soc_get_interrupt_id_specific(int unit, int reg_adress, int reg_block, int field
 
     interrupts_arr = SOC_CONTROL(unit)->interrupts_info->interrupt_db_info;
     if (interrupts_arr == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3394,7 +3394,7 @@ soc_get_interrupt_id_specific(int unit, int reg_adress, int reg_block, int field
     }
 
     if(SOC_BLOCK_INFO(unit, blk_indx).type < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Block number invalid\n")));
         return SOC_E_PARAM;
@@ -3402,7 +3402,7 @@ soc_get_interrupt_id_specific(int unit, int reg_adress, int reg_block, int field
 
     rc = soc_nof_interrupts(unit, &nof_interrupts);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -3449,7 +3449,7 @@ soc_get_interrupt_id_specific(int unit, int reg_adress, int reg_block, int field
     }
 
     if(*interrupt_id == -1) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "interrupt ID was not found\n")));
         return SOC_E_NOT_FOUND;
@@ -3463,7 +3463,7 @@ int soc_nof_interrupts(int unit, int* nof_interrupts) {
     int rc = SOC_E_NONE;
 
     if (nof_interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3475,7 +3475,7 @@ int soc_nof_interrupts(int unit, int* nof_interrupts) {
     if(SOC_IS_DFE(unit)) {
         rc = soc_dfe_nof_interrupts(unit, nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3486,7 +3486,7 @@ int soc_nof_interrupts(int unit, int* nof_interrupts) {
     if(SOC_IS_ARADPLUS_AND_BELOW(unit)) {
         rc = soc_arad_nof_interrupts(unit, nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3497,7 +3497,7 @@ int soc_nof_interrupts(int unit, int* nof_interrupts) {
     if(SOC_IS_JERICHO(unit)) {
         rc = soc_jer_nof_interrupts(unit, nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3577,7 +3577,7 @@ int soc_interrupt_flags_set(int unit, int interrupt_id, uint32 flags)
     if(SOC_IS_ARAD(unit)) {
         rc = arad_sw_db_interrupts_flags_set(unit, interrupt_id, flags);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3590,14 +3590,14 @@ int soc_interrupt_flags_set(int unit, int interrupt_id, uint32 flags)
 
         rc = soc_dfe_nof_interrupts(unit, &nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
 
         if(interrupt_id < 0 || interrupt_id >= nof_interrupts) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Interrupt_id is out of range\n")));
             return SOC_E_PARAM;
@@ -3605,7 +3605,7 @@ int soc_interrupt_flags_set(int unit, int interrupt_id, uint32 flags)
 
         rc = SOC_DFE_WARM_BOOT_ARR_VAR_SET(unit, INTR_FLAGS, interrupt_id, &flags);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3613,7 +3613,7 @@ int soc_interrupt_flags_set(int unit, int interrupt_id, uint32 flags)
     } else
 #endif /* BCM_DFE_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Unsupported in this unit type\n")));
         return SOC_E_UNIT;
@@ -3627,7 +3627,7 @@ int soc_interrupt_flags_get(int unit, int interrupt_id, uint32* flags)
     int rc = SOC_E_NONE;
 
     if (flags == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3637,7 +3637,7 @@ int soc_interrupt_flags_get(int unit, int interrupt_id, uint32* flags)
     if(SOC_IS_ARAD(unit)) {
         rc = arad_sw_db_interrupts_flags_get(unit, interrupt_id, flags);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3650,14 +3650,14 @@ int soc_interrupt_flags_get(int unit, int interrupt_id, uint32* flags)
 
         rc = soc_dfe_nof_interrupts(unit, &nof_interrupts); 
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
 
         if(interrupt_id < 0 || interrupt_id >= nof_interrupts) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Interrupt_id is out of range\n")));
             return SOC_E_PARAM;
@@ -3665,7 +3665,7 @@ int soc_interrupt_flags_get(int unit, int interrupt_id, uint32* flags)
 
         rc = SOC_DFE_WARM_BOOT_ARR_VAR_GET(unit, INTR_FLAGS, interrupt_id, flags);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3673,7 +3673,7 @@ int soc_interrupt_flags_get(int unit, int interrupt_id, uint32* flags)
     } else
 #endif /* BCM_DFE_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Unsupported in this unit type\n")));
         return SOC_E_UNIT;
@@ -3690,7 +3690,7 @@ int soc_interrupt_storm_timed_period_set(int unit, int interrupt_id, uint32 stor
     if(SOC_IS_ARAD(unit)) {
         rc = arad_sw_db_interrupts_storm_timed_period_set(unit, interrupt_id, storm_timed_period);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3704,14 +3704,14 @@ int soc_interrupt_storm_timed_period_set(int unit, int interrupt_id, uint32 stor
         /* get num of interrupts */
         rc = soc_dfe_nof_interrupts(unit, &nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
 
         if(interrupt_id < 0 || interrupt_id >= nof_interrupts) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Interrupt_id is out of range\n")));
             return SOC_E_PARAM;
@@ -3719,7 +3719,7 @@ int soc_interrupt_storm_timed_period_set(int unit, int interrupt_id, uint32 stor
 
         rc = SOC_DFE_WARM_BOOT_ARR_VAR_SET(unit, INTR_STORM_TIMED_PERIOD, interrupt_id, &storm_timed_period);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3727,7 +3727,7 @@ int soc_interrupt_storm_timed_period_set(int unit, int interrupt_id, uint32 stor
     } else
 #endif /* BCM_DFE_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Unsupported in this unit type\n")));
         return SOC_E_UNIT;
@@ -3741,7 +3741,7 @@ int soc_interrupt_storm_timed_period_get(int unit, int interrupt_id, uint32* sto
     int rc = SOC_E_NONE;
 
     if (storm_timed_period == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3751,7 +3751,7 @@ int soc_interrupt_storm_timed_period_get(int unit, int interrupt_id, uint32* sto
     if(SOC_IS_ARAD(unit)) {
         rc = arad_sw_db_interrupts_storm_timed_period_get(unit, interrupt_id, storm_timed_period);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3764,14 +3764,14 @@ int soc_interrupt_storm_timed_period_get(int unit, int interrupt_id, uint32* sto
 
         rc = soc_dfe_nof_interrupts(unit, &nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
 
         if(interrupt_id < 0 || interrupt_id >= nof_interrupts) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Interrupt_id is out of range\n")));
             return SOC_E_PARAM;
@@ -3779,7 +3779,7 @@ int soc_interrupt_storm_timed_period_get(int unit, int interrupt_id, uint32* sto
 
         rc = SOC_DFE_WARM_BOOT_ARR_VAR_GET(unit, INTR_STORM_TIMED_PERIOD, interrupt_id, storm_timed_period);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3787,7 +3787,7 @@ int soc_interrupt_storm_timed_period_get(int unit, int interrupt_id, uint32* sto
     } else
 #endif /* BCM_DFE_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Unsupported in this unit type\n")));
         return SOC_E_UNIT;
@@ -3804,7 +3804,7 @@ int soc_interrupt_storm_timed_count_set(int unit, int interrupt_id, uint32 storm
     if(SOC_IS_ARAD(unit)) {
         rc = arad_sw_db_interrupts_storm_timed_count_set(unit, interrupt_id, storm_timed_count);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3818,14 +3818,14 @@ int soc_interrupt_storm_timed_count_set(int unit, int interrupt_id, uint32 storm
         /* get num of interrupts */
         rc = soc_dfe_nof_interrupts(unit, &nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
 
         if(interrupt_id < 0 || interrupt_id >= nof_interrupts) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Interrupt_id is out of range\n")));
             return SOC_E_PARAM;
@@ -3833,7 +3833,7 @@ int soc_interrupt_storm_timed_count_set(int unit, int interrupt_id, uint32 storm
 
         rc = SOC_DFE_WARM_BOOT_ARR_VAR_SET(unit, INTR_STORM_TIMED_COUNT, interrupt_id, &storm_timed_count);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3841,7 +3841,7 @@ int soc_interrupt_storm_timed_count_set(int unit, int interrupt_id, uint32 storm
     } else
 #endif /* BCM_DFE_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Unsupported in this unit type\n")));
         return SOC_E_UNIT;
@@ -3855,7 +3855,7 @@ int soc_interrupt_storm_timed_count_get(int unit, int interrupt_id, uint32* stor
     int rc = SOC_E_NONE;
 
     if (storm_timed_count == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3865,7 +3865,7 @@ int soc_interrupt_storm_timed_count_get(int unit, int interrupt_id, uint32* stor
     if(SOC_IS_ARAD(unit)) {
         rc = arad_sw_db_interrupts_storm_timed_count_get(unit, interrupt_id, storm_timed_count);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3878,14 +3878,14 @@ int soc_interrupt_storm_timed_count_get(int unit, int interrupt_id, uint32* stor
 
         rc = soc_dfe_nof_interrupts(unit, &nof_interrupts);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
         }
 
         if(interrupt_id < 0 || interrupt_id >= nof_interrupts) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "Interrupt_id is out of range\n")));
             return SOC_E_PARAM;
@@ -3893,7 +3893,7 @@ int soc_interrupt_storm_timed_count_get(int unit, int interrupt_id, uint32* stor
 
         rc = SOC_DFE_WARM_BOOT_ARR_VAR_GET(unit, INTR_STORM_TIMED_COUNT, interrupt_id, storm_timed_count);
         if (SOC_FAILURE(rc)) {
-            LOG_ERROR(BSL_LS_SOC_INTR,
+            LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rc)));
             return rc;
@@ -3901,7 +3901,7 @@ int soc_interrupt_storm_timed_count_get(int unit, int interrupt_id, uint32* stor
     } else
 #endif /* BCM_DFE_SUPPORT */
     {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Unsupported in this unit type\n")));
         return SOC_E_UNIT;
@@ -3917,7 +3917,7 @@ int soc_interrupt_update_storm_detection(int unit, int block_instance, soc_inter
     int rc = SOC_E_NONE;
 
     if (inter == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3927,7 +3927,7 @@ int soc_interrupt_update_storm_detection(int unit, int block_instance, soc_inter
 
     inf_index = soc_interrupt_get_block_index_from_port(unit, inter->id, block_instance);
     if(inf_index < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid parameters\n")));
         return SOC_E_PARAM;
@@ -3935,7 +3935,7 @@ int soc_interrupt_update_storm_detection(int unit, int block_instance, soc_inter
 
     rc = soc_interrupt_storm_timed_period_get(unit, inter->id, &storm_timed_period);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -3943,7 +3943,7 @@ int soc_interrupt_update_storm_detection(int unit, int block_instance, soc_inter
 
     rc = soc_interrupt_storm_timed_count_get(unit, inter->id, &storm_timed_count);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -3976,7 +3976,7 @@ int soc_interrupt_is_storm(int unit, int block_instance, soc_interrupt_db_t *int
     int rc = SOC_E_NONE;
 
     if (inter == NULL || is_storm_count_period == NULL || is_storm_nominal == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -3987,7 +3987,7 @@ int soc_interrupt_is_storm(int unit, int block_instance, soc_interrupt_db_t *int
 
     inf_index = soc_interrupt_get_block_index_from_port(unit, inter->id, block_instance);
     if(inf_index < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Invalid parameters\n")));
         return SOC_E_PARAM;
@@ -3995,7 +3995,7 @@ int soc_interrupt_is_storm(int unit, int block_instance, soc_interrupt_db_t *int
 
     rc = soc_interrupt_storm_timed_count_get(unit, inter->id, &storm_timed_count);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -4025,7 +4025,7 @@ int soc_interrupt_clear_all(int unit){
     soc_interrupt_db_t *interrupts_arr;
 
     if(!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -4048,7 +4048,7 @@ int soc_interrupt_clear_all(int unit){
                 *
                 * coverity[dead_error_begin]
                 */
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "Unknown block %d\n"), bi_index));
                 return SOC_E_FAIL;
@@ -4060,7 +4060,7 @@ int soc_interrupt_clear_all(int unit){
 
             rc = soc_interrupt_is_valid(unit, bi, &(interrupts_arr[inter]), &is_valid);
             if (SOC_FAILURE(rc)) {
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rc)));
                 return rc;
@@ -4082,7 +4082,7 @@ int soc_interrupt_clear_all(int unit){
                 if(NULL != interrupts_arr[inter].interrupt_clear) {
                     rc = interrupts_arr[inter].interrupt_clear(unit, int_port , inter);
                     if (SOC_FAILURE(rc)) {
-                        LOG_ERROR(BSL_LS_SOC_INTR,
+                        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                                   (BSL_META_U(unit,
                                               "%s\n"), soc_errmsg(rc)));
                         return rc;
@@ -4101,7 +4101,7 @@ int soc_interrupt_is_all_clear(int unit, int *is_all_clear){
     int rc = SOC_E_NONE;
 
     if (is_all_clear == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -4109,7 +4109,7 @@ int soc_interrupt_is_all_clear(int unit, int *is_all_clear){
 
     rc = soc_active_interrupts_get(unit, 0x0 ,1, &interrupt, &total);
     if (SOC_FAILURE(rc)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rc)));
         return rc;
@@ -4126,7 +4126,7 @@ int soc_interrupt_is_all_mask(int unit, int *is_all_mask){
     int rc = SOC_E_NONE;
 
     if (is_all_mask == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -4169,7 +4169,7 @@ int soc_interrupt_stat_cnt_increase(int unit, int bi,  int interrupt_id)
     int rc = SOC_E_NONE;
 
     if(!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
@@ -4178,7 +4178,7 @@ int soc_interrupt_stat_cnt_increase(int unit, int bi,  int interrupt_id)
     /*verify interrupt_id*/
     soc_nof_interrupts(unit, &nof_interrupts);
     if ((interrupt_id > nof_interrupts) || interrupt_id < 0) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "event_id is unavail\n")));
         return SOC_E_UNAVAIL;
@@ -4207,14 +4207,14 @@ int soc_sort_interrupts_according_to_priority(int unit, soc_interrupt_cause_t* i
     int rc = SOC_E_NONE;
 
     if(!SOC_INTR_IS_SUPPORTED(unit)) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "No interrupts for device\n")));
         return SOC_E_UNAVAIL;
     }
 
     if (interrupts == NULL) {
-        LOG_ERROR(BSL_LS_SOC_INTR,
+        LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -4226,14 +4226,14 @@ int soc_sort_interrupts_according_to_priority(int unit, soc_interrupt_cause_t* i
         for(j=0;j<=i;j++) {
             rc = soc_interrupt_flags_get(unit, interrupts[j].id, &left_intr_flags);
             if (SOC_FAILURE(rc)) {
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rc)));
                 return rc;
             }
             rc = soc_interrupt_flags_get(unit, interrupts[j+1].id, &right_intr_flags);
             if (SOC_FAILURE(rc)) {
-                LOG_ERROR(BSL_LS_SOC_INTR,
+                LOG_BSL_ERROR(BSL_LS_SOC_INTR,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rc)));
                 return rc;

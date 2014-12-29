@@ -1149,7 +1149,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_mode (
     uint32        total_counters=0;
     switch(ing_attr->packet_attr_type) {
     case bcmStatFlexPacketAttrTypeUncompressed:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Creating Ingress uncompressed mode \n")));
          BCM_IF_ERROR_RETURN(_bcm_esw_stat_flex_create_ingress_uncompress_mode(
@@ -1158,7 +1158,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_mode (
                              mode,&total_counters));
          break;
     case bcmStatFlexPacketAttrTypeCompressed:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Creating Ingress compressed mode \n")));
          BCM_IF_ERROR_RETURN(_bcm_esw_stat_flex_create_ingress_compress_mode(
@@ -1167,7 +1167,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_mode (
                              mode,&total_counters));
          break;
     case bcmStatFlexPacketAttrTypeUdf:
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Creating Ingress udf mode \n")));
          BCM_IF_ERROR_RETURN(_bcm_esw_stat_flex_create_ingress_udf_mode(
@@ -1183,7 +1183,7 @@ bcm_error_t _bcm_esw_stat_flex_create_ingress_mode (
                         *mode,
                         total_counters,
                         ing_attr));
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "\n Done %d \n"),
                *mode));

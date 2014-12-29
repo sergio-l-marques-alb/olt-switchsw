@@ -856,7 +856,7 @@ bcm_esw_subport_group_linkphy_config_get(
     if (soc_feature(unit, soc_feature_linkphy_coe)) {
         rv = _bcm_esw_port_gport_validate(unit, port, &port_out);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Invalid port gport 0x%x for LinkPHY config\n"),
                        port));
@@ -864,7 +864,7 @@ bcm_esw_subport_group_linkphy_config_get(
         }
 
         if (!BCM_PBMP_MEMBER(si->linkphy_pbm, port_out)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: port %d is not member of pbmp_linkphy\n"),
                        port_out));
@@ -909,7 +909,7 @@ bcm_esw_subport_group_linkphy_config_set(
     if (soc_feature(unit, soc_feature_linkphy_coe)) {
         rv = _bcm_esw_port_gport_validate(unit, port, &port_out);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: Invalid port gport 0x%x for LinkPHY config\n"),
                        port));
@@ -917,7 +917,7 @@ bcm_esw_subport_group_linkphy_config_set(
         }
 
         if (!BCM_PBMP_MEMBER(si->linkphy_pbm, port_out)) {
-            LOG_ERROR(BSL_LS_BCM_SUBPORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_SUBPORT,
                       (BSL_META_U(unit,
                                   "ERROR: port %d is not member of pbmp_linkphy\n"),
                        port_out));

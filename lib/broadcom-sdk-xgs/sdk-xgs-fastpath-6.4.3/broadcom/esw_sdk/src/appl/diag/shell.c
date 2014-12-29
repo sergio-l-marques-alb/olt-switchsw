@@ -1236,11 +1236,11 @@ sh_process_command(int u, char *c)
     char        *c_next;
 
     if (u >= 0) {
-        LOG_VERBOSE(BSL_LS_APPL_RCLOAD,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_RCLOAD,
                     (BSL_META_U(u,
                                 "BCM.%d> %s\n"), u, c));
     } else {
-        LOG_VERBOSE(BSL_LS_APPL_RCLOAD,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_RCLOAD,
                     (BSL_META_U(u,
                                 "BCM> %s\n"), c));
     }
@@ -6384,7 +6384,7 @@ _bg_cmd(void *cookie)
         break;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(info->unit,
                             "bg: end of job %d\n"), info->job));
 
@@ -6463,7 +6463,7 @@ sh_bg(int unit, args_t *args)
     _bg_jobs[unit][i] = NULL;
         return CMD_FAIL;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bg: starting job %d\n"), info->job));
     sal_sem_give(info->sem);

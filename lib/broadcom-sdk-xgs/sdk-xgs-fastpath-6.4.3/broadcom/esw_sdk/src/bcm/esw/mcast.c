@@ -117,7 +117,7 @@ bcm_esw_mcast_init(int unit)
 {
     int rv;
 
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: Init\n"),
               unit));
@@ -168,13 +168,13 @@ bcm_esw_mcast_port_add(int unit, bcm_mcast_addr_t *mcaddr)
 {
     MCAST_INIT_RETURN(unit);
 
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: port add %2x:%2x:%2x:%2x:%2x:%2x, vid %d\n"),
               unit, mcaddr->mac[0], mcaddr->mac[1], mcaddr->mac[2],
               mcaddr->mac[3], mcaddr->mac[4], mcaddr->mac[5],
               mcaddr->vid));
-    LOG_VERBOSE(BSL_LS_BCM_MCAST,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_MCAST,
                 (BSL_META_U(unit,
                             "        : l2 idx %u, cos dest %d, ports 0x%x, ut 0x%x\n"),
                  mcaddr->l2mc_index, mcaddr->cos_dst,
@@ -205,13 +205,13 @@ bcm_esw_mcast_port_remove(int unit, bcm_mcast_addr_t *mcaddr)
 {
     MCAST_INIT_RETURN(unit);
 
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: port remove %2x:%2x:%2x:%2x:%2x:%2x, vid %d\n"),
               unit, mcaddr->mac[0], mcaddr->mac[1], mcaddr->mac[2],
               mcaddr->mac[3], mcaddr->mac[4], mcaddr->mac[5],
               mcaddr->vid));
-    LOG_VERBOSE(BSL_LS_BCM_MCAST,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_MCAST,
                 (BSL_META_U(unit,
                             "        : l2 idx %u, cos dest %d, ports 0x%x, ut 0x%x\n"),
                  mcaddr->l2mc_index, mcaddr->cos_dst,
@@ -307,13 +307,13 @@ bcm_esw_mcast_addr_add_w_l2mcindex(int unit, bcm_mcast_addr_t *mcaddr)
 
     MCAST_INIT_RETURN(unit);
 
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: addr add w/ idx. %2x:%2x:%2x:%2x:%2x:%2x, vid %d\n"),
               unit, mcaddr->mac[0], mcaddr->mac[1], mcaddr->mac[2],
               mcaddr->mac[3], mcaddr->mac[4], mcaddr->mac[5],
               mcaddr->vid));
-    LOG_VERBOSE(BSL_LS_BCM_MCAST,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_MCAST,
                 (BSL_META_U(unit,
                             "        : l2 idx %u, cos dest %d, ports 0x%x, ut 0x%x\n"),
                  mcaddr->l2mc_index, mcaddr->cos_dst,
@@ -352,13 +352,13 @@ bcm_esw_mcast_addr_add(int unit, bcm_mcast_addr_t *mcaddr)
     MCAST_INIT_RETURN(unit);
 
     _esw_mcast_addr_update(unit, mcaddr);
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: addr add %2x:%2x:%2x:%2x:%2x:%2x, vid %d\n"),
               unit, mcaddr->mac[0], mcaddr->mac[1], mcaddr->mac[2],
               mcaddr->mac[3], mcaddr->mac[4], mcaddr->mac[5],
               mcaddr->vid));
-    LOG_VERBOSE(BSL_LS_BCM_MCAST,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_MCAST,
                 (BSL_META_U(unit,
                             "        : l2 idx %u, cos dest %d, ports 0x%x, ut 0x%x\n"),
                  mcaddr->l2mc_index, mcaddr->cos_dst,
@@ -391,7 +391,7 @@ bcm_esw_mcast_addr_remove_w_l2mcindex(int unit, bcm_mcast_addr_t *mcaddr)
 
     MCAST_INIT_RETURN(unit);
 
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: addr rmv w/ idx %d\n"),
               unit, mcaddr->l2mc_index));
@@ -426,7 +426,7 @@ bcm_esw_mcast_addr_remove(int unit, sal_mac_addr_t mac, bcm_vlan_t vid)
 {
     MCAST_INIT_RETURN(unit);
 
-    LOG_INFO(BSL_LS_BCM_MCAST,
+    LOG_BSL_INFO(BSL_LS_BCM_MCAST,
              (BSL_META_U(unit,
                          "MCAST %d: addr remove %2x:%2x:%2x:%2x:%2x:%2x, vid %d\n"),
               unit, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], vid));
@@ -920,7 +920,7 @@ _xgs12_mcast_stk_update(int unit, bcm_pbmp_t add_ports,
     soc_mem_unlock(unit, L2X_MCm);
 
     if (changed) {
-        LOG_VERBOSE(BSL_LS_BCM_MCAST,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_MCAST,
                     (BSL_META_U(unit,
                                 "L2MC %d: xgs stk update changed %d entries\n"),
                      unit, changed));
@@ -971,7 +971,7 @@ _xgs3_fb_mcast_stk_update(int unit, bcm_pbmp_t add_ports,
     soc_mem_unlock(unit, L2MCm);
 
     if (changed) {
-        LOG_VERBOSE(BSL_LS_BCM_MCAST,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_MCAST,
                     (BSL_META_U(unit,
                                 "L2MC %d: xgs stk update changed %d entries\n"),
                      unit, changed));

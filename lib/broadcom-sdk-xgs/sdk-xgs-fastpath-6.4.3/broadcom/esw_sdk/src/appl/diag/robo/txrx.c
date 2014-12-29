@@ -385,14 +385,14 @@ _robo_tx_first_pbm(int unit, bcm_pbmp_t pbm)
 
     BCM_PBMP_CLEAR(rpbm);
     PBMP_ITER(pbm, p) {
-        LOG_INFO(BSL_LS_APPL_TX,
+        LOG_BSL_INFO(BSL_LS_APPL_TX,
                  (BSL_META_U(unit,
                              "First to port %d\n"), p));
         BCM_PBMP_PORT_ADD(rpbm, p);
         return rpbm;
     }
 
-    LOG_INFO(BSL_LS_APPL_TX,
+    LOG_BSL_INFO(BSL_LS_APPL_TX,
              (BSL_META_U(unit,
                          "Warning: first pbm null\n")));
     BCM_PBMP_CLEAR(rpbm);
@@ -418,7 +418,7 @@ _robo_tx_next_port(int unit, pbmp_t *newpbm, pbmp_t allpbm)
     PBMP_ITER(*newpbm, np) {
         PBMP_ITER(allpbm, p) {
             if (found) {
-                LOG_INFO(BSL_LS_APPL_TX,
+                LOG_BSL_INFO(BSL_LS_APPL_TX,
                          (BSL_META_U(unit,
                                      "Next to port %d\n"), p));
                 BCM_PBMP_CLEAR(*newpbm);
@@ -433,7 +433,7 @@ _robo_tx_next_port(int unit, pbmp_t *newpbm, pbmp_t allpbm)
 
     /* If we get here, must be resetting. */
     *newpbm = _robo_tx_first_pbm(unit, allpbm);
-    LOG_INFO(BSL_LS_APPL_TX,
+    LOG_BSL_INFO(BSL_LS_APPL_TX,
              (BSL_META_U(unit,
                          "Resetting to pbm %s\n"), SOC_PBMP_FMT(*newpbm, pfmt)));
     return 1;
@@ -633,7 +633,7 @@ robo_do_tx(xd_t *xd)
         sizeof(uint32) /* CRC */;
 
     if (xd->xd_ppsm) { /* save base info. setup first port. */
-        LOG_INFO(BSL_LS_APPL_TX,
+        LOG_BSL_INFO(BSL_LS_APPL_TX,
                  (BSL_META("Per port source is active\n")));
         xd->xd_ppsm_pbm = pkt_info->tx_pbmp;
         pkt_info->tx_pbmp = _robo_tx_first_pbm(xd->xd_unit, pkt_info->tx_pbmp);
@@ -681,7 +681,7 @@ robo_do_tx(xd_t *xd)
             /* change xd_pbm to next port. reset src mac if at base port */
             if (_robo_tx_next_port(xd->xd_unit, &pkt_info->tx_pbmp,
                               xd->xd_ppsm_pbm)) {
-                LOG_INFO(BSL_LS_APPL_TX,
+                LOG_BSL_INFO(BSL_LS_APPL_TX,
                          (BSL_META("resetting mac\n")));
                 ENET_COPY_MACADDR(xd->xd_mac_src_base, xd->xd_mac_src);
             }

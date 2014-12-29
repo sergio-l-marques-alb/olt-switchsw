@@ -430,7 +430,7 @@ soc_kt2_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_kt2_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -516,7 +516,7 @@ soc_kt2_egr_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_kt2_egr_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));

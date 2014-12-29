@@ -455,7 +455,7 @@ _bcmx_port_add(int unit, bcm_port_t port, bcm_gport_t lport, uint32 flags)
     }
     /* Update uport <-> lport map table */
     if (_bcmx_uport_add(uport, lport) == NULL) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META_U(unit,
                              "BCMX: Failed to add uport hash, "
                              "u %d, p %d\n"), unit, port));
@@ -497,7 +497,7 @@ _bcmx_port_add(int unit, bcm_port_t port, bcm_gport_t lport, uint32 flags)
 
     /* Update devport hash table */
     if (_bcmx_devport_hash_add(unit, port, port_info) == NULL) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META_U(unit,
                              "BCMX: Failed to add devport hash, "
                              "u %d, p %d\n"), unit, port));
@@ -1002,7 +1002,7 @@ bcmx_device_attach(int bcm_unit)
     /* Gather information that requires RPC call before applying lock */
     rv = bcm_port_config_get(bcm_unit, &config);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX: Could not get port config %d: %s\n"),
                   rv, bcm_errmsg(rv)));
         return rv;
@@ -1027,7 +1027,7 @@ bcmx_device_attach(int bcm_unit)
     }
 
 
-    LOG_VERBOSE(BSL_LS_BCMX_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCMX_COMMON,
                 (BSL_META("BCMX: Attaching unit %d\n"),
                  bcm_unit));
     BCMX_CONFIG_LOCK;
@@ -1035,7 +1035,7 @@ bcmx_device_attach(int bcm_unit)
     for (i = 0; i < bcmx_unit_count; i++) {
         if (bcm_unit == bcmx_unit_list[i]) {
             BCMX_CONFIG_UNLOCK;
-            LOG_ERROR(BSL_LS_BCMX_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCMX_COMMON,
                       (BSL_META("BCMX: unit exists\n")));
             return BCM_E_EXISTS;
         }
@@ -1054,7 +1054,7 @@ bcmx_device_attach(int bcm_unit)
         /* Add port */
         rv = _bcmx_port_add(bcm_unit, port, lport[i], port_flags);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META("BCMX: Failed to add lport 0x%x (unit %d, port %d). "
                                "%d: %s.\n"),
                       lport[i], bcm_unit, port, rv, bcm_errmsg(rv)));
@@ -1076,21 +1076,21 @@ bcmx_device_attach(int bcm_unit)
      */
     rv = bcmx_rx_device_add(bcm_unit);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX: Failed to add unit to RX, "
                            "u %d.  %d: %s\n"), bcm_unit, rv, bcm_errmsg(rv)));
     }
 
     rv = bcmx_l2_device_add(bcm_unit);
     if (rv < 0 && rv != BCM_E_UNAVAIL) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX: Failed to add unit for L2 notify, "
                            "u %d.  %d: %s\n"), bcm_unit, rv, bcm_errmsg(rv)));
     }
 
     rv = bcmx_linkscan_device_add(bcm_unit);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX: Failed to add unit for linkscan, "
                            "u %d.  %d: %s\n"), bcm_unit, rv, bcm_errmsg(rv)));
     }
@@ -1120,7 +1120,7 @@ bcmx_device_detach(int bcm_unit)
 
     BCMX_INIT_CHECK;
 
-    LOG_VERBOSE(BSL_LS_BCMX_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCMX_COMMON,
                 (BSL_META("BCMX: Detaching unit %d\n"),
                  bcm_unit));
 
@@ -1155,7 +1155,7 @@ bcmx_device_detach(int bcm_unit)
 #if defined(BCM_RPC_SUPPORT)
     /* Detach device from rlink */
     if ((rv = bcm_rlink_device_detach(bcm_unit)) < 0) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX(unit %d): Rlink device detach failed: %d\n"),
                   bcm_unit, rv));
     }
@@ -1716,7 +1716,7 @@ _bcmx_port_info_dump(void)
 
     BCMX_INIT_CHECK;
 
-    LOG_INFO(BSL_LS_BCMX_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCMX_COMMON,
              (BSL_META("BCMX port info dump\n")));
 
     BCMX_CONFIG_LOCK;
@@ -1727,7 +1727,7 @@ _bcmx_port_info_dump(void)
 
         /* Check each entry in link list */
         while (port_info != NULL) {
-            LOG_INFO(BSL_LS_BCMX_COMMON,
+            LOG_BSL_INFO(BSL_LS_BCMX_COMMON,
                      (BSL_META(" %d: lport=0x%x unit=%d port=%d uport=%d flags=0x%x "
                       "modid=%d modport=%d\n"),
                       i, port_info->lport,

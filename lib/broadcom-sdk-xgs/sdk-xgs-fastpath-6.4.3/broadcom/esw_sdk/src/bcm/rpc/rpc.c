@@ -380,13 +380,13 @@ _bcm_rpc_unavail_v1(cpudb_key_t r_cpu, uint8 *r_pkt, void *r_cookie)
     BCM_UNPACK_U16(pp, entry);
 
     if (dir != 'C') {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("RPC: Old version %d entry %d non-request discarded\n"),
                    ver, entry));
         return;
     }
 
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META("RPC: Old version %d entry %d request failed with BCM_E_UNAVAIL\n"),
                ver, entry));
 
@@ -510,7 +510,7 @@ bcm_rpc_pkt_handler(cpudb_key_t cpu,
             _bcm_rpc_unavail_v1(cpu, buf, cookie);
             return BCM_RX_HANDLED;
         }
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("RPC: Version %d packet received\n"),
                    ver));
         return BCM_RX_NOT_HANDLED;  /* wrong version */
@@ -578,7 +578,7 @@ bcm_rpc_pkt_handler(cpudb_key_t cpu,
 
     default:
         RPC_COUNT(_rpc_count_s_wrongver);
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("RPC: Version %d packet has unexpected direction (%d)\n"),
                    ver, dir));
         return BCM_RX_NOT_HANDLED;  /* unknown direction */
@@ -1052,18 +1052,18 @@ bcm_rpc_dump(void)
     sal_usecs_t  now;
     int thread_id;
 
-    LOG_INFO(BSL_LS_BCM_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCM_COMMON,
              (BSL_META("RPC Client request %u reply %u fail %u timeout %u\n"),
               _rpc_count_c_request,
               _rpc_count_c_reply,
               _rpc_count_c_fail,
               _rpc_count_c_timeout));
-    LOG_INFO(BSL_LS_BCM_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCM_COMMON,
              (BSL_META("RPC Client missing request %u detach remove %u seq %u\n"),
               _rpc_count_c_noreq,
               _rpc_count_c_detach,
               _rpc_seq));
-    LOG_INFO(BSL_LS_BCM_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCM_COMMON,
              (BSL_META("RPC Server request %u reply %u run %u wrongver %u nokey %u "
               "repretry %u reperr %u \n"),
               _rpc_count_s_request,
@@ -1075,29 +1075,29 @@ bcm_rpc_dump(void)
               _rpc_count_s_rerr));
 
     now = sal_time_usecs();
-    LOG_INFO(BSL_LS_BCM_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCM_COMMON,
              (BSL_META("RPC Client Requests: time now %u\n"),
               now));
     i = 0;
     for (creq = _rpc_creq; creq != NULL; creq = creq->next) {
         i += 1;
-        LOG_INFO(BSL_LS_BCM_COMMON,
+        LOG_BSL_INFO(BSL_LS_BCM_COMMON,
                  (BSL_META("%d:\tunit %d seq %u cookie %p time %u (%u ago)\n"),
                   i, creq->unit, creq->seq, creq->cookie,
                   creq->time, now - creq->time));
     }
     
-    LOG_INFO(BSL_LS_BCM_COMMON,
+    LOG_BSL_INFO(BSL_LS_BCM_COMMON,
              (BSL_META("RPC Server Requests:\n")));
     i = 0;
     for ( thread_id = 0; thread_id < _num_rpc_threads; ++thread_id ) {
-        LOG_INFO(BSL_LS_BCM_COMMON,
+        LOG_BSL_INFO(BSL_LS_BCM_COMMON,
                  (BSL_META("RPC Server Requests for thread %d:\n"), thread_id));
         i = 0;
         for (sreq = _rpc_sreqs [thread_id]; sreq != NULL; sreq = sreq->next) {
             i += 1;
             cpudb_key_format(sreq->cpu, keybuf, sizeof(keybuf));
-            LOG_INFO(BSL_LS_BCM_COMMON,
+            LOG_BSL_INFO(BSL_LS_BCM_COMMON,
                      (BSL_META("%d:\tcpu %s buf %p cookie %p rpckey0 %x\n"),
                       i, keybuf, sreq->buf, sreq->cookie, sreq->rpckey[0]));
         }

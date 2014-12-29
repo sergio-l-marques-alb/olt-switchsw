@@ -87,7 +87,7 @@ _iproc_write_from_args(int unit, int ce, uint32 addr, args_t *args) {
         soc_cm_iproc_write(unit, (addr + (i * 4)), data);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Wrote %d words to iProc 0x%08x\n"), len, addr));
     return CMD_OK;
@@ -109,7 +109,7 @@ _iproc_write_from_bin_file(int unit, int ce, uint32 addr, FILE *fp) {
         len += i;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Wrote %d words to iProc 0x%08x\n"), len, addr));
     return CMD_OK;
@@ -327,7 +327,7 @@ iprocread_cmd(int unit, args_t *args)
                 parse_arg_eq_done(&pt);
                 return(rv);
             } else {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Dump to file %s\n"), filename));
                 rv = _iproc_dump(unit, ce, fp, addr, len);

@@ -280,7 +280,7 @@ socend_mempool_alloc(socend_t *se, int pksize, int clblks, int cl, int mblks)
 {
     seu_t	*seu = &socend_seu[se->se_unit];
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_mempool_alloc: Unit %d %sinitialized\n"),
               se->se_unit, seu->seu_init ? "" : "not "));
     /*
@@ -404,7 +404,7 @@ socend_load(char *is, void* ap)
 	strcpy(is, "sc");
 	return(NULL);
     }
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_load: %s\n"), is));
 
     /*
@@ -520,7 +520,7 @@ socend_unload(_END_OBJ_PAR *p)
     socend_t		*se_cur, *se_prev;
     seu_t		*seu= &socend_seu[se->se_unit];
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_unload: %s%d:\n"), eo->devObject.name,
               eo->devObject.unit));
 
@@ -561,13 +561,13 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
     STATUS 		error = OK;
     int unit = se->se_unit;
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META_U(unit,
                          "socend_ioctl: unit %d\n"), se->se_unit));
 
     switch((unsigned int)cmd) {
     case EIOCSFLAGS:
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCSFLAGS(0x%x)\n"),
                   eo->devObject.name, eo->devObject.unit, (unsigned int)data));
@@ -578,7 +578,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	}
 	break;
     case EIOCGFLAGS:
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCGFLAGS\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -589,7 +589,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	}
 	break;
     case EIOCSADDR:		/* Set interface address */
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCSADDR\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -599,13 +599,13 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	    bcm_l2_addr_t	l2addr;
 	    int                 my_modid;
 	    if (ENET_CMP_MACADDR(se->se_mac, mac_zero)) {
-		LOG_INFO(BSL_LS_SYS_END,
+		LOG_BSL_INFO(BSL_LS_SYS_END,
                          (BSL_META_U(unit,
                                      "socend_ioctl: Deleting old mac address\n")));
 		(void)bcm_l2_addr_delete(se->se_unit, se->se_mac, se->se_vlan);
 	    }
 	    ENET_COPY_MACADDR(data, se->se_mac);
-	    LOG_INFO(BSL_LS_SYS_END,
+	    LOG_BSL_INFO(BSL_LS_SYS_END,
                      (BSL_META_U(unit,
                                  "socend_ioctl: Setting new mac address\n")));
 	    bcm_l2_addr_t_init(&l2addr, se->se_mac, se->se_vlan);
@@ -627,7 +627,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	}
 	break;
     case EIOCGADDR:		/* Get Interface address */
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCGADDR\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -639,7 +639,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	}
 	break;
     case EIOCGFBUF:		/* Get min 1st buf for chain */
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCGFBUF\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -650,7 +650,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	}
 	break;
     case EIOCGMWIDTH:		/* Get device memory witdh */
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCGMWIDTH\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -665,14 +665,14 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
     case EIOCMULTIGET:
     case EIOCPOLLSTART:
     case EIOCPOLLSTOP:
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: MULTI/POLL\n"),
                   eo->devObject.name, eo->devObject.unit));
 	error = ENOSYS;
 	break;
     case EIOCGMIB2:		/* Get MIB2 Table */
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCGMIB2\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -683,7 +683,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	}
 	break;
     case EIOCGNAME:		/* Get device Name */
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: EIOCGNAME\n"),
                   eo->devObject.name, eo->devObject.unit));
@@ -703,7 +703,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	break;
 #if VX_VERSION == 62 || VX_VERSION == 64 || VX_VERSION == 66 || VX_VERSION == 68
         case EIOCGRCVJOBQ:
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META_U(unit,
                          "socend_ioctl: %s%d: EIOCGRCVJOBQ\n"),
               eo->devObject.name, eo->devObject.unit));
@@ -711,7 +711,7 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 	    error = EINVAL;
     } else {
         END_RCVJOBQ_INFO *qinfo = (END_RCVJOBQ_INFO *)data;
-        LOG_INFO(BSL_LS_SYS_END,
+        LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: numRcvJobQs input#: %d\n"),
                   eo->devObject.name, eo->devObject.unit, qinfo->numRcvJobQs));
@@ -726,14 +726,14 @@ socend_ioctl(_END_OBJ_PAR *p, int cmd, caddr_t data)
 #endif /* VX_VERSION */
 
     default:
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_ioctl: %s%d: Unknown IOCTL\n"),
                   eo->devObject.name, eo->devObject.unit));
 	error = EINVAL;
 	break;
     }
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META_U(unit,
                          "socend_ioctl: %s%d: cmd=0x%x Return(%d)\n"),
               eo->devObject.name, eo->devObject.unit, cmd, error));
@@ -754,7 +754,7 @@ socend_send_done(int unit, bcm_pkt_t *pkt, void *cookie)
  * Assumption:  This function is called from a non-interrupt context.
  */
 {
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META_U(unit,
                          "Socend send done, in. pkt %p. ck %p.  "), 
               (void *)pkt->_pkt_data.data, (void *)cookie));
@@ -768,7 +768,7 @@ socend_send_done(int unit, bcm_pkt_t *pkt, void *cookie)
         netMblkClChainFree(cookie);    /* Free MBLK */
     }
     sal_free(pkt);
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META_U(unit,
                          "out.\n")));
 }
@@ -858,8 +858,8 @@ socend_send(_END_OBJ_PAR *p, M_BLK_ID mb)
     }
 
 #if defined(BROADCOM_DEBUG)
-    if (LOG_CHECK(BSL_LS_SYS_END | BSL_INFO) &&
-        LOG_CHECK(BSL_LS_SOC_PACKET | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SYS_END | BSL_INFO) &&
+        LOG_BSL_CHECK(BSL_LS_SOC_PACKET | BSL_INFO)) {
 	d_packet_format("socend TX", DECODE_ETHER, packet, l, NULL);
     }
 #endif /* defined(BROADCOM_DEBUG) */
@@ -896,7 +896,7 @@ socend_send(_END_OBJ_PAR *p, M_BLK_ID mb)
     pkt->flags |= BCM_TX_CRC_APPEND;
 
     if ((rv = bcm_tx(se->se_unit, pkt, cookie)) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("bcm_tx failed: Unit %d: %s\n"),
                    se->se_unit, bcm_errmsg(rv)));
         return(ERROR);
@@ -923,7 +923,7 @@ socend_start(_END_OBJ_PAR *p)
     int i;
     int                 my_modid;
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_start: Device(%s), unit %d\n"),
               eo->devObject.name, se->se_unit));
     if (!ENET_CMP_MACADDR(se->se_mac, mac_zero)) {
@@ -935,7 +935,7 @@ socend_start(_END_OBJ_PAR *p)
     bcopy((char *)se->se_mac, (char *)eo->mib2Tbl.ifPhysAddress.phyAddress,
 	  eo->mib2Tbl.ifPhysAddress.addrLength);
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_start: Starting bcm_rx\n")));
     if (!bcm_rx_active(se->se_unit)) {
 
@@ -954,7 +954,7 @@ socend_start(_END_OBJ_PAR *p)
         LOG_CLI((BSL_META("RX Thread is already running\n")));
     }
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_start: adding l2 addr\n")));
     bcm_l2_addr_t_init(&l2addr, se->se_mac, se->se_vlan);
     l2addr.port = CMIC_PORT(se->se_unit);
@@ -968,7 +968,7 @@ socend_start(_END_OBJ_PAR *p)
 	return(ERROR);
     }
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_start: registering with bcm_rx\n")));
     for (i = 0; i < SOC_END_HANDLER_PRIO_COUNT; i++) {
         if (socend_prio_map[i].valid != TRUE){
@@ -1000,7 +1000,7 @@ socend_start(_END_OBJ_PAR *p)
     }
 
     END_FLAGS_SET(eo, IFF_UP | IFF_RUNNING | IFF_BROADCAST);
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_start: Started Network Interface: %s%d\n"),
               eo->devObject.name, eo->devObject.unit));
     return(OK);
@@ -1043,7 +1043,7 @@ socend_stop(_END_OBJ_PAR *p)
 	socend_mcast_del(p, pMCastNode->addr);
     }
     END_FLAGS_CLR(eo, IFF_UP | IFF_RUNNING);
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_stop: Device(%s)\n"), eo->devObject.name));
     return(OK);
 }
@@ -1100,9 +1100,9 @@ socend_mcast_add(_END_OBJ_PAR *p, char *a)
     char mac_str[MACADDR_STR_LEN];
     int unit = se->se_unit;
 
-    if (LOG_CHECK(BSL_LS_SYS_END | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SYS_END | BSL_INFO)) {
 	format_macaddr(mac_str, (uint8 *)a);
-	LOG_INFO(BSL_LS_SYS_END,
+	LOG_BSL_INFO(BSL_LS_SYS_END,
                  (BSL_META_U(unit,
                              "socend_mcast_add: %s%d %s\n"),
                   eo->devObject.name, eo->devObject.unit, mac_str));
@@ -1138,7 +1138,7 @@ socend_mcast_add(_END_OBJ_PAR *p, char *a)
 	    LOG_CLI((BSL_META_U(unit,
                                 "bcm_mcast_addr_add failed ERROR : %s\n"),
                      bcm_errmsg(ret)));
-	    LOG_INFO(BSL_LS_SYS_END,
+	    LOG_BSL_INFO(BSL_LS_SYS_END,
                      (BSL_META_U(unit,
                                  "socend_mcast_add: Unit %d Device %s%d "
                                  "Software RESET\n"),
@@ -1173,7 +1173,7 @@ socend_mcast_del(_END_OBJ_PAR *p, char *a)
 	} else {
 	    LOG_CLI((BSL_META("bcm_mcast_addr_remove failed ERROR : %s\n"),
                      bcm_errmsg(ret)));
-	    LOG_INFO(BSL_LS_SYS_END,
+	    LOG_BSL_INFO(BSL_LS_SYS_END,
                      (BSL_META("socend_mcast_del: Unit %d Device %s%d Software RESET\n"),
                       se->se_unit, eo->devObject.name, eo->devObject.unit));
 	}
@@ -1193,7 +1193,7 @@ socend_mcast_get(_END_OBJ_PAR *p, MULTI_TABLE *mt)
 {
     struct end_object *eo = (struct end_object *)p;
 
-    LOG_INFO(BSL_LS_SYS_END,
+    LOG_BSL_INFO(BSL_LS_SYS_END,
              (BSL_META("socend_mcast_get: %s%d\n"), eo->devObject.name,
               eo->devObject.unit));
 
@@ -1276,8 +1276,8 @@ socend_receive_netjob(int pi, int pckti, int pckt_size)
 
     /* Check the DCB for errors */
 #if defined(BROADCOM_DEBUG)			/* Only compile in for debug */
-    if (LOG_CHECK(BSL_LS_SYS_END | BSL_INFO) &&
-        LOG_CHECK(BSL_LS_SOC_PACKET | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SYS_END | BSL_INFO) &&
+        LOG_BSL_CHECK(BSL_LS_SOC_PACKET | BSL_INFO)) {
 	d_packet_format("socend RX", DECODE_ETHER, pckt, pckt_size, NULL);
     }
 #endif /* BROADCOM_DEBUG */
@@ -1419,7 +1419,7 @@ socend_receive(int unit, bcm_pkt_t *pkt, void *cookie)
 
             socend_packet_alloc(unit, SOC_END_PK_SZ, 0, (void *)&packet);
             if (NULL == packet){
-                LOG_INFO(BSL_LS_SYS_END,
+                LOG_BSL_INFO(BSL_LS_SYS_END,
                          (BSL_META_U(unit,
                                      "failed to allocate buffer with socend_packet_alloc\n")));
                 return BCM_RX_NOT_HANDLED;
@@ -1433,7 +1433,7 @@ socend_receive(int unit, bcm_pkt_t *pkt, void *cookie)
                        (int)pkt->pkt_len,
                        4,
                        5);
-            LOG_INFO(BSL_LS_SYS_END,
+            LOG_BSL_INFO(BSL_LS_SYS_END,
                      (BSL_META_U(unit,
                                  "netJobAdd rv=0x%x OK=%x\n"), rv, OK));
             pkt_rv = BCM_RX_HANDLED;

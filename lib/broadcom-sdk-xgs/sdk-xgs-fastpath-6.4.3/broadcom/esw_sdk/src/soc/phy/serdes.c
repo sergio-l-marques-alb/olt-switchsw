@@ -143,7 +143,7 @@ phy_serdes_duplex_set(int unit, soc_port_t port, int duplex)
 
     rv = duplex ? SOC_E_NONE : SOC_E_UNAVAIL;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes_duplex_set: u=%d p=%d duplex=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -184,7 +184,7 @@ phy_serdes_an_get(int unit, soc_port_t port, int *an, int *an_done)
 
     *an_done = (stat & MII_STAT_AN_DONE) != 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes_an_get: u=%d p=%d an=%d an_done=%d\n"),
               unit, port, *an, *an_done));
@@ -246,7 +246,7 @@ phy_serdes_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
                                 MII_ANA_C37_ASYM_PAUSE | MII_ANA_C37_PAUSE |
                                 MII_ANA_C37_FD | MII_ANA_C37_HD));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes_adv_local_set: u=%d p=%d adv=%s%s%s\n"),
               unit, port,
@@ -405,7 +405,7 @@ phy_serdes_adv_remote_get(int unit, soc_port_t port, soc_port_mode_t *mode)
             (_phy_serdes_1000x_adv_remote_get(unit, port, mode));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes_adv_remote_get: u=%d p=%d adv=%s%s%s\n"),
               unit, port,
@@ -443,7 +443,7 @@ phy_serdes_lb_set(int unit, soc_port_t port, int enable)
     rv = MODIFY_SERDES_MII_CTRLr(unit, pc,
                                ctrl, MII_CTRL_LE);
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes_lb_set: u=%d p=%d lb=%d rv=%d\n"),
               unit, port, enable, rv));
@@ -510,7 +510,7 @@ phy_serdes_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
         break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes_interface_set: u=%d p=%d pif=%d rv=%d\n"),
               unit, port, pif, rv));

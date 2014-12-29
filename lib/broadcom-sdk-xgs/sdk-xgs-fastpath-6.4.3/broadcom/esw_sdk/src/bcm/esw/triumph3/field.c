@@ -10305,7 +10305,7 @@ _field_tr3_external_qual_tcam_key_mask_get(int unit,
         f_ent->tcam.key  = sal_alloc(key_size, "field_entry_tcam_key");
         f_ent->tcam.mask = sal_alloc(key_size, "field_entry_tcam_mask");
         if ((NULL == f_ent->tcam.key) || (NULL == f_ent->tcam.mask)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: allocation failure for field_entry tcam\n"),
                        unit));
@@ -10325,7 +10325,7 @@ _field_tr3_external_qual_tcam_key_mask_get(int unit,
         f_ent->tcam.key_hw  = sal_alloc(key_size, "field_entry_tcam_key");
         f_ent->tcam.mask_hw = sal_alloc(key_size, "field_entry_tcam_mask");
         if ((NULL == f_ent->tcam.key_hw) || (NULL == f_ent->tcam.mask_hw)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: allocation failure for field_entry tcam\n"),
                        unit));
@@ -12970,7 +12970,7 @@ _field_tr3_logical_meter_pool_free(int unit,
     f_logical_mp->slice_id = _FP_INVALID_INDEX;
     f_logical_mp->level = -1;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: "
                            "_field_tr3_logical_meter_pool_free()"
@@ -13145,7 +13145,7 @@ _field_tr3_logical_meter_pool_alloc(int unit, _field_stage_t *stage_fc,
     *pool_idx = free_pool;
     *logical_pool_idx = logical_free_pool;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Unit(%d): %s() : Alloted Physical Pool: %d at "
                            "level: %d with corresponding Logical Pool : %d\r\n"),
@@ -13249,7 +13249,7 @@ _field_tr3_logical_meter_pool_entry_alloc (int unit, _field_stage_t *stage_fc,
 
                 f_pl->logical_pool_index = logical_pool_idx;
 
-                LOG_DEBUG(BSL_LS_BCM_FP,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                            "Unit(%d): Alloted Physical Pool(%d): MeterIndex: %d"
                              " at level: %d  corresponding to Logical Pool(%d):"
@@ -13268,7 +13268,7 @@ _field_tr3_logical_meter_pool_entry_alloc (int unit, _field_stage_t *stage_fc,
                     ? ~_FP_POLICER_PEAK_DIRTY
                     : ~_FP_POLICER_COMMITTED_DIRTY;
             } else {
-                LOG_DEBUG(BSL_LS_BCM_FP,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                             "FP(unit %d) Error: Meter alloc called with invalid"
                             " hw_flags=%x\n"), unit, f_pl->hw_flags));
@@ -13291,7 +13291,7 @@ _field_tr3_logical_meter_pool_entry_alloc (int unit, _field_stage_t *stage_fc,
             f_pl->hw_index   = (idx / 2);
             f_pl->logical_pool_index = logical_pool_idx;
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                              "Unit(%d): Alloted Physical Pool(%d):Index: %d at "
                                  "level: %d  corresponding to Logical Pool(%d):"
@@ -13434,7 +13434,7 @@ _field_tr3_logical_meter_pool_entry_free (int unit, _field_stage_t *stage_fc,
         _FP_METER_BMP_REMOVE(f_logical_mp->meter_bmp, logical_idx + 1);
         f_logical_mp->free_meters += 2;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: "
                                "_field_tr3_logical_meter_pool_entry_free()"
@@ -13456,7 +13456,7 @@ _field_tr3_logical_meter_pool_entry_free (int unit, _field_stage_t *stage_fc,
         f_mp->free_meters++;
         f_logical_mp->free_meters++;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: "
                                "_field_tr3_logical_meter_pool_entry_free()"
@@ -14068,7 +14068,7 @@ _bcm_field_tr3_scache_sync(int              unit,
             break;
         case _BCM_FIELD_STAGE_EXTERNAL:
             if (_field_tr3_ext_scache_sync_chk(unit, fc, stage_fc)) {
-                LOG_ERROR(BSL_LS_BCM_FP, \
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                           (BSL_META_U(unit, \
                                       "Configuration of scache size not supported   \
                                       for external stage\n"))); 
@@ -14081,7 +14081,7 @@ _bcm_field_tr3_scache_sync(int              unit,
             return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _bcm_field_tr3_scache_sync() - Synching scache"
                            " for FP stage %d...\n"), unit, stage_fc->stage_id));
@@ -14138,7 +14138,7 @@ _bcm_field_tr3_scache_sync(int              unit,
     }
 
     for (slice_idx = 0; slice_idx < stage_fc->tcam_slices; slice_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: _bcm_field_tr3_scache_sync() - "
                                "Checking slice %d...\n"), unit, slice_idx));
@@ -14223,7 +14223,7 @@ _bcm_field_tr3_scache_sync(int              unit,
         fs = stage_fc->slices[_FP_DEF_INST] + slice_idx;
         /* Skip empty slices */
         if (fs->entry_count == fs->free_count) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) vverb: _bcm_field_tr3_scache_sync() -"
                                    " Slice is empty.\n"), unit));
@@ -14328,7 +14328,7 @@ _bcm_field_tr3_scache_sync(int              unit,
      */
     if (stage_fc->stage_id == _BCM_FIELD_STAGE_INGRESS) {
         /* Saving the ingress logical policer pool mode*/
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: _bcm_field_tr3_scache_sync() -"
                                " Writing Ingress Logical Policer Pool Info at scache"
@@ -14366,7 +14366,7 @@ _bcm_field_tr3_scache_sync(int              unit,
                 (unit, fc, stage_fc, &buf[fc->scache_pos]));
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _bcm_field_tr3_scache_sync() -"
                            " Writing end of section @ byte %d.\n"), unit, fc->scache_pos));
@@ -16411,7 +16411,7 @@ _bcm_field_tr3_stage_ingress_reinit(int              unit,
         /* Check to skip the recovery when not sync'd in warmboot upgrade case*/
         if (recovered_ver_part0 >= BCM_WB_VERSION_1_4)
         {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) vverb: () Recovering Ingress Logical "
                                    " Policer Pool Info from scache position %d \n"), unit,
@@ -17536,7 +17536,7 @@ _field_tr3_profiled_actions_recover(int             unit,
     rv = soc_mem_read(unit, policy_mem, MEM_BLOCK_ANY, entry_idx, 
                       ext_fp_policy_buf.entry_data);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Error while reading policy entry\n")));
         return(rv);
@@ -18024,7 +18024,7 @@ _field_tr3_non_profiled_actions_recover(int             unit,
     rv = soc_mem_read(unit, policy_mem, MEM_BLOCK_ANY, entry_idx, 
                       ext_fp_policy_buf.entry_data);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Error while reading policy entry\n")));
         return(rv);
@@ -18822,7 +18822,7 @@ _field_tr3_stage_external_reinit(int              unit,
         }
         if (result != _FIELD_EXTFP_DATA_START) {
             /* Start sequence not found */
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "0:Start sequence NOT found in scache\n")));
             rv = BCM_E_INTERNAL;
@@ -18838,7 +18838,7 @@ _field_tr3_stage_external_reinit(int              unit,
             }
             if (result != _FIELD_EXTFP_DATA_START) {
                 /* Start sequence not found */
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "1:Start sequence NOT found in scache\n")));
                 rv = BCM_E_INTERNAL;
@@ -18970,7 +18970,7 @@ _field_tr3_stage_external_reinit(int              unit,
                                                                stage_fc,
                                                                0);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_FP, \
+                        LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                                   (BSL_META_U(unit, \
                                               "Group recovery failed during    \
                                               level 2 warmboot\n")));
@@ -18981,7 +18981,7 @@ _field_tr3_stage_external_reinit(int              unit,
 
                 _FP_XGS3_ALLOC(fg, sizeof(*fg), "field group");
                 if (fg == NULL) {
-                    LOG_ERROR(BSL_LS_BCM_FP, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                               (BSL_META_U(unit, \
                                           "Error while allocating memory for   \
                                           field group\n")));
@@ -19116,7 +19116,7 @@ _field_tr3_stage_external_reinit(int              unit,
             /* Add entry to group */
             _FP_XGS3_ALLOC(f_ent, sizeof(*f_ent), "field entry");
             if (f_ent == NULL) {
-                LOG_ERROR(BSL_LS_BCM_FP, \
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                           (BSL_META_U(unit, \
                                       "Error while allocating memory for  \
                                       field entry\n")));
@@ -19172,7 +19172,7 @@ _field_tr3_stage_external_reinit(int              unit,
             rv = soc_mem_read(unit, tcam_data_mem, MEM_BLOCK_ANY, 
                               entry_idx, tcam_buf.entry_data);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "Error while reading tcam data entry\n")));
                 goto cleanup;
@@ -19184,7 +19184,7 @@ _field_tr3_stage_external_reinit(int              unit,
                 rv = soc_mem_read(unit, tcam_mask_mem, MEM_BLOCK_ANY, 0, 
                                   tcam_mask.entry_data);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_FP, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, \
                               (BSL_META_U(unit, \
                                           "Error while reading    \
                                           tcam mask entry\n")));
@@ -19267,7 +19267,7 @@ _field_tr3_stage_external_reinit(int              unit,
         }
         if (result != _FIELD_EXTFP_DATA_END) {
             /* End sequence not found */
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "0:End sequence NOT found in scache\n")));
             rv = BCM_E_INTERNAL;
@@ -19283,7 +19283,7 @@ _field_tr3_stage_external_reinit(int              unit,
             }
             if (result != _FIELD_EXTFP_DATA_END) {
                 /* End sequence not found */
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "1:End sequence NOT found in scache\n")));
                 rv = BCM_E_INTERNAL;

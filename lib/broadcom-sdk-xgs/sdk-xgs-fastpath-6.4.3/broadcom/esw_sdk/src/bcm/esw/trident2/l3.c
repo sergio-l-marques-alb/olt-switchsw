@@ -3030,7 +3030,7 @@ bcm_error_t  _bcm_td2_l3_route_stat_get_table_info(
     table_info[*num_of_tables].direction = bcmStatFlexDirectionIngress;
     (*num_of_tables)++;
 
-    LOG_INFO(BSL_LS_BCM_L3,
+    LOG_BSL_INFO(BSL_LS_BCM_L3,
              (BSL_META_U(unit,
                          "L3 Route Stat: table = %s, index = %d\n"),
               SOC_MEM_NAME(unit, mem), index));
@@ -5334,7 +5334,7 @@ _bcm_td2_l3_defip_mem_get(int unit, uint32 flags, int plen, soc_mem_t *mem)
         }
         /* no v6-128 config. allow only v6-64 */
         if (plen > 64) {
-            LOG_ERROR(BSL_LS_BCM_L3,
+            LOG_BSL_ERROR(BSL_LS_BCM_L3,
                       (BSL_META_U(unit,
                                   "Cannot allow prefix length > 64 in "
                                   "L3_DEFIP\n")));
@@ -5342,7 +5342,7 @@ _bcm_td2_l3_defip_mem_get(int unit, uint32 flags, int plen, soc_mem_t *mem)
         }
     } else if (BCM_XGS3_L3_DEFIP_TBL_SIZE(unit) == 0) {
         /* no l3_defip. cannot insert ipv4 */
-        LOG_ERROR(BSL_LS_BCM_L3,
+        LOG_BSL_ERROR(BSL_LS_BCM_L3,
                   (BSL_META_U(unit,
                               "Cannot allow ipv4 routes in "
                               "L3_DEFIP_PAIR_128\n")));

@@ -268,7 +268,7 @@ at24c64_init(int unit, int devno)
         ltemp = sal_strlen(devname);
         /* Coverity : 21386 */
         if(ltemp > LC2464_NAME_LEN) {
-            LOG_WARN(BSL_LS_SOC_I2C,
+            LOG_BSL_WARN(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "Device name %s too long, trimming it\n"),
                       devname));
@@ -456,7 +456,7 @@ static int at24c64_ioctl(int unit, int devno, int opcode, void* data, int len)
             return 0;
         }
         /* do {*/
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "at24c64_ioctl: BoardID:0x%02x Slot:0x%02x SADDR:0x%02x\n"),
                   board_id, slot_id, bscbus->devs[devno]->saddr));

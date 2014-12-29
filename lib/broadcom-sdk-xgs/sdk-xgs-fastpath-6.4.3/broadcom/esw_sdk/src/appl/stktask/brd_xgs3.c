@@ -118,7 +118,7 @@ _bcm_board_banner(int unit, char *prefix)
         dev += 0x4b000;
     }
     
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: %sBCM%x SDK\n"),
                  prefix, dev));
 
@@ -312,7 +312,7 @@ xgs3devinfo_t xgs3_48f_devinfo[NUMXGS3DEV] = {
 int
 bcm_board_topo_xgs3_48f(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 (2)56102 48FE+2GE+2XHG\n")));
 
     BCM_IF_ERROR_RETURN
@@ -481,38 +481,38 @@ bcm_board_topo_xgs3_48g2(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 
     /* Manage RCPU higig properties */
     if (sal_config_set(spn_RCPU_HIGIG_PORT, rcpu_higig ? "1" : "0") != 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: " spn_RCPU_HIGIG_PORT " set error\n")));
     }
 
     if (sal_config_set(spn_RCPU_RX_PBMP ".1",
                        rcpu_higig ? "0x12" :
                        ((rcpu_port == 4) ? "0x10" : "0x02")) != 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: " spn_RCPU_RX_PBMP ".1 set error\n")));
     }
     
     /* reinit RCPU subsystem with new modids */
     sal_sprintf(modstr, "%d", db_ref->local_entry->mod_ids[0]);
     if (sal_config_set(spn_RCPU_MASTER_MODID, modstr) != 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: " spn_RCPU_MASTER_MODID " set error\n")));
     }
     rv = _bcm_esw_rcpu_init(0);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: rcpu master init error %d (%s)\n"),
                      rv, bcm_errmsg(rv)));
     }
 
     sal_sprintf(modstr, "%d", db_ref->local_entry->mod_ids[1]);
     if (sal_config_set(spn_RCPU_SLAVE_MODID, modstr) != 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: " spn_RCPU_SLAVE_MODID " set error\n")));
     }
     rv=_bcm_esw_rcpu_init(1);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: rcpu slave init error %d (%s)\n"),
                      rv, bcm_errmsg(rv)));
     }

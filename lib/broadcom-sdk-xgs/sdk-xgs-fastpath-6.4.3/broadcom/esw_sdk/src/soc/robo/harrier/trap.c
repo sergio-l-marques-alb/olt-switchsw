@@ -77,7 +77,7 @@ drv_harrier_trap_set(int unit, soc_pbmp_t bmp, uint32 trap_mask)
     uint32  reg_value, temp;
     soc_port_t port = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_harrier_trap_set: unit = %d, trap mask = 0x%x\n"), unit, trap_mask));
 
@@ -205,7 +205,7 @@ drv_harrier_trap_get(int unit, soc_port_t port, uint32 *trap_mask)
         *trap_mask |= DRV_SWITCH_TRAP_BCST;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_harrier_trap_get: unit = %d, trap mask = 0x%x\n"), unit, *trap_mask));
 
@@ -232,7 +232,7 @@ drv_harrier_snoop_set(int unit, uint32 snoop_mask)
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_snoop_set: \
                             unit = %d, snoop mask = 0x%x\n"), unit, snoop_mask));
@@ -293,7 +293,7 @@ drv_harrier_snoop_get(int unit, uint32 *snoop_mask)
        *snoop_mask = DRV_SNOOP_IGMP | DRV_SNOOP_MLD;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_snoop_get: \
                             unit = %d, snoop mask = 0x%x\n"), unit, *snoop_mask));
@@ -385,7 +385,7 @@ drv_harrier_igmp_mld_snoop_mode_set(int unit, int type, int mode)
         } else if (mode == DRV_IGMP_MLD_MODE_SNOOP) {
             temp = HARRIER_REG_IGMP_MLD_SNOOP;
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Unexpect mode assigned!\n"), FUNCTION_NAME(), __LINE__));
             return SOC_E_PARAM;

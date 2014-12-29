@@ -243,7 +243,7 @@ _bcm_attach(int unit, char *type, char *subtype, int remunit, int early_attach)
     bcm_attach_info_t data;
     int len_subtype = 0;
 
-    LOG_INFO(BSL_LS_BCM_ATTACH,
+    LOG_BSL_INFO(BSL_LS_BCM_ATTACH,
              (BSL_META_U(unit,
                          "STK %d: attach %s subtype %s as %d\n"),
               unit, (NULL !=type) ? type: "N/A", 
@@ -328,7 +328,7 @@ _bcm_attach(int unit, char *type, char *subtype, int remunit, int early_attach)
         BUSY_UNLOCK(unit);
         if (old_busy != 0) {
 
-            LOG_ERROR(BSL_LS_BCM_API,
+            LOG_BSL_ERROR(BSL_LS_BCM_API,
                       (BSL_META_U(unit,
                                   "Unit %d busy at attach()\n"),
                        unit));
@@ -564,7 +564,7 @@ bcm_detach(int unit)
     int        rv = BCM_E_NONE;
     bcm_attach_info_t data;
 
-    LOG_INFO(BSL_LS_BCM_ATTACH,
+    LOG_BSL_INFO(BSL_LS_BCM_ATTACH,
              (BSL_META_U(unit,
                          "STK %d: unit being detached\n"),
               unit));

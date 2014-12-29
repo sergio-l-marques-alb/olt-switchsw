@@ -168,7 +168,7 @@ _drv_dino16_search_valid_op(int unit, uint32 *key, uint32 *entry,
                 goto mem_search_valid_get;
             }
 
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  " key %d result0 %x result1 %x entry %x %x entry 1 %x %x\n"),
                       *key, result, result1, 
@@ -519,7 +519,7 @@ _drv_dino16_mem_search(int unit, uint32 mem, uint32 *key,
 
         if (flags & DRV_MEM_OP_SEARCH_CONFLICT) {
             if (entry == NULL) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,entries buffer not allocated!\n"), FUNCTION_NAME()));
                 return SOC_E_PARAM;
@@ -643,12 +643,12 @@ _drv_dino16_mem_search(int unit, uint32 mem, uint32 *key,
             uint32 temp_static1 = 0;
             uint32 temp_static2 = 0;
 
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "DRV_MEM_OP_REPLACE\n")));
 
             if (flags & DRV_MEM_OP_SEARCH_CONFLICT) {
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "%s, Conflict search will not be performed in REPLACE!\n"),
                           FUNCTION_NAME()));
@@ -1498,7 +1498,7 @@ _drv_dino16_mem_arl_entry_delete(int unit, uint8 *mac_addr,
 
     /* can not find a entry to overwrite based on same mac + vid */
     if (binNum == -1) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "entry_not found\n")));
         rv = SOC_E_NOT_FOUND;
@@ -1579,7 +1579,7 @@ static int
         } 
         ARL_SW_TABLE_UNLOCK(soc); 
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc arl table not allocated")));
         rv = SOC_E_FAIL;
@@ -1629,7 +1629,7 @@ drv_dino16_mem_read(int unit, uint32 mem,
 
     sal_memset(&temp_mac_field, 0, sizeof(temp_mac_field));
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_read(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -1875,7 +1875,7 @@ drv_dino16_mem_write(int unit, uint32 mem,
     uint8   temp_mac_addr[6];
     uint64  temp_mac_field;
     
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_write(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -2127,7 +2127,7 @@ drv_dino16_mem_field_get(int unit, uint32 mem,
     uint32  val32;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_field_get(mem=0x%x,field_index=0x%x)\n"),
               mem, field_index));
@@ -2336,7 +2336,7 @@ drv_dino16_mem_field_set(int unit, uint32 mem,
     uint32  val32;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_field_set(mem=0x%x,field_index=0x%x)\n"),
               mem, field_index));
@@ -2522,7 +2522,7 @@ drv_dino16_mem_clear(int unit, uint32 mem)
     uint32  *entry;
     uint32  del_id;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_clear : mem=0x%x\n"), mem));
     switch (mem) {
@@ -2569,7 +2569,7 @@ drv_dino16_mem_clear(int unit, uint32 mem)
     for (del_id = 0; del_id < count; del_id++) {
         rv = DRV_MEM_WRITE(unit, mem, del_id, 1, entry);
         if (rv != SOC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s : failed at mem_id=%d, entry=%d!\n"), 
                       FUNCTION_NAME(), mem, del_id));
@@ -2607,7 +2607,7 @@ drv_dino16_mem_search(int unit, uint32 mem,
     int  rv = SOC_E_NONE;
     int  index;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_search : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -2666,7 +2666,7 @@ drv_dino16_mem_insert(int unit, uint32 mem, uint32 *entry, uint32 flags)
     uint32  vid, control, vid_output, vid_entry;
     int  index, reg_macvid, reg_fwd, reg_len;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_insert : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -2912,7 +2912,7 @@ drv_dino16_mem_delete(int unit, uint32 mem, uint32 *entry,
     uint32  src_port = 0, vlanid = 0;
 
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_dino16_mem_delete : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -3062,7 +3062,7 @@ drv_dino16_mem_delete(int unit, uint32 mem, uint32 *entry,
             vlanid, flags);
 
     } else { /* normal deletion */
-        LOG_INFO(BSL_LS_SOC_MEM,
+        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                  (BSL_META_U(unit,
                              "\t Normal ARL DEL with Static=%d\n"), ag_static_mode));
 
@@ -3096,7 +3096,7 @@ drv_dino16_mem_delete(int unit, uint32 mem, uint32 *entry,
                     soc_ARLA_FWD_ENTRY0r_field_get(unit, (uint32 *)&entry_reg, 
                         ARL_STATICf, &temp);
                     if (temp) {
-                        LOG_INFO(BSL_LS_SOC_MEM,
+                        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                                  (BSL_META_U(unit,
                                              "\t Entry exist with static=%d\n"), temp));
                         rv = SOC_E_NOT_FOUND;
@@ -3122,7 +3122,7 @@ drv_dino16_mem_delete(int unit, uint32 mem, uint32 *entry,
                         ARL_STATICf, &temp);
 
                     if (temp) {
-                        LOG_INFO(BSL_LS_SOC_MEM,
+                        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                                  (BSL_META_U(unit,
                                              "\t Entry exist with static=%d\n"), temp));
                         rv = SOC_E_NOT_FOUND;

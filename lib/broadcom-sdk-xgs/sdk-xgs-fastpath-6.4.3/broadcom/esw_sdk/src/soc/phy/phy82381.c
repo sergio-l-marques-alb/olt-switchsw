@@ -854,7 +854,7 @@ phy82381_cleanup(soc_phymod_ctrl_t *pmc)
     for (idx = 0; idx < pmc->num_phys ; idx++) {
         phy = pmc->phy[idx];
         if (phy == NULL) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(pmc->unit,
                                  "phy object is empty")));
             continue;
@@ -993,7 +993,7 @@ phy82381_probe(int unit, phy_ctrl_t *pc)
         pm_core->type = phy_type;
         rv = phymod_core_identify(pm_core, 0, &found);
         if (SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "port %d: ERROR!!!\n"),
                   pc->port));
@@ -1001,7 +1001,7 @@ phy82381_probe(int unit, phy_ctrl_t *pc)
             return rv;
         }
         if (!found) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "port %d: NOT FOUND!!\n"),
                   pc->port));
@@ -1305,7 +1305,7 @@ phy82381_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (phy_82381_ability_local_get(unit, port, &ability));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy82381_init: u=%d p=%d\n"), unit, port));
 
@@ -1362,7 +1362,7 @@ phy_82381_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abili
     ability->speed_full_duplex = pa_speed;
 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy82381_ability_local_get:unit=%d p=%d sp=%08x\n"),
               unit, port, ability->speed_full_duplex));

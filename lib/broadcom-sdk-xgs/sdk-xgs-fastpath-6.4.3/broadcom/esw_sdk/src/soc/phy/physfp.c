@@ -156,7 +156,7 @@ phy_finisar_sfp_init(int unit, soc_port_t port)
     phy_ctrl_t          *pc;
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_finisar_sfp_init : u=%d p=%d\n"),
               unit, port));
@@ -336,7 +336,7 @@ phy_copper_sfp_enable_set(int unit, soc_port_t port, int enable)
     SOC_IF_ERROR_RETURN
         (MODIFY_PHYFEGE_MII_CTRLr(unit, pc,value,MII_CTRL_PD));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_copper_sfp_enable_set: u=%d p=%d value=%d\n"),
               unit, port,value));

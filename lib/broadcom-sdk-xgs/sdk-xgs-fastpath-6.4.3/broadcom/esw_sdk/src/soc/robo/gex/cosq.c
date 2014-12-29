@@ -84,7 +84,7 @@ drv_gex_queue_port_prio_to_queue_set(int unit, uint8 port, uint8 prio,
        which may be bigger the uint8 and then reuslts in a compilation error */
     uint32  port32 = port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_port_prio_to_queue_set: \
                             unit %d, port = %d, prio = %d, queue_n = %d\n"), 
@@ -213,7 +213,7 @@ drv_gex_queue_port_prio_to_queue_get(int unit, uint8 port, uint8 prio,
     }
     *queue_n = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_port_prio_to_queue_get: \
                             unit %d, port = %d, prio = %d, *queue_n = %d\n"), 
@@ -250,7 +250,7 @@ drv_gex_queue_port_dfsv_set(int unit, uint8 port, uint8 dscp,
        which may be bigger the uint8 and then reuslts in a compilation error */
     uint32  port32 = port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_port_dfsv_set: \
                             unit %d, port = %d, dscp = %d, prio = %d, queue_n = %d\n"), 
@@ -332,7 +332,7 @@ drv_gex_queue_port_dfsv_get(int unit, uint8 port, uint8 dscp,
     SOC_IF_ERROR_RETURN(DRV_QUEUE_PORT_PRIO_TO_QUEUE_GET
         (unit, port, *prio, queue_n));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_port_dfsv_get: \
                             unit %d, port = %d, dscp = %d, *prio = %d, *queue_n = %d\n"), 
@@ -364,7 +364,7 @@ drv_gex_queue_mode_set(int unit, soc_pbmp_t bmp, uint32 flag,
 {
     uint32  reg_value, temp;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_mode_set: \
                             unit %d, bmp = 0x%x, flag = 0x%x, queue mode = %d\n"),
@@ -450,7 +450,7 @@ drv_gex_queue_mode_get(int unit, uint32 port, uint32 flag,
             return SOC_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_mode_get: \
                             unit %d, port = %d, flag = 0x%x, queue mode = %d\n"),
@@ -479,7 +479,7 @@ drv_gex_queue_mode_get(int unit, uint32 port, uint32 flag,
 int 
 drv_gex_queue_count_set(int unit, uint32 port_type, uint8 count)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_count_set: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, count));
@@ -514,7 +514,7 @@ drv_gex_queue_count_get(int unit, uint32 port_type, uint8 *count)
     
     *count = NUM_COS(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_count_get: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, *count));
@@ -549,7 +549,7 @@ drv_gex_queue_WRR_weight_set(int unit, uint32 port_type,
     uint32  reg_value, temp;
     uint32  max_weight = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_WRR_weight_set: \
                             unit %d, port type = %d, bmp = 0x%x, queue = %d, weight = %d\n"),
@@ -603,7 +603,7 @@ drv_gex_queue_WRR_weight_get(int unit, uint32 port_type,
     
     *weight = reg_value;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_WRR_weight_get: \
                             unit %d, port type = %d, port = %d, queue = %d, weight = %d\n"),
@@ -637,7 +637,7 @@ drv_gex_queue_prio_set(int unit, uint32 port, uint8 prio, uint8 queue_n)
     uint8   queue_t = 0;
     int     i = 0, temp = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_prio_set: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -721,7 +721,7 @@ drv_gex_queue_prio_get(int unit, uint32 port, uint8 prio, uint8 *queue_n)
             (unit, 0, new_prio, queue_n));
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_prio_get: \
                             unit %d, port = %d, priority = %d, queue = %d\n"),
@@ -766,7 +766,7 @@ drv_gex_queue_prio_remap_set(int unit, uint32 port, uint8 pre_prio,
     }
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_prio_remap_set: \
                             unit %d, port = %d, pre_prio = %d, prio = %d\n"), 
@@ -948,7 +948,7 @@ drv_gex_queue_prio_remap_get(int unit, uint32 port, uint8 pre_prio,
     }        
     *prio = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_prio_remap_get: \
                             unit %d, port = %d, pre_prio = %d, *prio = %d\n"), 
@@ -980,7 +980,7 @@ drv_gex_queue_dfsv_remap_set(int unit, uint8 dscp, uint8 prio)
     uint64  reg_value;
     int     reg_len, reg_index = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_dfsv_remap_set: \
                             unit %d, dscp = %d, prio = %d\n"), unit, dscp, prio));
@@ -1186,7 +1186,7 @@ drv_gex_queue_dfsv_remap_get(int unit, uint8 dscp, uint8 *prio)
     }
     *prio = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_dfsv_remap_get: \
                             unit %d, dscp = %d, *prio = %d\n"), unit, dscp, *prio));
@@ -1217,7 +1217,7 @@ drv_gex_queue_dfsv_set(int unit, uint8 code_point, uint8 queue_n)
     soc_pbmp_t  pbmp;
     soc_port_t  port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_dfsv_set: \
                             unit %d, code_point = %d, queue_n = %d\n"), unit, code_point, queue_n));
@@ -1302,7 +1302,7 @@ drv_gex_queue_dfsv_get(int unit, uint8 code_point, uint8 *queue_n)
     }
 
 exit:
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_dfsv_get: \
                             unit %d, code_point = %d, *queue_n = %d\n"), unit, code_point, *queue_n));
@@ -1341,7 +1341,7 @@ _drv_gex2_ingress_tc_select_set(int unit, soc_pbmp_t bmp,
     uint32  temp, p;
     soc_pbmp_t in_pbmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s: unit %d, bmp = 0x%x, type = %d, enable=%d\n"),
                  FUNCTION_NAME(), unit, SOC_PBMP_WORD_GET(bmp, 0), type, enable));
@@ -1482,7 +1482,7 @@ _drv_gex2_ingress_tc_select_get(int unit, int port, uint8 type, uint8 *enable)
     uint32  reg_value;
     uint32  temp, expect_val, is_unexpected;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s: unit %d, port = 0x%x, type = %d\n"),
                  FUNCTION_NAME(), unit, port, type));
@@ -1613,7 +1613,7 @@ drv_gex_queue_mapping_type_set(int unit, soc_pbmp_t bmp,
     uint32  reg_value;
     uint32  temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_mapping_type_set: \
                             unit %d, bmp = 0x%x, type = %d, %sable\n"),
@@ -1631,7 +1631,7 @@ drv_gex_queue_mapping_type_set(int unit, soc_pbmp_t bmp,
                 (mapping_type == DRV_QUEUE_MAP_MAC)) {
             return _drv_gex2_ingress_tc_select_set(unit, bmp, mapping_type, state);
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Unavailable mapping type %d!\n"),mapping_type));
             return SOC_E_UNAVAIL;
@@ -1853,7 +1853,7 @@ drv_gex_queue_mapping_type_get(int unit, uint32 port,
                     (unit, port, mapping_type, state));
             goto func_end;
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Unavailable mapping type %d!\n"),mapping_type));
             return SOC_E_UNAVAIL;
@@ -1963,7 +1963,7 @@ drv_gex_queue_mapping_type_get(int unit, uint32 port,
 func_end : 
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT || BCM_NORTHSTARPLUS_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_mapping_type_get: \
                             unit %d, port = %d, type = %d, %sable\n"),
@@ -1993,7 +1993,7 @@ drv_gex_queue_rx_reason_set(int unit, uint8 reason, uint32 queue)
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_rx_reason_set: \
                             unit %d, reason = %d, queue = %d\n"), unit, reason, queue));
@@ -2109,7 +2109,7 @@ drv_gex_queue_rx_reason_get(int unit, uint8 reason, uint32 *queue)
             return SOC_E_UNAVAIL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_gex_queue_rx_reason_get: \
                             unit %d, reason = %d, *queue = %d\n"), unit, reason, *queue));

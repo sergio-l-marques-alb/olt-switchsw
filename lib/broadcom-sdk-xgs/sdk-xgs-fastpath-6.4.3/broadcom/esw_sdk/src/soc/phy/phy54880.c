@@ -1332,7 +1332,7 @@ _phy_54880_medium_change(int unit, soc_port_t port, int force_update)
                 SOC_IF_ERROR_RETURN
                     (_phy_54880_ieee_medium_config_update(unit, port,copper_config));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_54880_link_auto_detect: u=%d p=%d [F->X]\n"),
                       unit, port));
@@ -1348,7 +1348,7 @@ _phy_54880_medium_change(int unit, soc_port_t port, int force_update)
                 SOC_IF_ERROR_RETURN
                     (_phy_54880_br_medium_config_update(unit, port,br_config));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_54880_link_auto_detect: u=%d p=%d [C->X]\n"),
                       unit, port));

@@ -2468,7 +2468,7 @@ soc_mem_addr(int unit, soc_mem_t mem, unsigned array_index, int blk, int index)
         maip = SOC_MEM_ARRAY_INFOP(unit, mem);
         assert(maip);                       /* verify this is memory array information exists */
         assert(array_index < maip->numels); /* verify that the array index is in range */
-        LOG_INFO(BSL_LS_SOC_MEM,
+        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                  (BSL_META_U(unit,
                              "addr: %x, mip->base: %x, blkoff: %x, "
                              "index = %d, mip->gran: %d, * = %x, arr_in = %u, skip = %u\n"), 
@@ -2478,7 +2478,7 @@ soc_mem_addr(int unit, soc_mem_t mem, unsigned array_index, int blk, int index)
         return base + blkoff + (index * mip->gran) + (array_index * maip->element_skip);
     }
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "addr: %x, mip->base: %x, blkoff: %x, "
                          "index = %d, mip->gran: %d, * = %x\n"), 
@@ -2555,7 +2555,7 @@ soc_mem_addr_get(int unit, soc_mem_t mem, unsigned array_index, soc_block_t bloc
         maip = SOC_MEM_ARRAY_INFOP(unit, mem);
         assert(maip);                       /* verify this is memory array information exists */
         assert(array_index < maip->numels); /* verify that the array index is in range */
-        LOG_INFO(BSL_LS_SOC_MEM,
+        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                  (BSL_META_U(unit,
                              "addr: %x, mip->base: %x, block: %x, "
                              "index = %d, mip->gran: %d, * = %x, arr_in = %u, skip = %u\n"), 
@@ -2565,7 +2565,7 @@ soc_mem_addr_get(int unit, soc_mem_t mem, unsigned array_index, soc_block_t bloc
         return mip->base + (index * mip->gran) + (array_index * maip->element_skip);
     } else {
         /* non memory array acces, works also with index 0 of a memory array */
-        LOG_INFO(BSL_LS_SOC_MEM,
+        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                  (BSL_META_U(unit,
                              "addr: %x, mip->base: %x, block: %x, "
                              "index = %d, mip->gran: %d, * = %x\n"), 

@@ -136,7 +136,7 @@ try_reg_value(struct reg_data *rd,
     /* skip 64b registers in sim */
     if (SAL_BOOT_PLISIM) {
         if (!SOC_IS_XGS(rd->unit) && SOC_REG_IS_64(rd->unit,ainfo->reg)) {
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META("Skipping 64 bit %s register in sim\n"),regname));
             return 0;
       }
@@ -144,7 +144,7 @@ try_reg_value(struct reg_data *rd,
 #ifdef BCM_POLAR_SUPPORT
     if (SOC_IS_POLAR(rd->unit)) {
         if ((r = soc_robo_anyreg_read(rd->unit, ainfo, &rd64)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: read reg %s failed: %s\n"),
                        regname, soc_errmsg(r)));
             return -1;
@@ -155,7 +155,7 @@ try_reg_value(struct reg_data *rd,
 #if defined (BCM_ESW_SUPPORT) || defined (BCM_SIRIUS_SUPPORT) || defined (BCM_PETRA_SUPPORT) || \
     defined (BCM_DFE_SUPPORT) || defined (BCM_CALADAN3_SUPPORT)
         if ((r = soc_anyreg_read(rd->unit, ainfo, &rd64)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: read reg %s failed: %s\n"),
                        regname, soc_errmsg(r)));
             return -1;
@@ -176,13 +176,13 @@ try_reg_value(struct reg_data *rd,
     format_uint64(wr_str, wr64);
     format_uint64(mask_str, mask);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Write %s: value %s mask %s\n"),
               regname, wr_str, mask_str));
 #ifdef BCM_POLAR_SUPPORT
     if (SOC_IS_POLAR(rd->unit)) {
         if ((r = soc_robo_anyreg_write(rd->unit, ainfo, wr64)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: write reg %s failed: %s wrote %s (mask %s)\n"),
                        regname, soc_errmsg(r), wr_str, mask_str));
             rd->error = r;
@@ -194,7 +194,7 @@ try_reg_value(struct reg_data *rd,
 #if defined (BCM_ESW_SUPPORT) || defined (BCM_SIRIUS_SUPPORT) || defined (BCM_PETRA_SUPPORT) || \
     defined (BCM_DFE_SUPPORT) || defined (BCM_CALADAN3_SUPPORT)
         if ((r = soc_anyreg_write(rd->unit, ainfo, wr64)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: write reg %s failed: %s wrote %s (mask %s)\n"),
                        regname, soc_errmsg(r), wr_str, mask_str));
             rd->error = r;
@@ -206,7 +206,7 @@ try_reg_value(struct reg_data *rd,
 #ifdef BCM_POLAR_SUPPORT
     if (SOC_IS_POLAR(rd->unit)) {
         if ((r = soc_robo_anyreg_read(rd->unit, ainfo, &rrd64)) < 0) {    	
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: reread reg %s failed: %s after wrote %s (mask %s)\n"),
                        regname, soc_errmsg(r), wr_str, mask_str));
             rd->error = r;
@@ -218,7 +218,7 @@ try_reg_value(struct reg_data *rd,
 #if defined (BCM_ESW_SUPPORT) || defined (BCM_SIRIUS_SUPPORT) || defined (BCM_PETRA_SUPPORT) || \
     defined (BCM_DFE_SUPPORT) || defined (BCM_CALADAN3_SUPPORT)
         if ((r = soc_anyreg_read(rd->unit, ainfo, &rrd64)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: reread reg %s failed: %s after wrote %s (mask %s)\n"),
                        regname, soc_errmsg(r), wr_str, mask_str));
             rd->error = r;
@@ -231,12 +231,12 @@ try_reg_value(struct reg_data *rd,
     format_uint64(rrd_str, rrd64);
     format_uint64(pat_str, pat64);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Read  %s: value %s expecting %s\n"),
               regname, rrd_str, pat_str));
 
     if (COMPILER_64_NE(rrd64, pat64)) {
-        LOG_ERROR(BSL_LS_APPL_COMMON,
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META("ERROR %s: wrote %s read %s (mask %s)\n"),
                    regname, pat_str, rrd_str, mask_str));
         rd->error = SOC_E_FAIL;
@@ -246,7 +246,7 @@ try_reg_value(struct reg_data *rd,
 #ifdef BCM_POLAR_SUPPORT
     if (SOC_IS_POLAR(rd->unit)) {
         if ((r = soc_robo_anyreg_write(rd->unit, ainfo, rd64)) < 0) {    	
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: rewrite reg %s failed: %s\n"),
                        regname, soc_errmsg(r)));
             rd->error = r;
@@ -258,7 +258,7 @@ try_reg_value(struct reg_data *rd,
 #if defined (BCM_ESW_SUPPORT) || defined (BCM_SIRIUS_SUPPORT) || defined (BCM_PETRA_SUPPORT) || \
     defined (BCM_DFE_SUPPORT) || defined (BCM_CALADAN3_SUPPORT)
         if ((r = soc_anyreg_write(rd->unit, ainfo, rd64)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: rewrite reg %s failed: %s\n"),
                        regname, soc_errmsg(r)));
             rd->error = r;
@@ -290,14 +290,14 @@ try_reg_above_64_value(struct reg_data *rd,
     /* skip 64b registers in sim */
     if (SAL_BOOT_PLISIM) {
         if (SOC_REG_IS_64(rd->unit,ainfo->reg)) {
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META("Skipping 64 bit %s register in sim\n"),regname));
             return 0;
       }
     }
 
     if ((r = soc_reg_above_64_get(rd->unit, ainfo->reg, (ainfo->port >= 0) ? ainfo->port : REG_PORT_ANY, 0, rd_val)) < 0) {
-        LOG_ERROR(BSL_LS_APPL_COMMON,
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META("ERROR: read reg %s failed: %s\n"),
                    regname, soc_errmsg(r)));
         return -1;
@@ -316,12 +316,12 @@ try_reg_above_64_value(struct reg_data *rd,
     format_long_integer(wr_str, wr_val, SOC_REG_ABOVE_64_MAX_SIZE_U32);
     format_long_integer(mask_str, mask, SOC_REG_ABOVE_64_MAX_SIZE_U32);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Write %s: value %s mask %s\n"),
               regname, wr_str, mask_str));
 
     if ((r = soc_reg_above_64_set(rd->unit, ainfo->reg, (ainfo->port >= 0) ? ainfo->port : REG_PORT_ANY, 0, wr_val)) < 0) {
-	    LOG_ERROR(BSL_LS_APPL_COMMON,
+	    LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: write reg %s failed: %s wrote %s (mask %s)\n"),
                        regname, soc_errmsg(r), wr_str, mask_str));
         rd->error = r;
@@ -329,7 +329,7 @@ try_reg_above_64_value(struct reg_data *rd,
     }
 
     if ((r = soc_reg_above_64_get(rd->unit, ainfo->reg, (ainfo->port >= 0) ? ainfo->port : REG_PORT_ANY, 0, rrd_val)) < 0) {
-	    LOG_ERROR(BSL_LS_APPL_COMMON,
+	    LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: reread reg %s failed: %s after wrote %s (mask %s)\n"),
                        regname, soc_errmsg(r), wr_str, mask_str));
         rd->error = r;
@@ -340,12 +340,12 @@ try_reg_above_64_value(struct reg_data *rd,
     format_long_integer(rrd_str, rrd_val, SOC_REG_ABOVE_64_MAX_SIZE_U32);
     format_long_integer(pat_str, pat, SOC_REG_ABOVE_64_MAX_SIZE_U32);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Read  %s: value %s expecting %s\n"),
               regname, rrd_str, pat_str));
 
     if (!SOC_REG_ABOVE_64_IS_EQUAL(rrd_val, pat)) {
- 	    LOG_ERROR(BSL_LS_APPL_COMMON,
+ 	    LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR %s: wrote %s read %s (mask %s)\n"),
                        regname, pat_str, rrd_str, mask_str));
 	    rd->error = SOC_E_FAIL;
@@ -353,7 +353,7 @@ try_reg_above_64_value(struct reg_data *rd,
 
     /* put the register back the way we found it */
     if ((r = soc_reg_above_64_set(rd->unit, ainfo->reg, (ainfo->port >= 0) ? ainfo->port : REG_PORT_ANY, 0, rd_val)) < 0) {
-	    LOG_ERROR(BSL_LS_APPL_COMMON,
+	    LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META("ERROR: rewrite reg %s failed: %s\n"),
                        regname, soc_errmsg(r)));
         rd->error = r;
@@ -397,7 +397,7 @@ try_reg(int unit, soc_regaddrinfo_t *ainfo, void *data)
 #ifdef BCM_ENDURO_SUPPORT
     if (SOC_IS_ENDURO(unit) || SOC_IS_HURRICANE(unit) || SOC_IS_KATANA(unit)) {
         if (ainfo->reg == OAM_SEC_NS_COUNTER_64r) {
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping OAM_SEC_NS_COUNTER_64 register\n")));
             return 0;               /* skip OAM_SEC_NS_COUNTER_64 register */
@@ -1145,7 +1145,7 @@ reg_test(int unit, args_t *a, void *pa)
 #endif /* BCM_HAWKEYE_SUPPORT || BCM_ESW_SUPPORT  || DPPCOMPILEENABE */
     COMPILER_REFERENCE(pa);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Register read/write test\n")));
 
@@ -1163,7 +1163,7 @@ reg_test(int unit, args_t *a, void *pa)
             rd.flags |= REGTEST_FLAG_MASK64;
             continue;
         }
-        LOG_WARN(BSL_LS_APPL_COMMON,
+        LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                  (BSL_META_U(unit,
                              "WARNING: unknown argument '%s' ignored\n"), s));
     }
@@ -1187,7 +1187,7 @@ reg_test(int unit, args_t *a, void *pa)
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
         if ((r = soc_sirius_reset(unit)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to reset unit %d: %s\n"),
                        unit, soc_errmsg(r)));
@@ -1201,7 +1201,7 @@ reg_test(int unit, args_t *a, void *pa)
         if (SOC_IS_ARAD(unit))
         {
              if ((r = soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS,SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0) {
-                   LOG_ERROR(BSL_LS_APPL_COMMON,
+                   LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                              (BSL_META_U(unit,
                                          "ERROR: Unable to reinit unit %d: %s\n"), unit, soc_errmsg(r)));
                 goto done;
@@ -1214,7 +1214,7 @@ reg_test(int unit, args_t *a, void *pa)
             r = MBCM_DFE_DRIVER_CALL(unit, mbcm_dfe_drv_blocks_reset, (unit, 0 , NULL));
             if (r != SOC_E_NONE)
             {
-                LOG_ERROR(BSL_LS_APPL_COMMON,
+                LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to reinit unit %d: %s\n"), unit, soc_errmsg(r)));
                 goto done;
@@ -1228,7 +1228,7 @@ reg_test(int unit, args_t *a, void *pa)
             }
 #endif
             if ((r = soc_reset_init(unit)) < 0) {
-                LOG_ERROR(BSL_LS_APPL_COMMON,
+                LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to reset unit %d: %s\n"),
                            unit, soc_errmsg(r)));
@@ -1285,7 +1285,7 @@ reg_test(int unit, args_t *a, void *pa)
         /* Turn off the background MMU processes */
         if ((rv = _soc_triumph3_mem_parity_control(unit, INVALIDm,
                                            SOC_BLOCK_ALL, FALSE)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to stop HW updates on unit %d: %s\n"),
                        unit, soc_errmsg(r)));
@@ -1298,7 +1298,7 @@ reg_test(int unit, args_t *a, void *pa)
         if (SOC_IS_TOMAHAWK(unit)) {
             /* Turn off the background h/w updates, enable cpu access */
             if ((rv = soc_tomahawk_reg_cpu_write_control(unit, TRUE)) < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to stop HW updates on unit %d: %s\n"),
                            unit, soc_errmsg(r)));
@@ -1390,7 +1390,7 @@ reg_test(int unit, args_t *a, void *pa)
         if (SOC_IS_TRIDENT2PLUS(unit)) {
             /* Turn off the background h/w updates, enable cpu access */
             if ((rv = soc_td2_reg_cpu_write_control (unit, TRUE)) < 0) {
-                LOG_ERROR(BSL_LS_APPL_COMMON,
+                LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to stop HW updates : %s\n"),
                            soc_errmsg(r)));
@@ -1449,7 +1449,7 @@ reg_test(int unit, args_t *a, void *pa)
 #ifdef BCM_POLAR_SUPPORT
     if (SOC_IS_POLAR(unit)) {
         if (soc_robo_reg_iterate(unit, try_reg_dispatch, &rd) < 0) {
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Continuing test.\n")));
    	        rv = 0;
@@ -1462,7 +1462,7 @@ reg_test(int unit, args_t *a, void *pa)
 #if defined (BCM_ESW_SUPPORT) || defined (BCM_SIRIUS_SUPPORT) || defined (BCM_PETRA_SUPPORT) || \
     defined (BCM_DFE_SUPPORT) || defined (BCM_CALADAN3_SUPPORT)
         if (soc_reg_iterate(unit, try_reg_dispatch, &rd) < 0) {
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Continuing test.\n")));
 	        rv = 0;
@@ -1492,7 +1492,7 @@ reg_test(int unit, args_t *a, void *pa)
     if (SOC_IS_TRIUMPH3(unit)) {
         if ((rv = _soc_triumph3_mem_parity_control(unit, INVALIDm,
                                            SOC_BLOCK_ALL, TRUE)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to restart HW updates on unit %d: %s\n"),
                        unit, soc_errmsg(r)));
@@ -1505,7 +1505,7 @@ reg_test(int unit, args_t *a, void *pa)
         if (SOC_IS_TOMAHAWK(unit)) {
             /* Turn off the background h/w updates, enable cpu access */
             if ((rv = soc_tomahawk_reg_cpu_write_control(unit, FALSE)) < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to stop HW updates on unit %d: %s\n"),
                            unit, soc_errmsg(r)));
@@ -1631,7 +1631,7 @@ done:
     
         sal_config_set("diag_emulator_partial_init", "0");
         if ((r = soc_reset_init(unit)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to reset unit %d: %s\n"), unit, soc_errmsg(r)));
             return r;
@@ -1674,7 +1674,7 @@ rval_test_proc_above_64(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
     if (rval_test_skip_reg(unit, ainfo)) {
         /* soc_reg_sprint_addr(unit, buf, ainfo);
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping register %s\n"), buf)); */
         return 0;
@@ -1694,7 +1694,7 @@ rval_test_proc_above_64(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
 
     if ((r = soc_reg_above_64_get(rd->unit, ainfo->reg, (ainfo->port >= 0) ? ainfo->port : REG_PORT_ANY, 0, rrd_val)) < 0) {
-        LOG_ERROR(BSL_LS_APPL_COMMON,
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: reread reg %s failed: %s after wrote %s (mask %s)\n"),
                    buf, soc_errmsg(r), wr_str, mask_str));
@@ -1710,7 +1710,7 @@ rval_test_proc_above_64(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
 
     if (!SOC_REG_ABOVE_64_IS_EQUAL(rrd_val, rval)) {
-        LOG_ERROR(BSL_LS_APPL_COMMON,
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
                               "ERROR %s: default %s read %s (mask %s)\n"),
                    buf, rval_str, rrd_str, mask_str));
@@ -1753,7 +1753,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
     if (rval_test_skip_reg(unit, ainfo)) {
         /* soc_reg_sprint_addr(unit, buf, ainfo);
-         LOG_WARN(BSL_LS_APPL_COMMON,
+         LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
                               "Skipping register %s\n"), buf));*/
 
@@ -1763,7 +1763,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
 #ifdef BCM_ENDURO_SUPPORT
     if (SOC_IS_ENDURO(unit) || SOC_IS_HURRICANE(unit)) {
         if (ainfo->reg == OAM_SEC_NS_COUNTER_64r) {
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping OAM_SEC_NS_COUNTER_64 register\n")));
             return 0;                /* skip OAM_SEC_NS_COUNTER_64 register */
@@ -1774,7 +1774,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
 #ifdef BCM_HAWKEYE_SUPPORT
     if (SOC_IS_HAWKEYE(unit)) {
         if (ainfo->reg == MAC_MODEr) {
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping MAC_MODE register\n")));
             return 0;                /* skip MAC_MODE register */
@@ -1795,7 +1795,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
 #ifdef BCM_HURRICANE2_SUPPORT
     if (SOC_IS_HURRICANE2(unit)) {
         if (ainfo->reg == TOP_XG_PLL0_CTRL_3r) {
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping TOP_XG_PLL0_CTRL_3 register\n"))); 
             return 0;
@@ -1816,7 +1816,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
                 soc_reg_sprint_addr(unit, buf, ainfo);
 #endif /* BCM_ESW_SUPPORT || BCM_SIRIUS_SUPPORT || BCM_PETRA_SUPPORT || BCM_DFE_SUPPORT */
             }
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                      (BSL_META_U(unit,
                                  "Skipping 64 bit %s register in sim\n"),buf));
             return 0;
@@ -1902,7 +1902,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
 #ifdef BCM_POLAR_SUPPORT
     if (SOC_IS_POLAR(rd->unit)) {
         if ((r = soc_robo_anyreg_read(rd->unit, ainfo, &value)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: read reg %s (0x%x) failed: %s\n"),
                        buf, ainfo->addr, soc_errmsg(r)));
@@ -1915,7 +1915,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
 #if defined (BCM_ESW_SUPPORT) || defined (BCM_SIRIUS_SUPPORT) || defined (BCM_PETRA_SUPPORT) || \
     defined (BCM_DFE_SUPPORT) || defined (BCM_CALADAN3_SUPPORT)
         if ((r = soc_anyreg_read(rd->unit, ainfo, &value)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: read reg %s (0x%x) failed: %s\n"),
                        buf, ainfo->addr, soc_errmsg(r)));
@@ -1927,7 +1927,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
     format_uint64(val_str, value);
     format_uint64(rmsk_str, rmsk);
     format_uint64(rval_str, rval);
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Read %s: reset mask %s, reset value %s, read %s\n"),
               buf, rmsk_str, rval_str, val_str));
@@ -1943,7 +1943,7 @@ rval_test_proc(int unit, soc_regaddrinfo_t *ainfo, void *data)
         format_uint64(rval_str, rval);
         COMPILER_64_AND(value, rmsk);
         format_uint64(val_str, value);
-        LOG_ERROR(BSL_LS_APPL_COMMON,
+        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: %s: expected %s, got %s, reset mask %s\n"),
                    buf, rval_str, val_str, rmsk_str));
@@ -1965,7 +1965,7 @@ rval_test(int unit, args_t *a, void *pa)
 
     COMPILER_REFERENCE(pa);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Register reset value test\n")));
 
@@ -1973,7 +1973,7 @@ rval_test(int unit, args_t *a, void *pa)
     rd.error = SOC_E_NONE;
     rd.flags = 0;
     while ((s = ARG_GET(a)) != NULL) {
-        LOG_WARN(BSL_LS_APPL_COMMON,
+        LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                  (BSL_META_U(unit,
                              "WARNING: unknown argument '%s' ignored\n"), s));
     }
@@ -1999,7 +1999,7 @@ rval_test(int unit, args_t *a, void *pa)
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
         if ((r = soc_sirius_reset(unit)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to reset unit %d: %s\n"),
                        unit, soc_errmsg(r)));
@@ -2017,7 +2017,7 @@ rval_test(int unit, args_t *a, void *pa)
             r = MBCM_DFE_DRIVER_CALL(unit, mbcm_dfe_drv_blocks_reset, (unit, 0 , NULL));
             if (r != SOC_E_NONE)
             {
-                LOG_ERROR(BSL_LS_APPL_COMMON,
+                LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to reinit unit %d: %s\n"), unit, soc_errmsg(r)));
                 goto done;
@@ -2031,7 +2031,7 @@ rval_test(int unit, args_t *a, void *pa)
             soc_counter_stop(unit);
             sal_sleep(1);            
             if ((r = soc_device_reset(unit, SOC_DCMN_RESET_MODE_REG_ACCESS,SOC_DCMN_RESET_ACTION_INOUT_RESET)) < 0) {
-                LOG_ERROR(BSL_LS_APPL_COMMON,
+                LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to reinit unit %d: %s\n"), unit, soc_errmsg(r)));
                 rv = BCM_E_FAIL;
@@ -2054,7 +2054,7 @@ rval_test(int unit, args_t *a, void *pa)
 #ifdef BCM_POLAR_SUPPORT
                 if (SOC_IS_POLAR(unit)) {
                     if ((r = soc_robo_chip_reset(unit)) < 0) {
-                        LOG_ERROR(BSL_LS_APPL_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                                   (BSL_META_U(unit,
                                               "ERROR: Unable to reset unit %d: %s\n"),
                                    unit, soc_errmsg(r)));
@@ -2064,7 +2064,7 @@ rval_test(int unit, args_t *a, void *pa)
 #endif /* BCM_POLAR_SUPPORT */
                 {
                     if ((r = soc_reset_init(unit)) < 0) {
-                        LOG_ERROR(BSL_LS_APPL_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                                   (BSL_META_U(unit,
                                               "ERROR: Unable to reset unit %d: %s\n"),
                                    unit, soc_errmsg(r)));
@@ -2142,7 +2142,7 @@ rval_test(int unit, args_t *a, void *pa)
 #ifdef BCM_SIRIUS_SUPPORT
     if (SOC_IS_SIRIUS(unit)) {
         if ((r = soc_sirius_reset(unit)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to reset unit %d: %s\n"),
                        unit, soc_errmsg(r)));
@@ -2155,7 +2155,7 @@ rval_test(int unit, args_t *a, void *pa)
         if (SOC_IS_ARAD(unit))
         {
             if ((r = soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS,SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0) {
-                LOG_ERROR(BSL_LS_APPL_COMMON,
+                LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Unable to reinit unit %d: %s\n"), unit, soc_errmsg(r)));
             
@@ -2166,14 +2166,14 @@ rval_test(int unit, args_t *a, void *pa)
         if (SOC_IS_DFE(unit))
         {
             
-            LOG_WARN(BSL_LS_APPL_COMMON,
+            LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "Warning: Run 'tr 141' in order to reset unit %d\n"), unit));
             
         } else 
 #endif
         if ((r = soc_reset_init(unit)) < 0) {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: Unable to reset unit %d: %s\n"),
                        unit, soc_errmsg(r)));
@@ -2217,7 +2217,7 @@ brdc_blk_test_info_get(int unit, int max_size, soc_reg_brdc_block_info_t *brdc_i
         rv = MBCM_DFE_DRIVER_CALL(unit, mbcm_dfe_drv_test_brdc_blk_info_get, (unit, max_size, brdc_info, actual_size));
         if (rv < 0)
         {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: unit %d : %s\n"),
                                 unit, soc_errmsg(rv)));
@@ -2262,7 +2262,7 @@ brdc_blk_test_reg_filter(int unit, soc_reg_t reg, int *is_filter)
         rv = MBCM_DFE_DRIVER_CALL(unit, mbcm_dfe_drv_test_brdc_blk_filter, (unit, reg, is_filter));
         if (rv < 0)
         {
-            LOG_ERROR(BSL_LS_APPL_COMMON,
+            LOG_BSL_ERROR(BSL_LS_APPL_COMMON,
                         (BSL_META_U(unit, "ERROR: unit %d register %d : %s\n"), unit, reg, soc_errmsg(rv)));
             return rv;
         }
@@ -2363,7 +2363,7 @@ brdc_blk_test(int unit, args_t *a, void *pa)
     rv = brdc_blk_test_info_get(unit, BRDC_BLOCKS_TEST_MAX_BLOCKS ,brdc_blk_info, &count);
     if (rv < 0)
     {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                     (BSL_META_U(unit, "brdc_blk_test: ERROR: unit %d : %s\n"), unit, soc_errmsg(rv)));
         return rv;
     }
@@ -2393,18 +2393,18 @@ brdc_blk_test(int unit, args_t *a, void *pa)
                 rv = brdc_blk_test_reg_filter(unit, reg, &is_filter);
                 if (rv < 0)
                 {
-                    LOG_ERROR(BSL_LS_APPL_TESTS,
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                 (BSL_META_U(unit, "brdc_blk_test: ERROR: unit %d, register %s : %s\n"), unit, reg_name, soc_errmsg(rv)));
                     return rv;
                 }
                 if (is_filter)
                 {
-                    LOG_VERBOSE(BSL_LS_APPL_TESTS,
+                    LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                         (BSL_META_U(unit, "brdc_blk_test: Filtering unit %d register %s\n"), unit, reg_name));
                     continue;
                 }
 
-                LOG_VERBOSE(BSL_LS_APPL_TESTS,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                                 (BSL_META_U(unit, "brdc_blk_test: Testing unit %d register %s \n"), unit, reg_name));
                 
                 /*Iterate over all possible indexes*/
@@ -2414,7 +2414,7 @@ brdc_blk_test(int unit, args_t *a, void *pa)
                     rv = soc_reg_above_64_set(unit, reg, 0, index, reg_above_64);
                     if (rv < 0)
                     {
-                        LOG_ERROR(BSL_LS_APPL_TESTS,
+                        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                     (BSL_META_U(unit, "brdc_blk_test: ERROR: unit %d, register %s : %s\n"), unit, reg_name, soc_errmsg(rv)));
                         return rv;
                     }
@@ -2430,7 +2430,7 @@ brdc_blk_test(int unit, args_t *a, void *pa)
                          rv = brdc_blk_test_reg_addr_get(unit, reg, acc_type, addr, SOC_BLOCK2SCH(unit, blk_instance), &reg_above_64_get);
                          if (rv < 0)
                          {
-                             LOG_ERROR(BSL_LS_APPL_TESTS,
+                             LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                         (BSL_META_U(unit, "brdc_blk_test: ERROR: unit %d, register %s : %s\n"), unit, reg_name, soc_errmsg(rv)));
                              result = BCM_E_FAIL;
                              continue;
@@ -2438,7 +2438,7 @@ brdc_blk_test(int unit, args_t *a, void *pa)
 
                          if (!SOC_REG_ABOVE_64_IS_EQUAL(reg_above_64_get, reg_above_64))
                          {
-                             LOG_ERROR(BSL_LS_APPL_TESTS,
+                             LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                             (BSL_META_U(unit, "brdc_blk_test: ERROR: unit %d, register %s : %s\n"), unit, reg_name, soc_errmsg(BCM_E_FAIL)));
                              result = BCM_E_FAIL;
                              continue;

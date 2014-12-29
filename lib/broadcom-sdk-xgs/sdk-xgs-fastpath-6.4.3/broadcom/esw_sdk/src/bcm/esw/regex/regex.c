@@ -145,7 +145,7 @@
 #include <bcm_int/regex_api.h>
 #define RE_SAL_TOI(s1,base) sal_ctoi((s1),NULL)
 #define RE_SAL_ITOA(s1,u,base)  sal_itoa((s1),u,base,0,0)
-#define RE_SAL_DPRINT(args)  LOG_INFO(BSL_LS_BCM_REGEX, args)
+#define RE_SAL_DPRINT(args)  LOG_BSL_INFO(BSL_LS_BCM_REGEX, args)
 
 #else
 

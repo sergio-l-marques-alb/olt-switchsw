@@ -123,7 +123,7 @@
 #define SERDES_COPPER_AMP_WAR        0    /* Needed for A0 only, NOT A1/A2 */
 #define ADC_PERF_WAR                1    /* Needed for A0, A1, A2 */
 
-#define DPRINTF(_s)             LOG_INFO(BSL_LS_SOC_PHY, _s)
+#define DPRINTF(_s)             LOG_BSL_INFO(BSL_LS_SOC_PHY, _s)
 
 #define GMII_MODE(unit, port)        (!PHY_TBI_MODE(unit, port))
 

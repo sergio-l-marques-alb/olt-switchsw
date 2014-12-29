@@ -82,49 +82,49 @@
 #define ACC_TOKEN (NUM_EXT_PORTS+5)
 #define CMIC(a) {				\
 			mmu_tdm_tbl[a]=0; 	\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("CMIC\n"))); \
 			break;			\
 		}
 #define LPBK(a) {					\
 			mmu_tdm_tbl[a]=129; 		\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("LOOPBACK\n"))); 	\
 			break;				\
 		}
 #define ANCL(a) {					\
 			mmu_tdm_tbl[a]=IDL_TOKEN; 	\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("OPPORTUNISTIC\n")));	\
 			break;				\
 		}
 #define REFR(a) {					\
 			mmu_tdm_tbl[a]=NUM_EXT_PORTS; 	\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("IDLE\n")));	\
 			break;				\
 		}
 #define MM13(a) {						\
 			mmu_tdm_tbl[a]=13; 			\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("management phyport 13\n")));\
 			break;					\
 		}
 #define MM14(a) {						\
 			mmu_tdm_tbl[a]=14; 			\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("management phyport 14\n")));\
 			break;					\
 		}
 #define MM15(a) {						\
 			mmu_tdm_tbl[a]=15; 			\
-			LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                                     (BSL_META("management phyport 15\n")));\
 			break;					\
 		}
 #define MM16(a) {						\
 			mmu_tdm_tbl[a]=16; 			\
-			LOG_VERBOSE(BSL_LS_SOC_TDM, \
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM, \
                                     (BSL_META("management phyport 16\n")));\
 			break;					\
 		}
@@ -279,7 +279,7 @@ void print_port(int wc_array[NUM_WC][4])
 	int i,j;
   	for(i=0; i<NUM_WC; i++) {
       	for (j=0; j<4; j++) {
-         	LOG_VERBOSE(BSL_LS_SOC_TDM,
+         	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: Warpcore #%0d, subport #%0d, contains physical port #%0d\n"),
                              i, j, wc_array[i][j]));
       	}
@@ -464,11 +464,11 @@ void parse_mmu_tdm_tbl(int bw, int mgmt_bw, int mmu_tdm_tbl[256], int mmu_tdm_ov
    for (j=0; j<16; j++) {if (mmu_tdm_ovs_1[j]!=NUM_EXT_PORTS || mmu_tdm_ovs_2[j]!=NUM_EXT_PORTS || mmu_tdm_ovs_3[j]!=NUM_EXT_PORTS || mmu_tdm_ovs_4[j]!=NUM_EXT_PORTS) {oversub=TRUE;}}
      for (j=0; j<k; j++) {
 	 if (mmu_tdm_tbl[j]!=ACC_TOKEN) {
-             LOG_VERBOSE(BSL_LS_SOC_TDM,
+             LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                          (BSL_META("TDM: PIPE: %s, MMU TDM TABLE, element #%0d, contains physical port #%0d\n"), name, j, mmu_tdm_tbl[j]));
          }
 	 else {
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, MMU TDM TABLE, element #%0d, CONTAINS ACCESSORY TOKEN - assigned as "), name, j));
 		/* hierarchically determine how to assign the accessory token */
 		m++;
@@ -542,7 +542,7 @@ void parse_mmu_tdm_tbl(int bw, int mgmt_bw, int mmu_tdm_tbl[256], int mmu_tdm_ov
 						}
 					}
 					else if (mgmt_bw==1) {
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("UNSUPPORTED\n")));
 					}
 				}
@@ -744,7 +744,7 @@ void parse_mmu_tdm_tbl(int bw, int mgmt_bw, int mmu_tdm_tbl[256], int mmu_tdm_ov
 					}
 					else if (mgmt_bw==1)
 					{
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("UNSUPPORTED\n")));
 					}
 				}
@@ -846,32 +846,32 @@ void parse_mmu_tdm_tbl(int bw, int mgmt_bw, int mmu_tdm_tbl[256], int mmu_tdm_ov
 		}
 		else
 		{
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("INVALID PARAMETERS\n")));
 		}
 	 }
       }
 	for (j=0; j<16; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, MMU OVS BUCKET 1, element #%0d, "
                                       "contains physical port #%0d\n"), name, j, mmu_tdm_ovs_1[j]));
 	}
 	for (j=0; j<16; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, MMU OVS BUCKET 2, element #%0d, "
                                       "contains physical port #%0d\n"), name, j, mmu_tdm_ovs_2[j]));
 	}
 	for (j=0; j<16; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, MMU OVS BUCKET 3, element #%0d, "
                                       "contains physical port #%0d\n"), name, j, mmu_tdm_ovs_3[j]));
 	}
 	for (j=0; j<16; j++)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: PIPE: %s, MMU OVS BUCKET 4, element #%0d, "
                                       "contains physical port #%0d\n"), name, j, mmu_tdm_ovs_4[j]));
 	}
@@ -893,17 +893,17 @@ void print_tdm_tbl(int pgw_tdm_tbl[32], const char* name)
 		switch (pgw_tdm_tbl[j])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: PIPE: %s, TDM Calendar, element #%0d, "
                                                       "contains an invalid or disabled port\n"), name, j));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: PIPE: %s, TDM Calendar, element #%0d, "
                                                       "contains an oversubscription token\n"), name, j));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: PIPE: %s, TDM Calendar, element #%0d, "
                                                       "contains physical port #%0d\n"), name, j, pgw_tdm_tbl[j]));
 				break;
@@ -922,217 +922,217 @@ static
 void print_tbl_summary(int x0[32], int x1[32], int y0[32], int y1[32], int ox0[32], int ox1[32], int oy0[32], int oy1[32], int sx0[32], int sx1[32], int sy0[32], int sy1[32], int bw)
 {
 	int t;
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: core bandwidth is %0d\n"), bw));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: X0, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (x0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), x0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: X0, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (ox0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), ox0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: X0, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sx0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), sx0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: X1, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (x1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), x1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: X1, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (ox1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), ox1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: X1, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sx1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), sx1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: Y0, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (y0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), y0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: Y0, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (oy0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), oy0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: Y0, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sy0[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), sy0[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: Y1, TDM Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (y1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			case 131:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" O")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), y1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: Y1, OVS Calendar\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (oy1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), oy1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\nTDM: Y1, OVS Spacing Info\n")));
 	for (t = 0; t < 32; t++)
 	{
 		switch (sy1[t])
 		{
 			case 130:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" x")));
 				break;
 			default:
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META(" %0d"), sy1[t]));
 				break;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("\n")));
 }
 
@@ -1166,7 +1166,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	int microsub = FALSE;
 	int pad_40g_in_480g = FALSE;
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: ----------------------------------------------------------------\n")));
 	/* set layer 1 TDM max subspace length */
 	switch(bw) 
@@ -1241,7 +1241,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	/* assert( (num_lr_10+num_lr_20+num_lr_40+num_lr_100+num_lr_120) <= num_lr ); */
 	if ((num_lr_1+num_lr_10+num_lr_20+num_lr_40+num_lr_100+num_lr_120) != num_lr)
 	{
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("TDM: _____FATAL ERROR: port allocation mismatch detected\n")));
 		return 0;
 	}
@@ -1254,7 +1254,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	{
 		if (num_lr_1==0)
 		{
-			LOG_ERROR(BSL_LS_SOC_TDM,
+			LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____FATAL ERROR: bandwidth overloaded\n")));
 			return 0;
 		}
@@ -1264,7 +1264,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			max_tdm_len=num_lr_1;
 			/* if (num_lr_1 % 4 != 0)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                           (BSL_META("TDM: _____FATAL ERROR: illegal 1G configuration\n")));
 				return 0;
 			}
@@ -1273,7 +1273,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 		}
 		else if ( (num_lr_1!=0 && ((num_lr_10!=0) || (num_lr_20!=0) || (num_lr_40!=0) || (num_lr_100!=0) || (num_lr_120!=0))) )
 		{
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: bandwidth granularity insufficient, using 1G microscheduling\n")));
 			microsub=TRUE;
 		}
@@ -1287,7 +1287,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	/* calculate base number of OVS tokens required */
 	if (num_ovs > 0)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: oversub detected\n")));
 		
 		if (num_lr_100!=1 && l1_tdm_len!=0)
@@ -1304,11 +1304,11 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 		else if (l1_tdm_len == 0) l1_ovs_cnt = max_tdm_len;
 		
 		if ((l1_ovs_cnt==0) && (op_flags[0]==0)) {
-                    LOG_ERROR(BSL_LS_SOC_TDM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                               (BSL_META("TDM: _____ERROR: unable to partition oversubscription tokens\n")));
                 }
 		else {
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: %0d oversub tokens assigned\n"), l1_ovs_cnt));
                 }
 	}
@@ -1317,34 +1317,34 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 		pad_40g_in_480g = TRUE;
 	}
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: base oversubscription token pool is %0d\n"), l1_ovs_cnt));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: ----------------------------------------------------------------\n")));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 1G line rate ports in this quadrant is %0d\n"), num_lr_1));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 10G line rate ports in this quadrant is %0d\n"), num_lr_10));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 20G line rate ports in this quadrant is %0d\n"), num_lr_20));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 40G line rate ports in this quadrant is %0d\n"), num_lr_40));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 100G gestalt line rate ports in this quadrant is %0d\n"), num_lr_100));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: 120G gestalt line rate ports in this quadrant is %0d\n"), num_lr_120));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: oversubscribed ports in this quadrant is %0d\n"), num_ovs));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: disabled subports in this quadrent is %0d\n"), num_off));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: COVERAGE FROM PHYSICAL PORTS %0d to %0d\n"), iter3, stop1));
 
 	if (microsub==TRUE)
 	{
 		if ( (num_ovs==0) && ( (op_flags[0]==1) || ( (((num_lr_1)+(10*num_lr_10)+(20*num_lr_20)+(40*num_lr_40)+(100*num_lr_100)+(120*num_lr_120)) > 32) ) ) )
 		{
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: shunting all 1G into oversub table\n")));
 			op_flags[0]=1;
 			for (l=iter3; l<stop1; l++) {
@@ -1361,7 +1361,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			int pgw_tdm_idx_lookback = 0;
 			int sm_iter = 0;
 			l1_ovs_cnt = ((max_tdm_len-(num_lr_10)-(num_lr_20*2)-(num_lr_40*4)-(num_lr_100*10)-(num_lr_120*12))/4);
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: oversub tokens increased to %0d\n"), l1_ovs_cnt));
 			while (sm_iter < NUM_EXT_PORTS)
 			{
@@ -1373,7 +1373,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 				if (*cur_idx >= upperlimit)
 				{
 					/* table post processing */
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____DEBUG: entering post-processing 1, "
                                                               "executing lookback %0d against subset limit %0d\n"),
                                                      pgw_tdm_idx_lookback, pgw_tdm_idx_sub));
@@ -1383,7 +1383,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						while (ovs_pad_iter < l1_ovs_cnt && pgw_tdm_idx_lookback < pgw_tdm_idx_sub)
 						{
 							pgw_tdm_tbl[*pgw_tdm_idx] = OVS_TOKEN;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                               "insert OVS token\n"), upperlimit, *pgw_tdm_idx));
 							(*pgw_tdm_idx)++;
@@ -1405,9 +1405,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					return 1;
 				}
 				
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: ----------------------------------------------------------------\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: _____DEBUG: the present port is %0d, speed %0d\n"),
                                              wc_array[*cur_idx][subp],speed[wc_array[*cur_idx][subp]]));
 
@@ -1415,9 +1415,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 				switch(port_state_map[(wc_array[*cur_idx][subp])-1])
 				{
 					case 0:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is DISABLED\n")));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d "
                                                                       "would be an invalid port\n"), upperlimit, *pgw_tdm_idx));
 						if (num_lr > 0 && num_ovs > 0)
@@ -1430,19 +1430,19 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						break;
 					/* this only iterates by active port (not lane) so it should never see this */	
 					/* case 3:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is part of a DUAL/QUAD/100G\n"))); */
 					case 1:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is LINE RATE\n")));
 						if (num_ovs == 0)
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 							while ((*z) > 0 && pgw_tdm_tbl[(*pgw_tdm_idx)-1] != swap_array[*z])
 							{
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d priority dequeuing "
                                                                                       "from LIFO swap buffer, pointer index %0d, "
                                                                                       "to pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -1450,13 +1450,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 								(*pgw_tdm_idx)++;
 								(*z)--;
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 							}
 							if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0))
 							{
 								pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl "
                                                                                       "element #0%0d, content is %0d\n"),
                                                                              upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -1467,7 +1467,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							{
 								(*z)++;
 								swap_array[*z] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                                       "LIFO swap buffer at index %0d\n"),
                                                                              upperlimit, wc_array[*cur_idx][subp], *z));
@@ -1480,7 +1480,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						}
 						else if (num_ovs > 0)
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 							if ((*z) > 0 && 
@@ -1488,7 +1488,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								pgw_tdm_tbl[(*pgw_tdm_idx)-1] == OVS_TOKEN &&
 								(pgw_tdm_idx_lookback < (pgw_tdm_idx_sub-l1_ovs_cnt)))
 							{
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                                       "LIFO swap buffer, pointer index %0d, to pgw "
                                                                                       "tdm tbl element #0%0d, content is %0d\n"),
@@ -1497,7 +1497,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								(*pgw_tdm_idx)++;
 								(*z)--;
 								pgw_tdm_idx_lookback++;
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 							}
 							while ((*z) > 0 && 
@@ -1505,7 +1505,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								pgw_tdm_tbl[(*pgw_tdm_idx)-1] != OVS_TOKEN &&
 								(pgw_tdm_idx_lookback < (pgw_tdm_idx_sub-l1_ovs_cnt)))
 							{
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d priority dequeuing from"
                                                                                       "LIFO swap buffer, pointer index %0d, to pgw "
                                                                                       "tdm tbl element #0%0d, content is %0d\n"),
@@ -1514,14 +1514,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								(*pgw_tdm_idx)++;
 								(*z)--;
 								pgw_tdm_idx_lookback++;
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 							}
 							if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0) && 
 								(pgw_tdm_idx_lookback < (pgw_tdm_idx_sub-l1_ovs_cnt)))
 							{
 								pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                                       "content is %0d\n"),
                                                                              upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -1533,7 +1533,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							{
 								(*z)++;
 								swap_array[*z] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                                       "LIFO swap buffer at index %0d\n"),
                                                                              upperlimit, wc_array[*cur_idx][subp], *z));
@@ -1542,14 +1542,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						}
 						break;
 					case 2:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is OVERSUBSCRIBED\n")));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the ovs_tdm_idx is %0d\n"), *ovs_tdm_idx));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 						ovs_tdm_tbl[*ovs_tdm_idx] = wc_array[*cur_idx][subp];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d the ovs tdm tbl element #0%0d, "
                                                                       "content is %0d\n"),
                                                              upperlimit, *ovs_tdm_idx,  ovs_tdm_tbl[*ovs_tdm_idx]));
@@ -1572,7 +1572,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 				if (*cur_idx >= upperlimit) 
 				{
 					/* table post processing */
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____DEBUG: entering post-processing 2, "
                                                               "executing lookback %0d against subset limit %0d\n"),
                                                      pgw_tdm_idx_lookback, pgw_tdm_idx_sub));
@@ -1582,7 +1582,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						while (ovs_pad_iter < l1_ovs_cnt && pgw_tdm_idx_lookback < pgw_tdm_idx_sub)
 						{
 							pgw_tdm_tbl[*pgw_tdm_idx] = OVS_TOKEN;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                               "insert OVS token\n"), upperlimit, *pgw_tdm_idx));
 							(*pgw_tdm_idx)++;
@@ -1609,7 +1609,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 		}
 		else if ( (32-((10*num_lr_10)+(20*num_lr_20)+(10*l1_ovs_cnt))) >= num_lr_1 )
 		{
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: using per quadrant granularity reduction\n")));
 			for (gestalt_id_iter = iter3; gestalt_id_iter < stop1; gestalt_id_iter++) 
 			{
@@ -1619,7 +1619,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					gestalt_id = (gestalt_id_iter + 1);
 			}
 			
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: scheduling all 1G in line rate as "
                                               "1G granularity slots\n")));
 			max_tdm_len=((num_lr_1)+(10*num_lr_10)+(20*num_lr_20));
@@ -1647,18 +1647,18 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					return 1;
 				}
 				
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: ----------------------------------------------------------------\n")));
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: _____VERBOSE: the present x1G port is %0d\n"),
                                              wc_array[*cur_idx][subp]));
 
 				switch(port_state_map[(wc_array[*cur_idx][subp])-1])
 				{
 					case 0:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is DISABLED\n")));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d "
                                                                       "would be an invalid port\n"), upperlimit, *pgw_tdm_idx));
 						if (pgw_tdm_tbl[*pgw_tdm_idx] != gestalt_id)
@@ -1671,14 +1671,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						{
 							(*z)++;
 							swap_array[*z] = OVS_TOKEN;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d pushed an OVS token into "
                                                                               "LIFO swap buffer at index %0d\n"), upperlimit, *z));
 							(*cur_idx)++;
 						}
 						break;
 					case 1:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is LINE RATE\n")));
 						while (pgw_tdm_tbl[(*pgw_tdm_idx)] == gestalt_id) (*pgw_tdm_idx)++;
 						while (swap_array[*z] == gestalt_id)
@@ -1688,13 +1688,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						}
 						if (num_ovs == 0)
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 							while ((*z) > 0 && 
 										pgw_tdm_tbl[(*pgw_tdm_idx)-1] != swap_array[*z])
 							{
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                                       "LIFO swap buffer, pointer index %0d, to pgw "
                                                                                       "tdm tbl element #0%0d, content is %0d\n"),
@@ -1702,13 +1702,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 								(*pgw_tdm_idx)++;
 								(*z)--;
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 							}
 							if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0))
 							{
 								pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                                       "content is %0d\n"),
                                                                              upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -1719,7 +1719,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							{
 								(*z)++;
 								swap_array[*z] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                                       "LIFO swap buffer at index %0d\n"),
                                                                              upperlimit, wc_array[*cur_idx][subp], *z));
@@ -1729,14 +1729,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						}
 						else if (num_ovs > 0)
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 							if ((*z) > 0 && 
 									pgw_tdm_tbl[(*pgw_tdm_idx)-2] != swap_array[*z] &&
 									pgw_tdm_tbl[(*pgw_tdm_idx)-1] == OVS_TOKEN)
 							{
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                                       "LIFO swap buffer, pointer index %0d, to pgw "
                                                                                       "tdm tbl element #0%0d, content is %0d\n"),
@@ -1744,14 +1744,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 								(*pgw_tdm_idx)++;
 								(*z)--;
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 							}
 							while ((*z) > 0 && 
 										pgw_tdm_tbl[(*pgw_tdm_idx)-1] != swap_array[*z] && 
 										pgw_tdm_tbl[(*pgw_tdm_idx)-1] != OVS_TOKEN)
 							{
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                                       "LIFO swap buffer, pointer index %0d, to pgw "
                                                                                       "tdm tbl element #0%0d, content is %0d\n"),
@@ -1759,14 +1759,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 								pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 								(*pgw_tdm_idx)++;
 								(*z)--;
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 							}
 							if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0) &&
 											wc_array[*cur_idx][subp] != gestalt_id)
 							{
 								pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                                       "content is %0d\n"),
                                                                              upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -1777,7 +1777,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							{
 								(*z)++;
 								swap_array[*z] = wc_array[*cur_idx][subp];
-								LOG_VERBOSE(BSL_LS_SOC_TDM,
+								LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                             (BSL_META("TDM: Pipe : %0d pushed port %0d into LIFO swap buffer at index %0d\n"), upperlimit, wc_array[*cur_idx][subp], *z));
 								(*cur_idx)++;
 							}
@@ -1785,14 +1785,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						}
 						break;
 					case 2:
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: _____VERBOSE: the port is OVERSUBSCRIBED\n")));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the ovs_tdm_idx is %0d\n"), *ovs_tdm_idx));
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 						ovs_tdm_tbl[*ovs_tdm_idx] = wc_array[*cur_idx][subp];
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d the ovs tdm tbl element #0%0d, "
                                                                       "content is %0d\n"),
                                                              upperlimit, *ovs_tdm_idx,  ovs_tdm_tbl[*ovs_tdm_idx]));
@@ -1815,7 +1815,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			}
 		}
 		else {
-			LOG_ERROR(BSL_LS_SOC_TDM,
+			LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: __________FATAL ERROR: cannot schedule 1G ports or "
                                             "unsupported configuration\n")));
 			return 0;
@@ -1828,7 +1828,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	else if ((l1_tdm_len > max_tdm_len) && (num_ovs == 0))
 	{
 		int xcount;
-		LOG_WARN(BSL_LS_SOC_TDM,
+		LOG_BSL_WARN(BSL_LS_SOC_TDM,
                          (BSL_META("TDM: _____WARNING: applying obligate oversubscription correction\n")));
 		for (xcount = 0; xcount < max_tdm_len; xcount++)
 		{
@@ -1844,13 +1844,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			if ((*pgw_tdm_idx) < max_tdm_len)
 			{
 				pgw_tdm_tbl[*pgw_tdm_idx] = OVS_TOKEN;
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: _____VERBOSE: Pipe : %0d the pgw tdm tbl element #0%0d "
                                                       "has an oversub token placed\n"), upperlimit, *pgw_tdm_idx));
 				(*pgw_tdm_idx)++;
 			}
 			ovs_tdm_tbl[*ovs_tdm_idx] = wc_array[*cur_idx][subp];
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: Pipe : %0d the ovs tdm tbl element #0%0d, "
                                               "content is %0d\n"),
                                      upperlimit, *ovs_tdm_idx,  ovs_tdm_tbl[*ovs_tdm_idx]));
@@ -1871,7 +1871,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	/* invalid case */
 	else if (l1_tdm_len >= max_tdm_len && num_ovs != 0)
 	{
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("TDM: _____ERROR: Pipe : %0d, FATAL error, invalid configuration\n"),
                            upperlimit));
 		return 0;
@@ -1879,7 +1879,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 	/* 100G dominating case */
 	else if ((num_lr_100 + num_lr_120 == 1) && (num_lr_10)+((num_lr_20)*2)+((num_lr_40)*4) < ((num_lr_100)*10)+((num_lr_120)*12))
 	{
-		LOG_WARN(BSL_LS_SOC_TDM,
+		LOG_BSL_WARN(BSL_LS_SOC_TDM,
                          (BSL_META("TDM: _____WARNING: applying dominant 100G correction\n")));
 		for (gestalt_id_iter = iter3; gestalt_id_iter < stop1; gestalt_id_iter++) 
 		{
@@ -1922,9 +1922,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 				return 1;
 			}
 			
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: ----------------------------------------------------------------\n")));
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: the present port is %0d, speed %0d\n"),
                                      wc_array[*cur_idx][subp], speed[wc_array[*cur_idx][subp]]));
 
@@ -1932,9 +1932,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			switch(port_state_map[(wc_array[*cur_idx][subp])-1])
 			{
 				case 0:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is DISABLED\n")));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d "
                                                               "would be an invalid port\n"), upperlimit, *pgw_tdm_idx));
 					if (pgw_tdm_tbl[*pgw_tdm_idx] != gestalt_id)
@@ -1947,7 +1947,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					{
 						(*z)++;
 						swap_array[*z] = OVS_TOKEN;
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d pushed an OVS token into "
                                                                       "LIFO swap buffer at index %0d\n"), upperlimit, *z));
 						(*cur_idx)++;
@@ -1955,10 +1955,10 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					break;
 				/* this only iterates by active port (not lane) so it should never see this */
 				/* case 3:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is part of a DUAL/QUAD/100G\n"))); */
 				case 1:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is LINE RATE\n")));
 					while (pgw_tdm_tbl[(*pgw_tdm_idx)] == gestalt_id) (*pgw_tdm_idx)++;
 					while (swap_array[*z] == gestalt_id)
@@ -1968,13 +1968,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					}
 					if (num_ovs == 0)
 					{
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 						while ((*z) > 0 && 
 						        pgw_tdm_tbl[(*pgw_tdm_idx)-1] != swap_array[*z])
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                               "LIFO swap buffer, pointer index %0d, to "
                                                                               "pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -1982,13 +1982,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 							(*pgw_tdm_idx)++;
 							(*z)--;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 						}
 						if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0))
 						{
 							pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                               "content is %0d\n"),
                                                                      upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -1999,7 +1999,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						{
 							(*z)++;
 							swap_array[*z] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                               "LIFO swap buffer at index %0d\n"),
                                                                      upperlimit, wc_array[*cur_idx][subp], *z));
@@ -2009,14 +2009,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					}
 					else if (num_ovs > 0)
 					{
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 						if ((*z) > 0 && 
 						    pgw_tdm_tbl[(*pgw_tdm_idx)-2] != swap_array[*z] &&
 						    pgw_tdm_tbl[(*pgw_tdm_idx)-1] == OVS_TOKEN)
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d priority dequeuing from"
                                                                               "LIFO swap buffer, pointer index %0d, to "
                                                                               "pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -2024,14 +2024,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 							(*pgw_tdm_idx)++;
 							(*z)--;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 						}
 						while ((*z) > 0 && 
 							pgw_tdm_tbl[(*pgw_tdm_idx)-1] != swap_array[*z] && 
 							pgw_tdm_tbl[(*pgw_tdm_idx)-1] != OVS_TOKEN)
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                               "LIFO swap buffer, pointer index %0d, to "
                                                                               "pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -2039,14 +2039,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 							(*pgw_tdm_idx)++;
 							(*z)--;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 						}
 						if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0) &&
 						    wc_array[*cur_idx][subp] != gestalt_id)
 						{
 							pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                               "content is %0d\n"),
                                                                      upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -2057,7 +2057,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						{
 							(*z)++;
 							swap_array[*z] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                               "LIFO swap buffer at index %0d\n"),
                                                                      upperlimit, wc_array[*cur_idx][subp], *z));
@@ -2067,14 +2067,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					}
 					break;
 				case 2:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is OVERSUBSCRIBED\n")));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: the ovs_tdm_idx is %0d\n"), *ovs_tdm_idx));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 					ovs_tdm_tbl[*ovs_tdm_idx] = wc_array[*cur_idx][subp];
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: Pipe : %0d the ovs tdm tbl element #0%0d, "
                                                               "content is %0d\n"),
                                                      upperlimit, *ovs_tdm_idx,  ovs_tdm_tbl[*ovs_tdm_idx]));
@@ -2114,7 +2114,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			if (*cur_idx >= upperlimit) 
 			{
 				/* table post processing */
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: _____DEBUG: entering post-processing 1, "
                                                       "executing lookback %0d against subset limit %0d\n"),
                                              pgw_tdm_idx_lookback, pgw_tdm_idx_sub));
@@ -2124,7 +2124,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					while (ovs_pad_iter < l1_ovs_cnt && pgw_tdm_idx_lookback < pgw_tdm_idx_sub)
 					{
 						pgw_tdm_tbl[*pgw_tdm_idx] = OVS_TOKEN;
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                       "insert OVS token\n"), upperlimit, *pgw_tdm_idx));
 						(*pgw_tdm_idx)++;
@@ -2146,9 +2146,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 				return 1;
 			}
 			
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: ----------------------------------------------------------------\n")));
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____DEBUG: the present port is %0d, speed %0d\n"),
                                      wc_array[*cur_idx][subp],speed[wc_array[*cur_idx][subp]]));
 
@@ -2156,9 +2156,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			switch(port_state_map[(wc_array[*cur_idx][subp])-1])
 			{
 				case 0:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is DISABLED\n")));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d would be an invalid port\n"), upperlimit, *pgw_tdm_idx));
 					if (num_lr > 0 && num_ovs > 0)
 					{
@@ -2170,19 +2170,19 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					break;
 				/* this only iterates by active port (not lane) so it should never see this */	
 				/* case 3:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is part of a DUAL/QUAD/100G\n"))); */
 				case 1:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is LINE RATE\n")));
 					if (num_ovs == 0)
 					{
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 						while ((*z) > 0 && pgw_tdm_tbl[(*pgw_tdm_idx)-1] != swap_array[*z])
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                               "LIFO swap buffer, pointer index %0d, to "
                                                                               "pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -2190,13 +2190,13 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							pgw_tdm_tbl[*pgw_tdm_idx] = swap_array[*z];
 							(*pgw_tdm_idx)++;
 							(*z)--;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 						}
 						if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0))
 						{
 							pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                               "content is %0d\n"),
                                                                      upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -2207,7 +2207,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						{
 							(*z)++;
 							swap_array[*z] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                               "LIFO swap buffer at index %0d\n"),
                                                                      upperlimit, wc_array[*cur_idx][subp], *z));
@@ -2220,7 +2220,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					}
 					else if (num_ovs > 0)
 					{
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 
 						if ((*z) > 0 && 
@@ -2228,7 +2228,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						    pgw_tdm_tbl[(*pgw_tdm_idx)-1] == OVS_TOKEN &&
 						    (pgw_tdm_idx_lookback < (pgw_tdm_idx_sub-l1_ovs_cnt)))
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                               "LIFO swap buffer, pointer index %0d, to "
                                                                               "pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -2237,7 +2237,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							(*pgw_tdm_idx)++;
 							(*z)--;
 							pgw_tdm_idx_lookback++;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 						}
 						while ((*z) > 0 && 
@@ -2245,7 +2245,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							pgw_tdm_tbl[(*pgw_tdm_idx)-1] != OVS_TOKEN &&
 							(pgw_tdm_idx_lookback < (pgw_tdm_idx_sub-l1_ovs_cnt)))
 						{
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d priority dequeuing from "
                                                                               "LIFO swap buffer, pointer index %0d, to "
                                                                               "pgw tdm tbl element #0%0d, content is %0d\n"),
@@ -2254,14 +2254,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 							(*pgw_tdm_idx)++;
 							(*z)--;
 							pgw_tdm_idx_lookback++;
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: _____DEBUG: LIFO index pointer is %0d\n"), *z));
 						}
 						if ((wc_array[*cur_idx][subp] != pgw_tdm_tbl[(*pgw_tdm_idx)-1] || (*pgw_tdm_idx)==0) && 
 						    (pgw_tdm_idx_lookback < (pgw_tdm_idx_sub-l1_ovs_cnt)))
 						{
 							pgw_tdm_tbl[*pgw_tdm_idx] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, "
                                                                               "content is %0d\n"),
                                                                      upperlimit, *pgw_tdm_idx, pgw_tdm_tbl[*pgw_tdm_idx]));
@@ -2273,7 +2273,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 						{
 							(*z)++;
 							swap_array[*z] = wc_array[*cur_idx][subp];
-							LOG_VERBOSE(BSL_LS_SOC_TDM,
+							LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                                     (BSL_META("TDM: Pipe : %0d pushed port %0d into "
                                                                               "LIFO swap buffer at index %0d\n"),
                                                                      upperlimit, wc_array[*cur_idx][subp], *z));
@@ -2282,14 +2282,14 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					}
 					break;
 				case 2:
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: _____VERBOSE: the port is OVERSUBSCRIBED\n")));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: the ovs_tdm_idx is %0d\n"), *ovs_tdm_idx));
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 					ovs_tdm_tbl[*ovs_tdm_idx] = wc_array[*cur_idx][subp];
-					LOG_VERBOSE(BSL_LS_SOC_TDM,
+					LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                     (BSL_META("TDM: Pipe : %0d the ovs tdm tbl element #0%0d, "
                                                               "content is %0d\n"),
                                                      upperlimit, *ovs_tdm_idx,  ovs_tdm_tbl[*ovs_tdm_idx]));
@@ -2312,7 +2312,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			if (*cur_idx >= upperlimit) 
 			{
 				/* table post processing */
-				LOG_VERBOSE(BSL_LS_SOC_TDM,
+				LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                             (BSL_META("TDM: _____DEBUG: entering post-processing 2, "
                                                       "executing lookback %0d against subset limit %0d\n"),
                                              pgw_tdm_idx_lookback, pgw_tdm_idx_sub));
@@ -2322,7 +2322,7 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 					while (ovs_pad_iter < l1_ovs_cnt && pgw_tdm_idx_lookback < pgw_tdm_idx_sub)
 					{
 						pgw_tdm_tbl[*pgw_tdm_idx] = OVS_TOKEN;
-						LOG_VERBOSE(BSL_LS_SOC_TDM,
+						LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                                             (BSL_META("TDM: Pipe : %0d the pgw tdm tbl element #0%0d, insert OVS token\n"), upperlimit, *pgw_tdm_idx));
 						(*pgw_tdm_idx)++;
 						pgw_tdm_idx_lookback++;
@@ -2345,9 +2345,9 @@ int TDM_scheduler(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PORTS],
 			sm_iter++;
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: the pgw_tdm_idx is %0d\n"), *pgw_tdm_idx));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: the cur_idx is %0d\n"), *cur_idx));
 	return 1;
 }
@@ -2483,7 +2483,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 			}
 		}
 		else if (pgw_buffer[j] != NUM_EXT_PORTS && pgw_buffer[j] != OVS_TOKEN)
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("TDM: _____ERROR: FAILURE TO LOCK PGW PORT %0d to state mapping %0d\n"),
                        pgw_buffer[j], port_state_map[pgw_buffer[j]-1]));
 		if (ovs_buffer[j] != NUM_EXT_PORTS && port_state_map[ovs_buffer[j]-1] == 2)
@@ -2497,7 +2497,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 			}
 			/* else if (port_state_map[ovs_buffer[j]] != 3 && speed[ovs_buffer[j]]<SPEED_10G)
 			{
-				LOG_ERROR(BSL_LS_SOC_TDM,
+				LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                           (BSL_META("TDM: __________FATAL ERROR: cannot egress oversub 1G\n")));
 				return 0;
 			} */
@@ -2557,12 +2557,12 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 			}
 		}
 		else if (ovs_buffer[j] != NUM_EXT_PORTS)
-            LOG_ERROR(BSL_LS_SOC_TDM,
+            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                       (BSL_META("TDM: _____ERROR: FAILURE TO LOCK OVS PORT #%0d to state mapping %0d\n"),
                        ovs_buffer[j], port_state_map[ovs_buffer[j]-1]));
 	}
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: (1G - %0d) (10G - %0d) (20G - %0d) "
                               "(40G - %0d) (100G - %0d) (120G - %0d) LR Variety - %0d\n"),
                      y0, y1, y2, y3, y4, y5, (pgw_1+pgw_10+pgw_20+pgw_40+pgw_100+pgw_120)));
@@ -2570,7 +2570,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	{
 		/* no such thing as 1G single/dual mode */
 		u1g/=4;
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: microsubbed 1G detected, number of TSCs is %0d\n"), u1g));
 		while (u1g>0)
 		{
@@ -2595,7 +2595,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	*/
 	if (y4 > 0)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: __________VERBOSE: 100G scheduling pass\n")));
 		if (y4==2)
 		{
@@ -2608,7 +2608,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 					if (mmu[j] == NUM_EXT_PORTS)
 						mmu[j] = pgw100[y4];
 					else
-						LOG_ERROR(BSL_LS_SOC_TDM,
+						LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                           (BSL_META("TDM: _____ERROR: FAILURE TO WRITE 100G PORT #%0d "
                                                                     "at index %0d already has %0d\n"), pgw100[y4], j, mmu[j]));
 				}
@@ -2618,7 +2618,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 					if (mmu[j] == NUM_EXT_PORTS)
 						mmu[j] = pgw100[y4];
 					else
-						LOG_ERROR(BSL_LS_SOC_TDM,
+						LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                           (BSL_META("TDM: _____ERROR: FAILURE TO WRITE 100G PORT #%0d "
                                                                     "at index %0d already has %0d\n"), pgw100[y4], j, mmu[j]));
 				}
@@ -2642,7 +2642,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 					if (mmu[j] == NUM_EXT_PORTS)
 						mmu[j] = pgw100[y4];
 					else
-						LOG_ERROR(BSL_LS_SOC_TDM,
+						LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                           (BSL_META("TDM: _____ERROR: FAILURE TO WRITE 100G PORT #%0d "
                                                                     "at index %0d already has %0d\n"), pgw100[y4], j, mmu[j]));
 				}
@@ -2657,7 +2657,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	*/
 	if (y5 > 0)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: __________VERBOSE: 120G scheduling pass\n")));
 		if (y5 == 2)
 		{
@@ -2669,7 +2669,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 					if (mmu[j] == NUM_EXT_PORTS)
 						mmu[j] = pgw120[y5];
 					else
-						LOG_ERROR(BSL_LS_SOC_TDM,
+						LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                           (BSL_META("TDM: _____ERROR: FAILURE TO WRITE 120G #%0d PORT "
                                                                     "at index %0d already has %0d\n"), pgw120[y5], j, mmu[j]));	
 				}
@@ -2691,7 +2691,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 					if (mmu[j] == NUM_EXT_PORTS)
 						mmu[j] = pgw120[y5];
 					else
-						LOG_ERROR(BSL_LS_SOC_TDM,
+						LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                           (BSL_META("TDM: _____ERROR: FAILURE TO WRITE 120G #%0d PORT "
                                                                     "at index %0d already has %0d\n"), pgw120[y5], j, mmu[j]));	
 				}
@@ -2712,9 +2712,9 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	s3=(((12*((clk/76))))/1000);
 	if (y3 > 0)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: __________VERBOSE: 40G scheduling pass\n")));
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: LLS MMU spacing for 40G: %ld\n"), s3));
 		/* rollback table pointer for different spacing rule */
 		for (v=0; v<lr_idx_limit; v++) {x=0; for (w=v; w<v+(4*s3); w+=s3) if (mmu[w] == NUM_EXT_PORTS) x++; if (x==4) {yy=v; break;}}
@@ -2724,7 +2724,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 					for (j=yy; j<yy+(4*s3); j+=s3) mmu[j] = pgw40[y3];
 				else
 				{
-					LOG_WARN(BSL_LS_SOC_TDM,
+					LOG_BSL_WARN(BSL_LS_SOC_TDM,
                                                  (BSL_META("TDM: _____WARNING: 40G PORT #%0d at index %0d, "
                                                            "failed to schedule, push into error buffer\n"), pgw40[y3], j));
 					ye++;
@@ -2744,10 +2744,10 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	s2=(((24*((clk/76))))/1000);
 	if (y2 > 0)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: __________VERBOSE: 20G scheduling pass\n")));
 		/* s2=(int)((24.0*(clk/755.0))+0.5); */
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: LLS MMU spacing for 20G: %ld\n"), s2));
 		/* Rollback table pointer for different spacing rule */
 		for (v=0; v<yy; v++) {x=0; for (w=v; w<v+(2*s2); w+=s2) if (mmu[w] == NUM_EXT_PORTS) x++; if (x==2) {yy=v; break;}}
@@ -2803,11 +2803,11 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 				}
 				if (b>0)
 				{
-					LOG_ERROR(BSL_LS_SOC_TDM,
+					LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                   (BSL_META("scheduling 20G has failed, y2 pointer is at %0d\n"),y2));
 					for (jjj=0; jjj<lr_idx_limit-s2; jjj++) if (mmu[jjj]==NUM_EXT_PORTS) x++;
 					if (x<=1) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM for this port config has no solution\n")));
                         return 0;}
 				}
@@ -2819,12 +2819,12 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	*/
 	if (y1 > 0)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: __________VERBOSE: 10G scheduling pass\n")));
 		if ( pgw_120==FALSE && pgw_100==FALSE && pgw_40==FALSE && pgw_20==FALSE && pgw_1==FALSE )
 		{
 			overload10G = (y1/4 > 6) ? ((y1/4)-6) : 0;
-			LOG_VERBOSE(BSL_LS_SOC_TDM,
+			LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                     (BSL_META("TDM: _____VERBOSE: overloaded 10G slots by +%0d\n"),overload10G));
 			while (y1 > 0)
 			{
@@ -2861,14 +2861,14 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 						if (mmu[yy] == NUM_EXT_PORTS) {
 							mmu[yy] = temp_10G[a]; yy+=(6+overload10G);}
 						else
-							LOG_WARN(BSL_LS_SOC_TDM,
+							LOG_BSL_WARN(BSL_LS_SOC_TDM,
                                                                  (BSL_META("TDM: _____WARNING: 10G PORT #%0d at index %0d, "
                                                                            "already has %0d, buffering for rescheduling\n"),
                                                                   temp_10G[a], yy, mmu[yy]));
 					}
 				else
 				{
-					LOG_WARN(BSL_LS_SOC_TDM,
+					LOG_BSL_WARN(BSL_LS_SOC_TDM,
                                                  (BSL_META("TDM: _____WARNING: 10G PORT #%0d at index %0d, "
                                                            "failed to schedule, push into error buffer\n"), temp_10G[a], yy));
 					for (a=0; a<(e+1); a++)
@@ -2922,11 +2922,11 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 				}
 				if (b>0)
 				{
-					LOG_ERROR(BSL_LS_SOC_TDM,
+					LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                   (BSL_META("scheduling 10G has failed, y1 pointer is at %0d\n"),y1));
 					for (jjj=0; jjj<lr_idx_limit; jjj++) if (mmu[jjj]==NUM_EXT_PORTS) x++;
 					if (x<=1) {
-                                            LOG_ERROR(BSL_LS_SOC_TDM,
+                                            LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                       (BSL_META("TDM for this port config has no solution\n")));
                                             return 0;
                                         }
@@ -2941,7 +2941,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	{
 		if (mmu[j]!=NUM_EXT_PORTS) {i=(j+1); break;}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: preprocessed MMU table terminates at index %0d\n"), i));
 	if (i==0) 
 	{
@@ -2966,7 +2966,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 			}
 			if (a!=-1) break;
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: lookback warp core is %0d\n"), a));
 		/* find previous spacing */
 		for (j=(i-2); j>=0; j--) 
@@ -2974,7 +2974,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 			if (mmu[j]!=tsc[a][0]&&mmu[j]!=tsc[a][1]&&mmu[j]!=tsc[a][2]&&mmu[j]!=tsc[a][3]) m++;
 			else break;
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: end of MMU table, previous spacing is %0d\n"), m));
 		/* find loopback spacing */
 		for (j=0; j<i; j++) 
@@ -2982,7 +2982,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 			if (mmu[j]!=tsc[a][0]&&mmu[j]!=tsc[a][1]&&mmu[j]!=tsc[a][2]&&mmu[j]!=tsc[a][3]) e++;
 			else break;
 		}
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: end of MMU table, loopback spacing is %0d\n"), e));
 		if (pgw_100==TRUE)
 		{
@@ -3007,21 +3007,21 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 		else i+=(m-e);
 	}
 	
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: OVS1-%0d, OVS10-%0d, OVS20-%0d, OVS40-%0d, "
                               "OVS100-%0d, OVS120-%0d, OVS Variety - %0d\n"),
                      num_ovs_1, num_ovs_10, num_ovs_20, num_ovs_40, num_ovs_100,
                      num_ovs_120, (ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120)));
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: _____VERBOSE: postprocessed MMU table terminates at index %0d\n"), i));
 	
 	s1=(((495*((clk/76))))/10000);
 	if (pgw_10==TRUE)
 	{
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: LLS MMU spacing for 10G: %ld\n"), s1));
 		if (i>s1) {
-                    LOG_WARN(BSL_LS_SOC_TDM,
+                    LOG_BSL_WARN(BSL_LS_SOC_TDM,
                              (BSL_META("TDM: _____WARNING: 10G ports underscheduled, "
                                        "may not satisfy line rate\n")));
                 }
@@ -3029,19 +3029,19 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	
 	if (i>63) 
 	{
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("TDM: __________FATAL ERROR: long table causing stack overflow\n")));
 		return 0;
 	}
 	/* ensure line rate to TDM specs*/
 	if ( (pgw_10==TRUE || pgw_1==TRUE) && (i < ((s1)-1)) ) {
             i = ((s1)-1);
-            LOG_VERBOSE(BSL_LS_SOC_TDM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: tdm extended to slot %0d\n"),i));
         }
 	else if ( (pgw_40==TRUE) && (bw==720) && (i < 37) ) {
             i=37;
-            LOG_VERBOSE(BSL_LS_SOC_TDM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                         (BSL_META("TDM: _____VERBOSE: tdm extended to slot %0d\n"),i));
         }
 	for (j=0; j<i; j++) if (mmu[j]==NUM_EXT_PORTS) mmu[j] = ((ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120)==0) ? IDL_TOKEN : OVS_TOKEN;
@@ -3075,7 +3075,7 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 				if (mmu[j] == U1G_TOKEN) {
 					mmu[j] = temp_1G[a]; j+=(i);}
 				else
-					LOG_ERROR(BSL_LS_SOC_TDM,
+					LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                                   (BSL_META("TDM: _____ERROR: FAILURE TO WRITE 1G PORT "
                                                             "at index %0d already has %0d\n"), j, mmu[j]));
 			}
@@ -3093,13 +3093,13 @@ int write_mmu_tdm_tbl(int pgw0[32], int pgw1[32], int ovs0[32], int ovs1[32], in
 	
 	if ((ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120) > 4)
 	{
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("TDM: _____FATAL ERROR: oversub variety limit exceeded\n")));
 		return 0;
 	}
 	if (((ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120)==4 && (z6>16 || z1>16 || z2>16)) || ((ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120)>=3 && (z6>32 || z1>32 || z2>32)) || ((ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120)>=2 && (z6>48 || z1>48)) || ((ovs_1 + ovs_10 + ovs_20 + ovs_40 + ovs_100 + ovs_120)>=1 && (z6>64 || z1>64)))
 	{
-		LOG_ERROR(BSL_LS_SOC_TDM,
+		LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                           (BSL_META("TDM: _____FATAL ERROR: oversub bucket overflow\n")));
 		return 0;
 	}
@@ -3364,7 +3364,7 @@ int TDM_scheduler_wrap(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PO
 		z-=z_cnt;
 	}
 	if (z>0) {
-		LOG_WARN(BSL_LS_SOC_TDM,
+		LOG_BSL_WARN(BSL_LS_SOC_TDM,
                          (BSL_META("TDM: _____WARNING: swap buffer not empty, index %0d, "
                                    "table at %0d, dumping all remaining entries\n"), z, pgw_tdm_idx));
 	}	
@@ -3375,7 +3375,7 @@ int TDM_scheduler_wrap(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PO
 			}
 		}
 	}
-	LOG_VERBOSE(BSL_LS_SOC_TDM,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                     (BSL_META("TDM: ----------------------------------------------------------------\n")));
 	
 	return scheduler_state;
@@ -4165,7 +4165,7 @@ int TDM_scheduler_wrap(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PO
 		}
 			
 		for (i=0; i< NUM_EXT_PORTS; i++) {
-                    LOG_VERBOSE(BSL_LS_SOC_TDM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                                 (BSL_META("TDM: _____VERBOSE: the speed "
                                           "for port %0d is %0d\n"),i,speed[i]));
                 }
@@ -4175,7 +4175,7 @@ int TDM_scheduler_wrap(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PO
 		
 		for (i=0; i<4; i++) if (wc_array[3][i]==MGM_TOKEN) mgmtbw++;
 	
-		LOG_VERBOSE(BSL_LS_SOC_TDM,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                             (BSL_META("TDM: _____VERBOSE: the chip bandwidth is %0d\n"), tdm_bw));
 	
 			checkpoint[0] = TDM_scheduler_wrap(wc_array, speed, pgw_tdm_tbl_x0, ovs_tdm_tbl_x0, 0, tdm_bw, port_state_map, 0, 32, &op_flags_x);
@@ -4209,27 +4209,27 @@ int TDM_scheduler_wrap(int wc_array[NUM_WC][4], enum port_speed speed[NUM_EXT_PO
 		if (checkpoint[0]==0||checkpoint[1]==0||checkpoint[2]==0||checkpoint[3]==0||checkpoint[4]==0||checkpoint[5]==0)
 		{
                     if (checkpoint[0]==0) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____ERROR: quadrant x0 failed to schedule\n")));
                     }
                     if (checkpoint[1]==0) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____ERROR: quadrant x1 failed to schedule\n")));
                     }
                     if (checkpoint[2]==0) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____ERROR: quadrant y0 failed to schedule\n")));
                     }
                     if (checkpoint[3]==0) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____ERROR: quadrant y1 failed to schedule\n")));
                     }
                     if (checkpoint[4]==0) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____ERROR: mmu x pipe table failed to schedule\n")));
                     }
                     if (checkpoint[5]==0) {
-                        LOG_ERROR(BSL_LS_SOC_TDM,
+                        LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                                   (BSL_META("TDM: _____ERROR: mmu y pipe table failed to schedule\n")));
                     }
                     return 0;
@@ -5337,7 +5337,7 @@ int set_iarb_tdm_table (
     on the TDM selected.
   */
   if (!(!mgm4x1 && !mgm4x2p5 && !mgm1x10) && !(mgm4x1 ^ mgm4x2p5 ^ mgm1x10)) {
-      LOG_ERROR(BSL_LS_SOC_TDM,
+      LOG_BSL_ERROR(BSL_LS_SOC_TDM,
                 (BSL_META("IARB TDM: _____ERROR: Multiple management port settings specified!\n")));
   }
 
@@ -5377,16 +5377,16 @@ int set_iarb_tdm_table (
     sal_memcpy(iarb_tdm_tbl_y, iarb_tdm_tbl_ovs_y, sizeof(int) * 512);
   }
 
-  LOG_VERBOSE(BSL_LS_SOC_TDM,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
               (BSL_META("IARB TDM: _____DEBUG: iarb_tdm_wrap_ptr_x = %d\n"),*iarb_tdm_wrap_ptr_x));
   for (i = 0; i <= *iarb_tdm_wrap_ptr_x; i++) {
-    LOG_VERBOSE(BSL_LS_SOC_TDM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("IARB TDM: _____DEBUG: iarb_tdm_tbl_x[%d] = %d\n"),i,iarb_tdm_tbl_x[i]));
   }
-  LOG_VERBOSE(BSL_LS_SOC_TDM,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
               (BSL_META("IARB TDM: _____DEBUG: iarb_tdm_wrap_ptr_y = %d\n"),*iarb_tdm_wrap_ptr_y));
   for (i = 0; i <= *iarb_tdm_wrap_ptr_y; i++) {
-    LOG_VERBOSE(BSL_LS_SOC_TDM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_TDM,
                 (BSL_META("IARB TDM: _____DEBUG: iarb_tdm_tbl_y[%d] = %d\n"),i,iarb_tdm_tbl_y[i]));
   }
 

@@ -541,7 +541,7 @@ drv_nsp_cfp_meter_rate_transform(int unit, uint32 kbits_sec, uint32 kbits_burst,
 
     if (kbits_sec) {
         if ((kbits_sec > CFP_53020_METER_RATE_MAX)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_nsp_cfp_meter_rate_transform : rate unsupported. \n")));
             rv = SOC_E_UNAVAIL;
@@ -554,7 +554,7 @@ drv_nsp_cfp_meter_rate_transform(int unit, uint32 kbits_sec, uint32 kbits_burst,
 
     if (kbits_burst) {
         if ((kbits_burst > CFP_53020_METER_BURST_MAX)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "drv_nsp_cfp_meter_rate_transform : burst size unsupported. \n")));
             rv = SOC_E_UNAVAIL;

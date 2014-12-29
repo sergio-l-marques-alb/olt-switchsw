@@ -241,7 +241,7 @@ _phy_wc40_ucode_get(int unit, soc_port_t port, uint8 **ppdata, int *len,
         }
     }
     if (ix >= WC40_UCODE_NUM_ENTRIES) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "no firmware matches the chip rev number!!! use default\n")));
         ix = WC40_UCODE_NUM_ENTRIES - 1;
@@ -253,7 +253,7 @@ _phy_wc40_ucode_get(int unit, soc_port_t port, uint8 **ppdata, int *len,
         }
     }
     if (ix < 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "no valid firmware found!!!\n")));
         return SOC_E_NOT_FOUND;
@@ -459,7 +459,7 @@ _phy_wc40_pll_lock_wait(int unit, soc_port_t port)
                      XGXSBLK0_XGXSSTATUS_TXPLL_LOCK_MASK,1,WC40_PLL_WAIT,0);
  
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC40 : TXPLL did not lock: u=%d p=%d\n"),
                   unit, port));
@@ -580,7 +580,7 @@ _phy_wc40_rxlane_map_set(int unit, phy_ctrl_t *pc, uint16 req_map)
                    XGXSBLK2_RXLNSWAP_RX_LNSWAP_FORCE3_MASK));
 #endif
         } else {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "unit %d port %s: Invalid RX lane map 0x%04x.\n"),
                        unit, SOC_PORT_NAME(unit, pc->port), req_map));
@@ -624,7 +624,7 @@ _phy_wc40_txlane_map_set(int unit, phy_ctrl_t *pc, uint16 req_map)
                     XGXSBLK2_TXLNSWAP_TX_LNSWAP_FORCE3_MASK));
 #endif
         } else {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "unit %d port %s: Invalid TX lane map 0x%04x.\n"),
                        unit, SOC_PORT_NAME(unit, pc->port), req_map));
@@ -781,7 +781,7 @@ _phy_wc40_firmware_mode_set(int unit, soc_port_t port, uint32 value) {
                 DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                 1, WC40_PLL_WAIT,ln_access[i]);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_wc40_firmware_mode_set: uController not ready: u=%d p=%d\n lane=%d"), unit, port, i));
             return (SOC_E_TIMEOUT);
@@ -804,7 +804,7 @@ _phy_wc40_firmware_mode_set(int unit, soc_port_t port, uint32 value) {
                 DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                 1, WC40_PLL_WAIT,ln_access[i]);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_wc40_firmware_mode_set: uController not ready (post stop): u=%d p=%d\n lane=%d"), unit, port, i));
             return (SOC_E_TIMEOUT);
@@ -835,7 +835,7 @@ _phy_wc40_firmware_mode_set(int unit, soc_port_t port, uint32 value) {
                 DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                 1, WC40_PLL_WAIT,ln_access[i]);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_wc40_firmware_mode_set: uController not ready (post resume): u=%d p=%d\n lane=%d"), unit, port, i));
             return (SOC_E_TIMEOUT);
@@ -859,7 +859,7 @@ _phy_wc40_firmware_mode_set(int unit, soc_port_t port, uint32 value) {
                 DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                 1, WC40_PLL_WAIT,ln_access[i]);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_wc40_firmware_mode_set: uController not ready (post restart): u=%d p=%d lane=%d\n"), unit, port, i));
         }
@@ -867,7 +867,7 @@ _phy_wc40_firmware_mode_set(int unit, soc_port_t port, uint32 value) {
     if (DEV_CFG_PTR(pc)->fw_dfe == SOC_PHY_DFE_FREEZE) {
        rv = _phy_wc40_firmware_dfe_mode_set(unit, port, DEV_CFG_PTR(pc)->fw_dfe); 
        if (rv != SOC_E_NONE) {
-           LOG_WARN(BSL_LS_SOC_PHY,
+           LOG_BSL_WARN(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                         "%s: DFE Set fail: u=%d p=%d\n"),__FUNCTION__, unit, port));
        }
@@ -909,7 +909,7 @@ _phy_wc40_firmware_mode_get(int unit, soc_port_t port, uint32 *value) {
             & (data16 >> (UC_INFO_B1_FIRMWARE_MODE_LN0_MODE_BITS * i));
     
         if(*value != temp16) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC: _phy_wc40_firmware_mode_get: "
                                  "value mismatch u=%d p=%d\n"), unit, port));
@@ -988,7 +988,7 @@ _phy_wc40_firmware_dfe_mode_set(int unit, soc_port_t port, uint32 value) {
                 DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                 1, WC40_PLL_WAIT,ln_access[i]);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "%s: uController not ready: u=%d p=%d\n lane=%d"),
                      __FUNCTION__, unit, port, i));
@@ -1009,7 +1009,7 @@ _phy_wc40_firmware_dfe_mode_set(int unit, soc_port_t port, uint32 value) {
                 DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                 1, WC40_PLL_WAIT,ln_access[i]);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "%s: uController not ready2: u=%d p=%d\n lane=%d"),
                      __FUNCTION__, unit, port, i));
@@ -1038,7 +1038,7 @@ _phy_wc40_firmware_dfe_mode_get(int unit, soc_port_t port, uint32 *value) {
             DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
             1, WC40_PLL_WAIT,ln_access[lane]);
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                             "%s: uController not ready: u=%d p=%d\n lane=%d"),
                              __FUNCTION__, unit, port, lane));
@@ -1050,7 +1050,7 @@ _phy_wc40_firmware_dfe_mode_get(int unit, soc_port_t port, uint32 *value) {
             DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
             1, WC40_PLL_WAIT,ln_access[lane]);
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "%s: uController not ready2: u=%d p=%d\n lane=%d"),
                  __FUNCTION__, unit, port, lane));
@@ -1296,7 +1296,7 @@ _phy_wc40_firmware_force_cl72_config(int unit, soc_port_t port, int enable)
                                  DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                                  1, WC40_PLL_WAIT,ln_access[i]);
             if (rv == SOC_E_TIMEOUT) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "WC: Force CL72 uController not ready: u=%d p=%d\n"), 
                           unit, port));
@@ -1598,7 +1598,7 @@ _phy_wc40_firmware_force_cl72_state_machine(int unit, soc_port_t port,int link)
                                  DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,
                                  1, WC40_PLL_WAIT,ln_access[lane]);
                 if (rv == SOC_E_TIMEOUT) {
-                    LOG_WARN(BSL_LS_SOC_PHY,
+                    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "WC: Force CL72 uController not ready: u=%d p=%d\n"), 
                               unit, port));
@@ -1624,7 +1624,7 @@ _phy_wc40_firmware_force_cl72_state_machine(int unit, soc_port_t port,int link)
 
             FORCE_CL72_STATE(pc) = WC40_FORCED_CL72_STATE_WAIT_4_LINK;
             FORCE_CL72_TICK_CNT(pc) = 0;
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC: force cl72: u=%d p=%d state STATE_RESET\n"), 
                       unit, port));
@@ -1650,7 +1650,7 @@ _phy_wc40_firmware_force_cl72_state_machine(int unit, soc_port_t port,int link)
                     FORCE_CL72_TICK_CNT(pc) = 0;
                 }
             } 
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC: force cl72: u=%d p=%d state WAIT 4 LINK: "
                                  "link: 0x%x\n"), unit, port, link));
@@ -1665,7 +1665,7 @@ _phy_wc40_firmware_force_cl72_state_machine(int unit, soc_port_t port,int link)
                                  0x81f7 + (0x1 * lane), &data16));
                     pmd_restarted &= (data16 & 0x1);
                     if(!pmd_restarted) {
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "WC: force cl72: u=%d p=%d state LINK GOOD "
                                              "pmd_restarted=0: " "link: 0x%x\n"), unit, port, link));
@@ -1678,7 +1678,7 @@ _phy_wc40_firmware_force_cl72_state_machine(int unit, soc_port_t port,int link)
                                      WC40_FORCED_CL72_STATE_RESET;
                 FORCE_CL72_TICK_CNT(pc) = 0;
             
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "WC: force cl72: u=%d p=%d state LINK GOOD: "
                                      "link: 0x%x\n"), unit, port, link));
@@ -1725,7 +1725,7 @@ _phy_wc40_force_cl72_state_machine(int unit, soc_port_t port,int link)
     switch (FORCE_CL72_STATE(pc)) {
         case WC40_CL72_STATE_TX_DISABLED:
             FORCE_CL72_STATE(pc) = WC40_CL72_STATE_INIT_CL72;
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "force cl72: u=%d p=%d state TX_DISABLED\n"), unit, port));
             break;
@@ -1734,7 +1734,7 @@ _phy_wc40_force_cl72_state_machine(int unit, soc_port_t port,int link)
             (void)_phy_wc40_force_cl72_init(unit,port);
             FORCE_CL72_TICK_CNT(pc) = 0;
             FORCE_CL72_STATE(pc) = WC40_CL72_STATE_LINK_CHECK;
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "force cl72: u=%d p=%d state INIT_CL72\n"), unit, port));
             break;
@@ -1769,7 +1769,7 @@ _phy_wc40_force_cl72_state_machine(int unit, soc_port_t port,int link)
             } else {  /* link up */
                 FORCE_CL72_STATE(pc) = WC40_CL72_STATE_LINK_GOOD;
             }
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "force cl72: u=%d p=%d state LINK_CHECK sig_loss: 0x%x "
                                     "link: 0x%x\n"), unit, port,sig_loss,link));
@@ -1781,7 +1781,7 @@ _phy_wc40_force_cl72_state_machine(int unit, soc_port_t port,int link)
                 (void)_phy_wc40_tx_disable(unit,port,lane_start,
                             lane_end,TRUE);
             }
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "force cl72: u=%d p=%d state LINK_GOOD: link 0x%x\n"), 
                          unit, port,link));
@@ -2086,7 +2086,7 @@ _phy_wc40_independent_lane_init(int unit, soc_port_t port)
                      MII_CTRL_RESET,0,10000,0);
 
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Combo SerDes reset failed: u=%d p=%d\n"),
                       unit, port));
@@ -2511,7 +2511,7 @@ _phy_wc40_independent_lane_init(int unit, soc_port_t port)
         _phy_wc40_ind_speed_set(unit, port, pc->speed_max);
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_independent_lane_init: u=%d p=%d %s\n"),
               unit, port, (fiber) ? "Fiber" : "Copper"));
@@ -2826,7 +2826,7 @@ _phy_wc40_combo_core_init(int unit, soc_port_t port)
             sal_free(pdata);
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC40 combo mode : uC RAM download skipped: u=%d p=%d\n"),
                   unit, port));
@@ -3058,7 +3058,7 @@ _phy_wc40_interlaken_mode_init(int unit, soc_port_t port)
                 sal_free(pdata);
             }
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC40 custom mode : uC RAM download skipped: u=%d p=%d\n"),
                       unit, port));
@@ -3081,7 +3081,7 @@ _phy_wc40_interlaken_mode_init(int unit, soc_port_t port)
 
     /* XXX a register 0x81f2  value to indicate this mode to allow ucontroller to tune*/
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_interlaken_mode_init: u=%d p=%d\n"),
               unit, port));
@@ -3253,7 +3253,7 @@ _phy_wc40_ind_init(int unit, soc_port_t port)
                 sal_free(pdata);
             }
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC40 independent mode : uC RAM download skipped: u=%d p=%d\n"),
                       unit, port));
@@ -3341,7 +3341,7 @@ phy_wc40_init(int unit, soc_port_t port)
     }
 #endif
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_init: u=%d p=%d\n"), unit, port));
     return SOC_E_NONE;
@@ -3376,7 +3376,7 @@ _phy_wc40_war_link_check(int unit, soc_port_t port)
         return SOC_E_NONE;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_war_link_check: u=%d p=%d: \n"), unit, port));
 
@@ -3391,7 +3391,7 @@ _phy_wc40_war_link_check(int unit, soc_port_t port)
     /* check if all lane sync'ed up */
     if (sync_stat == sync_good) {
         if (WC40_SP_CNT(pc)) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_wc40_war_link_check workaround applied: u=%d p=%d: \n"), unit, port));
 
@@ -3549,7 +3549,7 @@ _phy_wc40_cl73_auto_recover(int unit, soc_port_t port, int *link)
                     }
 
                     if (apply_recovery) {
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "WC: Applying recovery for u:0x%x p:0x%x "
                                              "fsm_state:0x%x\n"), unit, port, fsm_state1));
@@ -3571,7 +3571,7 @@ _phy_wc40_cl73_auto_recover(int unit, soc_port_t port, int *link)
 
                         WC40_CL73_AN_TX_FIFO_RESET_START(pc);
 
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "\n WC: CL73 fsm recovery action counters u:0x%x p:0x%x \n"
                                              " CL73 FSM state 0x%x - %d times\n"
@@ -3761,7 +3761,7 @@ _phy_wc40_softare_rx_los(int unit, soc_port_t port, int *link)
                 /* Skip the link transition for this rx reset */
                 DEV_CFG_PTR(pc)->sw_rx_los.link_status = 1;
                 rx_los_state = LINK;
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "SOFTWARE RX LOS : u=%d p=%d state:0x%x \n"), 
                              unit, port, rx_los_state));
@@ -3782,7 +3782,7 @@ _phy_wc40_softare_rx_los(int unit, soc_port_t port, int *link)
                                      SOC_MAC_CONTROL_FAULT_LOCAL_ENABLE, TRUE));
                 DEV_CFG_PTR(pc)->sw_rx_los.fault_report_dis = 0;
 #endif
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "SOFTWARE RX LOS : u=%d p=%d state:0x%x \n"), 
                              unit, port, rx_los_state));
@@ -3790,7 +3790,7 @@ _phy_wc40_softare_rx_los(int unit, soc_port_t port, int *link)
 
             case START_TIMER:
                 rx_los_state = RX_RESTART;  
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "SOFTWARE RX LOS : u=%d p=%d state:0x%x \n"), 
                              unit, port, rx_los_state));
@@ -3819,7 +3819,7 @@ _phy_wc40_softare_rx_los(int unit, soc_port_t port, int *link)
                 } else {
                     rx_los_state = LINK;
                 }
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "SOFTWARE RX LOS : u=%d p=%d state:0x%x \n"), 
                              unit, port, rx_los_state));
@@ -4302,7 +4302,7 @@ _phy_wc40_vco_set(int unit, soc_port_t port, int speed,int speed_val)
         return SOC_E_NONE;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_vco_set: u=%d p=%d: vco freq switched: 0x%x\n"), unit, port,
               vco_freq));
@@ -5149,7 +5149,7 @@ _phy_wc40_notify_mac_loopback(int unit, soc_port_t port, uint32 enable)
 {
     phy_ctrl_t  *pc;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_notify_mac_loopback: u=%d p=%d enable=0x%x\n"),
               unit, port, enable));
@@ -5439,7 +5439,7 @@ _phy_wc40_interlaken_speed_get(int unit, soc_port_t port, int *speed)
             *speed = 0;
             break;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
               unit, port,data16, *speed));
@@ -5684,7 +5684,7 @@ _wc40_soft_an_cl73kr2_check(int unit, soc_port_t port)
         SOC_IF_ERROR_RETURN
             (READ_WC40_CL73_USERB0_CL73_USTAT1r(unit, pc, 0x00, &data16));
 
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "KR2 autoneg wait page_rx bit set: u=%d p=%d kr2_state:0x%x,nxp0:0x%x,nxp1:0x%x,nxp2:0x%x,fsm:0x%x\n"), 
                      unit, port,DEV_CTRL_PTR(pc)->soft_kr2.state,lp_nxp0,lp_nxp1,lp_nxp2,data16));
@@ -5875,7 +5875,7 @@ _wc40_soft_an_cl73kr2_check(int unit, soc_port_t port)
                 if ((ld_adv & lp_adv & CL73_AN_ADV_PLUS_KR2_MASK) & 
                     CL73_AN_ADV_TECH_40G_KR4) { 
                     /* do nothing */ 
-                    LOG_VERBOSE(BSL_LS_SOC_PHY,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                                 (BSL_META_U(unit,
                                             "resolved to KR4 : u=%d p=%d\n"), unit, port));
                 } else if ((ld_adv & lp_adv & CL73_AN_ADV_PLUS_KR2_MASK) & 
@@ -5898,12 +5898,12 @@ _wc40_soft_an_cl73kr2_check(int unit, soc_port_t port)
                     /* set KR2 ETA bit */
                     SOC_IF_ERROR_RETURN
                         (WC40_REG_MODIFY(unit,pc,0x0,0x8450, 1, 1));
-                    LOG_VERBOSE(BSL_LS_SOC_PHY,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                                 (BSL_META_U(unit,
                                             "KR2 autoneg resolves to KR2: u=%d p=%d\n"), unit, port));
 
                 } else {  /* all other speeds */
-                    LOG_VERBOSE(BSL_LS_SOC_PHY,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                                 (BSL_META_U(unit,
                                             "resolved to non KR2/KR4 speeds: u=%d p=%d\n"), unit, port));
                 }
@@ -5944,7 +5944,7 @@ _wc40_soft_an_cl73kr2_check(int unit, soc_port_t port)
                 (WRITE_WC40_AN_IEEE1BLK_AN_XNP_TRANSMIT0r(unit, pc, 0x00, ld_nxp0));
             DEV_CTRL_PTR(pc)->soft_kr2.state = WC40_SOFT_KR2_STATE_WAIT_4_NP;
         }
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "KR2 autoneg tx page: u=%d p=%d kr2_state:0x%x,tx_nxp0:0x%x,tx_nxp1:0x%x,tx_nxp2:0x%x\n"), 
                      unit, port,DEV_CTRL_PTR(pc)->soft_kr2.state,ld_nxp0,ld_nxp1,ld_nxp2));
@@ -5961,7 +5961,7 @@ _wc40_soft_an_cl73kr2_check(int unit, soc_port_t port)
                                          0x0000, TX0_TX_DRIVER_ELECIDLE_MASK));
                 }
                 DEV_CTRL_PTR(pc)->soft_kr2.state = WC40_SOFT_KR2_STATE_WAIT_4_BP;
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "KR2 autoneg (WAR) no page rcvd: u=%d p=%d kr2_state:0x%x\n"), 
                              unit, port,DEV_CTRL_PTR(pc)->soft_kr2.state));
@@ -6001,7 +6001,7 @@ phy_wc40_an_set(int unit, soc_port_t port, int an)
         return SOC_E_NONE;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -6595,7 +6595,7 @@ _phy_wc40_c73_adv_local_set(int unit, soc_port_t port,
                                      (CL73_AN_ADV_PAUSE |
                                       CL73_AN_ADV_ASYM_PAUSE)));
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_c73_adv_local_set: u=%d p=%d pause=%08x speeds=%04x,adv=0x%x\n"),
               unit, port, pause, an_adv,ability->speed_full_duplex));
@@ -6662,7 +6662,7 @@ _phy_wc40_c73_adv_local_get(int unit, soc_port_t port,
     }
     ability->pause = pause;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
               unit, port, pause, speeds));
@@ -6746,7 +6746,7 @@ phy_wc40_ability_advert_set(int unit, soc_port_t port,
                 (_phy_wc40_c73_adv_local_set(unit, port, ability));
         }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_wc40_ability_advert_set: u=%d p=%d pause=%08x OVER1G_UP1 %04x\n"),
                   unit, port, ability->pause, an_adv));
@@ -6855,7 +6855,7 @@ phy_wc40_ability_advert_set(int unit, soc_port_t port,
             (_phy_wc40_c73_adv_local_set(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_ability_advert_set: u=%d p=%d pause=%08x OVER1G_UP1 %04x\n"),
               unit, port, ability->pause, an_adv));
@@ -6975,7 +6975,7 @@ phy_wc40_ability_advert_get(int unit, soc_port_t port,
             (_phy_wc40_c73_adv_local_get(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -7087,7 +7087,7 @@ phy_wc40_ability_remote_get(int unit, soc_port_t port,
         }
     } 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "u=%d p=%d an_enable=%04x link_1000x=%04x link_combo=%04x\n"),
               unit, port, an_enable, link_1000x,link_combo));
@@ -7161,7 +7161,7 @@ phy_wc40_ability_remote_get(int unit, soc_port_t port,
         mode |= (an_adv & DIGITAL3_LP_UP1_DATARATE_2P5GX1_MASK) ?
                  SOC_PA_SPEED_2500MB : 0;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d over1G an_adv=%04x\n"),
                   unit, port, an_adv));
@@ -7169,7 +7169,7 @@ phy_wc40_ability_remote_get(int unit, soc_port_t port,
         SOC_IF_ERROR_RETURN
             (READ_WC40_COMBO_IEEE0_AUTONEGLPABILr(unit, pc, 0x00, &an_adv));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d combo an_adv=%04x\n"),
                   unit, port, an_adv));
@@ -7210,7 +7210,7 @@ phy_wc40_ability_remote_get(int unit, soc_port_t port,
         phy_wc40_ability_advert_get(unit, port, ability);
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_ability_remote_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -7588,7 +7588,7 @@ phy_wc40_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
               unit, port, ability->speed_full_duplex));
@@ -8058,14 +8058,14 @@ _phy_wc40_control_prbs_rx_status_get(int unit, soc_port_t port,
                 SOC_IF_ERROR_RETURN
                     (READ_WC40_PCS_IEEE2BLK_PCS_TPERRCOUNTERr(unit,pc,ln_access[lane],&data));
                 *value += data;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "prbs_rx_status_get: u=%d p=%d (lane %d errors 0x%x)\n"), 
                                      unit, port, lane, data));
 
             } else { /* PRBS not in sync */
                 *value = -1;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "prbs_rx_status_get: u=%d p=%d (lane %d not in sync)\n"),
                                      unit, port, lane));
@@ -8085,7 +8085,7 @@ _phy_wc40_control_prbs_rx_status_get(int unit, soc_port_t port,
             continue;
         } else if (data == 0) {
             /* PRBS not in sync */
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "prbs_rx_status_get: u=%d p=%d (lane %d not in sync)\n"),
                                  unit, port, lane));
@@ -8094,7 +8094,7 @@ _phy_wc40_control_prbs_rx_status_get(int unit, soc_port_t port,
         } else {
             /* Get errors */
             *value += data & RX0_ANARXSTATUS_PRBS_STATUS_PTBS_ERRORS_MASK;
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "prbs_rx_status_get: u=%d p=%d (lane %d errors 0x%x)\n"), 
                                  unit, port, lane, (data & RX0_ANARXSTATUS_PRBS_STATUS_PTBS_ERRORS_MASK)));
@@ -9285,7 +9285,7 @@ phy_wc40_control_set(int unit, soc_port_t port,
         SOC_IF_ERROR_RETURN(
                 phy_wc40_an_get(unit, port, &an, &an_done));
         if(an) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_wc40_control_set: PHY_CONTROL_AUTONEG_MODE "
                                  "-> disable autoneg u=%d p=%d\n"), unit, port));
@@ -9914,7 +9914,7 @@ phy_wc40_linkup_evt (int unit, soc_port_t port)
     phy_ctrl_t  *pc;
 
     pc = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_linkup_evt: "
                          "u=%d p=%d\n"), unit, port));
@@ -10097,7 +10097,7 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
                      MICROBLK_DOWNLOAD_STATUS_INIT_DONE_MASK,1,2000000,0);
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC40 : uC init fails: u=%d p=%d\n"),
                   unit, port));
@@ -10183,7 +10183,7 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
     mask16 = MICROBLK_DOWNLOAD_STATUS_ERR0_MASK | MICROBLK_DOWNLOAD_STATUS_ERR1_MASK;
 
     if (data16 & mask16) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC40 : uC RAM download fails: u=%d p=%d\n"),
                   unit, port));
@@ -10206,7 +10206,7 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
     if (!no_cksum) {
         rv = _phy_wc40_regbit_set_wait_check(pc,0x81fe,0xffff,1,100000,0);
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC40 : uC download: u=%d p=%d timeout: wait for checksum\n"),
                       unit, port));
@@ -10219,16 +10219,16 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
     SOC_IF_ERROR_RETURN
         (READ_WC40_UC_INFO_B1_VERSIONr(unit, pc, 0x00, &ver));
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
 
     if (!no_cksum) {
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 " cksum=0x%x\n"), cksum));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\n")));
     }
@@ -10359,7 +10359,7 @@ phy_wc40_diag_ctrl(
         break;
 
         case PHY_DIAG_CTRL_DSC:
-             LOG_INFO(BSL_LS_SOC_PHY,
+             LOG_BSL_INFO(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "phy_wc40_diag_ctrl: "
                                   "u=%d p=%d PHY_DIAG_CTRL_DSC 0x%x\n"),
@@ -10474,7 +10474,7 @@ _phy_wc40_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     pc    = INT_PHY_SW_STATE(unit, port);
     fiber = DEV_CFG_PTR(pc)->fiber_pref;
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_notify_duplex: "
                          "u=%d p=%d duplex=%d fiber=%d\n"),
@@ -10548,7 +10548,7 @@ _phy_wc40_notify_speed(int unit, soc_port_t port, uint32 speed)
     pc    = INT_PHY_SW_STATE(unit, port);
     fiber = DEV_CFG_PTR(pc)->fiber_pref;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -10592,7 +10592,7 @@ _phy_wc40_notify_speed(int unit, soc_port_t port, uint32 speed)
             (MODIFY_WC40_DIGITAL5_MISC6r(unit,pc,0x00, 
                              0, 
                              DIGITAL5_MISC6_TX_OS8_FRST_SM_MASK));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "_phy_wc40_notify_speed: APPLY TX FIFO RST u=%d p=%d \n"),
                      unit, port));
@@ -10643,7 +10643,7 @@ _phy_wc40_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,
@@ -10655,7 +10655,7 @@ _phy_wc40_stop(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (MODIFY_WC40_DIGITAL5_MISC6r(unit,pc,0x00, data16, mask16));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_stop: u=%d p=%d mask=0x%x value=0x%x\n"),
               unit, port, mask16, data16));
@@ -11901,7 +11901,7 @@ _wc40_avg_vga_dfe( int unit, int port, int lane, int tapsel, int *avg_value)
                break;
       } 
 
-      LOG_INFO(BSL_LS_SOC_PHY,
+      LOG_BSL_INFO(BSL_LS_SOC_PHY,
                (BSL_META_U(unit,
                            "WC_VEYE : val_curr = %d, val_avg = %d, tap_select = %d\n"), 
                 val_curr,val_avg,tapsel));
@@ -11981,7 +11981,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
     max_runtime_loop = 80;  
     pInfo->max_loops = MAX_LOOPS;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "WC_VEYE : max_runtime_loop: %d u=%d p=%d\n"), 
               max_runtime_loop,unit, port));
@@ -12077,7 +12077,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
     }
 
     /* display the average value written to VGA/DFE */ 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "WC_EYE avg dfe/vga: u=%d p=%d, VGA:0x%x, dfe1:0x%x, dfe2:0x%x, dfe3:0x%x, "
                          "dfe4:0x%x, dfe5:0x%x\n"), unit, port, dfe_vga[0],dfe_vga[1],
@@ -12090,7 +12090,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
                      DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,1,WC40_PLL_WAIT,ln_access[lane]);
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC_EYE : uController not ready!!!: u=%d p=%d\n"), unit, port));
         return (SOC_E_TIMEOUT);
@@ -12118,7 +12118,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
                      DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,1,WC40_PLL_WAIT,ln_access[lane]);
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC_EYE : uController not ready pass 1!!!: u=%d p=%d\n"), 
                   unit, port));
@@ -12140,13 +12140,13 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
     SOC_IF_ERROR_RETURN
         (READ_WC40_DSC2B0_ACQ_SM_CTRL1r(unit, pc, ln_access[lane], &data16));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "WC_EYE : offset_max %d DSC2B0_ctrl 0x%x u=%d p=%d\n"), 
               offset_max,data16,unit, port));
 
     if (offset_max >= MAX_LOOPS) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "WC_EYE ERROR: offset_max %d greater than MAX %d  u=%d p=%d\n"), 
                    offset_max,MAX_LOOPS,unit, port));
@@ -12181,7 +12181,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
         clk90_p_offset >>= 7;
         clk90_p_offset &= 0x7f;
         tmp = (short)data16;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Starting BER measurement at offset: %d clk90_p_offset: 0x%x u=%d p=%d\n"),
                   tmp,clk90_p_offset,unit, port));
@@ -12203,7 +12203,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
                          DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,1,WC40_PLL_WAIT,ln_access[lane]);
 
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WC_EYE : uC waits for offset fail!!!: u=%d p=%d\n"), 
                       unit, port));
@@ -12227,7 +12227,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
             } else if (curr_runtime < (4 * MIN_RUNTIME)) {
                 curr_runtime = (1 << (runtime_loop - 1)) * MIN_RUNTIME;
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Starting prbs run for %d seconds : u=%d p=%d\n"), curr_runtime,
                       unit, port));
@@ -12250,13 +12250,13 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
 
                 prbs_stky_flag = 0;
                 if (prbs_status == -1) { /* not lock */
-                      LOG_WARN(BSL_LS_SOC_PHY,
+                      LOG_BSL_WARN(BSL_LS_SOC_PHY,
                                (BSL_META_U(unit,
                                            "PRBS not locked, loop_num %d status=%d u=%d p=%d\n"), 
                                 loop_var,prbs_status,unit, port));
                     prbs_status = 0x7fff;  /* max error */
                 } else if (prbs_status == -2) {
-                      LOG_WARN(BSL_LS_SOC_PHY,
+                      LOG_BSL_WARN(BSL_LS_SOC_PHY,
                                (BSL_META_U(unit,
                                            "PRBS momentarily lost lock, loop_num %d u=%d p=%d\n"), 
                                 loop_var,unit, port));
@@ -12275,7 +12275,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
 
             if ((pInfo->total_errs[loop_var] >= HI_CONFIDENCE_ERR_CNT) ||
                 (pInfo->total_elapsed_time[loop_var] >= max_total_time)) {
-                 LOG_INFO(BSL_LS_SOC_PHY,
+                 LOG_BSL_INFO(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "WC_EYE: done PRBS err count: u=%d p=%d, total_err: %d"
                                       " elapsed_time: %d, loop_num: %d\n"), unit, port,
@@ -12313,7 +12313,7 @@ _wc40_veye_margin_data_get( int unit, int port, int lane, WC40_EYE_DIAG_INFOt *p
                      DSC1B0_UC_CTRL_READY_FOR_CMD_MASK,1,WC40_PLL_WAIT,ln_access[lane]);
 
     if (rv == SOC_E_TIMEOUT) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC_VEYE : uC waits for offset=0 fail!!!: u=%d p=%d\n"),
                   unit, port));
@@ -12406,13 +12406,13 @@ _wc40_eye_margin_ber_cal(WC40_EYE_DIAG_INFOt *pInfo, int type)
         eye_unit = VEYE_UNIT;
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("\nBER measurement at each offset, num_data_points: %d\n"),
 pInfo->veye_cnt));
 
     for (loop_var = 0; loop_var < pInfo->veye_cnt; loop_var++) { 
         margins[loop_var] = (pInfo->offset_max-loop_var)*eye_unit;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("BER measurement at offset: %f\n"), margins[loop_var]));
              
         /* Compute BER */
@@ -12420,7 +12420,7 @@ pInfo->veye_cnt));
             bers[loop_var] = 1.0/(COMPILER_DOUBLE)pInfo->total_elapsed_time[loop_var]/pInfo->rate;
             bers[loop_var] /= 1000;
 
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META("BER @ %04f %% = 1e%04f (%d errors in %d seconds)\n"),
 (COMPILER_DOUBLE)((pInfo->offset_max-loop_var)*eye_unit), 
                       1.0*(log10(bers[loop_var])),
@@ -12432,7 +12432,7 @@ pInfo->veye_cnt));
 
             /* the rate unit is KHZ, add -3(log10(1/1000)) for actual display  */
             bers[loop_var] /= 1000;
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META("BER @ %2.2f%% = 1e%2.2f (%d errors in %d seconds)\n"),
 (pInfo->offset_max-loop_var)*eye_unit,
                       log10(bers[loop_var]),
@@ -12447,12 +12447,12 @@ pInfo->veye_cnt));
         }
         prev_ber_log = curr_ber_log;
         
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("cur_be_log %2.2f\n"), curr_ber_log));
         /* find the first data point with good BER */
         if ((curr_ber_log <= good_ber_level) && 
             (pInfo->first_good_ber_idx == INDEX_UNINITIALIZED)) { 
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("cur_be_log %2.2f, loop_var %d\n"), 
 curr_ber_log,loop_var));
             pInfo->first_good_ber_idx = loop_var;
@@ -12525,7 +12525,7 @@ _wc40_eye_margin_diagram_cal(WC40_EYE_DIAG_INFOt *pInfo, int type)
     ber_conf_scale[18] = 1.5136;
     ber_conf_scale[19] = 1.4791;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("first_good_ber_idx: %d, first_small_errcnt_idx: %d\n"),
 pInfo->first_good_ber_idx,pInfo->first_small_errcnt_idx));
 
@@ -12599,7 +12599,7 @@ pInfo->first_good_ber_idx,pInfo->first_small_errcnt_idx));
     /* Below this point the code assumes statistically valid point available */
         delta_n = stop_n - start_n - n_mono;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("start_n: %d, stop_n: %d, veye: %d, n_mono: %d\n"),
 start_n,stop_n,pInfo->veye_cnt,n_mono));
 
@@ -12608,17 +12608,17 @@ start_n,stop_n,pInfo->veye_cnt,n_mono));
         lbers[loop_index] = (COMPILER_DOUBLE)sqrt(-log(bers[loop_index]));
     }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\tstart=%d, stop=%d, low_confidence=%d\n"),
 start_n, stop_n, low_confidence));
         for (loop_index=start_n; loop_index < stop_n; loop_index++){
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("\ttotal_errs[%d]=0x%08x\n"),
 loop_index,(int)pInfo->total_errs[loop_index]));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("\tbers[%d]=%f\n"),
 loop_index,bers[loop_index]));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("\tlbers[%d]=%f\n"),
 loop_index,lbers[loop_index]));
     }
@@ -12637,7 +12637,7 @@ loop_index,lbers[loop_index]));
         alpha = (Exy - Ey * Ex)/(Exx - Ex * Ex);
         beta = Ey - Ex * alpha;
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("Exy=%f, Eyy=%f, Exx=%f, Ey=%f,Ex=%f alpha=%f, beta=%f\n"),
 Exy,Eyy,Exx,Ey,Ex,alpha,beta));
 
@@ -12672,25 +12672,25 @@ Exy,Eyy,Exx,Ey,Ex,alpha,beta));
         outputs[2] = _wc40_util_round_real(proj_margin_12,1);
         outputs[3] = _wc40_util_round_real(proj_margin_15,1);
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tlog1e-12=%f, sq=%f\n"),(COMPILER_DOUBLE)log(1e-12),(COMPILER_DOUBLE)sqrt(-log(1e-12))));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\talpha=%f\n"),alpha));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tbeta=%f\n"),beta));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_ber=%f\n"),proj_ber));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_margin12=%f\n"),proj_margin_12));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_margin12=%f\n"),proj_margin_15));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_margin18=%f\n"),proj_margin_18));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\toutputs[0]=%f\n"),outputs[0]));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\toutputs[1]=%f\n"),outputs[1]));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\toutputs[2]=%f\n"),outputs[2]));
 
         /* Extrapolated results, low confidence */

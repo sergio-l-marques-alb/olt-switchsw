@@ -4370,7 +4370,7 @@ int trie_split(trie_t *trie,
                 trie_init(48, &c2);
                 c1->trie = child;
                 c2->trie = *split_trie_root;
-                LOG_ERROR(BSL_LS_SOC_ALPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_ALPM,
                           (BSL_META("dumping the 2 child trees\n")));
                 trie_dump(c1, 0, 0);
                 trie_dump(c2, 0, 0);

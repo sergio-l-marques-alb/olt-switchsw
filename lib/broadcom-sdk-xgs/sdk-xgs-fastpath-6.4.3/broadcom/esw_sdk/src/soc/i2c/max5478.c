@@ -106,7 +106,7 @@ max5478_ioctl(int unit, int devno,
             break;
 
         default:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "POT%d: invalid wiper %d\n"),
                          devno, params->wiper));
@@ -129,7 +129,7 @@ max5478_ioctl(int unit, int devno,
         break;
 
     default:
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "POT%d: invalid request %d\n"),
                      devno, request));

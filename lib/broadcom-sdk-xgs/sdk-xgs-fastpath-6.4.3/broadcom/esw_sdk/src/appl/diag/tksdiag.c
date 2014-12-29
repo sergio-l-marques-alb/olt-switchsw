@@ -362,7 +362,7 @@ ct_attach_callback(int unit, int attach, cpudb_entry_t *cpuent, int cpuunit)
 {
     COMPILER_REFERENCE(cpuent);
     COMPILER_REFERENCE(cpuunit);
-    LOG_VERBOSE(BSL_LS_BCM_STK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                 (BSL_META_U(unit,
                             "STACK: Attach callback, unit %d. %s\n"),
                  unit, attach ? "attach" : "detach"));
@@ -719,7 +719,7 @@ _stk_port_update(int unit, bcm_port_t port, uint32 flags, void *cookie)
     if (flags & BCM_STK_ENABLE) {
         if (flags & BCM_STK_SL) {
             stk_cos = PTR_TO_INT(cookie);
-            LOG_VERBOSE(BSL_LS_BCM_STK,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_STK,
                         (BSL_META_U(unit,
                                     "STACK: port update: unit %d, port %d, flags 0x%x,"
                                     "stk_cos %d\n"),

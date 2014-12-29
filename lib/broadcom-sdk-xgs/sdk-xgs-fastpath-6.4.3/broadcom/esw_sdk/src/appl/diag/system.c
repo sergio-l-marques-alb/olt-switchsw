@@ -2368,7 +2368,7 @@ system_init(int unit)
 #if defined(BCM_ROBO_SUPPORT)
         SYSTEM_INIT_CHECK(soc_robo_reset_init(unit), "Device reset");
 
-        LOG_INFO(BSL_LS_APPL_ARL,
+        LOG_BSL_INFO(BSL_LS_APPL_ARL,
                  (BSL_META_U(unit,
                              "Init ARL Thread on unit %d\n"), unit));
 #endif 
@@ -2427,7 +2427,7 @@ system_init(int unit)
 #endif
 
     if (msg != NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit ,
                               "system_init: %s failed: %s\n"),
                    msg, soc_errmsg(rv)));
@@ -2474,7 +2474,7 @@ system_shutdown(int unit, int cleanup)
         if (soc_feature(unit, soc_feature_field_tcam_parity_check)){
             rv = _robo_field_thread_stop(unit);
             if (rv == BCM_E_INTERNAL){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit ,
                                       "system_shutdown: could not stop field thread!%s\n"),
                            soc_errmsg(rv)));
@@ -2482,12 +2482,12 @@ system_shutdown(int unit, int cleanup)
         }
 #endif        
         if (soc_robo_arl_mode_set(unit, 0) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit ,
                                   "system_shutdown: could not stop arl thread!\n")));
         }
         if (soc_robo_counter_stop(unit) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit ,
                                   "system_shutdown: could not stop counter thread!\n")));
         }

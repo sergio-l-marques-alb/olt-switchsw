@@ -293,7 +293,7 @@ static uint8 ext_phy_dft_addr1[] = {
                 } \
             } while (!soc_timeout_check(&to)); \
             if (((status & 0x2) != 0) && (status != 0xffff)) { \
-                LOG_WARN(BSL_LS_SOC_PHY, \
+                LOG_BSL_WARN(BSL_LS_SOC_PHY, \
                          (BSL_META_U(unit, \
                                      "PHY8481 firmware handshake failed: u=%d p=%d status=0x%04x\n"), \
                           unit, port, status)); \
@@ -549,7 +549,7 @@ phy_8481_init(int unit, soc_port_t port)
             }
         } while (!soc_timeout_check(&to));
         if ((data16 & MII_CTRL_RESET) != 0) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8481 GPHY core reset failed: u=%d p=%d\n"),
                       unit, port));
@@ -575,7 +575,7 @@ phy_8481_init(int unit, soc_port_t port)
                 }
             } while (!soc_timeout_check(&to));
             if ((data16 & MII_CTRL_RESET) != 0) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "PHY8481 reset failed: u=%d p=%d\n"),
                           unit, port));
@@ -589,7 +589,7 @@ phy_8481_init(int unit, soc_port_t port)
                                           
         if (!data16 || ((PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_PASS1) && !PHY_EXT_ROM_BOOT(pc))) {
             /* Attempting f/w download */
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8481: Attempting firmware download : u=%d p=%d\n"),
                       unit, port));
@@ -720,7 +720,7 @@ phy_8481_init(int unit, soc_port_t port)
                 soc_timeout_init(&TO(pc), 2000000, 0);
     
             } else {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "PHY8481: firmware download not possible with this model: u=%d p=%d\n"),
                           unit, port));
@@ -755,19 +755,19 @@ phy_8481_init(int unit, soc_port_t port)
                 if (!args[0]) {
                     PHY_FLAGS_CLR(unit, pc->port, PHY_FLAGS_EEE_ENABLED);
                     PHY_FLAGS_CLR(unit, pc->port, PHY_FLAGS_EEE_MODE);
-                    LOG_INFO(BSL_LS_SOC_PHY,
+                    LOG_BSL_INFO(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "u=%d p=%d recovered EEE None\n"), unit, port));
                 } else if (args[0] == 1) {
                     PHY_FLAGS_SET(unit, pc->port, PHY_FLAGS_EEE_ENABLED);
                     PHY_FLAGS_CLR(unit, pc->port, PHY_FLAGS_EEE_MODE);
-                    LOG_INFO(BSL_LS_SOC_PHY,
+                    LOG_BSL_INFO(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "u=%d p=%d recovered EEE Native\n"), unit, port));
                 } else if (args[0] == 2) {
                     PHY_FLAGS_SET(unit, pc->port, PHY_FLAGS_EEE_ENABLED);
                     PHY_FLAGS_SET(unit, pc->port, PHY_FLAGS_EEE_MODE);
-                    LOG_INFO(BSL_LS_SOC_PHY,
+                    LOG_BSL_INFO(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "u=%d p=%d recovered EEE AutogrEEEn\n"), unit, port));
                 }
@@ -794,7 +794,7 @@ phy_8481_init(int unit, soc_port_t port)
             }
         } while (!soc_timeout_check(&TO(pc)));
         if ((data16 & MII_CTRL_RESET) || (!version_reg)) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8481 : u=%d p=%d : Firmware might not be running\n"),
                       unit, port));
@@ -1085,7 +1085,7 @@ _phy_8481_check_firmware(int unit,phy_ctrl_t *pc)  {
 
         spirom_crc_check_status = (tmp16 >> 14) & 0x3;
         if(spirom_crc_check_status == 0x2) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "SPIROM bad CRC \n")));
         }
@@ -1445,7 +1445,7 @@ phy_8481_enable_set(int unit, soc_port_t port, int enable)
         SOC_IF_ERROR_RETURN
             (_phy_8481_copper_enable_set(unit, port, enable));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_8481_enable_set: "
                              "Power %s copper medium\n"), (enable) ? "up" : "down"));
@@ -1455,7 +1455,7 @@ phy_8481_enable_set(int unit, soc_port_t port, int enable)
         SOC_IF_ERROR_RETURN
             (_phy_8481_xaui_enable_set(unit, port, enable));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_8481_enable_set: "
                              "Power %s fiber medium\n"), (enable) ? "up" : "down"));
@@ -1640,7 +1640,7 @@ _phy_8481_copper_lb_get(int unit, soc_port_t port, int *enable)
         *enable = ((tmp != 0xffff) && (tmp & MII_CTRL_LE)) ? TRUE : FALSE;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8481_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));
@@ -1768,7 +1768,7 @@ _phy_8481_medium_change(int unit, soc_port_t port, int force_update)
                     (_phy_8481_medium_config_update(unit, port, &pc->copper));
             }
 
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_8481_link_auto_detect: u=%d p=%d [F->X]\n"),
                       unit, port));
@@ -1786,7 +1786,7 @@ _phy_8481_medium_change(int unit, soc_port_t port, int force_update)
                     (_phy_8481_medium_config_update(unit, port, &pc->fiber));
             }
 
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_8481_link_auto_detect: u=%d p=%d [C->X]\n"),
                       unit, port));
@@ -3439,7 +3439,7 @@ _phy_8481_copper_speed_set(int unit, soc_port_t port, int speed)
     uint16 speed_c45, speed_c22;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8481_speed_set: u=%d p=%d speed=%d\n"),
                          unit, port,speed));
@@ -4324,7 +4324,7 @@ _phy_8481_xaui_nxt_dev_probe(int unit, soc_port_t port)
         /* device not found */
         return SOC_E_NONE;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_8481_xaui_nxt_dev_probe: found phy device"
                          " u=%d p=%d id0=0x%x id1=0x%x\n"), 
@@ -4464,7 +4464,7 @@ _phy_8481_xaui_ability_remote_get(int unit, soc_port_t port,
     SOC_IF_ERROR_RETURN
         (READ_PHY8481_PHYXS_L_GP_STATUS_XGXSSTATUS3r(unit, pc, &link_stat_gp));
      
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "u=%d p=%d mii_stat_combo=%04x link_stat_gp=%04x\n"),
               unit, port, mii_stat_combo, link_stat_gp));
@@ -4483,13 +4483,13 @@ _phy_8481_xaui_ability_remote_get(int unit, soc_port_t port,
         mode |= (an_adv & OVER1G_LP_UP1_DATARATE_10GCX4_MASK) ?
                  SOC_PA_SPEED_10GB : 0;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d over1G an_adv=%04x\n"),
                   unit, port, an_adv));
         SOC_IF_ERROR_RETURN
             (READ_PHY8481_PHYXS_L_COMBO_IEEE0_AUTONEGLPABILr(unit, pc, &an_adv));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d combo an_adv=%04x\n"),
                   unit, port, an_adv));
@@ -4519,7 +4519,7 @@ _phy_8481_xaui_ability_remote_get(int unit, soc_port_t port,
         SOC_IF_ERROR_RETURN
             (phy_8481_ability_advert_get(unit, port, ability));
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8481_xaui_ability_remote_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -5143,7 +5143,7 @@ _phy_8481_prog_eeprom(int unit, phy_ctrl_t *pc)
         if ((status & MDIO2ARM_STS_MDIO2ARM_DONE_MASK) == 0) {
             SOC_IF_ERROR_RETURN
                 (WRITE_PHY8481_MDIO2ARM_CTL_REG( unit, pc, 0 )); 
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8481 MDIO2ARM read failed: u=%d p=%d\n"), unit, pc->port ));
             return (SOC_E_FAIL);
@@ -5164,7 +5164,7 @@ _phy_8481_prog_eeprom(int unit, phy_ctrl_t *pc)
 
       } while(!soc_timeout_check(&to_prog));
 
-    LOG_WARN(BSL_LS_SOC_PHY,
+    LOG_BSL_WARN(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY8481 firmware programming timed out !.: u=%d p=%d\n"), unit, pc->port ));
 
@@ -5267,7 +5267,7 @@ _phy_8481_read_from_arm(int unit, phy_ctrl_t *pc, uint32 addr, uint8 *data, int 
             }
         } while (!soc_timeout_check(&to));
         if ((status & MDIO2ARM_STS_MDIO2ARM_DONE_MASK) == 0) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8481 MDIO2ARM read failed: u=%d p=%d addr=%08x\n"), unit, pc->port, addr));
             return (SOC_E_FAIL);
@@ -5321,7 +5321,7 @@ _phy_8481_mdio2arm_read(int unit, soc_port_t port, uint32 addr, uint32 *val, int
         }
     } while (!soc_timeout_check(&to));
     if ((status & MDIO2ARM_STS_MDIO2ARM_DONE_MASK) == 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY8481 MDIO2ARM read failed: u=%d p=%d addr=%08x\n"), unit, port, addr));
         return (SOC_E_FAIL);
@@ -5381,7 +5381,7 @@ _phy_8481_mdio2arm_write(int unit, soc_port_t port, uint32 addr, uint32 val, int
         }
     } while (!soc_timeout_check(&to));
     if ((status & MDIO2ARM_STS_MDIO2ARM_DONE_MASK) == 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY8481 MDIO2ARM write failed: u=%d p=%d addr=%08x\n"), unit, port, addr));
         return (SOC_E_FAIL);
@@ -5551,7 +5551,7 @@ phy_8481_firmware_set(int unit, int port, int offset, uint8 *data,int len)
                 (READ_PHY8481_PMAD_REG(unit, pc, 0x3, &temp2));
             if(temp1 != 0xffff) {
                 if((temp1 != pc->phy_id0) || (temp2 != pc->phy_id1)) {
-                    LOG_WARN(BSL_LS_SOC_PHY,
+                    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "Another PHY already exist on same boradcast MDIO address.\n")));
                 }    
@@ -6200,7 +6200,7 @@ _phy_8481_mfg_test_fw_ready(int unit, phy_ctrl_t *pc, uint16 val, uint16 mask)
     } while ( ! soc_timeout_check(&TO(pc)) );
 
     /* register read or status check failed */
-    LOG_WARN(BSL_LS_SOC_PHY,
+    LOG_BSL_WARN(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY848X manufacturing diagnostics failed: unit=%d port=%d\n"),
               unit, pc->port));
@@ -6245,7 +6245,7 @@ _phy_8481_mfg_test_set(int unit, soc_port_t port, int op_cmd, int arg)
     SOC_IF_ERROR_RETURN
         (_phy_8481_mfg_test_fw_ready(unit, pc, 0xf000, 0xffff));
 
-    LOG_WARN(BSL_LS_SOC_PHY,
+    LOG_BSL_WARN(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY848X manufacturing diagnostics init: unit=%d port=%d\n"), unit, port));
 
@@ -6338,7 +6338,7 @@ _phy_8481_mfg_test_get(int unit, soc_port_t port, int op_cmd, uint32 arg[])
     SOC_IF_ERROR_RETURN
         (READ_PHY8481_PHYC_CTL_SPARE_GRP6_REG(unit, pc, &status));
     if ( (status & 0x7) != requested_cmd ) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY848X manufacturing diagnostics command mismatch: u=%d p=%d\n"), unit, port));
         return SOC_E_FAIL;
@@ -6358,7 +6358,7 @@ _phy_8481_mfg_test_get(int unit, soc_port_t port, int op_cmd, uint32 arg[])
     SOC_IF_ERROR_RETURN    /*  and wait for the operation done */
         (_phy_8481_mfg_test_fw_ready(unit, pc, 0xf000, 0xffff));
 
-    LOG_WARN(BSL_LS_SOC_PHY,
+    LOG_BSL_WARN(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY848X manufacturing diagnostics OK: unit=%d port=%d\n"), unit, port));
 
@@ -6578,7 +6578,7 @@ phy_8481_diag_ctrl(
     int lane;
     int intf;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8481_diag_ctrl: u=%d p=%d ctrl=0x%x\n"),
                          unit, port,op_cmd));
@@ -6752,7 +6752,7 @@ phy_8481_cable_diag(int unit, soc_port_t port,
     } while (!soc_timeout_check(&to));
 
     if ((ctrl_status & (1U<<11)) != 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY848X Cable Diagnostics failed: u=%d p=%d\n"), unit, port ));
         return (SOC_E_FAIL);

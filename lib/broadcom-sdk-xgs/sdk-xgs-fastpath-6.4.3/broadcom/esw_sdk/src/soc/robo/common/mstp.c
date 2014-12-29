@@ -149,7 +149,7 @@ drv_mstp_config_set(int unit, uint32 vlan_id, uint32 mstp_gid)
     vlan_1q_entry_t  vlan_entry;
     uint32  max_gid;
 
-    LOG_INFO(BSL_LS_SOC_STP,
+    LOG_BSL_INFO(BSL_LS_SOC_STP,
              (BSL_META_U(unit,
                          "drv_mstp_config_set : unit %d, vlan = %d, STP id = %d \n"),
               unit, vlan_id, mstp_gid));
@@ -251,7 +251,7 @@ drv_mstp_config_get(int unit, uint32 vlan_id, uint32 *mstp_gid)
         *mstp_gid = temp;
     }
 
-    LOG_INFO(BSL_LS_SOC_STP,
+    LOG_BSL_INFO(BSL_LS_SOC_STP,
              (BSL_META_U(unit,
                          "drv_mstp_config_get : unit %d, vlan = %d, STP id = %d \n"),
               unit, vlan_id, *mstp_gid));

@@ -211,12 +211,12 @@ phy_serdescombo_5601x_reg_read(int unit, phy_ctrl_t *pc,  uint16 reg_bank,
         if (SOC_SUCCESS(rv)) { 
             rv = READ_PHY_REG(unit, pc, reg_addr, &data);  
         }
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdescombo_5601x_reg_read: %x*%x: %04x\n"),
                   reg_bank, reg_addr, data));
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdescombo_5601x_reg_read: shadow %x*%x: %04x\n"),
                   reg_bank, reg_addr, data));
@@ -301,12 +301,12 @@ phy_serdescombo_5601x_reg_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
     }
 
     if (shadow_write) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdescombo_5601x_reg_write: shadow %x*%x: %04x\n"),
                   reg_bank, reg_addr, phy_wr_data));
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_serdescombo_5601x_reg_write: %x*%x: %04x\n"),
                   reg_bank, reg_addr, phy_wr_data));
@@ -580,7 +580,7 @@ phy_serdescombo_5601x_init_no_reset(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (_phy_serdescombo_5601x_combo_serdes_init(unit, port));
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_init: u=%d p=%d %s\n"),
               unit, port, (fiber) ? "Fiber" : "Copper"));
@@ -612,7 +612,7 @@ phy_serdescombo_5601x_init(int unit, soc_port_t port)
 {
 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_init: u=%d p=%d\n"),
               unit, port));
@@ -656,7 +656,7 @@ phy_serdescombo_5601x_init(int unit, soc_port_t port)
 STATIC int
 phy_serdescombo_5601x_enable_set(int unit, soc_port_t port, int enable)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_enable_set: u=%d p=%d en=%d\n"),
               unit, port, enable));
@@ -761,7 +761,7 @@ phy_serdescombo_5601x_speed_set(int unit, soc_port_t port, int speed)
         pc->fiber.force_speed = speed;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_speed_set: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, speed, rv));
@@ -931,7 +931,7 @@ phy_serdescombo_5601x_an_set(int unit, soc_port_t port, int an)
 
     pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -1041,7 +1041,7 @@ phy_serdescombo_5601x_adv_local_set(int unit, soc_port_t port, soc_port_mode_t m
     SOC_IF_ERROR_RETURN
         (WRITE_SERDESCOMBO_5601X_DIGI3_CTRLBr(unit, pc, an_adv));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_adv_local_set: u=%d p=%d adv=%s%s%s%s\n"),
               unit, port,
@@ -1210,7 +1210,7 @@ phy_serdescombo_5601x_adv_remote_get(int unit, soc_port_t port, soc_port_mode_t 
             (_phy_serdescombo_5601x_1000x_adv_remote_get(unit, port, mode));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_adv_remote_get: u=%d p=%d adv=%s%s%s%s\n"),
               unit, port,
@@ -1605,7 +1605,7 @@ phy_serdescombo_5601x_an_get(int unit, soc_port_t port, int *an, int *an_done)
 
     *an_done = (stat & MII_STAT_AN_DONE) != 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_an_get: u=%d p=%d an=%d an_done=%d\n"),
               unit, port, *an, *an_done));
@@ -1627,7 +1627,7 @@ phy_serdescombo_5601x_lb_set(int unit, soc_port_t port, int enable)
     rv = MODIFY_SERDESCOMBO_5601X_MII_CTRLr(unit, pc,
                                  ctrl, MII_CTRL_LE);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_lb_set: u=%d p=%d lb=%d rv=%d\n"),
               unit, port, enable, rv));
@@ -1766,7 +1766,7 @@ _phy_serdescombo_5601x_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     fiber = PHY_FIBER_MODE(unit, port);
     pc    = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_serdescombo_5601x_notify_duplex: "
                          "u=%d p=%d duplex=%d fiber=%d\n"),
@@ -1839,7 +1839,7 @@ _phy_serdescombo_5601x_notify_speed(int unit, soc_port_t port, uint32 speed)
     pc    = INT_PHY_SW_STATE(unit, port);
     fiber = PHY_FIBER_MODE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_serdescombo_5601x_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -1906,7 +1906,7 @@ _phy_serdescombo_5601x_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdescombo_5601x_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,

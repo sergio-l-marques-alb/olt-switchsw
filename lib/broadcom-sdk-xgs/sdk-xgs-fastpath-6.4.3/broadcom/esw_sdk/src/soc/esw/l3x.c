@@ -377,7 +377,7 @@ soc_fb_l3x_bank_lookup(int unit, uint8 banks,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != L3X2_LOOKUP_ACK_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L3,
+        LOG_BSL_ERROR(BSL_LS_SOC_L3,
                   (BSL_META_U(unit,
                               "soc_fb_l3x_lookup: invalid S-Channel reply, "
                               "expected L3X2_LOOKUP_ACK_MSG:\n")));
@@ -418,7 +418,7 @@ soc_fb_l3x_bank_lookup(int unit, uint8 banks,
                                ((1 << (32 - nbits)) - 1);
                 index |= (schan_msg.readresp.data[perr_index + 1] << (32 - nbits)) &
                          soc_mem_index_max(unit, mem); /* Assume size of table 2^N */
-                LOG_ERROR(BSL_LS_SOC_L3,
+                LOG_BSL_ERROR(BSL_LS_SOC_L3,
                           (BSL_META_U(unit,
                                       "Lookup table[L3_ENTRY_XXX]: Parity Error Index %d Bucket Bitmap 0x%08x\n"),
                            index,
@@ -441,11 +441,11 @@ soc_fb_l3x_bank_lookup(int unit, uint8 banks,
                          soc_mem_index_max(unit, mem);
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "L3 entry lookup: ")));
         soc_mem_entry_dump(unit, mem, result);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              " (index=%d)\n"), *index_ptr));
     }
@@ -515,7 +515,7 @@ soc_fb_l3x_bank_insert(int unit, uint8 banks,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != L3_INSERT_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L3,
+        LOG_BSL_ERROR(BSL_LS_SOC_L3,
                   (BSL_META_U(unit,
                               "soc_fb_l3x_insert: invalid S-Channel reply, "
                               "expected L3_INSERT_DONE_MSG:\n")));
@@ -550,7 +550,7 @@ soc_fb_l3x_bank_insert(int unit, uint8 banks,
                                ((1 << (32 - nbits)) - 1);
                 index |= (schan_msg.readresp.data[perr_index + 1] << (32 - nbits)) &
                          soc_mem_index_max(unit, mem); /* Assume size of table 2^N */
-                LOG_ERROR(BSL_LS_SOC_L3,
+                LOG_BSL_ERROR(BSL_LS_SOC_L3,
                           (BSL_META_U(unit,
                                       "Insert table[L3_ENTRY_XXX]: Parity Error Index %d Bucket Bitmap 0x%08x\n"),
                            index,
@@ -559,7 +559,7 @@ soc_fb_l3x_bank_insert(int unit, uint8 banks,
                 return SOC_E_INTERNAL;
             }
         }
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Insert table[L3_ENTRY_XXX]: hash bucket full\n")));
         rv = SOC_E_FULL;
@@ -606,11 +606,11 @@ soc_fb_l3x_bank_delete(int unit, uint8 banks,
     entry_dw = soc_mem_entry_words(unit, mem);
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-	LOG_INFO(BSL_LS_SOC_SOCMEM,
+	LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Delete table[L3_ENTRY_XXXm]: ")));
 	soc_mem_entry_dump(unit, mem, entry);
-	LOG_INFO(BSL_LS_SOC_SOCMEM,
+	LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -633,7 +633,7 @@ soc_fb_l3x_bank_delete(int unit, uint8 banks,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != L3_DELETE_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L3,
+        LOG_BSL_ERROR(BSL_LS_SOC_L3,
                   (BSL_META_U(unit,
                               "soc_fb_l3x_delete: invalid S-Channel reply, "
                               "expected L3_DELETE_DONE_MSG:\n")));
@@ -668,7 +668,7 @@ soc_fb_l3x_bank_delete(int unit, uint8 banks,
                                ((1 << (32 - nbits)) - 1);
                 index |= (schan_msg.readresp.data[perr_index + 1] << (32 - nbits)) &
                          soc_mem_index_max(unit, mem); /* Assume size of table 2^N */
-                LOG_ERROR(BSL_LS_SOC_L3,
+                LOG_BSL_ERROR(BSL_LS_SOC_L3,
                           (BSL_META_U(unit,
                                       "Delete table[L3_ENTRYm]: Parity Error Index %d Bucket Bitmap 0x%08x\n"),
                            index,
@@ -677,7 +677,7 @@ soc_fb_l3x_bank_delete(int unit, uint8 banks,
                 rv = SOC_E_INTERNAL;
             }
         }
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Delete table[L3_ENTRYm]: Not found\n")));
     }

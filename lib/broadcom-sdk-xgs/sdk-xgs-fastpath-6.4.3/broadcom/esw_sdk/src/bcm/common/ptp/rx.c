@@ -329,7 +329,7 @@ _bcm_ptp_rx_stack_create(
     }
 
     if (unit_rx_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP memory state not initialized\n")));
         return BCM_E_UNAVAIL;
@@ -342,7 +342,7 @@ _bcm_ptp_rx_stack_create(
     if (!data_p) {
         unit_rx_array[unit].stack_array[ptp_id].memstate =
             PTP_MEMSTATE_FAILURE;
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP memory state error\n")));
         return BCM_E_MEMORY;
@@ -569,7 +569,7 @@ _bcm_ptp_internal_rx_response_free(int unit, int ptp_id, uint8 *resp_data)
     for (i = 0; i < BCM_PTP_MAX_BUFFERS; ++i) {
         if (stack_p->int_state.mboxes->mbox[i].data == resp_data) {
             if (GET_MBOX_STATUS(stack_p, i) != MBOX_STATUS_PENDING_HOST) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid mbox status on PTP rx response free (%d)\n"),
                            GET_MBOX_STATUS(stack_p, i)));
@@ -579,7 +579,7 @@ _bcm_ptp_internal_rx_response_free(int unit, int ptp_id, uint8 *resp_data)
         }
     }
 
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META_U(unit,
                           "Invalid PTP rx response free (%p vs %p)\n"),
                (void *)resp_data, (void*)stack_p->int_state.mboxes->mbox[i-1].data));
@@ -623,7 +623,7 @@ _bcm_ptp_rx_response_flush(
     if ((unit_rx_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) ||
             (unit_rx_array[unit].stack_array[ptp_id].memstate !=
             PTP_MEMSTATE_INITIALIZED)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP memory state not initialized\n")));
         return BCM_E_UNAVAIL;
@@ -636,7 +636,7 @@ _bcm_ptp_rx_response_flush(
          * Flush response.
          * NOTICE: Response already waiting is unexpected.
          */
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Flushed unexpected response\n")));
 
@@ -714,7 +714,7 @@ _bcm_ptp_rx_response_get(
         rv = _bcm_ptp_sem_take(unit_rx_array[unit].stack_array[ptp_id].clock_data[clock_num].response_ready, usec);
     }
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Failed management Tx to ToP\n")));
         PTP_ERROR_FUNC("_bcm_ptp_sem_take()");
@@ -897,7 +897,7 @@ static void _bcm_ptp_rx_thread(void *arg)
                     break;
 
                 default:
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Improper PTP tunneled message type: %d in mbox %d\n"), message_type, mbox));
                     break;
@@ -1003,7 +1003,7 @@ _bcm_ptp_rx_callback(
     }
 
     if (unit_rx_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Rx unit data not initialized\n")));
         return BCM_RX_NOT_HANDLED;
@@ -1059,7 +1059,7 @@ _bcm_ptp_rx_callback(
         }
 
         if (pkt->pkt_len < PTP_RX_MGMT_MIN_SIZE) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Bad response len\n")));
             return BCM_RX_NOT_HANDLED;
@@ -1090,7 +1090,7 @@ _bcm_ptp_rx_callback(
         if ((unit_rx_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) ||
                 (unit_rx_array[unit].stack_array[cb_ptp_id].memstate !=
                 PTP_MEMSTATE_INITIALIZED)) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Rx unit/stack data not initialized\n")));
             return BCM_RX_NOT_HANDLED;
@@ -1099,7 +1099,7 @@ _bcm_ptp_rx_callback(
         if (sal_memcmp(BCM_PKT_IEEE(pkt) + sizeof(bcm_mac_t),
                        unit_rx_array[unit].stack_array[cb_ptp_id].top_mac,
                        sizeof(bcm_mac_t)) != 0) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Bad response smac\n")));
         }
@@ -1107,7 +1107,7 @@ _bcm_ptp_rx_callback(
         if (sal_memcmp(BCM_PKT_IEEE(pkt),
                        unit_rx_array[unit].stack_array[cb_ptp_id].host_mac,
                        sizeof(bcm_mac_t)) != 0) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Bad response dmac\n")));
         }
@@ -1135,7 +1135,7 @@ _bcm_ptp_rx_callback(
          * NOTICE: If prior data exists, it must be freed.
          */
         if (prior_data) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Unclaimed response freed\n")));
 
@@ -1158,7 +1158,7 @@ _bcm_ptp_rx_callback(
     case (0x0141):
         /* Forwarded (tunnel) message. */
         if (message_len < PTP_RX_TUNNEL_MSG_MIN_SIZE_OCTETS) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Invalid (too-short) tunnel message received (0x%04x)\n"),
                          message_len));
@@ -1267,7 +1267,7 @@ _bcm_ptp_rx_callback(
         if ((unit_rx_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) ||
                 (unit_rx_array[unit].stack_array[cb_ptp_id].memstate !=
                 PTP_MEMSTATE_INITIALIZED)) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Rx unit/stack data not initialized\n")));
             return BCM_RX_NOT_HANDLED;
@@ -1338,7 +1338,7 @@ _bcm_ptp_rx_callback(
             break;
 
         default:
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Invalid tunnel message received: "
                                     "unknown/unsupported type (0x%02x)\n"), wrapMessageType));
@@ -1349,7 +1349,7 @@ _bcm_ptp_rx_callback(
     case (0x0142):
         /* Event message. */
         if (message_len < PTP_RX_EVENT_MSG_MIN_SIZE_OCTETS) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Invalid (too-short) event message received (0x%04x)\n"),
                          message_len));

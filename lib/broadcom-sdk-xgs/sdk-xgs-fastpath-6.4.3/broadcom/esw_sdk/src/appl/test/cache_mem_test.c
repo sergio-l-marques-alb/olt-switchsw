@@ -119,12 +119,12 @@ void cache_mem_test_create_mask(
     }
 
     /* Print the Mask */
-    LOG_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: Mask for memory %d %s, nFields %d mask 0x"),
+    LOG_BSL_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: Mask for memory %d %s, nFields %d mask 0x"),
                         mem, SOC_MEM_NAME(unit, mem), meminfo->nFields));
 
     for ( i = entry_dw/4; i >= 0; i--)
     {
-        LOG_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("%X"), mask[i]));
+        LOG_BSL_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("%X"), mask[i]));
     }
 
 }
@@ -145,7 +145,7 @@ uint32 cache_mem_test_fill_values_soc_mem_write_callback(uint32 unit, soc_mem_t 
 
     cache_mem_test_create_mask(unit, mem, mem_field_mask);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                 (BSL_META("CACHE_MEM_TEST: WRITE SOC: mem %d %s, num_of_entries %d, entry_dw %d\n"),
                          mem, SOC_MEM_NAME(unit, mem), end_index - start_index + 1/*table_size*/, entry_dw));
 
@@ -190,7 +190,7 @@ int cache_mem_test_fill_values_dma_callback(
     for (i = 0; i < entry_size; i++)
     {
         value[i] = cache_mem_test_generate_value(unit, mem_orig, array_index, index, test_params->write_value_pattern) & mem_field_mask[i];
-        LOG_DEBUG(BSL_LS_APPL_TESTS,
+        LOG_BSL_DEBUG(BSL_LS_APPL_TESTS,
                     (BSL_META("CACHE_MEM_TEST: WRITE DMA: mem  %d %s i %d value 0x%X mask 0x%X \n"),
                             mem, SOC_MEM_NAME(unit, mem), i, value[i], mem_field_mask[i]));
 
@@ -214,7 +214,7 @@ cache_mem_test_write_iter_callback(int unit, soc_mem_t mem, void* data)
     {
         if(!soc_mem_is_cachable(unit, mem))
         {
-            LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: WRITE: non-cachable memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: WRITE: non-cachable memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
             test_params->stat_mem_not_tested_cnt++;
             return rv;
         }
@@ -233,7 +233,7 @@ cache_mem_test_write_iter_callback(int unit, soc_mem_t mem, void* data)
         {
             for (i_array = start_array_index; i_array <= end_array_index; i_array++)
             {
-                LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: WRITE DMA: write memory %d %s \n"), mem, SOC_MEM_NAME(unit, mem)));
+                LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: WRITE DMA: write memory %d %s \n"), mem, SOC_MEM_NAME(unit, mem)));
                 test_params->mem_id = mem;
 #ifdef BCM_ARAD_SUPPORT
                 /* DMA write via caching currently Implemented only in Arad.*/
@@ -290,7 +290,7 @@ cache_mem_test_read_and_compare_wo_expected(int unit, soc_mem_t mem, void* data)
         if(!soc_mem_is_cachable(unit, mem))
         {
             /* skip memory*/
-            LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncachable memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncachable memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
             test_params->stat_mem_not_tested_cnt++;
             test_params->stat_mem_succeed_cnt--;
             goto done;
@@ -298,7 +298,7 @@ cache_mem_test_read_and_compare_wo_expected(int unit, soc_mem_t mem, void* data)
         if (!soc_mem_cache_get(unit, mem, MEM_BLOCK_ALL)) {
             test_params->stat_mem_not_tested_cnt++;
             test_params->stat_mem_succeed_cnt--;
-            LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncached memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncached memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
             goto done;
         }
     }
@@ -308,7 +308,7 @@ cache_mem_test_read_and_compare_wo_expected(int unit, soc_mem_t mem, void* data)
     end_index       = parse_memory_index(unit, mem, "max");
     cache_mem_test_create_mask(unit, mem, mem_field_mask);
 
-    LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ read memory %d %s, num_of_entries %d  \n"),
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ read memory %d %s, num_of_entries %d  \n"),
              mem, SOC_MEM_NAME(unit, mem), end_index - start_index + 1/*table_size*/));
 
     if (SOC_MEM_IS_ARRAY(unit,mem)) {
@@ -324,7 +324,7 @@ cache_mem_test_read_and_compare_wo_expected(int unit, soc_mem_t mem, void* data)
             rv |= soc_mem_array_read_flags(unit, mem, i_array, MEM_BLOCK_ANY, index, read_value, SOC_MEM_DONT_USE_CACHE);
             if (rv != SOC_E_NONE)
             {
-                LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST:Read FAILED rv %d: read_value 0x%X cache_value 0x%X mask 0x%X mem %d %s, index %d, array %d\n"),
+                LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST:Read FAILED rv %d: read_value 0x%X cache_value 0x%X mask 0x%X mem %d %s, index %d, array %d\n"),
                                         rv, read_value[entry_index], read_cache_value[entry_index], mem_field_mask[entry_index], mem, SOC_MEM_NAME(unit, mem), index, i_array));
                 goto done;
             }
@@ -333,7 +333,7 @@ cache_mem_test_read_and_compare_wo_expected(int unit, soc_mem_t mem, void* data)
             {
                 if ((read_value[entry_index] & mem_field_mask[entry_index]) == (read_cache_value[entry_index] & mem_field_mask[entry_index]))
                 {
-                    LOG_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: read_value 0x%X cache_value 0x%X, mask 0x%X, mem %d, index %d, entry_index, %d array %d, len %d\n"),
+                    LOG_BSL_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: read_value 0x%X cache_value 0x%X, mask 0x%X, mem %d, index %d, entry_index, %d array %d, len %d\n"),
                             read_value[entry_index] & mem_field_mask[entry_index],
                             read_cache_value[entry_index] & mem_field_mask[entry_index],
                             mem_field_mask[entry_index],
@@ -341,7 +341,7 @@ cache_mem_test_read_and_compare_wo_expected(int unit, soc_mem_t mem, void* data)
                 }
                 else
                 {
-                    LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: COMPARE FAILED: read_value 0x%X, cache_value 0x%X, (0x%X != 0x%X), mask 0x%X mem %d, index %d, entry_index %d array %d\n"),
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: COMPARE FAILED: read_value 0x%X, cache_value 0x%X, (0x%X != 0x%X), mask 0x%X mem %d, index %d, entry_index %d array %d\n"),
                             read_value[entry_index] & mem_field_mask[entry_index],
                             read_cache_value[entry_index] & mem_field_mask[entry_index],
                             read_value[entry_index], read_cache_value[entry_index],
@@ -392,7 +392,7 @@ cache_mem_test_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_t mem,
         if(!soc_mem_is_cachable(unit, mem))
         {
             /* skip memory*/
-            LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncachable memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncachable memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
             if (test_params->test_part != cache_mem_test_full) {
                 test_params->stat_mem_not_tested_cnt++;
                 test_params->stat_mem_succeed_cnt--;
@@ -401,7 +401,7 @@ cache_mem_test_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_t mem,
         }
 
         if (!soc_mem_cache_get(unit, mem, MEM_BLOCK_ALL)) {
-            LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncached memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: uncached memory %d %s\n"), mem, SOC_MEM_NAME(unit, mem)));
             if (test_params->test_part != cache_mem_test_full) {
                 test_params->stat_mem_not_tested_cnt++;
                 test_params->stat_mem_succeed_cnt--;
@@ -415,7 +415,7 @@ cache_mem_test_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_t mem,
     end_index       = parse_memory_index(unit, mem, "max");
     cache_mem_test_create_mask(unit, mem, mem_field_mask);
 
-    LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ read memory %d %s, num_of_entries %d  \n"),
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ read memory %d %s, num_of_entries %d  \n"),
              mem, SOC_MEM_NAME(unit, mem), end_index - start_index + 1/*table_size*/));
 
     if (SOC_MEM_IS_ARRAY(unit,mem)) {
@@ -431,7 +431,7 @@ cache_mem_test_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_t mem,
             rv |= soc_mem_array_read_flags(unit, mem, i_array, MEM_BLOCK_ANY, index, read_value, SOC_MEM_DONT_USE_CACHE);
             if (rv != SOC_E_NONE)
             {
-                LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST:Read FAILED rv %d: read_value 0x%X cache_value 0x%X mask 0x%X mem %d %s, index %d, array %d\n"),
+                LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST:Read FAILED rv %d: read_value 0x%X cache_value 0x%X mask 0x%X mem %d %s, index %d, array %d\n"),
                                         rv, read_value[entry_index], read_cache_value[entry_index], mem_field_mask[entry_index], mem, SOC_MEM_NAME(unit, mem), index, i_array));
                 goto done;
             }
@@ -443,7 +443,7 @@ cache_mem_test_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_t mem,
                 if ((read_value[entry_index] & mem_field_mask[entry_index] ) == (expected_value[entry_index] & mem_field_mask[entry_index]) &&
                         (read_cache_value[entry_index] & mem_field_mask[entry_index] ) == (expected_value[entry_index] & mem_field_mask[entry_index]))
                 {
-                    LOG_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: read_value 0x%X cache_value 0x%X == expected_value 0x%X, (0x%X == 0x%X), mask 0x%X, mem %d, index %d, entry_index, %d array %d, len %d\n"),
+                    LOG_BSL_DEBUG(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: READ: read_value 0x%X cache_value 0x%X == expected_value 0x%X, (0x%X == 0x%X), mask 0x%X, mem %d, index %d, entry_index, %d array %d, len %d\n"),
                             read_value[entry_index] & mem_field_mask[entry_index],
                             read_cache_value[entry_index] & mem_field_mask[entry_index],
                             expected_value[entry_index] & mem_field_mask[entry_index],
@@ -453,7 +453,7 @@ cache_mem_test_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_t mem,
                 }
                 else
                 {
-                    LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: COMPARE FAILED: read_value 0x%X, cache_value 0x%X, expected_value 0x%X, (0x%X != 0x%X != 0x%X), mask 0x%X mem %d, index %d, entry_index %d array %d\n"),
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: COMPARE FAILED: read_value 0x%X, cache_value 0x%X, expected_value 0x%X, (0x%X != 0x%X != 0x%X), mask 0x%X mem %d, index %d, entry_index %d array %d\n"),
                             read_value[entry_index] & mem_field_mask[entry_index],
                             read_cache_value[entry_index] & mem_field_mask[entry_index],
                             expected_value[entry_index] & mem_field_mask[entry_index],
@@ -496,12 +496,12 @@ cache_mem_test_write_read_and_compare(SOC_SAND_IN int unit, SOC_SAND_IN soc_mem_
 
 void do_cache_mem_test_print_usage(void)
 {
-    LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("Usage for Cache Memory Test: \n"
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("Usage for Cache Memory Test: \n"
             "test_type=X         where X=0 for specific memory, X=1 for all memories\n"
             "write_type=X        where X=0 for DMA write,       X=1 for SCHAN write\n"
             "pattern=X           where X=0 for All-Ones,  X=1 for All-Zeroes,      X=2 for Incremental,    X=3 for Smart pattern\n"
             "part=X              where X=0 for Full-Test, X=1 for Only-Write-Part, X=2 for Only-Read-Part, X=3 for Cache VS HW test\n")));
-    LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("mem_id=X            where X is memory id for specific memory test (applicable with test_type=0)\n")));
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("mem_id=X            where X is memory id for specific memory test (applicable with test_type=0)\n")));
 }
 
 int
@@ -625,17 +625,17 @@ do_cache_mem_test_init(int unit, args_t *a, void **p)
         rv = bcm_dpp_counter_bg_enable_set(unit, FALSE);
         if (CMD_OK == rv)
         {
-            LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST:unit %d counter processor background accesses suspended\n"), unit));
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST:unit %d counter processor background accesses suspended\n"), unit));
         }
         else
         {
-            LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: unit %d counter processor background access suspend failed: %d (%s)\n"),
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META("CACHE_MEM_TEST: unit %d counter processor background access suspend failed: %d (%s)\n"),
                     unit, rv, _SHR_ERRMSG(rv)));
         }
 
         if ((rv |= soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS, SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0)
         {
-            LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d ERROR: Unable to reinit  \n"), unit));
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d ERROR: Unable to reinit  \n"), unit));
             goto done;
         }
     }
@@ -660,7 +660,7 @@ do_cache_mem_test_done(int unit,  void *p)
 
     sal_free (p);
 
-    LOG_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d done: Total %u, Failed %u, Not tested %u, succeeded %u\n"), unit, test_params->stat_mem_total_cnt, test_params->stat_mem_fail_cnt, test_params->stat_mem_not_tested_cnt, test_params->stat_mem_succeed_cnt));
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d done: Total %u, Failed %u, Not tested %u, succeeded %u\n"), unit, test_params->stat_mem_total_cnt, test_params->stat_mem_fail_cnt, test_params->stat_mem_not_tested_cnt, test_params->stat_mem_succeed_cnt));
     return rv;
 }
 
@@ -677,7 +677,7 @@ do_cache_mem_test(int unit,  args_t *a, void* tr_do_cache_mem_test)
     if (test_params->test_part == cache_mem_test_full || test_params->test_part == cache_mem_test_write_only)
     {
         if (soc_mem_iterate(unit, arad_tbl_mem_cache_mem_set, &cache_enable) < 0)
-            LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d cache enable failed\n"), unit));
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d cache enable failed\n"), unit));
     }
 #endif
 
@@ -762,7 +762,7 @@ do_cache_mem_test(int unit,  args_t *a, void* tr_do_cache_mem_test)
     if (test_params->test_part == cache_mem_test_full || test_params->test_part == cache_mem_test_read_only)
     {
         if (soc_mem_iterate(unit, arad_tbl_mem_cache_mem_set, &cache_enable) < 0)
-            LOG_ERROR(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d cache disable failed\n"), unit));
+            LOG_BSL_ERROR(BSL_LS_APPL_TESTS, (BSL_META_U(unit, "CACHE_MEM_TEST: unit %d cache disable failed\n"), unit));
     }
 #endif
 

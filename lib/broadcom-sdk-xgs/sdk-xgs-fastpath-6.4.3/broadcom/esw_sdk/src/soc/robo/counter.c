@@ -2082,7 +2082,7 @@ soc_robo_counter_thread(void *unit_vp)
      */
 
     sal_sleep(1);
-    LOG_INFO(BSL_LS_SOC_COUNTER,
+    LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_robo_counter_thread: unit=%d\n"), unit));
 
@@ -2093,7 +2093,7 @@ soc_robo_counter_thread(void *unit_vp)
     soc->counter_notify = sal_sem_create("counter notify", sal_sem_BINARY, 0);
 
     if (soc->counter_notify == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_robo_counter_thread: semaphore init failed\n")));
         rv = SOC_E_INTERNAL;
@@ -2108,7 +2108,7 @@ soc_robo_counter_thread(void *unit_vp)
          * immediately when soc_robo_counter_stop wants it to.
          */
 
-        LOG_VERBOSE(BSL_LS_SOC_COUNTER,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COUNTER,
                     (BSL_META_U(unit,
                                 "soc_robo_counter_thread: sleep %d\n"), interval));
 
@@ -2132,7 +2132,7 @@ soc_robo_counter_thread(void *unit_vp)
         soc->counter_coll_cur = sal_time_usecs();
 
         if ((rv = soc_robo_counter_collect(unit, 0)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_robo_counter_thread: collect failed. \n")));
         }
@@ -2146,7 +2146,7 @@ soc_robo_counter_thread(void *unit_vp)
 
  done:
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_robo_counter_thread: Operation failed - exiting\n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -2154,7 +2154,7 @@ soc_robo_counter_thread(void *unit_vp)
     }
 
 
-    LOG_INFO(BSL_LS_SOC_COUNTER,
+    LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_robo_counter_thread: exiting\n")));
 
@@ -2192,7 +2192,7 @@ soc_robo_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
     uint64  val64;
 #endif /* BCM_DINO16_SUPPORT */
 
-    LOG_INFO(BSL_LS_SOC_COUNTER,
+    LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_robo_counter_start: unit=%d flags=0x%x "
                          "interval=%d pbmp=%s\n"),
@@ -2229,7 +2229,7 @@ soc_robo_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
     }
     soc->counter_lock = sal_spinlock_create("counter spinlock");
     if (soc->counter_lock == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_robo_counter_start: lock create failed\n")));
         return SOC_E_INTERNAL;
@@ -2311,18 +2311,18 @@ soc_robo_counter_start(int unit, uint32 flags, int interval, pbmp_t pbmp)
                               soc_robo_counter_thread, INT_TO_PTR(unit));
 
         if (soc->counter_pid == SAL_THREAD_ERROR) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_robo_counter_start: Thread create failed\n")));
             return (SOC_E_MEMORY);
         }
 
-        LOG_INFO(BSL_LS_SOC_COUNTER,
+        LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "soc_robo_counter_start: Complete\n")));
     } else {
         soc->counter_pid = SAL_THREAD_ERROR;
-        LOG_INFO(BSL_LS_SOC_COUNTER,
+        LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
                  (BSL_META_U(unit,
                              "soc_robo_counter_start: Inactive\n")));
     }
@@ -2376,7 +2376,7 @@ soc_robo_counter_sync(int unit)
 
     while (soc->counter_sync_req) {
         if (soc_timeout_check(&to)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_robo_counter_sync: counter thread not responding\n")));
             soc->counter_sync_req = FALSE;
@@ -2408,7 +2408,7 @@ soc_robo_counter_status(int unit, uint32 *flags, int *interval, pbmp_t *pbmp)
 {
     soc_control_t       *soc = SOC_CONTROL(unit);
  
-    LOG_INFO(BSL_LS_SOC_COUNTER,
+    LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_counter_status: unit=%d\n"), unit));
 
@@ -2438,7 +2438,7 @@ soc_robo_counter_stop(int unit)
     soc_timeout_t   to;
     int             fail = 0;
 
-    LOG_INFO(BSL_LS_SOC_COUNTER,
+    LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_robo_counter_stop: unit=%d\n"), unit));
 
@@ -2461,7 +2461,7 @@ soc_robo_counter_stop(int unit)
         while (soc->counter_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
                 if (fail > 2) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_robo_counter_stop: thread will not exit\n")));
                     rv = SOC_E_INTERNAL;
@@ -2479,7 +2479,7 @@ soc_robo_counter_stop(int unit)
         soc->counter_lock = NULL;
     }
 
-    LOG_INFO(BSL_LS_SOC_COUNTER,
+    LOG_BSL_INFO(BSL_LS_SOC_COUNTER,
              (BSL_META_U(unit,
                          "soc_robo_counter_stop: stopped\n")));
 

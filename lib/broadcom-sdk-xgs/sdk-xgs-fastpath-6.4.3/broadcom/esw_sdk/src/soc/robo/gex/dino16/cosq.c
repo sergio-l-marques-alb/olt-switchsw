@@ -74,7 +74,7 @@ drv_dino16_queue_port_prio_to_queue_set(int unit, uint8 port, uint8 prio,
        which may be bigger the uint8 and then reuslts in a compilation error */
     uint32  port32 = port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_port_prio_to_queue_set: \
                             unit %d, port = %d, prio = %d, queue_n = %d\n"), 
@@ -204,7 +204,7 @@ drv_dino16_queue_port_prio_to_queue_get(int unit, uint8 port, uint8 prio,
     }
     *queue_n = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_port_prio_to_queue_get: \
                             unit %d, port = %d, prio = %d, *queue_n = %d\n"), 
@@ -236,7 +236,7 @@ drv_dino16_queue_mode_set(int unit, soc_pbmp_t bmp, uint32 flag,
 {
     uint32  reg_value, temp;
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_mode_set: \
                             unit %d, bmp = 0x%x, flag = 0x%x, queue mode = %d\n"),
@@ -304,7 +304,7 @@ drv_dino16_queue_mode_get(int unit, uint32 port, uint32 flag,
         *mode = DRV_QUEUE_MODE_WRR;
     }
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_mode_get: \
                             unit %d, port = %d, flag = 0x%x, queue mode = %d\n"),
@@ -338,7 +338,7 @@ drv_dino16_queue_count_set(int unit, uint32 port_type, uint8 count)
     uint32  max_numq;
     int		cos, prio, ratio, remain;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_count_set: \
                             unit %d, port type = %d, queue count = %d\n"),
@@ -407,7 +407,7 @@ drv_dino16_queue_count_get(int unit, uint32 port_type, uint8 *count)
 
     *count = num_q + 1;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_count_get: \
                             unit %d, port type = %d, queue count = %d\n"),
@@ -439,7 +439,7 @@ drv_dino16_queue_prio_set(int unit, uint32 port, uint8 prio, uint8 queue_n)
     uint32  p;
     soc_pbmp_t  pbmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_prio_set: \
                             unit %d, port = %d, priority = %d, queue = %d\n"),
@@ -499,7 +499,7 @@ drv_dino16_queue_prio_get(int unit, uint32 port, uint8 prio, uint8 *queue_n)
     SOC_IF_ERROR_RETURN(DRV_QUEUE_PORT_PRIO_TO_QUEUE_GET
         (unit, p, new_prio, queue_n));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_prio_get: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -531,7 +531,7 @@ drv_dino16_queue_prio_remap_set(int unit, uint32 port, uint8 pre_prio,
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_prio_remap_set: \
                             unit %d, port = %d, pre_prio = %d, prio = %d\n"), 
@@ -656,7 +656,7 @@ drv_dino16_queue_prio_remap_get(int unit, uint32 port, uint8 pre_prio,
     }        
     *prio = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_queue_prio_remap_get: \
                             unit %d, port = %d, pre_prio = %d, *prio = %d\n"), 

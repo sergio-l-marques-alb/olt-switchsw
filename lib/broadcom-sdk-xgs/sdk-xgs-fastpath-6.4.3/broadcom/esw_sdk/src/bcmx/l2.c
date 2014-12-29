@@ -305,7 +305,7 @@ bcmx_l2_addr_add(bcmx_l2_addr_t *l2addr, bcmx_lplist_t *port_block)
 
     BCMX_UNIT_ITER(bcm_unit, i) {
         if (_bcmx_l2_addr_to_bcm(bcm_unit, &bcm_l2, l2addr, port_block) < 0) {
-            LOG_WARN(BSL_LS_BCMX_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                      (BSL_META("BCMX L2 WARN:  Failed to convert "
                                "L2 address to BCM\n")));
         } else {
@@ -362,7 +362,7 @@ bcmx_l2_addr_refresh(bcmx_l2_addr_t *l2addr, bcmx_lplist_t *port_block)
         BCMX_UNIT_ITER(bcm_unit, i) {
             if (_bcmx_l2_addr_to_bcm(bcm_unit, &bcm_l2,
                                      l2addr, port_block) < 0) {
-                LOG_WARN(BSL_LS_BCMX_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                          (BSL_META("BCMX L2 WARN:  Failed to convert "
                                    "L2 address to BCM\n")));
             }
@@ -1184,7 +1184,7 @@ bcmx_l2_replace(uint32 flags, bcmx_l2_addr_t *match_addr,
         TRUE : FALSE;
 
     if (BCM_FAILURE(_bcmx_l2_addr_to_bcm(0, &bcm_l2, match_addr, NULL))) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("BCMX L2 WARN:  Failed to convert "
                            "L2 address to BCM\n")));
         return BCM_E_PARAM;

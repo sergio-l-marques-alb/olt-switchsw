@@ -1148,7 +1148,7 @@ soc_mmu_flush_enable(int unit, soc_port_t port, int enable)
         flush_ctrl |= enable ? (0x1 << port) : 0;
         SOC_IF_ERROR_RETURN
             (WRITE_MMUFLUSHCONTROLr(unit, flush_ctrl));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "port %d MMUFLUSHCONTROl.FLUSH=0x%x\n"), port, flush_ctrl));
         break;
@@ -1162,7 +1162,7 @@ soc_mmu_flush_enable(int unit, soc_port_t port, int enable)
         flush_ctrl |= enable ? (0x1 << port) : 0;
         SOC_IF_ERROR_RETURN
             (WRITE_MMUFLUSHCONTROLr(unit, flush_ctrl));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "port %d MMUFLUSHCONTROl.FLUSH=0x%x\n"), port, flush_ctrl));
     /* Fall through */
@@ -1178,7 +1178,7 @@ soc_mmu_flush_enable(int unit, soc_port_t port, int enable)
                           (enable) ? 1 : 0);
         SOC_IF_ERROR_RETURN
             (WRITE_FAST_TX_FLUSHr(unit, port, flush_ctrl));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "port %d FAST_TX_FLUSH.ID=0x%x\n"), port, flush_ctrl));
     /* Fall through */
@@ -1195,7 +1195,7 @@ soc_mmu_flush_enable(int unit, soc_port_t port, int enable)
                               (enable) ? 1 : 0);
             SOC_IF_ERROR_RETURN
                 (WRITE_XP_EGR_PKT_DROP_CTLr(unit, port, flush_ctrl));
-           LOG_VERBOSE(BSL_LS_SOC_COMMON,
+           LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "port %d XP_EGR_PKT_DROP_CTL.FLUSH=0x%x\n"), port, flush_ctrl));
         }
@@ -1332,7 +1332,7 @@ soc_egress_drain_cells(int unit, soc_port_t port, uint32 drain_timeout)
                 break;
             }
 
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MacDrainTimeOut:port %d,%s, "
                                   "timeout draining packets (%d cells remain)\n"),
@@ -1375,7 +1375,7 @@ soc_txfifo_drain_cells(int unit, soc_port_t port, uint32 drain_timeout)
                 break;
             }
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "MacDrainTimeOut:port %d,%s, timeout draining TXFIFO "
                                       "(pending: %d)\n"),

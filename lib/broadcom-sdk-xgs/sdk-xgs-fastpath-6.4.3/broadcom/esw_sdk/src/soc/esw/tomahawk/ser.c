@@ -814,7 +814,7 @@ _soc_tomahawk_ser_enable_info(int unit, int block_info_idx, int inst, int port,
                 SOC_IF_ERROR_RETURN
                     (soc_reg32_set(unit, reg, port, 0, rval));
             }
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER enable for: %s\n"), 
                          (info->mem == INVALIDm) ? info->mem_str : 
@@ -855,7 +855,7 @@ soc_tomahawk_ser_enable_all(int unit, int enable)
     for (bcount = 0; _soc_th_ser_block_info[bcount].blocktype; bcount++) {
         int done = 0;
 
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "SER enable for: %s\n"),
                      _soc_th_ser_block_info[bcount].name));
@@ -989,7 +989,7 @@ soc_tomahawk_ser_enable_all(int unit, int enable)
                     }
                 }
             }
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER enable for %s: %s\n"),
                          str_type, str_name));
@@ -1640,7 +1640,7 @@ _soc_tomahawk_ser_process_mmu_err(int unit, int block_info_idx,
                 (_soc_th_ser_reg32_get(unit, fifo_status_reg, REG_PORT_ANY, 0,
                                        &rval_fifo_status, mmu_base_index));
             if (soc_reg_field_get(unit, fifo_status_reg, rval_fifo_status, EMPTYf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s SER interrupt with empty fifo !!\n"),
                            unit, info_list->mem_str));
@@ -1655,7 +1655,7 @@ _soc_tomahawk_ser_process_mmu_err(int unit, int block_info_idx,
             SOC_IF_ERROR_RETURN
                 (_soc_th_ser_reg32_get(unit, mem_fail_ctr_reg, REG_PORT_ANY, 0,
                                        &rval, mmu_base_index));
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s mem error interrupt count: %d\n"),
                        unit, info_list->mem_str, rval));
@@ -1668,7 +1668,7 @@ _soc_tomahawk_ser_process_mmu_err(int unit, int block_info_idx,
                     SOC_IF_ERROR_RETURN
                         (soc_mem_pop(unit, ser_fifo_mem, MEM_BLOCK_ANY, entry));
                     /* process entry */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s\n"), info_list->mem_str));
                     if (soc_mem_field32_get(unit, ser_fifo_mem, entry, ERR_MULTf)) {
@@ -1677,7 +1677,7 @@ _soc_tomahawk_ser_process_mmu_err(int unit, int block_info_idx,
                     type = soc_mem_field32_get(unit, ser_fifo_mem, entry,
                                                ERR_TYPEf);
                     addr = soc_mem_field32_get(unit, ser_fifo_mem, entry, EADDRf);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s %s %s error at address 0x%08x\n"),
                                unit, info_list->mem_str, multi ? "multiple" : "",
@@ -1782,7 +1782,7 @@ _soc_tomahawk_ser_process_mmu_err(int unit, int block_info_idx,
         } else {
             /* interrupt from mmu sub_block is not related to parity error
              * so process_mmu_ser should not have been called */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d, ser_process_mmu_err: "
                                   "field %s in reg %s not set !!"
@@ -1842,18 +1842,18 @@ _soc_tomahawk_ser_process_ecc(int unit, int block_info_idx, int pipe, int port,
             sal_memset(&spci, 0, sizeof(spci));*/
             if (double_bit) {
                 /*spci.double_bit = 1;*/
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d double-bit ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple ECC errors\n"),
                            prefix_str, mem_str_ptr));
@@ -1874,7 +1874,7 @@ _soc_tomahawk_ser_process_ecc(int unit, int block_info_idx, int pipe, int port,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -2067,50 +2067,50 @@ _soc_tomahawk_print_ser_fifo_details(int unit, uint8 regmem, soc_block_t blk,
     if (bsl_check(bslLayerSoc, bslSourceCommon, bslSeverityError, unit)) {
         switch (type) {
         case 0:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: SOP cell.\n")));
             break;
         case 1:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: MOP cell.\n")));
             break;
         case 2:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: EOP cell.\n")));
             break;
         case 3:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: SBUS transaction.\n")));
             break;
         case 4:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: transaction - refresh, aging etc.\n"))); 
             break;
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid error reported !!\n")));
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Blk: %d, Pipe: %d, Address: 0x%08x, base: 0x%x, "
                               "stage: %d, index: %d\n"),
                    sblk, pipe, address, base, stage, index));
         if (regmem == _SOC_TH_SER_MEM) {
             if (non_sbus) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Mem hwbase: 0x%x [%s]\n"), base,
                            _soc_th_ser_hwmem_base_info[base]));
             }
         }
         if (drop) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER caused packet drop.\n")));
         }
@@ -2158,7 +2158,7 @@ _soc_tomahawk_process_ser_fifo(int unit, soc_block_t blk, int pipe,
     soc_reg_t epsr[] = { EGR_INTR_STATUS_PIPE0r, EGR_INTR_STATUS_PIPE1r,
                          EGR_INTR_STATUS_PIPE2r, EGR_INTR_STATUS_PIPE3r };
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "In process fifo.\n")));
     switch (blk) {
@@ -2191,45 +2191,45 @@ _soc_tomahawk_process_ser_fifo(int unit, soc_block_t blk, int pipe,
                 sblk = SOC_BLOCK2SCH(unit, bidx);
                 break;
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), prefix_str));
             if (soc_mem_field32_get(unit, mem, entry, MULTIPLEf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Multiple: ")));
             }
             if (regmem == _SOC_TH_SER_REG) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Reg: ")));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Mem: ")));
             }
             spci.double_bit = 0;
             switch (ecc_parity) {
             case 0:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Parity error..\n")));
                 break;
             case 1:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Corrected single bit ECC error..\n")));
                 /* NOTE: This is supressed by default, 
                          we can choose not to supress it */
                 break;
             case 2:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Double or Multiple bit ECC error..\n")));
                 spci.double_bit = 1;
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid SER issue !!\n")));
                 return SOC_E_INTERNAL;
@@ -2313,7 +2313,7 @@ _soc_tomahawk_process_ser_fifo(int unit, soc_block_t blk, int pipe,
                         return rv;
                     }
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s SER mem address un-accessable !!\n"),
                                blk_str));
@@ -2371,7 +2371,7 @@ _soc_tomahawk_process_ser_fifo(int unit, soc_block_t blk, int pipe,
                         return rv;
                     }
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s SER reg address un-accessable !!\n"),
                                blk_str));
@@ -2382,7 +2382,7 @@ _soc_tomahawk_process_ser_fifo(int unit, soc_block_t blk, int pipe,
                 }
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d Got invalid mem pop from %s !!\n"),
                        unit, SOC_MEM_NAME(unit, mem)));
@@ -2485,7 +2485,7 @@ _soc_tomahawk_ser_process_all(int unit, int reg_type, int bit)
                 if (SOC_BLOCK_IN_LIST(SOC_REG_INFO(unit, rb->enable_reg).block,
                     SOC_BLK_PORT) && (port == REG_PORT_ANY)) {
                         /* This port block is not configured */
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d SER error on disabled "
                                               "port block %d !!\n"),
@@ -3186,12 +3186,12 @@ soc_tomahawk_mem_sram_info_get(int unit, soc_mem_t mem, int index,
         if (soc_th_get_alpm_banks(unit) == 2) {
             base = index & 0x1; /* 2 uft_bank mode */
             base_bucket = ((index >> 1) & SOC_TH_ALPM_BKT_MASK);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "reported bucket: 0x%08x, uft_bank:%d\n"),
                      base_bucket, base));
             base_bucket = base_bucket % SOC_TH_ALPM_BKT_OFFFSET;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "base bucket: 0x%08x\n"),
                      base_bucket));
@@ -3206,12 +3206,12 @@ soc_tomahawk_mem_sram_info_get(int unit, soc_mem_t mem, int index,
         } else {
             base = index & 0x3; /* 4 uft_bank mode */
             base_bucket = ((index >> 2) & SOC_TH_ALPM_BKT_MASK);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "reported bucket: 0x%08x, uft_bank:%d\n"),
                      base_bucket, base));
             base_bucket = base_bucket % SOC_TH_ALPM_BKT_OFFFSET;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "base bucket: 0x%08x\n"),
                      base_bucket));
@@ -3794,7 +3794,7 @@ _soc_tomahawk_perform_ser_test(int unit, ser_test_data_t *test_data,
         soc_tomahawk_pipe_select(unit, FALSE, 0);
     } else {
 #ifdef _SOC_SER_ENABLE_CLI_DBG
-        /* LOG_VERBOSE(BSL_LS_SOC_COMMON, */
+        /* LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, */
         LOG_CLI(
                     (BSL_META_U(unit,
                                 "===== ser_test for Memory %s, Acc_type %d SKIPPED "
@@ -4148,7 +4148,7 @@ soc_th_ser_hardware_test(int unit, _soc_ser_test_t test_type) {
                                          &test_data);
                 if (test_data.mem_info == NULL) {
                     mem_skipped += num_inst_to_test;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Memory %s skipped due to lack of"
                                             " mem_info structure.\n"),

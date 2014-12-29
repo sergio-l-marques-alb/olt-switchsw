@@ -483,7 +483,7 @@ soc_robo_misc_init(int unit)
         rv = REG_WRITE_EXTPHY_SCAN_CTLr(unit, &reg_value);
         SOC_IF_ERROR_RETURN(rv);
         
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "misc_init: External PHY auto-polling enabled\n")));
     } else {
@@ -687,7 +687,7 @@ soc_robo_misc_init(int unit)
          */
         temp = soc_property_get(unit, spn_MACSEC_ENABLE, 0);
         temp = (temp == 0) ? TRUE : FALSE; 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s,FORCE BYPASS-%s due to MACSEC %s!!\n"), FUNCTION_NAME(), 
                      (temp) ? "ON" : "OFF", (!temp) ? "enabling" : "disabling"));
@@ -699,7 +699,7 @@ soc_robo_misc_init(int unit)
 #endif /* BCM_NORTHSTARPLUS_SUPPORT */
 #endif /* INCLUDE_MACSEC */
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_robo_misc_init: OK\n")));
     

@@ -173,7 +173,7 @@
         do {                                                                 \
             if (0 == ((uint32)(_value_) <=                                   \
                 (uint32)ParamMax((_unit_), (_mem_), (_field_)))) {           \
-                    LOG_ERROR(BSL_LS_BCM_L2, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_L2, \
                               (BSL_META("L2(unit %d) Error: _value_ %d > %d (max)" \
                                " mem (%d) field (%d).\n"), _unit_, (_value_),    \
                                (uint32)ParamMax((_unit_), (_mem_), (_field_)),  \
@@ -486,7 +486,7 @@ _bcm_l2_station_entry_get(int unit,
 
         if (sid == sc->entry_arr[index]->sid) {
             *ent_p = sc->entry_arr[index];
-            LOG_DEBUG(BSL_LS_BCM_L2,
+            LOG_BSL_DEBUG(BSL_LS_BCM_L2,
                       (BSL_META_U(unit,
                                   "L2(unit %d) Info: (SID=%d) - found (idx=%d).\n"),
                        unit, sid, index));
@@ -494,7 +494,7 @@ _bcm_l2_station_entry_get(int unit,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: (SID=%d) - not found (idx=%d).\n"),
                unit, sid, index));
@@ -653,7 +653,7 @@ _bcm_tr_l2_from_l2x(int unit, bcm_l2_addr_t *l2addr, l2x_entry_t *l2x_entry)
 
                     _SC_SUBPORT_VPG_FIND(unit, vp, grp);
                     if ((vp = grp) == -1) {
-                        LOG_ERROR(BSL_LS_BCM_L2,
+                        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                                   (BSL_META_U(unit,
                                               "Can not find entry for VPG\n")));
                     }
@@ -2053,7 +2053,7 @@ _bcm_tr_l2e_ppa_match(int unit, _bcm_l2_replace_t *rep_st)
         }
         soc_mem_unlock(unit, EXT_L2_ENTRYm);
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "tr_l2e_ppa_match: imin=%d imax=%d nmatches=%d flags=0x%x\n"),
                  imin, imax, nmatches, rep_st->flags));
@@ -4111,7 +4111,7 @@ bcm_tr_l2_cross_connect_traverse(int unit,
                         int grp;
                         _SC_SUBPORT_VPG_FIND(unit, vpg, grp);
                         if ((vpg = grp) == -1) {
-                            LOG_ERROR(BSL_LS_BCM_L2,
+                            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                                       (BSL_META_U(unit,
                                                   "Can not find entry for VPG\n")));
                         }
@@ -4144,7 +4144,7 @@ bcm_tr_l2_cross_connect_traverse(int unit,
                         int grp;
                         _SC_SUBPORT_VPG_FIND(unit, vpg, grp);
                         if ((vpg = grp) == -1) {
-                            LOG_ERROR(BSL_LS_BCM_L2,
+                            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                                       (BSL_META_U(unit,
                                                   "Can not find entry for VPG\n")));
                         }
@@ -4622,7 +4622,7 @@ _bcm_kt2_l2_olp_mac_set(int unit, int index, bcm_port_t port, bcm_mac_t olp_mac,
     vlan = soc_reg_field_get(unit, EGR_OLP_VLANr, rval, VLAN_TAGf);
 
     if ((vlan == 0) && (action != OLP_ACTION_DELETE)) {
-        LOG_ERROR(BSL_LS_BCM_L2,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                   (BSL_META_U(unit,
                               "_bcm_kt2_l2_olp_mac_set: OLP vlan tag is not configured. \
                               So can't add static MAC entry for OLP mac\n")));
@@ -4652,7 +4652,7 @@ _bcm_kt2_l2_olp_mac_set(int unit, int index, bcm_port_t port, bcm_mac_t olp_mac,
             } else if ((BCM_GPORT_IS_SUBPORT_PORT(port)) &&
                   ((_BCM_KT2_GPORT_IS_SUBTAG_SUBPORT_PORT(unit, port)) ||
                   (_BCM_KT2_GPORT_IS_LINKPHY_SUBPORT_PORT(unit, port)))) {
-                LOG_ERROR(BSL_LS_BCM_L2,
+                LOG_BSL_ERROR(BSL_LS_BCM_L2,
                           (BSL_META_U(unit,
                                       "_bcm_kt2_l2_olp_mac_set: OLP is not allowed on SUBPORT. \
                                       \n")));
@@ -4665,7 +4665,7 @@ _bcm_kt2_l2_olp_mac_set(int unit, int index, bcm_port_t port, bcm_mac_t olp_mac,
             dglp |= ((my_modid << DGLP_MODULE_ID_SHIFT_BITS) + port); 
         }
         if (IS_CPU_PORT(unit, port_id)) {
-            LOG_ERROR(BSL_LS_BCM_L2,
+            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                       (BSL_META_U(unit,
                                   "_bcm_kt2_l2_olp_mac_set: OLP is not allowed on CPU port. \n")));
                 return BCM_E_PARAM;
@@ -4677,7 +4677,7 @@ _bcm_kt2_l2_olp_mac_set(int unit, int index, bcm_port_t port, bcm_mac_t olp_mac,
             /* delete the static l2 entry added */
             BCM_IF_ERROR_RETURN(bcm_esw_l2_addr_delete(unit, old_mac, vlan)); 
         } else if (action == OLP_ACTION_ADD) {
-            LOG_ERROR(BSL_LS_BCM_L2,
+            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                       (BSL_META_U(unit,
                                   "_bcm_kt2_l2_olp_mac_set: OLP MAC is already configured. \
                                   for this DGLP\n")));
@@ -5128,7 +5128,7 @@ _bcm_l2_station_entry_update(int unit,
         return (BCM_E_PARAM);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: (SID=%d) (idx=%d) (prio: o=%d n=%d) "
                            "- update.\n"), unit, sid, ent_p->hw_index, ent_p->prio,
@@ -5381,7 +5381,7 @@ _bcm_l2_station_prio_move_required(int unit, _bcm_l2_station_entry_t *ent_p)
             if (_bcm_l2_station_entry_prio_cmp
                     (sc->entry_arr[i]->prio, ent_prio) < 0) {
 
-                LOG_DEBUG(BSL_LS_BCM_L2,
+                LOG_BSL_DEBUG(BSL_LS_BCM_L2,
                           (BSL_META_U(unit,
                                       "L2(unit %d) Info: (SID=%d) found lower prio than "
                                        "(prio=%d).\n"), unit, ent_p->sid, ent_p->prio));
@@ -5395,7 +5395,7 @@ _bcm_l2_station_prio_move_required(int unit, _bcm_l2_station_entry_t *ent_p)
         } else {
             if (_bcm_l2_station_entry_prio_cmp
                     (sc->entry_arr[i]->prio, ent_prio) > 0) {
-                LOG_DEBUG(BSL_LS_BCM_L2,
+                LOG_BSL_DEBUG(BSL_LS_BCM_L2,
                           (BSL_META_U(unit,
                                       "L2(unit %d) Info: (SID=%d) found higher prio than "
                                        "(prio=%d).\n"), unit, ent_p->sid, ent_p->prio));
@@ -5408,7 +5408,7 @@ _bcm_l2_station_prio_move_required(int unit, _bcm_l2_station_entry_t *ent_p)
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: (SID=%d) (prio=%d) no move.\n"),
                unit, ent_p->sid, ent_p->prio));
@@ -5559,7 +5559,7 @@ _bcm_l2_station_entry_move(int unit,
 
     tcam_idx_new = tcam_idx_old + (amount);
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: (SID=%d) move (oidx=%d nidx=%d) (amt=%d).\n"),
                unit, s_ent->sid, s_ent->hw_index, tcam_idx_new, amount));
@@ -5626,7 +5626,7 @@ _bcm_l2_station_entry_shift_down(int unit,
     int                         max_entries; /* Maximum entries supported. */
     int                         rv;          /* Operation return status.   */
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: Shift UP (tidx=%d null-idx=%d).\n"),
                unit, target_index, next_null_index));
@@ -5692,7 +5692,7 @@ _bcm_l2_station_entry_shift_up(int unit,
 
     BCM_IF_ERROR_RETURN(_bcm_l2_station_control_get(unit, &sc));
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: Shift UP (tidx=%d null-idx=%d).\n"),
                unit, target_index, prev_null_index));
@@ -5759,7 +5759,7 @@ _bcm_l2_station_entry_install(int unit, _bcm_l2_station_entry_t *ent_p)
         return (BCM_E_INTERNAL);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_L2,
+    LOG_BSL_DEBUG(BSL_LS_BCM_L2,
               (BSL_META_U(unit,
                           "L2(unit %d) Info: (SID=%d) - install (idx=%d).\n"),
                unit, ent_p->sid, ent_p->hw_index));
@@ -5911,7 +5911,7 @@ _bcm_l2_station_entry_prio_install(int unit, _bcm_l2_station_entry_t *ent_p)
     } else {
         if (TRUE == decr_on_shift_up) {
             idx_target--;
-            LOG_DEBUG(BSL_LS_BCM_L2,
+            LOG_BSL_DEBUG(BSL_LS_BCM_L2,
                       (BSL_META_U(unit,
                                   "L2(unit %d) Info: Decr. on Shift UP (idx_tgt=%d).\n"),
                        unit, idx_target));
@@ -6135,7 +6135,7 @@ bcm_tr_l2_station_add(int unit,
     /* For replace operation, entry must exist. */
     if (BCM_FAILURE(rv)
         && (station->flags & BCM_L2_STATION_REPLACE)) {
-        LOG_ERROR(BSL_LS_BCM_L2,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                   (BSL_META_U(unit,
                               "L2(unit %d) Error: Replace (SID=%d) - Invalid (%s).\n"),
                    unit, sid, bcm_errmsg(rv)));
@@ -6146,7 +6146,7 @@ bcm_tr_l2_station_add(int unit,
     /* For non-replace operations, entry must not exist. */
     if (BCM_SUCCESS(rv)
         && (0 == (station->flags & BCM_L2_STATION_REPLACE))) {
-        LOG_ERROR(BSL_LS_BCM_L2,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                   (BSL_META_U(unit,
                               "L2(unit %d) Error: (SID=%d) add - failed (%s).\n"),
                    unit, sid, bcm_errmsg(rv)));
@@ -6157,7 +6157,7 @@ bcm_tr_l2_station_add(int unit,
     if (0 == (station->flags & BCM_L2_STATION_REPLACE)) {
         rv = _bcm_l2_station_entry_create(unit, sid, station, &ent);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_L2,
+            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                       (BSL_META_U(unit,
                                   "L2(unit %d) Error: Station (SID=%d) add - failed (%s).\n"),
                        unit, sid, bcm_errmsg(rv)));
@@ -6167,7 +6167,7 @@ bcm_tr_l2_station_add(int unit,
     } else {
         rv = _bcm_l2_station_entry_update(unit, sid, station, ent);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_L2,
+            LOG_BSL_ERROR(BSL_LS_BCM_L2,
                       (BSL_META_U(unit,
                                   "L2(unit %d) Error: Station (SID=%d) update - failed (%s).\n"),
                        unit, sid, bcm_errmsg(rv)));
@@ -6181,7 +6181,7 @@ bcm_tr_l2_station_add(int unit,
         if (NULL != ent->tcam_ent) {
             sal_free(ent->tcam_ent);
         }
-        LOG_ERROR(BSL_LS_BCM_L2,
+        LOG_BSL_ERROR(BSL_LS_BCM_L2,
                   (BSL_META_U(unit,
                               "L2(unit %d) Error: (SID=%d) install - failed (%s).\n"),
                    unit, sid, bcm_errmsg(rv)));

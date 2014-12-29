@@ -67,10 +67,10 @@ extern int soc_arl_init(int unit);
 
 
 
-#define DRV_ARL_WARN(stuff)         LOG_WARN(BSL_LS_SOC_ARL, stuff)
-#define DRV_ARL_ERR(stuff)          LOG_ERROR(BSL_LS_SOC_ARL, stuff)
-#define DRV_ARL_VERB(stuff)         LOG_VERBOSE(BSL_LS_SOC_ARL, stuff)
-#define DRV_ARL_VVERB(stuff)        LOG_DEBUG(BSL_LS_SOC_ARL, stuff)
+#define DRV_ARL_WARN(stuff)         LOG_BSL_WARN(BSL_LS_SOC_ARL, stuff)
+#define DRV_ARL_ERR(stuff)          LOG_BSL_ERROR(BSL_LS_SOC_ARL, stuff)
+#define DRV_ARL_VERB(stuff)         LOG_BSL_VERBOSE(BSL_LS_SOC_ARL, stuff)
+#define DRV_ARL_VVERB(stuff)        LOG_BSL_DEBUG(BSL_LS_SOC_ARL, stuff)
 
 
 #define _ROBO_SEARCH_LOCK (1 << 0)

@@ -238,7 +238,7 @@ int ks_pci_info_setup(int ks_num)
 
     if (soc_cm_device_supported(BCM53000PCIE_DEVICE_ID,
             BCM53000_A0_REV_ID)) {
-        LOG_ERROR(BSL_LS_BCM_PTP,
+        LOG_BSL_ERROR(BSL_LS_BCM_PTP,
                   (BSL_META("Keystone device not supported\n")));
         return BCM_E_UNAVAIL;
     }

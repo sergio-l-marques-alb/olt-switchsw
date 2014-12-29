@@ -116,7 +116,7 @@ SOC_E_UNAVAIL;}if(l6 == NULL){return SOC_E_PARAM;}SOC_IF_ERROR_RETURN(
 READ_PHY_REG(l4,l7,MII_ASSR_REG,&l8));l14 = (l8&MII_ASSR_LS)?TRUE:FALSE;if(
 PHY_IS_BCM5348(l7)||PHY_IS_BCM5324(l7)||PHY_IS_BCM5324A1(l7)||PHY_IS_BCM53242
 (l7)||PHY_IS_BCM53262(l7)||PHY_IS_BCM53280(l7)){SOC_IF_ERROR_RETURN(
-phy_fe_ge_speed_get(l4,l5,&l15));if((l15!= 100)&&(l14)){LOG_WARN(BSL_LS_SOC_PHY, 
+phy_fe_ge_speed_get(l4,l5,&l15));if((l15!= 100)&&(l14)){LOG_BSL_WARN(BSL_LS_SOC_PHY, 
 (BSL_META("Cable diagnostic is only supported for 100Mb mode\n")));
 return SOC_E_UNAVAIL;}
 }if(PHY_IS_BCM53280(l7)){return(l3(l4,l5,l6));}SOC_IF_ERROR_RETURN(

@@ -336,7 +336,7 @@ bcm_common_ptp_clock_get(
 
     if (BCM_FAILURE(rv =
         _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, clock_info))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed")));
         return rv;
@@ -1081,7 +1081,7 @@ bcm_common_ptp_clock_priority1_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -1216,7 +1216,7 @@ bcm_common_ptp_clock_priority2_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -1351,7 +1351,7 @@ bcm_common_ptp_clock_domain_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -1386,7 +1386,7 @@ bcm_common_ptp_clock_domain_set(
     /* Remove signaled slaves. */
     if (BCM_FAILURE(rv = bcm_common_ptp_signaled_unicast_slave_table_clear(unit, ptp_id,
             clock_num, PTP_IEEE1588_ALL_PORTS, 0))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "bcm_common_ptp_signaled_unicast_slave_table_clear failed\n")));
         return rv;
@@ -1395,7 +1395,7 @@ bcm_common_ptp_clock_domain_set(
     /* Remove static slaves. */
     if (BCM_FAILURE(rv = _bcm_ptp_unicast_slave_host_reset(unit, ptp_id,
             clock_num, PTP_IEEE1588_ALL_PORTS))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_unicast_slave_host_reset failed\n")));
         return rv;
@@ -1532,7 +1532,7 @@ bcm_common_ptp_clock_slaveonly_set(
     if (rv == BCM_E_NONE) {
         if (BCM_FAILURE(rv = _bcm_ptp_clock_cache_info_get(unit, ptp_id,
                 clock_num, &ci))) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "_bcm_ptp_clock_cache_info_get failed\n")));
             return rv;
@@ -2570,7 +2570,7 @@ bcm_common_ptp_clock_port_log_announce_interval_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -2716,7 +2716,7 @@ bcm_common_ptp_clock_port_announce_receipt_timeout_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                             "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -2862,7 +2862,7 @@ bcm_common_ptp_clock_port_log_sync_interval_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -3095,7 +3095,7 @@ bcm_common_ptp_clock_port_log_min_pdelay_req_interval_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -3220,7 +3220,7 @@ bcm_common_ptp_clock_port_log_min_delay_req_interval_set(
     /* PTP attribute profile range checking. */
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -3318,7 +3318,7 @@ bcm_common_ptp_clock_port_enable(
     /* Restore/re-subscribe static unicast slave table. */
     if (BCM_FAILURE(rv = _bcm_ptp_unicast_slave_stack_restore(unit, ptp_id,
             clock_num, clock_port))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_unicast_slave_stack_restore failed\n")));
         return rv;
@@ -3378,7 +3378,7 @@ bcm_common_ptp_clock_port_disable(
     /* Remove signaled slaves. */
     if (BCM_FAILURE(rv = bcm_common_ptp_signaled_unicast_slave_table_clear(unit, ptp_id,
             clock_num, clock_port, 0))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "bcm_common_ptp_signaled_unicast_slave_table_clear failed\n")));
         return rv;
@@ -3396,7 +3396,7 @@ bcm_common_ptp_clock_port_disable(
     /*
     if (BCM_FAILURE(rv = _bcm_ptp_unicast_slave_host_reset(unit, ptp_id,
             clock_num, clock_port))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_unicast_slave_host_reset failed\n")));
         return rv;
@@ -3558,7 +3558,7 @@ bcm_common_ptp_clock_port_configure(
 
     if (BCM_FAILURE(rv =
             _bcm_ptp_clock_cache_info_get(unit, ptp_id, clock_num, &ci))) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_clock_cache_info_get failed\n")));
         return rv;
@@ -3665,7 +3665,7 @@ _bcm_ptp_clock_class_set(
     if (rv == BCM_E_NONE) {
         if (BCM_FAILURE(rv = _bcm_ptp_clock_cache_info_get(unit, ptp_id,
                 clock_num, &ci))) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "_bcm_ptp_clock_cache_info_get\n")));
             return rv;

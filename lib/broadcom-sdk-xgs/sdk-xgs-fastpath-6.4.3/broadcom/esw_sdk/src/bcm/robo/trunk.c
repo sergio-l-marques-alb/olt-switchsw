@@ -199,7 +199,7 @@ _bcm_robo_trunk_mcast_join(int unit, bcm_trunk_t tid, bcm_vlan_t vid,
     BCM_IF_ERROR_RETURN(DRV_TRUNK_GET
         (unit, tid, &trunk_pbmp, flag, &hash_op));
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "trunk_mcast_join: \n\t trunk_pbm=0x%x\n"), 
                  SOC_PBMP_WORD_GET(trunk_pbmp, 0)));
@@ -207,7 +207,7 @@ _bcm_robo_trunk_mcast_join(int unit, bcm_trunk_t tid, bcm_vlan_t vid,
     SOC_PBMP_ASSIGN(pbmp, trunk_pbmp);
 
     BCM_IF_ERROR_RETURN(bcm_mcast_port_get(unit, mac, vid, &mc_addr));
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\t mcast_pbm=0x%x\n"),SOC_PBMP_WORD_GET(mc_addr.pbmp, 0)));
     BCM_PBMP_ASSIGN(m_pbmp, mc_addr.pbmp);
@@ -222,7 +222,7 @@ _bcm_robo_trunk_mcast_join(int unit, bcm_trunk_t tid, bcm_vlan_t vid,
     if (t_info->mc_port_used >= 0) {
         BCM_PBMP_PORT_ADD(mc_addr.pbmp, t_info->mc_port_used);
     }
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\t last mc_addr.pbmp=0x%x\n"),SOC_PBMP_WORD_GET(mc_addr.pbmp,0)));
     BCM_IF_ERROR_RETURN(bcm_mcast_addr_add(unit, &mc_addr));
@@ -265,7 +265,7 @@ _robo_trunk_check_vlan(
             /* call port API */
             BCM_IF_ERROR_RETURN(bcm_port_untagged_vlan_get(unit, port, &vid));
             if (vid != vid0) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Trunk ports in different VLANs\n")));
                 return (BCM_E_CONFIG);
@@ -283,7 +283,7 @@ _robo_trunk_check_vlan(
     
             PBMP_ITER(t_pbmp_new, port) {
                 if (!PBMP_MEMBER(pbmp, port)) {
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META_U(unit,
                                           "Trunk conflicts VLAN %d: port %d\n"), 
                                list[i].vlan_tag, port));
@@ -637,7 +637,7 @@ bcm_robo_trunk_init(int unit)
     uint32  flag, hash_op=0;
     bcm_pbmp_t  trunk_pbmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_init()..\n")));
 
@@ -713,7 +713,7 @@ bcm_robo_trunk_init(int unit)
 int 
 bcm_robo_trunk_detach(int unit)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_detach()..\n")));
 
@@ -750,7 +750,7 @@ _bcm_robo_trunk_create_id(int unit, bcm_trunk_t tid)
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : _bcm_robo_trunk_create_id()..\n")));
 
@@ -793,7 +793,7 @@ bcm_robo_trunk_create(int unit, uint32 flags, bcm_trunk_t *tid)
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_create()..\n")));
 
@@ -889,7 +889,7 @@ bcm_robo_trunk_psc_set(int unit, bcm_trunk_t tid, int psc)
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_psc_set()..\n")));
 
@@ -963,7 +963,7 @@ bcm_robo_trunk_psc_get(int unit, bcm_trunk_t tid, int *psc)
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_psc_get()..\n")));
 
@@ -1001,7 +1001,7 @@ bcm_robo_trunk_chip_info_get(int unit, bcm_trunk_chip_info_t *ta_info)
 {
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_chip_info_get()..\n")));
 
@@ -1134,7 +1134,7 @@ bcm_robo_trunk_set(int unit, bcm_trunk_t tid, bcm_trunk_info_t *trunk_info,
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_set()..\n")));
 
@@ -1207,7 +1207,7 @@ bcm_robo_trunk_destroy(int unit, bcm_trunk_t tid)
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_destroy()..\n")));
 
@@ -1261,7 +1261,7 @@ bcm_robo_trunk_get(int unit, bcm_trunk_t tid, bcm_trunk_info_t *trunk_info,
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_get()..\n")));
 
@@ -1330,7 +1330,7 @@ bcm_robo_trunk_bitmap_expand(int unit, bcm_pbmp_t *pbmp_ptr)
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_bitmap_expand().. \n")));
     
@@ -1375,7 +1375,7 @@ bcm_robo_trunk_mcast_join(int unit, bcm_trunk_t tid, bcm_vlan_t vid,
 
     TRUNK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_trunk_mcast_join()..\n")));
 

@@ -3212,13 +3212,13 @@ _bcm_field_tr_entry_install(int unit, _field_entry_t *f_ent, int tcam_idx)
     BCM_IF_ERROR_RETURN(rv);
 
 #ifdef BCM_TRIDENT_SUPPORT
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Checking for IPBM overlay\n")));
 
     if ((SOC_IS_TD_TT(unit)) && (f_ent->flags & _FP_ENTRY_USES_IPBM_OVERLAY))
     {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Overlay in use\n")));
 
@@ -3234,7 +3234,7 @@ _bcm_field_tr_entry_install(int unit, _field_entry_t *f_ent, int tcam_idx)
     if ((SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_KATANAX(unit))
         && (f_ent->flags & _FP_ENTRY_USES_IPBM_OVERLAY)) {
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Overlay in use\n")));
 
@@ -4061,7 +4061,7 @@ _bcm_field_tr_external_tcam_key_mask_get(int unit, _field_entry_t *f_ent)
         f_ent->tcam.key  = sal_alloc(key_size, "field_entry_tcam_key");
         f_ent->tcam.mask = sal_alloc(key_size, "field_entry_tcam_mask");
         if ((NULL == f_ent->tcam.key) || (NULL == f_ent->tcam.mask)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: allocation failure for field_entry tcam\n"),
                        unit));
@@ -4081,7 +4081,7 @@ _bcm_field_tr_external_tcam_key_mask_get(int unit, _field_entry_t *f_ent)
         f_ent->tcam.key_hw  = sal_alloc(key_size, "field_entry_tcam_key");
         f_ent->tcam.mask_hw = sal_alloc(key_size, "field_entry_tcam_mask");
         if ((NULL == f_ent->tcam.key_hw) || (NULL == f_ent->tcam.mask_hw)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: allocation failure for field_entry tcam\n"),
                        unit));

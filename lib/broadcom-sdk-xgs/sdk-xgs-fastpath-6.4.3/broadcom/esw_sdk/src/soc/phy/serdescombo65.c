@@ -206,7 +206,7 @@ phy_combo65_init_no_reset(int unit, soc_port_t port)
         }
     }
     if ((data16 & MII_CTRL_RESET) != 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Combo SerDes reset failed: u=%d p=%d\n"),
                   unit, port));
@@ -269,7 +269,7 @@ phy_combo65_init_no_reset(int unit, soc_port_t port)
         (MODIFY_XGXS_BLK0_CTRLr(unit, pc, XGXS_CTRL_START_SEQUENCER, 
                                 XGXS_CTRL_START_SEQUENCER));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_init: u=%d p=%d %s\n"),
               unit, port, 
@@ -300,7 +300,7 @@ phy_combo65_init_no_reset(int unit, soc_port_t port)
 STATIC int
 phy_combo65_init(int unit, soc_port_t port)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_init: u=%d p=%d\n"),
               unit, port));
@@ -322,7 +322,7 @@ phy_combo65_init(int unit, soc_port_t port)
             PHY_FLAGS_SET(unit, port, PHY_FLAGS_C73);
         }
         if (PHY_SGMII_AUTONEG_MODE(unit, port)) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "WARNING: SGMII autoneg enabled but no PHY attached:"
                                  " u=%d p=%d \n"), unit, port));
@@ -400,7 +400,7 @@ phy_combo65_link_get(int unit, soc_port_t port, int *link)
 STATIC int
 phy_combo65_enable_set(int unit, soc_port_t port, int enable)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_enable_set: u=%d p=%d en=%d\n"),
               unit, port, enable));
@@ -442,7 +442,7 @@ phy_combo65_duplex_set(int unit, soc_port_t port, int duplex)
 
     rv = duplex ? SOC_E_NONE : SOC_E_UNAVAIL;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_duplex_set: u=%d p=%d duplex=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -523,7 +523,7 @@ phy_combo65_speed_set(int unit, soc_port_t port, int speed)
 
     pc->fiber.force_speed = speed;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_speed_set: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, speed, rv));
@@ -612,7 +612,7 @@ phy_combo65_an_set(int unit, soc_port_t port, int an)
 
     pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -725,7 +725,7 @@ phy_combo65_an_get(int unit, soc_port_t port, int *an, int *an_done)
 
     *an_done = (stat & MII_STAT_AN_DONE) != 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_an_get: u=%d p=%d an=%d an_done=%d\n"),
               unit, port, *an, *an_done));
@@ -823,7 +823,7 @@ phy_combo65_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
 
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_adv_local_set: u=%d p=%d adv=%s%s%s%s\n"),
               unit, port,
@@ -957,7 +957,7 @@ phy_combo65_adv_remote_get(int unit, soc_port_t port, soc_port_mode_t *mode)
                  SOC_PM_2500MB_FD : 0;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_adv_remote_get:"
                          " u=%d p=%d adv=%s%s%s%s%s%s%s%s\n"),
@@ -1000,7 +1000,7 @@ phy_combo65_lb_set(int unit, soc_port_t port, int enable)
 
     rv = MODIFY_COMBO_IEEE0_MII_CTRLr(unit, pc, ctrl, MII_CTRL_LE);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_lb_set: u=%d p=%d lb=%d rv=%d\n"),
               unit, port, enable, rv));
@@ -1067,7 +1067,7 @@ phy_combo65_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
         break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_interface_set: "
                          "u=%d p=%d pif=%d rv=%d\n"),
@@ -1813,7 +1813,7 @@ _phy_combo65_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     fiber = PHY_FIBER_MODE(unit, port);
     pc    = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_combo65_notify_duplex: "
                          "u=%d p=%d duplex=%d fiber=%d\n"),
@@ -1886,7 +1886,7 @@ _phy_combo65_notify_speed(int unit, soc_port_t port, uint32 speed)
     pc    = INT_PHY_SW_STATE(unit, port);
     fiber = PHY_FIBER_MODE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_combo65_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -1954,7 +1954,7 @@ _phy_combo65_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_combo65_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,

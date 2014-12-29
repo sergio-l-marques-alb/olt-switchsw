@@ -63,7 +63,7 @@
 
 #if defined(SOC_FEATURE_DEBUG)
 #define BSL_LAYER_SOURCE (BSL_L_SOC | BSL_S_COMMON)
-#define SOC_FEATURE_DEBUG_PRINT(_x) LOG_VERBOSE(_x)
+#define SOC_FEATURE_DEBUG_PRINT(_x) LOG_BSL_VERBOSE(_x)
 #else
 #define SOC_FEATURE_DEBUG_PRINT(_x)
 #endif
@@ -3451,14 +3451,14 @@ soc_features_bcm88230_a0(int unit, soc_feature_t feature)
             break;
         case soc_feature_egress_metering:
             /* Support is available for egress shaping */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "rate egress_metering feature available\n")));
             return( TRUE );
             break;
         case soc_feature_cosq_gport_stat_ability:
             /* Support is available for gport statistics */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "gport statistics feature available\n")));
             return( TRUE );
@@ -3574,14 +3574,14 @@ soc_features_bcm88230_b0(int unit, soc_feature_t feature)
             break;
         case soc_feature_egress_metering:
             /* Support is available for egress shaping */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "rate egress_metering feature available\n")));
             return( TRUE );
             break;
         case soc_feature_cosq_gport_stat_ability:
             /* Support is available for gport statistics */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "gport statistics feature available\n")));
             return( TRUE );
@@ -3698,14 +3698,14 @@ soc_features_bcm88230_c0(int unit, soc_feature_t feature)
             break;
         case soc_feature_egress_metering:
             /* Support is available for egress shaping */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "rate egress_metering feature available\n")));
             return( TRUE );
             break;
         case soc_feature_cosq_gport_stat_ability:
             /* Support is available for gport statistics */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "gport statistics feature available\n")));
             return( TRUE );

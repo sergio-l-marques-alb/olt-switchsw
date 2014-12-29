@@ -83,7 +83,7 @@ soc_internal_l2x2_hash(pcid_info_t * pcid_info, l2x_entry_t *entry, int dual)
     int             index;
     soc_block_t     blk;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("L2X2 hash\n")));
 
     if (dual) {
@@ -102,7 +102,7 @@ soc_internal_l2x2_hash(pcid_info_t * pcid_info, l2x_entry_t *entry, int dual)
                                      tmp_hs[0], L2_AND_VLAN_MAC_HASH_SELECTf);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "" : "(aux)", hash_sel));
 
     soc_draco_l2x_base_entry_to_key(pcid_info->unit, entry, key);
@@ -120,7 +120,7 @@ soc_internal_l2x2_hash(pcid_info_t * pcid_info, l2x_entry_t *entry, int dual)
         index &= addr_mask;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -175,13 +175,13 @@ soc_internal_l2x2_entry_ins(pcid_info_t *pcid_info, uint8 banks,
     int    op_fail_pos;
     uint8  at; 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2_entry Insert\n")));
 
     bucket = soc_internal_l2x2_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -208,7 +208,7 @@ soc_internal_l2x2_entry_ins(pcid_info_t *pcid_info, uint8 banks,
                 /* Overwrite the existing entry */
                 PCIM(pcid_info, CMIC_SCHAN_CTRL) &= ~SC_MSG_NAK_TST;
 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write bucket %d, slot %d, index %d\n"),
                              index / 8, index % 8, index));
@@ -237,7 +237,7 @@ soc_internal_l2x2_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         result[3] = 0x000;
         PCIM(pcid_info, CMIC_SCHAN_CTRL) &= ~SC_MSG_NAK_TST;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write bucket %d, slot %d, index %d\n"),
                      index / 8, index % 8, index));
@@ -250,7 +250,7 @@ soc_internal_l2x2_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -276,13 +276,13 @@ soc_internal_l2x2_entry_del(pcid_info_t * pcid_info, uint8 banks,
     int             slot_min = 0, slot_max = 7, dual = FALSE;
     int             unit = pcid_info->unit;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2_entry Delete\n")));
 
     bucket = soc_internal_l2x2_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -323,7 +323,7 @@ soc_internal_l2x2_entry_del(pcid_info_t * pcid_info, uint8 banks,
         } 
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Not found\n")));
 
@@ -347,13 +347,13 @@ soc_internal_l2x2_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
     int    unit = pcid_info->unit; 
     uint8  at;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2_entry Lookup\n")));
 
     bucket = soc_internal_l2x2_hash(pcid_info, entry_lookup, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -401,7 +401,7 @@ soc_internal_l2x2_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         } 
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Not found\n")));
 
@@ -500,7 +500,7 @@ soc_internal_l2_tr_bucket_get(pcid_info_t *pcid_info, int bank, void *entry)
         bucket = soc_tr_l2x_entry_hash(unit, hash_sel, entry);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bank %d bucket %d\n"), bank, bucket));
 
@@ -652,7 +652,7 @@ soc_internal_l2_tr_entry_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "L2X Insert\n")));
 
@@ -686,7 +686,7 @@ soc_internal_l2_tr_entry_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
                                            tmp);
             if (soc_mem_field32_get(unit, L2Xm, tmp, VALIDf)) {
                 if (soc_mem_compare_key(unit, L2Xm, entry, tmp) == 0) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "write sblk %d acc_type %d bank %d "
                                             "bucket %d, slot %d, index %d\n"),
@@ -751,7 +751,7 @@ soc_internal_l2_tr_entry_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
         index = free_index;
         addr = soc_mem_addr_get(unit, L2Xm, 0, blk, index, &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bank %d bucket %d, "
                                 "slot %d, index %d\n"),
@@ -775,7 +775,7 @@ soc_internal_l2_tr_entry_ins(pcid_info_t *pcid_info, uint32 inv_bank_map,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
     result[0] = 0;
@@ -808,7 +808,7 @@ soc_internal_l2_tr_entry_del(pcid_info_t *pcid_info, uint32 inv_bank_map,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "L2X Delete\n")));
 
@@ -838,7 +838,7 @@ soc_internal_l2_tr_entry_del(pcid_info_t *pcid_info, uint32 inv_bank_map,
                                            tmp);
             if (soc_mem_field32_get(unit, L2Xm, tmp, VALIDf)) {
                 if (soc_mem_compare_key(unit, L2Xm, entry, tmp) == 0) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "delete sblk %d acc_type %d bank %d "
                                             "bucket %d, slot %d, index %d\n"),
@@ -869,7 +869,7 @@ soc_internal_l2_tr_entry_del(pcid_info_t *pcid_info, uint32 inv_bank_map,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_l2_tr_entry_del: Not found\n")));
 
@@ -909,7 +909,7 @@ soc_internal_l2_tr_entry_lkup(pcid_info_t *pcid_info, uint32 inv_bank_map,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "L2X Lookup\n")));
 
@@ -939,7 +939,7 @@ soc_internal_l2_tr_entry_lkup(pcid_info_t *pcid_info, uint32 inv_bank_map,
                                            tmp);
             if (soc_mem_field32_get(unit, L2Xm, tmp, VALIDf)) {
                 if (soc_mem_compare_key(unit, L2Xm, entry, tmp) == 0) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "found sblk %d acc_type %d bank %d "
                                             "bucket %d, slot %d, index %d\n"),
@@ -965,7 +965,7 @@ soc_internal_l2_tr_entry_lkup(pcid_info_t *pcid_info, uint32 inv_bank_map,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_l2_tr_entry_lkup: Not found\n")));
 

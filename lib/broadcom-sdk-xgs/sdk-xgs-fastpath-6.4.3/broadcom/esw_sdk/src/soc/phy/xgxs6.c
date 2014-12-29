@@ -96,7 +96,7 @@ _phy_xgxs6_pll_lock_wait(int unit, soc_port_t port)
         }
     } while (!soc_timeout_check(&to));
     if ((data16 & XGXSBLK0_XGXSSTATUS_TXPLL_LOCK) == 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "XGXS6 : TXPLL did not lock: u=%d p=%d\n"),
                   unit, port));
@@ -144,7 +144,7 @@ phy_xgxs6_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN 
         (PHYXGXS6_REG_MODIFY(unit, pc, 0x00, 0x8110, 0x11, 1 << 3, 1 << 3)); 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs6_init: u=%d p=%d rv=%d\n"),
               unit, port, rv));
@@ -728,7 +728,7 @@ phy_xgxs6_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
     SOC_IF_ERROR_RETURN
         (WRITE_PHYXGXS6_OVER1G_UP1r(unit, pc, an_adv));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs6_adv_local_set:unit=%d p=%d mode=0x%08x\n"),
               unit, port, mode));
@@ -791,7 +791,7 @@ phy_xgxs6_adv_local_get(int unit, soc_port_t port, soc_port_mode_t *mode)
 
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs6_adv_local_get:unit=%d p=%d mode=0x%08x\n"),
               unit, port, *mode));
@@ -853,7 +853,7 @@ phy_xgxs6_adv_remote_get(int unit, soc_port_t port, soc_port_mode_t *mode)
         }
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs6_adv_remote_get:unit=%d p=%d mode=0x%08x\n"),
               unit, port, *mode));
@@ -1287,7 +1287,7 @@ _phy_xgxs6_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs6_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,
@@ -1367,7 +1367,7 @@ _phy_xgxs6_notify_speed(int unit, soc_port_t port, uint32 speed)
 
     fiber = PHY_FIBER_MODE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_xgxs6_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -1386,7 +1386,7 @@ _phy_xgxs6_notify_speed(int unit, soc_port_t port, uint32 speed)
         SOC_IF_ERROR_RETURN
             (phy_xgxs6_an_set(unit, port, FALSE));
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_xgxs6_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d rv=%d\n"),

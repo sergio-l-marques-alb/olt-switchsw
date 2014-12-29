@@ -71,7 +71,7 @@ drv_vlan_mode_set(int unit, uint32 mode)
 {
     uint32	reg_value, temp;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_vlan_mode_set: unit = %d, mode = %d\n"),
               unit, mode));
@@ -152,7 +152,7 @@ drv_vlan_mode_get(int unit, uint32 *mode)
     } else {
         *mode = DRV_VLAN_MODE_PORT_BASE;
     }
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_vlan_mode_get: unit = %d, mode = %d\n"),
               unit, *mode));
@@ -188,7 +188,7 @@ drv_port_vlan_pvid_set(int unit, uint32 port, uint32 outer_tag, uint32 inner_tag
     uint32  specified_port_num;
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT || NS+ */
 
-    LOG_INFO(BSL_LS_SOC_VLAN, \
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN, \
              (BSL_META_U(unit, \
                          "drv_port_vlan_pvid_set: \
                          unit = %d, port = %d, outer_tag = 0x%x, inner_tag = 0x%x\n"),
@@ -272,7 +272,7 @@ drv_port_vlan_pvid_get(int unit, uint32 port, uint32 *outer_tag, uint32 *inner_t
 
     *outer_tag = reg_value;
     
-    LOG_INFO(BSL_LS_SOC_VLAN, \
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN, \
              (BSL_META_U(unit, \
                          "drv_port_vlan_pvid_get: \
                          unit = %d, port = %d, outer_tag = 0x%x, inner_tag = 0x%x\n"),

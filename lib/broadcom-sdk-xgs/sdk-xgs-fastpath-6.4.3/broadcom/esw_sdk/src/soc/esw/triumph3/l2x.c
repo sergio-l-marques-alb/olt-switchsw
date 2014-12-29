@@ -82,7 +82,7 @@
             if (soc_feature(unit, soc_feature_esm_support)) { \
                 SOC_EXT_L2X_MEM_UNLOCK(unit); \
             } \
-            LOG_ERROR(BSL_LS_SOC_L2, \
+            LOG_BSL_ERROR(BSL_LS_SOC_L2, \
                       (BSL_META_U(unit, \
                                   "rv: %d\n"), rv)); \
             return rv; \
@@ -94,7 +94,7 @@
             if (soc_feature(unit, soc_feature_esm_support)) { \
                 SOC_EXT_L2X_MEM_UNLOCK(unit); \
             } \
-            LOG_ERROR(BSL_LS_SOC_L2, \
+            LOG_BSL_ERROR(BSL_LS_SOC_L2, \
                       (BSL_META_U(unit, \
                                   "rv: %d\n"), rv)); \
             goto label; \
@@ -1056,7 +1056,7 @@ skip_age_ext_l2_1:
 skip_age_ext_l2_2:
     _SOC_ALL_L2X_MEM_UNLOCK(unit);
     etime = sal_time_usecs();
-    LOG_VERBOSE(BSL_LS_SOC_ARL,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                 (BSL_META_U(unit,
                             "l2_bulk_age_thread: unit=%d: done in %d usec\n"),
                  unit, SAL_USECS_SUB(etime, stime)));
@@ -1064,7 +1064,7 @@ skip_age_ext_l2_2:
     return;
 
 cleanup_exit:
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2_bulk_age_thread: exiting\n")));
     (void)sal_sem_take(soc->l2x_age_notify, 1);
@@ -1141,7 +1141,7 @@ _soc_tr3_l2_bulk_age(void *unit_vp)
         }
 
 run_tr3_l2bulkage_ops:
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "l2_bulk_age_thread: "
                                 "Process iters(total:%d, this run:%d\n"),
@@ -1294,7 +1294,7 @@ age_delay:
     }
 
     /* age thread exit processing */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2_bulk_age_thread: exiting\n")));
     /* Check if the previous accumulated time exceeds the max interval? */
@@ -1357,7 +1357,7 @@ soc_tr3_l2_bulk_age_start(int unit, int interval)
                                          soc_property_get(unit, spn_L2AGE_THREAD_PRI, 50),
                                          _soc_tr3_l2_bulk_age, INT_TO_PTR(unit));
     if (soc->l2x_age_pid == SAL_THREAD_ERROR) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "bcm_esw_l2_init: Could not start L2 bulk age thread\n")));
         SOC_CONTROL_UNLOCK(unit);
@@ -1401,7 +1401,7 @@ soc_tr3_l2_bulk_age_stop(int unit)
 
         while (soc->l2x_age_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "thread will not exit\n")));
                 rv = SOC_E_INTERNAL;
@@ -1478,7 +1478,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
     SOC_IF_ERROR_RETURN(READ_SYS_MAC_LIMIT_CONTROLr(unit, &rval));
     if (!soc_reg_field_get(unit, SYS_MAC_LIMIT_CONTROLr, 
         rval, ENABLE_INTERNAL_L2_ENTRYf)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nMAC limits not enabled.\n"))); 
         return SOC_E_NONE;
@@ -1516,7 +1516,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
     if (ptm_buf == NULL) {
         _SOC_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_tr3_l2_entry_limit_count_update: "
                               "Memory allocation failed for port mac count\n")));
@@ -1539,7 +1539,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
     if (vvm_buf == NULL) {
         _SOC_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_tr3_l2_entry_limit_count_update: "
                               "Memory allocation failed for vlan mac count\n")));
@@ -1559,7 +1559,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
     if (buf == NULL) {
         _SOC_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_tr3_l2_entry_limit_count_update: "
                               "Memory allocation failed for %s\n"), 
@@ -1579,7 +1579,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
                                   chnk_idx_max, buf);
          if (rv < 0) {
              _SOC_ALL_L2X_MEM_UNLOCK(unit);
-             LOG_ERROR(BSL_LS_SOC_L2,
+             LOG_BSL_ERROR(BSL_LS_SOC_L2,
                        (BSL_META_U(unit,
                                    "DMA failed: %s, mac limts not synced!\n"),
                                    soc_errmsg(rv)));
@@ -1702,7 +1702,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
     if (buf == NULL) {
         _SOC_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_tr3_l2_entry_limit_count_update: "
                               "Memory allocation failed for %s\n"), 
@@ -1722,7 +1722,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
                                   chnk_idx_max, buf);
          if (rv < 0) {
              _SOC_ALL_L2X_MEM_UNLOCK(unit);
-             LOG_ERROR(BSL_LS_SOC_L2,
+             LOG_BSL_ERROR(BSL_LS_SOC_L2,
                        (BSL_META_U(unit,
                                    "DMA failed: %s, mac limts not synced!\n"),
                                    soc_errmsg(rv)));
@@ -1843,7 +1843,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
         if (buf == NULL) {
             _SOC_ALL_L2X_MEM_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "soc_tr3_l2_entry_limit_count_update: "
                                   "Memory allocation failed for %s\n"), 
@@ -1864,7 +1864,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
                                       chnk_idx_max, buf);
              if (rv < 0) {
                  _SOC_ALL_L2X_MEM_UNLOCK(unit);
-                 LOG_ERROR(BSL_LS_SOC_L2,
+                 LOG_BSL_ERROR(BSL_LS_SOC_L2,
                            (BSL_META_U(unit,
                                        "DMA failed: %s, mac limts not synced!\n"),
                                        soc_errmsg(rv)));
@@ -1989,7 +1989,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
         if (buf == NULL) {
             _SOC_ALL_L2X_MEM_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "soc_tr3_l2_entry_limit_count_update: "
                                   "Memory allocation failed for %s\n"), 
@@ -2009,7 +2009,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
                                       chnk_idx_max, buf);
              if (rv < 0) {
                  _SOC_ALL_L2X_MEM_UNLOCK(unit);
-                 LOG_ERROR(BSL_LS_SOC_L2,
+                 LOG_BSL_ERROR(BSL_LS_SOC_L2,
                            (BSL_META_U(unit,
                                        "DMA failed: %s, mac limts not synced!\n"),
                                        soc_errmsg(rv)));
@@ -2126,7 +2126,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
     if (rv < 0) {
         _SOC_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "PORT_OR_TRUNK_MAC_COUNT write failed: "
                               "%s, mac limts not synced!\n"),
@@ -2139,7 +2139,7 @@ soc_tr3_l2_entry_limit_count_update(int unit)
 
     if (rv < 0) {
         _SOC_ALL_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "VLAN_OR_VFI_MAC_COUNT write failed: "
                               "%s, mac limts not synced!\n"),

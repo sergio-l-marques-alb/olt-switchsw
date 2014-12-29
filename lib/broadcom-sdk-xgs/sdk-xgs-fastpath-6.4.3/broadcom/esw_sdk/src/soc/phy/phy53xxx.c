@@ -119,7 +119,7 @@ phy_53xxx_init_no_reset(int unit, soc_port_t port)
         }
     }
     if ((data16 & MII_CTRL_RESET) != 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "Combo SerDes reset failed: u=%d p=%d\n"),
                   unit, port));
@@ -171,7 +171,7 @@ phy_53xxx_init_no_reset(int unit, soc_port_t port)
             (MODIFY_SERDES_1000X_CTRL2r(unit, pc, 0x0000, 0x0004));
     }
    
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_init: u=%d p=%d %s\n"),
               unit, port, 
@@ -203,7 +203,7 @@ STATIC int
 phy_53xxx_init(int unit, soc_port_t port)
 {
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_init: u=%d p=%d\n"),
               unit, port));
@@ -240,7 +240,7 @@ phy_53xxx_init(int unit, soc_port_t port)
 STATIC int
 phy_53xxx_enable_set(int unit, soc_port_t port, int enable)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_enable_set: u=%d p=%d en=%d\n"),
               unit, port, enable));
@@ -328,7 +328,7 @@ phy_53xxx_speed_set(int unit, soc_port_t port, int speed)
         pc->fiber.force_speed = speed;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_speed_set: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, speed, rv));
@@ -464,7 +464,7 @@ phy_53xxx_an_set(int unit, soc_port_t port, int an)
 
     pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -589,7 +589,7 @@ phy_53xxx_lb_set(int unit, soc_port_t port, int enable)
 
     rv = MODIFY_SERDES_MII_CTRLr(unit, pc, ctrl, QS_MII_CTRL_LOOPBACK);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_lb_set: u=%d p=%d lb=%d rv=%d\n"),
               unit, port, enable, rv));
@@ -938,7 +938,7 @@ _phy_53xxx_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     fiber = PHY_FIBER_MODE(unit, port);
     pc    = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_notify_duplex: u=%d p=%d duplex=%d fiber=%d\n"),
               unit, port, duplex, fiber));
@@ -1073,7 +1073,7 @@ _phy_53xxx_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_53xxx_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,

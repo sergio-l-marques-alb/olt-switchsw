@@ -1011,7 +1011,7 @@ _bcm_ptp_management_message_send(
     if ((unit_mgmt_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) ||
         (STACK_DATA(unit, ptp_id).memstate != PTP_MEMSTATE_INITIALIZED)) {
         /* Verify initialization */
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP send failed: Memory state\n")));
         return BCM_E_UNAVAIL;
@@ -1067,7 +1067,7 @@ _bcm_ptp_management_message_send(
     rv = stack_p->tx(unit, ptp_id, clock_num, PTP_MESSAGE_TO_TOP, 0, 0, message, message_len);
 
     if (rv != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP send failed: Tx error\n")));
         goto release_mgmt_lock;
@@ -1081,14 +1081,14 @@ _bcm_ptp_management_message_send(
     rv = _bcm_ptp_rx_response_get(unit, ptp_id, clock_num, PTP_MGMT_RESPONSE_TIMEOUT_US,
                                   &response_data, &response_len);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP send failed: No response\n")));
         goto release_mgmt_lock;
     }
 
     if (!response_data) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Unexpected NULL response\n")));
     }
@@ -1097,14 +1097,14 @@ _bcm_ptp_management_message_send(
     resp_action = (response_data[PTP_MGMT_RESP_ACTION_OFFSET] & 0x0f);
 
     if (((action == PTP_MGMTMSG_SET) || (action == PTP_MGMTMSG_GET)) && (resp_action != PTP_MGMTMSG_RESP)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP send failed: Bad response action\n")));
         goto dispose_of_resp;
     }
 
     if ((action == PTP_MGMTMSG_CMD) && (resp_action != PTP_MGMTMSG_ACK) ) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP send failed: Bad cmd response action\n")));
         goto dispose_of_resp;
@@ -1113,7 +1113,7 @@ _bcm_ptp_management_message_send(
     tlvtype = _bcm_ptp_uint16_read(response_data + PTP_MGMT_RESP_TLV_TYPE_OFFSET);
 
     if (tlvtype == bcmPTPTlvTypeManagementErrorStatus) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Error response: 0x%04x\n"),
                      _bcm_ptp_uint16_read(response_data + PTP_MGMT_RESP_TLV_VAL_OFFSET)));
@@ -1123,7 +1123,7 @@ _bcm_ptp_management_message_send(
     tlvlen = _bcm_ptp_uint16_read(response_data + PTP_MGMT_RESP_TLV_LEN_OFFSET);
 
     if (tlvlen + PTP_MGMT_RESP_TLV_VAL_OFFSET > response_len) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP send failed: Bad TLV len\n")));
         goto dispose_of_resp;
@@ -1132,7 +1132,7 @@ _bcm_ptp_management_message_send(
     mgmt_id = _bcm_ptp_uint16_read(response_data + PTP_MGMT_RESP_TLV_VAL_OFFSET);
 
     if (mgmt_id != cmd) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Bad mgmt ID: %04x vs %04x\n"), mgmt_id, cmd));
         goto dispose_of_resp;
@@ -1274,7 +1274,7 @@ _bcm_ptp_tunnel_message(
     if ((unit_mgmt_array[unit].memstate != PTP_MEMSTATE_INITIALIZED) ||
         (STACK_DATA(unit, ptp_id).memstate != PTP_MEMSTATE_INITIALIZED)) {
         /* Verify initialization */
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP tunnel failed: Memory state\n")));
         return BCM_E_UNAVAIL;
@@ -1289,7 +1289,7 @@ _bcm_ptp_tunnel_message(
     rv = stack_p->tx(unit, ptp_id, clock_index, tunnel_type, hdr, hdr_len, payload, payload_len);
 
     if (rv != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP tunnel failed: Tx error\n")));
         goto release_tunnel_lock;
@@ -1480,7 +1480,7 @@ _bcm_ptp_external_tx(
     }
 
     default:
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP external send failed: Unkmown transport type\n")));
     }
@@ -1529,7 +1529,7 @@ _bcm_ptp_internal_tx(
     msg_data = (uint8 *)stack_p->int_state.mboxes->mbox[0].data;
 
     if (GET_MBOX_STATUS(stack_p, 0) != MBOX_STATUS_EMPTY) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "PTP mbox contention\n")));
 
@@ -1545,7 +1545,7 @@ _bcm_ptp_internal_tx(
             rv = soc_cmic_uc_msg_send(unit, stack_p->int_state.core_num, &uc_msg, 1000000);
             return BCM_E_FAIL;
         } else if (wait_iter > 0) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Wait to send outgoing to ToP: %d\n"), wait_iter));
         }
@@ -1573,7 +1573,7 @@ _bcm_ptp_internal_tx(
         SET_MBOX_STATUS(stack_p, 0, MBOX_STATUS_ATTN_TOP_TUNNEL_EXTERNAL);
         break;
     default:
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "PTP internal send failed: Unkmown transport type\n")));
     }
@@ -1599,7 +1599,7 @@ _bcm_ptp_internal_tx_completion(
         sal_usleep(1);
     }
 
-    LOG_ERROR(BSL_LS_BCM_COMMON,
+    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
               (BSL_META_U(unit,
                           "Failed async Tx to ToP.  No clear\n")));
     return BCM_E_TIMEOUT;
@@ -1748,7 +1748,7 @@ _bcm_ptp_unicast_slave_subscribe(
         break;
 
     default:
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP unicast subscribe failed: Unknown message type\n")));
         rv = BCM_E_PARAM;
@@ -1813,7 +1813,7 @@ _bcm_ptp_unicast_slave_subscribe(
 
         default:
             /* Unknown or unsupported address type. */
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "PTP unicast subscribe failed: Unknown or unsupported address type\n")));
             rv = BCM_E_PARAM;
@@ -1864,7 +1864,7 @@ _bcm_ptp_unicast_slave_subscribe(
 
         default:
             /* Unknown or unsupported address type. */
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "PTP unicast subscribe failed: Unknown or unsupported address type\n")));
             rv = BCM_E_PARAM;
@@ -1900,7 +1900,7 @@ _bcm_ptp_unicast_slave_subscribe(
         PTP_SIGHDR_SIZE_OCTETS);
     if (tlv_type == bcmPTPTlvTypeRequestUnicastTransmission &&
             response_tlv_type != bcmPTPTlvTypeGrantUnicastTransmission) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP unicast subscribe failed: Unicast request failed\n")));
         goto dispose_of_resp;
@@ -1908,7 +1908,7 @@ _bcm_ptp_unicast_slave_subscribe(
 
     if (tlv_type == bcmPTPTlvTypeCancelUnicastTransmission &&
             response_tlv_type != bcmPTPTlvTypeAckCancelUnicastTransmission) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP unicast subscribe failed: Unicast cancel failed\n")));
         goto dispose_of_resp;
@@ -3054,7 +3054,7 @@ static sal_usecs_t send_pending_tunneled(void **arg_unit, void **arg_ptp_id, voi
 
     if (queue->tail == queue->head) {
         /* nothing in queue */
-        LOG_WARN(BSL_LS_BCM_PTP, (BSL_META_U(unit, "PTP tunnel queue unexpectedly empty\n")));
+        LOG_BSL_WARN(BSL_LS_BCM_PTP, (BSL_META_U(unit, "PTP tunnel queue unexpectedly empty\n")));
         PTP_MUTEX_RELEASE_RETURN(queue->lock, 0);
     }
     tunnel_type = queue->buf[queue->tail];
@@ -3066,7 +3066,7 @@ static sal_usecs_t send_pending_tunneled(void **arg_unit, void **arg_ptp_id, voi
     PTP_MUTEX_GIVE(queue->lock);
 
     if (BCM_FAILURE(rv = _bcm_ptp_tunnel_message(unit, ptp_id, clock_idx, tunnel_type, 0, 0, len, buf))) {
-        LOG_WARN(BSL_LS_BCM_PTP, (BSL_META_U(unit, "PTP delayed tunnel send failed\n")));
+        LOG_BSL_WARN(BSL_LS_BCM_PTP, (BSL_META_U(unit, "PTP delayed tunnel send failed\n")));
     }
     return 0;
 }

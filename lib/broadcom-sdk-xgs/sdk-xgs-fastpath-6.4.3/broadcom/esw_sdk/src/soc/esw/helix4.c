@@ -406,7 +406,7 @@ soc_hx4_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -420,7 +420,7 @@ soc_hx4_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -434,7 +434,7 @@ soc_hx4_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ISM_HW_RESET timeout\n"), unit));
             break;
@@ -449,7 +449,7 @@ soc_hx4_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : AXP_WRX_MEMORY timeout\n"), unit));
             break;
@@ -464,7 +464,7 @@ soc_hx4_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : AXP_WTX_MEMORY timeout\n"), unit));
             break;
@@ -479,7 +479,7 @@ soc_hx4_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : AXP_SM_MEMORY timeout\n"), unit));
             break;
@@ -2398,7 +2398,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
 
     sal_memset(&_tr3_flex_port_inf[unit], 0, sizeof(_soc_tr3_flex_port_inf_t));
     _soc_hx4_resolve_port_config(unit, dev_id);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Port config id: %d\n"), _tr3_port_config_id[unit]));
 
@@ -2595,7 +2595,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
             }
         }
         port_groups = i;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Flex port groups: %d\n"), port_groups));
         _tr3_flex_port_data[unit].port_groups = port_groups;
@@ -2604,7 +2604,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
             if (config_str == NULL) {
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Flex group cfg: %d=%s\n"), i, config_str));
             /*
@@ -2613,7 +2613,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
             sub_str = config_str;
             num_lanes = sal_ctoi(sub_str, &sub_str_end);
             if (sub_str == sub_str_end) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Port group %d: Missing number of lanes information \"%s\"\n"),
                                       i, config_str));
@@ -2621,7 +2621,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
                 continue;
             }
             if (num_lanes == 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Port group %d: Missing number of lanes information \"%s\"\n"),
                                       i, config_str));
@@ -2651,7 +2651,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
                         }
                     }
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Flex group: %d, lanes: %d, ports: %d, speed: %d gbps\n"), i,
                                         num_lanes, _tr3_flex_port_data[unit].ports[i], port_bw));
@@ -2682,7 +2682,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
                         }
                     }
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Flex group: %d, lanes: %d, ports: %d, speed: %d gbps\n"), i,
                                         num_lanes, _tr3_flex_port_data[unit].ports[i], port_bw));
@@ -2713,7 +2713,7 @@ soc_hx4_get_port_mapping(int unit, uint16 dev_id)
                         }
                     }
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Flex group: %d, lanes: %d, ports: %d, speed: %d gbps\n"), i,
                                         num_lanes, _tr3_flex_port_data[unit].ports[i], port_bw));
@@ -3897,7 +3897,7 @@ _soc_hx4_mmu_config_buf_default(int unit, _soc_mmu_cfg_buf_t *buf)
 
     si = &SOC_INFO(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Initializing default MMU config (u=%d)\n"), unit));
     max_packet_cells = _MMU_CFG_MMU_BYTES_TO_CELLS(_TR3_MMU_MAX_PACKET_BYTES +
@@ -4763,7 +4763,7 @@ soc_hx4_mmu_config_init(int unit, int test_only)
     rv = _soc_mmu_cfg_buf_check(unit, buf, &devcfg);
     if (!test_only) {
         if (SOC_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "MMU config: Use default setting\n")));
             _soc_hx4_mmu_config_buf_default(unit, buf);
@@ -4774,7 +4774,7 @@ soc_hx4_mmu_config_init(int unit, int test_only)
 
     soc_mmu_cfg_free(unit, buf);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MMU THDI/THDO init done\n")));
     return rv;

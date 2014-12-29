@@ -178,7 +178,7 @@ drv_gex_trunk_set(int unit, int tid, soc_pbmp_t bmp,
     int  port;
 
     bmp_value = SOC_PBMP_WORD_GET(bmp, 0);
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_trunk_set: \
                          unit = %d, trunk id = %d, bmp = %x, flag = 0x%x, hash_op = 0x%x\n"),
@@ -333,7 +333,7 @@ drv_gex_trunk_get(int unit, int tid, soc_pbmp_t *bmp,
                     return SOC_E_INTERNAL;
             }
         }
-        LOG_INFO(BSL_LS_SOC_PORT, \
+        LOG_BSL_INFO(BSL_LS_SOC_PORT, \
                  (BSL_META_U(unit, \
                              "drv_gex_trunk_get: \
                              unit = %d, trunk id = %d, flag = 0x%x, *hash_op = 0x%x\n"),
@@ -367,7 +367,7 @@ drv_gex_trunk_get(int unit, int tid, soc_pbmp_t *bmp,
         SOC_PBMP_WORD_SET(*bmp, 0, temp);
     }
 	
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_gex_trunk_get: unit = %d, trunk id = %d, flag = 0x%x, *bmp = 0x%x\n"),
               unit, tid, flag, SOC_PBMP_WORD_GET(*bmp, 0)));
@@ -402,7 +402,7 @@ drv_gex_trunk_hash_field_add(int unit, uint32 field_type)
 {
     uint32	reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_gex_trunk_hash_field_add: unit = %d, field type = 0x%x\n"),
                  unit, field_type));
@@ -437,7 +437,7 @@ drv_gex_trunk_hash_field_add(int unit, uint32 field_type)
                 temp = NORTHSTAR_TRUNK_HASH_FIELD_VID_MACSA_VALUE;
             }
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "drv_gex_trunk_hash_field_add: hash type = 0x%x, is invalid!\n"),
                       field_type));
@@ -465,7 +465,7 @@ drv_gex_trunk_hash_field_add(int unit, uint32 field_type)
                 temp = GEX_TRUNK_HASH_FIELD_MACSA_VALUE;
             }
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "drv_gex_trunk_hash_field_add: hash type = 0x%x, is invalid!\n"),
                       field_type));
@@ -508,7 +508,7 @@ drv_gex_trunk_hash_field_remove(int unit, uint32 field_type)
 {
     uint32	reg_value, temp, current_hash;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_gex_trunk_hash_field_remove: unit = %d, field type = 0x%x\n"),
                  unit, field_type));

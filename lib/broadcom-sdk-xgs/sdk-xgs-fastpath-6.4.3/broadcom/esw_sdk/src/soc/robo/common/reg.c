@@ -419,7 +419,7 @@ drv_reg_read(int unit, uint32 addr, void *data, int len)
 
     COMPILER_64_ZERO(data_rw);
 
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "drv_reg_read: unit = %d, addr = %x, length = %d\n"),
                  unit, addr, len));
@@ -447,7 +447,7 @@ drv_reg_read(int unit, uint32 addr, void *data, int len)
     }    
     
     if ((i >= NUM_SOC_ROBO_REG) || (len != reg_len)) {
-        if (!LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)){
+        if (!LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)){
             return SOC_E_PARAM;
         }
     }
@@ -458,7 +458,7 @@ drv_reg_read(int unit, uint32 addr, void *data, int len)
     rv = soc_spi_read(unit, addr, (uint8 *)&data_rw, len);
 
     if (SOC_FAILURE(rv)) {
-        LOG_INFO(BSL_LS_SOC_REG,
+        LOG_BSL_INFO(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "drv_reg_read: error reading unit=0x%x addr=0x%x\n"), 
                   unit, addr));
@@ -480,15 +480,15 @@ drv_reg_read(int unit, uint32 addr, void *data, int len)
         mask_hi = SOC_REG_INFO(unit, i).rst_mask_hi;
     }
 
-    LOG_INFO(BSL_LS_SOC_REG,
+    LOG_BSL_INFO(BSL_LS_SOC_REG,
              (BSL_META_U(unit,
                          "drv_reg_read: addr=0x%04x data = 0x"), addr));
     for (i = 0; i < len; i++) {
-        LOG_INFO(BSL_LS_SOC_REG,
+        LOG_BSL_INFO(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "%02x"), data8_ptr[len-i-1]));
     }
-    LOG_INFO(BSL_LS_SOC_REG,
+    LOG_BSL_INFO(BSL_LS_SOC_REG,
              (BSL_META_U(unit,
                          "\n")));
 #endif
@@ -518,12 +518,12 @@ drv_reg_read(int unit, uint32 addr, void *data, int len)
  
     if (len > 4) {
         sal_memcpy(data, data8_ptr, 8);
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                     (BSL_META_U(unit,
                                 "len > 4 ")));
     } else {
         sal_memcpy(data, data8_ptr, 4);
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                     (BSL_META_U(unit,
                                 "len <= 4 ")));
     }
@@ -573,7 +573,7 @@ drv_reg_write(int unit, uint32 addr, void *data, int len)
 
     COMPILER_64_ZERO(data_rw);
 
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "drv_reg_write: unit = %d, addr = %x, length = %d\n"),
                  unit, addr, len));
@@ -594,7 +594,7 @@ drv_reg_write(int unit, uint32 addr, void *data, int len)
     }    
     
     if ((i >= NUM_SOC_ROBO_REG) || (len != reg_len)) {
-        if (!LOG_CHECK(BSL_LS_SOC_REG | BSL_INFO)){
+        if (!LOG_BSL_CHECK(BSL_LS_SOC_REG | BSL_INFO)){
             return SOC_E_PARAM;
         }
     }
@@ -604,12 +604,12 @@ drv_reg_write(int unit, uint32 addr, void *data, int len)
     data8_ptr = (uint8 *)&data_rw;
     if (len > 4) {
         sal_memcpy(data8_ptr, data, 8);
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                     (BSL_META_U(unit,
                                 "len > 4 ")));
     } else {
         sal_memcpy(data8_ptr, data, 4);
-        LOG_VERBOSE(BSL_LS_SOC_REG,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                     (BSL_META_U(unit,
                                 "len <= 4 ")));
     }
@@ -633,7 +633,7 @@ drv_reg_write(int unit, uint32 addr, void *data, int len)
 
     rv = soc_spi_write(unit, addr, (uint8 *)&data_rw, len);
     if (SOC_FAILURE(rv)) {
-        LOG_INFO(BSL_LS_SOC_REG,
+        LOG_BSL_INFO(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "drv_reg_write: error reading unit=0x%x addr=0x%x\n"), 
                   unit, addr));
@@ -641,15 +641,15 @@ drv_reg_write(int unit, uint32 addr, void *data, int len)
                 addr, (uint32)len, rv);
     }
 #ifdef BROADCOM_DEBUG 
-    LOG_INFO(BSL_LS_SOC_REG,
+    LOG_BSL_INFO(BSL_LS_SOC_REG,
              (BSL_META_U(unit,
                          "drv_reg_write: offset = 0x%04x data = 0x"), offset));
     for (i = 0; i < len; i++) {
-        LOG_INFO(BSL_LS_SOC_REG,
+        LOG_BSL_INFO(BSL_LS_SOC_REG,
                  (BSL_META_U(unit,
                              "%02x"), data8_ptr[len-i-1]));
     } 
-    LOG_INFO(BSL_LS_SOC_REG,
+    LOG_BSL_INFO(BSL_LS_SOC_REG,
              (BSL_META_U(unit,
                          "\n")));
 #endif
@@ -681,7 +681,7 @@ drv_reg_length_get(int unit, uint32 reg)
 {
     uint32      mask;
 
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "drv_reg_length_get: unit = %d, reg index= 0x%x\n"),
                  unit, reg));
@@ -750,7 +750,7 @@ drv_reg_field_get(int unit, uint32 reg, uint32 *regbuf, uint32 field,
     uint32      val32;
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "drv_reg_field_get: unit = %d, reg index= 0x%x, field index = %x\n"),
                  unit, reg, field));
@@ -849,7 +849,7 @@ drv_reg_field_set(int unit, uint32 reg, uint32 *regbuf, uint32 field,
     uint32      val32;
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "drv_reg_field_set: unit = %d, reg index= 0x%x, field index = %x\n"),
                  unit, reg, field));
@@ -1078,7 +1078,7 @@ drv_reg_addr(int unit, uint32 reg, int port, int index)
             assert(0);
         break;
     }
-    LOG_VERBOSE(BSL_LS_SOC_REG,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                 (BSL_META_U(unit,
                             "drv_reg_addr: unit = %d, reg index= 0x%x, \
                             port = %d, index = %d, addr = 0x%x\n"),

@@ -458,7 +458,7 @@ soc_dma_abort_channel(int unit, dma_chan_t channel)
     uint32              ctrl;
     int                 rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "soc_dma_abort_channel: c=%d\n"), channel));
 
@@ -490,7 +490,7 @@ soc_dma_abort_channel(int unit, dma_chan_t channel)
                 to -= 1000;
             }
             if ((soc_pci_read(unit, CMIC_CMCx_DMA_STAT_OFFSET(cmc)) & DS_CMCx_DMA_ACTIVE(channel)) != 0) {
-                LOG_ERROR(BSL_LS_SOC_DMA,
+                LOG_BSL_ERROR(BSL_LS_SOC_DMA,
                           (BSL_META_U(unit,
                                       "soc_dma_abort_channel unit %d: "
                                       "channel %d abort timeout\n"),
@@ -531,7 +531,7 @@ soc_dma_abort_channel(int unit, dma_chan_t channel)
         }
 
         if ((soc_pci_read(unit, CMIC_DMA_STAT) & DS_DMA_ACTIVE(channel)) != 0) {
-            LOG_ERROR(BSL_LS_SOC_DMA,
+            LOG_BSL_ERROR(BSL_LS_SOC_DMA,
                       (BSL_META_U(unit,
                                   "soc_dma_abort_channel unit %d: "
                                   "channel %d abort timeout\n"),
@@ -1744,7 +1744,7 @@ soc_dma_done_reload(int unit, uint32 chan)
     SOC_DMA_UNLOCK(soc_dma_lock);
 
     if (dv_chain->dv_done_reload == NULL) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "_soc_dma_done_reload: NULL callback: "
                              "unit=%d chain=%p\n"),
@@ -2070,7 +2070,7 @@ soc_dma_done_chain(int unit, uint32 chan)
 
     if (dv_chain->dv_flags & DV_F_NOTIFY_CHN) {
         if (dv_chain->dv_done_chain == NULL) {
-            LOG_WARN(BSL_LS_SOC_DMA,
+            LOG_BSL_WARN(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "_soc_dma_done_chain: NULL callback: "
                                  "unit=%d chain=%p\n"),
@@ -2356,7 +2356,7 @@ soc_dma_chan_config(int unit, dma_chan_t c, dvt_t type, uint32 flags)
     int         f_default = (flags & SOC_DMA_F_DEFAULT) != 0;
     int         f_desc_intr = (flags & SOC_DMA_F_INTR_ON_DESC) != 0;
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "soc_dma_chan_config: c=%d type=%d\n"), c, type));
 
@@ -2722,7 +2722,7 @@ soc_dma_handle_knet_event(kcom_msg_t *kmsg, unsigned int len, void *cookie)
         sdc_t *sc;
         dv_t *dv_active;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_knet_handle_event: KCOM_M_DMA_INFO\n")));
 

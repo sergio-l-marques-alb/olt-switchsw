@@ -114,7 +114,7 @@ drv_led_mode_get(int unit,int port, uint32 *led_mode)
      * routine to prevent improper register read/write been proceeded.
      */
     if (DRV_REG_LENGTH_GET(unit, INDEX(LED_FUNC_MAPr)) > 4){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Improper driver service been proceeded\n"), 
                   FUNCTION_NAME()));
@@ -177,7 +177,7 @@ drv_led_mode_set(int unit,int port, uint32 led_mode)
      * routine to prevent improper register read/write been proceeded.
      */
     if (DRV_REG_LENGTH_GET(unit, INDEX(LED_FUNC_MAPr)) > 4){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Improper driver service been proceeded\n"), 
                   FUNCTION_NAME()));
@@ -271,7 +271,7 @@ drv_led_funcgrp_select_get(int unit,int port, int *led_group)
      * routine to prevent improper register read/write been proceeded.
      */
     if (DRV_REG_LENGTH_GET(unit, INDEX(LED_FUNC_MAPr)) > 4){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Improper driver service been proceeded\n"), 
                   FUNCTION_NAME()));
@@ -312,7 +312,7 @@ drv_led_funcgrp_select_set(int unit,int port, int led_group)
      * routine to prevent improper register read/write been proceeded.
      */
     if (DRV_REG_LENGTH_GET(unit, INDEX(LED_FUNC_MAPr)) > 4){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Improper driver service been proceeded\n"), 
                   FUNCTION_NAME()));

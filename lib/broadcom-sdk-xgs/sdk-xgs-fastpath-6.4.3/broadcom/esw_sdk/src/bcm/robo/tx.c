@@ -113,7 +113,7 @@ STATIC void _robo_tx_cb(int unit, bcm_pkt_t *pkt, void *cookie);
         if ((rv) < 0) { /* Error detected */ \
             _robo_tx_dv_free(unit, dv); \
             if (err_msg) { \
-                LOG_ERROR(BSL_LS_BCM_COMMON, \
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                           (BSL_META_U(unit, \
                                       "bcm_tx: %s\n"), err_msg)); \
             } \
@@ -397,12 +397,12 @@ _bcm_tx(int unit, bcm_pkt_t *pkt, void *cookie)
             return BCM_E_PARAM;
         }
     }
-    LOG_INFO(BSL_LS_BCM_TX,
+    LOG_BSL_INFO(BSL_LS_BCM_TX,
              (BSL_META_U(unit,
                          "bcm_tx: pkt, u %d. len[0] %d to %s. flags 0x%x\n"),
               unit, pkt->pkt_data[0].len, SOC_PBMP_FMT(pkt->tx_pbmp, fmt),
               pkt->flags));
-    LOG_INFO(BSL_LS_BCM_TX,
+    LOG_BSL_INFO(BSL_LS_BCM_TX,
              (BSL_META_U(unit,
                          "bcm_tx: dmod %d, dport %d, chan %d, op %d cos %d\n"),
               pkt->dest_mod, pkt->dest_port, pkt->dma_channel, pkt->opcode,
@@ -539,7 +539,7 @@ _mtx_async_tx(int unit, bcm_pkt_t * pkt, void * cookie)
     item = soc_cm_salloc(unit, sizeof(_mtx_async_queue_t),
                  "Async packet info");
     if (item == NULL) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Can't allocate packet info\n")));
         return BCM_E_MEMORY;
@@ -551,7 +551,7 @@ _mtx_async_tx(int unit, bcm_pkt_t * pkt, void * cookie)
     item->next = NULL;
 
     if (sal_mutex_take(_mtx_async_queue_mx, sal_mutex_FOREVER) < 0) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "async tx: Can't take async TX mutex\n")));
         return BCM_E_RESOURCE;
@@ -575,13 +575,13 @@ _mtx_async_queue_fetch(int * unit, bcm_pkt_t ** pkt, void ** cookie)
     _mtx_async_queue_t * item;
 
     if (sal_sem_take(_mtx_async_tx_sem, sal_sem_FOREVER) < 0) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("async fetch: Can't take async TX semaphore\n")));
         return BCM_E_RESOURCE;
     }
 
     if (sal_mutex_take(_mtx_async_queue_mx, sal_mutex_FOREVER) < 0) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META("async fetch: Can't take async TX mutex\n")));
         return BCM_E_RESOURCE;
     }
@@ -708,7 +708,7 @@ _mtx_tx(int unit, bcm_pkt_t *pkt, void *cookie)
 
         rv = _bcm_tx(unit, pkt, (pkt_cnt == 0)? cookie: &_mtx_cb_sem);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "_mtx_tx: %s\n"), bcm_errmsg(rv)));
             return rv;
@@ -735,12 +735,12 @@ _mtx_async_thread(void * param)
 
     while(1) {
         if ((rv = _mtx_async_queue_fetch(&unit, &pkt, &cookie)) < 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META("Async TX: fetch: %s\n"), bcm_errmsg(rv)));
             break;
         }
         if ((rv = _mtx_tx(unit, pkt, cookie)) < 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META("Async TX: tx: %s\n"), bcm_errmsg(rv)));
             break;
         }
@@ -1274,12 +1274,12 @@ _bcm_robo_tx_chain_send(int unit, eth_dv_t *dv)
 {
     ++_tx_chain_send;
     if (dv->dv_done_packet) { /* Send async */
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: async send\n")));
         SOC_IF_ERROR_RETURN(soc_eth_dma_start(unit, dv));
     } else { /* Send sync */
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "bcm_tx: sync send\n")));
         SOC_IF_ERROR_RETURN(soc_eth_dma_wait(unit, dv));
@@ -1364,7 +1364,7 @@ _robo_tx_dv_alloc(int unit, int pkt_count, int dcb_count,
     tx_dv_info_t *dv_info;
 
     if (pkt_count > SOC_DV_PKTS_MAX) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "TX array:  Cannot TX more than %d pkts. "
                               "Attempting %d.\n"), SOC_DV_PKTS_MAX, pkt_count));
@@ -1600,7 +1600,7 @@ _robo_tx_pkt_desc_add(int unit, bcm_pkt_t *pkt, eth_dv_t *dv)
         } else {
         dv->dv_opcode = BRCM_OP_UCAST;
         if (soc_feature(unit, soc_feature_tag_enforcement)){
-            LOG_INFO(BSL_LS_BCM_TX,
+            LOG_BSL_INFO(BSL_LS_BCM_TX,
                      (BSL_META_U(unit,
                                  "TAG_NO_ENFORCEMENT \n")));
             if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)) {                
@@ -1778,7 +1778,7 @@ _robo_tx_pkt_desc_add(int unit, bcm_pkt_t *pkt, eth_dv_t *dv)
                     dv->dv_tc_53242 = pkt->prio_int;
                 }
                 if (SOC_PBMP_IS_NULL(pkt->_dv_tx_upbmp) && (vlan_ptr !=NULL)) {
-                    LOG_INFO(BSL_LS_BCM_TX,
+                    LOG_BSL_INFO(BSL_LS_BCM_TX,
                              (BSL_META_U(unit,
                                          "TAG_ENFORCEMENT \n")));
                     if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)) {                     
@@ -1789,7 +1789,7 @@ _robo_tx_pkt_desc_add(int unit, bcm_pkt_t *pkt, eth_dv_t *dv)
                         dv->dv_te = TAG_ENFORCEMENT;
                     }
                 } else {
-                    LOG_INFO(BSL_LS_BCM_TX,
+                    LOG_BSL_INFO(BSL_LS_BCM_TX,
                              (BSL_META_U(unit,
                                          "UNTAG_ENFORCEMENT \n")));
                     if (SOC_IS_ROBO53242(unit)||SOC_IS_ROBO53262(unit)) {                     
@@ -2080,7 +2080,7 @@ _bcm_robo_tx_callback_thread(void *param)
 
     while (1) {
         if (sal_sem_take(tx_cb_sem, sal_sem_FOREVER) < 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META("TX callback thread error\n")));
             break;
         }

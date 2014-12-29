@@ -673,7 +673,7 @@ _drv_gex_mem_search(int unit, uint32 mem, uint32 *key,
                 /* check the parameter for output entry buffer */
                 rep_entry = (l2_arl_sw_entry_t *)entry + i;
                 if (rep_entry == NULL){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s,entries buffer not allocated!\n"), 
                               FUNCTION_NAME()));
@@ -1086,7 +1086,7 @@ _drv_gex_mem_search(int unit, uint32 mem, uint32 *key,
             if (matched_id != -1){
                 /* assume binNum = matched_id in this condition  */
                 if (binNum < 0 || binNum >= ROBO_GEX_L2_BUCKET_SIZE){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s, unexpected search result!\n"), 
                               FUNCTION_NAME()));
@@ -1114,13 +1114,13 @@ _drv_gex_mem_search(int unit, uint32 mem, uint32 *key,
         }
 mem_search_exit:
         ARL_MEM_SEARCH_UNLOCK(soc);
-        LOG_INFO(BSL_LS_SOC_TESTS,
+        LOG_BSL_INFO(BSL_LS_SOC_TESTS,
                  (BSL_META_U(unit,
                              "%s,%d,binNum=%d, matched_id=%d, isConflict=%d\n"),
                   FUNCTION_NAME(), rv, binNum, matched_id, is_conflict));
         return rv;
     }else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,%d, Unexpect process here!\n"),
                   FUNCTION_NAME(), __LINE__));
@@ -1152,7 +1152,7 @@ _drv_gex_egr_v2v_mem_clear(int unit)
     uint32 retry;
     uint32  temp, reg_value;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s\n"), FUNCTION_NAME()));
 
@@ -1228,7 +1228,7 @@ _drv_gex_egr_v2v_mem_read(int unit,
     uint32 skip_port = 6; /* port 6 is not existed in Northstar */
 #endif /* BCM_NORTHSTAR_SUPPORT || NS+ */
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s,entry_id=%d,count=%d\n"), 
               FUNCTION_NAME(), entry_id, count));
@@ -1458,7 +1458,7 @@ _drv_gex_egr_v2v_mem_write(int unit,
     uint32 skip_port = 6; /* port 6 is not existed in Northstar */
 #endif /* BCM_NORTHSTAR_SUPPORT || NS+ */
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s,entry_id=%d,count=%d\n"), 
               FUNCTION_NAME(), entry_id, count));
@@ -2121,7 +2121,7 @@ _drv_gex_arl_mem_clear(int unit, int mcast)
         /* reset the SA learn limit related counters */
         rv = DRV_ARL_LEARN_COUNT_SET(unit, -1, DRV_PORT_SA_LRN_CNT_RESET, 0);
         if (SOC_FAILURE(rv)){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Failed on reset ARL LRN_CNT!\n")));
             return SOC_E_INTERNAL;
@@ -2194,7 +2194,7 @@ _drv_gex_cfp_read(int unit, uint32 mem,
             sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
             if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                     DRV_CFP_RAM_TCAM, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2210,7 +2210,7 @@ _drv_gex_cfp_read(int unit, uint32 mem,
             sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
             if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                     DRV_CFP_RAM_ACT, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2222,7 +2222,7 @@ _drv_gex_cfp_read(int unit, uint32 mem,
             sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
             if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                     DRV_CFP_RAM_METER, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2234,7 +2234,7 @@ _drv_gex_cfp_read(int unit, uint32 mem,
             sal_memset(&counter, 0, sizeof(uint32));
             if ((rv = DRV_CFP_STAT_GET(unit, DRV_CFP_STAT_INBAND, 
                     (entry_id + i), &counter)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2246,7 +2246,7 @@ _drv_gex_cfp_read(int unit, uint32 mem,
             sal_memset(&counter, 0, sizeof(uint32));
             if ((rv = DRV_CFP_STAT_GET(unit, DRV_CFP_STAT_OUTBAND, 
                     (entry_id + i), &counter)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2325,7 +2325,7 @@ _drv_gex_cfp_write(int unit, uint32 mem,
             sal_memset(&cfp_entry, 0, sizeof(drv_cfp_entry_t));
             if ((rv = DRV_CFP_ENTRY_READ(unit, (entry_id + i), 
                     DRV_CFP_RAM_TCAM, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2338,7 +2338,7 @@ _drv_gex_cfp_write(int unit, uint32 mem,
             }
             if ((rv = DRV_CFP_ENTRY_WRITE(unit, (entry_id + i), 
                     DRV_CFP_RAM_TCAM, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_write(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2350,7 +2350,7 @@ _drv_gex_cfp_write(int unit, uint32 mem,
             sal_memcpy(cfp_entry.act_data, data_ptr, entry_len);
             if ((rv = DRV_CFP_ENTRY_WRITE(unit, (entry_id + i), 
                 DRV_CFP_RAM_ACT, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_write(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2362,7 +2362,7 @@ _drv_gex_cfp_write(int unit, uint32 mem,
             sal_memcpy(cfp_entry.meter_data, data_ptr, entry_len);
             if ((rv = DRV_CFP_ENTRY_WRITE(unit, (entry_id + i), 
                 DRV_CFP_RAM_METER, &cfp_entry)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_write(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2374,7 +2374,7 @@ _drv_gex_cfp_write(int unit, uint32 mem,
             sal_memcpy(&counter, data_ptr, entry_len);
             if ((rv = DRV_CFP_STAT_SET(unit, DRV_CFP_STAT_INBAND, 
                 (entry_id + i), counter)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2386,7 +2386,7 @@ _drv_gex_cfp_write(int unit, uint32 mem,
             sal_memcpy(&counter, data_ptr, entry_len);
             if ((rv = DRV_CFP_STAT_SET(unit, DRV_CFP_STAT_OUTBAND, 
                 (entry_id + i), counter)) < 0){
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "_drv_gex_cfp_read(mem=0x%x,entry_id=0x%x)\n"),
                            mem, entry_id + i));
@@ -2417,7 +2417,7 @@ _drv_gex_cfp_field_get(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.tcam_data, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_GET(unit, 
                 DRV_CFP_RAM_TCAM, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2430,7 +2430,7 @@ _drv_gex_cfp_field_get(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.tcam_mask, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_GET(unit, 
                 DRV_CFP_RAM_TCAM_MASK, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2443,7 +2443,7 @@ _drv_gex_cfp_field_get(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.act_data, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_GET(unit, 
                 DRV_CFP_RAM_ACT, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2456,7 +2456,7 @@ _drv_gex_cfp_field_get(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.meter_data, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_GET(unit, 
                 DRV_CFP_RAM_METER, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_get(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2489,7 +2489,7 @@ _drv_gex_cfp_field_set(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.tcam_data, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_SET(unit, 
                 DRV_CFP_RAM_TCAM, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2503,7 +2503,7 @@ _drv_gex_cfp_field_set(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.tcam_mask, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_SET(unit, 
                 DRV_CFP_RAM_TCAM_MASK, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2517,7 +2517,7 @@ _drv_gex_cfp_field_set(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.act_data, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_SET(unit, 
                 DRV_CFP_RAM_ACT, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2531,7 +2531,7 @@ _drv_gex_cfp_field_set(int unit, uint32 mem, uint32 field_index,
         sal_memcpy(cfp_entry.meter_data, entry, entry_len);
         if ((rv = DRV_CFP_FIELD_SET(unit, 
                 DRV_CFP_RAM_METER, field_index, &cfp_entry, fld_data)) < 0){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "_drv_gex_cfp_field_set(mem=0x%x,field=0x%x)\n"),
                        mem, field_index));
@@ -2872,7 +2872,7 @@ drv_gex_mem_read(int unit, uint32 mem,
     uint64 value64;
     uint32 *entry32;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_read(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -3134,7 +3134,7 @@ drv_gex_mem_write(int unit, uint32 mem,
     uint64 value64;
     uint32 *entry32;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_write(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -4013,7 +4013,7 @@ drv_gex_mem_clear(int unit, uint32 mem)
     uint32 del_id;
 
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_clear : mem=0x%x\n"), mem));
     switch(mem) {
@@ -4081,7 +4081,7 @@ drv_gex_mem_clear(int unit, uint32 mem)
     for (del_id = 0; del_id < count; del_id++) {
         rv = DRV_MEM_WRITE(unit, mem, del_id, 1, entry);
         if (rv != SOC_E_NONE){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s : failed at mem_id=%d, entry=%d!\n"), 
                       FUNCTION_NAME(), mem, del_id));
@@ -4187,7 +4187,7 @@ drv_gex_mem_insert(int unit, uint32 mem, uint32 *entry,
     int         ori_port = -1, ori_dynamic = TRUE, ori_ucast = FALSE;
     uint32      st_override_status = 0, src_port = 0 ;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "%s:mem=0x%x,flags=0x%x,entry[0-2]=%08x-%08x-%08x\n"), 
               FUNCTION_NAME(), mem, flags, 
@@ -4396,7 +4396,7 @@ drv_gex_mem_insert(int unit, uint32 mem, uint32 *entry,
         *       a. static is changed : counter must updated.
         *       b. static is not changed : counter must not changed.
         */
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,%d, SA learn count must review!\n"),
                   FUNCTION_NAME(), __LINE__));
@@ -4447,7 +4447,7 @@ drv_gex_mem_insert(int unit, uint32 mem, uint32 *entry,
                     if (SOC_FAILURE(rv)){
                         goto mem_insert_exit;
                     }   
-                    LOG_INFO(BSL_LS_SOC_ARL,
+                    LOG_BSL_INFO(BSL_LS_SOC_ARL,
                              (BSL_META_U(unit,
                                          "%s,port%d,SA_LRN_CNT decrease one!\n"),
                               FUNCTION_NAME(), ori_port));
@@ -4460,7 +4460,7 @@ drv_gex_mem_insert(int unit, uint32 mem, uint32 *entry,
             if (SOC_FAILURE(rv)){
                 goto mem_insert_exit;
             }   
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "%s,port%d,SA_LRN_CNT %s one!\n"),
                       FUNCTION_NAME(), src_port, 
@@ -4584,7 +4584,7 @@ drv_gex_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
     uint8       temp_mac[6];
     int         is_dynamic = FALSE, is_ucast = FALSE;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_delete : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -4712,7 +4712,7 @@ drv_gex_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
         _drv_arl_database_delete_by_fastage(unit, src_port,
             vlanid, flags);
     } else { /* normal deletion */
-        LOG_INFO(BSL_LS_SOC_MEM,
+        LOG_BSL_INFO(BSL_LS_SOC_MEM,
                  (BSL_META_U(unit,
                              "\t Normal ARL DEL with Static=%d\n"),
                   ag_static_mode));
@@ -4764,7 +4764,7 @@ drv_gex_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                 soc_ARLA_FWD_ENTRY0r_field_get(unit, &entry_reg, 
                     ARL_STATICf, &temp);
                 if (temp) {
-                    LOG_INFO(BSL_LS_SOC_MEM,
+                    LOG_BSL_INFO(BSL_LS_SOC_MEM,
                              (BSL_META_U(unit,
                                          "\t Entry exist with static=%d\n"),
                               temp));
@@ -4850,7 +4850,7 @@ drv_gex_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                     if (SOC_FAILURE(rv)){
                         goto mem_delete_exit;
                     }
-                    LOG_INFO(BSL_LS_SOC_ARL,
+                    LOG_BSL_INFO(BSL_LS_SOC_ARL,
                              (BSL_META_U(unit,
                                          "%s,port%d, SA_LRN_CNT decreased one!\n"),
                               FUNCTION_NAME(), temp));

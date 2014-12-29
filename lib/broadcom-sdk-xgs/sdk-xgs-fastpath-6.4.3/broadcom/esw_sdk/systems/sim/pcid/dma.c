@@ -126,7 +126,7 @@ pcid_dcb_fetch(pcid_info_t *pcid_info, uint32 addr, dcb_t *dcb)
     int     size, i;
     uint32  *temp;
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("Reading descriptor at 0x%08x\n"), addr));
 
     size = SOC_DCB_SIZE(pcid_info->unit);
@@ -140,7 +140,7 @@ pcid_dcb_fetch(pcid_info_t *pcid_info, uint32 addr, dcb_t *dcb)
     }
 
 #ifdef BROADCOM_DEBUG
-    if (LOG_CHECK(BSL_LS_SOC_DMA | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_DMA | BSL_INFO)) {
 	SOC_DCB_DUMP(pcid_info->unit, dcb, "PCID Fetch", 0);
     }
 #endif /* BROADCOM_DEBUG */
@@ -172,7 +172,7 @@ pcid_dcb_store(pcid_info_t *pcid_info, uint32 addr, dcb_t *dcb)
     }
 
 #ifdef BROADCOM_DEBUG
-    if (LOG_CHECK(BSL_LS_SOC_DMA | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_DMA | BSL_INFO)) {
 	SOC_DCB_DUMP(pcid_info->unit, dcb, "PCID Store", 1);
     }
 #endif /* BROADCOM_DEBUG */
@@ -416,7 +416,7 @@ pcid_dma_tx_start(pcid_info_t *pcid_info, int ch)
 /*    dcb_addr = PCIM(pcid_info, CMIC_DMA_DESC(ch)); */
     dcb_addr = pcid_reg_read(pcid_info, CMIC_DMA_DESC(ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("pcid_dma_tx_start: dcb_addr=0x%08x\n"), dcb_addr));
 
     dcb = sal_alloc(SOC_DCB_SIZE(pcid_info->unit), "txs_dcb");
@@ -481,7 +481,7 @@ pcid_dma_cmicm_tx_start(pcid_info_t *pcid_info, int ch)
 /*    dcb_addr = PCIM(pcid_info, CMIC_CMCx_DMA_DESCy_OFFSET(CMC0, ch)); */
     dcb_addr = pcid_reg_read(pcid_info, CMIC_CMCx_DMA_DESCy_OFFSET(CMC0, ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("pcid_dma_cmicm_tx_start: dcb_addr=0x%08x\n"), dcb_addr));
 
     dcb = sal_alloc(SOC_DCB_SIZE(pcid_info->unit), "txs_dcb");
@@ -550,7 +550,7 @@ pcid_dma_rx_start(pcid_info_t *pcid_info, int ch)
 /*   rx_dcb_addr[ch] = PCIM(pcid_info, CMIC_DMA_DESC(ch)); */
    rx_dcb_addr[ch] = pcid_reg_read(pcid_info, CMIC_DMA_DESC(ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("pcid_dma_rx_start: ch=%d dcb=0x%08x\n"),
               ch, rx_dcb_addr[ch]));
 }
@@ -567,7 +567,7 @@ pcid_dma_cmicm_rx_start(pcid_info_t *pcid_info, int ch)
 /*    rx_dcb_addr[ch] = PCIM(pcid_info, CMIC_CMCx_DMA_DESCy_OFFSET(CMC0, ch)); */
    rx_dcb_addr[ch] = pcid_reg_read(pcid_info, CMIC_CMCx_DMA_DESCy_OFFSET(CMC0, ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("pcid_dma_cmicm_rx_start: ch=%d dcb=0x%08x\n"),
               ch, rx_dcb_addr[ch]));
 }
@@ -612,7 +612,7 @@ pcid_dma_rx_check(pcid_info_t *pcid_info, int chan)
 
     
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("pcid_dma_rx_check: dcb=0x%08x\n"), rx_dcb_addr[chan]));
 
     if (rx_dcb[chan] == NULL) {
@@ -630,7 +630,7 @@ pcid_dma_rx_check(pcid_info_t *pcid_info, int chan)
 	rx_dcb_addr_next = SOC_DCB_PADDR_GET(pcid_info->unit,
 					     rx_dcb[chan]);
 
-	LOG_INFO(BSL_LS_SOC_DMA,
+	LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META("pcid_dma_rx_check: reload to 0x%08x\n"),
                   rx_dcb_addr_next));
     } else {
@@ -645,7 +645,7 @@ pcid_dma_rx_check(pcid_info_t *pcid_info, int chan)
 
 	len = pcid_info->pkt_list->length - pcid_info->pkt_list->consum;
 
-	LOG_INFO(BSL_LS_SOC_DMA,
+	LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META("pcid_dma_rx_check: eop=%d cnt=%d length=%d consum=%d len=%d\n"),
                   eop, cnt, pcid_info->pkt_list->length,
                   pcid_info->pkt_list->consum, len));
@@ -777,7 +777,7 @@ pcid_dma_cmicm_rx_check(pcid_info_t *pcid_info, int chan)
 
     
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("pcid_dma_cmicm_rx_check: dcb=0x%08x\n"), rx_dcb_addr[chan]));
 
     if (rx_dcb[chan] == NULL) {
@@ -794,7 +794,7 @@ pcid_dma_cmicm_rx_check(pcid_info_t *pcid_info, int chan)
 	rx_dcb_addr_next = SOC_DCB_PADDR_GET(pcid_info->unit,
 					     rx_dcb[chan]);
 
-	LOG_INFO(BSL_LS_SOC_DMA,
+	LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META("pcid_dma_cmicm_rx_check: reload to 0x%08x\n"),
                   rx_dcb_addr_next));
     } else {
@@ -809,7 +809,7 @@ pcid_dma_cmicm_rx_check(pcid_info_t *pcid_info, int chan)
 
 	len = pcid_info->pkt_list->length - pcid_info->pkt_list->consum;
 
-	LOG_INFO(BSL_LS_SOC_DMA,
+	LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META("pcid_dma_cmicm_rx_check: eop=%d cnt=%d length=%d consum=%d len=%d\n"),
                   eop, cnt, pcid_info->pkt_list->length,
                   pcid_info->pkt_list->consum, len));
@@ -926,10 +926,10 @@ pcid_dma_start_chan(pcid_info_t *pcid_info, int ch)
     intrdesc = ((dma_ctrl & DC_INTR_ON_MASK(ch)) == DC_INTR_ON_DESC(ch));
     drop_tx = ((dma_ctrl & DC_DROP_TX_MASK(ch)) == DC_DROP_TX(ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("Starting DMA on channel %d\n"), ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("Mode: %s %s %s %s %s\n"),
               tx ? "TX" : "RX",
               modbmp ? "MOD_BMP" : "NO_MOD_BMP",
@@ -962,10 +962,10 @@ pcid_dma_cmicm_start_chan(pcid_info_t *pcid_info, int ch)
     abort = (dma_ctrl & PKTDMA_ABORT);
     intrdesc = (dma_ctrl & PKTDMA_SEL_INTR_ON_DESC_OR_PKT);
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("Starting DMA on channel %d\n"), ch));
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META("Mode: %s %s %s %s\n"),
               tx ? "TX" : "RX",
               en ? "ENABLE" : "NO_ENABLE",

@@ -488,7 +488,7 @@ soc_fb_l2_hash(int unit, int hash_sel, uint8 *key)
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_fb_l2_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -582,7 +582,7 @@ soc_fb_l3_hash(int unit, int hash_sel, int key_nbits, uint8 *key)
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_fb_l3_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -646,7 +646,7 @@ soc_fb_vlan_mac_hash(int unit, int hash_sel, uint8 *key)
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_fb_vlan_mac_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1311,7 +1311,7 @@ soc_tr_l2x_hash(int unit, int hash_sel, int key_nbits, void *base_entry,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_tr_l2_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1733,7 +1733,7 @@ soc_tr_vlan_xlate_hash(int unit, int hash_sel, int key_nbits, void *base_entry,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_tr_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -2078,7 +2078,7 @@ soc_tr_egr_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_tr_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -2317,7 +2317,7 @@ soc_tr_mpls_hash(int unit, int hash_sel, int key_nbits, void *base_entry,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_tr_mpls_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -2643,7 +2643,7 @@ soc_tr3_ft_session_hash(int unit, soc_mem_t mem, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_tr3_ft_session_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -2755,7 +2755,7 @@ soc_tr3_wlan_hash(int unit, soc_mem_t mem, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_tr3_wlan_hash: invalid hash_sel %d\n"),
                    hash_sel));

@@ -1425,7 +1425,7 @@ _bcm_th_alpm_update_match(int unit, _bcm_l3_trvrs_data_t *trv_data)
     if (SOC_WARM_BOOT(unit)) {
         rv =_bcm_th_alpm_warmboot_walk(unit, trv_data);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_ALPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_ALPM,
                       (BSL_META_U(unit,
                       "ERROR!  ALPM Warmboot recovery failed")));
             return (rv);
@@ -1435,7 +1435,7 @@ _bcm_th_alpm_update_match(int unit, _bcm_l3_trvrs_data_t *trv_data)
             /* v6-128 entries */
             rv = _bcm_th_alpm_128_warmboot_walk(unit, trv_data);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_ALPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_ALPM,
                          (BSL_META_U(unit,
                          "ERROR!  ALPM Warmboot V6-128 recovery failed")));
             }

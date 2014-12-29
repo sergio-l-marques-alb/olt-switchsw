@@ -217,7 +217,7 @@ pli_getreg_service(pcid_info_t * pcid_info, int unit, uint32 type,
     }
 
     if (pcid_info->opt_pli_verbose) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s READ @0x%x => 0x%x\n"), buffer, regnum, value));
     }
@@ -465,13 +465,13 @@ pli_setreg_service(pcid_info_t * pcid_info, int unit, uint32 type,
     }
 
 #if 0
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s WRITE @0x%x <= 0x%x\n"), buffer, regnum, value));
 #endif
 
     if (pcid_info->opt_pli_verbose) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s WRITE @0x%x <= 0x%x\n"), buffer, regnum, value));
     }

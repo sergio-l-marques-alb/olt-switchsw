@@ -237,7 +237,7 @@ int _bcm_ptp_ext_stack_start(int pci_idx)
 
     if (boot_iter == MAX_BOOT_ITER) {
         rv = BCM_E_FAIL;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("external stack start failed")));
     }
 

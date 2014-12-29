@@ -156,10 +156,10 @@
 #endif
 
 #if defined(BROADCOM_DEBUG)
-#define RX_ERROR(message_)      LOG_ERROR(BSL_LS_BCM_RX, message_)
-#define RX_WARN(message_)       LOG_WARN(BSL_LS_BCM_RX, message_)
-#define RX_INFO(message_)       LOG_INFO(BSL_LS_BCM_RX, message_)
-#define RX_VERBOSE(message_)    LOG_VERBOSE(BSL_LS_BCM_RX, message_)
+#define RX_ERROR(message_)      LOG_BSL_ERROR(BSL_LS_BCM_RX, message_)
+#define RX_WARN(message_)       LOG_BSL_WARN(BSL_LS_BCM_RX, message_)
+#define RX_INFO(message_)       LOG_BSL_INFO(BSL_LS_BCM_RX, message_)
+#define RX_VERBOSE(message_)    LOG_BSL_VERBOSE(BSL_LS_BCM_RX, message_)
 #define RX_PRINT(message_)      bsl_printf message_
 #else
 
@@ -1070,7 +1070,7 @@ _bcm_common_rx_start(int unit, bcm_rx_cfg_t *cfg)
 #if defined(BCM_RPC_SUPPORT) || defined(BCM_RCPU_SUPPORT)
     if (rx_ctl[unit]->user_cfg.rx_alloc != RX_DEFAULT_ALLOC ||
             rx_ctl[unit]->user_cfg.rx_free != RX_DEFAULT_FREE) {
-        LOG_WARN(BSL_LS_BCM_RX,
+        LOG_BSL_WARN(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              BSL_META_U
                               (unit, "RX WARNING: Not using rx_pool alloc/free with %s.\n")),
@@ -1263,7 +1263,7 @@ _bcm_common_rx_stop(int unit, bcm_rx_cfg_t *cfg)
             sal_usleep(500000);
         }
         if (!rx_control.thread_exit_complete) {
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit, "RX %d: Thread %p running after signaled "
@@ -1365,7 +1365,7 @@ _bcm_common_rx_callback_install(int unit, const char * name, rx_callout_t *rco,
                 sal_free ((void *)rco);
                 return BCM_E_NONE;
             }
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U
                                      (unit, "RX: %s registered with diff params\n")),
@@ -1411,7 +1411,7 @@ _bcm_common_rx_callback_install(int unit, const char * name, rx_callout_t *rco,
     RX_INTR_UNLOCK;
     RX_UNLOCK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             BSL_META_U(unit, "RX: %s registered %s%s.\n")),
                  name,
@@ -1477,7 +1477,7 @@ _bcm_common_rx_queue_register(int unit, const char *name, bcm_cos_queue_t cosq,
         /* Always try to set up tunnel connection; multiple connects okay. */
         rv = bcm_rlink_rx_connect(unit);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit, "RX: rlink connect unit %d returned %d: %s\n")),
@@ -1529,7 +1529,7 @@ _bcm_common_rx_queue_register(int unit, const char *name, bcm_cos_queue_t cosq,
                   RX_UNLOCK(unit);
                   return BCM_E_NONE;
               }
-              LOG_VERBOSE(BSL_LS_BCM_RX,
+              LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                           (BSL_META_U(unit,
                                       BSL_META_U
                                        (unit, "RX: %s registered with diff params\n")),
@@ -1617,13 +1617,13 @@ _bcm_common_rx_register(int unit, const char *name, bcm_rx_cb_f callback,
 
     if (!(flags & BCM_RCO_F_COS_ACCEPT_MASK) &&
             !(flags & BCM_RCO_F_ALL_COS)) {
-        LOG_WARN(BSL_LS_BCM_RX,
+        LOG_BSL_WARN(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              BSL_META_U
                               (unit,
                               "RX unit %d: Registering callback with no COS accepted.\n")),
                   unit));
-        LOG_WARN(BSL_LS_BCM_RX,
+        LOG_BSL_WARN(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              BSL_META_U(unit, "    Callbacks will not occur to %s\n")),
                   name));
@@ -1636,7 +1636,7 @@ _bcm_common_rx_register(int unit, const char *name, bcm_rx_cb_f callback,
         /* Always try to set up tunnel connection; multiple connects okay. */
         rv = bcm_rlink_rx_connect(unit);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit, "RX: rlink connect unit %d returned %d: %s\n")),
@@ -1658,7 +1658,7 @@ _bcm_common_rx_register(int unit, const char *name, bcm_rx_cb_f callback,
                 RX_UNLOCK(unit);
                 return BCM_E_NONE;
             }
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U
                                      (unit, "RX: %s registered with diff params\n")),
@@ -1771,7 +1771,7 @@ _bcm_common_rx_callback_unregister(int unit, bcm_rx_cb_f callback,
         if (rx_ctl[unit]->rc_callout == NULL) { /* No callouts, disconnect */
             rv = bcm_rlink_rx_disconnect(unit);
             if (rv < 0) {
-                LOG_WARN(BSL_LS_BCM_RX,
+                LOG_BSL_WARN(BSL_LS_BCM_RX,
                          (BSL_META_U(unit,
                                      BSL_META_U
                                       (unit,
@@ -2224,7 +2224,7 @@ _bcm_common_rx_queue_channel_get(int unit, bcm_cos_queue_t queue_id,
                 if (*chan_id == -1) {
                     *chan_id = ix;
                 } else {
-                    LOG_WARN(BSL_LS_BCM_RX,
+                    LOG_BSL_WARN(BSL_LS_BCM_RX,
                              (BSL_META_U(unit,
                                          BSL_META_U
                                           (unit,
@@ -2254,7 +2254,7 @@ _bcm_common_rx_queue_channel_get(int unit, bcm_cos_queue_t queue_id,
                  if (*chan_id == -1) {
                      *chan_id = ix;
                  } else {
-                     LOG_WARN(BSL_LS_BCM_RX,
+                     LOG_BSL_WARN(BSL_LS_BCM_RX,
                               (BSL_META_U(unit,
                                           BSL_META_U
                                            (unit,
@@ -2866,7 +2866,7 @@ rx_chain_start(int unit, int chan, dv_t *dv)
 {
     int rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             BSL_META_U(unit, "RX: Starting %d/%d/%d\n")),
                  unit, chan, DV_INDEX(dv)));
@@ -2921,7 +2921,7 @@ rx_chain_start_or_sched(int unit, int chan, dv_t *dv)
     int system_usecs = 0;
     sal_usecs_t cur_time;
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             BSL_META_U(unit, "RX: Chain. glob tok %d.\n")),
                  RX_TOKENS(unit)));
@@ -3187,7 +3187,7 @@ rx_thread_pkts_process(int unit, int cos, int count)
         _BCM_RX_CHECK_THREAD_DONE;
     }
 #if 0
-    LOG_DEBUG(BSL_LS_BCM_RX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_RX,
               (BSL_META_U(unit,
                           "Processed (%d) packets"),
                count));
@@ -3257,7 +3257,7 @@ rx_cleanup(int unit)
             FOREACH_SETUP_CHANNEL(unit, chan) {
                 /* Abort running DVs on this RX channel*/
                 if (soc_dma_abort_channel_total(unit, chan) < 0) {
-                    LOG_WARN(BSL_LS_BCM_RX,
+                    LOG_BSL_WARN(BSL_LS_BCM_RX,
                              (BSL_META_U(unit,
                                          BSL_META_U
                                           (unit, "RX: Error aborting DMA channel %d\n")),
@@ -4819,7 +4819,7 @@ rx_rcpu_process_packet(int unit, bcm_pkt_t *pkt)
         case BCM_RX_HANDLED:
             handled = TRUE;
             bcm_rx_remote_pkt_free(pkt); /* Free the packet */
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U(unit, "rx: pkt handled by %s\n")),
                          rco->rco_name));
@@ -4837,7 +4837,7 @@ rx_rcpu_process_packet(int unit, bcm_pkt_t *pkt)
             }
             pkt->alloc_ptr = NULL;
             bcm_rx_remote_pkt_free(pkt);
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U(unit, "rx: pkt owned by %s\n")),
                          rco->rco_name));
@@ -4845,7 +4845,7 @@ rx_rcpu_process_packet(int unit, bcm_pkt_t *pkt)
             rco->rco_pkts_owned++;
             break;
         default:
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit,
@@ -5011,7 +5011,7 @@ rx_process_packet(int unit, bcm_pkt_t *pkt)
         case BCM_RX_HANDLED:
             handled = TRUE;
             MARK_PKT_PROCESSED(pkt, unit, pkt->dma_channel, dv);
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U(unit, "rx: pkt handled by %s\n")),
                          rco->rco_name));
@@ -5022,7 +5022,7 @@ rx_process_packet(int unit, bcm_pkt_t *pkt)
             pkt->_pkt_data.data = NULL;
             pkt->alloc_ptr = NULL;
             MARK_PKT_PROCESSED(pkt, unit, pkt->dma_channel, dv);
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U(unit, "rx: pkt owned by %s\n")),
                          rco->rco_name));
@@ -5030,7 +5030,7 @@ rx_process_packet(int unit, bcm_pkt_t *pkt)
             rco->rco_pkts_owned++;
             break;
         default:
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit,
@@ -5108,7 +5108,7 @@ rx_channel_dv_setup(int unit, int chan)
         if (RX_CHAN_FLAGS(unit, chan) & BCM_RX_F_OVERSIZED_OK) {
             /* Force reconfiguration */
             dma_flags = SOC_DMA_F_MBM | SOC_DMA_F_INTR_ON_DESC;
-            LOG_VERBOSE(BSL_LS_BCM_RX,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                         (BSL_META_U(unit,
                                     BSL_META_U(unit, "rx: accept oversized pkts\n"))));
         }
@@ -5224,7 +5224,7 @@ rx_user_cfg_check(int unit)
     if (RX_IS_LOCAL(unit) || RX_IS_RCPU(unit)) {
         FOREACH_SETUP_CHANNEL(unit, chan) {
             if (RX_CHAINS(unit, chan) < 0) {
-                LOG_WARN(BSL_LS_BCM_RX,
+                LOG_BSL_WARN(BSL_LS_BCM_RX,
                          (BSL_META_U(unit,
                                      BSL_META_U
                                       (unit, "rx_config %d %d: Warning: chains < 0.")),
@@ -5233,7 +5233,7 @@ rx_user_cfg_check(int unit)
             } else {
                 chan_count++;
                 if (RX_CHAINS(unit, chan) > RX_CHAINS_MAX) {
-                    LOG_WARN(BSL_LS_BCM_RX,
+                    LOG_BSL_WARN(BSL_LS_BCM_RX,
                              (BSL_META_U(unit,
                                          BSL_META_U
                                           (unit, "rx_config %d %d: Warning: "
@@ -5246,7 +5246,7 @@ rx_user_cfg_check(int unit)
         }
         if (cfg->pkts_per_chain <= 0 ||
             cfg->pkts_per_chain > RX_PPC_MAX) {
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit, "rx_config: Warning: bad pkts/chn %d. Now %d.\n")),
@@ -5260,7 +5260,7 @@ rx_user_cfg_check(int unit)
             /* Check if all COS are accounted for and no overlap */
             FOREACH_SETUP_CHANNEL(unit, chan) {
                 if (cos_bmp & RX_CHAN_COS(unit, chan)) {
-                    LOG_WARN(BSL_LS_BCM_RX,
+                    LOG_BSL_WARN(BSL_LS_BCM_RX,
                              (BSL_META_U(unit,
                                          BSL_META_U
                                           (unit, "rx_config: Warning: COS overlap may not "
@@ -5270,7 +5270,7 @@ rx_user_cfg_check(int unit)
                 cos_bmp |= RX_CHAN_COS(unit, chan);
             }
             if ((cos_bmp = (0xff & ~cos_bmp))) {
-                LOG_WARN(BSL_LS_BCM_RX,
+                LOG_BSL_WARN(BSL_LS_BCM_RX,
                          (BSL_META_U(unit,
                                      BSL_META_U
                                       (unit, "rx_config: Warning: Not mapping "
@@ -5278,7 +5278,7 @@ rx_user_cfg_check(int unit)
             }
         } else {
             if (chan_count > 1) {
-                LOG_WARN(BSL_LS_BCM_RX,
+                LOG_BSL_WARN(BSL_LS_BCM_RX,
                          (BSL_META_U(unit,
                                      BSL_META_U
                                       (unit, "rx_config: Warning: Activating more "
@@ -5542,7 +5542,7 @@ rx_dv_fill(int unit, int chan, dv_t *dv)
             if (BCM_FAILURE(rv)) {/* Failed to allocate a pkt for this DV. */
                 if (!warned) {
                     warned = 1;
-                    LOG_WARN(BSL_LS_BCM_RX,
+                    LOG_BSL_WARN(BSL_LS_BCM_RX,
                              (BSL_META_U(unit,
                                          BSL_META_U
                                           (unit, "RX: Failed to allocate mem\n"))));
@@ -5574,7 +5574,7 @@ rx_dv_fill(int unit, int chan, dv_t *dv)
         /* Set up the packet in the DCBs of the DV */
         if ((rv = rx_dv_add_pkt(unit, pkt, i, dv)) < 0) {
             DV_STATE(dv) = DV_S_ERROR;
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U
                                   (unit, "Failed to add pkt %d to dv on unit %d: %s\n")),
@@ -5604,7 +5604,7 @@ rx_dv_fill(int unit, int chan, dv_t *dv)
                 d = SOC_DCB_IDX2PTR(unit, dv->dv_dcb, dv->dv_vcnt - 1);
                 SOC_DCB_CHAIN_SET(unit, d, 1);
             } else {
-                LOG_WARN((DK_WARN,
+                LOG_BSL_WARN((DK_WARN,
                          (BSL_META_U(,
                                      "vcnt not > 0 for dv 0x%x\n on unit/chan %d %d"),
                           (unsigned int)dv, unit, chan)));
@@ -5612,7 +5612,7 @@ rx_dv_fill(int unit, int chan, dv_t *dv)
 
             dv->dv_vcnt++;                /* Increment valid count */
         } else {
-            LOG_WARN(BSL_LS_BCM_RX,
+            LOG_BSL_WARN(BSL_LS_BCM_RX,
                      (BSL_META_U(,
                                  "Cannot add reload desc to dv 0x%x\n on unit/chan %d %d"),
                       (unsigned int)dv, unit, chan));
@@ -5651,7 +5651,7 @@ rx_dv_concat(int unit, int chan, dv_t *dv)
     sal_paddr_t reg_addr = 0;
     sal_paddr_t reg_val = 0;
 
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             "RX: Concatenating %d %d %d\n"),
                             unit, chan, DV_INDEX(dv)));
@@ -5673,7 +5673,7 @@ rx_dv_concat(int unit, int chan, dv_t *dv)
 
     if ((rv = soc_dma_start_reload(unit, chan, dv)) < 0) {
         DV_STATE(dv) = DV_S_ERROR;
-        LOG_WARN(BSL_LS_BCM_RX,
+        LOG_BSL_WARN(BSL_LS_BCM_RX,
                  (BSL_META_U(unit,
                              "RX: Could not concat dv, u %d, chan %d\n"), unit, chan));
     }
@@ -5935,7 +5935,7 @@ _bcm_common_rx_show(int unit)
               rx_ctl[unit]->not_running,
               rx_ctl[unit]->thrd_not_running,
               rx_ctl[unit]->dcb_errs));
-    LOG_VERBOSE(BSL_LS_BCM_RX,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                 (BSL_META_U(unit,
                             BSL_META_U
                              (unit, "    Tokens %d. Sleep %d.\n"
@@ -6027,7 +6027,7 @@ _bcm_common_rx_show(int unit)
                    queue->tot_pkts,
                    queue->rate_disc,
                    queue->qlen_disc));
-         LOG_VERBOSE(BSL_LS_BCM_RX,
+         LOG_BSL_VERBOSE(BSL_LS_BCM_RX,
                      (BSL_META_U(unit,
                                  BSL_META_U(unit, "        Tokens %d. Fill %u. Max %d. "
                                   "Brst %d. Head %p. Tail %p.\n")),

@@ -1062,7 +1062,7 @@ _soc_trident2p_ser_enable_all(int unit, const _soc_td2p_ser_block_info_t *ser_bl
     for (bcount = 0; ser_block_info[bcount].blocktype; bcount++) {
         int done = 0;
 
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                    (BSL_META_U(unit,
                                "Unit %d SER enable for: %s\n"),
                                     unit, ser_block_info[bcount].name));
@@ -1122,7 +1122,7 @@ _soc_trident2p_ser_enable_all(int unit, const _soc_td2p_ser_block_info_t *ser_bl
                 }
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_MEM,
+                LOG_BSL_ERROR(BSL_LS_SOC_MEM,
                           (BSL_META_U(unit,
                                       "Unknown parity module [bcount: %d][pcount: %d].\n"),
                                        bcount, pcount));
@@ -1173,7 +1173,7 @@ _soc_trident2p_ser_enable_all(int unit, const _soc_td2p_ser_block_info_t *ser_bl
                     }
                 }
             }
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                       (BSL_META_U(unit,
                                   "SER enable for %s: %s\n"),
                                    str_type, str_name));
@@ -1491,7 +1491,7 @@ _soc_trident2_ser_enable_info(int unit, int block_info_idx, int inst, int port,
                 SOC_IF_ERROR_RETURN
                     (soc_reg32_set(unit, reg, port, 0, rval));
             }
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER enable for: %s\n"),
                          (info->mem == INVALIDm) ? info->mem_str : 
@@ -1503,7 +1503,7 @@ _soc_trident2_ser_enable_info(int unit, int block_info_idx, int inst, int port,
             if (SOC_FAILURE(rv1) && rv1 != SOC_E_NOT_FOUND) {
                 return rv;
             }
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER enable for: %s\n"),
                          (info->mem == INVALIDm) ? info->mem_str : 
@@ -1514,7 +1514,7 @@ _soc_trident2_ser_enable_info(int unit, int block_info_idx, int inst, int port,
             if (SOC_FAILURE(rv1) && rv1 != SOC_E_NOT_FOUND) {
                 return rv;
             }
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER enable for: %s\n"), 
                          (info->mem == INVALIDm) ? info->mem_str : 
@@ -1523,7 +1523,7 @@ _soc_trident2_ser_enable_info(int unit, int block_info_idx, int inst, int port,
         case _SOC_PARITY_TYPE_GENERIC:
         case _SOC_PARITY_TYPE_START_ERR:
         case _SOC_PARITY_TYPE_BST:
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER enable for: %s\n"),
                          (info->mem == INVALIDm) ? info->mem_str : 
@@ -1583,7 +1583,7 @@ _soc_trident2_ser_enable_all(int unit, int enable)
                 (soc_reg32_set(unit, reg, port, 0, rval));
             switch (_soc_td2_ser_block_info[bcount].info[pcount].type) {
             case 0:
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "SER enable for mem: %s\n"),
                              _soc_td2_ser_block_info[bcount].info[pcount].mem != INVALIDm ?
@@ -1591,7 +1591,7 @@ _soc_trident2_ser_enable_all(int unit, int enable)
                              _soc_td2_ser_block_info[bcount].info[pcount].name_str)); 
                 break;
             case 1:
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "SER enable for reg: %s\n"),
                              _soc_td2_ser_block_info[bcount].info[pcount].reg != INVALIDr ?
@@ -1599,7 +1599,7 @@ _soc_trident2_ser_enable_all(int unit, int enable)
                              _soc_td2_ser_block_info[bcount].info[pcount].name_str)); 
                 break;
             case 2:
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "SER enable for bus: %s\n"),
                              _soc_td2_ser_block_info[bcount].info[pcount].name_str)); 
@@ -2087,12 +2087,12 @@ _soc_trident2_ser_process_parity(int unit, int block_info_idx, int pipe, int por
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                entry_idx, minfo);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s entry %d parity error\n"),
                        prefix_str, mem_str_ptr, entry_idx));
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str_ptr));
@@ -2142,7 +2142,7 @@ _soc_trident2_ser_process_parity(int unit, int block_info_idx, int pipe, int por
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -2202,18 +2202,18 @@ _soc_trident2_ser_process_ecc(int unit, int block_info_idx, int pipe, int port,
             sal_memset(&spci, 0, sizeof(spci));
             if (double_bit) {
                 spci.double_bit = 1;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d double-bit ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple ECC errors\n"),
                            prefix_str, mem_str_ptr));
@@ -2263,7 +2263,7 @@ _soc_trident2_ser_process_ecc(int unit, int block_info_idx, int pipe, int port,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -2287,12 +2287,12 @@ _soc_trident2_ser_process_mmu_err(int unit, int block_info_idx,
     
     SOC_IF_ERROR_RETURN(READ_MEM_SER_FIFO_STSr(unit, &rval));
     if (soc_reg_field_get(unit, MEM_SER_FIFO_STSr, rval, EMPTYf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d MMU SER interrupt with empty fifo !!\n"),
                               unit));
         SOC_IF_ERROR_RETURN(READ_MEM_FAIL_INT_STATr(unit, &rval));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d MMU ERR status: 0x%08x\n"), unit, rval));
         SOC_IF_ERROR_RETURN(WRITE_MEM_FAIL_INT_STATr(unit, 0));
@@ -2307,7 +2307,7 @@ _soc_trident2_ser_process_mmu_err(int unit, int block_info_idx,
         err = soc_reg64_field32_get(unit, reg, rval64, ERR_TYPEf);
         addr = soc_reg64_field32_get(unit, reg, rval64, EADDRf);
         bidx = soc_reg64_field32_get(unit, reg, rval64, BIDXf);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d MMU ERR Type: %s, Addr: 0x%08x, module: %d\n"),
                               unit, (err == 1) ? "1B error" : "2B error", addr, bidx));
@@ -2353,7 +2353,7 @@ _soc_trident2_ser_process_mmu_err(int unit, int block_info_idx,
                                spci.log_id, 0);
         }
         SOC_IF_ERROR_RETURN(READ_MEM_FAIL_INT_CTRr(unit, &rval));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d MMU ERR ctr: %d\n"), unit, rval));
         SOC_IF_ERROR_RETURN(READ_MEM_SER_FIFO_STSr(unit, &rval));
@@ -2427,7 +2427,7 @@ _soc_trident2_ser_process_start_err(int unit, int block_info_idx,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                            SOC_SWITCH_EVENT_DATA_ERROR_LOG, log_id, 0);
 
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s port %d start error detected\n"), prefix_str,
                               port));
@@ -2564,7 +2564,7 @@ _soc_trident2_process_ser(int unit, int block_info_idx, int inst, int pipe,
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                SOC_SWITCH_EVENT_DATA_ERROR_LOG, log_id, 0);
 
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s asserted\n"), prefix_str, mem_str));
             break;
@@ -2722,37 +2722,37 @@ _soc_trident2_print_ser_fifo_details(int unit, uint8 regmem, soc_block_t blk,
     if (bsl_check(bslLayerSoc, bslSourceCommon, bslSeverityError, unit)) {
         switch (type) {
         case 0:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: SOP cell.\n")));
             break;
         case 1:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: MOP cell.\n")));
             break;
         case 2:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: EOP cell.\n")));
             break;
         case 3:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: SBUS transaction.\n")));
             break;
         case 4:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: miscellaneous transaction.\n")));
             break;
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid error reported !!\n")));
             break;
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Blk: %d, Pipe: %d, Address: 0x%08x, base: 0x%x, stage: %d, index: %d\n"),
                               sblk, pipe, address, base, stage, index));
@@ -2763,14 +2763,14 @@ _soc_trident2_print_ser_fifo_details(int unit, uint8 regmem, soc_block_t blk,
             if (non_sbus) {
                 hwmbase_max = sizeof(_soc_td2_ser_hwmem_base_info)/sizeof(_soc_td2_ser_hwmem_base_info[0]);
                 /* coverity[overrun-local] */
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Mem hwbase: 0x%x [%s]\n"), hwmbase,
                                       (hwmbase < hwmbase_max) ? _soc_td2_ser_hwmem_base_info[hwmbase] : "--"));
             }
         }
         if (drop) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER caused packet drop.\n")));
         }
@@ -2856,43 +2856,43 @@ _soc_trident2_process_ser_fifo(int unit, soc_block_t blk, int pipe, char *prefix
                 sblk = SOC_BLOCK2SCH(unit, bidx);
                 break;
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), prefix_str));
             if (soc_mem_field32_get(unit, mem, entry, MULTIPLEf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Multiple: ")));
             }
             if (regmem == _SOC_TD2_SER_REG) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Reg: ")));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Mem: ")));
             }
             spci.double_bit = 0;
             switch (ecc_parity) {
             case 0:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Parity error..\n")));
                 break;
             case 1:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Corrected single bit ECC error..\n")));
                 break;
             case 2:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Double or Multiple bit ECC error..\n")));
                 spci.double_bit = 1;
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid SER issue !!\n")));
                 IF_IPIPE_ARBITER_UNLOCK(unit, blk);
@@ -3037,7 +3037,7 @@ _soc_trident2_process_ser_fifo(int unit, soc_block_t blk, int pipe, char *prefix
                     }
 
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s SER mem address un-accessable !!\n"), blk_str));
                     _soc_trident2_print_ser_fifo_details(unit, 0, blk, sblk, pipe, address, 
@@ -3099,7 +3099,7 @@ _soc_trident2_process_ser_fifo(int unit, soc_block_t blk, int pipe, char *prefix
                         break;
                     }
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s SER reg address un-accessable !!\n"), blk_str));
                     _soc_trident2_print_ser_fifo_details(unit, 0, blk, sblk, pipe, address, 
@@ -3108,7 +3108,7 @@ _soc_trident2_process_ser_fifo(int unit, soc_block_t blk, int pipe, char *prefix
                 }
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d Got invalid mem pop from %s !!\n"),
                                   unit, SOC_MEM_NAME(unit, mem)));
@@ -3200,7 +3200,7 @@ _soc_trident2_ser_process_all(int unit)
             if (SOC_BLOCK_IN_LIST(SOC_REG_INFO(unit, rb->enable_reg).block, 
                 SOC_BLK_PORT) && (port == REG_PORT_ANY)) {
                     /* This port block is not configured */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d SER error on disabled port block %d !!\n"),
                                           unit, block_info_idx));
@@ -4337,7 +4337,7 @@ _soc_trident2_alpm_bkt_view_set(int unit, int index, soc_mem_t view)
     int bkt = (index >> 2) & SOC_TD2_ALPM_BKT_MASK;
 
     if (view != INVALIDm) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ALPM bkt set index:%d bkt:%d view:%s\n"),
                      index, bkt, SOC_MEM_NAME(unit, view)));
@@ -4353,7 +4353,7 @@ _soc_trident2_alpm_bkt_view_get(int unit, int index)
     
     view = _soc_td2_alpm_bkt_view_map[unit][bkt];
     if (view != INVALIDm) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ALPM bkt get index:%d bkt:%d view:%s\n"),
                      index, bkt, SOC_MEM_NAME(unit, view)));
@@ -4443,11 +4443,11 @@ _soc_trident2_mem_sram_info_get(int unit, soc_mem_t mem, int index,
         sram_info->ram_count = SOC_TD2_NUM_EL_SHARED;
         base_bucket = ((index  >> 2) & SOC_TD2_ALPM_BKT_MASK);
         base = index & 0x3;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "reported bucket: 0x%08x, bank:%d\n"), base_bucket, base));
         base_bucket = base_bucket % SOC_TD2_ALPM_BKT_OFFFSET;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "base bucket: 0x%08x\n"), base_bucket));
         
@@ -4456,7 +4456,7 @@ _soc_trident2_mem_sram_info_get(int unit, soc_mem_t mem, int index,
             bkt_offset = base_bucket+SOC_TD2_ALPM_BKT_OFFFSET*i;
             view = _soc_td2_alpm_bkt_view_map[unit][bkt_offset];
             if (INVALIDm != view) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "\nbucket[%d]: 0x%08x view: %s\n"), i, bkt_offset,
                                         SOC_MEM_NAME(unit, view)));
@@ -4500,11 +4500,11 @@ _soc_trident2_mem_sram_info_get(int unit, soc_mem_t mem, int index,
             default:
                 break;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Entries per bkt: %d\n"), sram_info->index_count[i]));
             for (j=0; j<sram_info->index_count[i]; j++) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Index[%d]: [0x%08x]%d\n"), j, sram_info->mem_indexes[i][j],
                                         sram_info->mem_indexes[i][j]));
@@ -5214,7 +5214,7 @@ soc_trident2_port_config_init(int unit, uint16 dev_id, uint8 rev_id)
         sub_str = sub_str_end;
         if (*sub_str != '\0') {
             if (*sub_str != ':') {
-                LOG_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
+                LOG_BSL_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
                              port, config_str));
                 rv = SOC_E_FAIL;
                 continue;
@@ -5239,7 +5239,7 @@ soc_trident2_port_config_init(int unit, uint16 dev_id, uint8 rev_id)
             } else if (!sal_strcmp(str_buf, "343")) {
                 lane_config = SOC_LANE_CONFIG_100G_3_4_3;
             } else {
-                LOG_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Invalid lane configuration: %s\n"),
+                LOG_BSL_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Invalid lane configuration: %s\n"),
                            port, str_buf));
                 rv = SOC_E_FAIL;
                 continue;
@@ -5250,7 +5250,7 @@ soc_trident2_port_config_init(int unit, uint16 dev_id, uint8 rev_id)
             sub_str = sub_str_end;
             if (*sub_str != '\0') {
                 if (*sub_str != ':') {
-                    LOG_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
+                    LOG_BSL_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
                                  port, config_str));
                     rv = SOC_E_FAIL;
                     continue;
@@ -5263,7 +5263,7 @@ soc_trident2_port_config_init(int unit, uint16 dev_id, uint8 rev_id)
         if (*sub_str != '\0' && (*sub_str != 'm' && *sub_str != 'i')) {
             fallback_lane = sal_ctoi(sub_str, &sub_str_end);
             if (fallback_lane > 2 || fallback_lane < 0) {
-                LOG_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: invalid default lane \"%d\"\n"),
+                LOG_BSL_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: invalid default lane \"%d\"\n"),
                           port, fallback_lane));
                 rv = SOC_E_FAIL;
                 continue;
@@ -5281,7 +5281,7 @@ soc_trident2_port_config_init(int unit, uint16 dev_id, uint8 rev_id)
                 }
             }
             if (fallback_lane < 0) {
-                LOG_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: invalid default lane \"%d\"\n"),
+                LOG_BSL_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: invalid default lane \"%d\"\n"),
                            port, fallback_lane));
             }
 
@@ -5289,7 +5289,7 @@ soc_trident2_port_config_init(int unit, uint16 dev_id, uint8 rev_id)
             sub_str = sub_str_end;
             if (*sub_str != '\0') {
                 if (*sub_str != ':') {
-                    LOG_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
+                    LOG_BSL_ERROR(BSL_LS_SOC_PORT,(BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
                                         port, config_str));
                     rv = SOC_E_FAIL;
                     continue;
@@ -6290,7 +6290,7 @@ soc_trident2_chip_reset(int unit)
             SOC_IF_ERROR_RETURN
                 (soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval));
             if (!soc_reg_field_get(unit, reg, rval, TOP_XGPLL_LOCKf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "LCPLL %d not locked on unit %d "
                                       "status = 0x%08x\n"), index, unit, rval));
@@ -6300,7 +6300,7 @@ soc_trident2_chip_reset(int unit)
         reg = TOP_TS_PLL_STATUSr;
         SOC_IF_ERROR_RETURN(soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval));
         if (!soc_reg_field_get(unit, reg, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TS_PLL %d not locked on unit %d "
                                   "status = 0x%08x\n"), index, unit, rval));
@@ -6309,7 +6309,7 @@ soc_trident2_chip_reset(int unit)
         reg = TOP_BS_PLL_STATUSr;
         SOC_IF_ERROR_RETURN(soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval));
         if (!soc_reg_field_get(unit, reg, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BS_PLL %d not locked on unit %d "
                                   "status = 0x%08x\n"), index, unit, rval));
@@ -6664,7 +6664,7 @@ _soc_trident2_clear_all_memory(int unit, int mmu_init)
             }
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -6689,7 +6689,7 @@ _soc_trident2_clear_all_memory(int unit, int mmu_init)
             }
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -7098,7 +7098,7 @@ _soc_trident2_tdm_init(int unit)
         _soc_td2_tdm.mmu_tdm[1][slot] = NUM_EXT_PORTS;
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
         LOG_CLI((BSL_META_U(unit,
                             "tdm_bw: %dG\n"), _soc_td2_tdm.tdm_bw));
         LOG_CLI((BSL_META_U(unit,
@@ -7227,7 +7227,7 @@ _soc_trident2_tdm_init(int unit)
 #endif	
 	}
 
-    if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
         for (pgw = 0; pgw < _TD2_PGWS_PER_DEV; pgw += _TD2_PGWS_PER_QUAD) {
             LOG_CLI((BSL_META_U(unit,
                                 "PGW_CL%d pgw_tdm:"), pgw));
@@ -7303,7 +7303,7 @@ _soc_trident2_tdm_init(int unit)
         }
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
         LOG_CLI((BSL_META_U(unit,
                             "tdm_bw: %dG\n"), _soc_td2_tdm.tdm_bw));
         LOG_CLI((BSL_META_U(unit,
@@ -7349,7 +7349,7 @@ _soc_trident2_tdm_init(int unit)
         return SOC_E_FAIL;
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
         for (pipe = 0; pipe < _TD2_PIPES_PER_DEV; pipe++) {
             LOG_CLI((BSL_META_U(unit,
                                 "Pipe %c iarb_tdm: (wrap_ptr %d)"),
@@ -9045,7 +9045,7 @@ _soc_trident2_misc_init(int unit)
     SOC_IF_ERROR_RETURN(_soc_td2_ledup_init(unit));
 
     if (soc_mspi_init(unit) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "unit %d : MSPI Init Failed\n"), unit));
     }
@@ -9256,7 +9256,7 @@ _soc_td2_mmu_config_buf_default(int unit, _soc_mmu_cfg_buf_t *buf,
     si = &SOC_INFO(unit);
 
     min_cell_per_mcq = soc_feature(unit, soc_feature_min_cell_per_queue) ? 1 : 0;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Initializing default MMU config (u=%d)\n"), unit));
     max_packet_cells = _MMU_CFG_MMU_BYTES_TO_CELLS(devcfg->max_pkt_byte +
@@ -10929,7 +10929,7 @@ soc_td2_mmu_config_init(int unit, int test_only)
     rv = _soc_mmu_cfg_buf_check(unit, buf, &devcfg);
     if (!test_only) {
         if (SOC_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "MMU config: Use default setting\n")));
             _soc_td2_mmu_config_buf_default(unit, buf, &devcfg, lossless);
@@ -10940,7 +10940,7 @@ soc_td2_mmu_config_init(int unit, int test_only)
 
     soc_mmu_cfg_free(unit, buf);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MMU THDI/THDO init done\n")));
     return rv;
@@ -11225,7 +11225,7 @@ _soc_trident2_mdio_reg_read(int unit, uint32 phy_addr,
     /* Physical port based on MDIO address */
     phy_port = _soc_trident2_mdio_addr_to_port(phy_addr);
     port = SOC_INFO(unit).port_p2l_mapping[phy_port];
-    LOG_INFO(BSL_LS_SOC_MII,
+    LOG_BSL_INFO(BSL_LS_SOC_MII,
              (BSL_META_U(unit,
                          "soc_trident2_mdio_reg_read[%d]: %d/%d/%d\n"),
               unit, phy_addr, phy_port, port));
@@ -11351,7 +11351,7 @@ _soc_trident2_port_lanes_update_tdm(int unit, soc_td2_port_lanes_t *lanes_ctrl)
             if (i == cur_ids_len) { /* no match */
                 continue;
             }
-            if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "set PGW_CL%d TDM slot %d from %d to %d\n"),
                          pgw_inst & ~SOC_REG_ADDR_INSTANCE_MASK, slot,
@@ -11439,7 +11439,7 @@ _soc_trident2_port_lanes_update_tdm(int unit, soc_td2_port_lanes_t *lanes_ctrl)
             if (i == cur_ids_len) { /* no match found */
                 continue;
             }
-            if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "set MMU pipe %d TDM slot %d from %d to %d\n"),
                          pipe, slot + index, fval, ids[seq % ids_len]));
@@ -12304,7 +12304,7 @@ soc_td2_process_func_intr(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
 
     if (soc_feature(unit, soc_feature_l2_overflow)) {
         if (READ_IL2LU_INTR_STATUSr(unit, &rval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d: Error reading %s reg !!\n"),
                                   unit, SOC_REG_NAME(unit, IL2LU_INTR_STATUSr)));
@@ -12667,7 +12667,7 @@ _soc_td2_port_thdo_rx_enable_set(int unit, soc_port_t port,
         if (*thdo_drop_bmp == 0) {
             rv = _soc_td2_thdo_hw_set(unit, port, enable);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Clear the registers fail.")));
                 FWD_CTRL_UNLOCK(unit);
@@ -12690,7 +12690,7 @@ _soc_td2_port_thdo_rx_enable_set(int unit, soc_port_t port,
         /*Ok, only self is in thdo drop, enbable it*/
         rv = _soc_td2_thdo_hw_set(unit, port, enable);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Set the registers fail.")));
             FWD_CTRL_UNLOCK(unit);
@@ -12902,7 +12902,7 @@ _soc_trident2_perform_ser_test(int unit, ser_test_data_t *test_data,
         soc_trident2_pipe_select(unit, FALSE, 0);
         IP_ARBITER_UNLOCK(unit);
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Memory %s skipped due to known issues.\n"),
                      SOC_MEM_NAME(unit,test_data->mem)));
@@ -12936,7 +12936,7 @@ soc_td2_ser_tcam_test (int unit, _soc_ser_test_t test_type) {
         mem_tests++;
         if ( i >= MAX_HW_TCAMS) {
             mem_skipped++;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Memory %s skipped due to lack of test mechanism \
                                     for Software-protected TCAMS.\n"),
@@ -13014,7 +13014,7 @@ soc_td2_ser_hardware_test (int unit, _soc_ser_test_t test_type) {
                                          REG_PORT_ANY, acc_type, 0, &test_data);
                 if (test_data.mem_info == NULL) {
                     mem_skipped += 2;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Memory %s skipped due to lack of"
                                             " mem_info structure.\n"),
@@ -13144,7 +13144,7 @@ soc_td2_ser_test_overlay (int unit, _soc_ser_test_t test_type)
                             " Overlay memories failed: \t %d\n\n"),
                  rv));
     } else {
-        LOG_INFO(BSL_LS_SOC_COMMON,
+        LOG_BSL_INFO(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "Internal Error during overlay test.\n")));
     }

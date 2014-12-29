@@ -777,18 +777,18 @@ _soc_hurricane_process_single_parity_error(int unit, int group,
     error = soc_reg_field_get(unit, status_reg, reg_val, PARITY_ERRf);
  
     if (error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, index));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -825,18 +825,18 @@ _soc_hurricane_process_single_ecc_error(int unit, int group,
     error = soc_reg_field_get(unit, status_reg, reg_val, ECC_ERRf);
  
     if (error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d %s ECC error\n"),
                    unit, msg, index, double_bit ? "double-bit" : ""));
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple ECC errors\n"),
                        unit, msg));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s: parity hardware inconsistency\n"),
                    unit, msg));
@@ -887,7 +887,7 @@ _soc_hurricane_process_dual_parity_error(int unit, int group,
                 if (bitmap & (1 << bits)) {
                     index =
                         bucket_index * size * 2 + bits + (ix * size);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, index));
@@ -896,7 +896,7 @@ _soc_hurricane_process_dual_parity_error(int unit, int group,
         }
 
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s has multiple parity errors\n"),
                        unit, msg));
@@ -924,7 +924,7 @@ _soc_hurricane_process_mmu_parity_error(int unit, int group,
     status_reg = info[table].intr_status1_reg;
     index_reg = info[table].intr_status0_reg;
     if (index_reg == INVALIDr) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity error\n"),
                               unit, msg));
@@ -934,7 +934,7 @@ _soc_hurricane_process_mmu_parity_error(int unit, int group,
         addr = soc_reg_addr(unit, status_reg, block_port, 0);
         SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr, &reg_val));
         if (reg_val == 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s: parity hardware inconsistency\n"),
                        unit, msg));
@@ -945,7 +945,7 @@ _soc_hurricane_process_mmu_parity_error(int unit, int group,
     SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr, &reg_val));
     index = reg_val;
  
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s entry %d parity error\n"),
                unit, msg, index));
@@ -981,7 +981,7 @@ _soc_hurricane_process_parity_error(int unit)
     for (group = 0; _soc_hu_parity_group_info[group].cpi_bit; group++) {
         info = _soc_hu_parity_group_info[group].info;
         group_reg = _soc_hu_parity_group_info[group].status_reg;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d %s parity processing\n"),
                                 unit, SOC_REG_NAME(unit, group_reg)));
@@ -1006,7 +1006,7 @@ _soc_hurricane_process_parity_error(int unit)
                 if (!soc_reg_field_valid(unit, group_reg,
                                          info[table].error_field)) {
                     if (info[table].mem != INVALIDm) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s has bad error field\n"),
                                               unit, SOC_MEM_NAME(unit, info[table].mem)));
@@ -1026,7 +1026,7 @@ _soc_hurricane_process_parity_error(int unit)
                     msg = SOC_FIELD_NAME(unit, info[table].error_field);
                 }
 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "unit %d %s analysis\n"),
                                         unit, msg));
@@ -1034,7 +1034,7 @@ _soc_hurricane_process_parity_error(int unit)
                 /* handle different parity error reporting style */
                 switch (info[table].type) {
                 case _SOC_PARITY_INFO_TYPE_GENERIC:
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s asserted\n"),
                                           unit, msg));
@@ -1077,7 +1077,7 @@ _soc_hurricane_process_parity_error(int unit)
                         addr = soc_reg_addr(unit, reg, block_port, index);
                         SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr,
                                                            &entry_idx));
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s%d entry %d parity error\n"),
                                    unit, msg, index, entry_idx));
@@ -1122,7 +1122,7 @@ _soc_hurricane_process_parity_error(int unit)
                     } else {
                         break;
                     }
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, entry_idx));
@@ -1257,7 +1257,7 @@ _soc_hurricane_mem_ecc_force(int unit, soc_port_t block_port,
             (soc_reg_field32_modify(unit, force_sbe_reg,
                                     block_port, force_field, 1));        
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s.%s not valid\n"),
                    unit, SOC_REG_NAME(unit, force_sbe_reg),
@@ -1273,7 +1273,7 @@ _soc_hurricane_mem_ecc_force(int unit, soc_port_t block_port,
             (soc_reg_field32_modify(unit, force_dbe_reg,
                                     block_port, force_field, 1));        
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s.%s not valid\n"),
                    unit, SOC_REG_NAME(unit, force_dbe_reg),
@@ -1314,7 +1314,7 @@ _soc_hurricane_mem_nack_error_test(int unit)
                 if ((info[table].control_reg == INVALIDr) ||
                     !soc_reg_field_valid(unit, info[table].control_reg,
                                          info[table].enable_field)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s has no parity toggle\n"),
                                unit, SOC_MEM_NAME(unit, mem)));
@@ -1328,7 +1328,7 @@ _soc_hurricane_mem_nack_error_test(int unit)
 
                 if ((rv = soc_mem_write(unit, mem, blk, index,
                                         soc_mem_entry_null(unit, mem))) < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d mem write error\n"),
                                unit, SOC_MEM_NAME(unit, mem), index));
@@ -1341,7 +1341,7 @@ _soc_hurricane_mem_nack_error_test(int unit)
                                             block_port, info[table].enable_field, 0));
 
                 if ((rv = soc_mem_read(unit, mem, blk, index, tmp_entry)) < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d mem read error\n"),
                                unit, SOC_MEM_NAME(unit, mem), index));
@@ -1373,12 +1373,12 @@ _soc_hurricane_mem_nack_error_test(int unit)
                 if (!soc_mem_field_valid(unit, mem, par_ecc_field)) {
 #if !defined(SOC_NO_NAMES)
                     if (par_ecc_field == INVALIDf) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s doesn't contain INVALIDf\n"),
                                    unit, SOC_MEM_NAME(unit, mem)));
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s doesn't contain %s\n"),
                                    unit, SOC_MEM_NAME(unit, mem),
@@ -1395,7 +1395,7 @@ _soc_hurricane_mem_nack_error_test(int unit)
             
 
                 if ((rv = soc_mem_write(unit, mem, blk, index, tmp_entry)) < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d mem write error\n"),
                                unit, SOC_MEM_NAME(unit, mem), index));
@@ -1409,25 +1409,25 @@ _soc_hurricane_mem_nack_error_test(int unit)
 
                 if ((rv = soc_mem_read(unit, mem, blk, index, tmp_entry)) < 0) {
                     if (rv == SOC_E_FAIL) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d NACK received for %s entry %d:\n\t"),
                                    unit, SOC_MEM_NAME(unit, mem), index));
                         if ((rv = _soc_hurricane_mem_nack_error_process(unit,
                                                                        mem, blk)) < 0) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                                        unit, SOC_MEM_NAME(unit, mem), index));
                         }
                     } else {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s entry %d mem read error\n"),
                                    unit, SOC_MEM_NAME(unit, mem), index));
                     }
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d mem parity induction failed\n"),
                                unit, SOC_MEM_NAME(unit, mem), index));
@@ -1487,7 +1487,7 @@ soc_hurricane_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -1501,7 +1501,7 @@ soc_hurricane_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;

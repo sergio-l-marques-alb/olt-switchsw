@@ -1235,7 +1235,7 @@ soc_th_mpls_hash(int unit, int hash_sel, int key_nbits, void *base_entry,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_th_mpls_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1426,7 +1426,7 @@ soc_th_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_th_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1608,7 +1608,7 @@ soc_th_egr_vlan_xlate_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_th_egr_vlan_xlate_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1748,7 +1748,7 @@ soc_th_ing_vp_vlan_member_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_th_inv_vp_vlan_member_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1855,7 +1855,7 @@ soc_th_egr_vp_vlan_member_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_th_inv_vp_vlan_member_hash: invalid hash_sel %d\n"),
                    hash_sel));
@@ -1962,7 +1962,7 @@ soc_th_ing_dnat_address_type_hash(int unit, int hash_sel, int key_nbits,
         break;
 
     default:
-        LOG_ERROR(BSL_LS_SOC_HASH,
+        LOG_BSL_ERROR(BSL_LS_SOC_HASH,
                   (BSL_META_U(unit,
                               "soc_th_inv_vp_vlan_member_hash: invalid hash_sel %d\n"),
                    hash_sel));

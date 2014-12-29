@@ -2372,7 +2372,7 @@ bcm_td_ing_vp_group_unmanaged_set(int unit, int flag)
         }
 
         if (vp_count != num_vp_groups) {
-            LOG_WARN(BSL_LS_BCM_VLAN,
+            LOG_BSL_WARN(BSL_LS_BCM_VLAN,
                      (BSL_META_U(unit,
                                  "Unmanaged mode set fails: VP group auto method already started\n")));
             return BCM_E_EXISTS;
@@ -2405,7 +2405,7 @@ bcm_td_egr_vp_group_unmanaged_set(int unit, int flag)
         }
 
         if (vp_count != num_vp_groups) {
-            LOG_WARN(BSL_LS_BCM_VLAN,
+            LOG_BSL_WARN(BSL_LS_BCM_VLAN,
                      (BSL_META_U(unit,
                                  "Unmanaged mode set fails: VP group auto method already started\n")));
 

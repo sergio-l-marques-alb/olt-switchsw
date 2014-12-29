@@ -117,7 +117,7 @@ topo_chassis_modids_assign(cpudb_ref_t db_ref)
      *    by the master module.
      */
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: Assigning chassis mod ids\n")));
     CPUDB_FOREACH_ENTRY(db_ref, entry) {
         modid = MODID_OFFSET_GET(entry->base.slot_id);
@@ -306,7 +306,7 @@ xgs2_internal_sp_set(int unit, int dst_unit, bcm_port_t stk_port)
     BCM_IF_ERROR_RETURN(bcm_board_internal_stk_port_add(unit, stk_port));
 
     if (bcm_stk_port_get(dst_unit, BCM_STK_USE_HG_IF, &flags) < 0) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META_U(unit,
                  "Could not get IPIC stack info for unit %d\n"),
                   dst_unit));
@@ -628,7 +628,7 @@ chassis_nh_modid_filter(int num_units,
                 nh_tx_src_mod_port_get(unit, stk_port, &nhmod, &nhport) < 0 ||
                 nhmod < 0) {
                 if (nh_tx_src_get(&nhmod, &nhport) < 0 || nhmod < 0) {
-                    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                                 (BSL_META_U(unit,
                                 "TOPO: Could not get default NH src modid.\n")));
                 }
@@ -942,7 +942,7 @@ chassis_smlb_cfm_xgs2(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     };
 
     COMPILER_REFERENCE(tp_cpu);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5675 BCM956000 CFM (Load Balancing)\n")));
 
     /* Only 1 unit */
@@ -1112,7 +1112,7 @@ chassis_smlb_xgs2_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     };
 
     COMPILER_REFERENCE(tp_cpu);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 48GE BCM956000 LM (Load Balancing)\n")));
 
     /* 
@@ -1197,7 +1197,7 @@ chassis_smlb_xgs2_6x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     };
 
     COMPILER_REFERENCE(tp_cpu);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5674 6X BCM956000 LM (Load Balancing)\n")));
 
     /* 
@@ -1339,9 +1339,9 @@ chassis_smlb_xgs3_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 
     master_slot = db_ref->master_entry ?
         db_ref->master_entry->base.slot_id : -1;
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56501 12XE BCM956000 LM (Load Balancing)\n")));
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("      master on slot %d\n"),
                  master_slot));
 
@@ -1466,9 +1466,9 @@ chassis_smlb_xgs3_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     /* If there's no master yet, set self as master */
     master_slot = db_ref->master_entry ?
         db_ref->master_entry->base.slot_id : -1;
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56504 48GE BCM956000 LM (Load Balancing)\n")));
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("      master on slot %d\n"),
                  master_slot));
 
@@ -1605,7 +1605,7 @@ chassis_smlb_cfm_xgs3(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 
 
     COMPILER_REFERENCE(tp_cpu);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 56700 BCM956010 CFM (Load Balancing)\n")));
 
     /* Only 1 unit */
@@ -1762,7 +1762,7 @@ chassis_smlb_56800_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
             {1, {2, {0, 2}}}}
     };
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56800 LM (Load Balancing)\n")));
 
     BCM_IF_ERROR_RETURN(bcm_port_config_get(0, &config));

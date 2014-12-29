@@ -343,7 +343,7 @@ _phy_84728_nxt_dev_probe(int unit, soc_port_t port)
         return SOC_E_NOT_FOUND;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_84728_nxt_dev_probe: found phy device"
                          " u=%d p=%d id0=0x%x id1=0x%x\n"), 
@@ -505,7 +505,7 @@ phy_84728_init(int unit, soc_port_t port)
     if ((PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_PASS2) ||
         (PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_DEFAULT)) {
   
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84728_init: u=%d p=%d\n"),unit, port));
 
@@ -601,7 +601,7 @@ phy_84728_init(int unit, soc_port_t port)
                 (_phy_84728_mode_set(unit, port, LAN_MODE));
         }
         
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "84728: u=%d port=%d mode=%s : init.\n"), 
                              unit, port, wan_mode ? "WAN" : "LAN"));
@@ -685,7 +685,7 @@ _phy_54942_link_get(int unit, soc_port_t port, int *link)
       *link =  ((xgxsstatus1 & (1U << 2)) | (status1000x1 & (1U << 1))) ? 1 : 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_54942_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -765,7 +765,7 @@ phy_84728_link_get(int unit, soc_port_t port, int *link)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_84728_link_get: u=%d p=%d link=%d\n"),
                  unit, port,
@@ -844,7 +844,7 @@ phy_84728_enable_set(int unit, soc_port_t port, int enable)
         PHYDRV_CALL_ARG1(pc,PHY_ENABLE_SET,enable);
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84728_enable_set: "
                          "Power %s fiber medium\n"), (enable) ? "up" : "down"));
@@ -921,7 +921,7 @@ exit:
     }
 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84728_duplex_set: u=%d p=%d d=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -1033,7 +1033,7 @@ phy_84728_speed_set(int unit, soc_port_t port, int speed)
             }
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84728_speed_set: u=%d p=%d s=%d fiber=%d rv=%d\n"),
               unit, port, speed, PHY_FIBER_MODE(unit, port), rv));
@@ -1107,7 +1107,7 @@ phy_84728_speed_get(int unit, soc_port_t port, int *speed)
         }
     }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_84728_speed_get: u=%d p=%d speed=%d"),
                   unit, port, *speed));
@@ -1199,7 +1199,7 @@ phy_84728_an_set(int unit, soc_port_t port, int autoneg)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84728_an_set: u=%d p=%d autoneg=%d rv=%d\n"),
               unit, port, autoneg, rv));
@@ -1387,7 +1387,7 @@ phy_84728_lb_set(int unit, soc_port_t port, int enable)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84728_lb_set: u=%d p=%d en=%d rv=%d\n"), 
               unit, port, enable, rv));
@@ -1513,7 +1513,7 @@ _phy_84728_mode_set(int unit, soc_port_t port, uint32 mode) {
             return SOC_E_UNAVAIL;
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84728_mode_set: u=%d port=%d mode=%d\n"),
               unit, port, mode));
@@ -1953,7 +1953,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
 
     if (cmd == PHYCTRL_UCODE_BCST_SETUP) {
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST start: u=%d p=%d\n"), unit, port));
         SOC_IF_ERROR_RETURN
@@ -1961,7 +1961,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
         return SOC_E_NONE;
 
     } else if (cmd == PHYCTRL_UCODE_BCST_uC_SETUP) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST1: u=%d p=%d\n"), unit, port));
         /* 0xc848[15]=0, MDIO downloading to RAM, 0xc848[14]=1, serial boot */
@@ -1976,7 +1976,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
             (BSDK_WR_PHY84728_LN_DEV1_PMD_CTRLr(pc, 0x8000));
         return SOC_E_NONE;
     } else if (cmd == PHYCTRL_UCODE_BCST_ENABLE) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST2: u=%d p=%d\n"), unit, port));
         /* reset clears bcst register */
@@ -1986,7 +1986,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
         return SOC_E_NONE;
 
     } else if (cmd == PHYCTRL_UCODE_BCST_LOAD) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_bcst,device name %s: u=%d p=%d\n"),
                              pc->dev_name? pc->dev_name: "NULL", unit, port));
@@ -2031,7 +2031,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
         return SOC_E_NONE;
 
     } else if (cmd == PHYCTRL_UCODE_BCST_END) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84740 BCST end: u=%d p=%d\n"), unit, port));
 
@@ -2054,7 +2054,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
         }
 
         /* Download done message */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d MDIO firmware download done message: 0x%x\n"),
                              unit, port,data16));
@@ -2084,7 +2084,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
         /* read Rev-ID */
         SOC_IF_ERROR_RETURN
             (BSDK_RD_PHY84728_LN_DEV1_PMDr(pc, 0xCA1A, &data16));
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "u=%d p=%d MDIO Firmware broadcast download revID: 0x%x\n"),
                               unit, port,data16));
@@ -2092,7 +2092,7 @@ _phy_84728_init_ucode_bcst(int unit, int port, int cmd)
         return SOC_E_NONE;
 
     } else {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d firmware_bcst: invalid cmd 0x%x\n"),
                              unit, port,cmd));
@@ -2131,13 +2131,13 @@ phy_84728_firmware_set(int unit, int port, int offset, uint8 *data, int len)
 
     rv = bsdk_phy84728_spi_firmware_update(pc, data, len);
     if (rv != SOC_E_NONE) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY84728 firmware upgrade possibly failed:"
                                  "u=%d p=%d\n"), unit, port));
         return (SOC_E_FAIL);
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY84728 firmware upgrade successful:"
                          "u=%d p=%d\n"), unit, port));
@@ -3000,7 +3000,7 @@ bsdk_phy84728_lane_map(phy_ctrl_t *pc)
     phy_sys_xaui_tx_lane_map = PHY84728_MAP(pc)->phy_sys_xaui_tx_lane_map ;
 
     if (phy_sys_xaui_tx_lane_map) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "phy_sys_xaui_tx_lane_map: u=%d p=%d val=0x%x\n"),
                   pc->unit, pc->port, phy_sys_xaui_tx_lane_map));
@@ -3015,7 +3015,7 @@ bsdk_phy84728_lane_map(phy_ctrl_t *pc)
     phy_sys_xaui_rx_lane_map = PHY84728_MAP(pc)->phy_sys_xaui_rx_lane_map ;
 
     if (phy_sys_xaui_rx_lane_map) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(pc->unit,
                              "phy_sys_xaui_rx_lane_map: u=%d p=%d val=0x%x\n"),
                   pc->unit, pc->port, phy_sys_xaui_rx_lane_map));

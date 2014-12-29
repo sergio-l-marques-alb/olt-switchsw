@@ -113,7 +113,7 @@ soc_robo_macsec_bypass_set(int unit, soc_port_t port, uint32 value)
             SOC_MACSECPHY_DEV_INFO_SWITCHMACSEC_ATTACHED, 
             &switchmacsec_attached));
     if (!switchmacsec_attached) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s,port %d has no MACSEC attached!\n"), 
                    FUNCTION_NAME(), port));
@@ -125,7 +125,7 @@ soc_robo_macsec_bypass_set(int unit, soc_port_t port, uint32 value)
         macsec_device_id = SOC_ROBO_NSP_MACSEC_ID_GET(unit, port);
         if (macsec_device_id == -1) {
             /* means there is no macsec device attached on this port */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s,port %d has no MACSEC device ID assigned!\n"), 
                        FUNCTION_NAME(), port));
@@ -179,7 +179,7 @@ soc_robo_macsec_bypass_get(int unit, soc_port_t port, uint32 *value)
             SOC_MACSECPHY_DEV_INFO_SWITCHMACSEC_ATTACHED, 
             &switchmacsec_attached));
     if (!switchmacsec_attached) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s,port %d has no MACSEC attached!\n"), 
                    FUNCTION_NAME(), port));
@@ -193,7 +193,7 @@ soc_robo_macsec_bypass_get(int unit, soc_port_t port, uint32 *value)
     }
     
     *value = (temp & (0x1 << port)) ? FALSE : TRUE;
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s,port=%d,val=%d...\n"), 
                FUNCTION_NAME(), port, *value));
@@ -276,7 +276,7 @@ soc_robo_chip_driver_find(uint16 pci_dev_id, uint8 pci_rev_id)
     }
     }
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("soc_chip_driver_find: driver in devid table "
                         "not in soc_robo_base_driver_table\n")));
 
@@ -460,7 +460,7 @@ soc_robo_info_config(int unit, soc_control_t *soc)
         if (spiMutex) {
             value[0] = 0;
             if (REG_READ_BONDING_PAD_STATUSr(unit, &value[0]) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_info_config: can not get the bonding of Blackbird2\n")));
             }
@@ -623,7 +623,7 @@ soc_robo_info_config(int unit, soc_control_t *soc)
 #endif /* BCM_DINO8_SUPPORT */
     default:
         si->chip = 0;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_info_config: driver device %04x unexpected\n"),
                   drv_dev_id));
@@ -638,7 +638,7 @@ soc_robo_info_config(int unit, soc_control_t *soc)
 
             rv = REG_READ_BONDING_PADr(unit, &data);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_info_config: can not get the bonding of Harrier\n")));
                 return;
@@ -723,7 +723,7 @@ soc_robo_info_config(int unit, soc_control_t *soc)
             blktype = SOC_BLOCK_INFO(unit, blk).type;
             if (!SOC_PBMP_MEMBER(pbmp_valid, port)) {   /* disabled port */
                 if (SOC_BLOCK_IN_LIST(&blktype, SOC_BLK_CPU)) {
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "soc_info_config: "
                                          "cannot disable cpu port\n")));
@@ -1121,7 +1121,7 @@ soc_robo_do_init(int unit, int reset)
     soc = SOC_CONTROL(unit);
 
     if (!(soc->soc_flags & SOC_F_ATTACHED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_robo_do_init: Unit %d not attached\n"), unit));
         return(SOC_E_UNIT);
@@ -1156,7 +1156,7 @@ soc_robo_do_init(int unit, int reset)
      * Configure DMA channels.
      */
     if (soc_robo_mgt_init(unit) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Unit %d: DMA initialization failed, unavailable\n"),
                    unit));
@@ -1167,7 +1167,7 @@ soc_robo_do_init(int unit, int reset)
      * Chip depended misc init.
      */
     if (soc_misc_init(unit) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Unit %d: Chip Misc initialization failed, unavailable\n"),
                    unit));
@@ -1500,7 +1500,7 @@ soc_robo_detach(int unit)
     soc_robo_control_t *robo;
     soc_mem_t       mem;
 
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "Detaching\n")));
 
@@ -1746,7 +1746,7 @@ _soc_robo_device_created(int unit)
 
     soc->chip_driver = soc_robo_chip_driver_find(dev_id, rev_id);
     if (soc->chip_driver == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "_soc_robo_device_created: unit %d has no driver "
                               "(device 0x%04x rev 0x%02x)\n"),
@@ -1798,7 +1798,7 @@ soc_robo_attach(int unit)
     soc_control_t        *soc;
     soc_mem_t        mem;
 
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "soc_robo_attach: unit=%d\n"), unit));
 
@@ -1976,7 +1976,7 @@ soc_robo_attach(int unit)
     return(SOC_E_NONE);
 
  error:
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_robo_attach: unit %d failed\n"), unit));
 

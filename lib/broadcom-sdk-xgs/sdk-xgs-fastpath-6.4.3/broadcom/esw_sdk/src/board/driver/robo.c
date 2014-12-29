@@ -132,11 +132,11 @@ _robo_probe(board_driver_t *driver, int num, bcm_info_t *info)
 
     
     if (num == MAX_UNIT && SOC_IS_ROBO(0)) {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META(__FILE__": accept\n")));
         rv = BCM_E_NONE;
     } else {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META(__FILE__": reject - num_units(%d) != %d\n"),
                      num,
                      MAX_UNIT));
@@ -186,7 +186,7 @@ _robo_start(board_driver_t *driver, uint32 flags)
         /* nothing to clear */
     }
 
-    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                 (BSL_META(__FILE__": started %s - %s\n"),
                  robo_board.name,
                  PRIVATE(description)));

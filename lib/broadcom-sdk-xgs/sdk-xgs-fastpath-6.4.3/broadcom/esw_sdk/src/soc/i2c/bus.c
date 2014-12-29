@@ -622,7 +622,7 @@ soc_i2c_attach(int unit, uint32 flags, int speed_khz)
 
     /* Number of PIO's (IFLG/ACK) */
     i2cbus->pio_retries = 1000000;
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "soc_i2c_attach: oldspeed=%d newspeed=%d\n"),
               i2cbus->frequency, KHZ_TO_HZ(speed_khz)));
@@ -718,7 +718,7 @@ soc_i2c_attach(int unit, uint32 flags, int speed_khz)
         }
 #endif
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "unit %d i2c 0x%03x bus: mode %s, speed %dKbps\n"),
                  unit, i2cbus->master_addr,
@@ -836,7 +836,7 @@ soc_i2c_next_bus_phase(int unit, int tx_ack)
     soc_i2c_pci_write(unit, CMIC_I2C_CTRL, reg);
 
     /* More debug nonsense */
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "soc_i2c_next_bus_phase: (after) "
                          "ctrl=0x%x data=0x%x op=%s(%d) "),
@@ -947,7 +947,7 @@ soc_i2c_intr(int unit)
 
     if (s == SOC_I2C_SADDR_RX_RD_BIT_RX_ACK_TX ||
 	s == SOC_I2C_ARB_LOST_IN_ADDR_PHASE_SADDR_RX_RD_BIT_RX_ACK_TX) {
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "i2c%d: slave transmit mode entered: %s\n"),
                      unit, soc_i2c_status_message(s)));
@@ -1007,7 +1007,7 @@ soc_i2c_intr(int unit)
 	s == SOC_I2C_DATA_BYTE_RX_AFTER_GC_ADDR_RX_NO_ACK_TX ||
 	s == SOC_I2C_STOP_OR_REP_START_COND_RX_IN_SLAVE_MODE) {
 
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "i2c%d: slave receive mode entered: %s\n"),
                      unit, soc_i2c_status_message(s)));
@@ -1069,7 +1069,7 @@ soc_i2c_wait(int unit)
     stat = soc_i2c_pci_read(unit, CMIC_I2C_STAT);
     i2cbus->stat = stat;
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "soc_i2c_wait: current state=0x%x:[%s]\n"),
               stat, soc_i2c_status_message((soc_i2c_status_t)stat)));
@@ -1114,7 +1114,7 @@ _i2c_start_helper(int unit, i2c_bus_addr_t bus_addr, int repeated)
      */
     if ( (!repeated && (s != SOC_I2C_NO_STATUS)) ||
 	 (repeated && (s == SOC_I2C_NO_STATUS)) ) {
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "unit %d i2c 0x%x: %sSTART- BAD STATUS: %s\n"),
                      unit, bus_addr>>1,
@@ -1144,7 +1144,7 @@ _i2c_start_helper(int unit, i2c_bus_addr_t bus_addr, int repeated)
 	    soc_i2c_pci_write(unit, CMIC_I2C_DATA, bus_addr);
 	    soc_i2c_next_bus_phase(unit, 1);
 	} else {
-	    LOG_INFO(BSL_LS_SOC_I2C,
+	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c 0x%x: %sSTART unhandled state 0x%x:"
                                  " %s\n"),
@@ -1181,14 +1181,14 @@ _i2c_start_helper(int unit, i2c_bus_addr_t bus_addr, int repeated)
 		/* Next I2C bus phase is read-ready. */
 	    } else if (s == SOC_I2C_ADDR_RD_BIT_TX_NO_ACK_RX ||
 		       s == SOC_I2C_ADDR_WR_BIT_TX_NO_ACK_RX) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c 0x%x: no response from device: %s\n"),
                       unit, bus_addr>>1,
                       soc_i2c_status_message(s)));
             rv = SOC_E_TIMEOUT;
 	    } else{
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c 0x%x: BUS_ADDR "
                                  "unhandled state 0x%x:"
@@ -1200,7 +1200,7 @@ _i2c_start_helper(int unit, i2c_bus_addr_t bus_addr, int repeated)
 	    }
 	}
     } else {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "unit %d i2c 0x%x: timeout generating start condition:"
                              " check or reset I2C bus\n"),
@@ -1316,7 +1316,7 @@ soc_i2c_write_one_byte(int unit, uint8 data)
     soc_i2c_pci_write(unit, CMIC_I2C_DATA, data);
     soc_i2c_next_bus_phase(unit, 1);
     if (SOC_E_TIMEOUT == soc_i2c_wait(unit)) {
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "soc_i2c_write_one_byte: u=%d data=0x%x"
                              " DEVICE TIMEOUT!\n"),
@@ -1413,7 +1413,7 @@ soc_i2c_read_bytes(int unit, uint8* data, int* len, int ack_last_byte)
 	soc_i2c_next_bus_phase(unit, ack);
 
 	if (SOC_E_TIMEOUT == soc_i2c_wait(unit)) {
-	    LOG_INFO(BSL_LS_SOC_I2C,
+	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "soc_i2c_read_bytes: u=%d data=0x%x state=0x%x:[%s]\n"),
                       unit, 0, soc_i2c_stat(unit),
@@ -1523,7 +1523,7 @@ soc_i2c_read_short(int unit, uint16* val, int ack_last_byte)
     soc_i2c_next_bus_phase(unit, 1);
 
     if (SOC_E_TIMEOUT == soc_i2c_wait(unit)) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "soc_i2c_read_short: u=%d data=0x%x state=0x%x:[%s]\n"),
                   unit, 0, soc_i2c_stat(unit),
@@ -1548,7 +1548,7 @@ soc_i2c_read_short(int unit, uint16* val, int ack_last_byte)
 
 	/* Wait for next state change */
 	if (SOC_E_TIMEOUT == soc_i2c_wait(unit)) {
-	    LOG_INFO(BSL_LS_SOC_I2C,
+	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "soc_i2c_read_short: u=%d data=0x%x state=0x%x:[%s]\n"),
                       unit, (uint32)a1, soc_i2c_stat(unit),
@@ -2130,7 +2130,7 @@ soc_i2c_set_freq(int unit)
                             i2c_xgs3_freq_tab[i].n : i2c_freq_tab[i].n;
 	    soc_i2c_pci_write(unit, CMIC_I2C_STAT,
 				(i2cbus->m_val << 3) | i2cbus->n_val);
-	    LOG_INFO(BSL_LS_SOC_I2C,
+	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "unit %d i2c bus: set frequency: "
                                  " just set M=%d N=%d: %s\n"),
@@ -2157,7 +2157,7 @@ soc_i2c_set_freq(int unit)
                     i2c_xgs3_freq_tab[i].n : i2c_freq_tab[i].n;
     soc_i2c_pci_write(unit, CMIC_I2C_STAT,
 		      (i2cbus->m_val << 3) | i2cbus->n_val);
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "unit %d i2c bus: set frequency: "
                          " just set M=%d N=%d: %s\n"),

@@ -663,7 +663,7 @@ _cmd_hd_dest_get(int unit, args_t *a)
 
     pkt_info.fwd_reason = arg_fwd_reason;
 
-    if (LOG_CHECK(BSL_LS_APPL_COMMON | BSL_VERBOSE)) {
+    if (LOG_BSL_CHECK(BSL_LS_APPL_COMMON | BSL_VERBOSE)) {
         cli_out("flags:  0x%08x\n", pkt_info.flags);
         for (i = 0; i < 8 * sizeof(pkt_info.flags); i++) {
             if (pkt_info.flags & (0x1 << i)) {

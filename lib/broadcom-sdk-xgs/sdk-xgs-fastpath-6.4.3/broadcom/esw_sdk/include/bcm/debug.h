@@ -68,7 +68,7 @@ extern void _bcm_debug_api(
 #if defined(BROADCOM_DEBUG)
 #define BCM_API(_1, _2, _3, _4, _5, _6, _7)  \
     do { \
-        if (LOG_CHECK(BSL_LS_BCM_API | BSL_VERBOSE)) \
+        if (LOG_BSL_CHECK(BSL_LS_BCM_API | BSL_VERBOSE)) \
            _bcm_debug_api(_1,_2,_3,_4,_5,_6,_7); \
     } while (0) 
 #else

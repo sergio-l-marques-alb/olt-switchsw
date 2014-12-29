@@ -709,12 +709,12 @@ _soc_ddr40_phy_freqtoloc(uint32 freq)
             return FREQ_1066;
         default:
             if(freq > DDR_FREQ_1066) {
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META("Overclocking Frequency %d MHz \n"),
                           freq));
                 return FREQ_1066;
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("Unsupported Frequency %d MHz \n"), freq));
             return SOC_E_FAIL;
     }
@@ -729,96 +729,96 @@ _shmoo_print_diagnostics(int unit, int ci, int wl) {
 
     x = 0x004C;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL CALIB STATUS\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL CALIB STATUS\n"),
                       x));
     }
     x = 0x0058;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL RD EN CALIB STATUS\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL RD EN CALIB STATUS\n"),
                       x));
     }
     x = 0x0050;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL DQ/DQS CALIB STATUS\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL DQ/DQS CALIB STATUS\n"),
                       x));
     }
     x = 0x0054;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL WR DQ CALIB STATUS\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL WR DQ CALIB STATUS\n"),
                       x));
     }
     x = 0x0030;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE CTL\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE CTL\n"),
                       x));
     }
     x = 0x0034;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BIT CTL\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BIT CTL\n"),
                       x));
     }
     x = 0x003C;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tZQ PVT COMP CTL\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tZQ PVT COMP CTL\n"),
                       x));
     }
     x = 0x006C;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVREF DAC CONTROL\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVREF DAC CONTROL\n"),
                       x));
@@ -830,132 +830,132 @@ _shmoo_print_diagnostics(int unit, int ci, int wl) {
     }
     x = y + 0x0200;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE RD EN\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE RD EN\n"),
                       x));
     }
     x = y + 0x0274;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE0 BIT RD EN\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE0 BIT RD EN\n"),
                       x));
     }
     x = y + 0x0314;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE1 BIT RD EN\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE1 BIT RD EN\n"),
                       x));
     }
     x = y + 0x0234;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE0 BIT0 R DQ\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE0 BIT0 R DQ\n"),
                       x));
     }
     x = y + 0x02D4;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE1 BIT0 R DQ\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE1 BIT0 R DQ\n"),
                       x));
     }
     x = y + 0x0208;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE0 R DQS\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE0 R DQS\n"),
                       x));
     }
     x = y + 0x02A8;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE1 R DQS\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE1 R DQS\n"),
                       x));
     }
     x = y + 0x0204;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE0 WR DQ\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE0 WR DQ\n"),
                       x));
     }
     x = y + 0x0210;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE0 BIT WR DQ\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE0 BIT WR DQ\n"),
                       x));
     }
     x = y + 0x02A4;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE1 WR DQ\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE1 WR DQ\n"),
                       x));
     }
     x = y + 0x02B0;
     if(DDR40_REG_READ(unit, ci, 0x00, x, &data) == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tData = 0x%08X\t\tVDL OVRIDE BYTE1 BIT WR DQ\n"),
                       x, data));
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Address = 0x%04X\t\tERROR            \t\tVDL OVRIDE BYTE1 BIT WR DQ\n"),
                       x));
@@ -993,7 +993,7 @@ int _soc_ddr40_pll_calc(uint32 freq,int *ndiv, int *mdiv) {
         *ndiv = (int)nval;
         *mdiv = (int)mval;
     }
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META("Freq=%d n=%d m=%d err=%d\n"),
               freq, nval, mval, err));
     return err;
@@ -1038,7 +1038,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                 break;
             case DDR_PHYTYPE_NS:
                 if(SOC_IS_KATANA(unit)) {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A01. Reset DDR PLL\n")));
                     SOC_IF_ERROR_RETURN(READ_TOP_SOFT_RESET_REG_2r(unit,&rval));
@@ -1048,7 +1048,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                                                 TOP_DDR3_PLL_POST_RST_Lf, 0);
                     SOC_IF_ERROR_RETURN(WRITE_TOP_SOFT_RESET_REG_2r(unit,rval));
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A02. Set PLL div.(mdiv/ndiv:%d/%d)\n"),
                               mdiv,ndiv));
@@ -1057,7 +1057,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(soc_reg_field32_modify(unit,DDR3_PLL_CTRL_REGISTER_4r,
                                 REG_PORT_ANY, CH0_MDIVf, mdiv));
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A03. Unreset PLL (mdiv:%d ndiv:%d)\n"),
                               mdiv,ndiv));
@@ -1066,7 +1066,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                                                 TOP_DDR3_PLL_RST_Lf, 1);
                     SOC_IF_ERROR_RETURN(WRITE_TOP_SOFT_RESET_REG_2r(unit,rval));
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A04. Wait for PLL lock\n")));
                     to_val = 50000; /* 50 mS */
@@ -1077,21 +1077,21 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "Timed out waiting for DDR3 PLL to Lock\n")));
                             return SOC_E_TIMEOUT;
                         }
                     } while (TRUE);
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A05. Unreset post PLL lock\n")));
                     SOC_IF_ERROR_RETURN(READ_TOP_SOFT_RESET_REG_2r(unit,&rval));
                     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_DDR3_PLL_POST_RST_Lf, 1);
                     SOC_IF_ERROR_RETURN(WRITE_TOP_SOFT_RESET_REG_2r(unit,rval));
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A01. Reset DDR PLL\n")));
                     SOC_IF_ERROR_RETURN(READ_TOP_SOFT_RESET_REG_2r(unit,&rval));
@@ -1101,7 +1101,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                                                 TOP_DDR_PLL0_POST_RST_Lf, 0);
                     SOC_IF_ERROR_RETURN(WRITE_TOP_SOFT_RESET_REG_2r(unit,rval));
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A02. Set PLL div.(mdiv/ndiv:%d/%d)\n"),
                               mdiv,ndiv));
@@ -1110,7 +1110,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(soc_reg_field32_modify(unit,TOP_DDR_PLL0_CTRL_REGISTER_4r,
                                 REG_PORT_ANY, CH0_MDIVf, mdiv));
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A03. Unreset PLL (mdiv:%d ndiv:%d)\n"),
                               mdiv,ndiv));
@@ -1119,7 +1119,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                                                 TOP_DDR_PLL0_RST_Lf, 1);
                     SOC_IF_ERROR_RETURN(WRITE_TOP_SOFT_RESET_REG_2r(unit,rval));
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A04. Wait for PLL lock\n")));
                     to_val = 50000; /* 50 mS */
@@ -1130,14 +1130,14 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "Timed out waiting for DDR3 PLL to Lock\n")));
                             return SOC_E_TIMEOUT;
                         }
                     } while (TRUE);
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "A05. Unreset post PLL lock\n")));
                     SOC_IF_ERROR_RETURN(READ_TOP_SOFT_RESET_REG_2r(unit,&rval));
@@ -1145,7 +1145,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_TOP_SOFT_RESET_REG_2r(unit,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A06. Wait for a while after lock\n")));
                 sal_usleep(2000);
@@ -1153,7 +1153,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
             case DDR_PHYTYPE_ENG:
                 break;
             case DDR_PHYTYPE_AND:
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A01. Reset DDR PLL\n")));
                 SOC_IF_ERROR_RETURN( READ_CX_DDR03_PLL_RESETr( unit, &rval ) );
@@ -1161,7 +1161,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                 soc_reg_field_set(unit, CX_DDR03_PLL_RESETr, &rval, POST_RESET_Nf, 0 );
                 SOC_IF_ERROR_RETURN( WRITE_CX_DDR03_PLL_RESETr( unit, rval ) );
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A02. Set PLL div.(mdiv/ndiv:%d/%d)\n"),
                           mdiv,ndiv));
@@ -1172,7 +1172,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                 soc_reg_field_set(unit, CX_DDR03_PLL_NDIV_INTEGERr, &rval, NDIV_INTf, ndiv );
                 SOC_IF_ERROR_RETURN( WRITE_CX_DDR03_PLL_NDIV_INTEGERr( unit, rval ) );
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A03. Unreset PLL (mdiv:%d ndiv:%d)\n"),
                           mdiv,ndiv) );
@@ -1180,7 +1180,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                 soc_reg_field_set(unit, CX_DDR03_PLL_RESETr, &rval, RESET_Nf, 1 );
                 SOC_IF_ERROR_RETURN( WRITE_CX_DDR03_PLL_RESETr( unit, rval ) );
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A04. Wait for PLL lock\n")));
                 soc_timeout_init(&to, to_val, 0);
@@ -1197,7 +1197,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                         break;
                     }
                     if (soc_timeout_check(&to)) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "Timed out waiting for DDR3 PLLs to Lock -- lock0[%d] lock1[%d] lock2[%d] lock3[%d]\n"),
                                    lock0, lock1, lock2, lock3 ));
@@ -1205,14 +1205,14 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
                     }
                 } while ( !SAL_BOOT_QUICKTURN );
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A05. Unreset post PLL lock\n")) );
                 SOC_IF_ERROR_RETURN( READ_CX_DDR03_PLL_RESETr( unit, &rval ) );
                 soc_reg_field_set(unit, CX_DDR03_PLL_RESETr, &rval, POST_RESET_Nf, 1 );
                 SOC_IF_ERROR_RETURN( WRITE_CX_DDR03_PLL_RESETr( unit, rval ) );
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A06. Wait for a while after lock\n")));
                 sal_usleep(2000);
@@ -1222,7 +1222,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
             case DDR_PHYTYPE_HR2:
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -1252,7 +1252,7 @@ soc_ddr40_phy_pll_ctl(int unit, int ci, uint32 freq, uint32 phyType, int stat)
             case DDR_PHYTYPE_HR2:
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -1283,7 +1283,7 @@ soc_ddr40_phy_pll_rst  (int unit, int ci, uint32 phyType, int cnt)
             case DDR_PHYTYPE_RSVP:
                 break;
             case DDR_PHYTYPE_NS:
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A1. Reset DDR(ci=%d PLL(Iter=%d)\n"),
                           ci,i));
@@ -1296,7 +1296,7 @@ soc_ddr40_phy_pll_rst  (int unit, int ci, uint32 phyType, int cnt)
 
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "A2. Unreset DDR(ci=%d PLL(Iter=%d)\n"),
                           ci,i));
@@ -1314,7 +1314,7 @@ soc_ddr40_phy_pll_rst  (int unit, int ci, uint32 phyType, int cnt)
             case DDR_PHYTYPE_HR2:
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -1357,13 +1357,13 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                 
                 ciC = ci & 0xFFFFFFFE;
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "E01. Reset Vref before Shmoo\n")));
                 rval = 0x820;
                 SOC_IF_ERROR_RETURN(MODIFY_DDR40_PHY_CONTROL_REGS_VREF_DAC_CONTROLr(unit, ciC, rval, 0xFFF));
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "D04. Calibrate ZQ (ddr40_phy_calib_zq) before Shmoo\n")));
                 
@@ -1382,7 +1382,7 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                         break;
                     }
                     if (soc_timeout_check(&to)) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "CI%d: Timed out waiting for ZQ Calibration\n"), ciC));
                         return SOC_E_TIMEOUT;
@@ -1397,7 +1397,7 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                 if (!SAL_BOOT_QUICKTURN) {
                     uint32 rd_en_byte_mode=0, rd_en_byte_vdl_steps=0, rd_en_bit_vdl_offset=0;
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "D07. VDL Calibration before Shmoo\n")));
                     rval = 0;
@@ -1415,7 +1415,7 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for VDL Calibration Idle\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -1424,14 +1424,14 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                     if (soc_property_get(unit, spn_DIAG_EMULATOR_PARTIAL_INIT, 0x0) == 0) {
                         if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: VDL Calibration Did Not Lock reg=%x \n"), ciC, rval));
                             return SOC_E_FAIL;
                         }
                     }
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "VDL calibration result: 0x%0x (cal_steps = %d)\n"),
                               rval, DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_TOTAL) >> 4));
@@ -1455,7 +1455,7 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for VDL Calibration Idle(1)\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -1464,14 +1464,14 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                     if (soc_property_get(unit, spn_DIAG_EMULATOR_PARTIAL_INIT, 0x0) == 0) {
                         if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: VDL Calibration Did Not Lock(1)\n"), ciC));
                             return SOC_E_FAIL;
                         } 
                     }
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "D07. VDL Calibration SKIPPED before Shmoo\n")));
                 }/* Not QUICKTURN */
@@ -1479,7 +1479,7 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
             case DDR_PHYTYPE_CE:
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -1500,7 +1500,7 @@ _soc_ddr40_phy_PVT_ctl(int unit, int ci, uint32 phyType, int stat)
             case DDR_PHYTYPE_HR2:
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -1552,7 +1552,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     return SOC_E_INTERNAL; /* Unsupported Frequency / Grade Combination */
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C01. Check Power Up Reset_Bar\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1566,7 +1566,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY to Power Up\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -1574,7 +1574,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C02. Config and Release PLL from reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1598,7 +1598,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_CONTROL_REGS_PLL_CONFIGr(unit,ciC,rval));
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C03. Poll PLL Lock\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1612,7 +1612,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY PLL to Lock\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -1620,7 +1620,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C04. Calibrate ZQ (ddr40_phy_calib_zq)\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1646,7 +1646,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for ZQ Calibration\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -1654,7 +1654,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C05. DDR PHY VTT On (Virtual VTT setup) DISABLE all Virtual VTT\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1669,7 +1669,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
 
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C06. DDR40_PHY_DDR3_MISC\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1697,7 +1697,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 if (!SAL_BOOT_QUICKTURN) {
                   uint32 rd_en_byte_mode=0, rd_en_byte_vdl_steps=0, rd_en_bit_vdl_offset=0;
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration\n")));
                     for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1724,7 +1724,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -1732,13 +1732,13 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         } while (TRUE);
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: VDL Calibration Did Not Lock reg=%x \n"), ciC, rval));
                             return SOC_E_FAIL;
                         }
 
-                        LOG_INFO(BSL_LS_SOC_DDR,
+                        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                  (BSL_META_U(unit,
                                              "VDL calibration result: 0x%0x (cal_steps = %d)\n"),
                                   rval, DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_TOTAL) >> 4));
@@ -1779,7 +1779,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle(1)\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -1787,19 +1787,19 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         } while (TRUE);
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: VDL Calibration Did Not Lock(1)\n"), ciC));
                             return SOC_E_FAIL;
                         }
                     }
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration SKIPPED\n")));
                 }/* Not QUICKTURN */
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C08. DDR40_PHY_DDR3_MISC : Start DDR40_PHY_RDLY_ODT....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1828,7 +1828,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_WR_PREAMBLE_MODEr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C09. Start ddr40_phy_autoidle_on (MEM_SYS_PARAM_PHY_AUTO_IDLE) ....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1842,7 +1842,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_IDLE_PAD_CONTROLr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C10. Set refresh count to 7.8us\n")));
                 /* Set refresh count to 7.8us (by the time it starts, it already finishes MRS and ZQCal setting) */
@@ -1856,7 +1856,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C11. Set CKE (clock enable)\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -1870,7 +1870,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 }
                 sal_usleep(1000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C12. Wait for Phy Ready\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -1884,7 +1884,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for PHY Ready\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -1892,20 +1892,20 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C13. CI DDR Init : MR0, MR1, MR2, and MR3 command\n")));
                 dram0_clamshell_enable = soc_property_get(unit, spn_DRAM0_CLAMSHELL_ENABLE, 0);
                 dram1_clamshell_enable = soc_property_get(unit, spn_DRAM1_CLAMSHELL_ENABLE, 0);
                 
                 if(dram0_clamshell_enable || dram1_clamshell_enable) {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "     Manual Init\n")));
                     
                     if(dram0_clamshell_enable) {
                         if(dram1_clamshell_enable) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "Illegal clam shell configuration\n")));
                             return SOC_E_FAIL;
@@ -2044,7 +2044,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     }
                 
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "     Auto Init\n")));
                 
@@ -2078,7 +2078,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out DDR Init\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2090,7 +2090,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 /* (19) Add some delay for TZQinit (512 DDR CLK) */
                 sal_usleep(5120);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C14. Clear Read/Write FIFO errors\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -2111,7 +2111,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 }
 
                 if(SOC_IS_KATANA2(unit)) {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C15. Config and Release BIST from reset\n")));
                     for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -2130,7 +2130,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 break;
             case DDR_PHYTYPE_ENG:
             /*    _soc_ddr40_arad_phy_init_mem_set_wrapper(unit, &ENGfgmss, freq_loc, grade_loc); */
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C01. Check Power Up Reset_Bar\n")));
 #ifdef BCM_ARAD_SUPPORT
@@ -2146,7 +2146,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for DDR PHY to Power Up\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2156,7 +2156,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 }
 #endif /* BCM_ARAD_SUPPORT */
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C02. Config and Release PLL from reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2180,7 +2180,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_CONTROL_REGS_PLL_CONFIGr(unit,ciC,rval));
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C03. Poll PLL Lock\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2194,7 +2194,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY PLL to Lock\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2202,7 +2202,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C04. Calibrate ZQ (ddr40_phy_calib_zq)\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2228,7 +2228,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for ZQ Calibration\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2236,7 +2236,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C05. DDR PHY VTT On (Virtual VTT setup) DISABLE all Virtual VTT\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2251,7 +2251,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
 
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C06. DDR40_PHY_DDR3_MISC\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2280,7 +2280,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 if (!SAL_BOOT_QUICKTURN) {
                   uint32 rd_en_byte_mode=0, rd_en_byte_vdl_steps=0, rd_en_bit_vdl_offset=0;
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration\n")));
                     for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2307,7 +2307,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2316,14 +2316,14 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (soc_property_get(unit, spn_DIAG_EMULATOR_PARTIAL_INIT, 0x0) == 0) {
                             if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: VDL Calibration Did Not Lock reg=%x \n"), ciC, rval));
                                 return SOC_E_FAIL;
                             } 
                         }
 
-                        LOG_INFO(BSL_LS_SOC_DDR,
+                        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                  (BSL_META_U(unit,
                                              "VDL calibration result: 0x%0x (cal_steps = %d)\n"),
                                   rval, DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_TOTAL) >> 4));
@@ -2362,7 +2362,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle(1)\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2371,7 +2371,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (soc_property_get(unit, spn_DIAG_EMULATOR_PARTIAL_INIT, 0x0) == 0) {
                             if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: VDL Calibration Did Not Lock(1)\n"), ciC));
                                 return SOC_E_FAIL;
@@ -2379,12 +2379,12 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         }
                     }
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration SKIPPED\n")));
                 }/* Not QUICKTURN */
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C08. DDR40_PHY_DDR3_MISC : Start DDR40_PHY_RDLY_ODT....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2412,7 +2412,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_WR_PREAMBLE_MODEr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C09. Start ddr40_phy_autoidle_on (MEM_SYS_PARAM_PHY_AUTO_IDLE) ....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2426,7 +2426,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_IDLE_PAD_CONTROLr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C10. Wait for Phy Ready\n")));
 #ifdef BCM_ARAD_SUPPORT
@@ -2442,7 +2442,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for PHY Ready\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2453,7 +2453,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
 #endif /* BCM_ARAD_SUPPORT */
                 break;
             case DDR_PHYTYPE_AND:
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C01. Check Power Up Reset_Bar\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2467,7 +2467,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY to Power Up\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2475,7 +2475,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C02. Config and Release PLL from reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2499,7 +2499,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_CONTROL_REGS_PLL_CONFIGr(unit,ciC,rval));
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C03. Poll PLL Lock\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2513,7 +2513,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY PLL to Lock\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2521,7 +2521,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C04. Calibrate ZQ (ddr40_phy_calib_zq)\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2547,7 +2547,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for ZQ Calibration\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2555,7 +2555,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C05. DDR PHY VTT On (Virtual VTT setup) DISABLE all Virtual VTT\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2570,7 +2570,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
 
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C06. DDR40_PHY_DDR3_MISC\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2598,7 +2598,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 if (!SAL_BOOT_QUICKTURN) {
                   uint32 rd_en_byte_mode=0, rd_en_byte_vdl_steps=0, rd_en_bit_vdl_offset=0; 
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration\n")));
                     for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2625,7 +2625,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2633,13 +2633,13 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         } while (TRUE);
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: VDL Calibration Did Not Lock reg=%x \n"), ciC, rval));
                             return SOC_E_FAIL;
                         }
 
-                        LOG_INFO(BSL_LS_SOC_DDR,
+                        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                  (BSL_META_U(unit,
                                              "VDL calibration result: 0x%0x (cal_steps = %d)\n"),
                                   rval, DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_TOTAL) >> 4));
@@ -2679,7 +2679,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle(1)\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -2687,19 +2687,19 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         } while (TRUE);
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: VDL Calibration Did Not Lock(1)\n"), ciC));
                             return SOC_E_FAIL;
                         }
                     }
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration SKIPPED\n")));
                 }/* Not QUICKTURN */
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C08. DDR40_PHY_DDR3_MISC : Start DDR40_PHY_RDLY_ODT....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2724,7 +2724,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_WR_PREAMBLE_MODEr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C09. Start ddr40_phy_autoidle_on (MEM_SYS_PARAM_PHY_AUTO_IDLE) ....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2738,11 +2738,11 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_IDLE_PAD_CONTROLr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C10. <Skipped> Set refresh count to 7.8us\n")));
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C11. Set CKE (clock enable)\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -2756,7 +2756,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 }
                 sal_usleep(1000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C12. Wait for Phy Ready\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2770,7 +2770,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for PHY Ready\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2778,7 +2778,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C13. CI DDR Manual Init : MR0, MR1, MR2, and MR3 command\n")));
                 rval = 0;
@@ -2829,7 +2829,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 /* (19) Add some delay for TZQinit (512 DDR CLK) */
                 sal_usleep(5120);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C13.1 TMU Refresh Request Error Detection Threshold.\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -2841,7 +2841,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_CI_CONFIG3r(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C14. Enable error protection\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -2858,12 +2858,12 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
             case DDR_PHYTYPE_CE:
                 break;
             case DDR_PHYTYPE_HR2:
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C01. Check Power Up Reset_Bar\n")));
                 /* Skipped for DDR_PHYTYPE_HR2 */
                                      
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C02. Config and Release PLL from reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2887,7 +2887,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_CONTROL_REGS_PLL_CONFIGr(unit,ciC,rval));
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C03. Poll PLL Lock\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2901,7 +2901,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY PLL to Lock\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2909,7 +2909,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C04. Calibrate ZQ (ddr40_phy_calib_zq)\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2935,7 +2935,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for ZQ Calibration\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -2943,7 +2943,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C05. DDR PHY VTT On (Virtual VTT setup) DISABLE all Virtual VTT\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2958,7 +2958,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
 
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C06. DDR40_PHY_DDR3_MISC\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -2987,7 +2987,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                 if (!SAL_BOOT_QUICKTURN) {
                   uint32 rd_en_byte_mode=0, rd_en_byte_vdl_steps=0, rd_en_bit_vdl_offset=0;
 
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration\n")));
                     for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -3014,7 +3014,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -3023,14 +3023,14 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (soc_property_get(unit, spn_DIAG_EMULATOR_PARTIAL_INIT, 0x0) == 0) {
                             if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: VDL Calibration Did Not Lock reg=%x \n"), ciC, rval));
                                 return SOC_E_FAIL;
                             } 
                         }
 
-                        LOG_INFO(BSL_LS_SOC_DDR,
+                        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                  (BSL_META_U(unit,
                                              "VDL calibration result: 0x%0x (cal_steps = %d)\n"),
                                   rval, DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_TOTAL) >> 4));
@@ -3069,7 +3069,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                                 break;
                             }
                             if (soc_timeout_check(&to)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: Timed out waiting for VDL Calibration Idle(1)\n"), ciC));
                                 return SOC_E_TIMEOUT;
@@ -3078,7 +3078,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         SOC_IF_ERROR_RETURN(READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit,ciC,&rval));
                         if (soc_property_get(unit, spn_DIAG_EMULATOR_PARTIAL_INIT, 0x0) == 0) {
                             if (0 == DDR40_GET_FIELD(rval,  DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK)) {
-                                LOG_ERROR(BSL_LS_SOC_COMMON,
+                                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                           (BSL_META_U(unit,
                                                       "CI%d: VDL Calibration Did Not Lock(1)\n"), ciC));
                                 return SOC_E_FAIL;
@@ -3086,12 +3086,12 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                         }
                     }
                 } else {
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "C07. VDL Calibration SKIPPED\n")));
                 }/* Not QUICKTURN */
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C08. DDR40_PHY_DDR3_MISC : Start DDR40_PHY_RDLY_ODT....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -3119,7 +3119,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_WR_PREAMBLE_MODEr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C09. Start ddr40_phy_autoidle_on (MEM_SYS_PARAM_PHY_AUTO_IDLE) ....\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -3133,13 +3133,13 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_DDR40_PHY_WORD_LANE_1_IDLE_PAD_CONTROLr(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "C10. Wait for Phy Ready\n")));
                 /* Skipped for DDR_PHYTYPE_HR2 */
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -3160,7 +3160,7 @@ soc_ddr40_phy_calibrate(int unit, int ci, uint32 phyType, int stat)
             case DDR_PHYTYPE_HR2:
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error. Unsupported PHY type\n")));
                 return SOC_E_FAIL;
@@ -3182,7 +3182,7 @@ soc_ddr40_ctlr_reset   (int unit, int ci, uint32 ctlType, int stat)
             case DDR_CTLR_TRSVP:
                 break;
             case DDR_CTLR_T0:
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "(1) Bring CI out of software reset\n")));
                 SOC_IF_ERROR_RETURN(READ_CI_RESETr(unit,ci,&rval));
@@ -3193,7 +3193,7 @@ soc_ddr40_ctlr_reset   (int unit, int ci, uint32 ctlType, int stat)
                 SOC_IF_ERROR_RETURN(WRITE_CI_RESETr(unit,ci,rval));
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "(6) Clear CI DDR Reset\n")));
                 SOC_IF_ERROR_RETURN(READ_CI_RESETr(unit,ci,&rval));
@@ -3204,7 +3204,7 @@ soc_ddr40_ctlr_reset   (int unit, int ci, uint32 ctlType, int stat)
                 SOC_IF_ERROR_RETURN(WRITE_CI_RESETr(unit,ci,rval));
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "(6) Set DDR_RST_N\n")));
                 SOC_IF_ERROR_RETURN(READ_CI_PHY_CONTROLr(unit,ci,&rval));
@@ -3290,7 +3290,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     return SOC_E_INTERNAL; /* Unsupported Frequency / Grade Combination */
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B01. Bring CI out of software reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3306,7 +3306,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     sal_usleep(2000);
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B02. Set Strap and parameter per speed and grade\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3362,7 +3362,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_CI_PHY_STRAPS1r(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B03. Clear CI Phy reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3374,7 +3374,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B04. Set config MR0, MR1, and MR2 registers\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3394,7 +3394,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_CI_DDR_MR2r(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B05. Clear CI DDR Reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3410,7 +3410,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B06. Set DDR_RST_N\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3424,7 +3424,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B06.1 Write 0x1 to PHY_STRAPS_CONTROL\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -3436,7 +3436,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B07. Make sure PHY AUTOINIT at strap is NOT set\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3478,7 +3478,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 if ((mem_size != 1) &&
                     (mem_size != 2) &&
                     (mem_size != 4)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Unsupported memory size config (ext_ram_total_size) %d\n"), mem_size));
                     return SOC_E_PARAM;
@@ -3500,7 +3500,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 soc_reg_field_set( unit, TMB_DISTRIBUTOR_REFRESH_CONFIGr, &rval, REFRESH_TIMER_WINDOWf, T2fgmss.tmb_refresh );
                 SOC_IF_ERROR_RETURN( WRITE_TMB_DISTRIBUTOR_REFRESH_CONFIGr( unit, rval ) );
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B01. Bring CI out of software reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3516,7 +3516,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     sal_usleep(2000);
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B02. Set Strap and parameter per speed and grade\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3585,7 +3585,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_CI_PHY_STRAPS1r(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B03. Check Power Up Reset_Bar\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC+=2) { /* Only Even CIs */
@@ -3599,7 +3599,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                             break;
                         }
                         if (soc_timeout_check(&to)) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "CI%d: Timed out waiting for DDR PHY to Power Up\n"), ciC));
                             return SOC_E_TIMEOUT;
@@ -3607,7 +3607,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     } while (TRUE);
                 }
                 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B04. Clear CI Phy reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3621,7 +3621,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B05. Set config MR0, MR1, and MR2 registers\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3636,7 +3636,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                     SOC_IF_ERROR_RETURN(WRITE_CI_MR2r(unit,ciC,rval));
                 }
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B06. Clear CI DDR Reset\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3649,7 +3649,7 @@ soc_ddr40_ctlr_ctl(int unit, int ci, uint32 ctlType, int stat)
                 }
                 sal_usleep(2000);
 
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "B07. Set DDR_RST_N\n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3728,7 +3728,7 @@ soc_ddr40_ctlr_zqcal_ctl(int unit, int ci, uint32 ctlType, int stat)
             case DDR_CTLR_T2:
 #ifdef BCM_CALADAN3_SUPPORT
                 _soc_ddr40_caladan3_phy_init_mem_set_wrapper(unit, &T2fgmss, freq_loc, grade_loc);
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "F01. Enable continuous ZQ Calibration \n")));
                 for (ciC = 0; ciC < MAX_SHMOO_INTERFACES; ciC++) {
@@ -3820,7 +3820,7 @@ int soc_ddr40_read(int unit, int ci, uint32 addr, uint32 * pData0,
     SOC_IF_ERROR_RETURN(WRITE_CI_MEM_ACC_CTRLr(unit, ci, uCmd));
 
     if (SOC_E_NONE != _DDRWrRdComplete(unit, ci, DDR_TIMEOUT_10mS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Error timeout reading from CI:%d addr:0x%x\n"),
                    ci, addr));
@@ -3868,7 +3868,7 @@ int soc_ddr40_write(int unit, int ci, uint32 addr, uint32 uData0,
     SOC_IF_ERROR_RETURN(WRITE_CI_MEM_ACC_CTRLr(unit, ci, uCmd));
 
     if (SOC_E_NONE != _DDRWrRdComplete(unit, ci, DDR_TIMEOUT_10mS)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Error timeout writing to CI:%d addr:0x%x\n"), ci,
                    addr));
@@ -4425,7 +4425,7 @@ _test_func_self_test_1_katana(int unit, int ci, int wl, int loop, uint32 flag)
                 break;
             }
             if (i > 10000) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Functional Self-Test timeout (1) \n")));
                 result_fail = 0xFFFF;
@@ -4598,7 +4598,7 @@ _test_func_self_test_1_katana2(int unit, int ci, int wl, int loop, uint32 flag)
                 break;
             }
             if (i > 10000) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Functional Self-Test timeout (1) \n")));
                 result_fail = 0xFFFF;
@@ -4771,7 +4771,7 @@ _test_func_self_test_1_arad(int unit, int ci, int wl, int loop, uint32 flag)
                 break;
             }
             if (i > 10000) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Functional Self-Test timeout (1) \n")));
                 result_fail = 0xFFFF;
@@ -4957,7 +4957,7 @@ _test_func_self_test_1_hurricane2(int unit, int ci, int wl, int loop, uint32 fla
                 break;
             }
             if (i > 10000) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Functional Self-Test timeout (1) \n")));
                 result_fail = 0xFFFF;
@@ -5130,7 +5130,7 @@ _test_func_self_test_2_katana(int unit, int ci, int wl, int loop)
                     break;
                 }
                 if (i > 100000) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Functional Self-Test timeout (2) \n")));
                     return SOC_E_FAIL;
@@ -5245,7 +5245,7 @@ _test_func_self_test_2_katana2(int unit, int ci, int wl, int loop)
                     break;
                 }
                 if (i > 10000) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Functional Self-Test timeout (1) \n")));
                     result_fail = 0xFFFF;
@@ -5353,7 +5353,7 @@ _test_func_self_test_2_arad(int unit, int ci, int wl, int loop)
                 break;
             }
             if (i > 10000) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Functional Self-Test timeout (1) \n")));
                 result_fail = 0xFFFF;
@@ -5469,7 +5469,7 @@ _test_func_self_test_2_hurricane2(int unit, int ci, int wl, int loop)
                 break;
             }
             if (i > 10000) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Functional Self-Test timeout (1) \n")));
                 result_fail = 0xFFFF;
@@ -5570,33 +5570,33 @@ int _soc_ddr_shmoo_prepare_for_shmoo(int unit, int ci)
     wl = 0;
     /* I want to display all STATUS value here and report */
     READ_DDR40_PHY_CONTROL_REGS_PLL_STATUSr(unit, ci, &data);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"), wl, data));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) PLL_STATUS : LOCK_LOST = 0x%x \n"), wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, PLL_STATUS,
               LOCK_LOST)));
     
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) PLL_STATUS : LOCK      = 0x%x \n"), wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, PLL_STATUS,
               LOCK)));
     READ_DDR40_PHY_CONTROL_REGS_ZQ_PVT_COMP_CTLr(unit, ci, &data);
     
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"), wl, data));
     
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) ZQ_PVT_COMP_CTL : PD_COMP          = 0x%x \n"), wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, ZQ_PVT_COMP_CTL,
               PD_COMP)));
     
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) ZQ_PVT_COMP_CTL : ND_COMP          = 0x%x \n"), wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, ZQ_PVT_COMP_CTL,
@@ -5604,23 +5604,23 @@ int _soc_ddr_shmoo_prepare_for_shmoo(int unit, int ci)
     if (wl == 0) {
         READ_DDR40_PHY_WORD_LANE_0_READ_CONTROLr(unit, ci, &data);
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) data      = 0x%x \n"), wl, data));
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) PHY_WORD_LANE_READ_CONTROL : DQ_ODT_ENABLE = 0x%x \n"),
                   wl, DDR40_GET_FIELD(data, DDR40_PHY_WORD_LANE_0, READ_CONTROL,
                   DQ_ODT_ENABLE)));
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) PHY_WORD_LANE_READ_CONTROL : DQ_ODT_LE_ADJ = 0x%x \n"),
                   wl, DDR40_GET_FIELD(data, DDR40_PHY_WORD_LANE_0, READ_CONTROL,
                   DQ_ODT_LE_ADJ)));
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) PHY_WORD_LANE_READ_CONTROL : DQ_ODT_TE_ADJ = 0x%x \n"),
                   wl, DDR40_GET_FIELD(data, DDR40_PHY_WORD_LANE_0, READ_CONTROL,
@@ -5628,300 +5628,300 @@ int _soc_ddr_shmoo_prepare_for_shmoo(int unit, int ci)
     } else {                    /* if (wl==0) */
         READ_DDR40_PHY_WORD_LANE_1_READ_CONTROLr(unit, ci, &data);
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) data      = 0x%x \n"), wl, data));
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) PHY_WORD_LANE_READ_CONTROL : DQ_ODT_ENABLE = 0x%x \n"),
                   wl, DDR40_GET_FIELD(data, DDR40_PHY_WORD_LANE_1, READ_CONTROL,
                   DQ_ODT_ENABLE)));
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) PHY_WORD_LANE_READ_CONTROL : DQ_ODT_LE_ADJ = 0x%x \n"),
                   wl, DDR40_GET_FIELD(data, DDR40_PHY_WORD_LANE_1, READ_CONTROL,
                   DQ_ODT_LE_ADJ)));
         
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "(WL=%d) PHY_WORD_LANE_READ_CONTROL : DQ_ODT_TE_ADJ = 0x%x \n"),
                   wl, DDR40_GET_FIELD(data, DDR40_PHY_WORD_LANE_1, READ_CONTROL,
                   DQ_ODT_TE_ADJ)));
     }
     READ_DDR40_PHY_CONTROL_REGS_VDL_CALIBRATEr(unit, ci, &data);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"),
               wl, data));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_FAST       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_FAST)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_ONCE       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_ONCE)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_ALWAYS     = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_ALWAYS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_TEST       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_TEST)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_CLOCKS     = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_CLOCKS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_BYTE       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_BYTE)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_PHYBIST    = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_PHYBIST)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_FTM        = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_FTM)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_AUTO       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_AUTO)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_STEPS      = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_STEPS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_DQS_PAIR   = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_DQS_PAIR)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_DQS_CLOCKS = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_DQS_CLOCKS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : CALIB_BIT_OFFSET = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               CALIB_BIT_OFFSET)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : RD_EN_CAL        = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               RD_EN_CAL)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : BIT_CAL          = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               BIT_CAL)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : SET_MR_MPR       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               SET_MR_MPR)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : DQ0_ONLY         = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               DQ0_ONLY)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : SET_WR_DQ        = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               SET_WR_DQ)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : BIT_REFRESH      = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               BIT_REFRESH)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : RD_DLY_CAL       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               RD_DLY_CAL)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : EXIT_IN_SR       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               EXIT_IN_SR)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : SKIP_RST         = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               SKIP_RST)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : AUTO_INIT        = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               AUTO_INIT)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIBRATE : USE_STRAPS       = 0x%x \n"),
               wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIBRATE,
               USE_STRAPS)));
     READ_DDR40_PHY_CONTROL_REGS_VDL_CALIB_STATUSr(unit, ci, &data);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"),
               wl, data));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : CALIB_LOCK                           = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
               CALIB_LOCK)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : CALIB_IDLE                           = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
               CALIB_IDLE)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : CALIB_BYTE_SEL                       = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
               CALIB_BYTE_SEL)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : CALIB_BIT_OFFSET  set if byte mode   = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
               CALIB_BIT_OFFSET)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) NOTE: For single step calibration total result, please see below \n"),
               wl));
     READ_DDR40_PHY_CONTROL_REGS_VDL_DQ_CALIB_STATUSr(unit, ci, &data);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"),
               wl, data));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_DQ_CALIB_STATUS : DQ_CALIB_LOCK                     = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_DQ_CALIB_STATUS,
               DQ_CALIB_LOCK)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_DQ_CALIB_STATUS : DQS_CALIB_LOCK                    = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_DQ_CALIB_STATUS,
               DQS_CALIB_LOCK)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_DQ_CALIB_STATUS : DQS_CALIB_MODE    DQS(1=pair)     = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_DQ_CALIB_STATUS,
               DQS_CALIB_MODE)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_DQ_CALIB_STATUS : DQS_CALIB_CLOCKS  DQS(0=half bit) = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_DQ_CALIB_STATUS,
               DQS_CALIB_CLOCKS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_DQ_CALIB_STATUS : DQ_CALIB_TOTAL    DQ (steps)      = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_DQ_CALIB_STATUS,
               DQ_CALIB_TOTAL) >> 4));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_DQ_CALIB_STATUS : DQS_CALIB_TOTAL   DQS (steps)     = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_DQ_CALIB_STATUS,
               DQS_CALIB_TOTAL) >> 4));
     READ_DDR40_PHY_CONTROL_REGS_VDL_WR_CHAN_CALIB_STATUSr(unit, ci, &data);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"),
               wl, data));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_WR_CHAN_CALIB_STATUS : WR_CHAN_CALIB_LOCK                                          = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_WR_CHAN_CALIB_STATUS, WR_CHAN_CALIB_LOCK)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_WR_CHAN_CALIB_STATUS : WR_CHAN_CALIB_BYTE_SEL   (1=byte)                           = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_WR_CHAN_CALIB_STATUS,
               WR_CHAN_CALIB_BYTE_SEL)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_WR_CHAN_CALIB_STATUS : WR_CHAN_CALIB_CLOCKS     (0=1/2bit)                         = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_WR_CHAN_CALIB_STATUS, WR_CHAN_CALIB_CLOCKS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_WR_CHAN_CALIB_STATUS : WR_CHAN_CALIB_TOTAL      (steps)                            = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_WR_CHAN_CALIB_STATUS,
               WR_CHAN_CALIB_TOTAL) >> 4));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_WR_CHAN_CALIB_STATUS : WR_CHAN_CALIB_BIT_OFFSET (in byte mode, setting for bit vdl)= 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_WR_CHAN_CALIB_STATUS,
               WR_CHAN_CALIB_BIT_OFFSET)));
     READ_DDR40_PHY_CONTROL_REGS_VDL_RD_EN_CALIB_STATUSr(unit, ci, &data);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) data      = 0x%x \n"),
               wl, data));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_RD_EN_CALIB_STATUS : RD_EN_CALIB_LOCK                                          = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_RD_EN_CALIB_STATUS, RD_EN_CALIB_LOCK)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_RD_EN_CALIB_STATUS : RD_EN_CALIB_BYTE_SEL   (1=byte)                           = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_RD_EN_CALIB_STATUS, RD_EN_CALIB_BYTE_SEL)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_RD_EN_CALIB_STATUS : RD_EN_CALIB_CLOCKS     (0=1/2bit)                         = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_RD_EN_CALIB_STATUS, RD_EN_CALIB_CLOCKS)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_RD_EN_CALIB_STATUS : RD_EN_CALIB_TOTAL      (steps)                            = 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
               VDL_RD_EN_CALIB_STATUS, RD_EN_CALIB_TOTAL) >> 4));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_RD_EN_CALIB_STATUS : RD_EN_CALIB_BIT_OFFSET (in byte mode, setting for bit vdl)= 0x%x \n"),
               wl, DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS,
@@ -5944,7 +5944,7 @@ int _soc_ddr_shmoo_prepare_for_shmoo(int unit, int ci)
                                 CALIB_TOTAL);
             if (DDR40_GET_FIELD
                 (data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS, CALIB_LOCK))
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "(WL=%d) VDL_CALIB_STATUS : NOT CALIB_LOCK \n"),
                           wl));
@@ -5961,42 +5961,42 @@ int _soc_ddr_shmoo_prepare_for_shmoo(int unit, int ci)
     clock_period1000 = 1000000000 / SOC_DDR3_CLOCK_MHZ(unit);
     clock_period = clock_period1000 / 1000;
 
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "-----------------------------------------\n")));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "---  Single STEP Calibration          ---\n")));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "-----------------------------------------\n")));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : CALIB_LOCK        = %0d        \n"), wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
               CALIB_LOCK)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : CALIB_IDLE        = %0d        \n"), wl,
               DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
               CALIB_IDLE)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : 360' CALIB_TOTAL  = %4d.000 (steps)\n"), wl,
               calib_steps));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS :  90' CALIB TOTAL  = %4d.%03d (steps)\n"), wl,
               (calib_steps >> 2), (((calib_steps * 1000) - (((calib_steps >> 2) << 2) * 1000)) >> 2)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : 360'   steps time = %4d.%03d (ps)   \n"),
               wl, clock_period, clock_period1000 - (clock_period * 1000)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS :  90'   steps time = %4d.%03d (ps)   \n"),
               wl, (clock_period >> 2), ((clock_period1000 - (((clock_period >> 2) << 2) * 1000)) >> 2)));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "(WL=%d) VDL_CALIB_STATUS : Single step  time = %4d.%03d (ps)   \n"),
               wl, (clock_period / calib_steps), ((clock_period1000 - (((clock_period / calib_steps) * calib_steps) * 1000)) / calib_steps)));
@@ -6253,7 +6253,7 @@ int _soc_arad_mem_reset_and_init_after_shmoo_addr(int unit, int ci)
             break;
         }
         if (timeout_cnt > 20000) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "CI%d: Timed out DRAM re-initialization\n"), ci));
             return SOC_E_TIMEOUT;
@@ -6386,7 +6386,7 @@ int _shmoo_init_vdl_result(int unit, int ci, int wl, int self_test, uint32 * res
     calib_steps =
                 DDR40_GET_FIELD(data, DDR40_PHY_CONTROL_REGS, VDL_CALIB_STATUS,
                                 CALIB_TOTAL);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "calib_steps: %d\n"),
               calib_steps));
@@ -6765,7 +6765,7 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
         rd_en_fail = 0;
         rd_en_size = 0;
         rd_en_window_found = 0;
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "RD_DATA_DLY Iter: %d\t"),
                   j)); 
@@ -6805,7 +6805,7 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
             }
 
             if (result[i] == 0) {       /* PASS */
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "+"))); 
                 if (see_pass == 0) {
@@ -6813,7 +6813,7 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
                     see_pass = 1;
                 }
             } else {
-                LOG_INFO(BSL_LS_SOC_DDR,
+                LOG_BSL_INFO(BSL_LS_SOC_DDR,
                          (BSL_META_U(unit,
                                      "-"))); 
                 if (see_pass==1 && see_fail==0) {
@@ -6846,14 +6846,14 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
                 }
             }
         }
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "\n"))); 
         if(rd_data_dly_pass_count != 0) {
             rd_data_dly_pass_avg = rd_data_dly_pass_sum + 1;
             break;
         }
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "RD_DATA_DLY Iter: %d\tCount: %d\tSum: %2d\n"),
                   j, rd_data_dly_pass_count, rd_data_dly_pass_sum)); 
@@ -6867,21 +6867,21 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
 
     if(rd_data_dly_pass_count == 0) {
         rd_data_dly_pass_avg = 4;
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Did not find valid RD_DATA_DELAY. Forcing RD_DATA_DELAY = %d\n"),
                   rd_data_dly_pass_avg));
     } else {
       /*  if(wl == 0) {
         rd_data_dly_pass_avg = 7;
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Found valid RD_DATA_DELAY but forcing RD_DATA_DELAY = %d\n"),
                   rd_data_dly_pass_avg));
         } */
       /*  if(wl == 1) {
             rd_data_dly_pass_avg = result0;
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Found valid RD_DATA_DELAY but copying WL0 RD_DATA_DELAY = %d\n"),
                       rd_data_dly_pass_avg));
@@ -6892,7 +6892,7 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
     /* For every single RD_DATA_DLY, we shmoo RD_EN to find the largest window */
     data = rd_data_dly_pass_avg;
     if (wl == 0) {
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Switching to RD_DATA_DELAY Step  : %2d (WL = 0)\n"),
                   data));
@@ -6903,14 +6903,14 @@ _shmoo_rd_data_dly(int unit, int ci, int wl, int self_test, uint32 * result)
         result0 =
             DDR40_GET_FIELD(result0, DDR40_PHY_WORD_LANE_0, READ_DATA_DLY, RD_DATA_DLY);
         if(data > result0) {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Equalizing to RD_DATA_DELAY Step : %2d (Both WLs)\n"),
                       data));
             WRITE_DDR40_PHY_WORD_LANE_0_READ_DATA_DLYr(unit, ci, data);
             WRITE_DDR40_PHY_WORD_LANE_1_READ_DATA_DLYr(unit, ci, data);
         } else {
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Copying WL0 RD_DATA_DELAY Step   : %2d (WL = 1)\n"),
                       result0));
@@ -6968,19 +6968,19 @@ STATIC int _shmoo_rd_dq(int unit, int ci, int wl)
         WRITE_DDR40_PHY_WORD_LANE_0_VDL_OVRIDE_BYTE0_R_Nr(unit, ci, data);
         data = SET_OVR_STEP(new_rd_en_step);
         WRITE_DDR40_PHY_WORD_LANE_0_VDL_OVRIDE_BYTE0_BIT_RD_ENr(unit, ci, data);
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_DQS Setting   (Byte 0): %2d\n"),
                   init_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_EN Setting    (Byte 0): %2d\n"),
                   init_rd_en_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_DQS Setting       (Byte 0): %2d\n"),
                   new_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_EN Setting        (Byte 0): %2d\n"),
                   new_rd_en_step));
@@ -7004,19 +7004,19 @@ STATIC int _shmoo_rd_dq(int unit, int ci, int wl)
         WRITE_DDR40_PHY_WORD_LANE_0_VDL_OVRIDE_BYTE1_R_Nr(unit, ci, data);
         data = SET_OVR_STEP(new_rd_en_step);
         WRITE_DDR40_PHY_WORD_LANE_0_VDL_OVRIDE_BYTE1_BIT_RD_ENr(unit, ci, data);
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_DQS Setting   (Byte 1): %2d\n"),
                   init_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_EN Setting    (Byte 1): %2d\n"),
                   init_rd_en_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_DQS Setting       (Byte 1): %2d\n"),
                   new_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_EN Setting        (Byte 1): %2d\n"),
                   new_rd_en_step));
@@ -7043,19 +7043,19 @@ STATIC int _shmoo_rd_dq(int unit, int ci, int wl)
         WRITE_DDR40_PHY_WORD_LANE_1_VDL_OVRIDE_BYTE0_R_Nr(unit, ci, data);
         data = SET_OVR_STEP(new_rd_en_step);
         WRITE_DDR40_PHY_WORD_LANE_1_VDL_OVRIDE_BYTE0_BIT_RD_ENr(unit, ci, data);
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_DQS Setting   (Byte 0): %2d\n"),
                   init_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_EN Setting    (Byte 0): %2d\n"),
                   init_rd_en_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_DQS Setting       (Byte 0): %2d\n"),
                   new_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_EN Setting        (Byte 0): %2d\n"),
                   new_rd_en_step));
@@ -7079,19 +7079,19 @@ STATIC int _shmoo_rd_dq(int unit, int ci, int wl)
         WRITE_DDR40_PHY_WORD_LANE_1_VDL_OVRIDE_BYTE1_R_Nr(unit, ci, data);
         data = SET_OVR_STEP(new_rd_en_step);
         WRITE_DDR40_PHY_WORD_LANE_1_VDL_OVRIDE_BYTE1_BIT_RD_ENr(unit, ci, data);
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_DQS Setting   (Byte 1): %2d\n"),
                   init_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "Initial RD_EN Setting    (Byte 1): %2d\n"),
                   init_rd_en_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_DQS Setting       (Byte 1): %2d\n"),
                   new_rd_dqs_step));
-        LOG_INFO(BSL_LS_SOC_DDR,
+        LOG_BSL_INFO(BSL_LS_SOC_DDR,
                  (BSL_META_U(unit,
                              "New RD_EN Setting        (Byte 1): %2d\n"),
                   new_rd_en_step));
@@ -7175,11 +7175,11 @@ STATIC int _shmoo_rd_dq(int unit, int ci, int wl)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "Switching to RD_DQ Step (Byte 0) : %2d\n"),
               new_rd_dq_step0));
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "Switching to RD_DQ Step (Byte 1) : %2d\n"),
               new_rd_dq_step1));
@@ -7896,7 +7896,7 @@ STATIC int _calib_all2(int unit, int ci, int wl, uint32 size, vref_word_shmoo *v
     }
     
     vrefAvg = (overallmPLiter0 + overallmPLiter1) >> 1;
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "Switching to Vref Step           : %2d\n"),
               vrefAvg));
@@ -8007,7 +8007,7 @@ STATIC int _calib_all3(int unit, int ci, int wl, uint32 size, vref_word_shmoo *v
 
     /* RD_DQ */
     data = SET_OVR_STEP(yMidPoint0);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "Switching to RD_DQ Step (Byte 0) : %2d\n"),
               yMidPoint0));
@@ -8026,7 +8026,7 @@ STATIC int _calib_all3(int unit, int ci, int wl, uint32 size, vref_word_shmoo *v
                                                                data);
     }
     data = SET_OVR_STEP(yMidPoint1);
-    LOG_INFO(BSL_LS_SOC_DDR,
+    LOG_BSL_INFO(BSL_LS_SOC_DDR,
              (BSL_META_U(unit,
                          "Switching to RD_DQ Step (Byte 1) : %2d\n"),
               yMidPoint1));
@@ -8428,11 +8428,11 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             init_rd_en_step = (*vwsPtr)[vref_pick].uncapped_rd_en_step[0];
             new_rd_dqs_step = sp->new_step[0];
             new_rd_en_step = init_rd_en_step - ((init_rd_dqs_step - new_rd_dqs_step) >> RD_EN_DQS_CORROLATION);
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_DQS Step (Byte 0): %2d\n"),
                       new_rd_dqs_step));
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_EN Step  (Byte 0): %2d\n"),
                       new_rd_en_step));
@@ -8441,12 +8441,12 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             WRITE_DDR40_PHY_WORD_LANE_0_VDL_OVRIDE_BYTE0_R_Nr(unit, ci, data);
             data = SET_OVR_STEP(new_rd_en_step);
 #ifdef BCM_CALADAN3_SUPPORT
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Original data = %x\n"),
                       data));  /* STEVE */
             data = data - 2;  /* STEVE */
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Writing WL0 BYTE0_BIT_RD_EN reg with %x in _soc_ddr40_shmoo_set_new_step\n"),
                       data));  /* STEVE */
@@ -8460,22 +8460,22 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             init_rd_en_step = (*vwsPtr)[vref_pick].uncapped_rd_en_step[1];
             new_rd_dqs_step = sp->new_step[8];
             new_rd_en_step = init_rd_en_step - ((init_rd_dqs_step - new_rd_dqs_step) >> RD_EN_DQS_CORROLATION);
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_DQS Step (Byte 1): %2d\n"),
                       new_rd_dqs_step));
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_EN Step  (Byte 1): %2d\n"),
                       new_rd_en_step));
             data = SET_OVR_STEP(new_rd_dqs_step);
 #ifdef BCM_CALADAN3_SUPPORT
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Original data = %x\n"),
                       data));  /* STEVE */
             data = data - 2;  /* STEVE */
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Writing WL0 BYTE1_BIT_RD_EN reg with %x in _soc_ddr40_shmoo_set_new_step\n"),
                       data));  /* STEVE */
@@ -8484,12 +8484,12 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             WRITE_DDR40_PHY_WORD_LANE_0_VDL_OVRIDE_BYTE1_R_Nr(unit, ci, data);
             data = SET_OVR_STEP(new_rd_en_step);
 #ifdef BCM_CALADAN3_SUPPORT
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Original data = %x\n"),
                       data));  /* STEVE */
             data = data - 2;  /* STEVE */
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Writing WL0 BYTE_RD_EN reg with %x in _soc_ddr40_shmoo_set_new_step\n"),
                       data));  /* STEVE */
@@ -8506,11 +8506,11 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             init_rd_en_step = (*vwsPtr)[vref_pick].uncapped_rd_en_step[0];
             new_rd_dqs_step = sp->new_step[0];
             new_rd_en_step = init_rd_en_step - ((init_rd_dqs_step - new_rd_dqs_step) >> RD_EN_DQS_CORROLATION); 
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_DQS Step (Byte 0): %2d\n"),
                       new_rd_dqs_step));
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_EN Step  (Byte 0): %2d\n"),
                       new_rd_en_step));
@@ -8519,12 +8519,12 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             WRITE_DDR40_PHY_WORD_LANE_1_VDL_OVRIDE_BYTE0_R_Nr(unit, ci, data);
             data = SET_OVR_STEP(new_rd_en_step);
 #ifdef BCM_CALADAN3_SUPPORT
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Original data = %x\n"),
                       data));  /* STEVE */
             data = data - 2;  /* STEVE */
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Writing WL1 BYTE0_BIT_RD_EN reg with %x in _soc_ddr40_shmoo_set_new_step\n"),
                       data));  /* STEVE */
@@ -8538,11 +8538,11 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             init_rd_en_step = (*vwsPtr)[vref_pick].uncapped_rd_en_step[1];
             new_rd_dqs_step = sp->new_step[8];
             new_rd_en_step = init_rd_en_step - ((init_rd_dqs_step - new_rd_dqs_step) >> RD_EN_DQS_CORROLATION); 
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_DQS Step (Byte 1): %2d\n"),
                       new_rd_dqs_step));
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "Switching to RD_EN Step  (Byte 1): %2d\n"),
                       new_rd_en_step));
@@ -8551,12 +8551,12 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             WRITE_DDR40_PHY_WORD_LANE_1_VDL_OVRIDE_BYTE1_R_Nr(unit, ci, data);
             data = SET_OVR_STEP(new_rd_en_step);
 #ifdef BCM_CALADAN3_SUPPORT
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Original data = %x\n"),
                       data));  /* STEVE */
             data = data - 2;  /* STEVE */
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Writing WL1 BYTE1_BIT_RD_EN reg with %x in _soc_ddr40_shmoo_set_new_step\n"),
                       data));  /* STEVE */
@@ -8565,12 +8565,12 @@ _soc_ddr40_shmoo_set_new_step(int unit, int ci, soc_ddr_shmoo_param_t *sp)
             new_rd_en_avg_step = (new_rd_en_avg_step + new_rd_en_step) >> 1;
             data = SET_OVR_STEP(new_rd_en_avg_step);
 #ifdef BCM_CALADAN3_SUPPORT
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Original data = %x\n"),
                       data));  /* STEVE */
             data = data - 2;  /* STEVE */
-            LOG_INFO(BSL_LS_SOC_DDR,
+            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                      (BSL_META_U(unit,
                                  "STEVE: Writing WL1 BYTE_RD_EN reg with %x in _soc_ddr40_shmoo_set_new_step\n"),
                       data));  /* STEVE */
@@ -8672,7 +8672,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                         continue;
                     }
                     sp->type = SHMOO_INIT_VDL_RESULT;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8681,12 +8681,12 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                 }
@@ -8695,7 +8695,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                         continue;
                     }
                     sp->type = SHMOO_RD_EN;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8704,16 +8704,16 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     sp->type = SHMOO_RD_DQ;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8722,16 +8722,16 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     sp->type = SHMOO_WR_DQ;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8740,18 +8740,18 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     if((_check_dram_both(ci+(sp->wl)) && (sp->wl == 1)) || (!_check_dram_both(ci+(sp->wl)) && _check_dram_either(ci+(sp->wl)))) {
                         sp->wl = 0;
                         for(sp->type = SHMOO_ADDRC; sp->type < SHMOO_WR_DM; sp->type++) {
-                            LOG_INFO(BSL_LS_SOC_DDR,
+                            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                      (BSL_META_U(unit,
                                                  "BEFORE SHMOO: Type = %d\tCI = %d\tWL = Both\n"),
                                       sp->type, ci));
@@ -8760,12 +8760,12 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                             _soc_ddr40_shmoo_do(unit, ci, sp);
                             _soc_ddr40_shmoo_calib(unit,ci,sp);
                             _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                            LOG_INFO(BSL_LS_SOC_DDR,
+                            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                      (BSL_META_U(unit,
                                                  "AFTER SHMOO:  Type = %d\tCI = %d\tWL = Both\n"),
                                       sp->type, ci));
                             _shmoo_print_diagnostics(unit, ci, sp->wl);
-                            if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                            if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                                 _soc_ddr40_shmoo_plot(sp);
                             }
                         }
@@ -8798,7 +8798,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     SOC_IF_ERROR_RETURN(WRITE_CI_ERRORr(unit, ciC + 1, rval));
                 }
                 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "DDR Tuning Complete\n")));
                 break;
@@ -8824,7 +8824,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                         continue;
                     }
                     sp->type = SHMOO_INIT_VDL_RESULT;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8833,12 +8833,12 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                 }
@@ -8847,7 +8847,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                         continue;
                     }
                     sp->type = SHMOO_RD_EN;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8856,16 +8856,16 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     sp->type = SHMOO_RD_DQ;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8874,16 +8874,16 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     sp->type = SHMOO_WR_DQ;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8892,18 +8892,18 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     if((_check_dram_both(ci+(sp->wl)) && (sp->wl == 1)) || (!_check_dram_both(ci+(sp->wl)) && _check_dram_either(ci+(sp->wl)))) {
                         sp->wl = 0;
                         for(sp->type = SHMOO_ADDRC; sp->type < SHMOO_WR_DM; sp->type++) {
-                            LOG_INFO(BSL_LS_SOC_DDR,
+                            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                      (BSL_META_U(unit,
                                                  "BEFORE SHMOO: Type = %d\tCI = %d\tWL = Both\n"),
                                       sp->type, ci));
@@ -8912,12 +8912,12 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                             _soc_ddr40_shmoo_do(unit, ci, sp);
                             _soc_ddr40_shmoo_calib(unit,ci,sp);
                             _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                            LOG_INFO(BSL_LS_SOC_DDR,
+                            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                      (BSL_META_U(unit,
                                                  "AFTER SHMOO:  Type = %d\tCI = %d\tWL = Both\n"),
                                       sp->type, ci));
                             _shmoo_print_diagnostics(unit, ci, sp->wl);
-                            if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                            if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                                 _soc_ddr40_shmoo_plot(sp);
                             }
                         }
@@ -8930,7 +8930,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                 if (sp != NULL) {
                     sal_free(sp);
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "DDR Tuning Complete\n")));
                 break;
@@ -8956,7 +8956,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                         continue;
                     }
                     sp->type = SHMOO_INIT_VDL_RESULT;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8965,12 +8965,12 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                 }
@@ -8979,7 +8979,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                         continue;
                     }
                     sp->type = SHMOO_RD_EN;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -8988,16 +8988,16 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     sp->type = SHMOO_RD_DQ;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -9006,16 +9006,16 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     sp->type = SHMOO_WR_DQ;
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "BEFORE SHMOO: Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
@@ -9024,18 +9024,18 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                     _soc_ddr40_shmoo_do(unit, ci, sp);
                     _soc_ddr40_shmoo_calib(unit,ci, sp);
                     _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                    LOG_INFO(BSL_LS_SOC_DDR,
+                    LOG_BSL_INFO(BSL_LS_SOC_DDR,
                              (BSL_META_U(unit,
                                          "AFTER SHMOO:  Type = %d\tCI = %d\tWL = %d\n"),
                               sp->type, ci, sp->wl));
                     _shmoo_print_diagnostics(unit, ci, sp->wl);
-                    if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                    if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                         _soc_ddr40_shmoo_plot(sp);
                     }
                     if((_check_dram_both(ci+(sp->wl)) && (sp->wl == 1)) || (!_check_dram_both(ci+(sp->wl)) && _check_dram_either(ci+(sp->wl)))) {
                         sp->wl = 0;
                         for(sp->type = SHMOO_ADDRC; sp->type < SHMOO_WR_DM; sp->type++) {
-                            LOG_INFO(BSL_LS_SOC_DDR,
+                            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                      (BSL_META_U(unit,
                                                  "BEFORE SHMOO: Type = %d\tCI = %d\tWL = Both\n"),
                                       sp->type, ci));
@@ -9044,12 +9044,12 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                             _soc_ddr40_shmoo_do(unit, ci, sp);
                             _soc_ddr40_shmoo_calib(unit,ci,sp);
                             _soc_ddr40_shmoo_set_new_step(unit, ci, sp);
-                            LOG_INFO(BSL_LS_SOC_DDR,
+                            LOG_BSL_INFO(BSL_LS_SOC_DDR,
                                      (BSL_META_U(unit,
                                                  "AFTER SHMOO:  Type = %d\tCI = %d\tWL = Both\n"),
                                       sp->type, ci));
                             _shmoo_print_diagnostics(unit, ci, sp->wl);
-                            if (isplot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
+                            if (isplot || LOG_BSL_CHECK(BSL_LS_SOC_DDR | BSL_INFO)) {
                                 _soc_ddr40_shmoo_plot(sp);
                             }
                         }
@@ -9062,7 +9062,7 @@ soc_ddr40_shmoo_ctl(int unit, int ci, uint32 phyType, uint32 ctlType, int stat, 
                 if (sp != NULL) {
                     sal_free(sp);
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "DDR Tuning Complete\n")));
                 break;

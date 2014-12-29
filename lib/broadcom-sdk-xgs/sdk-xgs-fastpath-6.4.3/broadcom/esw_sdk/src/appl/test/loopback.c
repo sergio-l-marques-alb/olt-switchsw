@@ -2143,7 +2143,7 @@ lb_do_txrx(loopback_test_t *lw)
     uint32      tx_count, rx_count;
     uint32      rx_count0, rx_count1, rx_count2, rx_count3;
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Testing %s->%s count %d, chain %d-%d += %d, "
                        "len %d-%d += %d, cos %d-%d\n"),
               SOC_PORT_NAME(lw->lw_unit, lp->lp_tx_port),
@@ -2338,7 +2338,7 @@ lb_dma_run_common(int unit, loopback_test_t *lw, loopback_testdata_t *lp)
     lp->lp_rx_port = CMIC_PORT(unit);
 
     for (rx_chan = 0; rx_chan < N_DMA_CHAN; rx_chan++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Configuring RX-channel: %d\n"), rx_chan));
         if (soc_dma_chan_config(unit, rx_chan, DV_RX, 
@@ -2351,7 +2351,7 @@ lb_dma_run_common(int unit, loopback_test_t *lw, loopback_testdata_t *lp)
          * Though this is added for CMICm, 
          * it should be OK if we do this for CMICe as well */
         if(soc_feature(unit, soc_feature_cmicm)) {
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Assign all COS to channel: %d\n"), rx_chan));
             SOC_IF_ERROR_RETURN(
@@ -2362,7 +2362,7 @@ lb_dma_run_common(int unit, loopback_test_t *lw, loopback_testdata_t *lp)
             if (rx_chan == tx_chan) {   /* Does not make sense */
                 continue;
             }
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Configuring TX-channel: %d\n"), tx_chan));
             if (soc_dma_chan_config(unit, tx_chan,
@@ -2600,7 +2600,7 @@ lb_setup_static_path(loopback_test_t *lw, int unit, soc_port_t port,
     ENET_SET_MACADDR(lp->lp_mac_src, lw->lw_mac_src);
     ENET_SET_MACADDR(lp->lp_mac_dst, lw->lw_mac_dst);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Setting up static path for port %s\n"),
               SOC_PORT_NAME(unit, src_port)));
@@ -2675,14 +2675,14 @@ lb_setup_arl(loopback_test_t *lw, int unit, soc_port_t port,
     }
 #ifdef BCM_CALADAN3_SUPPORT
     if (SOC_IS_CALADAN3(unit) && (lw->lw_c3_lrp_bypass)) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Skipping ARL setup for port %s\n"),
                   SOC_PORT_NAME(unit, src_port)));
         return SOC_E_NONE;
     }
 #endif
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Setting up ARL for port %s\n"),
               SOC_PORT_NAME(unit, src_port)));
@@ -3027,7 +3027,7 @@ lb_check_parms(loopback_test_t *lw, loopback_testdata_t *lp, pbmp_t pbm_ok)
     }
 
     if (lp->lp_cos_start >= num_cos || lp->lp_cos_end >= num_cos) {
-        LOG_WARN(BSL_LS_APPL_COMMON,
+        LOG_BSL_WARN(BSL_LS_APPL_COMMON,
                  (BSL_META_U(unit,
                              "***NOTICE: COS %d-%d requested, but only %d COS configured\n"),
                   lp->lp_cos_start, lp->lp_cos_end, num_cos));
@@ -3255,7 +3255,7 @@ lb_dma_common_init(int unit,
      * Doing this aborts any DMAs that may be left over.
      */
     for (c = 0; c < N_DMA_CHAN; c++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "lb_dma_init: Deconfiguring channel %d\n"), c));
         if (soc_dma_chan_config(unit, c, DV_NONE, 0)) {
@@ -3605,7 +3605,7 @@ lb_mac_init(int unit, args_t *a, void **pa)
      * Though this is added for CMICm, 
      * it should be OK if we do this for CMICe as well */
     if(soc_feature(unit, soc_feature_cmicm)) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Assign all COS to channel: 1\n")));
         SOC_IF_ERROR_RETURN(
@@ -3791,7 +3791,7 @@ lb_mac_test(int unit, args_t *a, void *pa)
     COMPILER_REFERENCE(a);
 
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "lb_mac_test: unit %d starting ....\n"), lw->lw_unit));
 
@@ -4099,7 +4099,7 @@ lb_mii_init(int unit, args_t *a, void **pa)
      * Though this is added for CMICm, 
      * it should be OK if we do this for CMICe as well */
     if(soc_feature(unit, soc_feature_cmicm)) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Assign all COS to channel: 1\n")));
         SOC_IF_ERROR_RETURN(
@@ -4642,7 +4642,7 @@ lb_ext_init(int unit, args_t *a, void **pa)
      * Though this is added for CMICm, 
      * it should be OK if we do this for CMICe as well */
     if(soc_feature(unit, soc_feature_cmicm)) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Assign all COS to channel: 1\n")));
         SOC_IF_ERROR_RETURN(
@@ -4780,7 +4780,7 @@ lb_ext_test(int unit, args_t *a, void *pa)
 
         dst_port = lb_ext_partner(unit, port, lp->lp_dst_inc);
 
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "lb_ext_test: Looping port %s (%d) ---> %s (%d)\n"),
                   SOC_PORT_NAME(unit, port), port,
@@ -5153,7 +5153,7 @@ lb_sg_check_rx(loopback_test_t *lw, int ppc, int dpp, int length,
 
         /* Check packet Data */
 
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "lb_sg_check_rx : rxlen = %d txlen = %d\n"),cur_len,length));
         if (lb_check_packet(lw, lw->lw_tx_packets[cur_packet] + tx_offset,
@@ -5214,7 +5214,7 @@ lb_sg_wait(loopback_test_t *lw, int length, int ppc, int tx_dpp, int tx_offset,
 #ifdef BCM_XGS12_FABRIC_SUPPORT
     if (SOC_IS_XGS12_FABRIC(lw->lw_unit)) {
         /* Update length */
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("lb_sg_wait: length = %d\n"), length));
         length += SOC_HIGIG_HDR_SIZE;
     }
@@ -5278,7 +5278,7 @@ lb_do_sg_rx(loopback_test_t *lw, int p_len, int p_cnt, int dpp)
 #ifdef BCM_XGS12_FABRIC_SUPPORT
     if (SOC_IS_XGS12_FABRIC(lw->lw_unit)) {
         /* Update length */
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("lb_do_sg_rx: p_len = %d\n"), p_len));
         p_len += SOC_HIGIG_HDR_SIZE;
     }
@@ -5408,7 +5408,7 @@ lb_do_sg_txrx(loopback_test_t *lw)
         tx_align = 4;
     }
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Testing Port %s --> %s cnt(%d) chn(%d,%d += %d) "
                        "l(%d,%d += %d) cos(%d,%d)\n"),
               SOC_PORT_NAME(lw->lw_unit, lw->lw_lp->lp_tx_port),
@@ -5434,7 +5434,7 @@ lb_do_sg_txrx(loopback_test_t *lw)
                         for (rx_dpp = lp->lp_dpp_start;
                              rx_dpp <= lp->lp_dpp_end;
                              rx_dpp += lp->lp_dpp_inc) {
-                            LOG_INFO(BSL_LS_APPL_TESTS,
+                            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                                      (BSL_META("Testing cnt=%d L=%d cos=%d "
                                                "TX-offset=%d TX-dpp=%d "
                                                "RX-dpp=%d\n"),
@@ -5574,7 +5574,7 @@ lb_sg_dma_test(int unit, args_t *a, void *pa)
     }
 
     for (rx_chan = 0; rx_chan < N_DMA_CHAN; rx_chan++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Configuring RX-channel: %d\n"), rx_chan));
 
@@ -5588,7 +5588,7 @@ lb_sg_dma_test(int unit, args_t *a, void *pa)
          * Though this is added for CMICm, 
          * it should be OK if we do this for CMICe as well */
         if(soc_feature(unit, soc_feature_cmicm)) {
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Assign all COS to channel: 1\n")));
             SOC_IF_ERROR_RETURN(
@@ -5601,7 +5601,7 @@ lb_sg_dma_test(int unit, args_t *a, void *pa)
                 continue;
             }
 
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Configuring TX-channel: %d\n"), tx_chan));
 
@@ -5768,7 +5768,7 @@ lb_sg_dma_init(int unit, args_t *a, void **p)
     ENET_SET_MACADDR(lw->lw_mac_dst, lb_mac_dst);
 
     if (!SOC_PBMP_MEMBER(lp->lp_pbm, CMIC_PORT(unit))) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Warning: CPU port not set in bitmap.\n"
                              "Packet will not be received, receive DMA will hang.\n")));
@@ -5777,7 +5777,7 @@ lb_sg_dma_init(int unit, args_t *a, void **p)
     *p = lw;                            /* Pass back cookie */
 
     for (i = 0; i < N_DMA_CHAN; i++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "lb_dma_init: Deconfiguring channel %d\n"), i));
 
@@ -5947,7 +5947,7 @@ lb_reload_init(int unit, args_t *a, void **p)
     *p = lw;                            /* Pass back cookie */
 
     for (i = 0; i < N_DMA_CHAN; i++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "lb_dma_init: Deconfiguring channel %d\n"), i));
 
@@ -6399,7 +6399,7 @@ lb_random_pkt(loopback_test_t *lw, loopback_testdata_t *lp, dma_chan_t tx_chan,
     }
 #endif
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Random: Tx-chan(%d) Rx-chan(%d) l=%d pkt-cnt=%d "
                        "chn-cnt=%d dv-cnt=%d\n"),
               tx_chan, rx_chan, l, p_cnt, c_cnt, dv_cnt));
@@ -6550,7 +6550,7 @@ lb_random_pkt(loopback_test_t *lw, loopback_testdata_t *lp, dma_chan_t tx_chan,
 #ifdef BCM_XGS12_FABRIC_SUPPORT
     if (SOC_IS_XGS12_FABRIC(lw->lw_unit)) {
         /* Update length */
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("lb_random_restore_dv: l = %d\n"), l));
         l += SOC_HIGIG_HDR_SIZE;
     }
@@ -6635,7 +6635,7 @@ lb_random_exec(loopback_test_t *lw, int dry_run)
              * Though this is added for CMICm, 
              * it should be OK if we do this for CMICe as well */
             if(soc_feature(lw->lw_unit, soc_feature_cmicm)) {
-                LOG_INFO(BSL_LS_APPL_TESTS,
+                LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                          (BSL_META("Assign all COS to channel: 1\n")));
                 SOC_IF_ERROR_RETURN(
                     bcm_rx_queue_channel_set(lw->lw_unit, -1, rx_chan));
@@ -6820,7 +6820,7 @@ lb_pbm_test(loopback_test_t *lw, loopback_testdata_t *lp)
     dcb_type_t  dt = dv->dv_dcb_type;
 
     for (channel = 0; channel < N_DMA_CHAN; channel++) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("PBMP(0) testing Tx channel %d\n"), channel));
 
         if (soc_dma_chan_config(lw->lw_unit, channel, DV_TX)) {
@@ -6913,7 +6913,7 @@ lb_reload_test(int unit, args_t *a, void *pa)
             sal_vaddr_t dma_desc;
             dv_t        **dv_array = tx ? lw->lw_tx_dv : lw->lw_rx_dv;
 
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Basic DCB Reload %s Channel %d\n"),
                       tx ? "Tx" : "Rx", channel));
@@ -6932,7 +6932,7 @@ lb_reload_test(int unit, args_t *a, void *pa)
              * Though this is added for CMICm, 
              * it should be OK if we do this for CMICe as well */
             if(soc_feature(lw->lw_unit, soc_feature_cmicm) && (!tx)) {
-                LOG_INFO(BSL_LS_APPL_TESTS,
+                LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                          (BSL_META_U(unit,
                                      "Assign all COS to channel: 1\n")));
                 SOC_IF_ERROR_RETURN(
@@ -6943,7 +6943,7 @@ lb_reload_test(int unit, args_t *a, void *pa)
                 int     i;
 
                 rv = 0;
-                LOG_INFO(BSL_LS_APPL_TESTS,
+                LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                          (BSL_META_U(unit,
                                      "Testing %cx channel %d: %d independent chains\n"),
                           tx ? 'T' : 'R', channel, d));

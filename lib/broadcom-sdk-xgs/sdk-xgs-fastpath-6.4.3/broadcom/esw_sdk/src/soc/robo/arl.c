@@ -183,7 +183,7 @@ _soc_tb_arl_fast_learn_control(int unit, int op)
              *  2. entry write.
              */
             if (temp_cml == DRV_PORT_DISABLE_LEARN) {
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "port%d no freeze for SA_LEARN disabled already./n"),
                           port));
@@ -203,7 +203,7 @@ _soc_tb_arl_fast_learn_control(int unit, int op)
              */
             temp_cml = f->save_cml[port];
             if (temp_cml == DRV_PORT_DISABLE_LEARN){
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "port%d no thaw for SA_LEARN disabled originally.\n"),
                           port));
@@ -256,7 +256,7 @@ _soc_tb_arl_fast_learn_control(int unit, int op)
     return SOC_E_NONE;
 
 failed_unlock:
-    LOG_WARN(BSL_LS_SOC_COMMON,
+    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
              (BSL_META_U(unit,
                          "TB's ARL can't be %s! (rv=%d)\n"),
               (op == _TB_LEARN_FREEZE) ? "frozen" : "thawed", rv));

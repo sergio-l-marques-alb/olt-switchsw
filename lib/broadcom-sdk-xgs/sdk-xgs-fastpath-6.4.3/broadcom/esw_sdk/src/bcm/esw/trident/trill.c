@@ -1164,7 +1164,7 @@ bcm_td_trill_init(int unit)
 #endif /* BCM_WARM_BOOT_SUPPORT */
 
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_ERROR(BSL_LS_BCM_TRILL,
+        LOG_BSL_ERROR(BSL_LS_BCM_TRILL,
                   (BSL_META_U(unit,
                               "L3 module must be initialized prior to TRILL_init\n")));
         return BCM_E_CONFIG;

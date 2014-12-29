@@ -1191,7 +1191,7 @@ send_unicast_request(
     }
 
     if (num_tlvs > 1 && multi_tlv_en == 0) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Multiple TLV support not enabled\n")));
         return BCM_E_CONFIG;
@@ -1539,7 +1539,7 @@ _bcm_ptp_slave_signaling_send(
         break;
 
     default:
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Unknown or unsupported TLV type\n")));
         return BCM_E_PARAM;
@@ -1564,7 +1564,7 @@ _bcm_ptp_slave_signaling_send(
     if (BCM_FAILURE(rv = _bcm_ptp_tunnel_message_to_world(unit, ptp_id, clock_num,
                                                           packet_len, packet, async)))
     {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "_bcm_ptp_tunnel_message_to_world %s failed\n"), (async) ? "async" : ""));
     }
@@ -1827,7 +1827,7 @@ _bcm_ptp_slave_signaling_request_deny(
                 bcmPTPTlvTypeGrantUnicastTransmission, msg_type,
                 log_intermessage_period, BCM_PTP_SIGNAL_REQUEST_DENY_DURATION_SEC,
                 1, slave, 1))) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Zero duration GRANT_UNICAST_TRANSMISSION error\n")));
             BCM_PTP_SLAVETABLE_MUTEX_RELEASE_RETURN(rv);
@@ -1845,7 +1845,7 @@ _bcm_ptp_slave_signaling_request_deny(
             bcmPTPTlvTypeGrantUnicastTransmission, msg_type,
             log_intermessage_period, BCM_PTP_SIGNAL_REQUEST_DENY_DURATION_SEC,
             ++signaled_slave_table.entry[i].sequenceId, slave, 1))) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Zero duration GRANT_UNICAST_TRANSMISSION error\n")));
         BCM_PTP_SLAVETABLE_MUTEX_RELEASE_RETURN(rv);
@@ -2453,7 +2453,7 @@ _bcm_ptp_make_peer_from_signaling_msg(
 
         if (peer->peer_address.raw_l2_header_length > PTP_MAX_L2_HEADER_LENGTH) {
             peer->peer_address.raw_l2_header_length = 0;
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Incompatible L2 header size\n")));
             return BCM_E_CONFIG;
@@ -2562,7 +2562,7 @@ _bcm_ptp_make_peer_from_signaling_msg(
 
         if (peer->peer_address.raw_l2_header_length > PTP_MAX_L2_HEADER_LENGTH) {
             peer->peer_address.raw_l2_header_length = 0;
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Incompatible L2 header size\n")));
             return BCM_E_CONFIG;
@@ -2659,7 +2659,7 @@ _bcm_ptp_make_peer_from_signaling_msg(
 
     default:
         /* Unknown or unsupported address type. */
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Unknown or unsupported address type\n")));
         return BCM_E_PARAM;

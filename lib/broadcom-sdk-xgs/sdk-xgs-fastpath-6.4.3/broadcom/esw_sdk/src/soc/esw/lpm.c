@@ -696,7 +696,7 @@ int _soc_fb_lpm128_hash_compare_key(_soc_fb_lpm128_hash_entry_t key1,
 /* #define FB_LPM_DEBUG*/
 #ifdef FB_LPM_DEBUG      
 #define H_INDEX_MATCH(str, tab_index, match_index)      \
-    LOG_ERROR(BSL_LS_SOC_LPM, \
+    LOG_BSL_ERROR(BSL_LS_SOC_LPM, \
               (BSL_META("%s index: H %d A %d\n"),                  \
                str, (int)tab_index, match_index)
 #else
@@ -773,7 +773,7 @@ void soc_fb_lpm_hash_delete(int u, void *key_data, uint32 tab_index)
                                  _soc_fb_lpm_hash_compare_key,
                                  key_hash, pfx, index);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "\ndel  index: H %d error %d\n"), index, rv));
     }
@@ -1588,7 +1588,7 @@ soc_fb_lpm_state_dump(int u)
         if ((i != MAX_PFX_INDEX) && (SOC_LPM_STATE_START(u, i) == -1)) {
             continue;
         }
-        LOG_VERBOSE(BSL_LS_SOC_LPM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_LPM,
                     (BSL_META_U(u,
                                 "PFX = %d P = %d N = %d START = %d "
                                 "END = %d VENT = %d FENT = %d\n"),
@@ -2491,7 +2491,7 @@ _soc_fb_lpm_match(int u,
     if (LPM_AVL_LOOKUP(u, key_data, pfx, &key_index) == SOC_E_NONE) {
 #ifdef  FB_LPM_CHECKER_ENABLE
         if (*index_ptr != key_index) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "\nsoc_fb_lpm_locate: HASH %d AVL %d\n"), *index_ptr, key_index));
         }
@@ -2743,7 +2743,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
             /* coverity [secure_coding : FALSE] */
             sal_strcpy(sub_str, cfg_str);
         } else {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "Prefix index %d: Invalid string \"%s\"\n"),
                        i, cfg_str));
@@ -2757,7 +2757,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
 
         if (ipver_str == NULL || vrf_str == NULL || 
             len_str == NULL || num_str == NULL) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "Prefix index %d: Invalid string \"%s\"\n"),
                        i, cfg_str));
@@ -2767,7 +2767,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
         /* Parsing physical port number */
         ipver = sal_ctoi(ipver_str, NULL);
         if (ipver != 4 && ipver != 6) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "Prefix index %d: Invalid IP version %d\n"),
                        i, ipver));
@@ -2777,7 +2777,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
         /* Parsing VRF configuration */
         vrf_type = sal_ctoi(vrf_str, NULL);
         if (vrf_type != 0 && vrf_type != 1 && vrf_type != 2) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "Prefix index %d: Invalid VRF value %d\n"),
                        i, vrf_type));
@@ -2795,7 +2795,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
         /* Only prefix length <= 64 allowed */
         if (!((ipver == 4 && plen >= 0 && plen <= 32) || 
               (ipver == 6 && plen >= 0 && plen <= 64))) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "Prefix index %d: Invalid prefix length value %d\n"),
                        i, plen));
@@ -2805,7 +2805,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
         /* Parsing prefix length */
         entry_number = sal_ctoi(num_str, NULL);
         if (entry_number < 0) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "Prefix index %d: Invalid entry number value %d\n"),
                        i, entry_number));
@@ -2817,7 +2817,7 @@ soc_fb_lpm_state_config(int u, int ipv6_64_depth, int start)
         }
         entry_total_count += entry_number;
         if (entry_total_count > ipv6_64_depth) {
-            LOG_WARN(BSL_LS_SOC_LPM,
+            LOG_BSL_WARN(BSL_LS_SOC_LPM,
                      (BSL_META_U(u,
                                  "LPM Prefix Layout: Exceeded max capacity %d(cur %d) in "
                                  "L3_DEFIP, ignore rest configuration.\n"), 
@@ -3576,7 +3576,7 @@ soc_fb_lpm_insert(int u, void *entry_data)
             index >>= 1;
         }
         soc_fb_lpm_state_dump(u);
-        LOG_INFO(BSL_LS_SOC_LPM,
+        LOG_BSL_INFO(BSL_LS_SOC_LPM,
                  (BSL_META_U(u,
                              "\nsoc_fb_lpm_insert: %d %d\n"),
                              index, pfx));
@@ -3665,7 +3665,7 @@ soc_fb_lpm_insert_index(int u, void *entry_data, int index)
             index >>= 1;
         }
         soc_fb_lpm_state_dump(u);
-        LOG_INFO(BSL_LS_SOC_LPM,
+        LOG_BSL_INFO(BSL_LS_SOC_LPM,
                  (BSL_META_U(u,
                              "\nsoc_fb_lpm_insert_index: %d %d\n"),
                              index, pfx));
@@ -3710,7 +3710,7 @@ soc_fb_lpm_delete(int u, void *key_data)
     SOC_LPM_LOCK(u);
     rv = _soc_fb_lpm_match(u, key_data, e, &index, &pfx, &ipv6);
     if (rv == SOC_E_NONE) {
-        LOG_INFO(BSL_LS_SOC_LPM,
+        LOG_BSL_INFO(BSL_LS_SOC_LPM,
                  (BSL_META_U(u,
                              "\nsoc_fb_lpm_delete: %d %d\n"),
                              index, pfx));
@@ -3753,7 +3753,7 @@ soc_fb_lpm_delete_index(int u, void *key_data, int index)
                      ipv6 ? index : (index >> 1), e);
 
     if (rv == SOC_E_NONE) {
-        LOG_INFO(BSL_LS_SOC_LPM,
+        LOG_BSL_INFO(BSL_LS_SOC_LPM,
                  (BSL_META_U(u,
                              "\nsoc_fb_lpm_delete_index: %d %d\n"),
                              index, pfx));
@@ -3848,7 +3848,7 @@ soc_fb_lpm_ipv4_delete_index(int u, int index)
             rv = SOC_E_PARAM;
         }
         if (rv == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_LPM,
+            LOG_BSL_INFO(BSL_LS_SOC_LPM,
                      (BSL_META_U(u,
                                  "\nsoc_fb_lpm_ipv4_delete_index: %d %d\n"),
                       index, pfx));
@@ -3910,7 +3910,7 @@ soc_fb_lpm_ipv6_delete_index(int u, int index)
             rv = SOC_E_PARAM;
         }
         if (rv == SOC_E_NONE) {
-            LOG_INFO(BSL_LS_SOC_LPM,
+            LOG_BSL_INFO(BSL_LS_SOC_LPM,
                      (BSL_META_U(u,
                                  "\nsoc_fb_lpm_ipv4_delete_index: %d %d\n"),
                       index, pfx));
@@ -4165,7 +4165,7 @@ void soc_fb_lpm128_hash_insert(int u, void *entry_data, void *entry_data_upr,
     int mode = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, MODE0f);
  
     if (mode && mode != 3) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "Invalid mode while inserting lpm128 hash for pfx - %d\n"), pfx));
         return; 
@@ -4173,7 +4173,7 @@ void soc_fb_lpm128_hash_insert(int u, void *entry_data, void *entry_data_upr,
     if (mode) {
         /* IPV6 entry */
         if (entry_data_upr == NULL) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "upper data is NULL for pfx - %d\n"), pfx));
             return;
@@ -4230,7 +4230,7 @@ void soc_fb_lpm128_hash_delete(int u, void *key_data, void *key_data_upr,
                                  _soc_fb_lpm128_hash_compare_key,
                                  key_hash, pfx, index);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "\ndel  index: H %d error %d\n"), index, rv));
     }
@@ -4250,7 +4250,7 @@ int soc_fb_lpm128_hash_lookup(int u, void *key_data, void *key_data_upr,
     } else if(is_ipv6 == 0) {
         SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, key_data, key_hash);
     } else {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "LPM128 hash lookup for pfx - %d failed\n"), pfx));
         return SOC_E_PARAM;
@@ -4826,34 +4826,34 @@ void print_pfx_info(int u, soc_lpm128_state_p lpm_state_ptr, int pfx)
     next   = SOC_LPM128_STATE_NEXT(u, lpm_state_ptr, pfx);
 
     if (type == socLpmEntryTypeV4) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "------------V4 pfx - %d ---------------------\n"), 
                               pfx));
     } else if(type == socLpmEntryType64BV6) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "------------ 64B V6 pfx - %d ----------------\n"), 
                               pfx));
     } else {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "------------ 128B V6 pfx - %d ---------------\n"), 
                               pfx));
     }
-    LOG_ERROR(BSL_LS_SOC_LPM,
+    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
               (BSL_META_U(u,
                           "Start1: %d End1: %d\n"), start1, end1));
-    LOG_ERROR(BSL_LS_SOC_LPM,
+    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
               (BSL_META_U(u,
                           "Start2: %d End2: %d\n"), start2, end2));
-    LOG_ERROR(BSL_LS_SOC_LPM,
+    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
               (BSL_META_U(u,
                           "Fent: %d Vent: %d\n"), fent, vent));
-    LOG_ERROR(BSL_LS_SOC_LPM,
+    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
               (BSL_META_U(u,
                           "Prev: %d Next: %d\n"), prev, next));
-    LOG_ERROR(BSL_LS_SOC_LPM,
+    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
               (BSL_META_U(u,
                           "------------ END ---------------------\n")));
 }
@@ -4931,7 +4931,7 @@ int test_lpm128_verify_algorithm(int u)
     if (is_reserved) {
         lpm_state_ptr = SOC_LPM128_UNRESERVED_STATE(u);
         if (NULL == lpm_state_ptr) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "reserved and unreserved state ptr is NULL\n")));
             return SOC_E_MEMORY;
@@ -4939,7 +4939,7 @@ int test_lpm128_verify_algorithm(int u)
     }
 
     if (lpm_state_ptr == NULL) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "lpm128 state ptr is NULL, just return\n")));
         return SOC_E_MEMORY; 
@@ -4968,7 +4968,7 @@ int test_lpm128_verify_algorithm(int u)
         start1 = SOC_LPM128_STATE_START1(u, lpm_state_ptr, curr_pfx);
         end1 = SOC_LPM128_STATE_END1(u, lpm_state_ptr, curr_pfx);
         if (end1 == -1) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "pfx: %d end1 is -1\n"), curr_pfx));
             print_pfx_info(u, lpm_state_ptr, curr_pfx);
@@ -4991,7 +4991,7 @@ int test_lpm128_verify_algorithm(int u)
 
         if (start2 != -1) {
             if (split_count > 1) {
-                 LOG_ERROR(BSL_LS_SOC_LPM,
+                 LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                            (BSL_META_U(u,
                                        "More than one split. pfx: %d prev split pfx: %d\n"),
                             curr_pfx, prev_split_pfx));
@@ -5002,7 +5002,7 @@ int test_lpm128_verify_algorithm(int u)
                 prev_split_pfx = curr_pfx;
             }
             if (end2 == -1) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "pfx: %d end2 is -1\n"), curr_pfx));
                 print_pfx_info(u, lpm_state_ptr, curr_pfx);
@@ -5011,7 +5011,7 @@ int test_lpm128_verify_algorithm(int u)
             for (i = start2; i <= end_idx; i++) {
                 if (pfxmap[i] != -1) {
                     /* There is a overwrite */
-                    LOG_ERROR(BSL_LS_SOC_LPM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                               (BSL_META_U(u,
                                           "S2 onflict for pfx: %d with pfx: %d\n"),
                                           curr_pfx, pfxmap[i]));
@@ -5038,7 +5038,7 @@ int test_lpm128_verify_algorithm(int u)
             } 
             if (pfxmap[i] != -1) {
                 /* There is a overwrite */
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "Conflict for pfx: %d with pfx: %d\n"),
                                       curr_pfx, pfxmap[i]));
@@ -5064,7 +5064,7 @@ int test_lpm128_verify_algorithm(int u)
     }
 
     if ((free_count + vent_count) != max_entries) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "count mismatch!!! free: %d vent: %d tablesize: %d\n"),
                    free_count, vent_count, defip_table_size));
@@ -5072,7 +5072,7 @@ int test_lpm128_verify_algorithm(int u)
 
     for (i = 0; i < is_reserved && max_v6_entries; i++) {
         if (pfxmap[i] != -1) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "overflow into reserved space pfx: %d\n"), 
                                   pfxmap[i]));
@@ -5178,7 +5178,7 @@ int _lpm128_v6_vent_in_curr_tcam(int u, int pfx,
         *vent = SOC_LPM128_STATE_VENT(u, lpm_state_ptr, pfx);
     } else {
         if (is_reserved) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "finding V6 vent: reserved and existing pfx %d crossed"\
                                   " TCAM boundaries\n"), pfx));
@@ -5251,7 +5251,7 @@ _lpm128_assign_free_fent_from_v6_to_v4(int u, int curr_pfx, int pfx,
         }
 
         if (other_index >= paired_tcam_size) {
-            LOG_ERROR(BSL_LS_SOC_LPM, \
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM, \
                       (BSL_META_U(u, \
                                   "finding up index: to_index: %d"\
                                   " paired_tcam_size: %d pfx: %d\n"), other_index, 
@@ -5358,7 +5358,7 @@ _lpm128_assign_free_fent_from_v6_to_v4(int u, int curr_pfx, int pfx,
         if (other_tcam_number & 1) {
             search_index = (other_tcam_number * tcam_depth) - 1;
         } else {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "creating new pfx group: other_index: %d not"\
                                   " in odd tcam pfx: %d curr_pfx: %d\n"), 
@@ -5578,7 +5578,7 @@ _lpm128_create_new_pfx_group(int u, int pfx, soc_lpm_entry_type_t type,
             }
             
             if (start_index > paired_tcam_size) {
-                LOG_ERROR(BSL_LS_SOC_LPM, \
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM, \
                           (BSL_META_U(u, \
                                       "create new group, start_index(%d) "\
                                       "greater than paired_table_size(%d) for pfx %d\n"),
@@ -5609,7 +5609,7 @@ _lpm128_create_new_pfx_group(int u, int pfx, soc_lpm_entry_type_t type,
         if (tcam_number & 1) {
             if (type == socLpmEntryType64BV6 && is_reserved) {
                 if (SOC_LPM128_STATE_FENT(u, lpm_state_ptr, pfx)) {
-                    LOG_ERROR(BSL_LS_SOC_LPM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                               (BSL_META_U(u,
                                           "create new pfx group: pfx: %d crossing tcam and"\
                                           " still has fent\n"), pfx));
@@ -5855,7 +5855,7 @@ _lpm128_find_new_index_from_v6_group(int u, int pfx,
     }
 
     if (to_index >= paired_tcam_size) {
-        LOG_ERROR(BSL_LS_SOC_LPM, \
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM, \
                   (BSL_META_U(u, \
                               "finding up index: to_index: %d"\
                               " paired_tcam_size: %d pfx: %d\n"), to_index, paired_tcam_size, pfx));
@@ -5870,7 +5870,7 @@ _lpm128_find_new_index_from_v6_group(int u, int pfx,
     }
 
    if (to_index_tcam_number > to_ent_tcam_number) {
-       LOG_ERROR(BSL_LS_SOC_LPM, \
+       LOG_BSL_ERROR(BSL_LS_SOC_LPM, \
                  (BSL_META_U(u, \
                              "finding up index: lowest v6 is at higher index "\
                              "than pfx: %d to_index: %d index: %d\n"), pfx, to_index, *index));
@@ -5915,7 +5915,7 @@ _lpm128_get_next_up_index(int u, int pfx, soc_lpm128_state_p lpm_state_ptr,
     old_to_ent = to_ent;
     if (((to_ent / tcam_depth) & 1) && (to_ent % tcam_depth == 0)) {
         if (type == socLpmEntryType64BV6) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "finding next index: FATAL 64B crossing boundary pfx: %d\n"), pfx));
             return SOC_E_INTERNAL;
@@ -5932,7 +5932,7 @@ _lpm128_get_next_up_index(int u, int pfx, soc_lpm128_state_p lpm_state_ptr,
         existing_pfx = SOC_LPM128_INDEX_TO_PFX_GROUP(u, to_ent);
         while ((existing_pfx != -1) && (to_ent < paired_tcam_size)) {
             if (SOC_LPM128_PFX_IS_V4(u, existing_pfx) && (existing_pfx > pfx)) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "finding next index: FATAL existing_pfx: %d pfx: %d\n"),
                            existing_pfx, pfx));
@@ -5955,7 +5955,7 @@ _lpm128_get_next_up_index(int u, int pfx, soc_lpm128_state_p lpm_state_ptr,
         }
 
         if (to_ent >= paired_tcam_size) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "finding next index: did not find free entries during move for"\
                                   " pfx: %d existing_pfx: %d!!!\n"), pfx, existing_pfx));
@@ -6015,7 +6015,7 @@ _lpm128_fb_shift_v4_pfx_up(int u, soc_lpm128_state_p lpm_state_ptr, int pfx)
     }
     
     if (from_end2 && crossed_boundary) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "V4 move up: end2 crossed boundary for pfx: %d from_ent: %d"\
                               " to_ent: %d\n"), pfx, from_ent, to_ent));
@@ -6042,7 +6042,7 @@ _lpm128_fb_shift_v4_pfx_up(int u, soc_lpm128_state_p lpm_state_ptr, int pfx)
     from_ent = SOC_LPM128_STATE_START1(u, lpm_state_ptr, pfx);
 
     if (from_ent < 0) {
-       LOG_ERROR(BSL_LS_SOC_LPM,
+       LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                  (BSL_META_U(u,
                              "V4 move up: Invalid start start1: %d pfx: %d\n"), 
                              from_ent, pfx));
@@ -6123,7 +6123,7 @@ _lpm128_fb_shift_pfx_up(int u, soc_lpm128_state_p lpm_state_ptr, int pfx)
         if (!is_reserved || SOC_LPM128_PFX_IS_V6_128(u, pfx)) {
             to_ent += tcam_depth;
         } else if(SOC_LPM128_PFX_IS_V6_64(u, pfx)) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "moving entries up: type 64B, crossing tcam boundary for"\
                                   " pfx - %d\n"), pfx));  
@@ -6143,7 +6143,7 @@ _lpm128_fb_shift_pfx_up(int u, soc_lpm128_state_p lpm_state_ptr, int pfx)
         if (!is_reserved || SOC_LPM128_PFX_IS_V6_128(u, pfx)) {
             SOC_LPM128_STATE_START1(u, lpm_state_ptr, pfx) += tcam_depth;
         } else if (SOC_LPM128_PFX_IS_V6_64(u, pfx)) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "64B START in odd tcam in reserved state for pfx - %d\n"), 
                        pfx));
@@ -6194,7 +6194,7 @@ _lpm128_fb_shift_v4_pfx_down(int u, soc_lpm128_state_p lpm_state_ptr,
     }
     prev_pfx = SOC_LPM128_STATE_PREV(u, lpm_state_ptr, pfx);
     if (prev_pfx == -1) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "v4 move down: previous pfx is -1 for pfx: %d\n"), pfx));
         return SOC_E_INTERNAL;
@@ -6249,7 +6249,7 @@ _lpm128_fb_shift_v4_pfx_down(int u, soc_lpm128_state_p lpm_state_ptr,
                                                             &traverse_index);
                    }
                    if (traverse_index > (to_ent + 1)) {
-                      LOG_ERROR(BSL_LS_SOC_LPM,
+                      LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                                 (BSL_META_U(u,
                                             "v4 moving down, to_ent(%d) not free pfx: %d"\
                                             " prev_pfx: %d\n"), to_ent, pfx, prev_pfx));
@@ -6418,7 +6418,7 @@ _lpm128_fb_shift_pfx_down(int u, soc_lpm128_state_p lpm_state_ptr, int pfx,
         if ((!is_reserved) || SOC_LPM128_PFX_IS_V6_128(u, pfx)) {
             to_ent -= tcam_depth;
         } else if (SOC_LPM128_PFX_IS_V6_64(u, pfx)) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "moving down: 64BV6 falling in odd TCAM  pfx: %d\n"), pfx)); 
             return SOC_E_INTERNAL;
@@ -6448,7 +6448,7 @@ _lpm128_fb_shift_pfx_down(int u, soc_lpm128_state_p lpm_state_ptr, int pfx,
         if (!is_reserved || SOC_LPM128_PFX_IS_V6_128(u, pfx)) {
             SOC_LPM128_STATE_END1(u, lpm_state_ptr, pfx) -= tcam_depth;
         } else if (SOC_LPM128_PFX_IS_V6_64(u, pfx)) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "END TCAM boundary crossing for 64B entries for pfx - %d\n"),
                        pfx));
@@ -6538,7 +6538,7 @@ _lpm128_free_slot_move_down(int u, int pfx, int free_pfx,
         if (SOC_LPM128_STATE_FENT(u, lpm_state_ptr, free_pfx) && 
             _lpm128_if_conflicting_type(u, free_pfx_type, next_pfx_type)) {
             if (free_pfx_type == socLpmEntryTypeV4) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "moving entries down: wrong move sequence free_pfx: %d "\
                                       "next_pfx: %d pfx: %d\n"), free_pfx, next_pfx, pfx));
@@ -6564,7 +6564,7 @@ _lpm128_free_slot_move_down(int u, int pfx, int free_pfx,
             if (tcam_number & 1) {
                 search_index = (tcam_number  * tcam_depth) - 1;
             } else {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "moving entries down: other_index: %d not in odd tcam"\
                                       " pfx: %d next_pfx: %d\n"), other_index, pfx, next_pfx));
@@ -6581,7 +6581,7 @@ _lpm128_free_slot_move_down(int u, int pfx, int free_pfx,
             }
               
             if (search_index < end_index) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "moving entries down: could not find pfx for other_index: "\
                                       "%d next_pfx: %d pfx: %d free_pfx: %d\n"),
@@ -6592,7 +6592,7 @@ _lpm128_free_slot_move_down(int u, int pfx, int free_pfx,
                                                   dest_pfx);
             if (start_index != -1) {
                 if (other_index != start_index - 1) {
-                    LOG_ERROR(BSL_LS_SOC_LPM,
+                    LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                               (BSL_META_U(u,
                                           "Moving entries down, start2 of dest_pfx: %d does not "\
                                           "match other_index: %d free_pfx: %d, pfx: %d next_pfx: "\
@@ -6687,7 +6687,7 @@ _lpm128_move_v4_entry_for_v6(int u, int curr_pfx, int dest_pfx,
     }
 
     if (free_pfx >= curr_pfx) {
-        LOG_ERROR(BSL_LS_SOC_LPM,
+        LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                   (BSL_META_U(u,
                               "moving v4 entry to create space for V6: curr_pfx: %d "\
                               "free_pfx: %d dest_pfx: %d\n"), curr_pfx, free_pfx, 
@@ -6741,7 +6741,7 @@ _lpm128_move_v4_entry_for_v6(int u, int curr_pfx, int dest_pfx,
         }  
     } else {
          if (from_end2) {
-             LOG_ERROR(BSL_LS_SOC_LPM,
+             LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                        (BSL_META_U(u,
                                    "moving v4 entry to create space for V6:: from end2 "\
                                    "end2(%d)!=other_index(%d) pfx: %d\n"), end_ent, other_index,
@@ -6835,7 +6835,7 @@ _lpm128_free_slot_move_up(int u, int pfx, int free_pfx,
             }
             other_index = start_index + tcam_depth;   
             if (!((other_index / tcam_depth) & 1)) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "moving entries up: other idx: %d is in even tcam "\
                                       " prev_pfx: %d free_pfx: %d pfx: %d\n"), 
@@ -6866,7 +6866,7 @@ _lpm128_free_slot_move_up(int u, int pfx, int free_pfx,
             SOC_LPM128_STATE_FENT(u, lpm_state_ptr, prev_pfx) += 1;
         } else if (prev_pfx_type == socLpmEntryTypeV4 &&
                    free_pfx_type != prev_pfx_type) {
-            LOG_ERROR(BSL_LS_SOC_LPM,
+            LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                       (BSL_META_U(u,
                                   "moving entries up: out of order prefxies free_pfx: %d "\
                                   "prev_pfx: %d pfx: %d\n"), free_pfx, prev_pfx, pfx));
@@ -7038,7 +7038,7 @@ _lpm128_free_slot_create(int u, int pfx, soc_lpm_entry_type_t type,
                                          &existing_pfx_type));
                      if (existing_pfx_type == socLpmEntryTypeV4) {
                          if (existing_pfx > pfx) {
-                             LOG_ERROR(BSL_LS_SOC_LPM,
+                             LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                                        (BSL_META_U(u,
                                                    "creating free slot, wrong order of prefixes "\
                                                    "existing_pfx: %d pfx: %d\n"),
@@ -7086,7 +7086,7 @@ _lpm128_free_slot_create(int u, int pfx, soc_lpm_entry_type_t type,
             if (!is_reserved || (type == socLpmEntryType128BV6)) {
                 to_ent += tcam_depth;
             } else if(type == socLpmEntryType64BV6) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "creating free slot: END of 64BV6 entries crossing TCAM"\
                                       " boundary for pfx - %d\n"), pfx));
@@ -7104,7 +7104,7 @@ _lpm128_free_slot_create(int u, int pfx, soc_lpm_entry_type_t type,
         if (SOC_LPM128_STATE_FENT(u, lpm_state_ptr, pfx) < 2) {
             other_index = to_ent + tcam_depth;
             if (!((other_index / tcam_depth) & 1)) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "creating free slot: other_idx: %d is in even tcam "\
                                       " pfx: %d\n"),
@@ -7125,7 +7125,7 @@ _lpm128_free_slot_create(int u, int pfx, soc_lpm_entry_type_t type,
             }
 
             if (trav_index == to_ent) {
-                LOG_ERROR(BSL_LS_SOC_LPM,
+                LOG_BSL_ERROR(BSL_LS_SOC_LPM,
                           (BSL_META_U(u,
                                       "creating free slot: Did not "\
                                       "find dest_pfx to move entry from for pfx: %d"), pfx));
@@ -7824,7 +7824,7 @@ soc_fb_lpm128_insert(int u, void *entry_data, void *entry_data1,
                 SOC_LPM_COUNT_INC(SOC_LPM128_STAT_128BV6_COUNT(u));
             }
         } else {
-            LOG_INFO(BSL_LS_SOC_LPM,
+            LOG_BSL_INFO(BSL_LS_SOC_LPM,
                      (BSL_META_U(u,
                                  "\nsoc_fb_lpm128_insert: %d %d ENTRY ALREADY PRESENT\n"),
                       index, pfx));
@@ -7867,7 +7867,7 @@ soc_fb_lpm128_delete(int u, void *key_data, void* key_data_upr)
     rv = _soc_fb_lpm128_match(u, key_data, key_data_upr, e, eupr, 
                               &index, &pfx, &type);
     if (rv == SOC_E_NONE) {
-        LOG_INFO(BSL_LS_SOC_LPM,
+        LOG_BSL_INFO(BSL_LS_SOC_LPM,
                  (BSL_META_U(u,
                              "\nsoc_fb_lpm128_delete: %d %d\n"),
                              index, pfx));

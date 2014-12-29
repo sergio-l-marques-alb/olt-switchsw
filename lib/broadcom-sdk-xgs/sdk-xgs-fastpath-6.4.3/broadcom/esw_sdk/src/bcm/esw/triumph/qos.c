@@ -362,7 +362,7 @@ _bcm_tr_qos_reinit_from_hw_state(int unit, soc_mem_t mem, soc_field_t field,
     for (idx = min_idx; idx < max_idx; idx++) {
         rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY, idx, &buf);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_QOS,
+            LOG_BSL_ERROR(BSL_LS_BCM_QOS,
                       (BSL_META_U(unit,
                                   "Error(%s) reading mem(%d) at "
                                   "index:%d \n"), soc_errmsg(rv), mem, idx));
@@ -382,7 +382,7 @@ _bcm_tr_qos_reinit_from_hw_state(int unit, soc_mem_t mem, soc_field_t field,
             }
 
             if (hw_prof_idx > (hw_idx_bmp_len - 1)) {
-                LOG_ERROR(BSL_LS_BCM_QOS,
+                LOG_BSL_ERROR(BSL_LS_BCM_QOS,
                           (BSL_META_U(unit,
                                       "Invalid profile(%d) in mem(%d) "
                                       "at index:%d\n"), hw_prof_idx, mem, idx));
@@ -392,7 +392,7 @@ _bcm_tr_qos_reinit_from_hw_state(int unit, soc_mem_t mem, soc_field_t field,
                 /* non-zero profile id and not stored previously */
                 map_id = _bcm_tr_qos_id_alloc(unit, map_bmp, map_type);
                 if (map_id < 0) {
-                    LOG_ERROR(BSL_LS_BCM_QOS,
+                    LOG_BSL_ERROR(BSL_LS_BCM_QOS,
                               (BSL_META_U(unit,
                                           "Invalid profile(%d) in mem"
                                           "(%d) at index:%d\n"), hw_prof_idx, mem, idx));

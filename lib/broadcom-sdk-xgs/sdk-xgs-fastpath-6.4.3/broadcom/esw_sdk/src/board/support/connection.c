@@ -515,7 +515,7 @@ _board_connection_trunk(int unit, bcm_trunk_chip_info_t *ti,
         ta->ipmc_index = -1;
         rv = bcm_trunk_create(unit, BCM_TRUNK_FLAG_WITH_ID, &tid);
         if (BCM_SUCCESS(rv)) {
-            LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                         (BSL_META_U(unit,
                         "Board trunk u:%d tid:%d\n"),
                          unit, tid));
@@ -574,7 +574,7 @@ _board_connection_modmap(int unit, int modid, bcm_gport_t port,
     int rv = BCM_E_NONE;
 
     if (modid >= 0) {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META_U(unit,
                     "Board modmap mod=%d u:%d,%d\n"),
                      modid, unit, port));

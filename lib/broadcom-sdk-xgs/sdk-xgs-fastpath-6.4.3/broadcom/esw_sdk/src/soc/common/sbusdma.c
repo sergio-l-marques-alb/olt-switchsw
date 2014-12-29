@@ -111,21 +111,21 @@ STATIC void
 _soc_sbusdma_curr_op_details(int unit, int cmc, int ch)
 {
     uint32 rval = soc_pci_read(unit, CMIC_CMCx_SBUSDMA_CHy_STATUS(cmc, ch));
-    LOG_WARN(BSL_LS_SOC_COMMON,
+    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
              (BSL_META_U(unit,
                          "STATUS: 0x%08x\n"), rval));
     rval = soc_pci_read(unit, 
                         CMIC_CMCx_SBUSDMA_CHy_CUR_SBUSDMA_CONFIG_OPCODE(cmc, ch));
-    LOG_WARN(BSL_LS_SOC_COMMON,
+    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
              (BSL_META_U(unit,
                          "OPCODE: 0x%08x\n"), rval));
     rval = soc_pci_read(unit, 
                         CMIC_CMCx_SBUSDMA_CHy_CUR_SBUSDMA_CONFIG_ADDR(cmc, ch));
-    LOG_WARN(BSL_LS_SOC_COMMON,
+    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
              (BSL_META_U(unit,
                          "START ADDR: 0x%08x\n"), rval));
     rval = soc_pci_read(unit, CMIC_CMCx_SBUSDMA_CHy_CUR_SBUSADDR(cmc, ch));
-    LOG_WARN(BSL_LS_SOC_COMMON,
+    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
              (BSL_META_U(unit,
                          "CUR ADDR: 0x%08x\n"), rval));
 }
@@ -135,56 +135,56 @@ _soc_sbusdma_error_details(int unit, uint32 rval)
 {
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, DESCRD_ERRORf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Error while reading descriptor from host memory.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, SBUSACK_TIMEOUTf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "sbus ack not received within configured time.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, SBUSACK_ERRORf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "H/W received sbus ack with error bit set.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, SBUSACK_NACKf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "H/W received sbus nack with error bit set.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, SBUSACK_WRONG_OPCODEf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Received sbus ack has wrong opcode.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, SBUSACK_WRONG_BEATCOUNTf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Received sbus ack data size is not the same as in rep_words "
                               "fields.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, SER_CHECK_FAILf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Received sbus ack has wrong opcode.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, HOSTMEMRD_ERRORf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Error while copying SBUSDMA data from Host Memory.\n")));
     }
     if (soc_reg_field_get(unit, CMIC_CMC0_SBUSDMA_CH0_STATUSr,
                           rval, HOSTMEMWR_ERRORf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "DMA operation encountered a schan response error "
                               "or host side error.\n")));
@@ -234,7 +234,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
     uint32        wa_rval, wa_val = 0;
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_DMA,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_mem_sbusdma_read: unit %d"
                          " mem %s.%s[%u] index %d-%d SER flags 0x%08x buffer %p\n"),
@@ -272,7 +272,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
         }
     }
 #endif /* BCM_XGS3_SWITCH_SUPPORT */
-    LOG_VERBOSE(BSL_LS_SOC_DMA,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                 (BSL_META_U(unit,
                  "sbus_dma_read: unit=%d %s.acc_type = %0x, idx[%0d-%0d]\n"),
                  unit, SOC_MEM_NAME(unit, mem), acc_type, index_min, index_max));
@@ -396,7 +396,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
 #endif
     soc_pci_write(unit, CMIC_CMCx_SBUSDMA_CHy_CONTROL(cmc, ch), ctrl);
 
-    LOG_VERBOSE(BSL_LS_SOC_DMA,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_mem_sbusdma_read: %d entries %d beats "
                          "addr 0x%x (index %d-%d) Interrupt-Mode(%d)\n"),
@@ -417,7 +417,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
         }
 #ifdef PRINT_DMA_TIME
         diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-        LOG_VERBOSE(BSL_LS_SOC_DMA,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                     (BSL_META_U(unit,
                                 "HW dma read time: %d usecs, [%d nsecs per op]\n"),
                      diff_time, diff_time*1000/count));
@@ -444,7 +444,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
                 rv = SOC_E_NONE;
 #ifdef PRINT_DMA_TIME
                 diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-                LOG_VERBOSE(BSL_LS_SOC_DMA,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                             (BSL_META_U(unit,
                                         "HW dma read poll time: %d usecs, [%d nsecs per op]\n"), 
                              diff_time, diff_time*1000/count));
@@ -472,7 +472,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
 
     if (rv != SOC_E_NONE) {
         if (rv != SOC_E_TIMEOUT) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s.%s failed(ERR)\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -482,7 +482,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
         } else { /* Timeout cleanup */
             soc_timeout_t to;
 
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s.%s %s timeout\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -490,7 +490,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
                        soc->tableDmaIntrEnb ? "interrupt" : "polling"));
 #ifdef BCM_88650_A0
             if (SOC_IS_ARAD(unit)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "This DMA failure may be due to wrong PCI configuration. "
                                       "Timeout configured to %dus.\n"),
@@ -512,7 +512,7 @@ _soc_mem_array_sbusdma_read(int unit, soc_mem_t mem, unsigned array_index,
                     break;
                 }
                 if (soc_timeout_check(&to)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "_soc_mem_sbusdma_read: Abort Failed\n")));
                     break;
@@ -583,7 +583,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
     uint32        wa_rval, wa_val = 0;
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_DMA,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_mem_sbusdma_write: unit %d"
                          " mem %s[%u-%u].%s index %d-%d buffer %p\n"),
@@ -753,7 +753,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
 #endif
         soc_pci_write(unit, CMIC_CMCx_SBUSDMA_CHy_CONTROL(cmc, ch), ctrl);
         
-        LOG_VERBOSE(BSL_LS_SOC_DMA,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "_soc_mem_sbusdma_write: %d entries %d beats "
                              "addr 0x%x (index %d-%d) Interrupt-Mode(%d)\n"),
@@ -781,7 +781,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
             }
 #ifdef PRINT_DMA_TIME
             diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-            LOG_VERBOSE(BSL_LS_SOC_DMA,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                         (BSL_META_U(unit,
                                     "HW dma write time: %d usecs, [%d nsecs per op]\n"),
                          diff_time, diff_time*1000/count));
@@ -809,7 +809,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
                                       rval, DONEf)) {
 #ifdef PRINT_DMA_TIME
                     diff_time = SAL_USECS_SUB(sal_time_usecs(), start_time);
-                    LOG_VERBOSE(BSL_LS_SOC_DMA,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                                 (BSL_META_U(unit,
                                             "HW dma write poll time: %d usecs, [%d nsecs per op]\n"), 
                                  diff_time, diff_time*1000/count));
@@ -839,7 +839,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
 
         if (rv < 0) {
             if (rv != SOC_E_TIMEOUT) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s[%u].%s failed(ERR)\n"),
                            SOC_MEM_UFNAME(unit, mem), array_index,
@@ -849,7 +849,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
             } else { /* Timeout cleanup */
                 soc_timeout_t to;
         
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s[%u].%s %s timeout\n"),
                            SOC_MEM_UFNAME(unit, mem), array_index,
@@ -870,7 +870,7 @@ _soc_mem_array_sbusdma_write(int unit, soc_mem_t mem, unsigned array_index_start
                         break;
                     }
                     if (soc_timeout_check(&to)) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "_soc_mem_sbusdma_write: Abort Failed\n")));
                         break;
@@ -1002,7 +1002,7 @@ _soc_mem_sbusdma_clear_specific(int unit, soc_mem_t mem,
         rv = _soc_mem_array_sbusdma_write(unit, mem, array_index_min, array_index_max, blk, index_min, 
                                      index_max, buf, TRUE, chunk_entries);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_mem_sbusdma_clear: %s.%s[%d-%d] failed: %s\n"),
                        SOC_MEM_UFNAME(unit, mem),
@@ -1062,7 +1062,7 @@ _soc_sbusdma_desc(void *unit_vp)
             continue;
         }
         rv = SOC_E_TIMEOUT;
-        LOG_VERBOSE(BSL_LS_SOC_DMA,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                     (BSL_META_U(unit,
                                 "_soc_sbusdma_desc: Process \n")));
         stime = sal_time_usecs();
@@ -1095,11 +1095,11 @@ _soc_sbusdma_desc(void *unit_vp)
                       soc_cm_l2p(unit, swd->desc));
         
         /* Debug stuff */
-        LOG_VERBOSE(BSL_LS_SOC_DMA,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                     (BSL_META_U(unit,
                                 "Count: %d\n"), swd->ctrl.cfg_count));
         for (i=0; i<swd->ctrl.cfg_count; i++) {
-            LOG_VERBOSE(BSL_LS_SOC_DMA,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                         (BSL_META_U(unit,
                                     "cntrl: %08x, req: %08x, count: %08x, "
                                     "opcode: %08x, saddr: %08x, haddr: %08x\n"),
@@ -1155,7 +1155,7 @@ _soc_sbusdma_desc(void *unit_vp)
         
         if (rv != SOC_E_NONE) {
             if (rv != SOC_E_TIMEOUT) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s failed(ERR)\n"),
                            swd->ctrl.name));
@@ -1164,7 +1164,7 @@ _soc_sbusdma_desc(void *unit_vp)
             } else { /* Timeout cleanup */
                 soc_timeout_t to;
         
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s timeout\n"),
                            swd->ctrl.name,
@@ -1184,7 +1184,7 @@ _soc_sbusdma_desc(void *unit_vp)
                         break;
                     }
                     if (soc_timeout_check(&to)) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "_soc_sbusdma_desc: Abort Failed\n")));
                         break;
@@ -1193,7 +1193,7 @@ _soc_sbusdma_desc(void *unit_vp)
             }
         } else {
             etime = sal_time_usecs();
-            LOG_VERBOSE(BSL_LS_SOC_DMA,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_DMA,
                         (BSL_META_U(unit,
                                     "_soc_sbusdma_desc: unit=%d mode(%s) done in %d usec\n"),
                          unit, SOC_SBUSDMA_DM_INTRENB(unit) ? "interrupt" : "polling",
@@ -1216,7 +1216,7 @@ cleanup_exit:
         SOC_SBUSDMA_DM_UNLOCK(unit);
     }
 
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "_soc_sbusdma_desc: exiting\n")));
     SOC_SBUSDMA_DM_PID(unit) = SAL_THREAD_ERROR;
@@ -1242,7 +1242,7 @@ soc_sbusdma_desc_abort(int unit)
 
         while (SOC_SBUSDMA_DM_PID(unit) != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_sbusdma_desc_detach: SBUDMA Desc Mode thread will not exit\n")));
                 return SOC_E_INTERNAL;
@@ -1340,7 +1340,7 @@ soc_sbusdma_desc_init(int unit, int interval, uint8 intrEnb)
                                                  _soc_sbusdma_desc,
                                                  INT_TO_PTR(unit));
     if (SOC_SBUSDMA_DM_PID(unit) == SAL_THREAD_ERROR) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_sbusdma_desc_init: Could not start SBUDMA Desc Mode thread.\n")));
         (void)soc_sbusdma_desc_detach(unit);
@@ -1530,20 +1530,20 @@ soc_sbusdma_desc_create(int unit, soc_sbusdma_desc_ctrl_t *ctrl,
     SOC_SBUSDMA_DM_COUNT(unit)++;
     SOC_SBUSDMA_DM_UNLOCK(unit);
     if (ctrl->cfg_count == 1) {
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "Create Single:: Handle: %d, desc count: %d, addr: %x, "
                              "opcount: %d, buff: %p\n"), 
                   swd->handle, swd->ctrl.cfg_count, 
                   swd->desc->addr, swd->desc->count, swd->cfg->buff));
     } else {
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "Create Chain:: Handle: %d, desc count: %d\n"), 
                   swd->handle, swd->ctrl.cfg_count));
     }
     
-    LOG_INFO(BSL_LS_SOC_DMA,
+    LOG_BSL_INFO(BSL_LS_SOC_DMA,
              (BSL_META_U(unit,
                          "SBD DM count: %d\n"), SOC_SBUSDMA_DM_COUNT(unit)));
     return SOC_E_NONE;
@@ -1564,7 +1564,7 @@ soc_sbusdma_desc_get_state(int unit, sbusdma_desc_handle_t desc_handle, uint8 *s
         swd = SOC_SBUSDMA_DM_HANDLES(unit)[desc_handle];
     } else {
         SOC_SBUSDMA_DM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Get state request for invalid or non-existing descriptor handle: %d\n"), 
                    desc_handle));
@@ -1572,7 +1572,7 @@ soc_sbusdma_desc_get_state(int unit, sbusdma_desc_handle_t desc_handle, uint8 *s
     }
     if (swd->handle != desc_handle) {
         SOC_SBUSDMA_DM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Handle mismatch found: %d<=>%d\n"), swd->handle,
                    desc_handle));
@@ -1602,7 +1602,7 @@ soc_sbusdma_desc_run(int unit, sbusdma_desc_handle_t desc_handle)
         swd = SOC_SBUSDMA_DM_HANDLES(unit)[desc_handle];
     } else {
         SOC_SBUSDMA_DM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Run request for invalid or non-existing descriptor handle: %d\n"), 
                    desc_handle));
@@ -1610,7 +1610,7 @@ soc_sbusdma_desc_run(int unit, sbusdma_desc_handle_t desc_handle)
     }
     if (swd->handle != desc_handle) {
         SOC_SBUSDMA_DM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Handle mismatch found: %d<=>%d\n"), swd->handle,
                    desc_handle));
@@ -1622,14 +1622,14 @@ soc_sbusdma_desc_run(int unit, sbusdma_desc_handle_t desc_handle)
     SOC_SBUSDMA_DM_WORKING(unit) = swd;
     
     if (swd->ctrl.cfg_count == 1) {
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "Run Single:: Handle: %d, desc count: %d, addr: %x, "
                              "opcount: %d, buff: %p\n"), 
                   swd->handle, swd->ctrl.cfg_count, 
                   swd->desc->addr, swd->desc->count, swd->cfg->buff));
     } else {
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "Run Chain:: Handle: %d, desc count: %d\n"), 
                   swd->handle, swd->ctrl.cfg_count));
@@ -1655,21 +1655,21 @@ soc_sbusdma_desc_delete(int unit, sbusdma_desc_handle_t handle)
         swd = SOC_SBUSDMA_DM_HANDLES(unit)[handle];
         if (swd->handle != handle) {
             SOC_SBUSDMA_DM_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Handle mismatch found: %d<=>%d\n"), swd->handle,
                        handle));
             return SOC_E_INTERNAL;
         }
         if (swd->ctrl.cfg_count == 1) {
-            LOG_INFO(BSL_LS_SOC_DMA,
+            LOG_BSL_INFO(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "Delete Single:: Handle: %d, desc count: %d, addr: %x, "
                                  "opcount: %d, buff: %p\n"), 
                       swd->handle, swd->ctrl.cfg_count, 
                       swd->desc->addr, swd->desc->count, swd->cfg->buff));
         } else {
-            LOG_INFO(BSL_LS_SOC_DMA,
+            LOG_BSL_INFO(BSL_LS_SOC_DMA,
                      (BSL_META_U(unit,
                                  "Delete Chain:: Handle: %d, desc count: %d\n"), 
                       swd->handle, swd->ctrl.cfg_count));
@@ -1681,12 +1681,12 @@ soc_sbusdma_desc_delete(int unit, sbusdma_desc_handle_t handle)
         sal_free(swd);
         SOC_SBUSDMA_DM_HANDLES(unit)[handle] = 0;
         SOC_SBUSDMA_DM_COUNT(unit)--;
-        LOG_INFO(BSL_LS_SOC_DMA,
+        LOG_BSL_INFO(BSL_LS_SOC_DMA,
                  (BSL_META_U(unit,
                              "SBD DM count: %d\n"), SOC_SBUSDMA_DM_COUNT(unit)));
     } else {
         SOC_SBUSDMA_DM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Del request for invalid or non-existing descriptor handle: %d\n"), 
                    handle));
@@ -2042,7 +2042,7 @@ _soc_kt2_mem_sbus_fifo_dma_stop(int unit, int ch)
     soc_pci_write(unit, CMIC_CMCx_FIFO_CHy_RD_DMA_CFG_OFFSET(cmc, ch), rval);
 
     if (iter >= to) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FIFO DMA abort failed !!\n")));
         return SOC_E_INTERNAL;
@@ -2099,7 +2099,7 @@ _soc_mem_sbus_fifo_dma_stop(int unit, int ch)
     soc_pci_write(unit, CMIC_CMCx_FIFO_CHy_RD_DMA_CFG_OFFSET(cmc, ch), rval);
 
     if (iter >= to) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FIFO DMA abort failed !!\n")));
         return SOC_E_INTERNAL;
@@ -2218,12 +2218,12 @@ _soc_l2mod_sbus_fifo_dma_thread(void *unit_vp)
         if (soc->l2modDmaIntrEnb) {
             soc_cmicm_intr0_enable(unit, intr_mask);
             if (sal_sem_take(soc->arl_notify, interval) < 0) {
-                LOG_VERBOSE(BSL_LS_SOC_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                             (BSL_META_U(unit,
                                         "%s polling timeout soc_mem_fifo_delay_value=%d\n"), 
                              soc->l2x_name, soc_mem_fifo_delay_value));
             } else {
-                LOG_VERBOSE(BSL_LS_SOC_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_INTR,
                             (BSL_META_U(unit,
                                         "%s woken up soc_mem_fifo_delay_value=%d\n"), 
                              soc->l2x_name, soc_mem_fifo_delay_value));
@@ -2306,13 +2306,13 @@ _soc_l2mod_sbus_fifo_dma_thread(void *unit_vp)
             rval = soc_pci_read(unit, CMIC_CMCx_FIFO_CHy_RD_DMA_STAT_OFFSET(cmc, ch));
             if (soc_reg_field_get(unit, CMIC_CMC0_FIFO_CH0_RD_DMA_STATr, rval,
                                   DONEf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "FIFO DMA engine terminated for cmc[%d]:ch[%d]\n"), 
                            cmc, ch));
                 if (soc_reg_field_get(unit, CMIC_CMC0_FIFO_CH0_RD_DMA_STATr, rval,
                                   ERRORf)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "FIFO DMA engine encountered error: [0x%x]\n"),
                                rval));
@@ -2447,7 +2447,7 @@ _soc_l2mod_stop(int unit)
     uint8 ch = SOC_MEM_FIFO_DMA_CHANNEL_1; 
 
     if (SOC_IS_XGS3_SWITCH(unit)) {
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "soc_l2mod_stop: unit=%d\n"), unit));
 
@@ -2506,7 +2506,7 @@ _soc_l2mod_start(int unit, uint32 flags, sal_usecs_t interval)
                 sal_thread_create(soc->l2x_name, SAL_THREAD_STKSZ, pri,
                                   _soc_l2mod_sbus_fifo_dma_thread, INT_TO_PTR(unit));
         if (soc->l2x_pid == SAL_THREAD_ERROR) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_l2mod_start: Could not start L2MOD thread\n")));
             return SOC_E_MEMORY;

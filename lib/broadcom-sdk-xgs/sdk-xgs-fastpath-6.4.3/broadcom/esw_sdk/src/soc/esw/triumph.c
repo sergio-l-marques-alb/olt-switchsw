@@ -442,7 +442,7 @@ _soc_triumph_parity_process_single_table1(int unit, char *msg,
 
     reg = info->status0_reg;
     if (reg == INVALIDr) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity error\n"),
                               unit, msg));
@@ -451,7 +451,7 @@ _soc_triumph_parity_process_single_table1(int unit, char *msg,
     }
     addr = soc_reg_addr(unit, reg, REG_PORT_ANY, 0);
     SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr, &entry_idx));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s entry %d parity error\n"),
                unit, msg, entry_idx));
@@ -503,7 +503,7 @@ _soc_triumph_parity_process_single_table2(int unit, char *msg,
 
     reg = info->status0_reg;
     if (reg == INVALIDr) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity error\n"),
                               unit, msg));
@@ -514,7 +514,7 @@ _soc_triumph_parity_process_single_table2(int unit, char *msg,
     SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr, &status));
     if (soc_reg_field_valid(unit, reg, PARITY_ERRf)) {
         if (!soc_reg_field_get(unit, reg, status, PARITY_ERRf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s parity hardware inconsistency\n"),
                        unit, msg));
@@ -523,7 +523,7 @@ _soc_triumph_parity_process_single_table2(int unit, char *msg,
         }
         entry_idx = soc_reg_field_get(unit, reg, status,
                                       ENTRY_IDXf);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, entry_idx));
@@ -541,7 +541,7 @@ _soc_triumph_parity_process_single_table2(int unit, char *msg,
     } else if (soc_reg_field_valid(unit, reg, DOUBLE_BIT_ERRf)) {
         if (!soc_reg_field_get(unit, reg, status,
                                DOUBLE_BIT_ERRf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s parity hardware inconsistency\n"),
                        unit, msg));
@@ -550,7 +550,7 @@ _soc_triumph_parity_process_single_table2(int unit, char *msg,
         }
         entry_idx = soc_reg_field_get(unit, reg, status,
                                       ENTRY_IDXf);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d double bit error\n"),
                    unit, msg, entry_idx));
@@ -610,7 +610,7 @@ _soc_triumph_parity_process_dual_table1(int unit, char *msg,
             continue;
         }
         err_count++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, entry_idx + index));
@@ -637,7 +637,7 @@ _soc_triumph_parity_process_dual_table1(int unit, char *msg,
             continue;
         }
         err_count++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, entry_idx + index));
@@ -655,7 +655,7 @@ _soc_triumph_parity_process_dual_table1(int unit, char *msg,
     }
 
     if (err_count == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity hardware inconsistency\n"),
                    unit, msg));
@@ -702,7 +702,7 @@ _soc_triumph_parity_process_dual_table2(int unit, char *msg,
             continue;
         }
         err_count++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, entry_idx + index));
@@ -735,7 +735,7 @@ _soc_triumph_parity_process_dual_table2(int unit, char *msg,
             continue;
         }
         err_count++;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d parity error\n"),
                    unit, msg, entry_idx + index));
@@ -753,7 +753,7 @@ _soc_triumph_parity_process_dual_table2(int unit, char *msg,
     }
 
     if (err_count == 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity hardware inconsistency\n"),
                    unit, msg));
@@ -792,7 +792,7 @@ _soc_triumph_parity_process_mmuipmc(int unit, char *msg,
         addr = soc_reg_addr(unit, reg, REG_PORT_ANY, index);
         SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr,
                                            &entry_idx));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s%d entry %d parity error\n"),
                    unit, msg, index, entry_idx));
@@ -870,14 +870,14 @@ _soc_triumph_parity_process_mmuwred(int unit, char *msg,
         msg = "WRED_PORT_THD_1_PACKET";
         spci.mem = MMU_WRED_PORT_THD_1_PACKETm; 
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s parity hardware inconsistency\n"),
                    unit, msg));
         *intr_enable = 0;
         return SOC_E_NONE;
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "unit %d %s entry %d parity error\n"),
                unit, msg, entry_idx));
@@ -987,7 +987,7 @@ _soc_triumph_process_parity_error(int unit)
              */
             /* coverity[unterminated_case] */
             case _SOC_PARITY_INFO_TYPE_GENERIC:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "unit %d %s asserted\n"),
                                       unit, msg));
@@ -1209,7 +1209,7 @@ _soc_triumph_esm_process_intr_status(int unit)
             if (msg == NULL) {
                 msg = SOC_FIELD_NAME(unit, intr_reg_info->error_field);
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s asserted\n"), unit, msg));
 
@@ -1232,7 +1232,7 @@ _soc_triumph_esm_process_intr_status(int unit)
                                                   field_info->field));
                     field_len = sal_strlen(field_buf);
                     if (line_len + field_len >= 64) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "    %s\n"), line_buf));
                         line_len = 0;
@@ -1240,7 +1240,7 @@ _soc_triumph_esm_process_intr_status(int unit)
                     sal_sprintf(&line_buf[line_len], "%s", field_buf);
                     line_len += field_len;
                 }
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "    %s>\n"), line_buf));
             }
@@ -1304,7 +1304,7 @@ soc_triumph_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -1318,7 +1318,7 @@ soc_triumph_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -2275,7 +2275,7 @@ _soc_triumph_esm_init_select_ad_mode(int unit, int *ad_mode)
 
     cfg_ad_mode = soc_property_get(unit, spn_EXT_AD_MODE, 0);
     if (cfg_ad_mode < 0 || cfg_ad_mode > 12) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ESM init: unit %d bad %s %d\n"),
                               unit, spn_EXT_AD_MODE, cfg_ad_mode));
@@ -2291,7 +2291,7 @@ _soc_triumph_esm_init_select_ad_mode(int unit, int *ad_mode)
         cfg_sram0_present = soc_property_get(unit, spn_EXT_SRAM0_PRESENT, 1);
         cfg_sram1_present = soc_property_get(unit, spn_EXT_SRAM1_PRESENT, 1);
         if (!cfg_sram0_present && !cfg_sram1_present) { /* no SRAM at all */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ESM init: unit %d both ES0 and ES1 are configured "
                                   "as not present\n"),
@@ -2307,7 +2307,7 @@ _soc_triumph_esm_init_select_ad_mode(int unit, int *ad_mode)
                 if (cfg_sram0_present && cfg_sram1_present) {
                     *ad_mode = 12; /* ES0:ACL, ES1:L2/L3 */
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "ESM init: unit %d require both ES0 and ES1 "
                                           "in configuration\n"),
@@ -2329,7 +2329,7 @@ _soc_triumph_esm_init_select_ad_mode(int unit, int *ad_mode)
                 }
             } else {
                 if (!cfg_sram0_present || !cfg_sram1_present) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "ESM init: unit %d require both ES0 and ES1 "
                                           "in configuration\n"),
@@ -2344,7 +2344,7 @@ _soc_triumph_esm_init_select_ad_mode(int unit, int *ad_mode)
                     } else if (!l2_entries) { /* L3+ACL only */
                         *ad_mode = 11; /* ES0:counter/policy, ES1:L3/policy */
                     } else { /* can't do L2+L3+ACL */
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "ESM init: unit %d can't support L2 + L3 "
                                               "+ ACL on current sram speed %d MHz\n"),
@@ -3765,7 +3765,7 @@ _soc_triumph_esm_init_set_esm_mode_per_port(int unit)
         acl_l2_key < 0 || acl_l2_key > 2 ||
         acl_ip4_key < 0 || acl_ip4_key > 4 ||
         acl_ip6_key < 0 || acl_ip6_key > 5) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ESM init: unit %d incorrect key selection\n"),
                               unit));
@@ -3889,7 +3889,7 @@ soc_triumph_esm_init(int unit)
         soc_property_get(unit, spn_EXT_TCAM_DEV_TYPE, 0);
     if (tcam_info->subtype_override &&
         (tcam_info->subtype_override < 3 || tcam_info->subtype_override > 4)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ESM init: unit %d invalid device type %d\n"),
                               unit, tcam_info->subtype_override));
@@ -3901,7 +3901,7 @@ soc_triumph_esm_init(int unit)
     if (tcam_info->num_tcams_override &&
         (tcam_info->num_tcams_override < 1 ||
          tcam_info->num_tcams_override > 2)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ESM init: unit %d does not support %d TCAM banks\n"),
                    unit, tcam_info->num_tcams_override));
@@ -4932,7 +4932,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
                                     1);
                 soc_mem_field32_set(unit, ET_UINST_MEMm, &uinst_entry, IBUS0f,
                                     ibus[i]);
-                if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
+                if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
                     LOG_CLI((BSL_META_U(unit,
                                         "IBUS0: %08x DBUS0: %08x %08x %08x\n"),
                              ibus[i],
@@ -4950,7 +4950,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
             soc_mem_field32_set(unit, ET_UINST_MEMm, &uinst_entry, DOE1f, 1);
             soc_mem_field32_set(unit, ET_UINST_MEMm, &uinst_entry, IBUS1f,
                                 ibus[i]);
-            if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "IBUS1: %08x DBUS1: %08x %08x %08x\n"),
                          ibus[i],
@@ -4961,7 +4961,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
         }
         i++;
 
-        if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
             LOG_CLI((BSL_META_U(unit,
                                 "UINST %d: %08x %08x %08x %08x %08x %08x\n"),
                      (i - 1)/ 2,
@@ -4994,7 +4994,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
     soc_reg_field_set(unit, ETU_ET_INST_REQr, &rval0, NUM_INST_DOPSf,
                       ((num_inst + 1) / 2 + num_pad_entries) & 0x03);
 
-    if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
         LOG_CLI((BSL_META_U(unit,
                             "INST_REQ: %08x\n"), rval0));
     }
@@ -5013,7 +5013,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
             sal_usleep(100000);
         }
         if (!retry) {
-            if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_triumph_tcam_access: Instruction timeout\n")));
             }
@@ -5031,7 +5031,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
         return rv;
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_VERBOSE)) {
         LOG_CLI((BSL_META_U(unit,
                             "INST_STAT: %08x\n"), status));
     }
@@ -5043,7 +5043,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
     case TCAM_TR_OP_READ:
         if (!SOC_WARM_BOOT(unit) &&
             !soc_reg_field_get(unit, ETU_ET_INST_STATUSr, status, RDACKf)) {
-            if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
+            if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
                 LOG_CLI((BSL_META_U(unit,
                                     "soc_triumph_tcam_access: No rdack\n")));
             }
@@ -5056,7 +5056,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
         dbus[0] = rval0;
         dbus[1] = rval1;
         dbus[2] = rval2 & 0xff;
-        if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
             LOG_CLI((BSL_META_U(unit,
                                 "READ: RSLT_DAT: %08x %08x %08x\n"),
                      rval0, rval1, rval2));
@@ -5102,7 +5102,7 @@ soc_triumph_tcam_access(int unit, int op_type, int num_inst, int num_pre_nop,
 
         dbus[0] = rval0;
         dbus[1] = rval1;
-        if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
             LOG_CLI((BSL_META_U(unit,
                                 "SEARCH: RESULT_RESULT: %08x %08x\n"),
                      rval0, rval1));
@@ -5865,13 +5865,13 @@ _soc_tr_l2e_ppa_update(int unit, int index, ext_l2_entry_entry_t *entry)
             }
         }
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "tr_l2e_ppa: index=%d oldvlan=%d min:max %d:%d\n"),
                             index, oldvlan,
                  ppa_vlan->vlan_min[oldvlan],
                  ppa_vlan->vlan_max[oldvlan]));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "tr_l2e_ppa: ent=0x%x mac=%x:%x:%x:%x:%x:%x vlan=%d min:max %d:%d\n"),
                             ppa_info[index].data,

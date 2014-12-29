@@ -273,7 +273,7 @@ init_symtab()
      * symtab: init 1028 regs, 1119 symbols, 674 linear, 445 chained
      *         345 empty, 5 longest chain
      */
-    LOG_INFO(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_INFO(BSL_LS_APPL_SYMTAB,
              (BSL_META("symtab: init %d regs, %d symbols, %d linear, %d chained,\n"
                        "\t\t%d empty, %d longest chain\n"),
               NUM_SOC_REG, c, lin, d, emp, lon));
@@ -301,7 +301,7 @@ init_symtab()
      * symtab: init 1028 regs, 1119 symbols, 674 linear, 445 chained
      *          345 empty, 5 longest chain
  */
-    LOG_INFO(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_INFO(BSL_LS_APPL_SYMTAB,
              (BSL_META("symtab: init %d regs, %d symbols, %d linear, %d chained,\n"
                        "\t\t%d empty, %d longest chain\n"),
               NUM_SOC_ROBO_REG, c, lin, d, emp, lon));
@@ -412,7 +412,7 @@ _parse_array(char *name, char **out1, char **out2)
         rv = 1;
         *idx1++ = 0;
         if ((tmpchr = sal_strchr(idx1, ']')) == 0) {
-            LOG_WARN(BSL_LS_APPL_SYMTAB,
+            LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                      (BSL_META("Could not parse index in %s.\n"), name));
         } else {
             *tmpchr = 0;
@@ -424,7 +424,7 @@ _parse_array(char *name, char **out1, char **out2)
         rv = 1;
         *idx1++ = 0;
         if ((tmpchr = sal_strchr(idx1, ')')) == 0) {
-            LOG_WARN(BSL_LS_APPL_SYMTAB,
+            LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                      (BSL_META("Could not parse index in %s.\n"), name));
         } else {
             *tmpchr = 0;
@@ -501,7 +501,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
     soc_regaddrinfo_t *a = NULL;
 #endif
     
-    LOG_INFO(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_INFO(BSL_LS_APPL_SYMTAB,
              (BSL_META_U(unit,
                          "parsing: %s\n"), ref));
 
@@ -547,7 +547,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
 
     
     if (!SOC_REG_IS_VALID(unit, reg)) {
-        LOG_WARN(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                  (BSL_META_U(unit,
                              "Register %s %d is not valid for chip %s\n"),
                              et->name, reg, SOC_UNIT_NAME(unit)));
@@ -558,14 +558,14 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
     if (!SOC_REG_IS_ENABLED(unit, reg)) {
         if (SOC_IS_ROBO(unit)){
 #ifdef BCM_ROBO_SUPPORT
-            LOG_WARN(BSL_LS_APPL_SYMTAB,
+            LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                      (BSL_META_U(unit,
                                  "Register %s is not enabled for this configuration\n"),
                                  SOC_ROBO_REG_NAME(unit, reg)));
 #endif
         } else {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_CMIC_SUPPORT)
-            LOG_WARN(BSL_LS_APPL_SYMTAB,
+            LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                      (BSL_META_U(unit,
                                  "Register %s is not enabled for this configuration\n"),
                                  SOC_REG_NAME(unit, reg)));
@@ -598,7 +598,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
     if (diag_parse_range(idx1, idx2, &minidx, &maxidx,
                          SOC_REG_ARRAY(unit, reg) ? 0 : -1,
                          SOC_REG_ARRAY(unit, reg) ? SOC_REG_NUMELS(unit,reg)-1 : -1) < 0) {
-        LOG_WARN(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                  (BSL_META_U(unit,
                              "Register %s: bad index specification\n"), ref));
         goto _return_error;
@@ -643,7 +643,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
         } else if (parse_pbmp(unit, range1, &bm) < 0) {
             goto _return_error;
         }
-        LOG_VERBOSE(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SYMTAB,
                     (BSL_META_U(unit,
                                 "symtab: port bitmap %s\n"),
                                 SOC_PBMP_FMT(bm, pfmt)));
@@ -724,7 +724,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
         } else if (parse_pp_pbmp(unit, range1, &bm) < 0) {
             goto _return_error;
         }
-        LOG_VERBOSE(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SYMTAB,
                     (BSL_META_U(unit,
                                 "symtab: ppport bitmap %s\n"),
                                 SOC_PBMP_FMT(bm, pfmt)));
@@ -798,7 +798,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
         } else if (parse_pbmp(unit, range1, &bm) < 0) {
             goto _return_error;
         }
-        LOG_VERBOSE(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SYMTAB,
                     (BSL_META_U(unit,
                                 "symtab: port bitmap %s\n"),
                                 SOC_PBMP_FMT(bm, pfmt)));
@@ -1107,7 +1107,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
                 } else if (parse_pbmp(unit, range1, &bm) < 0) {
                     goto _return_error;
                 }
-                LOG_VERBOSE(BSL_LS_APPL_SYMTAB,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_SYMTAB,
                             (BSL_META_U(unit,
                                         "symtab: port bitmap %s\n"),
                                         SOC_PBMP_FMT(bm, pfmt)));
@@ -1282,7 +1282,7 @@ parse_symbolic_reference(int unit, soc_regaddrlist_t *alist, char *ref)
         if (bmask[idx] != 0) {
             goto _return_error;
         }
-        LOG_VERBOSE(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SYMTAB,
                     (BSL_META_U(unit,
                                 "symtab: %s %d:%d\n"),
                      regtype_name, cos_min, cos_max));

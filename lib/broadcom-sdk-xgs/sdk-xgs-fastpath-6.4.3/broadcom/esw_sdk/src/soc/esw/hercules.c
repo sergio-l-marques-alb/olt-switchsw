@@ -180,7 +180,7 @@ soc_hercules_mmu_init(int unit)
         return SOC_E_NONE;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules_mmu_init: unit %d\n"), unit));
 
@@ -479,7 +479,7 @@ soc_hercules_mem_read_word(int unit, uint32 addr, void *word_data)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, NULL);
     if (opcode != READ_MEMORY_ACK_MSG) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_hercules_mem_read_word: "
                               "invalid S-Channel reply, expected READ_MEMORY_ACK:\n")));
@@ -526,7 +526,7 @@ soc_hercules_mem_write(int unit,
 
     if (copyno != COPYNO_ALL) {
         if (!SOC_MEM_BLOCK_VALID(unit, mem, copyno)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "soc_hercules_mem_write: "
                                  "invalid copy %d for table %s\n"),
@@ -660,7 +660,7 @@ soc_hercules15_mmu_limits_config(int unit, int port, int num_ports,
     xq_entries = soc_mem_index_max(unit, MEM_XQm) -
                  soc_mem_index_min(unit, MEM_XQm);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules15_mmu_limits_config: "
                             "unit=%d port=%s nports=%d ncos=%d loss%s\n"),
@@ -764,7 +764,7 @@ soc_hercules_uc_port_set(int unit, soc_port_t ingress_port, int modid,
     char pfmt[SOC_PBMP_FMT_LEN];
 
     MODID_RANGE_CHECK(unit);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules_uc_port_set: unit=%d port=%s modid=%d pbmp=%s\n"),
                  unit, SOC_PORT_NAME(unit, ingress_port), modid,
@@ -788,7 +788,7 @@ soc_hercules_vlan_port_init(int unit, soc_port_t ingress_port)
     vid_max = soc_mem_index_max(unit, MEM_VIDm);
     blk = SOC_PORT_BLOCK(unit, ingress_port);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules_vlan_port_init: unit=%d port=%s\n"),
                  unit, SOC_PORT_NAME(unit, ingress_port)));
@@ -828,7 +828,7 @@ soc_hercules_vlan_port_set(int unit,
 
     VLAN_RANGE_CHECK(unit);
     blk = SOC_PORT_BLOCK(unit, ingress_port);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules_vlan_port_set: unit=%d port=%s vid=%d pbmp=%s\n"),
                  unit, SOC_PORT_NAME(unit, ingress_port),
@@ -855,7 +855,7 @@ soc_hercules_mc_port_init(int unit, soc_port_t ingress_port)
     mcidx_min = soc_mem_index_min(unit, MEM_MCm);
     mcidx_max = soc_mem_index_max(unit, MEM_MCm);
     blk = SOC_PORT_BLOCK(unit, ingress_port);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules_mc_port_init: unit=%d port=%s\n"),
                  unit, SOC_PORT_NAME(unit, ingress_port)));
@@ -891,7 +891,7 @@ soc_hercules_mc_port_set(int unit, soc_port_t ingress_port, int mcidx,
 
     MCIDX_RANGE_CHECK(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_hercules_mc_port_set: unit=%d port=%s mcidx=%d pbmp=%s\n"),
                  unit, SOC_PORT_NAME(unit, ingress_port),

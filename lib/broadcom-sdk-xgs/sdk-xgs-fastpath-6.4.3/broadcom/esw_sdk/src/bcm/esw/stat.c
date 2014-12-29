@@ -799,7 +799,7 @@ bcm_esw_stat_init(int unit)
                  port <= SOC_INFO(unit).lb_port;
                  port++) {
                  if (SOC_INFO(unit).block_valid[SOC_PORT_BLOCK(unit,port)]) {
-                     LOG_VERBOSE(BSL_LS_APPL_SHELL,
+                     LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                                  (BSL_META_U(unit,
                                              "BlockName:%s \n"),
                                              SOC_BLOCK_NAME(unit, SOC_PORT_BLOCK(unit,port))));

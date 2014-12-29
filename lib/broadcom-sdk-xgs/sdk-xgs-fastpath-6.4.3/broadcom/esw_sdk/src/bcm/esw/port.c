@@ -493,7 +493,7 @@ _bcm_esw_port_mon_unimac_lock_up(_port_mon_ctrl_t *pmc)
 
         /* Reset MAC if lock-up is detected */
         if (rv == 0 && lock_up) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "Port %s: UniMAC lock up (%d) detected\n"),
                          SOC_PORT_NAME(unit, port), lock_up));
@@ -529,7 +529,7 @@ _bcm_esw_port_mon_ctrl_thread(void *context)
 {
     _port_mon_ctrl_t *pmc = (_port_mon_ctrl_t *)context;
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META("Port monitor started on unit %d\n"), pmc->unit));
 
     pmc->running = 1;
@@ -567,7 +567,7 @@ _bcm_esw_port_mon_start(int unit)
 
     pmc->unit = unit;
     if (pmc->running) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Port monitor already running on unit %d\n"),
                      pmc->unit));
@@ -594,7 +594,7 @@ _bcm_esw_port_mon_start(int unit)
             sal_usleep(100000);
         }
         if (!pmc->running) {
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "%s: Thread did not start\n"), pmc->taskname));
             return BCM_E_TIMEOUT;
@@ -630,7 +630,7 @@ _bcm_esw_port_mon_stop(int unit)
         sal_usleep(100000);
     }
     if (pmc->running) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "%s: Thread did not start\n"), pmc->taskname));
         return BCM_E_TIMEOUT;
@@ -726,14 +726,14 @@ _bcm_tr3_ibod_port_isolate(int unit, int port_enable, bcm_port_t port)
         (_bcm_tr3_ibod_mac_x_enable_set(unit, port, FALSE));
 
     if (port_enable) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                "Port %d enable case..\n"), port));
         /* Enable phy so that packets can loopback */
         SOC_IF_ERROR_RETURN
             (soc_phyctrl_enable_set(unit, port, TRUE));
     } else {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Port %d Runt received case..\n"), port));
     }
@@ -813,7 +813,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
                              port, TRUE, TRUE);
     if (BCM_FAILURE(rv)) {
        IBOD_UNLOCK(unit);
-       LOG_ERROR(BSL_LS_BCM_PORT,
+       LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                   "IBOD Link Force failed[%d] on port:%d\n\r"),
                   rv, port));
@@ -827,7 +827,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
         if (!SOC_PBMP_MEMBER(mask, port)) {
             PORT_UNLOCK(unit);
             rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, FALSE, DONT_CARE);
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "Skip ibod sync war if port %d is "
                                   "disabled.\n"), port));
@@ -841,7 +841,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
     if (BCM_FAILURE(rv)) {
         PORT_UNLOCK(unit);
         IBOD_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit, "IBOD port(%d) isolate Failed[%d]\n\r"),
                    port, rv));
         return rv;
@@ -871,7 +871,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
         if (BCM_FAILURE(rv)) {
             PORT_UNLOCK(unit);
             IBOD_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit, "IBOD 80-byte packet transmit"
                        " failed[%d] on port:%d\n\r"), rv, port));
             break;
@@ -899,7 +899,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
         if (BCM_FAILURE(rv)) {
             PORT_UNLOCK(unit);
             IBOD_UNLOCK(unit);
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                        "IBOD Runt Pkt transmit failed[%d] on port:%d\n\r"),
                        rv, port));
@@ -911,7 +911,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
     if (BCM_FAILURE(rv)) {
         PORT_UNLOCK(unit);
         IBOD_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                   "IBOD Port[%d] Resume failed[%d]\n\r"), port, rv));
         return rv;
@@ -922,7 +922,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
     rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, FALSE, DONT_CARE);
     if (BCM_FAILURE(rv)) {
        IBOD_UNLOCK(unit);
-       LOG_ERROR(BSL_LS_BCM_PORT,
+       LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                  "IBOD link force failed[%d] on port:%d\n\r"), rv, port));
        return rv;
@@ -931,7 +931,7 @@ _bcm_tr3_ibod_sync_recovery_port(_port_ibod_ctrl_t *ibod_ctrl, int port_enable,
     time2 = SAL_USECS_SUB(sal_time_usecs(), ibod_ctrl->start_time);
     COMPILER_64_ADD_32(ibod_ctrl->event_count, 1);
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Time taken for IBOD sync event[%d%d]: %d usec\n"),
                  COMPILER_64_HI(ibod_ctrl->event_count),
@@ -949,7 +949,7 @@ _bcm_tr3_ibod_sync_recovery_thread(void *context)
     uint64 rrpkt, rrbyt;
     uint64 rrpkt_diff, rrbyt_diff;
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "IBOD recovery started on unit %d\n"), ibod_ctrl->unit));
 
@@ -1031,7 +1031,7 @@ _bcm_hx4_ibod_sync_recovery_thread(void *context)
     bcm_pbmp_t pbmp;
     uint64 rval64;
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "IBOD recovery started on unit %d\n"), ibod_ctrl->unit));
 
@@ -1240,7 +1240,7 @@ _bcm_esw_ibod_sync_recovery_start(int unit, sal_usecs_t interval)
         sal_usleep(100000);
     }
     if (!ibod_ctrl->running) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "%s: Thread did not start\n"), ibod_ctrl->taskname));
         return BCM_E_TIMEOUT;
@@ -1269,7 +1269,7 @@ _bcm_esw_ibod_sync_recovery_stop(int unit)
         sal_usleep(100000);
     }
     if (ibod_ctrl->running) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "%s: Thread did not start\n"), ibod_ctrl->taskname));
         return BCM_E_TIMEOUT;
@@ -1432,7 +1432,7 @@ STATIC int _bcm_tr3_xmac_fifo_check(int unit, bcm_port_t port, uint8 lu_tpo)
         (rv = READ_PORT_TXFIFO_CELL_CNTr(unit, port, &cell_cnt))) {
         goto cleanup;
     }
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Check: cell_req_cnt: %d cell_cnt: %d\n"),
                  req_cnt, cell_cnt));
@@ -1531,7 +1531,7 @@ int _bcm_tr3_port_ur_chk(int unit, int num_ports, bcm_port_t port)
     } else {
         phy_port = SOC_INFO(unit).port_l2p_mapping[port];
     }
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "UR test: %s\n"), SOC_PORT_NAME(unit, port)));
     pbt = SOC_BLOCK_TYPE(unit, SOC_PORT_BLOCK(unit, phy_port));
@@ -1563,7 +1563,7 @@ int _bcm_tr3_port_ur_chk(int unit, int num_ports, bcm_port_t port)
                           unit, port, &cell_cnt))!= SOC_E_NONE) {
                 goto cleanup;
             }
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "After reset: cell_req_cnt: "
                                     "%d cell_cnt: %d\n"), cell_req_cnt, cell_cnt));
@@ -1588,12 +1588,12 @@ int _bcm_tr3_port_ur_chk(int unit, int num_ports, bcm_port_t port)
         rv = BCM_E_INTERNAL;
         if (issue_overcome) {
             rv = BCM_E_NONE;
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "Port %s recovered from XMAC FIFO underrun\n"),
                          SOC_PORT_NAME(unit, port)));
         } else {
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "Port %s did not recover from XMAC FIFO underrun\n"),
                        SOC_PORT_NAME(unit, port)));
@@ -1602,7 +1602,7 @@ int _bcm_tr3_port_ur_chk(int unit, int num_ports, bcm_port_t port)
 
 cleanup:
     if (BCM_E_NONE != rv) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Port %s, failed while checking/recovering "
                               "XL port underrun\n"),
@@ -2937,7 +2937,7 @@ bcm_esw_port_untagged_vlan_get(int unit, bcm_port_t port, bcm_vlan_t *vid_ptr)
         *vid_ptr = BCM_VLAN_INVALID;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_untagged_vlan_get: u=%d p=%d vid=%d rv=%d\n"),
               unit, port, *vid_ptr, rv));
@@ -3073,7 +3073,7 @@ _bcm_port_untagged_vlan_set(int unit, bcm_port_t port, bcm_vlan_t vid)
         int rv = _bcm_fb_port_untagged_vlan_data_update(unit, port,
                                                         pdvid, vid);
         if (rv != BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "failed updating default VLAN ID "
                                   "in VLAN_PROTOCOL_DATA: %s\n"), bcm_errmsg(rv)));
@@ -3157,7 +3157,7 @@ bcm_esw_port_untagged_vlan_set(int unit, bcm_port_t port, bcm_vlan_t vid)
     rv = _bcm_port_untagged_vlan_set(unit, port, vid);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_untagged_vlan_set: u=%d p=%d vid=%d rv=%d\n"),
               unit, port, vid, rv));
@@ -3393,7 +3393,7 @@ bcm_esw_port_enable_set(int unit, bcm_port_t port, int enable)
         bcm_esw_port_loopback_get(unit, port, &loopback);
         PORT_UNLOCK(unit);
         if (loopback == BCM_PORT_LOOPBACK_NONE) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "Cleanup and enable port %d..\n"),
                          port));
@@ -3497,7 +3497,7 @@ bcm_esw_port_enable_set(int unit, bcm_port_t port, int enable)
             PORT_UNLOCK(unit);
             return (rv);
         }
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Disable and isolate port %d..\n"),
                      port));
@@ -3577,7 +3577,7 @@ bcm_esw_port_enable_set(int unit, bcm_port_t port, int enable)
             rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, enable);
         }
     }
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_enable_set: u=%d p=%d enable=%d rv=%d\n"),
               unit, port, enable, rv));
@@ -3647,7 +3647,7 @@ bcm_esw_port_enable_get(int unit, bcm_port_t port, int *enable)
 #endif /* BCM_TRIDENT2_SUPPORT */
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_enable_get: u=%d p=%d rv=%d enable=%d\n"),
               unit, port, rv, *enable));
@@ -3679,7 +3679,7 @@ _bcm_port_mode_setup(int unit, bcm_port_t port, int enable)
     sal_memset(&local_pa,  0, sizeof(bcm_port_ability_t));
     sal_memset(&advert_pa, 0, sizeof(bcm_port_ability_t));
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_port_mode_setup: u=%d p=%d\n"), unit, port));
 
@@ -4176,7 +4176,7 @@ _bcm_esw_port_e2ecc_reinit(int unit)
                 sal_alloc(sizeof(bcm_port_congestion_config_t),
                           "bcm_port_congestion_config");
             if (PORT(unit, port).e2ecc_config == NULL) {
-                LOG_ERROR(BSL_LS_BCM_PORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                           (BSL_META_U(unit,
                                       "Error: unable to allocate memory for"
                                       " bcm_port_congestion_config.\n")));
@@ -4374,7 +4374,7 @@ _bcm_esw_port_e2ecc_reinit(int unit)
                     sal_alloc(sizeof(bcm_port_congestion_config_t),
                               "bcm_port_congestion_config");
                 if (PORT(unit, port).e2ecc_config == NULL) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                  "Error: unable to allocate memory for"
                                  " bcm_port_congestion_config.\n")));
@@ -5157,7 +5157,7 @@ _bcm_esw_port_wb_recover(int unit)
                         /* Call PHY probe for flex port config to take effect */
                         if ((rv = bcm_esw_port_probe(unit, PBMP_PORT_ALL(unit),
                                &port_bitmap)) != BCM_E_NONE) {
-                            LOG_ERROR(BSL_LS_BCM_PORT, \
+                            LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                                       (BSL_META_U(unit, \
                                                   "Error unit %d:\
                                                   Failed port probe: %s\n"),
@@ -5196,7 +5196,7 @@ _bcm_esw_port_wb_recover(int unit)
                             rv = bcm_esw_port_phy_control_set(unit, port,
                                   BCM_PORT_PHY_CONTROL_SOFTWARE_RX_LOS, rx_los);
                             if (BCM_FAILURE(rv) && (rv != BCM_E_UNAVAIL)) {
-                                LOG_ERROR(BSL_LS_BCM_PORT,
+                                LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                                           (BSL_META_U(unit,
                                                       "Error unit %d: "
                                                       "Failed port phy control set: %s\n"),
@@ -5291,7 +5291,7 @@ _bcm_esw_port_wb_recover(int unit)
             /* ASF WB Recovery */
             rv = _bcm_esw_asf_wb_recover(unit, port_state);
             if (BCM_E_NONE != rv) {
-                LOG_ERROR(BSL_LS_BCM_PORT, \
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                           (BSL_META_U(unit, \
                                       "Error unit %d:\
                                       ASF Warmboot Recovery Failed: %s\n"), \
@@ -5447,7 +5447,7 @@ _bcm_esw_port_wb_recover(int unit)
             /* Call PHY probe for config to take effect */
             if ((rv = bcm_esw_port_probe(unit, PBMP_PORT_ALL(unit),
                    &port_bitmap)) != BCM_E_NONE) {
-                LOG_ERROR(BSL_LS_BCM_PORT, \
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                           (BSL_META_U(unit, \
                                       "Error unit %d:\
                                       Failed port probe: %s\n"),
@@ -5465,13 +5465,13 @@ _bcm_esw_port_wb_recover(int unit)
             PBMP_ALL_ITER(unit, port) {
                 if (soc_tr3_port_is_flex_port(unit, port) &&
                     (si->port_num_lanes[port] != _port_num_lanes[port])) {
-                    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                                 (BSL_META_U(unit,
                                             "Port %d needs flex transform !!\n"),
                                  port));
                     if ((rv = _bcm_tr3_port_lanes_set(unit, port,
                                   _port_num_lanes[port])) != BCM_E_NONE) {
-                        LOG_ERROR(BSL_LS_BCM_PORT, \
+                        LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                                   (BSL_META_U(unit, \
                                               "Error unit %d: "\
                                               "Failed port lanes set: %s\n"),
@@ -5487,7 +5487,7 @@ _bcm_esw_port_wb_recover(int unit)
 
             if ((rv = bcm_esw_port_probe(unit, enabled_ports,
                                          &port_bitmap)) != BCM_E_NONE) {
-                LOG_ERROR(BSL_LS_BCM_PORT, \
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                           (BSL_META_U(unit, \
                                       "Error unit %d:\
                                       Failed port probe: %s\n"),
@@ -5810,7 +5810,7 @@ bcm_port_settings_init(int unit, bcm_port_t port)
     int             val;
     bcm_port_info_t info;
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_settings_init: u=%d p=%d\n"),unit, port));
 
@@ -6555,13 +6555,13 @@ bcm_esw_port_init(int unit)
     int                 enable;
 #endif /* BCM_TRIDENT2_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "bcm_port_init: unit %d\n"), unit));
     assert(unit < BCM_MAX_NUM_UNITS);
 
     if ((rv = _bcm_port_software_init(unit)) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Error unit %d:  Failed software port init: %s\n"),
                    unit, bcm_errmsg(rv)));
@@ -6802,14 +6802,14 @@ bcm_esw_port_init(int unit)
     SOC_PBMP_CLEAR(okay_ports);
     if ((rv = bcm_esw_port_probe(unit, PBMP_PORT_ALL(unit), &okay_ports)) !=
         BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_PORT,
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                   (BSL_META_U(unit,
                               "Error unit %d:  Failed port probe: %s\n"),
                    unit, bcm_errmsg(rv)));
         return rv;
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Probed ports okay: %s of %s\n"),
                  SOC_PBMP_FMT(okay_ports, pfmtok),
@@ -6820,7 +6820,7 @@ bcm_esw_port_init(int unit)
 
     /* Probe and initialize MAC and PHY drivers for ports that were OK */
     PBMP_ITER(okay_ports, p) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "bcm_port_init: unit %d port %s\n"),
                                 unit, SOC_PORT_NAME(unit, p)));
@@ -6831,7 +6831,7 @@ bcm_esw_port_init(int unit)
         if(soc_feature(unit, soc_feature_portmod)){
         } else {
             if ((rv = _bcm_port_mode_setup(unit, p, TRUE)) < 0) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Warning: Port %s: "
                                  "Failed to set initial mode: %s\n"),
@@ -6853,7 +6853,7 @@ bcm_esw_port_init(int unit)
         }
 #endif /* BCM_WARM_BOOT_SUPPORT */
         if ((rv = bcm_port_settings_init(unit, p)) < 0) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Warning: Port %s: "
                                  "Failed to configure initial settings: %s\n"),
@@ -6924,7 +6924,7 @@ bcm_esw_port_init(int unit)
             port_enable = TRUE;
 #endif  /* BCM_PORT_DEFAULT_DISABLE */
         if ((rv = bcm_esw_port_enable_set(unit, p, port_enable)) < 0) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Warning: Port %s: "
                                  "Failed to %s port: %s\n"),
@@ -6949,7 +6949,7 @@ bcm_esw_port_init(int unit)
 					rv = bcm_esw_port_jam_set(unit, p, 1);
 				}
                 if (BCM_FAILURE(rv) && (rv != BCM_E_UNAVAIL)) {
-                    LOG_WARN(BSL_LS_BCM_PORT,
+                    LOG_BSL_WARN(BSL_LS_BCM_PORT,
                              (BSL_META_U(unit,
                                          "Warning: Port %s: "
                                          "Failed to enable JAM %s\n"),
@@ -7013,7 +7013,7 @@ bcm_esw_port_init(int unit)
                 rv = bcm_esw_port_tpid_set(unit, p,
                                 _bcm_fb2_outer_tpid_default_get(unit));
                 if (BCM_FAILURE(rv)) {
-                 LOG_WARN(BSL_LS_BCM_PORT,
+                 LOG_BSL_WARN(BSL_LS_BCM_PORT,
                           (BSL_META_U(unit,
                                       "Warning: "
                                       "Failed to set %s port default TPID: %s\n"),
@@ -7024,7 +7024,7 @@ bcm_esw_port_init(int unit)
                     rv = bcm_esw_port_inner_tpid_set(unit, p,
                                     _bcm_fb2_outer_tpid_default_get(unit));
                     if (BCM_FAILURE(rv)) {
-                     LOG_WARN(BSL_LS_BCM_PORT,
+                     LOG_BSL_WARN(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "Warning: "
                                           "Failed to set %s port default inner TPID: %s\n"),
@@ -7436,7 +7436,7 @@ bcm_esw_port_init(int unit)
 #if defined(BCM_KATANA2_SUPPORT)
     if (SOC_IS_KATANA2(unit)) {
         /* Enable EGR_ENABLEm:PRT_ENABLEf for cpu port */
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "\nEnable EGR_ENABLEm:PRT_ENABLEf for cpu port \n")));
         sal_memset(entry, 0, sizeof(egr_enable_entry_t));
@@ -7536,14 +7536,14 @@ bcm_esw_port_clear(int unit)
     BCM_PBMP_REMOVE(reset_ports, SOC_PBMP_STACK_CURRENT(unit));
 
     PBMP_ITER(reset_ports, port) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "bcm_port_clear: unit %d port %s\n"),
                      unit, SOC_PORT_NAME(unit, port)));
 
         PORT_LOCK(unit);
         if ((rv = _bcm_port_mode_setup(unit, port, TRUE)) < 0) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Warning: Port %s: "
                                  "Failed to set initial mode: %s\n"),
@@ -7572,7 +7572,7 @@ bcm_esw_port_clear(int unit)
 
 
         if ((rv = bcm_esw_port_enable_set(unit, port, port_enable)) < 0) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Warning: Port %s: "
                                  "Failed to %s port: %s\n"),
@@ -7609,7 +7609,7 @@ _bcm_port_phy_probe(int unit, bcm_port_t port, int *okay)
 
     *okay = FALSE;
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Init port %d PHY...\n"), port));
 
@@ -7619,7 +7619,7 @@ _bcm_port_phy_probe(int unit, bcm_port_t port, int *okay)
 
     rv = soc_phyctrl_pbm_probe_init(unit,pbmp,&okay_pbmp);
     if (rv  != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_PORT, \
+        LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                   (BSL_META_U(unit, \
                               "Error unit %d:\
                               Failed port init probe: %s\n"),
@@ -7662,12 +7662,12 @@ _bcm_port_mac_init(int unit, bcm_port_t port, int *okay)
 
     *okay = FALSE;
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Init port %d MAC...\n"), port));
 
     if ((rv = soc_mac_probe(unit, port, &macd)) < 0) {
-        LOG_WARN(BSL_LS_BCM_PORT,
+        LOG_BSL_WARN(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Port %s: Failed to probe MAC: %s\n"),
                   SOC_PORT_NAME(unit, port), soc_errmsg(rv)));
@@ -7686,7 +7686,7 @@ _bcm_port_mac_init(int unit, bcm_port_t port, int *okay)
 #endif /* BCM_RCPU_SUPPORT */
 
         if ((rv = MAC_INIT(PORT(unit, port).p_mac, unit, port)) < 0) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "Port %s: Failed to initialize MAC: %s\n"),
                       SOC_PORT_NAME(unit, port), soc_errmsg(rv)));
@@ -8454,7 +8454,7 @@ bcm_esw_port_probe(int unit, pbmp_t pbmp, pbmp_t *okay_pbmp)
     		SOC_PBMP_PORT_REMOVE(*okay_pbmp, port);
     	    }
     	    if (rv < 0) {
-    		LOG_WARN(BSL_LS_BCM_PORT,
+    		LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "MAC init failed on port %s\n"),
                           SOC_PORT_NAME(unit, port)));
@@ -8552,7 +8552,7 @@ bcm_esw_port_detach(int unit, pbmp_t pbmp, pbmp_t *detached)
     rv = _bcm_port_detach(unit, pbmp, detached);
     PORT_UNLOCK(unit);
 #ifdef  BROADCOM_DEBUG
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_detach: u=%d pbmp=%s det=%s rv=%d\n"),
                          unit,
@@ -8776,7 +8776,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 
         rv = (MAC_ENABLE_SET(PORT(unit, port).p_mac, unit, port, FALSE));
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MAC_ENABLE_SET FALSE rv=%d\n"),
                       unit, port, rv));
@@ -8786,7 +8786,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
         /* PHY link down event */
         rv = (soc_phyctrl_linkdn_evt(unit, port));
         if (BCM_FAILURE(rv) && (BCM_E_UNAVAIL != rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d soc_phyctrl_linkdn_evt rv=%d\n"),unit, port, rv));
             return rv;
@@ -8799,7 +8799,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
      * Just ignore it if not supported */
     rv = (soc_phyctrl_linkup_evt(unit, port));
     if (BCM_FAILURE(rv) && (BCM_E_UNAVAIL != rv)) {
-        LOG_WARN(BSL_LS_BCM_PORT,
+        LOG_BSL_WARN(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "u=%d p=%d soc_phyctrl_linkup_evt rv=%d\n"),unit, port, rv));
         return rv;
@@ -8813,7 +8813,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
     if (!IS_HG_PORT(unit, port) || IS_GX_PORT(unit, port)) {
         rv = (soc_phyctrl_speed_get(unit, port, &speed));
         if (BCM_FAILURE(rv) && (BCM_E_UNAVAIL != rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d phyctrl_speed_get rv=%d\n"),unit, port, rv));
             return rv;
@@ -8821,7 +8821,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
         if (IS_HG_PORT(unit, port) && speed < 5000) {
             speed = 0;
         }
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "u=%d p=%d phyctrl_speed_get speed=%d\n"),unit, port, speed));
 
@@ -8848,7 +8848,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 
             rv =  (MAC_SPEED_GET(PORT(unit, port).p_mac, unit, port, &cur_mac_speed));
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "u=%d p=%d MAC_SPEED_GET rv=%d\n"),unit, port, rv));
                 return rv;
@@ -8859,7 +8859,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
             }
         }
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MAC_SPEED_SET speed=%d rv=%d\n"),
                       unit, port, speed, rv));
@@ -8868,7 +8868,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 
         rv =   (soc_phyctrl_duplex_get(unit, port, &duplex));
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d phyctrl_duplex_get rv=%d\n"),
                                  unit, port, rv));
@@ -8897,7 +8897,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 #endif
         rv = (MAC_DUPLEX_SET(PORT(unit, port).p_mac, unit, port, duplex));
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MAC_DUPLEX_SET %s sp=%d rv=%d\n"),
                                  unit, port,
@@ -8911,7 +8911,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 
     rv = (soc_phyctrl_interface_get(unit, port, &pif));
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_BCM_PORT,
+        LOG_BSL_WARN(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "u=%d p=%d phyctrl_interface_get rv=%d\n"),
                   unit, port, rv));
@@ -8919,7 +8919,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
     }
     rv = (MAC_INTERFACE_SET(PORT(unit, port).p_mac, unit, port, pif));
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_BCM_PORT,
+        LOG_BSL_WARN(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "u=%d p=%d MAC_INTERFACE_GET rv=%d\n"),
                   unit, port,rv));
@@ -8944,7 +8944,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 
     rv = soc_phyctrl_ability_advert_get(unit, port, &local_advert);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d soc_phyctrl_adv_local_get rv=%d\n"),
                       unit, port, rv));
@@ -8952,7 +8952,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
         }
         rv = soc_phyctrl_ability_remote_get(unit, port, &remote_advert);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d soc_phyctrl_adv_remote_get rv=%d\n"),
                       unit, port, rv));
@@ -8985,7 +8985,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
         rv = (MAC_PAUSE_SET(PORT(unit, port).p_mac,
                            unit, port, tx_pause, rx_pause));
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_PORT,
+            LOG_BSL_WARN(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "u=%d p=%d MAC_PAUSE_SET rv=%d\n"),
                       unit, port, rv));
@@ -9014,7 +9014,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
                               BCM_PORT_PHY_CONTROL_MACSEC_SWITCH_FIXED_SPEED,
                               &value));
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "u=%d p=%d phyctrl_control_get(speed) rv=%d\n"),
                           unit, port, rv));
@@ -9023,7 +9023,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
 
             rv =  (MAC_SPEED_SET(PORT(unit, port).p_mac, unit, port, value));
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "u=%d p=%d MAC_SPEED_SET speed=%d rv=%d\n"),
                           unit, port, value, rv));
@@ -9035,7 +9035,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
                               BCM_PORT_PHY_CONTROL_MACSEC_SWITCH_FIXED_DUPLEX,
                               &value));
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "u=%d p=%d phyctrl_control_get(duplex) rv=%d\n"),
                           unit, port, rv));
@@ -9043,7 +9043,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
             }
             rv = (MAC_DUPLEX_SET(PORT(unit, port).p_mac, unit, port, value));
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "u=%d p=%d MAC_DUPLEX_SET %s sp=%d rv=%d\n"),
                                      unit, port,
@@ -9056,7 +9056,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
                               BCM_PORT_PHY_CONTROL_MACSEC_SWITCH_FIXED_PAUSE,
                               &value));
             if (BCM_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_BCM_PORT,
+                LOG_BSL_WARN(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "u=%d p=%d phyctrl_control_get(Pause) rv=%d\n"),
                           unit, port, rv));
@@ -9072,7 +9072,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
                 rv = (MAC_PAUSE_SET(PORT(unit, port).p_mac,
                                unit, port, value, value));
                 if (BCM_FAILURE(rv)) {
-                    LOG_WARN(BSL_LS_BCM_PORT,
+                    LOG_BSL_WARN(BSL_LS_BCM_PORT,
                              (BSL_META_U(unit,
                                          "u=%d p=%d MAC_PAUSE_SET rv=%d\n"),
                               unit, port, rv));
@@ -9088,7 +9088,7 @@ _bcm_port_update(int unit, bcm_port_t port, int link)
     /* Enable the MAC. */
     rv =  (MAC_ENABLE_SET(PORT(unit, port).p_mac, unit, port, TRUE));
     if (BCM_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_BCM_PORT,
+        LOG_BSL_WARN(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "u=%d p=%d MAC_ENABLE_SET TRUE rv=%d\n"),
                   unit, port, rv));
@@ -9182,7 +9182,7 @@ bcm_esw_port_update(int unit, bcm_port_t port, int link)
 
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_update: u=%d p=%d link=%d rv=%d\n"),
               unit, port, link, rv));
@@ -9250,7 +9250,7 @@ bcm_esw_port_stp_set(int unit, bcm_port_t port, int stp_state)
 
     BCM_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_stp_set: u=%d p=%d state=%d rv=%d\n"),
               unit, port, stp_state, rv));
@@ -9290,7 +9290,7 @@ bcm_esw_port_stp_get(int unit, bcm_port_t port, int *stp_state)
         rv = BCM_E_NONE;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_stp_get: u=%d p=%d state=%d rv=%d\n"),
               unit, port, *stp_state, rv));
@@ -9846,7 +9846,7 @@ bcm_esw_port_autoneg_get(int unit, bcm_port_t port, int *autoneg)
     }
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_autoneg_get: u=%d p=%d an=%d done=%d rv=%d\n"),
               unit, port, *autoneg, done, rv));
@@ -9907,7 +9907,7 @@ bcm_esw_port_autoneg_set(int unit, bcm_port_t port, int autoneg)
     }
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_autoneg_set: u=%d p=%d an=%d rv=%d\n"),
               unit, port, autoneg, rv));
@@ -9972,7 +9972,7 @@ bcm_esw_port_speed_get(int unit, bcm_port_t port, int *speed)
 
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_speed_get: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, BCM_SUCCESS(rv) ? *speed : 0, rv));
@@ -10041,7 +10041,7 @@ bcm_esw_port_speed_max(int unit, bcm_port_t port, int *speed)
         *speed = 0;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_speed_max: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, *speed, rv));
@@ -10084,7 +10084,7 @@ _bcm_port_mac_reinit(int unit, bcm_port_t port)
 
     /* mac init */
     if ((rv = MAC_INIT(PORT(unit, port).p_mac, unit, port)) < 0) {
-        LOG_WARN(BSL_LS_BCM_PORT,
+        LOG_BSL_WARN(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Port %s: Failed to initialize MAC: %s\n"),
                   SOC_PORT_NAME(unit, port), soc_errmsg(rv)));
@@ -10161,7 +10161,7 @@ _bcm_port_speed_set(int unit, bcm_port_t port, int speed)
                                &mac_ability));
     requested_ability.speed_full_duplex = SOC_PA_SPEED(speed);
     requested_ability.speed_half_duplex = SOC_PA_SPEED(speed);
-    LOG_INFO(BSL_LS_BCM_PHY,
+    LOG_BSL_INFO(BSL_LS_BCM_PHY,
              (BSL_META_U(unit,
                          "_bcm_port_speed_set: u=%u p=%d "
                          "MAC FD speed %08X MAC HD speed %08X "
@@ -10177,7 +10177,7 @@ _bcm_port_speed_set(int unit, bcm_port_t port, int speed)
           requested_ability.speed_full_duplex) == 0) &&
         ((mac_ability.speed_half_duplex &
           requested_ability.speed_half_duplex) == 0)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "u=%d p=%d MAC doesn't support %d Mbps speed.\n"),
                      unit, port, speed));
@@ -10192,7 +10192,7 @@ _bcm_port_speed_set(int unit, bcm_port_t port, int speed)
         ((phy_ability.speed_half_duplex &
           requested_ability.speed_half_duplex) == 0)) {
         if (!mac_lb) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "u=%d p=%d PHY doesn't support %d Mbps speed.\n"),
                          unit, port, speed));
@@ -10246,7 +10246,7 @@ _bcm_port_speed_set(int unit, bcm_port_t port, int speed)
 
     rv = MAC_SPEED_SET(PORT(unit, port).p_mac, unit, port, speed);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "MAC_SPEED_SET failed: %s\n"), bcm_errmsg(rv)));
     }
@@ -10339,7 +10339,7 @@ bcm_esw_port_speed_set(int unit, bcm_port_t port, int speed)
         (void)bcm_esw_link_change(unit, pbm);
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_speed_set: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, speed, rv));
@@ -10432,7 +10432,7 @@ bcm_esw_port_master_set(int unit, bcm_port_t port, int ms)
 
     rv = soc_phyctrl_master_set(unit, port, ms);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "PHY_MASTER_SETfailed:%s\n"), bcm_errmsg(rv)));
     }
@@ -10539,7 +10539,7 @@ bcm_esw_port_interface_set(int unit, bcm_port_t port, bcm_port_if_t intf)
 
     rv = soc_phyctrl_interface_set(unit, port, intf);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "PHY_INTERFACE_SETfailed:%s\n"), bcm_errmsg(rv)));
     }
@@ -10779,7 +10779,7 @@ bcm_esw_port_loopback_set(int unit, bcm_port_t port, int loopback)
 #endif /* BCM_BRADLEY_SUPPORT */
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_loopback_set: u=%d p=%d lb=%d rv=%d\n"),
               unit, port, loopback, rv));
@@ -10899,7 +10899,7 @@ bcm_esw_port_loopback_get(int unit, bcm_port_t port, int *loopback)
         *loopback = BCM_PORT_LOOPBACK_NONE;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_loopback_get: u=%d p=%d lb=%d rv=%d\n"),
               unit, port, *loopback, rv));
@@ -10948,7 +10948,7 @@ bcm_esw_port_duplex_get(int unit, bcm_port_t port, int *duplex)
         *duplex = SOC_PORT_DUPLEX_FULL;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_duplex_get: u=%d p=%d dup=%d rv=%d\n"),
               unit, port, *duplex, rv));
@@ -11000,7 +11000,7 @@ bcm_esw_port_duplex_set(int unit, bcm_port_t port, int duplex)
 
     rv = soc_phyctrl_auto_negotiate_set(unit, port, FALSE);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "PHY_AUTONEG_SETfailed:%s\n"), bcm_errmsg(rv)));
     }
@@ -11008,7 +11008,7 @@ bcm_esw_port_duplex_set(int unit, bcm_port_t port, int duplex)
     if (BCM_SUCCESS(rv)) {
         rv = soc_phyctrl_duplex_set(unit, port, duplex);
         if (BCM_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "PHY_DUPLEX_SETfailed:%s\n"), bcm_errmsg(rv)));
         }
@@ -11017,7 +11017,7 @@ bcm_esw_port_duplex_set(int unit, bcm_port_t port, int duplex)
     if (BCM_SUCCESS(rv)) {
         rv = MAC_DUPLEX_SET(PORT(unit, port).p_mac, unit, port, duplex);
         if (BCM_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "MAC_DUPLEX_SETfailed:%s\n"), bcm_errmsg(rv)));
         }
@@ -11031,7 +11031,7 @@ bcm_esw_port_duplex_set(int unit, bcm_port_t port, int duplex)
         (void)bcm_esw_link_change(unit, pbm);
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_duplex_set: u=%d p=%d dup=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -11357,7 +11357,7 @@ bcm_esw_port_advert_get(int unit, bcm_port_t port, bcm_port_abil_t *ability_mask
 
 
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_advert_get: u=%d p=%d abil=0x%x rv=%d\n"),
               unit, port, *ability_mask, rv));
@@ -11401,7 +11401,7 @@ bcm_esw_port_ability_advert_get(int unit, bcm_port_t port,
     rv = soc_phyctrl_ability_advert_get(unit, port, ability_mask);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_ability_advert_get: u=%d p=%d rv=%d\n"),
               unit, port, rv));
@@ -11488,7 +11488,7 @@ bcm_esw_port_advert_set(int unit, bcm_port_t port, bcm_port_abil_t ability_mask)
     rv = soc_phyctrl_ability_advert_set(unit, port, &given_ability);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_advert_set: u=%d p=%d abil=0x%x rv=%d\n"),
               unit, port, ability_mask, rv));
@@ -11548,11 +11548,11 @@ bcm_esw_port_ability_advert_set(int unit, bcm_port_t port,
     rv = soc_phyctrl_ability_advert_set(unit, port, &port_ability);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_ability_advert_set: u=%d p=%d rv=%d\n"),
               unit, port, rv));
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x\n"
                             "Interface=0x%08x Medium=0x%08x Loopback=0x%08x Flags=0x%08x\n"),
@@ -11605,7 +11605,7 @@ bcm_esw_port_advert_remote_get(int unit, bcm_port_t port, bcm_port_abil_t *abili
     }
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_advert_remote_get: u=%d p=%d abil=0x%x rv=%d\n"),
               unit, port, *ability_mask, rv));
@@ -11649,11 +11649,11 @@ bcm_esw_port_ability_remote_get(int unit, bcm_port_t port,
     rv = _bcm_port_autoneg_advert_remote_get(unit, port, ability_mask);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_ability_remote_get: u=%d p=%d rv=%d\n"),
               unit, port, rv));
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x\n"
                             "Interface=0x%08x Medium=0x%08x Loopback=0x%08x Flags=0x%08x\n"),
@@ -11708,7 +11708,7 @@ bcm_esw_port_ability_get(int unit, bcm_port_t port, bcm_port_abil_t *ability_mas
     }
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_ability_get: u=%d p=%d abil=0x%x rv=%d\n"),
               unit, port, *ability_mask, rv));
@@ -11753,11 +11753,11 @@ bcm_esw_port_ability_local_get(int unit, bcm_port_t port,
     rv = _bcm_port_ability_local_get(unit, port, ability_mask);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_ability_local_get: u=%d p=%d rv=%d\n"),
               unit, port, rv));
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x\n"
                             "Interface=0x%08x Medium=0x%08x EEE=0x%08x Loopback=0x%08x Flags=0x%08x\n"),
@@ -12726,7 +12726,7 @@ _bcm_port_link_get(int unit, bcm_port_t port, int hw, int *up)
 
     PORT_UNLOCK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_PORT,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                 (BSL_META_U(unit,
                             "_bcm_port_link_get: u=%d p=%d hw=%d up=%d rv=%d\n"),
                  unit, port, hw, *up, rv));
@@ -12779,7 +12779,7 @@ bcm_esw_port_link_status_get(int unit, bcm_port_t port, int *up)
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_link_status_get: u=%d p=%d up=%d rv=%d\n"),
               unit, port, *up, rv));
@@ -13051,7 +13051,7 @@ bcm_esw_port_untagged_priority_set(int unit, bcm_port_t port, int priority)
     rv = _bcm_port_untagged_priority_set(unit, port, priority);
     PORT_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_ut_priority_set: u=%d p=%d pri=%d rv=%d\n"),
               unit, port, priority, rv));
@@ -13096,7 +13096,7 @@ bcm_esw_port_untagged_priority_get(int unit, bcm_port_t port, int *priority)
 
     if (priority != NULL) {
         *priority = PORT(unit, port).p_ut_prio;
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_port_ut_priority_get: u=%d p=%d pri=%d\n"),
                   unit, port, *priority));
@@ -13136,7 +13136,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_ENCAP_MASK) {
         r = bcm_esw_port_encap_get(unit, port, &info->encap_mode);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_encap_getfailed:%s\n"), bcm_errmsg(r)));
         }
@@ -13146,7 +13146,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_ENABLE_MASK) {
         r = bcm_esw_port_enable_get(unit, port, &info->enable);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_enable_getfailed:%s\n"), bcm_errmsg(r)));
         }
@@ -13156,7 +13156,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LINKSTAT_MASK) {
         r = bcm_esw_port_link_status_get(unit, port, &info->linkstatus);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_link_status_getfailed:%s\n"), bcm_errmsg(r)));
         }
@@ -13166,7 +13166,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_AUTONEG_MASK) {
         r = bcm_esw_port_autoneg_get(unit, port, &info->autoneg);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_autoneg_getfailed:%s\n"), bcm_errmsg(r)));
         }
@@ -13177,7 +13177,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_ability_advert_get(unit, port,
                                             &info->local_ability);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_ability_advert_getfailed:%s\n"),
                          bcm_errmsg(r)));
@@ -13205,7 +13205,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_SPEED_MASK) {
         if ((r = bcm_esw_port_speed_get(unit, port, &info->speed)) < 0) {
             if (r != BCM_E_BUSY) {
-                LOG_VERBOSE(BSL_LS_BCM_PORT,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                                         "bcm_port_speed_get failed: %s\n"), bcm_errmsg(r)));
                 return(r);
@@ -13218,7 +13218,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_DUPLEX_MASK) {
         if ((r = bcm_esw_port_duplex_get(unit, port, &info->duplex)) < 0) {
             if (r != BCM_E_BUSY) {
-                LOG_VERBOSE(BSL_LS_BCM_PORT,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                                         "bcm_port_duplex_get failed: %s\n"), bcm_errmsg(r)));
                 return r;
@@ -13234,7 +13234,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_pause_get(unit, port,
                                    &info->pause_tx, &info->pause_rx);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_pause_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13244,7 +13244,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_PAUSE_MAC_MASK) {
         r = bcm_esw_port_pause_addr_get(unit, port, info->pause_mac);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_pause_addr_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13254,7 +13254,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LINKSCAN_MASK) {
         r = bcm_esw_port_linkscan_get(unit, port, &info->linkscan);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_linkscan_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13264,7 +13264,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LEARN_MASK) {
         r = bcm_esw_port_learn_get(unit, port, &info->learn);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_learn_getfailed:%s\n"), bcm_errmsg(r)));
         }
@@ -13274,7 +13274,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_DISCARD_MASK) {
         r = bcm_esw_port_discard_get(unit, port, &info->discard);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_discard_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13284,7 +13284,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_VLANFILTER_MASK) {
         r = bcm_esw_port_vlan_member_get(unit, port, &info->vlanfilter);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_esw_port_vlan_member_get failed:%s\n"),
                          bcm_errmsg(r)));
@@ -13296,7 +13296,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_untagged_priority_get(unit, port,
                                                &info->untagged_priority);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_untagged_priority_get failed:%s\n"),
                          bcm_errmsg(r)));
@@ -13308,7 +13308,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_untagged_vlan_get(unit, port,
                                            &info->untagged_vlan);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_untagged_vlan_get failed:%s\n"),
                          bcm_errmsg(r)));
@@ -13319,7 +13319,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_STP_STATE_MASK) {
         r = bcm_esw_port_stp_get(unit, port, &info->stp_state);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_stp_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13330,7 +13330,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_pfm_get(unit, port, &info->pfm);
         if (r != BCM_E_UNAVAIL) {
             if (BCM_FAILURE(r)) {
-                LOG_VERBOSE(BSL_LS_BCM_PORT,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                                         "bcm_port_pfm_get failed:%s\n"), bcm_errmsg(r)));
             }
@@ -13341,7 +13341,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LOOPBACK_MASK) {
         r = bcm_esw_port_loopback_get(unit, port, &info->loopback);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_loopback_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13351,7 +13351,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_PHY_MASTER_MASK) {
         r = bcm_esw_port_master_get(unit, port, &info->phy_master);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_master_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13361,7 +13361,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_INTERFACE_MASK) {
         r = bcm_esw_port_interface_get(unit, port, &info->interface);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_interface_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13375,7 +13375,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_rate_mcast_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13389,7 +13389,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_rate_bcast_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13403,7 +13403,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_rate_dlfbc_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13413,7 +13413,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_SPEED_MAX_MASK) {
         r = bcm_esw_port_speed_max(unit, port, &info->speed_max);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_speed_max failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13423,7 +13423,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_ABILITY_MASK) {
         r = bcm_esw_port_ability_local_get(unit, port, &info->port_ability);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_ability_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13436,7 +13436,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_FRAME_MAX_MASK) {
         r = bcm_esw_port_frame_max_get(unit, port, &info->frame_max);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_frame_max_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13446,7 +13446,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_MDIX_MASK) {
         r = bcm_esw_port_mdix_get(unit, port, &info->mdix);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_mdix_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13456,7 +13456,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_MDIX_STATUS_MASK) {
         r = bcm_esw_port_mdix_status_get(unit, port, &info->mdix_status);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_mdix_status_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13466,7 +13466,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_MEDIUM_MASK) {
         r = bcm_esw_port_medium_get(unit, port, &info->medium);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_medium_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13479,7 +13479,7 @@ bcm_esw_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip/port */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_fault_get failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13512,7 +13512,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     uint32              mask;
     int                 flags = 0;
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_selective_set: u=%d p=%d\n"), unit, port));
 
@@ -13530,7 +13530,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_ENCAP_MASK) {
         r = bcm_esw_port_encap_set(unit, port, info->encap_mode);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_encap_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13540,7 +13540,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_ENABLE_MASK) {
         r = bcm_esw_port_enable_set(unit, port, info->enable);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_enable_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13550,7 +13550,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_PAUSE_MAC_MASK) {
         r = bcm_esw_port_pause_addr_set(unit, port, info->pause_mac);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_pause_addr_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13560,7 +13560,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_INTERFACE_MASK) {
         r = bcm_esw_port_interface_set(unit, port, info->interface);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_interface_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13570,7 +13570,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_PHY_MASTER_MASK) {
         r = bcm_esw_port_master_set(unit, port, info->phy_master);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_master_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13580,7 +13580,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LINKSCAN_MASK) {
         r = bcm_esw_port_linkscan_set(unit, port, info->linkscan);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_linkscan_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13590,7 +13590,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LEARN_MASK) {
         r = bcm_esw_port_learn_set(unit, port, info->learn);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_learn_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13600,7 +13600,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_DISCARD_MASK) {
         r = bcm_esw_port_discard_set(unit, port, info->discard);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_discard_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13610,7 +13610,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_VLANFILTER_MASK) {
         r = bcm_esw_port_vlan_member_set(unit, port, info->vlanfilter);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_esw_port_vlan_member_set failed:%s\n"),
                          bcm_errmsg(r)));
@@ -13622,7 +13622,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_untagged_priority_set(unit, port,
                                                info->untagged_priority);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_untagged_priority_set failed:%s\n"),
                          bcm_errmsg(r)));
@@ -13633,7 +13633,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_UNTAG_VLAN_MASK) {
         r = bcm_esw_port_untagged_vlan_set(unit, port, info->untagged_vlan);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_untagged_vlan_set (%d) failed: %s\n"),
                          info->untagged_vlan, bcm_errmsg(r)));
@@ -13645,7 +13645,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
         r = bcm_esw_port_pfm_set(unit, port, info->pfm);
         if (r != BCM_E_UNAVAIL) {
             if (BCM_FAILURE(r)) {
-                LOG_VERBOSE(BSL_LS_BCM_PORT,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                                         "bcm_port_pfm_set failed:%s\n"), bcm_errmsg(r)));
             }
@@ -13661,7 +13661,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_LOOPBACK_MASK) {
         r = bcm_esw_port_loopback_set(unit, port, info->loopback);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_loopback_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13673,7 +13673,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = bcm_esw_port_ability_advert_set(unit, port,
                                                 &(info->local_ability));
             if (BCM_FAILURE(r)) {
-                LOG_VERBOSE(BSL_LS_BCM_PORT,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                                         "bcm_port_ability_advert_set failed: %s\n"),
                              bcm_errmsg(r)));
@@ -13682,7 +13682,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
         } else {
             r = bcm_esw_port_advert_set(unit, port, info->local_advert);
             if (BCM_FAILURE(r)) {
-                LOG_VERBOSE(BSL_LS_BCM_PORT,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                                         "bcm_port_advert_set failed: (0x%x): %s\n"),
                              info->local_advert, bcm_errmsg(r)));
@@ -13694,7 +13694,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_AUTONEG_MASK) {
         r = bcm_esw_port_autoneg_set(unit, port, info->autoneg);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_autoneg_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13704,7 +13704,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_SPEED_MASK) {
         r = bcm_esw_port_speed_set(unit, port, info->speed);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_speed_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13714,7 +13714,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_DUPLEX_MASK) {
         r = bcm_esw_port_duplex_set(unit, port, info->duplex);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_duplex_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13734,7 +13734,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
         }
         r = bcm_esw_port_pause_set(unit, port, tpause, rpause);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_pause_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13748,7 +13748,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_rate_mcast_port_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13762,7 +13762,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_rate_bcast_port_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13776,7 +13776,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
             r = BCM_E_NONE;     /* Ignore if not supported on chip */
         }
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_rate_dlfbcast_port_set failed:%s\n"),
                          bcm_errmsg(r)));
@@ -13787,7 +13787,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_STP_STATE_MASK) {
         r = bcm_esw_port_stp_set(unit, port, info->stp_state);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_stp_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13797,7 +13797,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_FRAME_MAX_MASK) {
         r = bcm_esw_port_frame_max_set(unit, port, info->frame_max);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_frame_max_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -13807,7 +13807,7 @@ bcm_esw_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
     if (mask & BCM_PORT_ATTR_MDIX_MASK) {
         r = bcm_esw_port_mdix_set(unit, port, info->mdix);
         if (BCM_FAILURE(r)) {
-            LOG_VERBOSE(BSL_LS_BCM_PORT,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                         (BSL_META_U(unit,
                                     "bcm_port_mdix_set failed:%s\n"), bcm_errmsg(r)));
         }
@@ -15541,7 +15541,7 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
     PORT_INIT(unit);
 
     BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_encap_set: u=%d p=%d mode=%d\n"),
               unit, port, mode));
@@ -15625,7 +15625,7 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
             }
         }
         if (hgc+1 > _SOC_TR3_MAX_HG_PORT_COUNT) {
-            LOG_ERROR(BSL_LS_BCM_PORT, \
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT, \
                       (BSL_META_U(unit, \
                                   "Error: Port %d config error "\
                                   "(Higig port count(%d) exceeded) !!\n"),
@@ -15842,7 +15842,7 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
                 sal_memcpy(&ing_entry_dup,&ing_entry,
                            sizeof(ing_physical_port_table_entry_t));
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "Error: Encap Set: "
                                           "ING_PHYSICAL_PORT_TABLEm read failure")));
@@ -15851,7 +15851,7 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
                 rv = soc_mem_read(unit, EGR_PHYSICAL_PORTm,
                                   MEM_BLOCK_ANY, port, &egr_entry);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "Error: Encap Set: "
                                           "EGR_PHYSICAL_PORTm read failure")));
@@ -15883,7 +15883,7 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
                                                  &egr_entry, HIGIG2f, 1);
                             }
                          } else {
-                             LOG_WARN(BSL_LS_BCM_PORT,
+                             LOG_BSL_WARN(BSL_LS_BCM_PORT,
                                       (BSL_META_U(unit,
                                                   "WARN: Encap Set: "
                                                   "Ignoring Higig2 Setting \n")));
@@ -15896,19 +15896,19 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
                 }
                 if (sal_memcmp(&ing_entry_dup,&ing_entry,
                                sizeof(ing_physical_port_table_entry_t)) == 0) {
-                    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                                 (BSL_META_U(unit,
                                             "##No Change in  entry so skipping write##\n")));
                     rv = BCM_E_NONE;
                 } else {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "##Change in  entry so Need to update##\n")));
                     rv = soc_mem_write(unit, ING_PHYSICAL_PORT_TABLEm,
                                        MEM_BLOCK_ALL, port, &ing_entry);
                 }
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "Error: Encap Set: "
                                           "ING_PHYSICAL_PORT_TABLEm write failure")));
@@ -15917,7 +15917,7 @@ bcm_esw_port_encap_set(int unit, bcm_port_t port, int mode)
                 rv = soc_mem_write(unit, EGR_PHYSICAL_PORTm,
                                    MEM_BLOCK_ALL, port, &egr_entry);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                           "Error: Encap Set: "
                                           "EGR_PHYSICAL_PORTm write failure")));
@@ -16031,7 +16031,7 @@ bcm_esw_port_encap_get(int unit, bcm_port_t port, int *mode)
         SOC_IF_ERROR_RETURN
             (MAC_ENCAP_GET(PORT(unit, port).p_mac, unit, port, mode));
     }
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_encap_get: u=%d p=%d mode=%d\n"),
               unit, port, *mode));
@@ -21037,7 +21037,7 @@ bcm_esw_port_phy_get(int unit, bcm_port_t port, uint32 flags,
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_phy_get: u=%d p=%d flags=0x%08x "
                          "phy_reg=0x%08x, phy_data=0x%08x, rv=%d\n"),
@@ -21088,7 +21088,7 @@ bcm_esw_port_phy_set(int unit, bcm_port_t port, uint32 flags,
         BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_phy_set: u=%d p=%d flags=0x%08x "
                          "phy_reg=0x%08x phy_data=0x%08x\n"),
@@ -21172,7 +21172,7 @@ bcm_esw_port_phy_multi_get(int unit, bcm_port_t port, uint32 flags,
     rv = soc_phyctrl_port_phy_multi_get(unit, port, flags, dev_addr, offset, max_size, data, actual_size);
     PORT_UNLOCK(unit);
     /*
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_phy_multi_get: u=%d p=%d flags=0x%08x "
                          "dev_addr=0x%08x, offset=0x%08x, max_size=%d data=%p actual_size=%d rv=%d\n"),
@@ -21225,7 +21225,7 @@ bcm_esw_port_phy_modify(int unit, bcm_port_t port, uint32 flags,
         BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, &port));
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_esw_port_phy_modify: u=%d p=%d flags=0x%08x "
                          "phy_reg=0x%08x phy_data=0x%08x phy_mask=0x%08x\n"),
@@ -22523,7 +22523,7 @@ bcm_esw_port_vlan_priority_map_get(int unit, bcm_port_t port, int pkt_pri,
          */
         index = (port << 4) | (pkt_pri << 1) | cfi;
 
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_esw_port_vlan_priority_map_get: u=%d p=%d index=%d\n"),
                   unit, port, index));
@@ -22993,7 +22993,7 @@ _bcm_port_force_forward_linkscan_handler(int unit,
                     p_linkstate[unit].lock = 0;
                 }
                 if (BCM_FAILURE(rv)) {
-                    LOG_WARN(BSL_LS_BCM_PORT,
+                    LOG_BSL_WARN(BSL_LS_BCM_PORT,
                             (BSL_META_U(unit,
                         "bcm_esw_port_force_forward_mode_set failed for "
                             "port %d, dest_port %d, link_state %d. rv = %d\n"),
@@ -23596,7 +23596,7 @@ _bcm_esw_port_err_sym_detect_set(int unit, bcm_port_t port, int enable)
 {
     int rv;
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_esw_port_err_sym_detect_set: u=%d p=%d enable=%d\n"),
               unit, port, enable));
@@ -23649,7 +23649,7 @@ _bcm_esw_port_err_sym_detect_get(int unit, bcm_port_t port, int *status)
         rv = BCM_E_UNAVAIL;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_esw_port_err_sym_detect_get: u=%d p=%d status=%d\n"),
               unit, port, *status));
@@ -23694,7 +23694,7 @@ _bcm_esw_port_err_sym_count_get(int unit, bcm_port_t port, int *count)
     }
 #endif
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_esw_port_err_sym_count_get: u=%d p=%d count=%d\n"),
               unit, port, *count));
@@ -24135,7 +24135,7 @@ STATIC int
 _bcm_port_type_shadow_support (int unit, bcm_port_t port,
                                     bcm_port_control_t type)
 {
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_port_type_shadow_support : u=%d p=%d type=%d\n"),
               unit, port, (int)type));
@@ -24567,7 +24567,7 @@ _reconfig:
         }
         SOC_IF_ERROR_RETURN(soc_phy_cfg_addr_set(unit, port + i, flags, phy));
         BCM_IF_ERROR_RETURN(_bcm_port_probe(unit, port + i, &okay));
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Port %d probe: %d\n"), port + i, okay));
         if (!okay) {
@@ -25186,7 +25186,7 @@ bcm_esw_port_control_set(int unit, bcm_port_t port,
 #if defined(BCM_GREYHOUND_SUPPORT)
     int cur_val = 0;
 #endif
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_control_set: u=%d p=%d rv=%d : %d\n"),
               unit, port, value, (int)type));
@@ -31064,13 +31064,13 @@ bcm_esw_port_control_get(int unit, bcm_port_t port,
     }
 
     if (BCM_SUCCESS(rv)) {
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_port_control_get: u=%d p=%d v=%d\n"),
                   unit, port, *value));
     } else {
         /* On error, the value is not guaranteed valid */
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_port_control_get failure: u=%d p=%d: %s\n"),
                   unit, port, bcm_errmsg(rv)));
@@ -31213,7 +31213,7 @@ int bcm_esw_port_policer_set(
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Invalid policer id passed: %x \n"),
                      policer));
@@ -31222,7 +31222,7 @@ int bcm_esw_port_policer_set(
     /* get the policer id that is currently configured */
     rv = _bcm_esw_port_policer_get(unit, port, &current_policer);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Unabel to get the current policer configured \n")));
         return (rv);
@@ -31236,14 +31236,14 @@ int bcm_esw_port_policer_set(
         offset_mode = offset_mode - 1;
     }
     if (index >= soc_mem_index_count(unit,SVM_METER_TABLEm))  {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Invalid table index\n")));
         return BCM_E_PARAM;
     }
     if (offset_mode >= (soc_mem_index_count(unit,SVM_OFFSET_TABLEm) >>
                                BCM_POLICER_SVC_METER_OFFSET_TABLE_KEY_SIZE))  {
-        LOG_VERBOSE(BSL_LS_BCM_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_PORT,
                     (BSL_META_U(unit,
                                 "Invalid offset mode\n")));
         return BCM_E_PARAM;
@@ -35488,7 +35488,7 @@ _bcm_esw_port_e2ecc_hg_pbm_convert(bcm_port_t port, uint32 *converted_hg_pbm)
             hg_pbm_index = 5 + (port - 34) / 4;
             break;
         default:
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META("Error: Port %d is an invalid Higig port"), port));
             return BCM_E_PARAM;
     }
@@ -35830,7 +35830,7 @@ _bcm_esw_port_e2ecc_tx(int unit, bcm_port_t port,
             src_modid = BCM_GPORT_MODPORT_MODID_GET(config->src_port);
             src_pid = BCM_GPORT_MODPORT_PORT_GET(config->src_port);
         } else {
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "Error: src_port %d is not of type modid:port.\n"), config->src_port));
             return BCM_E_PARAM;
@@ -36665,7 +36665,7 @@ bcm_esw_port_congestion_config_set(int unit, bcm_gport_t port,
                     (config->flags &
                     BCM_PORT_CONGESTION_CONFIG_E2ECC_COE_FLEX_MODE)) {
                     if (!IS_SUBTAG_PORT(unit, local_port)) {
-                        LOG_ERROR(BSL_LS_BCM_PORT,
+                        LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                                   (BSL_META_U(unit,
                                 "E2ECC COE is applicable on subports only."
                                 "Port %d is not a subport.\n"),
@@ -36684,14 +36684,14 @@ bcm_esw_port_congestion_config_set(int unit, bcm_gport_t port,
                                                        port, TRUE));
                         return BCM_E_NONE;
                     }
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                               (BSL_META_U(unit,
                                "Applicable on Ge/Xe only "
                                "for enabling dmvoq transmitting only.\n ")));
                     return BCM_E_PARAM;
                 }
             } else {
-                LOG_ERROR(BSL_LS_BCM_PORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                   "Error: unit %d port %d is not a Higig port. "
                   "E2ECC messages can only be transmitted to or received from "
@@ -36729,7 +36729,7 @@ bcm_esw_port_congestion_config_set(int unit, bcm_gport_t port,
             PORT(unit, local_port).e2ecc_config = sal_alloc(sizeof(bcm_port_congestion_config_t),
                                                             "bcm_port_congestion_config");
             if (PORT(unit, local_port).e2ecc_config == NULL) {
-                LOG_ERROR(BSL_LS_BCM_PORT,
+                LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                           (BSL_META_U(unit,
                                       "Error: unable to allocate memory for bcm_port_congestion_config.\n")));
                 PORT_UNLOCK(unit);
@@ -36851,7 +36851,7 @@ bcm_esw_port_congestion_config_get(int unit, bcm_gport_t port,
 #ifdef BCM_KATANA2_SUPPORT
             if (SOC_IS_KATANA2(unit)) {
                 if (!IS_SUBTAG_PORT(unit, local_port)) {
-                    LOG_ERROR(BSL_LS_BCM_PORT,
+                    LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                        "Error: unit %d port %d is not a Higig port or "
                        "Subtag port. E2ECC messages can be transmitted to "
@@ -36863,7 +36863,7 @@ bcm_esw_port_congestion_config_get(int unit, bcm_gport_t port,
             } else
 #endif /* BCM_KATANA2_SUPPORT */
             {
-               LOG_ERROR(BSL_LS_BCM_PORT,
+               LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                (BSL_META_U(unit,
                 "Error: unit %d port %d is not a Higig port. "
                 "E2ECC messages can only be transmitted to or received from "
@@ -36880,7 +36880,7 @@ bcm_esw_port_congestion_config_get(int unit, bcm_gport_t port,
         PORT_INIT(unit);
 
         if (PORT(unit, local_port).e2ecc_config == NULL) {
-            LOG_ERROR(BSL_LS_BCM_PORT,
+            LOG_BSL_ERROR(BSL_LS_BCM_PORT,
                       (BSL_META_U(unit,
                                   "Error: Port %d bcm_port_congestion_config was not set.\n"),
                                   local_port));

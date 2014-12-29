@@ -530,7 +530,7 @@ _bcm_stat_fe_get(int unit, bcm_port_t port, int sync_mode,
         if (type < snmpValCount) {
             return BCM_E_UNAVAIL;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "bcm_stat_get: Statistic not supported: %d\n"), type));
         return BCM_E_PARAM;

@@ -87,7 +87,7 @@
  */
 #define ACL_FIELD_IS_INIT() do {                                        \
         if (acl_field_control == NULL) {                                \
-            LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,                       \
+            LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,                       \
                       (BSL_META("ACL Error: ACL Field  not initialized\n"))); \
             return BCM_E_INIT;                                          \
         }                                                               \
@@ -244,7 +244,7 @@ _acl_field_init(void)
     int                   retval = BCM_E_NONE;
     _acl_field_control_t  *field_control;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_init()\n")));
 
     /* Detach first if ACL has been previously initialized. */
@@ -256,7 +256,7 @@ _acl_field_init(void)
     field_control = sal_alloc(sizeof(_acl_field_control_t),
                               "ACL Field Control");
     if (field_control == NULL) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: allocation failure for ACL Field control.\n")));
         return BCM_E_MEMORY;
     }
@@ -286,17 +286,17 @@ _acl_field_init(void)
 int
 _acl_field_detach(void)
 {
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_detach()\n")));
 
     if (acl_field_control == NULL) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: detaching that is not initialized.\n")));
         return BCM_E_PARAM;
     }
 
     if (BCM_FAILURE(_acl_field_group_destroy_all())) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: Failure in _acl_field_group_destroy_all()\n")));
     }
 
@@ -336,13 +336,13 @@ _acl_field_group_create(_acl_field_control_t *field_control,
     assert(field_control != NULL);
     assert(ret_group     != NULL);
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_group_create()\n")));
 
     /* Allocate a ACL field group. */
     group = sal_alloc(sizeof(_acl_field_group_t), "ACL field group");
     if (group == NULL) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: Allocation error for ACL field group\n")));
         return BCM_E_MEMORY;
     }
@@ -354,14 +354,14 @@ _acl_field_group_create(_acl_field_control_t *field_control,
 
     assert(field_control->prio_prev <= ACL_PRIO_GROUP_DEFAULT);
     while (field_control->prio_prev > 0 && BCM_FAILURE(retval)) {
-        LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                     (BSL_META("ACL Calling FP group create pri=%d\n"),
                      field_control->prio_prev));
         retval = bcmx_field_group_create_mode(qset, --field_control->prio_prev,
                                          bcmFieldGroupModeAuto, &gid);
     }
     if (BCM_FAILURE(retval)){
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: Group creation error (prio=%d, gid=%d)\n"),
                    field_control->prio_prev, gid));
         return retval;
@@ -408,7 +408,7 @@ _acl_field_group_remove_all(void) {
     int                   retval;
     _acl_field_group_t    *group;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_group_remove_all()\n")));
     assert(acl_field_control != NULL);
 
@@ -418,7 +418,7 @@ _acl_field_group_remove_all(void) {
         /* Remove any entries in group.*/
         retval = _acl_field_entry_remove_all(group);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                       (BSL_META("ACL Error: Failed to remove entries in group ID=%d\n"),
                        group->gid));
             return retval;
@@ -449,7 +449,7 @@ STATIC int
 _acl_field_group_destroy_all(void) {
     int                   retval;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_group_destroy_all()\n")));
     assert(acl_field_control != NULL);
 
@@ -457,7 +457,7 @@ _acl_field_group_destroy_all(void) {
         retval = _acl_field_group_destroy(acl_field_control,
                                           acl_field_control->group_list->gid);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                       (BSL_META("ACL Error: _acl_field_group_destroy_all() failure\n")));
             return retval;
         }
@@ -491,14 +491,14 @@ _acl_field_group_destroy(_acl_field_control_t *control,
     _acl_field_group_t  *prev = NULL;
 
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_group_destroy(gid=%d)\n"),
                gid));
     assert(control != NULL);
 
     /* If the group list is empty, group ID can't be found. */
     if (control->group_list == NULL) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: No groups available to delete?\n")));
         return BCM_E_NOT_FOUND;
     }
@@ -510,7 +510,7 @@ _acl_field_group_destroy(_acl_field_control_t *control,
             /* Destroy any entries in group.*/
             retval = _acl_field_entry_destroy_all(group);
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: Failed to destroy entries in group ID=%d\n"),
                            group->gid));
                 return retval;
@@ -526,7 +526,7 @@ _acl_field_group_destroy(_acl_field_control_t *control,
 
             retval = bcmx_field_group_destroy(gid);
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: group ID=%d not destroyed\n"),
                            gid));
                 return retval;
@@ -538,7 +538,7 @@ _acl_field_group_destroy(_acl_field_control_t *control,
         group = group->next;
     }
 
-    LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL Error: group ID=%d not found to be destroyed\n"),
                gid));
     return BCM_E_NOT_FOUND;
@@ -581,7 +581,7 @@ _acl_field_entry_create(_acl_field_group_t *group,
     assert(list  != NULL);
     assert(rule  != NULL);
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_create(gid=%d, list_id=%d, rule_id=%d)\n"),
                group->gid, list->list_id, rule->rule_id));
     ACL_FIELD_IS_INIT();
@@ -601,7 +601,7 @@ _acl_field_entry_create(_acl_field_group_t *group,
     if (entry == NULL) {
         bcmx_lplist_free(&lplist_full);
         bcmx_field_entry_destroy(eid);
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: _acl_field_entry_t allocation failure\n")));
         return BCM_E_MEMORY;
     }
@@ -722,7 +722,7 @@ _acl_field_entry_qualify_vlan(_acl_field_group_t *group, bcma_acl_rule_t *rule,
     int                 retval;
     _acl_rule_link_t    *rule_link;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_qualify_vlan(gid=%d, rule_id=%d)\n"),
                group->gid, rule->rule_id));
     /* Get list of range data/mask pairs. */
@@ -739,7 +739,7 @@ _acl_field_entry_qualify_vlan(_acl_field_group_t *group, bcma_acl_rule_t *rule,
         BCM_IF_ERROR_RETURN(bcmx_field_entry_copy(eid, &eid_copy));
         entry = _acl_field_entry_alloc(rule, eid_copy, group);
         if (entry == NULL) {
-            LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                       (BSL_META("ACL Error: _acl_field_entry_t allocation failure\n")));
             return BCM_E_MEMORY;
         }
@@ -792,7 +792,7 @@ _acl_field_entry_qualify_l4srcport(_acl_field_group_t *group,
     _acl_field_entry_t     *entry_start;
     int rv = BCM_E_NONE;
 
-   LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+   LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
              (BSL_META("ACL _acl_field_entry_qualify_l4srcport(gid=%d, rule_id=%d)\n"),
               group->gid, rule->rule_id));
 
@@ -846,7 +846,7 @@ _acl_field_entry_qualify_l4srcport(_acl_field_group_t *group,
             }
             entry = _acl_field_entry_alloc(rule, eid_copy, group);
             if (entry == NULL) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: _acl_field_entry_t allocation failure\n")));
                 rv =  BCM_E_MEMORY;
                 goto srcport_error;
@@ -1048,7 +1048,7 @@ _acl_field_entry_qualify_l4dstport(_acl_field_group_t *group,
     _acl_field_entry_t     *entry_start;
     int rv = BCM_E_NONE;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_qualify_l4dstport(gid=%d, rule_id=%d)\n"),
                group->gid, rule->rule_id));     
     /* Create the necessary Field range checker. */
@@ -1100,7 +1100,7 @@ _acl_field_entry_qualify_l4dstport(_acl_field_group_t *group,
             }
             entry = _acl_field_entry_alloc(rule, eid_copy, group);
             if (entry == NULL) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: _acl_field_entry_t allocation failure\n")));
                 rv =  BCM_E_MEMORY;
                 goto dstport_error;
@@ -1160,7 +1160,7 @@ _acl_field_entry_alloc(bcma_acl_rule_t *rule, bcm_field_entry_t eid,
 
     entry = sal_alloc(sizeof(_acl_field_entry_t), "ACL Field Entry");
     if (entry == NULL) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: _acl_field_entry_t allocation failure\n")));
         return entry;
     }
@@ -1199,14 +1199,14 @@ _acl_field_entry_remove_all(_acl_field_group_t *group)
 
     assert(group   != NULL);
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_remove_all(gid=%d)\n"),
                group->gid));
     entry = group->entry_list;
     while (entry != NULL) {
         retval = bcmx_field_entry_remove(entry->eid);
         if (BCM_FAILURE(retval)) {
-           LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+           LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                      (BSL_META("ACL Error: Entry ID=%d not removed\n"),
                       entry->eid));
            return retval;
@@ -1235,7 +1235,7 @@ _acl_field_entry_remove(_acl_field_group_t *group,
     _acl_field_entry_t  *entry;
 
     assert(group != NULL);
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_remove(gid=%d, eid=%d)\n"),
                group->gid, eid));
 
@@ -1246,7 +1246,7 @@ _acl_field_entry_remove(_acl_field_group_t *group,
             /* Found it so remove it.*/
             retval = bcmx_field_entry_remove(eid);
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: Entry ID=%d not removed\n"),
                            eid));
                 return retval;
@@ -1256,7 +1256,7 @@ _acl_field_entry_remove(_acl_field_group_t *group,
         entry = entry->next;
     }
 
-    LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL Error: Entry ID=%d not found to be removed\n"),
                eid));
     return BCM_E_NOT_FOUND;
@@ -1279,14 +1279,14 @@ _acl_field_entry_destroy_all(_acl_field_group_t *group)
 
     assert(group   != NULL);
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_destroy_all(gid=%d)\n"),
                group->gid));
 
     while (group->entry_list != NULL) {
         retval = _acl_field_entry_destroy(group, group->entry_list->eid);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                       (BSL_META("ACL Error: _acl_field_entry_destroy() failure\n")));
             return retval;
         }
@@ -1314,13 +1314,13 @@ _acl_field_entry_destroy(_acl_field_group_t *group,
     _acl_field_entry_t  *prev = NULL;
 
     assert(group != NULL);
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_destroy(gid=%d, eid=%d)\n"),
                group->gid, eid));
 
     /* If the entry list is empty, Entry ID can't be found. */
     if (group->entry_list == NULL) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: No entries available to delete?\n")));
         return BCM_E_NOT_FOUND;
     }
@@ -1333,7 +1333,7 @@ _acl_field_entry_destroy(_acl_field_group_t *group,
 
         retval = bcmx_field_entry_destroy(eid);
         if (BCM_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                       (BSL_META("ACL Error: Entry ID=%d not destroyed\n"),
                        eid));
             return retval;
@@ -1358,7 +1358,7 @@ _acl_field_entry_destroy(_acl_field_group_t *group,
 
             retval = bcmx_field_entry_destroy(eid);
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: Entry ID=%d not destroyed\n"),
                            eid));
                 return retval;
@@ -1369,7 +1369,7 @@ _acl_field_entry_destroy(_acl_field_group_t *group,
         entry = entry->next;
     }
 
-    LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL Error: Entry ID=%d not found to be destroyed\n"),
                eid));
     return BCM_E_NOT_FOUND;
@@ -1393,7 +1393,7 @@ _acl_field_entry_action_add(bcma_acl_rule_t *rule,
                             bcm_field_entry_t eid)
 {
     assert(rule);
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_action_add(rule_id=%d, eid=%d)\n"),
                rule->rule_id, eid));
 
@@ -1462,7 +1462,7 @@ _acl_field_merge(_acl_control_t *acl_control)
     bcmx_lplist_t         lplist_full;
     _acl_rule_link_t      *rule_link;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_merge()\n")));
     ACL_FIELD_IS_INIT();
 
@@ -1475,7 +1475,7 @@ _acl_field_merge(_acl_control_t *acl_control)
          acl_link != NULL;
          acl_link = _acl_next(acl_control))
     {
-        LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                     (BSL_META("ACL Merging ACL ID=%d\n"),
                      acl_link->list->list_id));
 
@@ -1487,7 +1487,7 @@ _acl_field_merge(_acl_control_t *acl_control)
              rule != NULL;
              rule = _acl_rule_next(acl_link))
         {
-            LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                         (BSL_META("ACL Merging Rule ID=%d\n"),
                          rule->rule_id));
             /* Initialization of total number field entries used by this rule */
@@ -1508,7 +1508,7 @@ _acl_field_merge(_acl_control_t *acl_control)
             retval = BCM_E_RESOURCE;
 
             while (group != NULL) {
-                LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                             (BSL_META("ACL Setting group ID=%d\n"),
                              group->gid));
                 retval = bcmx_field_group_set(group->gid, qset);
@@ -1521,18 +1521,18 @@ _acl_field_merge(_acl_control_t *acl_control)
             }
 
             if (BCM_FAILURE(retval)) {
-                LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                             (BSL_META("ACL Creating another group\n")));
                 retval = _acl_field_group_create(acl_field_control, qset,
                                                  &group);
                 if (BCM_FAILURE(retval)) {
                     bcmx_lplist_free(&lplist_full);
-                    LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                    LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                               (BSL_META("ACL Error: Can't create group for rule_id=%d\n"),
                                rule->rule_id));
                     return retval;
                 }
-                LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                             (BSL_META("ACL Group (gid=%d) created.\n"),
                              group->gid));
             }
@@ -1541,18 +1541,18 @@ _acl_field_merge(_acl_control_t *acl_control)
             retval =_acl_field_entry_create(group, acl_link->list, rule);
             
             if (retval == BCM_E_CONFIG || retval == BCM_E_RESOURCE) {
-                LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                             (BSL_META("ACL Creating another group\n")));
                 retval = _acl_field_group_create(acl_field_control, qset,
                                                  &group);
                 if (BCM_FAILURE(retval)) {
                     bcmx_lplist_free(&lplist_full);
-                    LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                    LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                               (BSL_META("ACL Error: Can't create group for rule_id=%d\n"),
                                rule->rule_id));
                     return retval;
                 }
-                LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                             (BSL_META("ACL Group (gid=%d) created.\n"),
                              group->gid));
                 _ACL_FIELD_MERGE_RECOVER(
@@ -1653,7 +1653,7 @@ _acl_field_install(void)
     _acl_field_group_t     *group;
     _acl_field_entry_t     *entry;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_install()\n")));
     ACL_FIELD_IS_INIT();
 
@@ -1664,18 +1664,18 @@ _acl_field_install(void)
          group != NULL;
          group = group->next)
     {
-        LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                     (BSL_META("ACL: Installing Group ID=%d\n"),
                      group->gid));
         /* For each entry in group. */
         for (entry = group->entry_list; entry != NULL; entry = entry->next) {
             /* Install the entry */
-            LOG_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
+            LOG_BSL_VERBOSE(BSL_LS_APPL_ACCESSCTRLLIST,
                         (BSL_META("ACL: Installing Entry ID=%d\n"),
                          entry->eid));
             retval = bcmx_field_entry_install(entry->eid);
             if (BCM_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+                LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                           (BSL_META("ACL Error: ACL Field Entry ID=%d install failure.\n"),
                            entry->eid));
                 return retval;
@@ -1703,19 +1703,19 @@ _acl_field_install(void)
 int
 _acl_field_uninstall(void)
 {
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_uninstall()\n")));
     ACL_FIELD_IS_INIT();
 
     /* Remove the Field groups and entries from hardware. */
     if (BCM_FAILURE(_acl_field_group_remove_all())) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: Failure in _acl_field_group_remove_all()\n")));
     }
 
     /* Deallocate the Field groups and entries from software. */
     if (BCM_FAILURE(_acl_field_group_destroy_all())) {
-        LOG_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_ERROR(BSL_LS_APPL_ACCESSCTRLLIST,
                   (BSL_META("ACL Error: Failure in _acl_field_group_destroy_all()\n")));
     }
 
@@ -1743,7 +1743,7 @@ _acl_field_rule_remove(bcma_acl_rule_id_t rule_id)
     _acl_field_group_t    *group_cur;
     bcm_field_entry_t     eid;
     
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_rule_remove(rule_id=%d)\n"),
                rule_id));
     ACL_FIELD_IS_INIT();
@@ -1789,7 +1789,7 @@ _acl_field_rule_entry_find(bcma_acl_rule_id_t rule_id,
 {
     _acl_field_entry_t    *entry;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_rule_entry_find(rule_id=%d)\n"),
                rule_id));
     
@@ -1809,7 +1809,7 @@ _acl_field_rule_entry_find(bcma_acl_rule_id_t rule_id,
         }
     }
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL END _acl_field_rule_entry_find(rule_id=%d) NOT FOUND\n"),
                rule_id));
     return BCM_E_NOT_FOUND;
@@ -1834,7 +1834,7 @@ _acl_field_show(void) {
     _acl_field_group_t     *group;
     int                    group_count = 0;
     
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_show()\n")));
     ACL_FIELD_IS_INIT();
 
@@ -1844,7 +1844,7 @@ _acl_field_show(void) {
         group_count++;
     }
 
-    LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
              (BSL_META("acl_field={group_numb=%d, "),
               group_count));
 
@@ -1856,7 +1856,7 @@ _acl_field_show(void) {
         group = group->next;
     }
 
-    LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
              (BSL_META("}\n")));
 
     return BCM_E_NONE;
@@ -1881,26 +1881,26 @@ _acl_field_group_show(_acl_field_group_t *group)
 {
     _acl_field_entry_t  *entry;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_group_show(gid=%d)\n"),
                group->gid));
     assert(group != NULL);
-    LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
              (BSL_META("\tgroup={gid=%d,\n"),
               group->gid));
 
     /* Show entries in this group.*/
     entry = group->entry_list;
     while (entry != NULL) {
-        LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
                  (BSL_META("\t\t")));
         BCM_IF_ERROR_RETURN(_acl_field_entry_show(entry));
-        LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+        LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
                  (BSL_META("\n")));
         entry = entry->next;
     }
 
-    LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
              (BSL_META("\t},\n")));
 
     return BCM_E_NONE;
@@ -1923,10 +1923,10 @@ _acl_field_entry_show(_acl_field_entry_t *entry)
 {
     
     assert(entry != NULL);
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("ACL _acl_field_entry_show(eid=%d)\n"),
                entry->eid));
-    LOG_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_INFO(BSL_LS_APPL_ACCESSCTRLLIST,
              (BSL_META("entry={eid=%d, rule_id=%d, pri=%d},"),
               entry->eid,
               entry->rule->rule_id, entry->prio));

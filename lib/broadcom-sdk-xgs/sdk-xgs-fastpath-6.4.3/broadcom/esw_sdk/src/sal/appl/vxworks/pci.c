@@ -95,7 +95,7 @@ int pci_config_putw(pci_dev_t *dev, uint32 addr, uint32 data)
 {
     STATUS requestStatus;
 
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
                 (BSL_META("PCI(%d,%d,%d) configW(0x%x)=0x%x\n"),
                  dev->busNo, dev->devNo, dev->funcNo, addr, data));
 
@@ -121,7 +121,7 @@ uint32 pci_config_getw(pci_dev_t *dev, uint32 addr)
 
     assert(! (addr & 3));
 
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
                 (BSL_META("PCI(%d,%d,%d) configR(0x%x)="),
                  dev->busNo, dev->devNo, dev->funcNo, addr));
 
@@ -138,7 +138,7 @@ uint32 pci_config_getw(pci_dev_t *dev, uint32 addr)
                 requestStatus);
 	return -1;
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_PCI,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
                     (BSL_META("0x%x\n"), inWord));
 	return inWord;
     }
@@ -186,7 +186,7 @@ int pci_int_connect(int intLine,
     int i;
 #endif
   
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
                 (BSL_META("pci_int_connect: intLine=%d, isr=%p, isr_data=%p\n"),
                  intLine, (void *)isr, (void *)isr_data));
 

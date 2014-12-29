@@ -235,7 +235,7 @@ tr3_write_reg(int unit, int addr, uint32 d0_msb, uint32 d1, uint32 d2_lsb)
 	if (((tmp % 32) == 0) && ((tmp & 0xf0000) == 0)) {
 		num_pre_nops = 2;
     }
-    if (LOG_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TCAM | BSL_INFO)) {
         LOG_CLI((BSL_META_U(unit,
                             "Write Addr=0x%08x "), addr));
         LOG_CLI((BSL_META_U(unit,
@@ -1270,7 +1270,7 @@ tr_tcam_init_type1(int unit)
         }
     }
     if (tcam_base > partitions[TCAM_PARTITION_RAW].num_entries) {
-        LOG_ERROR(BSL_LS_SOC_TCAM,
+        LOG_BSL_ERROR(BSL_LS_SOC_TCAM,
                   (BSL_META_U(unit,
                               "tr_tcam_init_type1: unit %d number of entries "
                               "configured exceeds physical device size\n"),
@@ -1278,7 +1278,7 @@ tr_tcam_init_type1(int unit)
         return SOC_E_PARAM;
     }
     if (tcam_base && tcam_base0 && tcam_base1) {
-        LOG_ERROR(BSL_LS_SOC_TCAM,
+        LOG_BSL_ERROR(BSL_LS_SOC_TCAM,
                   (BSL_META_U(unit,
                               "tr_tcam_init_type1: unit %d has both normal "
                               "and test entries in config\n"),
@@ -1858,10 +1858,10 @@ soc_tr3_free_ltr(int unit, int ltr_lib_idx)
     nl_inst = ltr_profile->nl_ltr_info[unit];
 
     if (nl_inst == NULL) {
-        LOG_ERROR(BSL_LS_SOC_TCAM,
+        LOG_BSL_ERROR(BSL_LS_SOC_TCAM,
                   (BSL_META_U(unit,
                               "unit %d: Attempting to free invalid ltr. "), unit));
-        LOG_ERROR(BSL_LS_SOC_TCAM,
+        LOG_BSL_ERROR(BSL_LS_SOC_TCAM,
                   (BSL_META_U(unit,
                               "Lib idx: %d\n"), ltr_lib_idx));
         return SOC_E_PARAM;
@@ -2166,7 +2166,7 @@ tr3_tcam_init(int unit)
         }
     }
     if (tcam_base > partitions[TCAM_PARTITION_RAW].num_entries) {
-        LOG_ERROR(BSL_LS_SOC_TCAM,
+        LOG_BSL_ERROR(BSL_LS_SOC_TCAM,
                   (BSL_META_U(unit,
                               "tr3_tcam_init: unit %d number of entries "
                               "configured exceeds physical device size\n"),

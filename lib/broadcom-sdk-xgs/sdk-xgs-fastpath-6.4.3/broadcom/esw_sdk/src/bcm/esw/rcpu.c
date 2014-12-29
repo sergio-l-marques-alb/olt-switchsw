@@ -624,7 +624,7 @@ _tx_rcpu_higig_hdr_setup(int unit, bcm_pkt_t *pkt, uint8 *hdr_buf,
     *byte_ofst = byte_offset;
     *hdr_size = hdr_buf - buf_start;
 
-    LOG_INFO(BSL_LS_BCM_TX,
+    LOG_BSL_INFO(BSL_LS_BCM_TX,
              (BSL_META_U(unit,
                          "_tx_rcpu_higig_hdr_setup: flags 0x%08x\n"), pkt->flags));
 
@@ -1160,7 +1160,7 @@ _bcm_rcpu_tx(int unit, bcm_pkt_t *pkt, void * cookie)
          BCM_PKT_TX_FABRIC_MAPPED(pkt) && rcpu_pkt_len < 60) ||
         (!BCM_PKT_NO_VLAN_TAG(pkt) && !BCM_PKT_HAS_HGHDR(pkt) && 
          !BCM_PKT_TX_FABRIC_MAPPED(pkt) && rcpu_pkt_len < 64)) {
-        LOG_ERROR(BSL_LS_BCM_RCPU,
+        LOG_BSL_ERROR(BSL_LS_BCM_RCPU,
                   (BSL_META_U(unit,
                               "_bcm_rcpu_tx: Discarding %s runt packet %s higig header %d\n"), 
                               BCM_PKT_NO_VLAN_TAG(pkt) ? "untagged" : "tagged", 
@@ -1215,15 +1215,15 @@ _bcm_rcpu_tx(int unit, bcm_pkt_t *pkt, void * cookie)
 
     if (bsl_check(bslLayerSoc, bslSourceTx, bslSeverityNormal, unit)) {
     	int j;
-        LOG_INFO(BSL_LS_BCM_TX,
+        LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "_bcm_rcpu_tx: packet: ")));
     	for (j = 0; j < payload_len + sizeof(rcpu1_cmic_pkt_hdr_t); j++) {
-            LOG_INFO(BSL_LS_BCM_TX,
+            LOG_BSL_INFO(BSL_LS_BCM_TX,
                      (BSL_META_U(unit,
                                  "%.2x"), tx_buf[j]));
     	}
-    	LOG_INFO(BSL_LS_BCM_TX,
+    	LOG_BSL_INFO(BSL_LS_BCM_TX,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -1563,7 +1563,7 @@ _bcm_esw_rcpu_init(int unit)
     rv = _bcm_rcpu_get_config(unit);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_RCPU,
+        LOG_BSL_ERROR(BSL_LS_BCM_RCPU,
                   (BSL_META_U(unit,
                               "_bcm_esw_rcpu_init: Failed to get default config.\n")));
         goto err_cfg;        
@@ -1572,7 +1572,7 @@ _bcm_esw_rcpu_init(int unit)
     rv = _bcm_rcpu_init(unit);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_RCPU,
+        LOG_BSL_ERROR(BSL_LS_BCM_RCPU,
                   (BSL_META_U(unit,
                               "_bcm_esw_rcpu_init: Failed to init.\n")));
         goto err_cfg;        

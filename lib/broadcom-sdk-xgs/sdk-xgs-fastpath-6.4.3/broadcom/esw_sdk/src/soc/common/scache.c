@@ -264,7 +264,7 @@ _scache_hsbuf_crc32_append(scache_handle_state_t *hs)
     crc = _shr_crc32(~0, (unsigned char*)descriptor, SCACHE_CRC_DATA_SIZE(descriptor));
     crc_ptr = SCACHE_HANDLE_CRC_PTR(hs);
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("_scache_hsbuf_crc32_append: desc=%p, handle=0x%x, size=%d, crc_offset=%p, crc=0x%x\n"),
                descriptor, hs->handle, hs->size, crc_ptr, crc));
 
@@ -300,7 +300,7 @@ _scache_hsbuf_crc32_check(scache_handle_state_t *hs)
     crc = _shr_crc32(~0, (unsigned char*)descriptor, (SCACHE_CRC_DATA_SIZE(descriptor) + sizeof(scache_crc_t)));
 
 #ifdef BROADCOM_DEBUG
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META("_scache_hsbuf_crc32_check: desc=%p, handle=0x%x, size=%d, crc=0x%x, re_crc=0x%x, read_crc=0x%x, read_crc_ptr=%p\n"),
                descriptor, hs->handle, hs->size, crc, re_crc, *read_crc_ptr, read_crc_ptr));
 #endif
@@ -596,7 +596,7 @@ soc_scache_alloc(int unit, soc_scache_handle_t handle_id, uint32 size)
     stable->used += alloc_size;
 
 #ifdef BROADCOM_DEBUG
-    if (LOG_CHECK(BSL_LS_SOC_COMMON | BSL_DEBUG)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_COMMON | BSL_DEBUG)) {
         LOG_CLI((BSL_META_U(unit,
                             "allocated handle=0x%x size=0x%08x\n"), 
                  handle_id, size));
@@ -675,7 +675,7 @@ soc_scache_realloc(int unit, soc_scache_handle_t handle_id, int32 incr_size)
 
 
 #ifdef BROADCOM_DEBUG
-    if (LOG_CHECK(BSL_LS_SOC_COMMON | BSL_DEBUG)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_COMMON | BSL_DEBUG)) {
         LOG_CLI((BSL_META_U(unit,
                             "allocated handle=0x%x incr_size=0x%08x\n"), 
                  handle_id, incr_size));
@@ -740,7 +740,7 @@ soc_scache_recover(int unit)
         if (SCACHE_CRC_IS_VALID(handle_state) &&
             !_scache_hsbuf_crc32_check(handle_state)) {
 #ifdef BROADCOM_DEBUG
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "CRC check failed: handle_id=%d"),
                        handle_state->handle));
@@ -760,7 +760,7 @@ soc_scache_recover(int unit)
     }
 
 #ifdef BROADCOM_DEBUG
-    if (LOG_CHECK(BSL_LS_SOC_COMMON | BSL_DEBUG)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_COMMON | BSL_DEBUG)) {
         LOG_CLI((BSL_META_U(unit,
                             "Recovered scache:\n")));
         soc_scache_dump_state(unit);
@@ -929,7 +929,7 @@ soc_scache_commit_specific_data(int unit, soc_scache_handle_t handle, uint32 dat
     /* Writing to scache during deinit is a definit bug */
     if (SOC_IS_DETACHING(unit)) {
         
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing to scache during de-init is not allowed\n")));
         return SOC_E_NONE;
@@ -990,7 +990,7 @@ soc_scache_partial_commit(int unit, soc_scache_handle_t handle, uint32 length, u
 
     /* Writing to scache during deinit is a definit bug */
     if (SOC_IS_DETACHING(unit)) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing to scache during de-init is not allowed\n")));
         return SOC_E_INTERNAL;
@@ -1331,7 +1331,7 @@ soc_versioned_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
      */
 
     if (SOC_WARM_BOOT(unit) && SOC_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Failed to obtaine scache pointer for handle %x, unit %d\n"),
                      handle, unit));
@@ -1347,7 +1347,7 @@ soc_versioned_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
             rv = soc_scache_ptr_get(unit, handle, scache_ptr,
                                     &alloc_get);
             allocated = TRUE;
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Allocated raw scache pointer=%p, %d bytes\n"),
                          scache_ptr, alloc_get));
@@ -1359,7 +1359,7 @@ soc_versioned_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
                     (soc_scache_realloc(unit, handle, (alloc_size - alloc_get)));
                 rv = soc_scache_ptr_get(unit, handle, scache_ptr, &alloc_get);
                 allocated = TRUE;
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Re-allocated raw scache pointer=%p, %d bytes\n"),
                              scache_ptr, alloc_get));
@@ -1394,7 +1394,7 @@ soc_versioned_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
     } else {
         /* Warm Boot recovery, verify the correct version */
         sal_memcpy(&version, *scache_ptr, sizeof(uint16));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Obtained scache pointer=%p, %d bytes, "
                                 "version=%d.%d\n"),
@@ -1403,7 +1403,7 @@ soc_versioned_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
                      SOC_SCACHE_VERSION_MINOR(version)));
         
         if (version > default_ver) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Downgrade detected.  "
                                   "Current version=%d.%d  found %d.%d\n"),
@@ -1422,7 +1422,7 @@ soc_versioned_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
             rv = SOC_E_NONE;
             
         } else if (version < default_ver) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Upgrade scenario supported.  "
                                     "Current version=%d.%d  found %d.%d\n"),

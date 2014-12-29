@@ -63,7 +63,7 @@
 /*BCM SDK*/
 /*Bcm sal*/
 #if defined(SOC_CES_DEBUG)
-#define CES_SAL_DEBUG(x) LOG_VERBOSE(BSL_LS_SOC_COMMON, x)
+#define CES_SAL_DEBUG(x) LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, x)
 #else
 #define CES_SAL_DEBUG(x)
 #endif

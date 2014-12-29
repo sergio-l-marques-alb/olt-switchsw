@@ -138,7 +138,7 @@ STATIC char *serdes_state_desc[] = {
     "serDISABLED", "serRESET", "serDOWN", "serSYNCOK", "serAN", "serUP"};
 
 #define	SERDES_TRANSITION(_u, _p, _s, _r) 			\
-    LOG_VERBOSE(BSL_LS_SOC_LINK, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_LINK, \
                 (BSL_META_U((_u), \
                             "Unit %d Port %s Serdes State %s --> %s (%s)\n"),	\
                  (_u), SOC_PORT_NAME(_u, _p),			\
@@ -148,7 +148,7 @@ STATIC char *serdes_state_desc[] = {
      SERDES((_u), (_p)).ser_time  = sal_time()
 
 #define SERDES_RESET(_u, _p, _s)                                \
-    LOG_VERBOSE(BSL_LS_SOC_LINK, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_LINK, \
                 (BSL_META_U((_u), \
                             "Unit %d Port %s Serdes RESET (%s)\n"),	\
                  (_u), SOC_PORT_NAME(_u, _p), (_s)));		\

@@ -73,7 +73,7 @@ drv_gex_trap_set(int unit, soc_pbmp_t bmp, uint32 trap_mask)
     uint32  reg_value, temp;
     uint32  snoop_mask = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_gex_trap_set: unit = %d, trap mask = 0x%x\n"), unit, trap_mask));
 
@@ -435,7 +435,7 @@ drv_gex_trap_get(int unit, soc_port_t port, uint32 *trap_mask)
         *trap_mask |= DRV_SWITCH_TRAP_ARP;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_gex_trap_get: unit = %d, trap mask = 0x%x\n"), unit, *trap_mask));
 
@@ -463,7 +463,7 @@ drv_gex_snoop_set(int unit, uint32 snoop_mask)
     uint32  reg_value, temp;
     uint32  trap_mask = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_gex_snoop_set: unit = %d, snoop mask = 0x%x\n"), unit, snoop_mask));
 
@@ -797,7 +797,7 @@ drv_gex_snoop_get(int unit, uint32 *snoop_mask)
         *snoop_mask |= DRV_SNOOP_ARP;
     }
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_gex_snoop_get: unit = %d, snoop mask = 0x%x\n"), unit, *snoop_mask));
 
@@ -953,7 +953,7 @@ drv_gex_igmp_mld_snoop_mode_set(int unit, int type, int mode)
         temp_en = TRUE;
         temp_fwd = GEX_REG_VALUE_TRAP;
     } else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, snooping mode out of valid value(%d)\n"), FUNCTION_NAME(), mode));
         return SOC_E_PARAM;

@@ -158,7 +158,7 @@ soc_i2c_regulator_set_volt(int unit, void *voltcfg, int uV)
 
     /* Check if the config is able to set volt */
     if (I2C_REGULATOR_VOLT_WR_DEV(vcfg) == NULL) {
-        LOG_INFO(BSL_LS_SOC_I2C, 
+        LOG_BSL_INFO(BSL_LS_SOC_I2C, 
                 (BSL_META_U(unit, "%s is not configured to set!\n"), 
                             vcfg->function));
         return SOC_E_FAIL;
@@ -168,7 +168,7 @@ soc_i2c_regulator_set_volt(int unit, void *voltcfg, int uV)
     dac_param = vcfg->dac_param;
     if (dac_param != NULL) {
         if ((uV > dac_param->uV_max) || (uV < dac_param->uV_min)) {
-            LOG_INFO(BSL_LS_SOC_I2C, 
+            LOG_BSL_INFO(BSL_LS_SOC_I2C, 
                     (BSL_META_U(unit, "%s is configured with max=%duV "
                               "and min=%duV, value %duV is invalid!\n"),
                               vcfg->function, 
@@ -181,7 +181,7 @@ soc_i2c_regulator_set_volt(int unit, void *voltcfg, int uV)
 
     dac = bcm_i2c_open(unit, I2C_REGULATOR_VOLT_WR_DEV(vcfg), 0, 0);
     if (dac < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C, (BSL_META_U(unit, "Failed to open %s : %s\n"),
+        LOG_BSL_INFO(BSL_LS_SOC_I2C, (BSL_META_U(unit, "Failed to open %s : %s\n"),
                                             I2C_REGULATOR_VOLT_WR_DEV(vcfg), 
                                             bcm_errmsg(dac)));
         return dac;
@@ -189,7 +189,7 @@ soc_i2c_regulator_set_volt(int unit, void *voltcfg, int uV)
 
     if ((rv = bcm_i2c_ioctl(unit, dac, I2C_REGULATOR_IOC_VOLT_SET,
                         &uV, vcfg->chan)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C, 
+        LOG_BSL_INFO(BSL_LS_SOC_I2C, 
                     (BSL_META_U(unit, "%s Failed to set voltage : %s\n"),
                                 I2C_REGULATOR_VOLT_WR_DEV(vcfg), 
                                 bcm_errmsg(rv)));
@@ -211,7 +211,7 @@ soc_i2c_regulator_get_volt(int unit, void *voltcfg, int *uV)
 
     /* Check if the config is able to get volt */
     if (I2C_REGULATOR_VOLT_RD_DEV(vcfg) == NULL) {
-        LOG_ERROR(BSL_LS_SOC_I2C, 
+        LOG_BSL_ERROR(BSL_LS_SOC_I2C, 
                     (BSL_META_U(unit, "%s is not configured to get!\n"), 
                                 vcfg->function));
         return SOC_E_FAIL;
@@ -219,7 +219,7 @@ soc_i2c_regulator_get_volt(int unit, void *voltcfg, int *uV)
 
     adc = bcm_i2c_open(unit, I2C_REGULATOR_VOLT_RD_DEV(vcfg), 0, 0);
     if (adc < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C, 
+        LOG_BSL_INFO(BSL_LS_SOC_I2C, 
                     (BSL_META_U(unit, "Failed to open %s : %s\n"),
                                 I2C_REGULATOR_VOLT_RD_DEV(vcfg), 
                                 bcm_errmsg(adc)));
@@ -227,7 +227,7 @@ soc_i2c_regulator_get_volt(int unit, void *voltcfg, int *uV)
 
     if ((rv = bcm_i2c_ioctl(unit, adc, I2C_REGULATOR_IOC_VOLT_GET, uV,
                                 vcfg->chan)) < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C, 
+        LOG_BSL_INFO(BSL_LS_SOC_I2C, 
                     (BSL_META_U(unit, "%s Failed to get voltage : %s\n"),
                                 I2C_REGULATOR_VOLT_RD_DEV(vcfg), 
                                 bcm_errmsg(rv)));

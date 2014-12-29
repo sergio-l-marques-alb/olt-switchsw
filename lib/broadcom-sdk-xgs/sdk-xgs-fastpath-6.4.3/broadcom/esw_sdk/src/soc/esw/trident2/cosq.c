@@ -220,7 +220,7 @@ soc_td2_cosq_set_sched_parent(int unit, soc_port_t port,
     int l0off, l1off, idx;
     uint32 *bmap = NULL;
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%d : %d parent:%d\n"),
                port, level - 1, hw_index, parent_hw_idx));
@@ -342,7 +342,7 @@ soc_td2_sched_weight_set(int unit, int port, int level,
     soc_mem_t mem = INVALIDm;
     soc_reg_t reg = INVALIDr;
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "sched_weight_set L%d csch_index=%d wt=%d\n"),
               level, hw_index, weight));
@@ -437,7 +437,7 @@ soc_td2_sched_weight_get(int unit, int port, int level,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "sched_weight_set L%d csch_index=%d wt=%d\n"),
               level, hw_index, *weight));
@@ -455,7 +455,7 @@ soc_td2_cosq_set_sched_child_config(int unit, soc_port_t port,
     uint32 entry[SOC_MAX_MEM_WORDS];
     soc_mem_t mem, mem2;
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d FC=%d FMC=%d UMAP=0x%x\n"),
               port, (level == 0) ? "r" : "", level - 1, 
@@ -501,7 +501,7 @@ soc_td2_cosq_set_sched_mode(int unit, soc_port_t port, int level, int index,
     soc_reg_t reg;
     int fval, idx, parent_idx = -1;
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d MODE=%d WT=%d\n"),
               port, (level == 0) ? "r" : "", level - 1, 
@@ -688,7 +688,7 @@ soc_td2_cosq_get_sched_child_config(int unit, soc_port_t port,
         *pfirst_sp_mc_child = first_sp_mc_child;
     }
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d FC=%d FMC=%d UMAP=0x%x\n"),
               port, (level == 0) ? "r" : "", level - 1, 
@@ -786,7 +786,7 @@ soc_td2_cosq_get_sched_mode(int unit, soc_port_t port, int level,
         *pmode = mode;
     }
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d MODE=%d WT=%d\n"),
               port, (level == 0) ? "r" : "", level - 1, index, mode, *weight));
@@ -1696,7 +1696,7 @@ soc_td2_sched_hw_index_get(int unit, int port, int lvl, int offset,
 
     rv = _soc_td2_alloc_sched(unit, port, lvl, offset, hw_index);
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Alloced : port=%d lvl=%d ofst=%d Index=%d\n"),
               port, lvl, offset, *hw_index));

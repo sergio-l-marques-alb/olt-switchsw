@@ -167,7 +167,7 @@ chassis_ast_lm_trunk(int unit, int tid,
         for (j=0; j<cfm_info->count; j++) {
             slot = cfm_info->cfm[j].slot;
             modid = cfm_info->cfm[j].modid;
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META("slot:%d unit:%d tid:%d modid:%d port:%d n:%d\n"),
                          slot,
                          unit,
@@ -220,14 +220,14 @@ install_cfm_fp(int unit, bcm_board_cfm_info_t *cfm_info)
 
             for ( i=0; i<cfm_fp_entries; i++) {
                 rv = bcm_field_entry_remove(unit, cfm_fp_entry[i]);
-                LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                             (BSL_META("bcm_field_entry_remove(%d, %d)=%d\n"),
                              unit,
                              cfm_fp_entry[i],
                              rv));
             }
             rv = bcm_field_group_destroy(unit, cfm_fp_group);
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META("bcm_field_group_destroy(%d, %d)=%d\n"),
                          unit,
                          cfm_fp_group,
@@ -266,7 +266,7 @@ install_cfm_fp(int unit, bcm_board_cfm_info_t *cfm_info)
                                    cfm_info->cfm[i].modid,
                                    &dstport));
             BCM_PBMP_PORT_SET(dstpbmp, dstport);
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META_U(unit,
                         "port:%d pbmp[0]:%x\n"),
                          dstport,
@@ -346,7 +346,7 @@ chassis_ast_lm(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref,
 int
 chassis_ast_cfm_xgs2(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5675 BCM956000 CFM (Asymmetric Trunk)\n")));
     _chassis_ast_default_cfm_psc = XGS2_CFM_HASH;
     return chassis_ast_cfm(tp_cpu, db_ref);
@@ -370,7 +370,7 @@ chassis_ast_xgs2_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
         { 12, 4  }, /* 5673 unit 4 is on port 4 */
     };
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 569x 48GE BCM956000 LM (Asymmetric Trunk)\n")));
     _chassis_ast_default_lm_psc = XGS2_LM_HASH;
     return chassis_ast_lm(tp_cpu, db_ref, connection);
@@ -395,7 +395,7 @@ chassis_ast_xgs2_6x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
         {  1, 3  },  /* 5673 unit 6 is on port 3 */
     };
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 5674 6XE BCM956000 LM (Asymmetric Trunk)\n")));
     _chassis_ast_default_lm_psc = XGS2_LM_HASH;
     return chassis_ast_lm(tp_cpu, db_ref, connection);
@@ -418,7 +418,7 @@ chassis_ast_xgs3_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
         { 27, 2  }, /* 56501 unit 4 port 27 connects to 5675 port 2 */
     };
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56501 12XE BCM956000 LM (Asymmetric Trunk)\n")));
     _chassis_ast_default_lm_psc = XGS2_LM_HASH;
     return chassis_ast_lm(tp_cpu, db_ref, connection);
@@ -434,7 +434,7 @@ chassis_ast_xgs3_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 int
 chassis_ast_cfm_xgs3(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS 56700 BCM956000 CFM (Asymmetric Trunk)\n")));
     return chassis_ast_cfm(tp_cpu, db_ref);
 }
@@ -448,7 +448,7 @@ chassis_ast_cfm_xgs3(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 int
 chassis_ast_56800_12x(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 {
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56800 BCM956000 LM (Asymmetric Trunk)\n")));
     return chassis_ast_lm(tp_cpu, db_ref, NULL);
 }
@@ -586,7 +586,7 @@ chassis_ast_xgs3_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
 
     bcm_board_cfm_info(db_ref, &cfm_info);
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("TOPO: XGS3 56504 48GE BCM956000 LM (Asymmetric Trunk)\n")));
 
     /* Get master and partner units and modids */
@@ -594,7 +594,7 @@ chassis_ast_xgs3_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
                                            &master, &partner));
 
     if ((master < 0) || (master > 1) || (partner < 0) || (partner > 1)) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("Parameter error: master=%d partner=%d\n"),
                      master, partner));
         return BCM_E_INTERNAL;
@@ -603,10 +603,10 @@ chassis_ast_xgs3_48g(topo_cpu_t *tp_cpu, cpudb_ref_t db_ref)
     master_modid = tp_cpu->local_entry.mod_ids[master];
     partner_modid = tp_cpu->local_entry.mod_ids[partner];
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Master: %d,%d\n"),
                  master, master_modid));
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Partner: %d,%d\n"),
                  partner, partner_modid));
 

@@ -183,7 +183,7 @@ _shr_resource_alloc(int                        unit,
                 }
             }
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Found a reserved range on resource %d: "
                                     "0x%08x-0x%08x count=%d inRange=%d\n"), 
@@ -369,14 +369,14 @@ _shr_resource_alloc(int                        unit,
                     if (handle.alloc_style == SHR_ALLOC_STYLE_VERSATILE) {
                         if(shr_aidxres_list_free(handle.aidx_handle,
                                                  done[i]) != _SHR_E_NONE) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "shr_aidxres_list_free failed\n")));
                         }
                     } else {
                         if(shr_idxres_list_free(handle.idx_handle,
                                                 done[i]) != _SHR_E_NONE){
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "shr_aidxres_list_free failed\n")));
                         }
@@ -458,7 +458,7 @@ _shr_resource_free(int                        unit,
             }
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Found a reserved range on resource %d: "
                                 "0x%08x-0x%08x count=%d inRange=%d\n"), 
@@ -729,7 +729,7 @@ int _shr_range_reserve(int unit, _shr_usr_res_types_t type,
 
         if (res_attrs->reservedHigh && res_attrs->reservedLow) {
             if (res_attrs->reservedHigh < res_attrs->reservedLow) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Upper bounds is set less than lower"
                                       " bounds: 0x%x < 0x%x\n"),
@@ -758,7 +758,7 @@ int _shr_range_reserve(int unit, _shr_usr_res_types_t type,
                                          first, last);
         }
 #if 0
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Reserved resource %s (%d/%d) : "
                                 "0x%08x-0x%08x rv=%d %s\n"),
@@ -785,7 +785,7 @@ int _shr_range_reserve(int unit, _shr_usr_res_types_t type,
                 }
 
                 if (_SHR_E_FAILURE(ignoreRv)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "failed to free element "
                                             "0x%08x  rv=%d %s (ignored)\n"),
@@ -793,7 +793,7 @@ int _shr_range_reserve(int unit, _shr_usr_res_types_t type,
                 }
             } 
 #if 0
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Freed reserved resource %s (%d/%d) ids: "
                                     "0x%08x-0x%08x\n"),

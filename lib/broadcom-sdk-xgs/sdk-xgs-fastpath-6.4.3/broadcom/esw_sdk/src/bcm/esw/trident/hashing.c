@@ -554,7 +554,7 @@ main__do_rtag7_hashing(int unit,
         }
 
         if ((rtag7_a_sel == RTAG7_IPV6) && rtag7_en_flow_label_ipv6_a) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Hash calculation: The system is set to use ipv6 flow label and the code can't get this info\n")));
         }
@@ -568,20 +568,20 @@ main__do_rtag7_hashing(int unit,
                     (pkt_info->src_l4_port == pkt_info->dst_l4_port)) {
                     sc_reg = RTAG7_IPV4_TCP_UDP_HASH_FIELD_BMAP_1r;
                     sc_field = IPV4_TCP_UDP_SRC_EQ_DST_FIELD_BITMAP_Af;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block A IPv4 TCP=UDP\n")));
                 } else {
                     sc_reg = RTAG7_IPV4_TCP_UDP_HASH_FIELD_BMAP_2r;
                     sc_field = IPV4_TCP_UDP_FIELD_BITMAP_Af;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block A IPv4 L4 tcp/udp\n")));
                 }
             } else {
                 sc_reg = RTAG7_HASH_FIELD_BMAP_1r;
                 sc_field = IPV4_FIELD_BITMAP_Af;
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Hash calculation: Bitmap is block A IPv4 \n")));
             }
@@ -595,20 +595,20 @@ main__do_rtag7_hashing(int unit,
                     (pkt_info->src_l4_port == pkt_info->dst_l4_port)) {
                     sc_reg = RTAG7_IPV6_TCP_UDP_HASH_FIELD_BMAP_1r;
                     sc_field = IPV6_TCP_UDP_SRC_EQ_DST_FIELD_BITMAP_Af;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block A IPv6 TCP=UDP\n")));
                 } else {
                     sc_reg = RTAG7_IPV6_TCP_UDP_HASH_FIELD_BMAP_2r;
                     sc_field = IPV6_TCP_UDP_FIELD_BITMAP_Af;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block A IPv6 L4 tcp/udp\n")));
                 }
             } else {
                 sc_reg = RTAG7_HASH_FIELD_BMAP_2r;
                 sc_field = IPV6_FIELD_BITMAP_Af;
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Hash calculation: Bitmap is block A IPv6 \n")));
             }
@@ -647,7 +647,7 @@ main__do_rtag7_hashing(int unit,
 
         sc_reg = RTAG7_HASH_FIELD_BMAP_3r;
         sc_field = L2_FIELD_BITMAP_Af;
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Hash calculation: Bitmap is block A L2\n")));
     }
@@ -923,7 +923,7 @@ main__do_rtag7_hashing(int unit,
         }
 
         if ((rtag7_b_sel == RTAG7_IPV6) && rtag7_en_flow_label_ipv6_b) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Hash calculation: The system is set to use ipv6 flow label and the code can't get this info\n")));
         }
@@ -937,20 +937,20 @@ main__do_rtag7_hashing(int unit,
                     (pkt_info->src_l4_port == pkt_info->dst_l4_port)) {
                     sc_reg = RTAG7_IPV4_TCP_UDP_HASH_FIELD_BMAP_1r;
                     sc_field = IPV4_TCP_UDP_SRC_EQ_DST_FIELD_BITMAP_Bf;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block B IPv4 TCP=UDP\n")));
                 } else {
                     sc_reg = RTAG7_IPV4_TCP_UDP_HASH_FIELD_BMAP_2r;
                     sc_field = IPV4_TCP_UDP_FIELD_BITMAP_Bf;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block B IPv4 L4 tcp/udp\n")));
                 }
             } else {
                 sc_reg = RTAG7_HASH_FIELD_BMAP_1r;
                 sc_field = IPV4_FIELD_BITMAP_Bf;
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Hash calculation: Bitmap is block B IPv4\n")));
             }
@@ -965,20 +965,20 @@ main__do_rtag7_hashing(int unit,
                     (pkt_info->src_l4_port == pkt_info->dst_l4_port)) {
                     sc_reg = RTAG7_IPV6_TCP_UDP_HASH_FIELD_BMAP_1r;
                     sc_field = IPV6_TCP_UDP_SRC_EQ_DST_FIELD_BITMAP_Bf;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block B IPv6 TCP=UDP\n")));
                 } else {
                     sc_reg = RTAG7_IPV6_TCP_UDP_HASH_FIELD_BMAP_2r;
                     sc_field = IPV6_TCP_UDP_FIELD_BITMAP_Bf;
-                    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "Hash calculation: Bitmap is block B IPv6 TCP=UDP\n")));
                 }
             } else {
                 sc_reg = RTAG7_HASH_FIELD_BMAP_2r;
                 sc_field = IPV6_FIELD_BITMAP_Bf;
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Hash calculation: Bitmap is block B IPv6\n")));
             }
@@ -1016,7 +1016,7 @@ main__do_rtag7_hashing(int unit,
 
         sc_reg = RTAG7_HASH_FIELD_BMAP_3r;
         sc_field = L2_FIELD_BITMAP_Bf;
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Hash calculation: Bitmap is block B L2\n")));
     }
@@ -1373,7 +1373,7 @@ main__compute_lbid(int unit, bcm_rtag7_base_hash_t *hash_Base)
     } else { /* LBID rtag is 0-6 */        
         /* this function not support the rtag 0-6 */
 		
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Hash calculation: This function doesn't support rtag 0 6 pls change register ING_CONFIG.LBID_RTAG to value 7\n")));
         hash_Base->rtag7_lbid_hash = 0;
@@ -1479,7 +1479,7 @@ compute_ecmp_hash(int unit, bcm_rtag7_base_hash_t *hash_Base,
     /* Select between non-RTAG7 hash value and RTAG7 hash value */
 
     if (ecmp_hash_use_rtag7 == 0) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Hash calculation:  non rtag7 calc not supported\n")));
         *hash_val =  0;
@@ -1533,7 +1533,7 @@ compute_rtag7_hash_trunk(int unit , bcm_rtag7_base_hash_t *hash_Base,
         offset_shift = 0x3ff;
     }        
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "Trunk hash_seb_sel=%d, hash_offset=%d\n"),
                 hash_sub_sel, hash_offset));
@@ -1551,7 +1551,7 @@ compute_rtag7_hash_trunk(int unit , bcm_rtag7_base_hash_t *hash_Base,
 
     *hash_value = rtag7_hash_trunk_value;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "Trunk hash_value=%d\n"),
                  *hash_value));
@@ -1563,7 +1563,7 @@ compute_rtag7_hash_trunk(int unit , bcm_rtag7_base_hash_t *hash_Base,
                           NON_UC_TRUNK_HASH_USE_RTAG7f);
 
     if (hash_Base->is_nonuc && nuc_trunk_hash_use_rtag7 == 0) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "NonUC trunk Hash calculation:  non rtag7 calc not supported\n")));
         *hash_value = 0;
@@ -1596,7 +1596,7 @@ get_hash_trunk(int unit, int tgid, uint32 hash_index, bcm_gport_t *dst_gport)
     rtag = soc_TRUNK_GROUPm_field32_get(unit, &tg_entry, RTAGf);
                 
     if (rtag != 7){
-         LOG_VERBOSE(BSL_LS_BCM_COMMON,
+         LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Hash calculation: uport only RTAG7 calc no support for rtag %d\n"),
                       rtag));
@@ -1604,11 +1604,11 @@ get_hash_trunk(int unit, int tgid, uint32 hash_index, bcm_gport_t *dst_gport)
 
     trunk_index = hash_index % (trunk_group_size + 1);
     trunk_member_table_index = (trunk_base + trunk_index) & 0x7ff;
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\tTrunk HW index 0x%08x\n"),
                  trunk_index));
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\tTrunk group size 0x%08x\n"),
                  trunk_group_size));
@@ -1693,7 +1693,7 @@ get_hash_trunk_nuc(int unit, int tgid,
     }
     nonuc_trunk_block_mask_index = (nuc_type << 8) | (hash_index & 0xff);
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "Nonuc-trunk table index = %d\n"), 
                  nonuc_trunk_block_mask_index));
@@ -1862,7 +1862,7 @@ get_hash_ecmp(int unit, int ecmp_group, uint32 hash_index, bcm_if_t *nh_id)
     }
 
     ecmp_offset = ((hash_index & ecmp_mask) % (ecmp_count + 1)) & 0x3FF;
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\tECMP offset 0x%08x\n"),
                  ecmp_offset));
@@ -1873,7 +1873,7 @@ get_hash_ecmp(int unit, int ecmp_group, uint32 hash_index, bcm_if_t *nh_id)
     *nh_id =
         soc_L3_ECMPm_field32_get(unit, &ecmp_entry,
                                  NEXT_HOP_INDEXf) & 0x3fff;
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\tECMP next hop HW index 0x%08x\n"),
                  *nh_id));
@@ -1900,7 +1900,7 @@ _bcm_switch_pkt_info_ecmp_hash_get(int unit,
     }
 
     if (!_BCM_SWITCH_PKT_INFO_FLAG_TEST(pkt_info, SRC_GPORT)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "Hash calculation: source gport value missing\n")));
         return BCM_E_PARAM;
@@ -1921,7 +1921,7 @@ _bcm_switch_pkt_info_ecmp_hash_get(int unit,
         (_bcm_esw_stk_modmap_map(unit, BCM_STK_MODMAP_GET,
                                  hash_res.src_modid, hash_res.src_port,
                                  &hash_res.src_modid, &hash_res.src_port));
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "src_gport=0x%x, src_modid = %d, src_port=%d\n"),
                 pkt_info->src_gport, hash_res.src_modid, hash_res.src_port));
@@ -1944,48 +1944,48 @@ _bcm_switch_pkt_info_ecmp_hash_get(int unit,
     BCM_IF_ERROR_RETURN
         (main__compute_lbid(unit, &hash_res));
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "Hash status: \n")));
     if (hash_res.hash_a_valid) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 A0 0x%08x\n"),
                      hash_res.rtag7_hash16_value_a_0));
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 A1 0x%08x\n"),
                      hash_res.rtag7_hash16_value_a_1));
     } else {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 A hashes invalid due to missing packet info\n")));
     }
     if (hash_res.hash_b_valid) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 B0 0x%08x\n"),
                      hash_res.rtag7_hash16_value_b_0));
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 B1 0x%08x\n"),
                      hash_res.rtag7_hash16_value_b_1));
     } else {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 B hashes invalid due to missing packet info\n")));
     }
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "\tRTAG7 LBN 0x%08x\n"),
                  hash_res.rtag7_port_lbn));
     if (hash_res.lbid_hash_valid){
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 LBID 0x%08x\n"),
                      hash_res.rtag7_lbid_hash));
     } else {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tRTAG7 LBID not valid due to non-RTAG7 configuration\n")));
     }
@@ -2000,7 +2000,7 @@ _bcm_switch_pkt_info_ecmp_hash_get(int unit,
         
         BCM_IF_ERROR_RETURN
             (compute_ecmp_hash(unit, &hash_res, &hash_value));
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "\tECMP Hash value 0x%08x\n"),
                      hash_value));
@@ -2038,7 +2038,7 @@ _bcm_switch_pkt_info_ecmp_hash_get(int unit,
         if (trunk >= ti.trunk_id_min && trunk <= ti.trunk_id_max) {
             BCM_IF_ERROR_RETURN
                 (compute_rtag7_hash_trunk(unit, &hash_res, &hash_value));
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "\tTrunk Hash value 0x%08x\n"),
                          hash_value));

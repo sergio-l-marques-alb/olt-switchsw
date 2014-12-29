@@ -1634,7 +1634,7 @@ _soc_tr3_esm_init_set_esm_mode_per_port(int unit)
         acl_l2_key < 0 || acl_l2_key > 2 ||
         acl_ip4_key < 0 || acl_ip4_key > 4 ||
         acl_ip6_key < 0 || acl_ip6_key > 5) {
-        LOG_ERROR(BSL_LS_SOC_TCAM,
+        LOG_BSL_ERROR(BSL_LS_SOC_TCAM,
                   (BSL_META_U(unit,
                               "ESM init: unit %d incorrect key selection\n"),
                               unit));
@@ -4456,7 +4456,7 @@ soc_tr3_search_ext_mem(int unit, soc_mem_t *mem, void *key, int *index_ptr)
     }
     tmp = *index_ptr;
     if (!(tmp & MAKE_FIELD(TR3_WRCMP_RSP_SMF, 1))) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Lookup failed\n")));
         return SOC_E_NOT_FOUND;

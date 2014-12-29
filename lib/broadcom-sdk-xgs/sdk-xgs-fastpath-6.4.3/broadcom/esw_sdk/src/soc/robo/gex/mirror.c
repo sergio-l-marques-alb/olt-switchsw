@@ -73,7 +73,7 @@ drv_gex_mirror_set(int unit, uint32 enable, soc_pbmp_t mport_bmp,
     uint32  reg_value, temp, mport = 0;
     int  count = 0;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_mirror_set: unit %d, \
                          %sable, mport_bmp = 0x%x, ingress_bmp = 0x%x, egress_bmp = 0x%x\n"),
@@ -210,7 +210,7 @@ drv_gex_mirror_get(int unit, uint32 *enable, soc_pbmp_t *mport_bmp,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_gex_mirror_get: unit %d, \
                          %sable, mport_bmp = 0x%x, ingress_bmp = 0x%x, egress_bmp = 0x%x\n"),

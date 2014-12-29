@@ -344,7 +344,7 @@ portmod_common_phy_sbus_reg_write(soc_mem_t reg_access_mem, void* user_acc, uint
     
     soc_mem_unlock(user_data->unit, reg_access_mem);
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(user_data->unit,
                           "_portmod_utils_sbus_reg_write[%d]: "
                           "addr=0x%x reg=0x%08x data=0x%08x mask=0x%08x(%d/%d)\n"),
@@ -392,7 +392,7 @@ portmod_common_phy_sbus_reg_read(soc_mem_t reg_access_mem, void* user_acc, uint3
     }
     *val = mem_data[1];
 
-    LOG_DEBUG(BSL_LS_SOC_MII, (BSL_META_U(user_data->unit,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII, (BSL_META_U(user_data->unit,
                  "_portmod_utils_sbus_reg_read[%d]: "
                  "addr=0x%x reg=0x%08x data=0x%08x (%d/%d)\n"),
                  user_data->unit, core_addr, reg_addr, *val, user_data->blk_id, rv));

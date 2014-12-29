@@ -82,17 +82,17 @@ bcm_tk371x_stat_clear(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_stat_clear..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -125,17 +125,17 @@ bcm_tk371x_stat_get(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_stat_get..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -169,17 +169,17 @@ bcm_tk371x_stat_get32(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_stat_get32..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID(port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -193,7 +193,7 @@ bcm_tk371x_stat_get32(
 int
 bcm_tk371x_stat_init(int unit)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_tk371x_stat_init()..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID(unit)){
@@ -303,7 +303,7 @@ bcm_tk371x_stat_multi_get32(
 int
 bcm_tk371x_stat_sync(int unit)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_tk371x_stat_sync()..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID(unit)){

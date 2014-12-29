@@ -2150,7 +2150,7 @@ phy_84793_diag_ctrl(int32 unit, soc_port_t port, uint32 inst, int32 op_type,
     phy_ctrl_t *pc;
 
     pc = EXT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "84793 diag_ctrl: u=%d p=%d ctrl=0x%x\n"), unit, 
                          port, op_cmd));
@@ -2195,7 +2195,7 @@ phy_84793_diag_ctrl(int32 unit, soc_port_t port, uint32 inst, int32 op_type,
                 (phy_84793_control_get(unit, port,
                                 op_cmd, (uint32 *)arg));
             } else {
-                LOG_INFO(BSL_LS_SOC_PHY, \
+                LOG_BSL_INFO(BSL_LS_SOC_PHY, \
                          (BSL_META_U(unit, \
                                      "84793 diag_ctrl bad operation:\
                                      u=%d p=%d ctrl=0x%x\n"), unit, port, op_cmd));
@@ -4773,7 +4773,7 @@ int32 _phy_84793_init_pass2 (int32 unit, soc_port_t port)
     phy84793_intf_cfg_t *interface;
     uint16 if_sys_idx = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY84793 init pass2: u=%d p=%d\n"), unit, port));
     pc = EXT_PHY_SW_STATE(unit, port);
@@ -4803,7 +4803,7 @@ int32 _phy_84793_init_pass2 (int32 unit, soc_port_t port)
     /* Get configured system interface */
     if_sys_idx = soc_property_port_get(unit, port, spn_PHY_SYS_INTERFACE, 0);
     if (if_sys_idx >= (sizeof(phy_84793_sys_to_port_if)/sizeof(soc_port_if_t))) {
-        LOG_ERROR(BSL_LS_SOC_PHY, \
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY, \
                   (BSL_META_U(unit, \
                               "PHY84793 invalid system side\
                               interface: u=%d p=%d intf=%d\n"
@@ -4847,7 +4847,7 @@ _phy_84793_config_update(int32 unit, soc_port_t port)
     phy_ctrl_t *pc;
     pc = EXT_PHY_SW_STATE(unit, port);
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY84793 INIT: u=%d p=%d TX Pol=0x%x RX Pol:0x%x\n"), 
                          unit, port,POL_TX_CFG(pc), POL_RX_CFG(pc)));
@@ -4867,7 +4867,7 @@ int32 phy_84793_init(int32 unit, soc_port_t port)
     pc = EXT_PHY_SW_STATE(unit, port);
     dev_name = DEV_NAME(pc);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY84793 init: u=%d p=%d state=%d\n"), 
                          unit, port,PHYCTRL_INIT_STATE(pc)));
@@ -4886,7 +4886,7 @@ int32 phy_84793_init(int32 unit, soc_port_t port)
     
     if ((PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_PASS2) ||
         (PHYCTRL_INIT_STATE(pc) == PHYCTRL_INIT_STATE_DEFAULT)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY84793 init pass2: u=%d p=%d\n"), unit, port));
         SOC_IF_ERROR_RETURN(_phy_84793_init_pass2(unit, port));
@@ -5028,7 +5028,7 @@ phy_84793_link_get(int32 unit, soc_port_t port, int32 *link)
         *link = int_phy_link;
     }
    
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_84793_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -5326,7 +5326,7 @@ int32 _phy_84793_rom_firmware_download (int32 unit, int32 port, int32 offset,
     SOC_IF_ERROR_RETURN(
             READ_PHY84793_PMA_PMD_REG(unit, pc, COMMON_POR_REGS_BOOT_POR, &data16));
     if ((data16 & 0x2000) == 0x2000) {
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "FW already downloaded,"
                                 "Please do Hard reset to dload ucode again\n")));
@@ -5391,7 +5391,7 @@ int32 _phy_84793_rom_firmware_download (int32 unit, int32 port, int32 offset,
     SOC_IF_ERROR_RETURN 
          (READ_PHY84793_PMA_PMD_REG(unit, pc, CTL_REGS_GPREG4, &data16));
  
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "Check Sum: 0x%X \n"), data16));
     if (data16 == 0x600D) {
@@ -5402,7 +5402,7 @@ int32 _phy_84793_rom_firmware_download (int32 unit, int32 port, int32 offset,
     SOC_IF_ERROR_RETURN 
            (READ_PHY84793_PMA_PMD_REG(unit, pc, CTL_REGS_GPREG0, &data16));
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "Version: 0x%X\n"), data16));
     return SOC_E_NONE;
@@ -5441,7 +5441,7 @@ phy_84793_probe(int32 unit, phy_ctrl_t *pc)
             devid == PHY84793_ID_84794) {
         /*pc->dev_name = dev_name_84793;*/
     } else {  /* not found */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "port %d: BCM84xxx type"
                              "PHY device detected, please use"
@@ -5756,7 +5756,7 @@ phy_84793_ability_local_get(int32 unit, soc_port_t port, soc_port_ability_t *abi
     ability->medium    = SOC_PA_MEDIUM_FIBER;
     ability->loopback  = SOC_PA_LB_PHY;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84793_ability_local_get: u=%d p=%d speed=0x%x\n"),
               unit, port, ability->speed_full_duplex));
@@ -5838,7 +5838,7 @@ phy_84793_lb_get(int32 unit, soc_port_t port, int32 *enable)
     SOC_IF_ERROR_RETURN
       (_phy_84793_per_lane_lb_get(unit, port, pc->lane_num , (uint32*)enable));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84793_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));
@@ -5960,7 +5960,7 @@ phy_84793_speed_set(int32 unit, soc_port_t port, int32 speed)
 
     pc = EXT_PHY_SW_STATE(unit, port);
     intf = &(INTERFACE(pc));
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_84793_speed_set: u=%d p=%d speed=%d\n"), 
                          unit, port, speed));
@@ -5981,7 +5981,7 @@ phy_84793_speed_set(int32 unit, soc_port_t port, int32 speed)
     intf->speed = speed;  
     rv =  _phy_84793_speed_set(unit, port, speed);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "84793  %s failed: u=%d p=%d\n"), 
                               FUNCTION_NAME(), unit, port));
@@ -6418,7 +6418,7 @@ int32 phy_84793_hw_reset(int32 unit, soc_port_t port, void *not_used)
 
     pc = EXT_PHY_SW_STATE(unit, port);
     
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "84793 HW Reset.....\n")));
    

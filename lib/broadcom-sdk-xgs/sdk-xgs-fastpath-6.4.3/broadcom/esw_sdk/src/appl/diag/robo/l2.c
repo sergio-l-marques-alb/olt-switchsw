@@ -843,7 +843,7 @@ if_robo_l2(int unit, args_t *a)
             SOC_PBMP_AND(pbmp, PBMP_ALL(unit));
         }
         if(soc->arl_table){
-            LOG_INFO(BSL_LS_APPL_ARL,
+            LOG_BSL_INFO(BSL_LS_APPL_ARL,
                      (BSL_META_U(unit,
                                  "showing SW ARL table.. \n")));
             rv = bcm_l2_traverse(unit, _robo_l2addr_dump, NULL);
@@ -856,7 +856,7 @@ if_robo_l2(int unit, args_t *a)
         }else {
             int entry_id = 0;
             
-            LOG_INFO(BSL_LS_APPL_ARL,
+            LOG_BSL_INFO(BSL_LS_APPL_ARL,
                      (BSL_META_U(unit,
                                  "showing HW ARL table..\n")));
             sal_memset(&l2_sw_entry, 0, sizeof(l2_arl_sw_entry_t));
@@ -1258,7 +1258,7 @@ done:
                     }
                 }
             }
-            LOG_INFO(BSL_LS_APPL_L2TABLE,
+            LOG_BSL_INFO(BSL_LS_APPL_L2TABLE,
                      (BSL_META_U(unit,
                                  "\n dump %d entries\n"),count));
         }else {

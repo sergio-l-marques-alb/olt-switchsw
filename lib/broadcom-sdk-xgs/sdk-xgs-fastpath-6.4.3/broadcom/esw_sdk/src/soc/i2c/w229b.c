@@ -381,12 +381,12 @@ w311_ioctl(int unit, int devno,
 	/* Convert to MHZ if short form given */
 	if ( speed < MHZ  )
 	    speed *= MHZ;
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Speed requested = %2.2f\n"), speed));
 #else
 	speed = *((int*)data);
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Speed requested = %d.%02d\n"), 
                      INT_FRAC_2PT_4(speed)));
@@ -394,7 +394,7 @@ w311_ioctl(int unit, int devno,
 
 	if((int)speed < Megahertz(W311_MIN_CLOCK) ||
 	   (int)speed > Megahertz(W311_MAX_CLOCK)){
-	    LOG_ERROR(BSL_LS_SOC_I2C,
+	    LOG_BSL_ERROR(BSL_LS_SOC_I2C,
                       (BSL_META_U(unit,
                                   "unit %d i2c %s: invalid clock speed %dMhz,"
                                   " valid range %d:%dMHz\n"),
@@ -426,12 +426,12 @@ w311_ioctl(int unit, int devno,
 	n = (uint8) val;
 	nm = w311_control_word(n, m);
 #ifdef	COMPILER_HAS_DOUBLE
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "w311: set speed=%2.2f n(fp)=%f (m=%d n=%d) hwval=0x%x\n"),
                      speed, val, m, n, nm));
 #else
-	LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "w311: set speed=%d.%02d n(fp)=%d (m=%d n=%d) hwval=0x%x\n"),
                      INT_FRAC_2PT_4(speed), val, m, n, nm));
@@ -467,7 +467,7 @@ w311_ioctl(int unit, int devno,
 	    /* FS0,1,2 */
 #ifdef	COMPILER_HAS_DOUBLE
 #ifdef CLOCK_DEBUG
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "w311: FS_Sel[0:4]=0x%x f=%2.2f\n"),
                          n,0.0));
@@ -480,7 +480,7 @@ w311_ioctl(int unit, int devno,
 	    /* Look for table match */
 	    for ( i = 0; i < N_W311_FREQS; i++) {
 #ifdef CLOCK_DEBUG
-		LOG_VERBOSE(BSL_LS_SOC_COMMON,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "n=0x%x tab=0x%x\n"),
                              n, w311_freq_tab[i].control));
@@ -498,7 +498,7 @@ w311_ioctl(int unit, int devno,
 	else {
 #ifdef	COMPILER_HAS_DOUBLE
 #ifdef CLOCK_DEBUG
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "w311: m/n=0x%x m=0x%x n=0x%x, f=%2.2f\n"),
                          nm, m, n,
@@ -532,7 +532,7 @@ w311_ioctl(int unit, int devno,
 	 */
 	if((rv =soc_i2c_read_byte_data(unit, saddr,
 				       W311_COMM_CODE(W311_CTRL_REG1),&cb))<0){
-	    LOG_ERROR(BSL_LS_SOC_I2C,
+	    LOG_BSL_ERROR(BSL_LS_SOC_I2C,
                       (BSL_META_U(unit,
                                   "w311: could not read W311 byte1, control reg1!\n")));
 	}
@@ -565,7 +565,7 @@ w311_ioctl(int unit, int devno,
         /*
          mode is validated above. So the default case is never used.
 	default:
-	    LOG_ERROR(BSL_LS_SOC_I2C,
+	    LOG_BSL_ERROR(BSL_LS_SOC_I2C,
                       (BSL_META_U(unit,
                                   "w311: spread spectrum error: no mode %d\n"), mode));
 	    break;
@@ -574,7 +574,7 @@ w311_ioctl(int unit, int devno,
 
 	if((rv =soc_i2c_write_byte_data(unit, saddr,
 				       W311_COMM_CODE(W311_CTRL_REG1),cb))<0){
-	    LOG_ERROR(BSL_LS_SOC_I2C,
+	    LOG_BSL_ERROR(BSL_LS_SOC_I2C,
                       (BSL_META_U(unit,
                                   "w311: could not write W311 byte1, control reg1!\n")));
 	}
@@ -674,7 +674,7 @@ w229b_ioctl(int unit, int devno,
 					   W229B_COMM_CODE,
 					   W229B_CNT, w229_regvals ) ) < 0 ) {
 
-            LOG_ERROR(BSL_LS_SOC_I2C,
+            LOG_BSL_ERROR(BSL_LS_SOC_I2C,
                       (BSL_META_U(unit,
                                   "unit %d i2c %s: error on SMB block write: %s\n"),
                        unit, soc_i2c_devname(unit,devno),
@@ -685,7 +685,7 @@ w229b_ioctl(int unit, int devno,
 	    soc_i2c_device(unit, devno)->tbyte += 5;
 #ifdef	COMPILER_HAS_DOUBLE
 	    val = (double)w229b_freq_tab[i].speed  / (1000.0 * 1000.0) ;
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d i2c %s: set W229B Clock Speed=%.2fMhz"
                                     " (CB=0x%x)\n"),
@@ -693,7 +693,7 @@ w229b_ioctl(int unit, int devno,
                          val, w229_regvals[4]));
 #else
 	    val = w229b_freq_tab[i].speed;
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "unit %d i2c %s: set W229B Clock Speed=%d.%02dMHz"
                                     " (CB=0x%x)\n"),
@@ -734,7 +734,7 @@ w229b_init(int unit, int devno,
 	} else {
 	    is311 = TRUE;
 	    soc_i2c_devdesc_set(unit, devno, "Cypress W311 Clock Chip");
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "%s: vendor 0x%x revision 0x%x\n"),
                          soc_i2c_devname(unit,devno),

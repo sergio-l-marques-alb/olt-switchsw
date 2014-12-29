@@ -77,7 +77,7 @@ static int _tk371x_clear_all_staticmacs(int unit){
     PBMP_E_ITER(unit, port) {
         sal_memset(macs, 0, sizeof(macs));
         rv = _soc_ea_static_mac_entries_get(unit, 0, port, &entryCount, macs); 
-        LOG_INFO(BSL_LS_BCM_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                  (BSL_META_U(unit,
                              "_tk371x_clear_all_staticmacs: port=%d, entryCount=%d\n"), port, entryCount));
         if (rv == OK) {
@@ -89,7 +89,7 @@ static int _tk371x_clear_all_staticmacs(int unit){
     PBMP_E_ITER(unit, port) {
         sal_memset(macs, 0, sizeof(macs));
         rv = _soc_ea_static_mac_entries_get(unit, 0, port, &entryCount, macs); 
-        LOG_INFO(BSL_LS_BCM_L2TABLE,
+        LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                  (BSL_META_U(unit,
                              "port=%d, entryCount=%d\n"), port, entryCount));
         if ((rv == ERROR) || (entryCount > 0)) {

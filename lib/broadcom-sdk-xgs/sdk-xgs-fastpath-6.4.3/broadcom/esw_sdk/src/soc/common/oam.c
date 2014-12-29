@@ -77,7 +77,7 @@ soc_port_config_phy_oam_set(int unit, soc_port_t port, soc_port_config_phy_oam_t
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_config_phy_oam_set failed %d\n"), rv));
     }
@@ -113,7 +113,7 @@ soc_port_config_phy_oam_get(int unit, soc_port_t port, soc_port_config_phy_oam_t
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_config_phy_oam_get failed %d\n"), rv));
     }
@@ -150,7 +150,7 @@ soc_port_control_phy_oam_set(int unit, soc_port_t port, soc_port_control_phy_oam
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_control_phy_oam_set failed %d\n"), rv));
     }
@@ -187,7 +187,7 @@ soc_port_control_phy_oam_get(int unit, soc_port_t port, soc_port_control_phy_oam
     }
 
     if (SOC_FAILURE(rv)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_port_control_phy_oam_get failed %d\n"), rv));
     }

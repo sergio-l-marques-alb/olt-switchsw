@@ -205,7 +205,7 @@ soc_robo_arl_callback(int unit,
     }
     if (arl_sw_entry_count != arl_sw_entry_count_prev) {
         arl_sw_entry_count_prev = arl_sw_entry_count;
-        LOG_INFO(BSL_LS_SOC_ARLMON,
+        LOG_BSL_INFO(BSL_LS_SOC_ARLMON,
                  (BSL_META_U(unit,
                              "ARL callback entry count %d\n"), 
                   arl_sw_entry_count));
@@ -242,7 +242,7 @@ soc_arl_start(int unit, sal_usecs_t interval)
 #endif
 
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_arl_start: unit=%d interval=%d\n"),
               unit, interval));
@@ -293,7 +293,7 @@ soc_arl_start(int unit, sal_usecs_t interval)
                      INT_TO_PTR(unit));
 
         if (soc->arl_pid == SAL_THREAD_ERROR) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_arl_start: Could not start arl thread\n")));
             return SOC_E_MEMORY;
@@ -320,7 +320,7 @@ soc_arl_stop(int unit)
     int         rv = SOC_E_NONE;
     soc_timeout_t   to;
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_arl_stop: unit=%d\n"), unit));
 
@@ -335,7 +335,7 @@ soc_arl_stop(int unit)
 
         while (soc->arl_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_arl_stop: thread will not exit\n")));
                 rv = SOC_E_INTERNAL;
@@ -468,7 +468,7 @@ void soc_arl_frozen_sync_init(int unit)
         frozen_scan_status = SOC_ROBO_ARL_FROZEN_SEARCH_STATUS_INIT;
     }
 #endif /* BCM_TB_SUPPORT */
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "ARL FS status init!\n")));
 }
@@ -521,7 +521,7 @@ _soc_arl_frozen_sync_status_update(int unit, int search_op, int op_status)
             if (search_op == _ARL_SEARCH_VALID_OP_DONE && 
                         op_status == SOC_E_NONE){
                 frozen_action_l2_index++ ;
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "%s,L2 FS SYNC count=%d\n"),
                           FUNCTION_NAME(), frozen_action_l2_index));
@@ -537,7 +537,7 @@ _soc_arl_frozen_sync_status_update(int unit, int search_op, int op_status)
     
 status_change:
     frozen_search_status++;   
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "%s,L2 FS status set to %d!\n"), 
               FUNCTION_NAME(), frozen_search_status));
@@ -572,7 +572,7 @@ _soc_arl_frozen_sync_status_update_tb(int unit, int scan_index)
              */
             if (scan_index == max_index){
                 frozen_action_scan_index++ ;
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "%s,L2 FS SYNC(Scan Valid) count=%d\n"),
                           FUNCTION_NAME(), frozen_action_scan_index));
@@ -593,7 +593,7 @@ _soc_arl_frozen_sync_status_update_tb(int unit, int scan_index)
     
 status_change_tb:
     frozen_scan_status++;   
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "%s,L2 FS status(Scan Valid) set to %d!\n"), 
               FUNCTION_NAME(), frozen_scan_status));
@@ -623,7 +623,7 @@ soc_arl_search_valid(int unit, int op, void *index, void *entry, void *entry1)
     int rv = SOC_E_PARAM;
 
     if (op == _ARL_SEARCH_VALID_OP_START) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "_ARL_SEARCH_VALID_OP_START \n")));
         flags = DRV_MEM_OP_SEARCH_VALID_START;
@@ -636,7 +636,7 @@ soc_arl_search_valid(int unit, int op, void *index, void *entry, void *entry1)
     }
 
     if (op == _ARL_SEARCH_VALID_OP_NEXT) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "_ARL_SEARCH_VALID_OP_NEXT \n")));
 
@@ -651,7 +651,7 @@ soc_arl_search_valid(int unit, int op, void *index, void *entry, void *entry1)
     }
 
     if (op == _ARL_SEARCH_VALID_OP_GET) {        
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "_ARL_SEARCH_VALID_OP_GET \n")));   
 
@@ -665,7 +665,7 @@ soc_arl_search_valid(int unit, int op, void *index, void *entry, void *entry1)
         SOC_IF_ERROR_RETURN(rv);
     }
     if (op == _ARL_SEARCH_VALID_OP_DONE) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "_ARL_SEARCH_VALID_OP_DONE \n")));           
         flags = DRV_MEM_OP_SEARCH_DONE;
@@ -726,7 +726,7 @@ soc_arl_thread(void *unit_vp)
 
     if ((exist_list == NULL) || (current_list == NULL) || 
         (delete_list == NULL)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_arl_thread: not enough memory, exiting\n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -836,7 +836,7 @@ soc_arl_thread(void *unit_vp)
         /* defaul valid_count ideally is one chunk per second */
         default_count = (interval*chunk_size + ONESEC - 1)/ONESEC;
         valid_count = soc_property_get(unit, spn_ARL_RATE_LIMIT, default_count);
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "soc_arl_thread: valid_count %d \n"), valid_count));
 
@@ -873,7 +873,7 @@ soc_arl_thread(void *unit_vp)
                         *  2. Formal NEXT op will be proceeded later in this 
                         *       while loop.
                         */
-                        LOG_INFO(BSL_LS_SOC_ARL,
+                        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                                  (BSL_META_U(unit,
                                              "%s, valid bit double check mismatched!\n\t"\
                                              ">> Performinging NEXT op..(valid_cnt=%d)\n\t"),
@@ -1076,7 +1076,7 @@ soc_arl_thread(void *unit_vp)
             SHR_BITCOUNT_RANGE(exist_list, 
                     sw_learn_cnt, index_min, index_count);
 
-            LOG_VERBOSE(BSL_LS_SOC_ARL,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                         (BSL_META_U(unit,
                                     "%s: SW ARL entry_cnt=%d, SLEEP..\n"),
                          FUNCTION_NAME(), sw_learn_cnt));
@@ -1102,7 +1102,7 @@ cleanup_exit:
         sal_free(added_list);
     }
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_arl_thread: exiting\n")));
 
@@ -1168,7 +1168,7 @@ soc_arl_thread_tb(void *unit_vp)
     if ((exist_list == NULL) || (valid_list == NULL) || 
         (valid_list == NULL) || (temp_list == NULL) || 
         (added_list == NULL)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_arl_thread_tb: not enough memory, exiting\n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1253,7 +1253,7 @@ soc_arl_thread_tb(void *unit_vp)
 
                     if(SHR_BITGET(valid_list, idx)){                    
                         index = (addr_index + idx)/2;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "add idx %d addr_index %d index %d\n"),
                                      idx, addr_index, index));
@@ -1272,7 +1272,7 @@ soc_arl_thread_tb(void *unit_vp)
                     } else {
                         sal_memset(&sw_arl, 0, sizeof(l2_arl_sw_entry_t));
                         index = (addr_index + idx)/2;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "delete idx %d addr_index %d index %d\n"),
                                      idx, addr_index, index));
@@ -1293,9 +1293,9 @@ soc_arl_thread_tb(void *unit_vp)
                             
             if(++scan_index >= max_scan_index){
                 scan_index = 0;
-                if (LOG_CHECK(BSL_LS_SOC_ARL | BSL_INFO)){
+                if (LOG_BSL_CHECK(BSL_LS_SOC_ARL | BSL_INFO)){
                     shr_bitop_range_count(exist_list,0, index_count,&valid_count);
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Total valid entry count %d \n"),
                                  valid_count/2));
@@ -1313,7 +1313,7 @@ soc_arl_thread_tb(void *unit_vp)
         /* defaul valid_count ideally is one chunk per second */
         default_count = ((interval*chunk_size + ONESEC - 1)/ONESEC)/2;
         valid_count = soc_property_get(unit, spn_ARL_RATE_LIMIT, default_count);
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_arl_thread_tb: valid_count %d \n"),
                    valid_count));
@@ -1341,7 +1341,7 @@ soc_arl_thread_tb(void *unit_vp)
                     goto cleanup_exit;
                 }
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error in search valid !!\n")));
                 goto cleanup_exit;
@@ -1361,7 +1361,7 @@ soc_arl_thread_tb(void *unit_vp)
 
             VO_ARL_SEARCH_UNLOCK(unit,soc);
             if (rv == SOC_E_EXISTS) {
-                LOG_DEBUG(BSL_LS_SOC_COMMON,
+                LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "search valid index %d\n"),
                            index));
@@ -1377,7 +1377,7 @@ soc_arl_thread_tb(void *unit_vp)
                     /* new entry*/
                     SHR_BITSET(exist_list, index*2);
                     SHR_BITSET(exist_list, index*2+1);            
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "search valid find new index %d\n"),
                                  index));
@@ -1397,7 +1397,7 @@ soc_arl_thread_tb(void *unit_vp)
                      *
                      * Fix : one more NEXT operation.
                      */
-                    LOG_INFO(BSL_LS_SOC_ARL,
+                    LOG_BSL_INFO(BSL_LS_SOC_ARL,
                              (BSL_META_U(unit,
                                          "%s, valid bit double check mismatched!\n\t"\
                                          ">> Performinging NEXT op..(valid_cnt=%d)\n\t"),
@@ -1427,7 +1427,7 @@ soc_arl_thread_tb(void *unit_vp)
              * is requested to exit, it can do so immediately.
              */
             
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                      "%s: SW ARL entry_cnt=%d, SLEEP..\n"),
                          FUNCTION_NAME(), sw_learn_cnt));
@@ -1462,7 +1462,7 @@ cleanup_exit:
         sal_free(added_list);
     }
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "soc_arl_thread_tb: exiting\n")));
 

@@ -1937,7 +1937,7 @@ _bcm_td2_child_state_check(int unit, bcm_port_t gport,
                                              sch_index, entry));
             empty = 0;
             if (soc_timeout_check(&timeout)) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "ERROR: Timeout during Child lists Not zero\n")));
                 return BCM_E_BUSY;
@@ -2102,7 +2102,7 @@ _bcm_td2_dynamic_sched_update_begin(int unit, bcm_port_t gport,
     rv = _bcm_td2_child_state_check(unit, gport, cosq, ets_mode);
     if (rv != BCM_E_NONE) {
         /* Logging the Error. Not stopping the flow for now. */
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: During Child State Check(rv %d)\n"),
                    rv));
@@ -2230,7 +2230,7 @@ _bcm_td2_dynamic_sched_update_end(int unit, bcm_port_t gport,
     rv = _bcm_td2_dynamic_sched_reset_thd(unit, gport, cosq, ets_mode); 
     if (rv != BCM_E_NONE) {
         /* Logging the Error. Not stopping the flow for now. */
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "ERROR: During Reset MIN_THD process(rv %d)\n"),
                    rv));
@@ -2848,7 +2848,7 @@ bcm_td2_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     int id, ii, q_base, pipe, qmin, qmax;
     bcm_gport_t tmp_gport;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td2_cosq_gport_add: unit=%d port=0x%x numq=%d flags=0x%x\n"),
               unit, port, numq, flags));
@@ -3124,7 +3124,7 @@ bcm_td2_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       gport=0x%x\n"),
               *gport));
@@ -3306,7 +3306,7 @@ bcm_td2_cosq_gport_detach(int unit, bcm_gport_t sched_gport,
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                         hw_cosq=%d\n"),
               sched_node->attached_to_input));
@@ -3333,7 +3333,7 @@ bcm_td2_cosq_gport_delete(int unit, bcm_gport_t gport)
     _bcm_td2_mmu_info_t *mmu_info;
     soc_info_t *si;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td2_cosq_gport_delete: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -3439,7 +3439,7 @@ bcm_td2_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_td2_cosq_gport_get: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -3469,7 +3469,7 @@ bcm_td2_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         *flags = 0;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       port=0x%x numq=%d flags=0x%x\n"),
               *port, *numq, *flags));
@@ -3684,7 +3684,7 @@ bcm_td2_cosq_gport_attach(int unit, bcm_gport_t gport,
                 node->attached_to_input = tmp;
                 return rv;
             }
-            LOG_INFO(BSL_LS_BCM_COSQ,
+            LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                      (BSL_META_U(unit,
                                  "                         hw_cosq=%d\n"),
                       node->attached_to_input));

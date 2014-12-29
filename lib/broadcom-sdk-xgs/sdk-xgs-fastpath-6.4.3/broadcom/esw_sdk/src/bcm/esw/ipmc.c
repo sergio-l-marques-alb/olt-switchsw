@@ -1058,7 +1058,7 @@ bcm_esw_ipmc_init(int unit)
         return BCM_E_UNAVAIL;
     }
 
-    LOG_INFO(BSL_LS_BCM_IPMC,
+    LOG_BSL_INFO(BSL_LS_BCM_IPMC,
              (BSL_META_U(unit,
                          "IPMC %d: Init\n"),
               unit));
@@ -1148,7 +1148,7 @@ bcm_esw_ipmc_detach(int unit)
         return (rv);
     }
 
-    LOG_INFO(BSL_LS_BCM_IPMC,
+    LOG_BSL_INFO(BSL_LS_BCM_IPMC,
              (BSL_META_U(unit,
                          "IPMC %d: Detach\n"),
               unit));
@@ -1185,7 +1185,7 @@ bcm_esw_ipmc_enable(int unit, int enable)
 {
     IPMC_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_IPMC,
+    LOG_BSL_INFO(BSL_LS_BCM_IPMC,
              (BSL_META_U(unit,
                          "IPMC %d: %sable\n"),
               unit, enable ? "En" : "Dis"));
@@ -1372,7 +1372,7 @@ bcm_esw_ipmc_add(int unit, bcm_ipmc_addr_t *data)
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_IPMC,
+    LOG_BSL_INFO(BSL_LS_BCM_IPMC,
              (BSL_META_U(unit,
                          "IPMC %d: Add mc 0x%x, sip 0x%x, vid %d. cos %d, %s %d\n"),
               unit,
@@ -1440,7 +1440,7 @@ bcm_esw_ipmc_remove_all(int unit)
 
     IPMC_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_IPMC,
+    LOG_BSL_INFO(BSL_LS_BCM_IPMC,
              (BSL_META_U(unit,
                          "IPMC %d: Del all\n"),
               unit));
@@ -2382,7 +2382,7 @@ _xgs_ipmc_stk_update(int unit, bcm_pbmp_t add_ports,
     soc_mem_unlock(unit, L3_IPMCm);
 
     if (changed) {
-        LOG_VERBOSE(BSL_LS_BCM_IPMC,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_IPMC,
                     (BSL_META_U(unit,
                                 "IPMC %d: xgs stk update changed %d entries\n"),
                      unit, changed));

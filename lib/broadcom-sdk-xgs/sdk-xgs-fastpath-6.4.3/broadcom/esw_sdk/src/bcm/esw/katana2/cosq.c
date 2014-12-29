@@ -2294,10 +2294,10 @@ _bcm_kt2_cosq_dynamic_sp_werr_change(int unit, bcm_port_t port, int node_level,
             (soc_reg32_get(unit, dyn_reg_a, REG_PORT_ANY, 0, &rval)); 
         in_use = soc_reg_field_get(unit, dyn_reg_a, rval, IN_USEf);
         if (soc_timeout_check(&timeout)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: dynamic sp <-> werr change operation failed \n")));
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   " node_level %d node_id %d parent_id %d \n"), 
                        node_level, node_id, parent_id));
@@ -2434,7 +2434,7 @@ int _bcm_kt2_cosq_flush_queues(int unit,
        flush_active = soc_reg_field_get(unit, TOQ_FLUSH0r, rval, FLUSH_ACTIVEf);
        if (flush_active == 1) {
            /* some other queue is in flush state, return failure */
-           LOG_ERROR(BSL_LS_BCM_COMMON,
+           LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "ERROR: Queue %d is already in flush state \n"),
                       (soc_reg_field_get(unit, TOQ_FLUSH0r, rval, FLUSH_ID0f))));
@@ -2466,7 +2466,7 @@ int _bcm_kt2_cosq_flush_queues(int unit,
                   flush_active = soc_reg_field_get(unit, TOQ_FLUSH0r, 
                                                    rval, FLUSH_ACTIVEf);
                   if (flush_active) {
-                      LOG_ERROR(BSL_LS_BCM_COMMON,
+                      LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                                 (BSL_META_U(unit,
                                             "ERROR: Queue %d flush operation failed \n"), 
                                  node->hw_index));
@@ -5206,7 +5206,7 @@ _bcm_kt_cosq_bucket_stop(int unit,
                         &l0_bucket, C_MAX_BUCKETf);
 
 
-                LOG_INFO(BSL_LS_BCM_COSQ,
+                LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                         (BSL_META_U(unit,
                                     "Iteration No :%d \n"
                         "LLS_L0_SHAPER_CONFIG_C.C_MAX_CYCLE_SELf = %d \n"
@@ -5408,7 +5408,7 @@ bcm_kt2_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     _bcm_kt2_cosq_list_t *list;
     int max_queues;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_kt2_cosq_gport_add: unit=%d port=0x%x numq=%d flags=0x%x\n"),
               unit, port, numq, flags));
@@ -5737,7 +5737,7 @@ bcm_kt2_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       gport=0x%x\n"),
               *gport));
@@ -5764,7 +5764,7 @@ bcm_kt2_cosq_gport_delete(int unit, bcm_gport_t gport)
     int encap_id;
     int rv = BCM_E_NONE;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_kt2_cosq_gport_delete: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -5863,7 +5863,7 @@ bcm_kt2_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_kt2_cosq_gport_get: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -5897,7 +5897,7 @@ bcm_kt2_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         *flags = 0;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       port=0x%x numq=%d flags=0x%x\n"),
               *port, *numq, *flags));
@@ -8650,7 +8650,7 @@ bcm_kt2_cosq_init(int unit)
     num_total_schedulers = num_port_schedulers + num_s0_schedulers +
                            num_s1_schedulers + num_l0_schedulers + 
                            num_l1_schedulers ;
-    LOG_VERBOSE(BSL_LS_BCM_COSQ,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COSQ,
               (BSL_META_U(unit,
                           "Useful Info:\n"
                           "num_pp_ports:%d num_port_schedulers:%d num_s0_schedulers:%d\n"
@@ -9321,7 +9321,7 @@ bcm_kt2_cosq_config_set(int unit, int numq)
         }
         index = soc_mem_field32_get(unit, COS_MAP_SELm, &cos_map_sel_entry, SELECTf);
         if (index >= profile_count) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit, 
                  "Error. COS_MAP_SEL value %d greater than expected %d.\n"), index, profile_count));
             sal_free(profile_ref_count);
@@ -9339,7 +9339,7 @@ bcm_kt2_cosq_config_set(int unit, int numq)
         }
         index = soc_mem_field32_get(unit, COS_MAP_SELm, &cos_map_sel_entry, SELECTf);
         if (index >= profile_count) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit, 
                  "Error. COS_MAP_SEL value %d greater than expected %d.\n"), index, profile_count));
             sal_free(profile_ref_count);
@@ -9772,7 +9772,7 @@ bcm_kt2_cosq_gport_attach(int unit, bcm_gport_t sched_gport,
         BCM_IF_ERROR_RETURN(_bcm_kt2_cosq_sched_node_set(unit, sched_gport, 
                             _BCM_KT2_COSQ_STATE_ENABLE));
 
-        LOG_INFO(BSL_LS_BCM_COSQ,
+        LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                  (BSL_META_U(unit,
                              "                         hw_cosq=%d\n"),
                   sched_node->cosq_attached_to));
@@ -9957,7 +9957,7 @@ bcm_kt2_cosq_gport_detach(int unit, bcm_gport_t sched_gport,
         }
      }
 
-      LOG_INFO(BSL_LS_BCM_COSQ,
+      LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                (BSL_META_U(unit,
                            "                         hw_cosq=%d\n"),
                 sched_node->cosq_attached_to));
@@ -10027,7 +10027,7 @@ _bcm_kt2_cosq_ef_update_war(int unit, bcm_gport_t gport,  bcm_cos_queue_t cosq,
     uint32 start_pri, vec_3_0 =0, vec_7_4 = 0;
     uint32 rval = 0, bit_offset;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "_bcm_kt2_cosq_ef_update_war:unit=%d gport=0x%x cosq=%d idx=%d\n"),
               unit, gport, cosq, hw_index));
@@ -10057,7 +10057,7 @@ _bcm_kt2_cosq_ef_update_war(int unit, bcm_gport_t gport,  bcm_cos_queue_t cosq,
         if (bit_offset >= 8) {
             return BCM_E_PARAM;
         }
-        LOG_INFO(BSL_LS_BCM_COSQ,
+        LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                  (BSL_META_U(unit,
                              "parent=%d spri_vector=0x%x bit_offset=%d\n"),
                   parent_index, spri_vector, bit_offset));
@@ -10306,7 +10306,7 @@ int
 bcm_kt2_cosq_control_set(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq,
                         bcm_cosq_control_t type, int arg)
 {
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_kt2_cosq_control_set: unit=%d gport=0x%x cosq=%d \
                          type=%d arg=%d\n"),
@@ -10325,7 +10325,7 @@ int
 bcm_kt2_cosq_control_get(int unit, bcm_gport_t gport, bcm_cos_queue_t cosq,
                         bcm_cosq_control_t type, int *arg)
 {
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_kt2_cosq_control_get: unit=%d gport=0x%x cosq=%d type=%d\n"),
               unit, gport, cosq, type));
@@ -10419,7 +10419,7 @@ bcm_kt2_cosq_port_flush(int unit,
                                 l2_node != NULL; 
                                 l2_node = l2_node->sibling) {
                                 /* Get Queue from L2 Node */
-                                LOG_VERBOSE(BSL_LS_BCM_COSQ, (BSL_META_U(unit,
+                                LOG_BSL_VERBOSE(BSL_LS_BCM_COSQ, (BSL_META_U(unit,
                                                     "Flushing Port:%d => "
                                                     "QueueNumber:%d \n"),
                                          port, l2_node->hw_index));

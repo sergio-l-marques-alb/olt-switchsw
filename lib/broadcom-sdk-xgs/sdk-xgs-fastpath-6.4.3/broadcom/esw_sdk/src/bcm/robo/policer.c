@@ -65,7 +65,7 @@
 #define POLICER_UNIT_CHECK(unit) \
 do { \
     if (!((unit) >= 0 && ((unit) < (BCM_MAX_NUM_UNITS)))) { \
-        LOG_ERROR(BSL_LS_BCM_POLICER, \
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER, \
                   (BSL_META_U(unit, \
                               "%s: Invalid unit \n"),   \
                    FUNCTION_NAME())); \
@@ -78,7 +78,7 @@ do { \
 do { \
     POLICER_UNIT_CHECK(unit); \
     if (!_policer[unit].lock) { \
-        LOG_ERROR(BSL_LS_BCM_POLICER, \
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER, \
                   (BSL_META_U(unit, \
                               "%s: Policers unitialized on unit:%d \n"), \
                    FUNCTION_NAME(), unit)); \
@@ -89,7 +89,7 @@ do { \
 #define POLICER_UNIT_LOCK_nr(unit, rv) \
 do { \
     if (sal_mutex_take(_policer[unit].lock, sal_mutex_FOREVER)) { \
-        LOG_ERROR(BSL_LS_BCM_POLICER, \
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER, \
                   (BSL_META_U(unit, \
                               "%s: sal_mutex_take failed for unit %d. \n"), \
                    FUNCTION_NAME(), unit)); \
@@ -107,7 +107,7 @@ do { \
 #define POLICER_UNIT_UNLOCK_nr(unit, rv) \
 do { \
     if (sal_mutex_give(_policer[unit].lock)) { \
-        LOG_ERROR(BSL_LS_BCM_POLICER, \
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER, \
                   (BSL_META_U(unit, \
                               "%s: sal_mutex_give failed for unit %d. \n"), \
                    FUNCTION_NAME(), unit)); \
@@ -155,7 +155,7 @@ bcm_robo_policer_init(int unit)
             /* create and initialize the global lock */
             local_lock = sal_mutex_create("_policer_glob_lock");
             if (!local_lock) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: sal_mutex_create failed. \n"),
                            FUNCTION_NAME()));
@@ -165,7 +165,7 @@ bcm_robo_policer_init(int unit)
                 /* initialize the global struct */
                 sal_memset(&(_policer), 0, sizeof(_policer));
                 if (sal_mutex_give(local_lock) != 0) {
-                    LOG_ERROR(BSL_LS_BCM_POLICER,
+                    LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "%s: sal_mutex_give failed.\n"),
                                FUNCTION_NAME()));
@@ -173,7 +173,7 @@ bcm_robo_policer_init(int unit)
                     return BCM_E_INTERNAL;
                 }
             } else {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: sal_mutex_take failed. \n"),
                            FUNCTION_NAME()));
@@ -185,7 +185,7 @@ bcm_robo_policer_init(int unit)
 
         /* get global lock */
         if (sal_mutex_take(_policer_glob_lock, sal_mutex_FOREVER) != 0) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "%s: sal_mutex_take failed. \n"),
                        FUNCTION_NAME()));
@@ -213,7 +213,7 @@ bcm_robo_policer_init(int unit)
                     status = BCM_E_MEMORY;
                 }
             } else {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: sal_mutex_create failed. \n"),
                            FUNCTION_NAME()));
@@ -224,7 +224,7 @@ bcm_robo_policer_init(int unit)
                 if (sal_mutex_take(local_lock, sal_mutex_FOREVER) == 0) {
                     _policer[unit].lock = local_lock;
                     if (sal_mutex_give(local_lock) != 0) {
-                        LOG_ERROR(BSL_LS_BCM_POLICER,
+                        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "%s: sal_mutex_give failed for unit %d. \n"),
                                    FUNCTION_NAME(), unit));
@@ -233,7 +233,7 @@ bcm_robo_policer_init(int unit)
                         status = BCM_E_INTERNAL;
                     }
                 } else {
-                    LOG_ERROR(BSL_LS_BCM_POLICER,
+                    LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "%s: sal_mutex_take failed \n"),
                                FUNCTION_NAME()));
@@ -249,7 +249,7 @@ bcm_robo_policer_init(int unit)
         } else {
             /* lock already created...meaning initialized before */
             if (sal_mutex_take(_policer[unit].lock, sal_mutex_FOREVER)) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: sal_mutex_take failed for unit %d. \n"),
                            FUNCTION_NAME(), unit));
@@ -261,7 +261,7 @@ bcm_robo_policer_init(int unit)
             sal_memset(_policer[unit].policers_used, 0, (sizeof(int) * 
                                                     BCM_ROBO_NUM_POLICER));
             if (sal_mutex_give(_policer[unit].lock) != 0) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: sal_mutex_give failed for unit %d. \n"),
                            FUNCTION_NAME(), unit));
@@ -274,7 +274,7 @@ bcm_robo_policer_init(int unit)
             
             
 #if 0
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "%s: failed. Previously initialized\n"),
                        FUNCTION_NAME()));
@@ -284,7 +284,7 @@ bcm_robo_policer_init(int unit)
         
 
         if (sal_mutex_give(_policer_glob_lock) != 0) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "%s: sal_mutex_give failed. \n"),
                        FUNCTION_NAME()));
@@ -330,14 +330,14 @@ bcm_robo_policer_create(int unit, bcm_policer_config_t *pol_cfg,
         if (pol_cfg->flags & BCM_POLICER_WITH_ID) {
             /* policer_id contains the requested id, validate it */
             if ((*policer_id <= 0) || (*policer_id >= BCM_ROBO_NUM_POLICER)) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Invalid policer id specified.\n")));
                 POLICER_UNIT_UNLOCK(unit);
                 return BCM_E_CONFIG;
             }
             if (_policer[unit].policers_used[(*policer_id -1)]) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Faild to reserve policer id specified.\n")));
                 POLICER_UNIT_UNLOCK(unit);
@@ -354,7 +354,7 @@ bcm_robo_policer_create(int unit, bcm_policer_config_t *pol_cfg,
                 }
             }
             if (i == BCM_ROBO_NUM_POLICER) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: Out of policer. \n"), 
                            FUNCTION_NAME()));
@@ -424,7 +424,7 @@ bcm_robo_policer_destroy_all(int unit)
         for (i=0; i < BCM_ROBO_NUM_POLICER; i++) {
             rv = bcm_robo_policer_destroy(unit, i+1);
             if (rv != BCM_E_NONE) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "%s: failer to destroy the policer %d. \n"), 
                            FUNCTION_NAME(), i+1));
@@ -529,7 +529,7 @@ bcm_robo_policer_traverse(int unit, bcm_policer_traverse_cb traverse_callback,
         POLICER_INIT_CHECK(unit);
 
         if (!traverse_callback) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "%s: Invalid callback function \n"),
                        FUNCTION_NAME()));

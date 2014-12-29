@@ -186,7 +186,7 @@ _phy_84756_bsc_rw(phy_ctrl_t *pc, int dev_addr, int opr,
     /* need some delays */
     sal_usleep(10000);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "BSC command status %d\n"),(data16 & PHY84756_2W_STAT)));
 
@@ -200,12 +200,12 @@ _phy_84756_bsc_rw(phy_ctrl_t *pc, int dev_addr, int opr,
                 (BFCMAP_RD_PHY84756_LN_DEV1_PMDr(pc, (ram_start+i), &data16));
             if (data_type == PHY84756_I2C_16BIT) {
                 ((buint16_t *)data_array)[i] = data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(pc->unit,
                                      "%04x "), data16));
             } else {
                 ((buint8_t *)data_array)[i] = (buint8_t)data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(pc->unit,
                                      "%02x "), data16));
             }

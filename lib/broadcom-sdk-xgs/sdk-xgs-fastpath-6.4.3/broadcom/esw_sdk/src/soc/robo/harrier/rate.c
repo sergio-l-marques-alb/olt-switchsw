@@ -92,7 +92,7 @@ _drv_harrier_port_irc_set(int unit, uint32 port, uint32 limit,
     /* coverity[unsigned_compare] */
     if ((limit > HARRIER_RATE_METER_MAX) ||
         (limit < HARRIER_RATE_METER_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "_drv_harrier_port_irc_set : rate unsupported.\n")));
         return SOC_E_PARAM;
@@ -107,7 +107,7 @@ _drv_harrier_port_irc_set(int unit, uint32 port, uint32 limit,
     /* coverity[unsigned_compare] */
     if ((burst_size > HARRIER_RATE_BURST_MAX) ||
         (burst_size < HARRIER_RATE_BURST_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "_drv_harrier_port_irc_set : burst size unsupported.\n")));
         return SOC_E_PARAM;
@@ -499,7 +499,7 @@ _drv_harrier_port_erc_set(uint32 unit, uint32 port, uint32 limit,
     /*    coverity[unsigned_compare]    */
     if ((limit > HARRIER_RATE_METER_MAX) ||
         (limit < HARRIER_RATE_METER_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("_drv_harrier_port_erc_set : rate unsupported.\n")));
         return  SOC_E_PARAM;
     }
@@ -513,7 +513,7 @@ _drv_harrier_port_erc_set(uint32 unit, uint32 port, uint32 limit,
     /*    coverity[unsigned_compare]    */
     if ((burst_size > HARRIER_RATE_BURST_MAX) ||
         (burst_size < HARRIER_RATE_BURST_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("_drv_harrier_port_erc_set : burst size unsupported.\n")));
         return SOC_E_PARAM;
     }
@@ -836,7 +836,7 @@ _drv_harrier_port_queue_erc_set(uint32 unit, uint32 port, uint8 queue_n,
     /*    coverity[unsigned_compare]    */
     if ((limit > HARRIER_RATE_METER_MAX) ||
         (limit < HARRIER_RATE_METER_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("_drv_harrier_port_queue_erc_set : rate unsupported.\n")));
         return  SOC_E_PARAM;
     }
@@ -850,7 +850,7 @@ _drv_harrier_port_queue_erc_set(uint32 unit, uint32 port, uint8 queue_n,
     /*    coverity[unsigned_compare]    */
     if ((burst_size > HARRIER_RATE_BURST_MAX) ||
         (burst_size < HARRIER_RATE_BURST_MIN)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("_drv_harrier_port_queue_erc_set : burst size unsupported.\n")));
         return SOC_E_PARAM;
     }
@@ -1349,7 +1349,7 @@ drv_harrier_rate_config_set(int unit, soc_pbmp_t pbmp, uint32 config_type,
     soc_port_t  port;
     int  rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_rate_config_set: \
                          unit = %d, bmp = 0x%x, type = %d, value = %d\n"),
@@ -1604,7 +1604,7 @@ drv_harrier_rate_config_get(int unit, uint32 port, uint32 config_type,
             return SOC_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_rate_config_get: \
                          unit = %d, port = %d, type = %d, value = %d\n"),
@@ -1644,7 +1644,7 @@ drv_harrier_rate_set(int unit, soc_pbmp_t bmp, uint8 queue_n, int direction,
     uint32  port;
     int  rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_rate_set: unit = %d, bmp = 0x%x, %s, flags = 0x%x, \
                          kbits_sec_min = %dK, kbits_sec_max = %dK, burst size = %dKB\n"), 
@@ -1723,7 +1723,7 @@ drv_harrier_rate_get(int unit, uint32 port, uint8 queue_n, int direction,
             return SOC_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_rate_get: unit = %d, port = %d, %s, flags = 0x%x, \
                          kbits_sec_min = %dK, kbits_sec_max = %dK, burst size = %dKB\n"), 

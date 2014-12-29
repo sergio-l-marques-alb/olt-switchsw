@@ -189,7 +189,7 @@ _c2c_cpu_add(const cpudb_entry_t *db_ent)
 {
     cpudb_entry_t *ent;
 
-    LOG_INFO(BSL_LS_TKS_C2C,
+    LOG_BSL_INFO(BSL_LS_TKS_C2C,
              (BSL_META("C2C: add key " CPUDB_KEY_FMT ", flags 0x%x (%d,%d,%d,%d)\n"),
               CPUDB_KEY_DISP(db_ent->base.key), db_ent->flags,
               db_ent->tx_unit,db_ent->tx_port,
@@ -224,7 +224,7 @@ c2c_cpu_add(const cpudb_entry_t *db_ent)
     int rv;
 
     C2C_INIT;
-    LOG_INFO(BSL_LS_TKS_C2C,
+    LOG_BSL_INFO(BSL_LS_TKS_C2C,
              (BSL_META("C2C added " CPUDB_KEY_FMT_EOLN),
               CPUDB_KEY_DISP(db_ent->base.key)));
 
@@ -241,7 +241,7 @@ c2c_cpu_remove(const cpudb_key_t key)
     int rv;
 
     C2C_INIT;
-    LOG_INFO(BSL_LS_TKS_C2C,
+    LOG_BSL_INFO(BSL_LS_TKS_C2C,
              (BSL_META("C2C removed " CPUDB_KEY_FMT_EOLN),
               CPUDB_KEY_DISP(key)));
 
@@ -274,7 +274,7 @@ c2c_cpu_update(cpudb_ref_t db_ref)
     static cpudb_key_t del_keys[CPUDB_CPU_MAX];
     int count, i;
 
-    LOG_INFO(BSL_LS_TKS_C2C,
+    LOG_BSL_INFO(BSL_LS_TKS_C2C,
              (BSL_META("C2C CPU DB %s\n"),
               (db_ref==NULL) ? "clear" : "update"));
     C2C_INIT;
@@ -293,7 +293,7 @@ c2c_cpu_update(cpudb_ref_t db_ref)
             CPUDB_KEY_SEARCH(db_ref, entry->base.key, new_ref_entry);
             if (new_ref_entry == NULL) {
                 if (entry == c2c_db_ref->local_entry) {
-                    LOG_INFO(BSL_LS_TKS_C2C,
+                    LOG_BSL_INFO(BSL_LS_TKS_C2C,
                              (BSL_META("C2C: Update error, can't remove local\n")));
                     continue;
                 }
@@ -306,7 +306,7 @@ c2c_cpu_update(cpudb_ref_t db_ref)
         for (i = 0; i < count; i++) {
             rv = cpudb_entry_remove(c2c_db_ref, del_keys[i]);
             if (rv < 0) {
-                LOG_INFO(BSL_LS_TKS_C2C,
+                LOG_BSL_INFO(BSL_LS_TKS_C2C,
                          (BSL_META("C2C: Failed to remove entry on update\n")));
                 break;
             }
@@ -316,7 +316,7 @@ c2c_cpu_update(cpudb_ref_t db_ref)
         CPUDB_FOREACH_ENTRY(db_ref, entry) {
             rv = _c2c_cpu_add(entry);
             if (rv < 0) {
-                LOG_INFO(BSL_LS_TKS_C2C,
+                LOG_BSL_INFO(BSL_LS_TKS_C2C,
                          (BSL_META("C2C: Failed to remove entry on update\n")));
                 break;
             }
@@ -379,7 +379,7 @@ c2c_config_set(
     c2c_trans_ptr = trans_ptr;
 
     if (local_mac != NULL) {
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c local mac set is deprecated.\n")));
     }
 
@@ -536,7 +536,7 @@ c2c_pkt_create(
 
     if (!init_done) {
         if ((rv = c2c_init()) != BCM_E_NONE) {
-            LOG_INFO(BSL_LS_TKS_C2C,
+            LOG_BSL_INFO(BSL_LS_TKS_C2C,
                      (BSL_META("c2c pc. init failed\n")));
             *rvp = rv;
             return NULL;
@@ -546,7 +546,7 @@ c2c_pkt_create(
     C2C_LOCK;
     CPUDB_KEY_SEARCH(c2c_db_ref, dest_key, db_ent);
     if (db_ent == NULL || c2c_db_ref->local_entry == NULL) {
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c: Could not find %s%s%s for "
                            CPUDB_KEY_FMT_EOLN),
                   db_ent == NULL ? "db entry" : "",
@@ -560,7 +560,7 @@ c2c_pkt_create(
 #if defined(BROADCOM_DEBUG)
     if (!(db_ent->flags & CPUDB_F_TX_KNOWN)) {
         C2C_UNLOCK;
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c: Unknown transmit port (flags 0x%x) for dest key "
                            CPUDB_KEY_FMT_EOLN),
                   db_ent->flags,
@@ -585,7 +585,7 @@ c2c_pkt_create(
     pkt = cputrans_tx_pkt_list_alloc(pkt_buf, len, seg_len, ct_flags,
                                      tot_segs);
     if (pkt == NULL) {
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c: Could not alloc cputrans pkt\n")));
         *rvp = BCM_E_MEMORY;
         return NULL;
@@ -631,7 +631,7 @@ c2c_pkt_create(
         CPUDB_KEY_PACK(&pkt_data[CPUTRANS_SRC_KEY_OFS], local_key);
     }
 
-    LOG_DEBUG(BSL_LS_TKS_C2C,
+    LOG_BSL_DEBUG(BSL_LS_TKS_C2C,
               (BSL_META("c2c: pkt from (%d.%d) to (%d.%d) "
                         "op %d cos %d int_prio %d\n"),
                pkt->src_mod, pkt->src_port, 
@@ -668,7 +668,7 @@ c2c_pkt_update(
 
     if (!init_done) {
         if (c2c_init() != BCM_E_NONE) {
-            LOG_INFO(BSL_LS_TKS_C2C,
+            LOG_BSL_INFO(BSL_LS_TKS_C2C,
                      (BSL_META("c2c update. init failed\n")));
             return BCM_E_INIT;
         }
@@ -679,7 +679,7 @@ c2c_pkt_update(
 #if defined(BROADCOM_DEBUG)
     if (db_ent == NULL || c2c_db_ref->local_entry == NULL) {
         C2C_UNLOCK;
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c update: key %sfound, local_entry %sNULL, dest key "
                            CPUDB_KEY_FMT_EOLN),
                   (db_ent == NULL) ? "not " : "",
@@ -689,7 +689,7 @@ c2c_pkt_update(
     }
     if (!(db_ent->flags & CPUDB_F_TX_KNOWN)) {
         C2C_UNLOCK;
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c update: Unknown tx port (flags 0x%x) for dest key "
                            CPUDB_KEY_FMT_EOLN),
                   db_ent->flags,
@@ -790,7 +790,7 @@ c2c_pkt_send(
     if (setup_fn != NULL) {
         rv = setup_fn(pkt->unit, pkt);    /* Set up the packet */
         if (rv < 0) {  /* Problem packet configuration */
-            LOG_INFO(BSL_LS_TKS_C2C,
+            LOG_BSL_INFO(BSL_LS_TKS_C2C,
                      (BSL_META("c2c tx: Error setting up packet\n")));
             return rv;
         }
@@ -883,7 +883,7 @@ c2c_tx(
     pkt = c2c_pkt_create(dest_key, pkt_buf, len, cos, vlan,
                          seg_len, mplx_num, ct_flags, NULL, &rv);
     if (rv != BCM_E_NONE) {
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("c2c send. can't create (%s)\n"),
                   bcm_errmsg(rv)));
         return rv;
@@ -895,7 +895,7 @@ c2c_tx(
     for (cur_pkt = pkt; cur_pkt != NULL; cur_pkt = cur_pkt->next) {
         rv = setup_fn(pkt->unit, cur_pkt);
         if (rv < 0) {  /* Problem packet configuration */
-            LOG_INFO(BSL_LS_TKS_C2C,
+            LOG_BSL_INFO(BSL_LS_TKS_C2C,
                      (BSL_META("c2c tx: Error setting up packet\n")));
             cputrans_tx_pkt_list_free(pkt);
             return rv;
@@ -962,7 +962,7 @@ c2c_pkt_recognize(uint8 *pkt_data,
     is_good = good_c2c_pkt(pkt_data, src_key, mplx_num);
     C2C_UNLOCK;
 
-    LOG_DEBUG(BSL_LS_TKS_C2C,
+    LOG_BSL_DEBUG(BSL_LS_TKS_C2C,
               (BSL_META("c2c: pkt is %srecognized. type, %d\n"),
                is_good ? "" : "not ", mplx_num ? *mplx_num : -1));
 
@@ -998,7 +998,7 @@ good_c2c_pkt(uint8 *pkt_data,
     /* SNAP pkt? */
     if (sal_memcmp(&pkt_data[CPUTRANS_SNAP_OFS], c2c_snap_mac,
                    sizeof(bcm_mac_t))) {
-        LOG_DEBUG(BSL_LS_TKS_C2C,
+        LOG_BSL_DEBUG(BSL_LS_TKS_C2C,
                   (BSL_META("c2c: Not SNAP mac\n")));
         return 0;
     }
@@ -1006,7 +1006,7 @@ good_c2c_pkt(uint8 *pkt_data,
     /* SNAP type correct? */
     UNPACK_SHORT(&pkt_data[CPUTRANS_SNAP_TYPE_OFS], snap_type);
     if (snap_type != c2c_snap_type) {
-        LOG_DEBUG(BSL_LS_TKS_C2C,
+        LOG_BSL_DEBUG(BSL_LS_TKS_C2C,
                   (BSL_META("c2c: Wrong SNAP type 0x%04x\n"),
                    snap_type));
         return 0;
@@ -1015,7 +1015,7 @@ good_c2c_pkt(uint8 *pkt_data,
     /* SNAP local type correct? */
     UNPACK_SHORT(&pkt_data[CPUTRANS_TR_TYPE_OFS], trans_type);
     if (trans_type != c2c_trans_type) {
-        LOG_DEBUG(BSL_LS_TKS_C2C,
+        LOG_BSL_DEBUG(BSL_LS_TKS_C2C,
                   (BSL_META("c2c: Wrong trans type 0x%04x\n"),
                    trans_type));
         return 0;
@@ -1101,17 +1101,17 @@ c2c_dump(void)
         return;
     }
     
-    LOG_INFO(BSL_LS_TKS_C2C,
+    LOG_BSL_INFO(BSL_LS_TKS_C2C,
              (BSL_META("C2C Database\n")));
 
     C2C_LOCK;
 
     if (c2c_db_ref == CPUDB_REF_NULL) {
-        LOG_INFO(BSL_LS_TKS_C2C,
+        LOG_BSL_INFO(BSL_LS_TKS_C2C,
                  (BSL_META("    Empty\n")));
     } else {
         CPUDB_FOREACH_ENTRY(c2c_db_ref, entry) {
-            LOG_INFO(BSL_LS_TKS_C2C,
+            LOG_BSL_INFO(BSL_LS_TKS_C2C,
                      (BSL_META("    CPU Key " CPUDB_KEY_FMT ", flags 0x%x\n"),
                       CPUDB_KEY_DISP(entry->base.key), entry->flags));
         }

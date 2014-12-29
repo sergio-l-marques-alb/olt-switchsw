@@ -4857,7 +4857,7 @@ _soc_l2_sync_mem_cache(int unit, _bcm_l2_replace_t *rep_st)
             continue;
         }
         /* Match found, delete or replace entry */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Match found in L2 bulk cache op: %d\n"), idx));
         if (rep_st->flags & BCM_L2_REPLACE_DELETE) {
@@ -5995,7 +5995,7 @@ bcm_esw_l2_addr_delete_by_vlan_gport_multi(int unit, uint32 flags,
             if (BCM_FAILURE(rv)) {
                 goto _free_exit;
             }
-            LOG_INFO(BSL_LS_BCM_ARL,
+            LOG_BSL_INFO(BSL_LS_BCM_ARL,
                      (BSL_META_U(unit,
                                  "L2 Freeze.. Stopped L2X Mode\n")));
         }
@@ -6003,7 +6003,7 @@ bcm_esw_l2_addr_delete_by_vlan_gport_multi(int unit, uint32 flags,
         rv = bcm_esw_l2_traverse(unit, _bcm_esw_l2_vlan_gport_matched_delete,
                                 &l2_pair);
         if (rv == BCM_E_NONE) {
-            LOG_INFO(BSL_LS_BCM_ARL,
+            LOG_BSL_INFO(BSL_LS_BCM_ARL,
                      (BSL_META_U(unit,
                                  "Total number of L2 Entries: %d [Deleted:%d Left:%d]\n\r"),
                       _l2_dbg_matched_entries[unit] + _l2_dbg_unmatched_entries[unit],
@@ -6011,7 +6011,7 @@ bcm_esw_l2_addr_delete_by_vlan_gport_multi(int unit, uint32 flags,
         }
       
         if (flags & BCM_L2_REPLACE_NO_CALLBACKS) {
-            LOG_INFO(BSL_LS_BCM_ARL,
+            LOG_BSL_INFO(BSL_LS_BCM_ARL,
                      (BSL_META_U(unit,
                                  "Restarting L2X Mode and L2 Thaw\n\r")));
             rv = soc_l2x_start(unit, soc->l2x_flags, interval);

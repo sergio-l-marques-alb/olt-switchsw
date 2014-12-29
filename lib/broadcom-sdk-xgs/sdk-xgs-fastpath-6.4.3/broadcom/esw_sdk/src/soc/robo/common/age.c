@@ -72,7 +72,7 @@ drv_age_timer_set(int unit, uint32 enable, uint32 age_time)
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_age_timer_set: unit %d, %sable, age_time = %d\n"),
                  unit, enable ? "en" : "dis", age_time));
@@ -136,7 +136,7 @@ drv_age_timer_get(int unit, uint32 *enable, uint32 *age_time)
         *age_time = 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_age_timer_get: unit %d, %sable, age_time = %d\n"),
                  unit, *enable ? "en" : "dis", *age_time));

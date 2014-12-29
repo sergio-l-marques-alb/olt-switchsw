@@ -651,7 +651,7 @@ soc_eth_dma_attach(int unit)
 #endif
 
 #ifdef ETH_MII_DEBUG
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "soc_eth_dma_attach: unit=%d\n"), unit));
     /*
@@ -992,12 +992,12 @@ _soc_eth_cfp_oam_dma_setup(ch_t *ch, int dma_id)
     _soc_eth_dma_oam = dma_id;
 
     if (_soc_eth_dma_oam < 0) {
-        LOG_WARN(BSL_LS_SOC_DMA,
+        LOG_BSL_WARN(BSL_LS_SOC_DMA,
                  (BSL_META("Keystone CFP: Do not classify OAM packets\n")));
     }
 
     if (!(cfp_buffer = (cfp_ioctl_buf_t *)ET_MALLOC(sizeof(cfp_ioctl_buf_t)))) {
-        LOG_WARN(BSL_LS_SOC_DMA,
+        LOG_BSL_WARN(BSL_LS_SOC_DMA,
                  (BSL_META("Error : gamc_cfp_promisc() KMALLOC failed!")));
         return;
     }
@@ -1118,7 +1118,7 @@ _soc_eth_cfp_oam_dma_setup(ch_t *ch, int dma_id)
     
         /* Add new switch chip with different BRCM tag size or location here. */
     } else {
-        LOG_WARN(BSL_LS_SOC_DMA,
+        LOG_BSL_WARN(BSL_LS_SOC_DMA,
                  (BSL_META("No Keystone GMAC CFP rule created for OAM packets\n")));
     }
 #endif
@@ -1210,7 +1210,7 @@ soc_eth_dma_classify_setup(int unit, int type, int chan)
     int max_channels = N_DMA_CHAN;
 
     if (chan >= max_channels) {
-        LOG_ERROR(BSL_LS_SOC_DMA, \
+        LOG_BSL_ERROR(BSL_LS_SOC_DMA, \
                   (BSL_META_U(unit, \
                               "soc_eth_dma_classify_setup: invalid dma channel\n")));
         return;
@@ -1224,7 +1224,7 @@ soc_eth_dma_classify_setup(int unit, int type, int chan)
             _soc_eth_cfp_oam_dma_setup(ch, chan);
             break;
         default:
-            LOG_WARN(BSL_LS_SOC_DMA, \
+            LOG_BSL_WARN(BSL_LS_SOC_DMA, \
                      (BSL_META_U(unit, \
                                  "soc_eth_dma_classify_setup: Unknown type for DMA classfication\n")));
             break;
@@ -1264,7 +1264,7 @@ et_soc_knet_event_dpc(void *_unit, void *pendevent,void *pendchan,
     int i;
     uint32 rxq_event = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "et_soc_knet_event_dpc event %x\n"),event));
    
@@ -1290,7 +1290,7 @@ et_soc_knet_event_dpc(void *_unit, void *pendevent,void *pendchan,
     {
         et_soc->et_soc_intr_pend = TRUE;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "et_soc_knet_event_dpc more event %x\n"),
                      more_event));
@@ -1320,7 +1320,7 @@ soc_eth_dma_handle_knet_event(kcom_msg_t *kmsg, unsigned int len, void *cookie)
         if (!et_soc->et_soc_intr_pend){    
             et_soc->et_soc_intr_pend = TRUE;          
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_knet_handle_event: KCOM_M_DMA_INFO dma_info flag %x chan %x\n"),
                      dma_info->flags, chan));
@@ -1328,7 +1328,7 @@ soc_eth_dma_handle_knet_event(kcom_msg_t *kmsg, unsigned int len, void *cookie)
         if (dma_info->flags & KCOM_DMA_INFO_F_RX_DONE) {
             seq_no = rx_event;
             if (!seq_no){
-                LOG_WARN(BSL_LS_SOC_DMA,
+                LOG_BSL_WARN(BSL_LS_SOC_DMA,
                          (BSL_META_U(unit,
                                      "soc_knet_handle_event:(warn) rx_seq_no = 0 (flags %x)\n"),
                           dma_info->flags));
@@ -1342,7 +1342,7 @@ soc_eth_dma_handle_knet_event(kcom_msg_t *kmsg, unsigned int len, void *cookie)
         if (dma_info->flags & KCOM_DMA_INFO_F_TX_DONE) {
             seq_no = tx_event;
             if (!seq_no){
-                LOG_WARN(BSL_LS_SOC_DMA,
+                LOG_BSL_WARN(BSL_LS_SOC_DMA,
                          (BSL_META_U(unit,
                                      "soc_knet_handle_event:(warn) tx_seq_no = 0 (flags %x)\n"),
                           dma_info->flags));

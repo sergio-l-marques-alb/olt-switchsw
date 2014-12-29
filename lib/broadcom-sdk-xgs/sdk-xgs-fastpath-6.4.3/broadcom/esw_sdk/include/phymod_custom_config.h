@@ -63,10 +63,10 @@
 #define PHYMOD_FURIA_SUPPORT
 
 #define PHYMOD_DEBUG_ERROR(stuff_) \
-    LOG_ERROR(BSL_LS_SOC_PHYMOD, stuff_)
+    LOG_BSL_ERROR(BSL_LS_SOC_PHYMOD, stuff_)
 
 #define PHYMOD_DEBUG_VERBOSE(stuff_) \
-    LOG_VERBOSE(BSL_LS_SOC_PHYMOD, stuff_)
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHYMOD, stuff_)
 
 #define PHYMOD_DIAG_OUT(stuff_) \
     cli_out stuff_

@@ -153,7 +153,7 @@ int get_command(int sockfd, struct timeval* tv, rpc_cmd_t* command)
     fd_set read_vect;
     uint32 swap;
 
-    LOG_VERBOSE(BSL_LS_SYS_VERINET,
+    LOG_BSL_VERBOSE(BSL_LS_SYS_VERINET,
                 (BSL_META("get_command: sockfd=%d\n"),
                  sockfd));
 
@@ -227,7 +227,7 @@ int get_command(int sockfd, struct timeval* tv, rpc_cmd_t* command)
 
 #undef SOCKET_GET_U32
 
-        LOG_INFO(BSL_LS_SYS_VERINET,
+        LOG_BSL_INFO(BSL_LS_SYS_VERINET,
                  (BSL_META("get_command: opcode=0x%x nargs=%d status=%d\n"),
                   command->opcode, command->argcount, command->status));
 
@@ -288,7 +288,7 @@ int write_command(int sockfd, rpc_cmd_t* command)
     uint32 swap;
     static int error_count = 0;
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("write_command: sockfd=%d opcode=0x%x nargs=%d status=%d\n"),
               sockfd, command->opcode, command->argcount, command->status));
 
@@ -1059,7 +1059,7 @@ uint32 pli_getreg(int devNo, uint32 regtype, uint32 regnum)
     char buf[32], *ptr;
     rpc_cmd_t command;
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("pli_getreg: regtype=0x%x regnum=0x%x\n"),
               regtype, regnum));
 
@@ -1087,7 +1087,7 @@ uint32 pli_getreg(int devNo, uint32 regtype, uint32 regnum)
 	buf[i] = *ptr++;
     }
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("pli_getreg: regval=0x%x diagbuf=%s\n"),
               regval, buf));
 
@@ -1107,7 +1107,7 @@ uint32 pli_setreg(int devNo, uint32 regtype, uint32 regnum, uint32 regval)
 
     make_rpc_setreg_req(&command,regtype,regnum,regval);
 
-    LOG_INFO(BSL_LS_SYS_VERINET,
+    LOG_BSL_INFO(BSL_LS_SYS_VERINET,
              (BSL_META("pli_setreg: regtype=0x%x regnum=0x%x regval=0x%x\n"),
               regtype, regnum, regval));
 
@@ -1211,7 +1211,7 @@ int get_pkt_data(int sockfd, struct timeval* tv, uint32* data)
     fd_set read_vect;
     uint32 swap;
 
-    LOG_VERBOSE(BSL_LS_SYS_VERINET,
+    LOG_BSL_VERBOSE(BSL_LS_SYS_VERINET,
                 (BSL_META("get_pkt_data: sockfd=%d\n"),
                  sockfd));
 

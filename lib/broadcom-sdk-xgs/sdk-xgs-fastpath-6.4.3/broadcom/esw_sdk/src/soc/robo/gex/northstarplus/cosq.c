@@ -91,7 +91,7 @@ drv_nsp_queue_prio_remap_set(int unit, uint32 port, uint8 pre_prio,
     soc_pbmp_t  pbmp;
     int in_dei = FALSE, in_pcp = -1;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:port=%d,pre_prio=%d,prio=%d\n"), 
                  FUNCTION_NAME(), port, pre_prio, prio));
@@ -326,7 +326,7 @@ drv_nsp_queue_prio_remap_get(int unit, uint32 port, uint8 pre_prio,
     }        
     *prio = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:port=%d,pre_prio=%d,*prio=%d\n"), 
                  FUNCTION_NAME(), port, pre_prio, *prio));
@@ -360,7 +360,7 @@ drv_nsp_queue_port_prio_to_queue_set(int unit, uint8 port,
        which may be bigger the uint8 and then reuslts in a compilation error */
     uint32  port32 = port;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:unit %d,port=%d,prio=%d,queue_n=%d\n"), 
                  FUNCTION_NAME(), unit, port32, prio, queue_n));
@@ -519,7 +519,7 @@ drv_nsp_queue_port_prio_to_queue_get(int unit, uint8 port,
     }
     *queue_n = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:unit %d,port=%d,prio=%d,*queue_n=%d\n"), 
                  FUNCTION_NAME(), unit, port, prio, *queue_n));
@@ -552,7 +552,7 @@ drv_nsp_queue_prio_set(int unit, uint32 port, uint8 prio,
     uint32  p;
     soc_pbmp_t  pbmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:unit %d,port=%d,priority=%d,queue=%d\n"),
                  FUNCTION_NAME(), unit, port, prio, queue_n));
@@ -624,7 +624,7 @@ drv_nsp_queue_prio_get(int unit, uint32 port, uint8 prio,
     SOC_IF_ERROR_RETURN(DRV_QUEUE_PORT_PRIO_TO_QUEUE_GET
         (unit, p, new_prio, queue_n));
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:unit %d,port=%d,priority=%d,queue=%d\n"), 
                  FUNCTION_NAME(), unit, port, prio, *queue_n));
@@ -657,7 +657,7 @@ drv_nsp_queue_mode_set(int unit, soc_pbmp_t bmp, uint32 flags,
     uint32  reg_value, temp, p;
     soc_pbmp_t in_pbmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:unit %d,bmp=0x%x,flag=0x%x,queue mode=%d\n"),
                  FUNCTION_NAME(),unit, SOC_PBMP_WORD_GET(bmp, 0), flags, mode));
@@ -811,7 +811,7 @@ drv_nsp_queue_mode_get(int unit, uint32 port, uint32 flags,
             return SOC_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s:unit %d,port=%d,flags=0x%x,mode=%d\n"),
                  FUNCTION_NAME(), unit, port, flags, *mode));    
@@ -849,7 +849,7 @@ drv_nsp_queue_WRR_weight_set(int unit, uint32 port_type,
     uint64  reg_value64;
     soc_pbmp_t in_pbmp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "%s: \
                             unit %d, port type = %d, bmp = 0x%x, queue = %d, weight = %d\n"),
@@ -1015,7 +1015,7 @@ drv_nsp_queue_WRR_weight_get(int unit, uint32 port_type,
 
     *weight = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "%s: \
                             unit %d, port type = %d, port = %d, queue = %d, weight = %d\n"),
@@ -1047,7 +1047,7 @@ drv_nsp_queue_qos_control_set(int unit, uint32 port, uint32 type, uint32 state)
     uint32  reg_value, temp, p;
     soc_pbmp_t pbm;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "%s: \
                             unit %d, port = %d, type = 0x%x, state = 0x%x\n"), 
@@ -1262,7 +1262,7 @@ drv_nsp_queue_qos_control_get(int unit, uint32 port, uint32 type, uint32 *state)
             return SOC_E_UNAVAIL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "%s: \
                             unit %d, port = %d, type = 0x%x, state = 0x%x\n"), 

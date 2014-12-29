@@ -446,7 +446,7 @@ _drv_nsp_port_erc_set(uint32 unit, uint32 port, uint32 flags,
     uint32  reg_value, temp = 0;
     uint32  burst_kbyte = 0;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META("_drv_nsp_port_erc_set: \
                        unit = %d, port = %d, limit = %d, burst_size = %d\n"),
               unit, port, limit, burst_size));
@@ -611,7 +611,7 @@ _drv_nsp_port_erc_per_queue_set(uint32 unit, uint32 port,
     uint32  enable_addr, reg_addr;
     int     enable_len, reg_len;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META("_drv_nsp_port_erc_per_queue_set: \
                        unit = %d, port = %d, flags = 0x%x, limit = %d, burst_size = %d\n"),
               unit, port, flags, limit, burst_size));
@@ -875,7 +875,7 @@ _drv_nsp_port_erc_get(uint32 unit, uint32 port, uint32 *flags,
             *burst_size = ((temp * NSP_RATE_BUCKET_UNIT_SIZE * 8) / 1000);
         }
     }
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META("_drv_nsp_port_erc_get: \
                        unit = %d, port = %d, limit = %dK, burst size = %dKB\n"), 
               unit, port, *limit, *burst_size));
@@ -1021,7 +1021,7 @@ _drv_nsp_port_erc_per_queue_get(uint32 unit, uint32 port,
     }
     
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META("_drv_nsp_port_erc_per_queue_get: \
                        unit = %d, port = %d, limit = %dK, burst size = %dKB\n"), 
               unit, port, *limit, *burst_size));
@@ -1054,7 +1054,7 @@ drv_nsp_rate_config_set(int unit, soc_pbmp_t pbmp, uint32 config_type,
     uint32  pause_on, pause_off;
     int port;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_nsp_rate_config_set: \
                          unit = %d, bmp = 0x%x, type = 0x%x, value = 0x%x\n"),
@@ -1214,7 +1214,7 @@ drv_nsp_rate_config_get(int unit, uint32 port, uint32 config_type,
             return SOC_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_nsp_rate_config_get: \
                          unit = %d, port = %d, type = 0x%x, value = 0x%x\n"),
@@ -1250,7 +1250,7 @@ drv_nsp_rate_set(int unit, soc_pbmp_t bmp, uint8 queue_n, int direction,
 {
     uint32  port;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_nsp_rate_set: unit = %d, bmp = 0x%x, %s, flags = 0x%x, \
                          kbits_sec_min = %dK, kbits_sec_max = %dK, burst size = %dKB\n"), 
@@ -1327,7 +1327,7 @@ drv_nsp_rate_get(int unit, uint32 port, uint8 queue_n, int direction,
             return SOC_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_nsp_rate_get: unit = %d, port = %d, %s, flags = 0x%x, \
                          kbits_sec_min = %dK, kbits_sec_max = %dK, burst size = %dKB\n"),

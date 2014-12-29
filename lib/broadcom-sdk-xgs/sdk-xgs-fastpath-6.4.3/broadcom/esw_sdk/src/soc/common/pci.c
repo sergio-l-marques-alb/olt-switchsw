@@ -157,7 +157,7 @@ soc_pci_getreg(int unit, uint32 addr, uint32 *datap)
 	addr32 += SOC_DRIVER(unit)->cmicd_base;
 #endif
     *datap = CMREAD(unit, addr32);
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "PCI%d memR(0x%x)=0x%x\n"), unit, addr32, *datap));
     return SOC_E_NONE;
@@ -175,7 +175,7 @@ soc_pci_read(int unit, uint32 addr)
 	addr32 += SOC_DRIVER(unit)->cmicd_base;
 #endif
 	data = CMREAD(unit, addr32);
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "PCI%d memR(0x%x)=0x%x\n"), unit, addr32, data));
     return data;
@@ -192,7 +192,7 @@ soc_pci_write(int unit, uint32 addr, uint32 data)
 #if defined(BCM_IPROC_SUPPORT)  && defined(IPROC_NO_ATL)
 	addr32 += SOC_DRIVER(unit)->cmicd_base;
 #endif
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "PCI%d memW(0x%x)=0x%x\n"), unit, addr32, data));
     CMWRITE(unit, addr32, data);
@@ -207,7 +207,7 @@ soc_pci_conf_read(int unit, uint32 addr)
 {
     uint32 data;
     data = CMCONFREAD(unit, addr);
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "PCI%d ConfigR(0x%x)=0x%x\n"), unit, addr, data));
     return data;
@@ -219,7 +219,7 @@ soc_pci_conf_read(int unit, uint32 addr)
 int
 soc_pci_conf_write(int unit, uint32 addr, uint32 data)
 {
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "PCI%d ConfigW(0x%x)=0x%x\n"), unit, addr, data));
     CMCONFWRITE(unit, addr, data);
@@ -327,7 +327,7 @@ soc_pci_test(int unit)
     {
         reread = soc_pci_read(unit, CMIC_SCHAN_MESSAGE(unit, i));
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "FATAL PCI error testing PCIM[0x%x]:\n"
                           "Wrote 0x%x, read 0x%x, re-read 0x%x\n"),

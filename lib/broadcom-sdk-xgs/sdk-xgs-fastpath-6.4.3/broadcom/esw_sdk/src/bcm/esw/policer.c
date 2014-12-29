@@ -290,7 +290,7 @@ bcm_error_t _bcm_policer_svc_meter_update_udf_selector_keys(
          (pkt_attr_selector_key <= ING_SVM_PKT_ATTR_SELECTOR_KEY_3r)) {
       /* Valid mem value go ahead for setting 
                        ING_FLEX_CTR_PKT_ATTR_SELECTOR_KEY_?r: */
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Invalid memory for packet attribute selector \n")));
         return BCM_E_PARAM;
     }
@@ -458,7 +458,7 @@ bcm_error_t _bcm_policer_svc_meter_update_offset_table(
     uint32            offset_value = 0, pool = 0;       
     if (offset_table_mem != SVM_OFFSET_TABLEm) {  
         /* Valid mem value go ahead for setting SVM_OFFSET_TABLEm */
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid table specified \n")));
         return BCM_E_PARAM;
@@ -625,7 +625,7 @@ bcm_error_t _bcm_policer_svc_meter_update_selector_keys_enable_fields(
 
     if ((*current_bit_selector_position) + 
         pkt_attr_total_bits > BCM_POLICER_SVC_METER_OFFSET_TABLE_KEY_SIZE) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Number of slector bits exceeds max allowed \n")));
         return BCM_E_INTERNAL;
@@ -667,7 +667,7 @@ bcm_error_t bcm_policer_svc_meter_dec_mode_reference_count(
     int rv = BCM_E_NONE;
     bcm_policer_svc_meter_mode_type_t mode_type;
     if (!((svc_meter_mode >= 1) && (svc_meter_mode <= 3))) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Wrong offset mode specified \n")));
         return BCM_E_PARAM;
@@ -705,7 +705,7 @@ bcm_error_t bcm_policer_svc_meter_inc_mode_reference_count(
     bcm_policer_svc_meter_mode_t svc_meter_mode)
 {
     if (!((svc_meter_mode >= 1) && (svc_meter_mode <= 3))) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META("Wrong offset mode specified \n")));
         return BCM_E_PARAM;
     }
@@ -734,7 +734,7 @@ bcm_error_t _bcm_policer_svc_meter_reserve_mode(
     bcm_policer_svc_meter_attr_t         *meter_attr)
 {
     if (!((svc_meter_mode >= 1) && (svc_meter_mode <= 3))) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META("Wrong offset mode specified \n")));
         return BCM_E_PARAM;
     }
@@ -764,19 +764,19 @@ bcm_error_t _bcm_policer_svc_meter_unreserve_mode(
 
     COMPILER_64_ZERO(pkt_attr_selector_key_value); 
     if (!((svc_meter_mode >= 1) && (svc_meter_mode <= 3))) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Wrong offset mode specified \n")));
         return BCM_E_PARAM;
     }
     if ( global_meter_offset_mode[unit][svc_meter_mode].used == 0) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Wrong offset mode: Mode is not in use\n")));
         return BCM_E_NOT_FOUND;
     }
     if ( global_meter_offset_mode[unit][svc_meter_mode].reference_count != 0) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Mode is still in use\n")));
         return BCM_E_INTERNAL;
@@ -843,7 +843,7 @@ bcm_error_t _bcm_policer_svc_meter_unreserve_mode(
        case udf_cascade_with_coupling_mode:
            break;
        default:
-           LOG_ERROR(BSL_LS_BCM_POLICER,
+           LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                      (BSL_META_U(unit,
                                  "Invalid offset mode\n")));
            return BCM_E_PARAM;
@@ -940,7 +940,7 @@ bcm_error_t _bcm_policer_svc_meter_update_selector_keys(
     COMPILER_64_ZERO(pkt_attr_selector_key_value); 
     if (!((pkt_attr_selector_key >= ING_SVM_PKT_ATTR_SELECTOR_KEY_0r) && 
           (pkt_attr_selector_key <= ING_SVM_PKT_ATTR_SELECTOR_KEY_3r))) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Invalid Key for packet attribute selector\n")));
             return BCM_E_PARAM;
@@ -948,7 +948,7 @@ bcm_error_t _bcm_policer_svc_meter_update_selector_keys(
     /* BCM_POLICER_SVC_METER_UDF_MODE not supported here */
     if (!((mode_type_v == uncompressed_mode) ||
           (mode_type_v == compressed_mode))) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "UDF mode not supported \n")));
             return BCM_E_PARAM;
@@ -1177,7 +1177,7 @@ bcm_error_t _bcm_policer_svc_meter_create_cascade_mode(
     bcm_error_v = _bcm_policer_svc_meter_get_available_mode(unit,
                                                 &bcm_policer_svc_meter_mode);
     if (bcm_error_v != BCM_E_NONE) {
-        LOG_WARN(BSL_LS_BCM_POLICER,
+        LOG_BSL_WARN(BSL_LS_BCM_POLICER,
                  (BSL_META_U(unit, " Offset Table is full\n")));
         return bcm_error_v;
     }
@@ -1255,7 +1255,7 @@ bcm_error_t _bcm_policer_svc_meter_create_cascade_mode(
         total_bits_used += BCM_POLICER_SVC_METER_IP_PKT_ATTR_SIZE;    
     }
     if (total_bits_used > BCM_POLICER_SVC_METER_OFFSET_TABLE_KEY_SIZE) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Key size exceeds max allowed size \n")));
         return BCM_E_PARAM;
@@ -1323,7 +1323,7 @@ bcm_error_t _bcm_policer_svc_meter_create_uncompress_mode(
     bcm_error_v = _bcm_policer_svc_meter_get_available_mode(unit,
                                                 &bcm_policer_svc_meter_mode);
     if (bcm_error_v != BCM_E_NONE) {
-        LOG_WARN(BSL_LS_BCM_POLICER,
+        LOG_BSL_WARN(BSL_LS_BCM_POLICER,
                  (BSL_META_U(unit,
                              " Offset Table is full\n")));
         return bcm_error_v;
@@ -1402,7 +1402,7 @@ bcm_error_t _bcm_policer_svc_meter_create_uncompress_mode(
         total_bits_used += BCM_POLICER_SVC_METER_IP_PKT_ATTR_SIZE;    
     }
     if (total_bits_used > BCM_POLICER_SVC_METER_OFFSET_TABLE_KEY_SIZE) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Key size exceeds max allowed size \n")));
         return BCM_E_PARAM;
@@ -1458,7 +1458,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     mode_info = sal_alloc(sizeof(bcm_policer_svc_meter_bookkeep_mode_t), 
                                                    "mode bookkeep info");
     if ( mode_info == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Failed to allocate memory for mode bookkeep "
                                 "info\n")));
@@ -1474,7 +1474,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
             if ((mode_info->meter_attr.mode_type_v != compressed_mode) ||
                (group_mode != mode_info->group_mode )) {
                 if (mode_info->meter_attr.mode_type_v == compressed_mode) {
-                    LOG_ERROR(BSL_LS_BCM_POLICER,
+                    LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Some other policer group is already "
                                           "using this resource\n")));
@@ -1514,7 +1514,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     /* Step1: Packet Attribute selection */
     if (config_pkt_attr->cng != 0) {
         if (config_pkt_attr->cng > BCM_POLICER_SVC_METER_CNG_ATTR_SIZE) { 
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "CNG attribute size exceeds max allowed size\n")));
             return BCM_E_PARAM;
@@ -1523,7 +1523,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     }
     if (config_pkt_attr->int_pri != 0) {
         if (config_pkt_attr->int_pri > BCM_POLICER_SVC_METER_INT_PRI_ATTR_SIZE) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "int_pri attribute size exceeds max allowed "
                                   "size\n")));
@@ -1534,7 +1534,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     if (config_pkt_attr->vlan_format != 0) {
         if (config_pkt_attr->vlan_format > 
                                 BCM_POLICER_SVC_METER_VLAN_FORMAT_ATTR_SIZE) { 
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Vlan attribute size exceeds max allowed "
                                   "size\n")));
@@ -1545,7 +1545,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     if (config_pkt_attr->outer_dot1p != 0) {
         if (config_pkt_attr->outer_dot1p > 
                                 BCM_POLICER_SVC_METER_OUTER_DOT1P_ATTR_SIZE) { 
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Outer DOT1P attribute size exceeds max allowed "
                                   "size\n")));
@@ -1556,7 +1556,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     if (config_pkt_attr->inner_dot1p != 0) {
         if (config_pkt_attr->inner_dot1p >
                                 BCM_POLICER_SVC_METER_INNER_DOT1P_ATTR_SIZE) { 
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Inner DOT1P attribute size exceeds max allowed "
                                   "size\n")));
@@ -1567,7 +1567,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     if (config_pkt_attr->ing_port != 0) {
         if (config_pkt_attr->ing_port > 
                                  BCM_POLICER_SVC_METER_ING_PORT_ATTR_SIZE) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "port attribute size exceeds max allowed "
                                   "size\n")));
@@ -1577,7 +1577,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     }
     if (config_pkt_attr->tos != 0) {
         if (config_pkt_attr->tos > BCM_POLICER_SVC_METER_TOS_ATTR_SIZE) { 
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "TOS attribute size exceeds max allowed "
                                   "size\n")));
@@ -1588,7 +1588,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     if (config_pkt_attr->pkt_resolution != 0) {
         if (config_pkt_attr->pkt_resolution > 
                               BCM_POLICER_SVC_METER_PKT_REOLUTION_ATTR_SIZE) { 
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Pkt resolution attribute size exceeds max "
                                   "allowed size\n")));
@@ -1600,7 +1600,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
         if (SOC_IS_KATANA2(unit)) {
             if (config_pkt_attr->svp_type > 
                            BCM_POLICER_SVC_METER_SVP_NETWORK_GROUP_ATTR_SIZE) { 
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "SVP type attribute size exceeds max allowed "
                                       "size\n")));
@@ -1609,7 +1609,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
         } else { 
             if (config_pkt_attr->svp_type > 
                                  BCM_POLICER_SVC_METER_SVP_TYPE_ATTR_SIZE) { 
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "SVP type attribute size exceeds max allowed "
                                       "size\n")));
@@ -1620,7 +1620,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     }
     if (config_pkt_attr->drop != 0) {
         if (config_pkt_attr->drop > BCM_POLICER_SVC_METER_DROP_ATTR_SIZE) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "DROP attribute size exceeds max allowed  "
                                   "size\n")));
@@ -1630,7 +1630,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
     }
     if (config_pkt_attr->ip_pkt != 0) {
         if (config_pkt_attr->ip_pkt > BCM_POLICER_SVC_METER_IP_PKT_ATTR_SIZE) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "IP pkt attribute size exceeds max allowed "
                                   "size\n")));
@@ -1639,7 +1639,7 @@ bcm_error_t _bcm_policer_svc_meter_create_compress_mode(
         total_bits_used += config_pkt_attr->ip_pkt;
     }
     if (total_bits_used > BCM_POLICER_SVC_METER_OFFSET_TABLE_KEY_SIZE) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Key size exceeds max allowed  "
                               "size\n")));
@@ -1796,7 +1796,7 @@ bcm_error_t _bcm_policer_svc_meter_create_udf_mode(
     bcm_error_v = _bcm_policer_svc_meter_get_available_mode(unit, 
                                            &bcm_policer_svc_meter_mode);
     if (bcm_error_v != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                                 "offset table is full \n")));
         return bcm_error_v;
     }
@@ -1873,7 +1873,7 @@ int _bcm_esw_policer_svc_meter_create_mode (
             break;
 
         default:
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Invalid offset mode\n")));
             return BCM_E_PARAM;
@@ -1904,14 +1904,14 @@ int  _bcm_esw_policer_svc_meter_delete_mode(
         bcm_policer_svc_meter_mode_t         svc_meter_mode)
 {
     if (svc_meter_mode == 0) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid mode passed: %d \n"),
                    svc_meter_mode));
         return BCM_E_PARAM; /*0 is Reserved */
     }
     if (svc_meter_mode > (BCM_POLICER_SVC_METER_MAX_MODE - 1)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid mode passed: %d \n"),
                    svc_meter_mode));
@@ -1998,7 +1998,7 @@ _bcm_esw_global_meter_cleanup(int unit)
     int pool_id = 0, num_pools = 0;
     
     if (0 == global_meter_status[unit].initialised) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Global meter feature not initialized\n")));
         return rv;
@@ -2039,7 +2039,7 @@ _bcm_esw_global_meter_cleanup(int unit)
            soc_mem_clear(unit, SVM_OFFSET_TABLEm, MEM_BLOCK_ALL, TRUE));
     SOC_IF_ERROR_RETURN(
            soc_mem_clear(unit, SVM_METER_TABLEm, MEM_BLOCK_ALL, TRUE));
-    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                 (BSL_META_U(unit,
                             "Clening up global meter config\n")));
     return rv;
@@ -2103,7 +2103,7 @@ bcm_esw_global_meter_init(int unit)
 
     if ( BCM_POLICER_GLOBAL_METER_DISABLE == service_meter_control) {
         global_meter_status[unit].initialised = 0;
-        LOG_WARN(BSL_LS_BCM_POLICER,
+        LOG_BSL_WARN(BSL_LS_BCM_POLICER,
                  (BSL_META_U(unit,
                              "GLOBAL METER FEATURE disabled "
                              "at HW for unit %d\n"), unit));
@@ -2115,7 +2115,7 @@ bcm_esw_global_meter_init(int unit)
     total_size = num_pools * max_size_pool;   
     if ((total_size) > (soc_mem_index_max(unit, SVM_METER_TABLEm) + 1))
     {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Number of global meters exceeding "
                               "its max value\n")));
@@ -2125,7 +2125,7 @@ bcm_esw_global_meter_init(int unit)
     action_size = SOC_INFO(unit).global_meter_action_size;
     if ((action_size) > (soc_mem_index_max(unit, SVM_POLICY_TABLEm) + 1))
     {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Global meter actions exceeding "
                               "its max value\n")));
@@ -2149,7 +2149,7 @@ bcm_esw_global_meter_init(int unit)
                sizeof(_global_meter_policer_control_t *), "Global meter hash");
     if (NULL == global_meter_policer_bookkeep[unit]) {
         _bcm_esw_global_meter_cleanup(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to allocate memory for policer bookkeep "
                               "data structure\n")));
@@ -2161,7 +2161,7 @@ bcm_esw_global_meter_init(int unit)
                                             "Global meter horizontal alloc");
     if (NULL == global_meter_hz_alloc_bookkeep[unit]) {
         _bcm_esw_global_meter_cleanup(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to allocate memory for hz alloc bookkeep "
                               "data structure\n")));
@@ -2178,7 +2178,7 @@ bcm_esw_global_meter_init(int unit)
                                             "Global meter action alloc");
     if (NULL == global_meter_action_bookkeep[unit]) {
         _bcm_esw_global_meter_cleanup(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to allocate memory for meter action bookkeep "
                               "data structure\n")));
@@ -2188,7 +2188,7 @@ bcm_esw_global_meter_init(int unit)
         global_meter_mutex[unit] = sal_mutex_create("Global meter mutex");
         if (global_meter_mutex[unit] == NULL) {
             _bcm_esw_global_meter_cleanup(unit);
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to create mutex\n")));
             return BCM_E_MEMORY;
@@ -2208,7 +2208,7 @@ bcm_esw_global_meter_init(int unit)
                       8,                                          
                       "global_meter_action") != BCM_E_NONE) {
         _bcm_esw_global_meter_cleanup(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Couldn't create alligned list "
                               "for global meter action\n")));
@@ -2219,7 +2219,7 @@ bcm_esw_global_meter_init(int unit)
                           meter_action_list_handle[unit],0,1); 
     if (BCM_FAILURE(rv)) {
         _bcm_esw_global_meter_cleanup(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Not able to reserve first entry "
                               "in action table\n")));
@@ -2240,7 +2240,7 @@ bcm_esw_global_meter_init(int unit)
                       8, "global_meter_policer") != BCM_E_NONE) 
         {
             _bcm_esw_global_meter_cleanup(unit);
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Couldn't create alligned list for "
                                   "global meter policer\n")));
@@ -2251,7 +2251,7 @@ bcm_esw_global_meter_init(int unit)
                          meter_alloc_list_handle[unit][pool_id], 0, 1); 
         if (BCM_FAILURE(rv)) {
             _bcm_esw_global_meter_cleanup(unit);
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Not able to reserve first entry "
                                   "in policer table\n")));
@@ -2263,7 +2263,7 @@ bcm_esw_global_meter_init(int unit)
                                                               [pool_id], 0);
             if (!BCM_SUCCESS(rv)) {
                 _bcm_esw_global_meter_cleanup(unit);
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Not able to reserve first entry "
                                       "in policer table\n")));
@@ -2276,7 +2276,7 @@ bcm_esw_global_meter_init(int unit)
         rv = _bcm_esw_global_meter_reinit(unit);
         if (!BCM_SUCCESS(rv)) {
             _bcm_esw_global_meter_cleanup(unit);
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Warm boot init failed\n")));
             return BCM_E_INTERNAL;
@@ -2288,7 +2288,7 @@ bcm_esw_global_meter_init(int unit)
                                      size, &policer_state,
                                      BCM_WB_DEFAULT_VERSION, NULL);
         if (BCM_FAILURE(rv) && (rv != BCM_E_NOT_FOUND)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Scache Memory not available\n")));
             return rv;
@@ -2297,7 +2297,7 @@ bcm_esw_global_meter_init(int unit)
     }
 #endif
     global_meter_status[unit].initialised = 1;
-    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                 (BSL_META_U(unit,
                             "GLOBAL METER FEATURE initialised\n")));
 
@@ -2342,7 +2342,7 @@ int   _bcm_esw_policer_validate(int unit, bcm_policer_t *policer)
     int index = 0;
     uint32 offset_mode = 0;
     if( *policer == 0) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Policer id passed is 0 \n")));
         return rv;
@@ -2350,7 +2350,7 @@ int   _bcm_esw_policer_validate(int unit, bcm_policer_t *policer)
     _bcm_esw_get_policer_table_index(unit, *policer, &index); 
     if (index > (soc_mem_index_max(unit, SVM_METER_TABLEm)))
     {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid table index for SVM_POLICY_TABLE\n")));
         return BCM_E_PARAM;
@@ -2362,7 +2362,7 @@ int   _bcm_esw_policer_validate(int unit, bcm_policer_t *policer)
     }
     if (offset_mode > BCM_POLICER_SVC_METER_MAX_MODE)
     {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Invalid Offset mode \n")));
         return BCM_E_PARAM;
@@ -2389,7 +2389,7 @@ int  _bcm_esw_policer_increment_ref_count(int unit, bcm_policer_t policer)
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Invalid policer id passed: %x \n"),
                      policer));
@@ -2399,7 +2399,7 @@ int  _bcm_esw_policer_increment_ref_count(int unit, bcm_policer_t policer)
     rv = _bcm_global_meter_base_policer_get(unit, policer, &policer_control);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to get policer control for policer "
                                 "id %d\n"), policer));
@@ -2428,7 +2428,7 @@ int  _bcm_esw_policer_decrement_ref_count(int unit, bcm_policer_t policer)
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Invalid policer id passed: %x \n"),
                      policer));
@@ -2438,7 +2438,7 @@ int  _bcm_esw_policer_decrement_ref_count(int unit, bcm_policer_t policer)
     rv = _bcm_global_meter_base_policer_get(unit, policer, &policer_control);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to get policer control for policer "
                                 "id %d \n"), policer));
@@ -2475,7 +2475,7 @@ int _bcm_esw_add_policer_to_table(int unit,bcm_policer_t policer,
          /* validate policer id */
         rv = _bcm_esw_policer_validate(unit, &policer);
         if (BCM_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_BCM_POLICER,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                         (BSL_META_U(unit,
                                     "Invalid policer id passed: %x \n"),
                          policer));
@@ -2493,7 +2493,7 @@ int _bcm_esw_add_policer_to_table(int unit,bcm_policer_t policer,
                 rv = _bcm_esw_get_policer_from_table(unit, table, index, data, 
                                                     &current_policer, 1); 
                 if (BCM_FAILURE(rv)) {
-                    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                                 (BSL_META_U(unit,
                                             "Unable to read the table entry %d at "
                                             "index %d \n"), table, index));
@@ -2510,7 +2510,7 @@ int _bcm_esw_add_policer_to_table(int unit,bcm_policer_t policer,
                     if (offset_mode >= 
                                (soc_mem_index_count(unit,SVM_OFFSET_TABLEm) >>
                                BCM_POLICER_SVC_METER_OFFSET_TABLE_KEY_SIZE))  {
-                        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                                     (BSL_META_U(unit,
                                                 "Offset mode for the policer "
                                                 "exceeds max allowed value \n")));
@@ -2522,7 +2522,7 @@ int _bcm_esw_add_policer_to_table(int unit,bcm_policer_t policer,
                     offset_mode = 0;
                 }
                 if (index >= soc_mem_index_count(unit, SVM_METER_TABLEm))  {
-                    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                                 (BSL_META_U(unit,
                                             "Invalid table index passed for "
                                             "SVM_METER_TABLE\n")));
@@ -2676,7 +2676,7 @@ int _bcm_esw_reset_policer_from_table(int unit, bcm_policer_t policer,
     int rv = BCM_E_NONE;
     rv = _bcm_esw_delete_policer_from_table(unit, policer, table, index, data);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to delete policer from table %d at "
                               "index %d \n"), table, index));
@@ -2712,7 +2712,7 @@ int _bcm_esw_delete_policer_from_table(int unit, bcm_policer_t policer,
          /* validate policer id */
         rv = _bcm_esw_policer_validate(unit, &policer);
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Invalid policer id passed: %x \n"),
                        policer));
@@ -2730,14 +2730,14 @@ int _bcm_esw_delete_policer_from_table(int unit, bcm_policer_t policer,
                 rv =  _bcm_esw_get_policer_from_table(unit, table, index, data,
                                                           &current_policer, 0); 
                 if (BCM_FAILURE(rv)) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to read the policer from table "
                                           "%d at index %d\n"), table, index));
                     return (rv);
                 }
                 if (current_policer != policer) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Policer Id passed is different from the "
                                           "one that is configured in the table. configured value is \
@@ -2789,13 +2789,13 @@ bcm_error_t _bcm_policer_svc_meter_get_mode_info(
 {
     if (!((meter_mode_v >= 1) && 
                     (meter_mode_v < BCM_POLICER_SVC_METER_MAX_MODE))) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid offset mode %d  \n"), meter_mode_v));
         return BCM_E_PARAM;
     }
     if (global_meter_offset_mode[unit][meter_mode_v].used == 0) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Passed mode is not used \n")));
         return BCM_E_NOT_FOUND;
@@ -2830,7 +2830,7 @@ int bcm_esw_policer_action_create(
     rv = shr_aidxres_list_alloc_block(
                  meter_action_list_handle[unit], 1, (uint32 *)action_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to allocate a handle for new "
                               "action\n")));
@@ -2865,7 +2865,7 @@ int bcm_esw_policer_action_add(
 
     if (global_meter_action_bookkeep[unit][action_id].used != 1)
     {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Action id is not created \n")));
         return BCM_E_PARAM;
@@ -2876,7 +2876,7 @@ int bcm_esw_policer_action_add(
     rv = READ_SVM_POLICY_TABLEm(unit, MEM_BLOCK_ANY, action_id, &meter_action);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM_POLICY_TABLE for given "
                               "action id \n")));
@@ -2909,7 +2909,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionGpEcnNew :
            if (param0 > 0x3) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for ECN  \n")));
                return BCM_E_PARAM;
@@ -2925,7 +2925,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionYpEcnNew :
            if (param0 > 0x3) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for ECN  \n")));
                return BCM_E_PARAM;
@@ -2941,7 +2941,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionRpEcnNew :
            if (param0 > 0x3) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for ECN  \n")));
                return BCM_E_PARAM;
@@ -2957,7 +2957,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionGpCngNew :
            if (param0 > 0x3) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for CNG  \n")));
                return BCM_E_PARAM;
@@ -2971,7 +2971,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionYpCngNew :
            if (param0 > 0x3) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for CNG  \n")));
                return BCM_E_PARAM;
@@ -2985,7 +2985,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionRpCngNew :
            if (param0 > 0x3) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for CNG  \n")));
                return BCM_E_PARAM;
@@ -2999,7 +2999,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionGpDscpNew:
            if (param0 > 0x3f) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for DSCP  \n")));
                return BCM_E_PARAM;
@@ -3015,7 +3015,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionYpDscpNew:
            if (param0 > 0x3f) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for DSCP  \n")));
                return BCM_E_PARAM;
@@ -3031,7 +3031,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionRpDscpNew:
            if (param0 > 0x3f) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for DSCP  \n")));
                return BCM_E_PARAM;
@@ -3047,7 +3047,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionGpPrioIntNew :
            if (param0 > 0xf) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for int pri\n")));
                return BCM_E_PARAM;
@@ -3063,7 +3063,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionYpPrioIntNew :
            if (param0 > 0xf) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for int pri\n")));
                return BCM_E_PARAM;
@@ -3079,7 +3079,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionRpPrioIntNew :
            if (param0 > 0xf) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for int pri\n")));
                return BCM_E_PARAM;
@@ -3096,7 +3096,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionGpVlanPrioNew :
            if (param0 > 0x7) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for vlan pri\n")));
                return BCM_E_PARAM;
@@ -3112,7 +3112,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionYpVlanPrioNew :
            if (param0 > 0x7) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for vlan pri\n")));
                return BCM_E_PARAM;
@@ -3128,7 +3128,7 @@ int bcm_esw_policer_action_add(
        case bcmPolicerActionRpVlanPrioNew :
            if (param0 > 0x7) {
                GLOBAL_METER_UNLOCK(unit);
-               LOG_ERROR(BSL_LS_BCM_POLICER,
+               LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Invalid value for vlan pri\n")));
                return BCM_E_PARAM;
@@ -3143,7 +3143,7 @@ int bcm_esw_policer_action_add(
 
        default:
           GLOBAL_METER_UNLOCK(unit);
-          LOG_ERROR(BSL_LS_BCM_POLICER,
+          LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unsupported Action specified\n")));
           return BCM_E_PARAM;
@@ -3159,7 +3159,7 @@ int bcm_esw_policer_action_add(
     rv = WRITE_SVM_POLICY_TABLEm(unit,MEM_BLOCK_ANY,action_id, &meter_action);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to write to SVM_POLICY_TABLE at location "
                               "specified by action_id \n")));
@@ -3189,7 +3189,7 @@ int bcm_esw_policer_action_destroy(
     svm_policy_table_entry_t meter_action;
     if (global_meter_action_bookkeep[unit][action_id].used != 1)
     {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Action Id specified doesn't exist\n")));
         return BCM_E_PARAM;
@@ -3197,7 +3197,7 @@ int bcm_esw_policer_action_destroy(
     if (global_meter_action_bookkeep[unit]\
                                   [action_id].reference_count != 0)
     {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Action Id specified still being used \n")));
         return BCM_E_BUSY;
@@ -3207,7 +3207,7 @@ int bcm_esw_policer_action_destroy(
     rv = READ_SVM_POLICY_TABLEm(unit, MEM_BLOCK_ANY, action_id, &meter_action);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM_POLICY_TABLE at location "
                               "specified by action_id \n")));
@@ -3221,7 +3221,7 @@ int bcm_esw_policer_action_destroy(
     rv = WRITE_SVM_POLICY_TABLEm(unit, MEM_BLOCK_ANY, action_id, &meter_action);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to write to SVM_POLICY_TABLE at location "
                               "specified by action_id \n")));
@@ -3231,7 +3231,7 @@ int bcm_esw_policer_action_destroy(
     rv = shr_aidxres_list_free(meter_action_list_handle[unit], action_id); 
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to free action handle \n")));
         return (rv);
@@ -3266,7 +3266,7 @@ int bcm_esw_policer_action_get(
     uint32 green_action = 0, yellow_action = 0, red_action = 0;
     if (global_meter_action_bookkeep[unit][action_id].used != 1)
     {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Action Id specified doesn't exist\n")));
         return BCM_E_PARAM;
@@ -3276,7 +3276,7 @@ int bcm_esw_policer_action_get(
     rv = READ_SVM_POLICY_TABLEm(unit, MEM_BLOCK_ANY, action_id, &meter_action);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM_POLICY_TABLE at location "
                               "specified by action_id \n")));
@@ -3373,7 +3373,7 @@ int bcm_esw_policer_action_get(
             break;
 
         default:
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unsupported Action specified\n")));
             rv = BCM_E_PARAM;
@@ -3418,7 +3418,7 @@ int _bcm_global_meter_free_allocated_policer_on_error(int unit,
         rv = shr_aidxres_list_free(
                          meter_alloc_list_handle[unit][pool], policer_index);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to free policer handle \n")));
             return BCM_E_INTERNAL;
@@ -3426,7 +3426,7 @@ int _bcm_global_meter_free_allocated_policer_on_error(int unit,
 
         rv = _bcm_gloabl_meter_unreserve_bloc_horizontally(unit, pool, policer_index); 
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to free policer handle \n")));
             return BCM_E_INTERNAL;
@@ -3501,7 +3501,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                         rv = shr_aidxres_list_free(
                             meter_alloc_list_handle[unit][pool], index);
                         if (!BCM_SUCCESS(rv)) {
-                            LOG_DEBUG(BSL_LS_BCM_POLICER,
+                            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                       (BSL_META_U(unit,
                                                   "Unable to free policer "
                                                   "handle \n")));
@@ -3528,7 +3528,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                     rv = _bcm_global_meter_free_allocated_policer_on_error(
                                      unit, allocated_policer, offset, index);
                     if (skip_index == 0 ) {
-                        LOG_DEBUG(BSL_LS_BCM_POLICER,
+                        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "Unable to free policer "
                                               "handle \n")));
@@ -3537,7 +3537,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                 } else if( allocated_policer == *numbers) {
                     *pid = index; 
                     alloc_control[index].no_of_groups_allocated++;
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Allocated base policer with "
                                           "index %x \n"), index));
@@ -3571,7 +3571,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                         rv = shr_aidxres_list_free(
                             meter_alloc_list_handle[unit][pool], index);
                         if (!BCM_SUCCESS(rv)) {
-                            LOG_DEBUG(BSL_LS_BCM_POLICER,
+                            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                       (BSL_META_U(unit,
                                                   "Unable to free policer "
                                                   "handle \n")));
@@ -3597,7 +3597,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                     rv = _bcm_global_meter_free_allocated_policer_on_error(
                                      unit, allocated_policer, offset, index);
                     if (skip_index == 0 ) {
-                        LOG_DEBUG(BSL_LS_BCM_POLICER,
+                        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "Unable to free policer "
                                               "handle \n")));
@@ -3606,7 +3606,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                 } else if( allocated_policer == *numbers) {
                     *pid = index; 
                     alloc_control[index].no_of_groups_allocated++;
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Allocated base policer with "
                                           "index %x \n"), index));
@@ -3641,7 +3641,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                     rv = shr_aidxres_list_free(
                             meter_alloc_list_handle[unit][pool], *pid);
                     if (!BCM_SUCCESS(rv)) {
-                        LOG_DEBUG(BSL_LS_BCM_POLICER,
+                        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "Unable to free policer "
                                               "handle \n")));
@@ -3666,7 +3666,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
                 rv = _bcm_global_meter_free_allocated_policer_on_error(unit,
                                               allocated_policer, offset, index);
                 if (skip_index == 0) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to free policer "
                                           "handle \n")));
@@ -3675,7 +3675,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
             } else if( allocated_policer == *numbers) {
                 *pid = index; 
                 alloc_control[index].no_of_groups_allocated++;
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Allocated base policer with index %x \n"),
                            index));
@@ -3683,7 +3683,7 @@ int _bcm_gloabl_meter_alloc_horizontally(int unit, int *numbers,
             }
         }
     } 
-    LOG_DEBUG(BSL_LS_BCM_POLICER,
+    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
               (BSL_META_U(unit,
                           "Unable to allocate policer as table is full  \n")));
     return BCM_E_FULL;
@@ -3787,7 +3787,7 @@ int _bcm_gloabl_meter_free_horizontally(int unit, int pool_id,
                                      alloc_control[pid].last_bit_to_use,
                                          0, &policer_control);
                 if (!BCM_SUCCESS(rv)) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to get policer control for pid "
                                           "%x\n"), pid));
@@ -3801,7 +3801,7 @@ int _bcm_gloabl_meter_free_horizontally(int unit, int pool_id,
                           policer_control->offset[num_pol-1];
                     alloc_control[pid].last_bit_to_use = pool_id;
                 } else {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Number of policers in policer control "
                                           "structure is 0\n")));
@@ -3814,7 +3814,7 @@ int _bcm_gloabl_meter_free_horizontally(int unit, int pool_id,
                                      alloc_control[pid].first_bit_to_use,
                                          0, &policer_control);
                 if (!BCM_SUCCESS(rv)) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to get policer control for pid "
                                           "%x\n"), pid));
@@ -3825,7 +3825,7 @@ int _bcm_gloabl_meter_free_horizontally(int unit, int pool_id,
                     pool_id = policer_control->offset[0];  
                     alloc_control[pid].first_bit_to_use = pool_id;
                 } else {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Number of policers in policer control "
                                           "structure is 0\n")));
@@ -3899,7 +3899,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
         rv = shr_aidxres_list_reserve_block(
                     meter_alloc_list_handle[unit][pool], pol_index, numbers); 
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to reserve policer in shared index "
                                   "management\n")));
@@ -3912,7 +3912,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
                 rv = shr_aidxres_list_free(
                      meter_alloc_list_handle[unit][pool], pol_index);
                 if (!BCM_SUCCESS(rv)) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to free policer in shared "
                                           "index management\n")));
@@ -3922,7 +3922,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
                     rv = _bcm_gloabl_meter_unreserve_bloc_horizontally(unit,
                                                       pool, pol_index+index);
                     if (!BCM_SUCCESS(rv)) {
-                        LOG_DEBUG(BSL_LS_BCM_POLICER,
+                        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "Unable to free policer in hz "
                                               "index management\n")));
@@ -3940,7 +3940,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
             rv = shr_aidxres_list_reserve_block(
                    meter_alloc_list_handle[unit][pool_id], pol_index, 1);
             if (!BCM_SUCCESS(rv)) {
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Unable to reserve policer in shared "
                                       "index management\n")));
@@ -3952,7 +3952,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
                 rv = shr_aidxres_list_free(
                         meter_alloc_list_handle[unit][pool], pol_index);
                 if (!BCM_SUCCESS(rv)) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to free policer in "
                                           "index management\n")));
@@ -3962,7 +3962,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
                     rv = _bcm_gloabl_meter_unreserve_bloc_horizontally(unit,
                                                      pool_id, pol_index);
                     if (!BCM_SUCCESS(rv)) {
-                        LOG_DEBUG(BSL_LS_BCM_POLICER,
+                        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "Unable to free policer in hz "
                                               "index management\n")));
@@ -3972,7 +3972,7 @@ int _global_meter_reserve_policer_id(int unit, int direction, int numbers,
             }
         }
     } else {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid direction for policer allocation \n")));
         return BCM_E_INTERNAL;
@@ -4035,7 +4035,7 @@ int _global_meter_policer_id_alloc(int unit, int direction,
                               meter_alloc_list_handle[unit][pool], 
                                                              *pid + index);
                         }
-                        LOG_DEBUG(BSL_LS_BCM_POLICER,
+                        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                                   (BSL_META_U(unit,
                                               "Unable to free policer in "
                                               "index management\n")));
@@ -4044,7 +4044,7 @@ int _global_meter_policer_id_alloc(int unit, int direction,
                 }
                 /* Add pool id to make complete policer id */
                 *pid = *pid | (pool << _shr_popcount(size_pool - 1));
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "allocated policer with pid %x \n"),
                            *pid));
@@ -4065,7 +4065,7 @@ int _global_meter_policer_id_alloc(int unit, int direction,
            return BCM_E_FULL;
         }
         *pid |= (*pid_offset << _shr_popcount(size_pool - 1));
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "allocated policer with pid %x \n"),
                    *pid));
@@ -4128,7 +4128,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
     _bcm_esw_get_policer_table_index(unit, policer_id, &index); 
     rv = soc_mem_read(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY,index, &data);
     if (!BCM_SUCCESS(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM METER TABLE at index %d "
                               "\n"), index));
@@ -4214,7 +4214,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
                     _BCM_XGS_METER_FLAG_GLOBAL_METER_POLICER,
              &pol_cfg->pkbits_sec, &pol_cfg->pkbits_burst);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to translate rate in kbps to bucket size "
                                   "and granularity \n")));
@@ -4229,7 +4229,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
                     _BCM_XGS_METER_FLAG_GLOBAL_METER_POLICER,
              &pol_cfg->ckbits_sec, &pol_cfg->ckbits_burst);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to translate rate in kbps to bucket size "
                                   "and granularity \n")));
@@ -4262,7 +4262,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
     if (pol_cfg->mode == bcmPolicerModeCoupledCascade) {
         rv = _bcm_global_meter_policer_get(unit, policer_id, &policer_control);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to get policer control for the policer Id "
                                   "passed  \n")));
@@ -4275,7 +4275,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
         rv = soc_mem_read(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY,
                                                       cascade_index, &data);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to read SVM METER TABLE at index %d "
                                   "\n"), cascade_index));
@@ -4296,7 +4296,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
                   _BCM_XGS_METER_FLAG_GLOBAL_METER_POLICER,
              &pol_cfg->ckbits_sec, &pol_cfg->ckbits_burst);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to translate rate in kbps to bucket size "
                                   "and granularity \n")));
@@ -4319,7 +4319,7 @@ int _bcm_global_meter_read_config_from_hw(int unit,
                   _BCM_XGS_METER_FLAG_GLOBAL_METER_POLICER,
              &pol_cfg->pkbits_sec, &pol_cfg->pkbits_burst);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to translate rate in kbps to bucket size "
                                   "and granularity \n")));
@@ -4364,14 +4364,14 @@ int _bcm_esw_policer_action_detach(int unit, bcm_policer_t policer_id,
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid Policer Id \n")));
         return (rv);
     }
     /* validate action id */
     if (action_id > soc_mem_index_max(unit, SVM_POLICY_TABLEm)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid Action Id \n")));
         return BCM_E_PARAM;
@@ -4381,7 +4381,7 @@ int _bcm_esw_policer_action_detach(int unit, bcm_policer_t policer_id,
     rv = _bcm_global_meter_policer_get(unit, policer_id, &policer_control);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer control for the policer Id "
                               "passed  \n")));
@@ -4393,7 +4393,7 @@ int _bcm_esw_policer_action_detach(int unit, bcm_policer_t policer_id,
                                                           &meter_entry);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM_METER_TABLE entry \n")));
         return (rv);
@@ -4407,7 +4407,7 @@ int _bcm_esw_policer_action_detach(int unit, bcm_policer_t policer_id,
                                                             &meter_entry);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to write SVM_METER_TABLE entry \n")));
         return (rv);
@@ -4428,7 +4428,7 @@ int _bcm_esw_policer_action_detach(int unit, bcm_policer_t policer_id,
         rv = soc_mem_write(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY, index, 
                                                              &meter_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to write SVM_METER_TABLE entry \n")));
             GLOBAL_METER_UNLOCK(unit);
@@ -4743,7 +4743,7 @@ int  _bcm_global_meter_write_config_to_hw(int unit,
             break;
 
         default:
-           LOG_DEBUG(BSL_LS_BCM_POLICER,
+           LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                      (BSL_META_U(unit,
                                  "Invalid policer mode \n")));
            return BCM_E_PARAM;
@@ -4793,7 +4793,7 @@ int  _bcm_global_meter_write_config_to_hw(int unit,
         rv = soc_mem_write(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY, 
                                                              index, &data);
         if (!BCM_SUCCESS(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to configure the cascaded pair of "
                                   "policers \n")));
@@ -4804,7 +4804,7 @@ int  _bcm_global_meter_write_config_to_hw(int unit,
         rv = READ_SVM_MACROFLOW_INDEX_TABLEm(unit, MEM_BLOCK_ANY,
                                          index, &macro_flow_entry);
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Unable to access macro flow table at the index provided\n")));
             return rv;
@@ -4818,7 +4818,7 @@ int  _bcm_global_meter_write_config_to_hw(int unit,
             rv = _bcm_esw_policer_decrement_ref_count(unit,
                                                       macro_meter_policer);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "%u : Unable to decrement ref count"),
                            macro_flow_meter_index));
@@ -4830,7 +4830,7 @@ int  _bcm_global_meter_write_config_to_hw(int unit,
             rv = WRITE_SVM_MACROFLOW_INDEX_TABLEm(unit, MEM_BLOCK_ANY,
                                           index, &macro_flow_entry);
             if (!(BCM_SUCCESS(rv))) {
-                LOG_ERROR(BSL_LS_BCM_COMMON, \
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                           (BSL_META_U(unit,
                                       "Unable to write to macro flow table at index \
                                       provided\n")));
@@ -4918,7 +4918,7 @@ int _bcm_global_meter_base_policer_get(int unit, bcm_policer_t pid,
     uint32 hash_index;      /* Entry hash.  */
     /* Input parameters check. */
     if (NULL == policer_p) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Policer control is null \n")));
         return (BCM_E_PARAM);
@@ -4965,7 +4965,7 @@ int _bcm_global_meter_policer_get(int unit, bcm_policer_t pid,
     int pool_mask = 0, pool_offset = 0;
     /* Input parameters check. */
     if (NULL == policer_p) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Policer control is null \n")));
         return (BCM_E_PARAM);
@@ -5043,7 +5043,7 @@ int _bcm_esw_global_meter_policer_get(int unit, bcm_policer_t policer_id,
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid policer id %x  \n"),
                    policer_id));
@@ -5056,7 +5056,7 @@ int _bcm_esw_global_meter_policer_get(int unit, bcm_policer_t policer_id,
     if (BCM_SUCCESS(rv)) {
         rv = _bcm_global_meter_read_config_from_hw(unit, policer_id, pol_cfg);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to read policer config from hw %x\n"),
                        policer_id));
@@ -5093,7 +5093,7 @@ int _bcm_global_meter_min_burst_size_set(bcm_policer_config_t *pol_cfg)
                  ((pol_cfg->ckbits_sec * METER_REFRESH_INTERVAL) /
                                     CONVERT_SECOND_TO_MICROSECOND));
     if (min_burst > pol_cfg->ckbits_burst) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META("Commited burst is less than the minimum required "
                             "value.  \n")));
         return (BCM_E_PARAM); 
@@ -5102,7 +5102,7 @@ int _bcm_global_meter_min_burst_size_set(bcm_policer_config_t *pol_cfg)
                  ((pol_cfg->pkbits_sec * METER_REFRESH_INTERVAL) /
                                     CONVERT_SECOND_TO_MICROSECOND));
     if (min_burst > pol_cfg->pkbits_burst) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META("Peak burst is less than the minimum required "
                             "value.  \n")));
         return (BCM_E_PARAM); 
@@ -5130,7 +5130,7 @@ int _bcm_esw_global_meter_policer_set(int unit, bcm_policer_t policer_id,
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid policer id %x  \n"),
                    policer_id));
@@ -5150,7 +5150,7 @@ int _bcm_esw_global_meter_policer_set(int unit, bcm_policer_t policer_id,
         rv =  _bcm_global_meter_write_config_to_hw(unit, pol_cfg, 
                                             policer_id, policer_control);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to write policer config to hw %x\n"),
                        policer_id));
@@ -5272,7 +5272,7 @@ int _bcm_esw_global_meter_policer_destroy(int unit, bcm_policer_t policer_id)
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer_id);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Invalid policer id %x  \n"),
                      policer_id));
@@ -5283,7 +5283,7 @@ int _bcm_esw_global_meter_policer_destroy(int unit, bcm_policer_t policer_id)
                                    policer_id, &policer_control);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to get policer control for policer id %x\n"),
                      policer_id));
@@ -5330,7 +5330,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
 
     /* Make sure policer is not attached to any entry. */
     if (0 != policer_control->ref_count) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Policer is still in use  \n")));
         return (BCM_E_BUSY);
@@ -5362,7 +5362,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
     if (policer_control->direction == GLOBAL_METER_ALLOC_VERTICAL) {
         rv = shr_aidxres_list_free(meter_alloc_list_handle[unit][pool], pid);
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to free policer handle\n")));
             return (rv);
@@ -5371,7 +5371,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
             rv = _bcm_gloabl_meter_unreserve_bloc_horizontally(unit,
                                                     pool, pid+index);
             if (!BCM_SUCCESS(rv)) {
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Unable to free policer handle in hz "
                                       "index management\n")));
@@ -5387,7 +5387,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
             rv = shr_aidxres_list_free(
                    meter_alloc_list_handle[unit][pool_id], pid);
             if (BCM_FAILURE(rv)) {
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Unable to free policer handle\n")));
                 return (rv);
@@ -5396,7 +5396,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
         rv = _bcm_gloabl_meter_free_horizontally(unit, pool, pid, numbers,
                                                       policer_control->offset);
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to free policer handle in hz "
                                   "index management\n")));
@@ -5417,7 +5417,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
     rv = _bcm_esw_get_policer_table_index(unit, policer_control->pid,
                                                           &index);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to Get policer index for "
                               "policer \n")));
@@ -5465,7 +5465,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
                 rv = _bcm_esw_policer_decrement_ref_count(unit, 
                                                       macro_meter_policer);
                 if (BCM_FAILURE(rv)) {
-                    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                                 (BSL_META_U(unit,
                                             "Unable to decrement ref count "
                                             "for macro meter provided\n")));
@@ -5486,7 +5486,7 @@ int _bcm_esw_global_meter_policer_destroy2(int unit,
                                   MEM_BLOCK_ALL, index,
                                   entry_index_max, buf)) < 0) {
                 if (BCM_FAILURE(rv)) {
-                         LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                         LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                                      (BSL_META_U(unit,
                                                  "Unable to write to macro flow "
                                                  "index table at index provided\n")));
@@ -5548,7 +5548,7 @@ int _bcm_esw_global_meter_set_cascade_info_to_hw(int unit,int  numbers,
         rv = soc_mem_read(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY, 
                                                   table_offset,  &data);
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to read SVC METER TABLE at "
                                   "offset %d\n"), table_offset));
@@ -5589,7 +5589,7 @@ int _bcm_esw_global_meter_set_cascade_info_to_hw(int unit,int  numbers,
                 break;
 
             default:
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Invalid mode passed \n")));
                 return BCM_E_NONE;
@@ -5615,7 +5615,7 @@ int _bcm_esw_global_meter_set_cascade_info_to_hw(int unit,int  numbers,
         rv = soc_mem_write(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY, 
                                                          table_offset, &data);
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to write SVC METER TABLE at "
                                   "offset %d\n"), table_offset));
@@ -5643,7 +5643,7 @@ int _bcm_esw_policer_set_offset_table_map_to_increasing_value(uint32 num_offsets
     int rv = BCM_E_NONE;
     int i = 0;
     if (num_offsets >= BCM_SVC_METER_MAP_SIZE_256) {  
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META("Number of offsets passed is more than map table "
                             "size %d\n"), num_offsets));
         return BCM_E_INTERNAL;
@@ -5676,7 +5676,7 @@ int _bcm_esw_policer_set_offset_table_map_to_a_value_with_pool(int coupling,
     int rv = BCM_E_NONE;
     int i = 0, j = 0; 
     if (num_offsets >= BCM_SVC_METER_MAP_SIZE_256) {  
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META("Number of offsets passed is more than map table "
                             "size %d\n"), num_offsets));
         return BCM_E_INTERNAL;
@@ -5718,7 +5718,7 @@ int _bcm_esw_policer_set_offset_table_map_flex_pool(int coupling,
     int rv = BCM_E_NONE;
     int i = 0, j = 0;
     if (num_offsets >= BCM_SVC_METER_MAP_SIZE_256) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META("Number of offsets passed is more than map table "
                             "size %d\n"), num_offsets));
         return BCM_E_INTERNAL;
@@ -5758,7 +5758,7 @@ int _bcm_esw_policer_set_offset_table_map_to_a_value(uint32 num_offsets,
     int rv = BCM_E_NONE;
     int i = 0;
     if (num_offsets >= BCM_SVC_METER_MAP_SIZE_256) {  
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META("Number of offsets passed is more than map table "
                             "size %d\n"), num_offsets));
         return BCM_E_INTERNAL;
@@ -5793,7 +5793,7 @@ int _bcm_esw_policer_set_offset_table_map(uint32 num_offsets,
     for(i = 0; i < num_offsets; i++) {
         if ((table_offset[i] >= BCM_SVC_METER_MAP_SIZE_256) || 
                (value[i] >= BCM_SVC_METER_MAP_SIZE_256)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META("Offset/value passed is more than map table "
                                 "size %d %d\n"), table_offset[i], value[i]));
             return BCM_E_INTERNAL;
@@ -6426,7 +6426,7 @@ int _bcm_esw_policer_group_set_mode_and_map( int unit,
          /* ******************************************** */      
         case bcmPolicerGroupModeCascade:
             if ((*npolicers > num_pools) || (*npolicers == 0 )) {
-                LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                             (BSL_META_U(unit,
                                         "Invalid number of Policers \n")));
                 return BCM_E_PARAM;
@@ -6459,7 +6459,7 @@ int _bcm_esw_policer_group_set_mode_and_map( int unit,
         case bcmPolicerGroupModeIntPriCascade:
         {
             if ((*npolicers > num_pools) || (*npolicers == 0 )) {
-                LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                             (BSL_META_U(unit,
                                         "Invalid number of Policers \n")));
                 return BCM_E_PARAM;
@@ -6499,7 +6499,7 @@ int _bcm_esw_policer_group_set_mode_and_map( int unit,
                 *direction = GLOBAL_METER_ALLOC_HORIZONTAL;
                 *npolicers = 8; /* Allocate all the 8 policers */
             } else {
-                LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                             (BSL_META_U(unit,
                                         "Invalid number of Policers \n")));
                 return BCM_E_PARAM;
@@ -6536,7 +6536,7 @@ int _bcm_esw_policer_group_set_mode_and_map( int unit,
                 *direction = GLOBAL_METER_ALLOC_HORIZONTAL;
                 *npolicers = 8;
             } else {
-                LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                             (BSL_META_U(unit,
                                         "Invalid number of Policers \n")));
                 return BCM_E_PARAM;
@@ -6891,7 +6891,7 @@ int _bcm_esw_policer_group_set_mode_and_map( int unit,
         }
 
         default:
-            LOG_VERBOSE(BSL_LS_BCM_POLICER,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                         (BSL_META_U(unit,
                                     "Invalid policer group mode\n")));
             return BCM_E_PARAM;
@@ -6934,7 +6934,7 @@ int _bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
 
     mode_attr = sal_alloc(sizeof(bcm_policer_svc_meter_attr_t),"meter mode attr");
     if ( mode_attr == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Failed to allocate memory for svc meter attr \n")));
         return BCM_E_MEMORY;
@@ -6947,7 +6947,7 @@ int _bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
                                                   &direction, mode_attr);
     if (!(BCM_SUCCESS(rv))) {
         sal_free(mode_attr);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Failed to set mode and map\n")));
         return rv;
@@ -6973,7 +6973,7 @@ int _bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
              if (BCM_FAILURE(rv)) {
                  GLOBAL_METER_UNLOCK(unit);
                  sal_free(mode_attr);
-                 LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                 LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                              (BSL_META_U(unit,
                                          "Unable to write to offset table  \n")));
                  return rv;
@@ -6986,7 +6986,7 @@ int _bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
                             &pid_offset[0]);
     if (!(BCM_SUCCESS(rv))) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Failed to allocate policer\n")));
         return rv;
@@ -7000,7 +7000,7 @@ int _bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
         _bcm_global_meter_free_allocated_policer_on_error(unit, *npolicers,
                              &pid_offset[0], (*policer_id & offset_mask));
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to allocate memeory for policer control \n")));
         return (BCM_E_MEMORY);
@@ -7054,7 +7054,7 @@ int _bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
                    policer_control, (*policer_id & _GLOBAL_METER_HASH_MASK));
 
     GLOBAL_METER_UNLOCK(unit);
-    LOG_DEBUG(BSL_LS_BCM_POLICER,
+    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
               (BSL_META_U(unit,
                           "create policer with id %x\n"),
                *policer_id));
@@ -7096,7 +7096,7 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         rv = _bcm_esw_policer_group_create(unit, bcmPolicerGroupModeSingle,
                     num_pools, NULL, policer_id, &numbers); 
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to create macro flow policer\n")));
             return rv;
@@ -7105,7 +7105,7 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         /* validate macroflow policer id */
         rv = _bcm_esw_policer_validate(unit, &macro_flow_policer_id);
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Invalid policer Id passed\n")));
             return rv;
@@ -7113,7 +7113,7 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         rv = _bcm_esw_get_policer_table_index(unit, macro_flow_policer_id, 
                                                                    &index); 
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to Get policer index for macro flow "
                                   "policer \n")));
@@ -7123,14 +7123,14 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         rv = _bcm_esw_policer_group_create(unit, bcmPolicerGroupModeSingle,
                                                 pool, NULL, policer_id, &numbers); 
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to create micro flow policer\n")));
             return rv;
         } 
         rv = _bcm_esw_policer_increment_ref_count(unit, macro_flow_policer_id);
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to increment ref count for  micro flow "
                                   "policer\n")));
@@ -7140,7 +7140,7 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         rv = _bcm_esw_get_policer_table_index(unit, *policer_id, 
                                                            &micro_flow_index); 
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to Get policer index for micro flow "
                                   "policer \n")));
@@ -7151,7 +7151,7 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         rv = READ_SVM_MACROFLOW_INDEX_TABLEm(unit, MEM_BLOCK_ANY, 
                                          micro_flow_index, &macro_flow_entry);
         if (!(BCM_SUCCESS(rv))) {
-            LOG_VERBOSE(BSL_LS_BCM_POLICER,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                         (BSL_META_U(unit,
                                     "Unable to access macro flow table at the index "
                                     "provided\n")));
@@ -7165,14 +7165,14 @@ int bcm_esw_policer_envelop_create(int unit, uint32 flags,
         rv = WRITE_SVM_MACROFLOW_INDEX_TABLEm(unit, MEM_BLOCK_ANY, 
                                           micro_flow_index, &macro_flow_entry);
         if (!(BCM_SUCCESS(rv))) {
-            LOG_VERBOSE(BSL_LS_BCM_POLICER,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                         (BSL_META_U(unit,
                                     "Unable to write to macro flow table at index "
                                     "provided\n")));
             return rv;
         } 
     } else {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid flag passed \n")));
         return BCM_E_PARAM;
@@ -7202,13 +7202,13 @@ int bcm_esw_policer_group_create(int unit, bcm_policer_group_mode_t mode,
     rv = _bcm_esw_policer_group_create(unit, mode, num_pools, NULL,
                                                policer_id, npolicers);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to create policer for given mode %d \n"),
                      mode));
         return (rv);
     }
-    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                 (BSL_META_U(unit,
                             "Created policer group of %d with base policer %x \n"),
                  *npolicers, *policer_id));
@@ -7240,13 +7240,13 @@ int bcm_esw_policer_group_create_with_map(int unit,
     rv = _bcm_esw_policer_group_create(unit, mode, num_pools, offset_map,
                                                policer_id, num_policers);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to create policer for given mode %d \n"),
                      mode));
         return (rv);
     }
-    LOG_VERBOSE(BSL_LS_BCM_POLICER,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                 (BSL_META_U(unit,
                             "Created policer group of %d with base policer %x \n"),
                  *num_policers, *policer_id));
@@ -7296,7 +7296,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
         rv = _bcm_esw_policer_group_create(unit, bcmPolicerGroupModeSingle,
                     num_pools, NULL, policer_id, &numbers); 
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to create macro flow policer\n")));
             return rv;
@@ -7307,7 +7307,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
             (mode == bcmPolicerGroupModeCascadeWithCoupling) || 
             (mode == bcmPolicerGroupModeIntPriCascade) ||
             (mode == bcmPolicerGroupModeIntPriCascadeWithCoupling)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to create micro flow policers "
                                   "due to unsupported mode\n")));
@@ -7316,7 +7316,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
         /* validate macroflow policer id */
         rv = _bcm_esw_policer_validate(unit, &macro_flow_policer_id);
         if (!(BCM_SUCCESS(rv))) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Invalid policer Id passed\n")));
             return rv;
@@ -7324,7 +7324,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
         rv = _bcm_esw_get_policer_table_index(unit, macro_flow_policer_id, 
                                                                    &index); 
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to Get policer index for macro flow "
                                   "policer \n")));
@@ -7336,7 +7336,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
         rv = _bcm_esw_policer_group_create(unit, mode, pool, NULL,
                                            policer_id, &numbers); 
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to create micro flow policers\n")));
             return rv;
@@ -7345,7 +7345,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
         rv = _bcm_esw_get_policer_table_index(unit, *policer_id, 
                                                            &micro_flow_index); 
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to Get policer index for micro flow "
                                   "policer \n")));
@@ -7387,7 +7387,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
             rv = _bcm_esw_policer_increment_ref_count(unit, 
                                                       macro_flow_policer_id);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_POLICER,
+                LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Unable to increment ref count for micro flow "
                                       "policer\n")));
@@ -7401,7 +7401,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
                                       MEM_BLOCK_ALL, micro_flow_index,
                                       entry_index_max, buf)) < 0) {
             if (BCM_FAILURE(rv)) {
-                LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                             (BSL_META_U(unit,
                                         "Unable to write to macro flow table at index "
                                         "provided\n")));
@@ -7415,7 +7415,7 @@ int bcm_esw_policer_envelop_group_create(int unit, uint32 flag,
             soc_cm_sfree(unit, buf);
         }
     } else {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid flag passed \n")));
         return BCM_E_PARAM;
@@ -7456,7 +7456,7 @@ _bcm_esw_policer_udf_group_set_offset_map(
         case bcmPolicerGroupModeTypeCascade:
             for (i = 0; i < num_selectors; i++) {
                 if (attr_selectors[i].policer_offset >= num_pools) {
-                    LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                                 "Invalid policer offset \n")));
                     return BCM_E_PARAM;
                 }    
@@ -7471,7 +7471,7 @@ _bcm_esw_policer_udf_group_set_offset_map(
         case bcmPolicerGroupModeTypeCascadeWithCoupling:
             for (i = 0; i < num_selectors; i++) {
                 if (attr_selectors[i].policer_offset >= num_pools/2) {
-                    LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Invalid policer offset \n")));
                     return BCM_E_PARAM;
                 }    
@@ -7515,39 +7515,39 @@ _bcm_esw_policer_udf_custom_group_create(
     rv = bcmi_xgs5_udf_offset_node_get(unit, 
                             attr_selectors[0].udf_id, &udf_offset_node);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Failed to get info related to UDF Id \n")));
         return rv;
     }
 
     /* Matching node not found */
     if (udf_offset_node == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Failed to get info related to UDF Id \n")));
         return BCM_E_NOT_FOUND;
     }
 
     if (!((udf_offset_node->hw_bmap & 0x1) || (udf_offset_node->hw_bmap & 0x2))) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "UDF is not properly configured for policer use \n")));
         return BCM_E_PARAM;
     }    
 #endif
     if (attr_selectors[0].width > 8) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Invalid offset and width passed for UDF   \n")));
         return (BCM_E_PARAM);
     }   
     if ((attr_selectors[0].offset < SVC_METER_UDF_MAX_BIT_POSITION) &&
         ((attr_selectors[0].offset + attr_selectors[0].width) 
                                    >= SVC_METER_UDF_MAX_BIT_POSITION)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Invalid offset and width passed for UDF \n")));
         return (BCM_E_PARAM);
     } else if ((attr_selectors[0].offset < SVC_METER_UDF1_MAX_BIT_POSITION) &&
         ((attr_selectors[0].offset + attr_selectors[0].width) 
                                    >= SVC_METER_UDF1_MAX_BIT_POSITION)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Invalid offset and width passed for UDF \n")));
         return (BCM_E_PARAM);
     }
@@ -7555,7 +7555,7 @@ _bcm_esw_policer_udf_custom_group_create(
 
     mode_attr = sal_alloc(sizeof(bcm_policer_svc_meter_attr_t),"meter mode attr");
     if ( mode_attr == NULL) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Failed to allocate memory for svc meter attr \n")));
         return BCM_E_MEMORY;
     }
@@ -7617,7 +7617,7 @@ _bcm_esw_policer_udf_custom_group_create(
           if (BCM_FAILURE(rv)) {
               GLOBAL_METER_UNLOCK(unit);
               sal_free(mode_attr);
-              LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+              LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Unable to write to offset table  \n")));
               return rv;
          } 
@@ -7696,13 +7696,13 @@ bcm_esw_policer_group_mode_id_create(
                                         total_policers, num_selectors, 
                                         attr_selectors, mode_id);
         if (BCM_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Unable to create policer group  \n")));
             return (rv);
         }
     }
     *mode_id = *mode_id + 1;
-    LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Created policer group with mode id 0x%x \n"), *mode_id));
     return rv;
 
@@ -7745,7 +7745,7 @@ bcm_esw_policer_group_mode_id_destroy(
         return (BCM_E_NONE);
     }     
     if (mode_info.reference_count > 0) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Policer group mode is still in use   \n")));
         return (BCM_E_BUSY);
     } else {    
@@ -7934,7 +7934,7 @@ bcm_esw_policer_custom_group_create(
                             &pid_offset[0]);
     if (!(BCM_SUCCESS(rv))) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Failed to allocate policer   \n")));
         return rv;
     } 
@@ -7948,7 +7948,7 @@ bcm_esw_policer_custom_group_create(
         _bcm_global_meter_free_allocated_policer_on_error(unit, *npolicers,
                              &pid_offset[0], (*policer_id & offset_mask));
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                       "Unable to allocate memeory for policer control   \n")));
         return (BCM_E_MEMORY);
     }
@@ -8001,7 +8001,7 @@ bcm_esw_policer_custom_group_create(
                    policer_control, (*policer_id & _GLOBAL_METER_HASH_MASK));
 
     GLOBAL_METER_UNLOCK(unit);
-    LOG_ERROR(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
+    LOG_BSL_ERROR(BSL_LS_BCM_POLICER, (BSL_META_U(unit,
                               "create policer with id %x \n"), *policer_id));
     return rv; 
 }
@@ -8039,7 +8039,7 @@ int bcm_esw_policer_action_attach_get(int unit, bcm_policer_t policer_id,
     rv = _bcm_global_meter_policer_get(unit, policer_id, &policer_control);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer control for the policer Id "
                               "passed  \n")));
@@ -8051,7 +8051,7 @@ int bcm_esw_policer_action_attach_get(int unit, bcm_policer_t policer_id,
                                                             &meter_entry);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM_METER_TABLE entry \n")));
         return (rv);
@@ -8112,14 +8112,14 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
     /* validate policer id */
     rv = _bcm_esw_policer_validate(unit, &policer_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid Policer Id \n")));
         return (rv);
     }
     /* validate action id */
     if (action_id > soc_mem_index_max(unit, SVM_POLICY_TABLEm)) {
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Invalid Action Id \n")));
         return BCM_E_PARAM;
@@ -8129,7 +8129,7 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
     rv = _bcm_global_meter_policer_get(unit, policer_id, &policer_control);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer control for the policer Id "
                               "passed  \n")));
@@ -8138,7 +8138,7 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
 
     if (policer_control->action_id == action_id) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Action Id passed is different from the one in "
                                 "policer control-%x\n"), policer_control->action_id));
@@ -8148,7 +8148,7 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
     if (global_meter_action_bookkeep[unit][action_id].used !=1)
     {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Action Id is not created \n")));
         return BCM_E_PARAM;
@@ -8159,7 +8159,7 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
                                                              &meter_entry);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to read SVM_METER_TABLE entry \n")));
         return (rv);
@@ -8176,7 +8176,7 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
                                                                  &meter_entry);
     if (BCM_FAILURE(rv)) {
         GLOBAL_METER_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_BCM_POLICER,
+        LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to write SVM_METER_TABLE entry \n")));
         return (rv);
@@ -8197,7 +8197,7 @@ int bcm_esw_policer_action_attach(int unit, bcm_policer_t policer_id,
         rv = soc_mem_write(unit, SVM_METER_TABLEm, MEM_BLOCK_ANY, index, 
                                                             &meter_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_POLICER,
+            LOG_BSL_ERROR(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to write SVM_METER_TABLE entry \n")));
             GLOBAL_METER_UNLOCK(unit);
@@ -8273,7 +8273,7 @@ int  _bcm_esw_policer_config_from_meter_table(int unit, bcm_policer_t policer,
     _GLOBAL_METER_XGS3_ALLOC(policer_control, 
        sizeof (_global_meter_policer_control_t), "Global meter policer");
    if (NULL == policer_control) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to allocate memory for Policer control data "
                               "structure\n")));
@@ -8303,7 +8303,7 @@ int  _bcm_esw_policer_config_from_meter_table(int unit, bcm_policer_t policer,
                                                    policer_index, &data);
            if (!BCM_SUCCESS(rv)) {
                sal_free(policer_control);
-               LOG_DEBUG(BSL_LS_BCM_POLICER,
+               LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Unable to read SVM meter table at "
                                      "index %x\n"), policer_index));
@@ -8355,7 +8355,7 @@ int  _bcm_esw_policer_config_from_meter_table(int unit, bcm_policer_t policer,
     if (!BCM_SUCCESS(rv)) {
          /* De-allocate policer descriptor. */
         sal_free(policer_control);
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to allocate policers with base id %x\n"),
                    policer));
@@ -8398,7 +8398,7 @@ int _bcm_policer_config_reinit_from_table(int unit, soc_mem_t table,void *data)
         rv =_bcm_esw_get_policer_from_table(unit, table, index, 
                                                          data, &policer, 0); 
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to read policer entry from table %d at"
                                   "%d \n"), table, index));
@@ -8416,7 +8416,7 @@ int _bcm_policer_config_reinit_from_table(int unit, soc_mem_t table,void *data)
             if (table == SVM_MACROFLOW_INDEX_TABLEm) {
                 rv = _bcm_esw_policer_increment_ref_count(unit, policer);    
                 if (BCM_FAILURE(rv)) {
-                    LOG_DEBUG(BSL_LS_BCM_POLICER,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                               (BSL_META_U(unit,
                                           "Unable to increment the policer usage "
                                           "ref counter for policer %x\n"), policer));
@@ -8458,7 +8458,7 @@ int _bcm_policer_config_reinit(int unit)
 
     rv = _bcm_policer_config_reinit_from_table(unit, PORT_TABm, &port_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from Port "
                               "table  \n")));
@@ -8466,7 +8466,7 @@ int _bcm_policer_config_reinit(int unit)
     }
     rv = _bcm_policer_config_reinit_from_table(unit, VLAN_TABm, &vlan_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from vlan "
                               "table  \n")));
@@ -8482,7 +8482,7 @@ int _bcm_policer_config_reinit(int unit)
 #endif
     }
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from vlan "
                               "xlate table  \n")));
@@ -8490,7 +8490,7 @@ int _bcm_policer_config_reinit(int unit)
     }
     rv = _bcm_policer_config_reinit_from_table(unit, SOURCE_VPm, &svp_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from svp "
                               "table  \n")));
@@ -8498,7 +8498,7 @@ int _bcm_policer_config_reinit(int unit)
     }
     rv = _bcm_policer_config_reinit_from_table(unit, VFIm, &vfi_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from vfi "
                               "table  \n")));
@@ -8507,7 +8507,7 @@ int _bcm_policer_config_reinit(int unit)
     rv = _bcm_policer_config_reinit_from_table(unit, VFP_POLICY_TABLEm,
                                                             &vfp_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from VFP "
                               "policy table  \n")));
@@ -8516,7 +8516,7 @@ int _bcm_policer_config_reinit(int unit)
     rv = _bcm_policer_config_reinit_from_table(unit, SVM_MACROFLOW_INDEX_TABLEm,
                                                           &macro_flow_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to re-init policer config from Macro flow "
                               "index table  \n")));
@@ -8552,7 +8552,7 @@ int _bcm_policer_ref_count_reinit_from_table(int unit, soc_mem_t table,
         rv =_bcm_esw_get_policer_from_table(unit, table, index, 
                                                         data, &policer, 0); 
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to get policer usage info from table "
                                   "%d at index %d \n"), table, index));
@@ -8561,7 +8561,7 @@ int _bcm_policer_ref_count_reinit_from_table(int unit, soc_mem_t table,
         if (policer > 0) {
             rv = _bcm_esw_policer_increment_ref_count(unit, policer);    
             if (BCM_FAILURE(rv)) {
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Unable to increment the policer usage "
                                       "ref counter for policer %x\n"), policer));
@@ -8600,7 +8600,7 @@ int _bcm_policer_ref_count_reinit(int unit)
 
     rv = _bcm_policer_ref_count_reinit_from_table(unit, PORT_TABm, &port_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer usage info from port "
                               "table \n")));
@@ -8608,7 +8608,7 @@ int _bcm_policer_ref_count_reinit(int unit)
     }
     rv = _bcm_policer_ref_count_reinit_from_table(unit, VLAN_TABm, &vlan_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer usage info from Vlan "
                               "table \n")));
@@ -8624,7 +8624,7 @@ int _bcm_policer_ref_count_reinit(int unit)
 #endif
     }
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer usage info from Vlan "
                               "xlate table \n")));
@@ -8632,7 +8632,7 @@ int _bcm_policer_ref_count_reinit(int unit)
     }
     rv = _bcm_policer_ref_count_reinit_from_table(unit, SOURCE_VPm, &svp_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer usage info from SVP "
                               "table \n")));
@@ -8640,7 +8640,7 @@ int _bcm_policer_ref_count_reinit(int unit)
     }
     rv = _bcm_policer_ref_count_reinit_from_table(unit, VFIm, &vfi_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer usage info from VFI "
                               "table \n")));
@@ -8649,7 +8649,7 @@ int _bcm_policer_ref_count_reinit(int unit)
     rv = _bcm_policer_ref_count_reinit_from_table(unit, VFP_POLICY_TABLEm,
                                                                 &vfp_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_POLICER,
+        LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                   (BSL_META_U(unit,
                               "Unable to get policer usage info from VFP "
                               "policy table \n")));
@@ -9204,7 +9204,7 @@ int _bcm_esw_global_meter_offset_mode_reinit(int unit)
                              selector_count, selector_for_bit_x_en_field_value,
                                               selector_for_bit_x_field_value);
                 if (BCM_FAILURE(rv)) {
-                   LOG_DEBUG(BSL_LS_BCM_POLICER,
+                   LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                              (BSL_META_U(unit,
                                          "Unable to re-init UDF offset mode\n")));
                    return (rv);
@@ -9219,7 +9219,7 @@ int _bcm_esw_global_meter_offset_mode_reinit(int unit)
                                           selector_for_bit_x_en_field_value, 
                                           selector_for_bit_x_field_value);
                 if (BCM_FAILURE(rv)) {
-                   LOG_DEBUG(BSL_LS_BCM_POLICER,
+                   LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                              (BSL_META_U(unit,
                                          "Unable to re-init compressed offset "
                                          "mode\n")));
@@ -9231,7 +9231,7 @@ int _bcm_esw_global_meter_offset_mode_reinit(int unit)
                          selector_for_bit_x_en_field_value,
                          selector_for_bit_x_field_value);
                 if (BCM_FAILURE(rv)) {
-                   LOG_VERBOSE(BSL_LS_BCM_POLICER,
+                   LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                                (BSL_META_U(unit,
                                            "Unable to re-init uncompressed offset "
                                            "mode\n")));
@@ -9242,7 +9242,7 @@ int _bcm_esw_global_meter_offset_mode_reinit(int unit)
             rv = _bcm_esw_policer_get_offset_table_policer_count(unit, 
                                               mode, &group_mode, &npolicers);
             if (BCM_FAILURE(rv)) {
-               LOG_DEBUG(BSL_LS_BCM_POLICER,
+               LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                          (BSL_META_U(unit,
                                      "Unable to re-init number of policers "
                                      "to be allcated in this mode\n")));
@@ -9300,7 +9300,7 @@ int _bcm_esw_global_meter_action_reinit(int unit)
         rv = READ_SVM_POLICY_TABLEm(unit, MEM_BLOCK_ANY, index, &meter_action);
         if (BCM_FAILURE(rv)) {
             GLOBAL_METER_UNLOCK(unit);
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Unable to read SVM_POLICY_TABLE at "
                                   "index %d \n"), index));
@@ -9322,7 +9322,7 @@ int _bcm_esw_global_meter_action_reinit(int unit)
                          meter_action_list_handle[unit], index, 1); 
             if (BCM_FAILURE(rv)) {
                 GLOBAL_METER_UNLOCK(unit);
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "Unable to reserve action id %d in "
                                       "index management list\n"), index));
@@ -9367,7 +9367,7 @@ _bcm_esw_global_meter_policer_sync(int unit)
                           BCM_WB_DEFAULT_VERSION, NULL));
 
     if (NULL == policer_state) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "SCACHE Memory not available \n")));
         return BCM_E_MEMORY;
@@ -9426,7 +9426,7 @@ int _bcm_esw_global_meter_policer_recover_from_scache(int unit)
                                     BCM_WB_DEFAULT_VERSION, NULL));
 
             if (NULL == policer_state) {
-                LOG_DEBUG(BSL_LS_BCM_POLICER,
+                LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                           (BSL_META_U(unit,
                                       "SCACHE Memory not available \n")));
                 return BCM_E_MEMORY;
@@ -9450,7 +9450,7 @@ int _bcm_esw_global_meter_policer_recover_from_scache(int unit)
                                      size, &policer_state,
                                      BCM_WB_DEFAULT_VERSION, NULL);
         if (BCM_FAILURE(rv) && (rv != BCM_E_NOT_FOUND)) {
-            LOG_DEBUG(BSL_LS_BCM_POLICER,
+            LOG_BSL_DEBUG(BSL_LS_BCM_POLICER,
                       (BSL_META_U(unit,
                                   "Scache Memory not available\n")));
             return rv;
@@ -9473,7 +9473,7 @@ int _bcm_esw_global_meter_reinit(int unit)
     int rv = BCM_E_NONE;
     rv =  _bcm_esw_global_meter_offset_mode_reinit(unit);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to reinit offset modes\n")));
         return (rv);
@@ -9482,7 +9482,7 @@ int _bcm_esw_global_meter_reinit(int unit)
        and set policer configuration parameter */ 
     rv = _bcm_policer_config_reinit(unit); 
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to reinit policer configuration\n")));
         return (rv);
@@ -9490,7 +9490,7 @@ int _bcm_esw_global_meter_reinit(int unit)
     /* go through scache and recover policer configuration */
     rv = _bcm_esw_global_meter_policer_recover_from_scache(unit);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to reinit policer configuration\n")));
         return (rv);
@@ -9499,7 +9499,7 @@ int _bcm_esw_global_meter_reinit(int unit)
        mode reference count */
     rv = _bcm_policer_ref_count_reinit(unit); 
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to reinit policer and offset mode ref count\n")));
         return (rv);
@@ -9507,7 +9507,7 @@ int _bcm_esw_global_meter_reinit(int unit)
     /* reinit action table bookkeep data structure */
     rv =  _bcm_esw_global_meter_action_reinit(unit);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_POLICER,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_POLICER,
                     (BSL_META_U(unit,
                                 "Unable to reinit meter action configuration\n")));
         return (rv);

@@ -112,7 +112,7 @@ mbcm_sat_init(int unit)
 #endif /* BCM_SABER2_SUPPORT */
 
 
-    LOG_INFO(BSL_LS_BCM_INIT,
+    LOG_BSL_INFO(BSL_LS_BCM_INIT,
              (BSL_META_U(unit,
                          "ERROR: mbcm_sat_init unit %d: unsupported chip type\n"), unit));
     return SOC_E_UNAVAIL;

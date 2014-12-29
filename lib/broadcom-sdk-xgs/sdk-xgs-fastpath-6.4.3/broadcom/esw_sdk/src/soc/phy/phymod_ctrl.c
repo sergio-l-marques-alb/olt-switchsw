@@ -68,10 +68,10 @@ soc_phy_obj_exists(soc_phy_obj_t **obj_head, int obj_id, soc_phy_obj_t **f_obj)
 {
     soc_phy_obj_t *obj = *obj_head;
 
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("obj_exists 0x%x "), obj_id));
     while (obj) {
-        LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+        LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
                   (BSL_META("[0x%x] "), OBJ_ID(obj)));
         if (OBJ_ID(obj) == obj_id) {
             if (f_obj) {
@@ -81,7 +81,7 @@ soc_phy_obj_exists(soc_phy_obj_t **obj_head, int obj_id, soc_phy_obj_t **f_obj)
         }
         obj = obj->next;
     }
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("\n")));
     return 0;
 }
@@ -98,18 +98,18 @@ soc_phy_obj_insert(soc_phy_obj_t **obj_head, soc_phy_obj_t *new_obj)
     new_obj->next = NULL;
 
     while (obj && obj->next) {
-        LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+        LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
                   (BSL_META("[0x%x] "), OBJ_ID(obj)));
         if (OBJ_ID(obj->next) > OBJ_ID(new_obj)) {
             break;
         }
         obj = obj->next;
     }
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("\n")));
 
     if (obj) {
-        LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+        LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
                   (BSL_META("end_id 0x%x\n"), OBJ_ID(obj)));
         if (OBJ_ID(obj) > OBJ_ID(new_obj)) {
             new_obj->next = obj;
@@ -137,7 +137,7 @@ soc_phy_obj_delete(soc_phy_obj_t **obj_head, soc_phy_obj_t *del_obj)
     prev = NULL;
     while (obj) {
         if (OBJ_ID(obj) == OBJ_ID(del_obj)) {
-            LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+            LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
                       (BSL_META("delete 0x%x\n"), OBJ_ID(obj)));
             if (prev) {
                 prev->next = obj->next;
@@ -219,7 +219,7 @@ soc_phymod_core_create(int unit, int core_id, soc_phymod_core_t **core)
     soc_phymod_core_t *new_core;
     soc_phy_obj_t *core_obj;
 
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("core_create 0x%x\n"), core_id));
     if (OBJ_ID_VALID(core_id) &&
         soc_phy_obj_exists(&core_list[unit], core_id, NULL)) {
@@ -272,7 +272,7 @@ soc_phymod_core_find_by_id(int unit, int core_id, soc_phymod_core_t **core)
         return SOC_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("core_find 0x%x\n"), core_id));
     if (OBJ_ID_VALID(core_id) &&
         soc_phy_obj_exists(&core_list[unit], core_id, &core_obj)) {
@@ -289,7 +289,7 @@ soc_phymod_phy_create(int unit, int phy_id, soc_phymod_phy_t **phy)
     soc_phymod_phy_t *new_phy;
     soc_phy_obj_t *phy_obj;
 
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("phy_create 0x%x\n"), phy_id));
     if (OBJ_ID_VALID(phy_id) &&
         soc_phy_obj_exists(&phy_list[unit], phy_id, NULL)) {
@@ -339,7 +339,7 @@ soc_phymod_phy_find_by_id(int unit, int phy_id, soc_phymod_phy_t **phy)
         return SOC_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_PHYMOD,
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHYMOD,
               (BSL_META("phy_find 0x%x\n"), phy_id));
     if (OBJ_ID_VALID(phy_id) &&
         soc_phy_obj_exists(&phy_list[unit], phy_id, &phy_obj)) {

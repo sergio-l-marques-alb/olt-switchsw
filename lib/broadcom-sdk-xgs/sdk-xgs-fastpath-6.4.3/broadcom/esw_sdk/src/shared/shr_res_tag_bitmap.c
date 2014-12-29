@@ -114,30 +114,30 @@ shr_res_tag_bitmap_create(shr_res_tag_bitmap_handle_t *handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory out argument must not be NULL\n")));
         return _SHR_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must have a positive number of elements\n")));
         return _SHR_E_PARAM;
     }
     if (0 > tag_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("tag size must not be negative\n")));
         return _SHR_E_PARAM;
     } else if (0 == tag_size) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META("tag size zero is not useful, but okay...\n")));
     }
     if (0 >= grain_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must have at least one element per grain\n")));
         return _SHR_E_PARAM;
     }
     if (count % grain_size) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("count %d is not an integral number of grains %d\n"),
                    count,
                    grain_size));
@@ -152,7 +152,7 @@ shr_res_tag_bitmap_create(shr_res_tag_bitmap_handle_t *handle,
     desc = sal_alloc(size, "tagged bitmap resource data");
     if (!desc) {
         /* alloc failed */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to allocate %u bytes for data\n"),
                    size));
         return _SHR_E_MEMORY;
@@ -176,7 +176,7 @@ shr_res_tag_bitmap_destroy(shr_res_tag_bitmap_handle_t handle)
         sal_free(handle);
         return _SHR_E_NONE;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to free NULL handle\n")));
         return _SHR_E_PARAM;
     }
@@ -345,17 +345,17 @@ shr_res_tag_bitmap_alloc_tag(shr_res_tag_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory in/out argument must not be NULL\n")));
         return _SHR_E_PARAM;
     }
     if (count + handle->used > handle->count) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("not enough free elements (%d) to satisfy request"
                    " for %d element block\n"),
                    handle->count - handle->used,
@@ -391,7 +391,7 @@ shr_res_tag_bitmap_alloc_tag(shr_res_tag_bitmap_handle_t handle,
                     result = _SHR_E_NONE;
                     break;
                 case _SHR_E_EMPTY:
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META("proposed block %p base %d count %d"
                                    " does not exist\n"),
                                    (void*)handle,
@@ -408,7 +408,7 @@ shr_res_tag_bitmap_alloc_tag(shr_res_tag_bitmap_handle_t handle,
                      *  exists in the range.  Both cases imply a merge or
                      *  resize, so both are handled here.
                      */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " would merge/expand existing"
                                " block(s)\n"),
@@ -419,7 +419,7 @@ shr_res_tag_bitmap_alloc_tag(shr_res_tag_bitmap_handle_t handle,
                     break;
                 default:
                     /* should never see this */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unexpected result checking proposed"
                                " block: %d (%s)\n"),
                                result,
@@ -434,7 +434,7 @@ shr_res_tag_bitmap_alloc_tag(shr_res_tag_bitmap_handle_t handle,
                 SHR_BITTEST_RANGE(handle->data, index, count, temp);
                 if (temp) {
                     /* in use; can't do WITH_ID alloc of this block */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " tag %p would overlap existing"
                                " block(s)\n"),
@@ -447,7 +447,7 @@ shr_res_tag_bitmap_alloc_tag(shr_res_tag_bitmap_handle_t handle,
                 if (_SHR_E_NONE == result) {
                     if (_shr_res_tag_bitmap_tag_check(handle, index, count, tag)) {
                         /* grain at one end or other has mismatching tag */
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META("proposed block %p base %d count %d"
                                    " tag %p would share end elements"
                                    " with another block that has a"
@@ -634,17 +634,17 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return _SHR_E_PARAM;
     }
     if (!elem) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("obligatory in/out argument must not be NULL\n")));
         return _SHR_E_PARAM;
     }
     if (count + handle->used > handle->count) {
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META("not enough free elements (%d) to satisfy request"
                    " for %d element block\n"),
                    handle->count - handle->used,
@@ -678,7 +678,7 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
                 offset = ((*elem) - handle->low) % align;
             }
             if (offset != offs) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("provided first element %d does not conform"
                            " to provided align %d + offset %d values"
                            " (actual offset = %d)\n"),
@@ -701,7 +701,7 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
                     result = _SHR_E_NONE;
                     break;
                 case _SHR_E_EMPTY:
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META("proposed block %p base %d count %d"
                                    " does not exist\n"),
                                    (void*)handle,
@@ -718,7 +718,7 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
                      *  exists in the range.  Both cases imply a merge or
                      *  resize, so both are handled here.
                      */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " would merge/expand existing"
                                " block(s)\n"),
@@ -729,7 +729,7 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
                     break;
                 default:
                     /* should never see this */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("unexpected result checking proposed"
                                " block:  %d (%s)\n"),
                                result,
@@ -744,7 +744,7 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
                 SHR_BITTEST_RANGE(handle->data, index, count, temp);
                 if (temp) {
                     /* in use; can't do WITH_ID alloc of this block */
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("proposed block %p base %d count %d"
                                " tag %p would overlap existing"
                                " block(s)\n"),
@@ -757,7 +757,7 @@ shr_res_tag_bitmap_alloc_align_tag(shr_res_tag_bitmap_handle_t handle,
                 if (_SHR_E_NONE == result) {
                     if (_shr_res_tag_bitmap_tag_check(handle, index, count, tag)) {
                         /* grain at one end or other has mismatching tag */
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META("proposed block %p base %d count %d"
                                    " tag %p would share end elements"
                                    " with another block that has a"
@@ -953,19 +953,19 @@ shr_res_tag_bitmap_free(shr_res_tag_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return _SHR_E_PARAM;
     }
     if (elem < handle->low) {
         /* not valid ID */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid staring element %d\n"),
                    elem));
         return _SHR_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must free a positive number of elements\n")));
         return _SHR_E_PARAM;
     }
@@ -1007,19 +1007,19 @@ shr_res_tag_bitmap_check(shr_res_tag_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to alloc from NULL descriptor\n")));
         return _SHR_E_PARAM;
     }
     if (elem < handle->low) {
         /* not valid ID */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid staring element %d\n"),
                    elem));
         return _SHR_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check a positive number of elements\n")));
         return _SHR_E_PARAM;
     }
@@ -1054,19 +1054,19 @@ shr_res_tag_bitmap_check_all_tag(shr_res_tag_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to check from NULL descriptor\n")));
         return _SHR_E_PARAM;
     }
     if (elem < handle->low) {
         /* not valid ID */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid staring element %d\n"),
                    elem));
         return _SHR_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check a positive number of elements\n")));
         return _SHR_E_PARAM;
     }
@@ -1098,19 +1098,19 @@ shr_res_tag_bitmap_check_all(shr_res_tag_bitmap_handle_t handle,
 
     /* check arguments */
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("unable to check from NULL descriptor\n")));
         return _SHR_E_PARAM;
     }
     if (elem < handle->low) {
         /* not valid ID */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("invalid staring element %d\n"),
                    elem));
         return _SHR_E_PARAM;
     }
     if (0 >= count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must check a positive number of elements\n")));
         return _SHR_E_PARAM;
     }
@@ -1144,7 +1144,7 @@ shr_res_tag_bitmap_dump(const shr_res_tag_bitmap_handle_t handle)
     int tagStart;
 
     if (!handle) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("must provide non-NULL handle\n")));
         return _SHR_E_PARAM;
     }

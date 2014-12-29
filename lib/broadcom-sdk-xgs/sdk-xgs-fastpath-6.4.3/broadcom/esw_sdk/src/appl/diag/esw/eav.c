@@ -563,7 +563,7 @@ eav_tx(int unit, args_t *args)
     
     if ((rv = bcm_tx(unit, &pkt, NULL)) != BCM_E_NONE) {        
         soc_cm_sfree(unit, pkt.alloc_ptr);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               unit, bcm_errmsg(rv)));        

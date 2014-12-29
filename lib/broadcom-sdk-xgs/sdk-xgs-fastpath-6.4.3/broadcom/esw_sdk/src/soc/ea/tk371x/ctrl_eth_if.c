@@ -110,14 +110,14 @@ ether_ctrl_init(int unit)
         pd = &oam_rx_dma[i];
         if ((pd->oam_dv = soc_eth_dma_dv_alloc(attached_switch_unit, 
                 DV_RX, 1)) == NULL) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "ERROR: Out of memory at dv #%d\n"),i));  
             return;
         }
         if ((pd->buf = soc_cm_salloc(attached_switch_unit, 
                     EA_OAM_PKT_SIZE_DFLT, "oam rx"))==NULL) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "ERROR: Out of memory at buf #%d\n"),i)); 
             return;

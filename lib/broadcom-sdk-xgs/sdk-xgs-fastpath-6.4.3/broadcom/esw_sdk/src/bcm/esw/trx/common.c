@@ -3911,7 +3911,7 @@ _bcm_esw_flex_stat_memacc_init(int unit)
         if (BCM_SUCCESS(rv) &&
             (0 == SOC_MEMACC_FIELD_LENGTH(&(_bcm_flex_stat_memacc[unit]
                                          [memacc_map[mam_ix].type_index])))) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "bcm_esw_flex_stat_memacc_init: " 
                                     "Invalid memacc field info.\n")));
@@ -4003,7 +4003,7 @@ _bcm_esw_flex_stat_collection(int unit,
             curr_ptr = _bcm_flex_stat_buff[unit][i][j]
                                           [_bcm_flex_stat_buff_toggle];
             if (NULL == curr_ptr) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "bcm_esw_flex_stat_callback: " 
                                         "Bad mem ptr - unit: %d, type: %d, dir: %d\n"),
@@ -4017,7 +4017,7 @@ _bcm_esw_flex_stat_collection(int unit,
                 curr_ptr_y = _bcm_flex_stat_buff_y[unit][i][j]
                                  [_bcm_flex_stat_buff_toggle];
                 if (NULL == curr_ptr_y) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "bcm_esw_flex_stat_callback: " 
                                             "Bad mem ptr - unit: %d, type: %d, dir: %d\n"),
@@ -4084,7 +4084,7 @@ _bcm_esw_flex_stat_collection(int unit,
                          _BCM_FS_MEMACC_NUM]);
                     break;
                 default:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "bcm_esw_flex_stat_callback: " 
                                             "Bad mem type (%d) - unit: %d, "
@@ -4104,7 +4104,7 @@ _bcm_esw_flex_stat_collection(int unit,
                     rv = soc_mem_read(unit, mem_x, MEM_BLOCK_ANY,
                                       fs_idx, &flex_ctr_entry);
                     if (rv < 0) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                    (BSL_META_U(unit,
                                                "bcm_esw_flex_stat_callback: " 
                                                "Mem read failed.\n")));
@@ -4118,7 +4118,7 @@ _bcm_esw_flex_stat_collection(int unit,
                                       fs_idx, &flex_ctr_entry_y);
 
                     if (rv < 0) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                    (BSL_META_U(unit,
                                                "bcm_esw_flex_stat_callback: " 
                                                "Mem read failed.\n")));
@@ -4135,7 +4135,7 @@ _bcm_esw_flex_stat_collection(int unit,
                                             soc_mem_index_max(unit, mem_x), 
                                             curr_ptr);
                     if (rv < 0) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                    (BSL_META_U(unit,
                                                "bcm_esw_flex_stat_callback: " 
                                                "Mem read failed.\n")));
@@ -4148,7 +4148,7 @@ _bcm_esw_flex_stat_collection(int unit,
                                             soc_mem_index_max(unit, mem_y), 
                                             curr_ptr_y);
                     if (rv < 0) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                    (BSL_META_U(unit,
                                                "bcm_esw_flex_stat_callback: " 
                                                "Mem read failed.\n")));
@@ -4196,7 +4196,7 @@ _bcm_esw_flex_stat_collection(int unit,
                         [_BCM_FS_MEMACC_VINTF_EGR_BYTE]);
                     break;
                 default:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "bcm_esw_flex_stat_callback: " 
                                             "Bad mem type (%d) - unit: %d, "
@@ -4216,7 +4216,7 @@ _bcm_esw_flex_stat_collection(int unit,
                     rv = soc_mem_read(unit, mem, MEM_BLOCK_ANY,
                                       fs_idx, &flex_ctr_entry);
                     if (rv < 0) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                    (BSL_META_U(unit,
                                                "bcm_esw_flex_stat_callback: " 
                                                "Mem read failed.\n")));
@@ -4233,7 +4233,7 @@ _bcm_esw_flex_stat_collection(int unit,
                                             soc_mem_index_max(unit, mem), 
                                             curr_ptr);
                     if (rv < 0) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                    (BSL_META_U(unit,
                                                "bcm_esw_flex_stat_callback: " 
                                                "Mem read failed.\n")));
@@ -6600,7 +6600,7 @@ _bcm_td_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
     bcm_mac_t mac_mask;
     uint32 port_mask;
 
-    LOG_INFO(BSL_LS_BCM_L2,
+    LOG_BSL_INFO(BSL_LS_BCM_L2,
              (BSL_META_U(unit,
                          "_bcm_td_my_station_lookup: unit=%d "
                          "mac=%02x:%02x:%02x:%02x:%02x:%02x vlan=%d port=%d "
@@ -6738,7 +6738,7 @@ _bcm_td_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
         if (i == entry_words) {
             /* Target entry is found, no more action needed */
             *entry_index = index0;
-            LOG_INFO(BSL_LS_BCM_L2,
+            LOG_BSL_INFO(BSL_LS_BCM_L2,
                      (BSL_META_U(unit,
                                  "_bcm_td_my_station_lookup: found entry_index=%d\n"),
                       *entry_index));
@@ -6761,7 +6761,7 @@ _bcm_td_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
                     /* Both free entry and alternate entry are found */
                     *entry_index = index0;
                     *alt_index = index1;
-                    LOG_INFO(BSL_LS_BCM_L2,
+                    LOG_BSL_INFO(BSL_LS_BCM_L2,
                              (BSL_META_U(unit,
                                          "_bcm_td_my_station_lookup: not found "
                                          "entry_index=%d alt_index=%d\n"),
@@ -6787,7 +6787,7 @@ _bcm_td_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
                 /* both free entry and alternate entry are found */
                 *entry_index = free_index;
                 *alt_index = index0;
-                LOG_INFO(BSL_LS_BCM_L2,
+                LOG_BSL_INFO(BSL_LS_BCM_L2,
                          (BSL_META_U(unit,
                                      "_bcm_td_my_station_lookup: not found "
                                      "entry_index=%d alt_index=%d\n"),
@@ -6804,7 +6804,7 @@ _bcm_td_my_station_lookup(int unit, bcm_mac_t mac, bcm_vlan_t vlan,
     if (alt_index != NULL) {
         *alt_index = index1;
     }
-    LOG_INFO(BSL_LS_BCM_L2,
+    LOG_BSL_INFO(BSL_LS_BCM_L2,
              (BSL_META_U(unit,
                          "_bcm_td_my_station_lookup: not found "
                          "entry_index=%d alt_index=%d\n"),

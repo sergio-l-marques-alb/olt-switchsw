@@ -389,7 +389,7 @@ _bcm_tr2_wlan_cli_port_add(int unit, args_t * a)
     if (ifl_s) {
         ifl = _bcm_tr2_wlan_cli_parse_flags(ifl_s, BCM_WLAN_PORT);
     }
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Adding port %d FLaGs=%s PhysPort=%d icl=%d\n"
                          "BSSid=%02x:%02x:%02x:%02x:%02x:%02x\n"
@@ -401,13 +401,13 @@ _bcm_tr2_wlan_cli_port_add(int unit, args_t * a)
     bcm_wlan_port_t_init(&wport);
     if (ifl & (BCM_WLAN_PORT_REPLACE | BCM_WLAN_PORT_WITH_ID)) {
         BCM_GPORT_WLAN_PORT_ID_SET(wport.wlan_port_id, port);
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "wlan port=%08x\n"), port));
     }
     WLAN_ROE(bcm_port_gport_get, (unit, phys_port, &gp));
     wport.port = gp;
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "gport_get gp=%08x\n"), gp));
     wport.flags = ifl;
@@ -503,7 +503,7 @@ _bcm_tr2_wlan_cli_client_add(int unit, args_t * a)
     if (cfl_s) {
         cfl = _bcm_tr2_wlan_cli_parse_flags(cfl_s, BCM_WLAN_CLIENT);
     }
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Adding client FLaGs=%s WlanPort=%d\n"
                          "MAC=%02x:%02x:%02x:%02x:%02x:%02x\n"
@@ -793,7 +793,7 @@ _bcm_tr2_wlan_cli_mcast_group_create(int unit, args_t * a)
     PT_INIT(unit, pt);
     PT_ADD(pt, "McastGroup", PQ_INT, &mcast_group);
     PT_PARSE(a, pt);
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "mcast group %d\n"), mcast_group));
     flags |= BCM_MULTICAST_WITH_ID;
@@ -817,7 +817,7 @@ _bcm_tr2_wlan_cli_mcast_group_del(int unit, args_t * a)
     PT_PARSE(a, pt);
     PT_DONE(pt);
     WLAN_ROE(bcm_multicast_destroy, (unit, mcast_group));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "mcast group %d destroyed\n"), mcast_group));
 
@@ -857,7 +857,7 @@ _bcm_tr2_wlan_cli_mcast_group_port_add_del(int unit, args_t * a)
     WLAN_ROE(bcm_port_gport_get, (unit, port, &gp));
     WLAN_ROE(bcm_multicast_wlan_encap_get,
              (unit, mcast_group, gp, wlan_port, &encap_id));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "WLAN_CLI: wlan mcast group port %s wlan"
                          "group 0x%x gport 0x%0x wlan_port 0x%08xnh %d\n"),
@@ -895,7 +895,7 @@ _bcm_tr2_wlan_cli_mcast_group_addr(int unit, args_t * a)
     l2_addr.l2mc_group = mcast_group;
     PT_DONE(pt);
     WLAN_ROE(bcm_l2_addr_add, (unit, &l2_addr));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "mcast l2 addr add=%02x:%02x:%02x:%02x:%02x:%02x \n"),
               mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]));

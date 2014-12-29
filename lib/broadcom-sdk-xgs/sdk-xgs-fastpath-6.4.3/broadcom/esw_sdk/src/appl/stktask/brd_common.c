@@ -266,25 +266,25 @@ _bcm_board_trunk_make(int unit, _trunk_info_t *trunk,
                 if (rv == BCM_E_NOT_FOUND) {
                     if (tid_available < 0) {
                         tid_available = tid_offset;
-                        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                                     (BSL_META_U(unit,
                                     "Available trunk %d\n"),
                                      tid));
                     } else {
-                        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                                     (BSL_META_U(unit,
                                     "Free trunk %d\n"),
                                      tid));
                     }
                     status[tid_offset] = TRUNK_STATUS_FREE;
                 } else if (rv == BCM_E_PARAM) {
-                    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                                 (BSL_META_U(unit,
                                 "Illegal trunk %d\n"),
                                  tid));
                     break;
                 } else {
-                    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                                 (BSL_META_U(unit,
                                 "Trunk %d error %d\n"),
                                  tid, rv));
@@ -293,7 +293,7 @@ _bcm_board_trunk_make(int unit, _trunk_info_t *trunk,
             } else if (_bcm_board_trunk_match(unit, trunk, &current)) {
                 /* have a trunk that matches requirements */
                 status[tid_offset] = TRUNK_STATUS_BUSY;
-                LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                             (BSL_META_U(unit,
                             "Reusing trunk %d\n"),
                              tid));
@@ -306,7 +306,7 @@ _bcm_board_trunk_make(int unit, _trunk_info_t *trunk,
     }
 
     if (tid_available < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META_U(unit,
                     "No free trunk was found\n")));
         return BCM_E_UNAVAIL;
@@ -318,7 +318,7 @@ _bcm_board_trunk_make(int unit, _trunk_info_t *trunk,
                                       trunk->num_ports,
                                       trunk->member));
     status[tid_available] = TRUNK_STATUS_BUSY;
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META_U(unit,
                 "Created trunk %d\n"),
                  tid));
@@ -340,7 +340,7 @@ _bcm_board_trunk_remove(int unit,
             if (BCM_FAILURE(rv)) {
                 break;
             }
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META_U(unit,
                         "Destroyed trunk %d\n"),
                          tid));
@@ -426,7 +426,7 @@ _bcm_board_trunk_unit(int unit, cpudb_entry_t *entry, cpudb_ref_t db_ref,
             }
         }
         if (tid != start) {
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META_U(unit,
                         "TOPO: destroyed %d trunks\n"),
                          tid-start));
@@ -779,7 +779,7 @@ bcm_board_module_filter(int unit,
             nh_tx_src_mod_port_get(unit, port, &nhmod, &nhport) < 0 ||
             nhmod < 0) {
             if (nh_tx_src_get(&nhmod, &nhport) < 0 || nhmod < 0) {
-                LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                             (BSL_META_U(unit,
                             "TOPO: Could not get default NH src modid.\n")));
             }
@@ -955,7 +955,7 @@ _bcm_board_xgs_stk_port_add(int funit, topo_cpu_t *tp_cpu, int *unitport)
         BCM_IF_ERROR_RETURN(bcm_board_internal_stk_port_add(funit, port));
 
         if (bcm_stk_port_get(unit, BCM_STK_USE_HG_IF, &flags) < 0) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META_U(unit,
                      "Could not get IPIC stack info for unit %d\n"),
                       unit));
@@ -1018,7 +1018,7 @@ _bcm_board_xgs_connection_add(int funit,
 
         sport = connection[unit].from;
         if (bcm_stk_port_get(unit, sport, &flags) < 0) {
-            LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META_U(unit,
                      "Could not get stack info for (%d,%d)\n"),
                       unit, sport));
@@ -1426,7 +1426,7 @@ bcm_board_topo_trunk_failover(topo_cpu_t *topo_cpu,
         BCM_IF_ERROR_RETURN(bcm_mirror_to_get(unit, &port));
         if (port == fail_sp) {
             if (BCM_FAILURE(bcm_mirror_to_set(unit, repl_sp))) {
-                LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                           (BSL_META_U(unit,
                           "Cannot set MTP on unit %d, port %d\n"),
                            unit, repl_sp));

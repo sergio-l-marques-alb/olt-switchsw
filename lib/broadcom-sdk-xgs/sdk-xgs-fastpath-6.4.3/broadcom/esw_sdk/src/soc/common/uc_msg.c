@@ -276,7 +276,7 @@ int _soc_cmic_uc_msg_process_status(int unit, int uC) {
         msg.words[1] = soc_cmic_mcs_read(unit,CMICM_DATA_WORD1_BASE(area_in) +
                             MOS_MSG_DATA_SIZE * i);  
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "UC%d: msg recv 0x%08x 0x%08x\n"),
                      uC, msg.words[0], msg.words[1]));
@@ -285,7 +285,7 @@ int _soc_cmic_uc_msg_process_status(int unit, int uC) {
 	msg.words[0] = soc_ntohl(msg.words[0]);
 	msg.words[1] = soc_ntohl(msg.words[1]);
         
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "UC%d: msg recv mclass 0x%02x sclass 0x%02x len 0x%04x data 0x%08x\n"),
                      uC, msg.s.mclass, msg.s.subclass,
@@ -311,13 +311,13 @@ int _soc_cmic_uc_msg_process_status(int unit, int uC) {
             } else {
                 /* Malloc failed, no room for the message - NACK it */
                 MOS_MSG_ACK_BIT_CLEAR(soc->uc_msg_prev_status_out[uC], i);
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Could not malloc, Sending NACK, Msg Class - %d\n"), msg.s.mclass));
             }
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "UC%d: Ack slot %d 0x%08x 0x%08x\n"),
                      uC, i, msg.words[0], msg.words[1]));
@@ -452,7 +452,7 @@ _soc_cmic_uc_msg_system_thread(void *unit_vp) {
                     }
                 }
 
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit, "SYSTEM INFO REPLY (%08x)\n"),
                              (unsigned)send.s.data));
 
@@ -536,7 +536,7 @@ _soc_cmic_uc_msg_thread(void *unit_vp) {
     soc->swIntr[uC_intr] = sal_sem_create("SW interrupt",
                                        sal_sem_BINARY, 0);
     if (soc->swIntr[CMICM_SW_INTR_UC(uC)] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                        "soc_cmic_uc_msg_thread: failed (swIntr) %d\n"), uC));
         sal_mutex_give(soc->uc_msg_control);
@@ -599,7 +599,7 @@ _soc_cmic_uc_msg_thread(void *unit_vp) {
                is clearing memory to clear ECC errors and the first write
                is lost.  This is not needed after the first phase since
                we see the uKernel msg area change state. */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "UC%d messaging system: reset\n"), uC));
             soc->uc_msg_prev_status_out[uC] = MOS_MSG_RESET_STATE;
@@ -616,7 +616,7 @@ _soc_cmic_uc_msg_thread(void *unit_vp) {
         }
         
         /* Proceed to INIT state */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "UC%d messaging system: init\n"), uC));
         MOS_MSG_STATUS_STATE_W(soc->uc_msg_prev_status_out[uC], MOS_MSG_INIT_STATE);
@@ -648,7 +648,7 @@ _soc_cmic_uc_msg_thread(void *unit_vp) {
         }
 
         /* Go to the ready state */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "UC%d messaging system: ready\n"), uC));
         MOS_MSG_STATUS_STATE_W(soc->uc_msg_prev_status_out[uC], MOS_MSG_READY_STATE);
@@ -792,7 +792,7 @@ soc_cmic_sw_intr(int unit, uint32 rupt_num)
     soc_control_t       *soc = SOC_CONTROL(unit);
     int                 cmc = SOC_PCI_CMC(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "SW Intr %d\n"), rupt_num));
 
@@ -959,7 +959,7 @@ soc_cmic_uc_msg_uc_start(int unit, int uC) {
     soc->uc_msg_send_queue_sems[uC] =
         sal_sem_create("uC msg queue", sal_sem_COUNTING, 0);
     if (soc->uc_msg_send_queue_sems[uC] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                        "soc_cmic_uc_msg_thread: failed (uC msg) %d\n"), uC));
         sal_mutex_give(soc->uc_msg_control);
@@ -1119,7 +1119,7 @@ int soc_cmic_uc_msg_send(int unit, int uC, mos_msg_data_t *msg,
             soc->uc_msg_ack_data[uC][index] = &ack;
             soc->uc_msg_ack_sems[uC][index] = ack_sem;
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "UC%d: msg send mclass 0x%02x sclass 0x%02x len 0x%04x data 0x%08x\n"),
                          uC, msg->s.mclass, msg->s.subclass,
@@ -1128,7 +1128,7 @@ int soc_cmic_uc_msg_send(int unit, int uC, mos_msg_data_t *msg,
 	    omsg.words[1] = soc_htonl(msg->words[1]);
 
             /* Update the outbound area that contains the new message */
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "UC%d: send slot %d 0x%08x 0x%08x\n"),
                          uC, index, omsg.words[0], omsg.words[1]));
@@ -1213,14 +1213,14 @@ static int soc_cmic_uc_msg_receive_internal(int unit, int uC, uint8 mclass,
         return SOC_E_INIT;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "msg wait mclass %d\n"),
                  mclass));
 
     /* Wait/Check if msg available to be received */
     if ( !soc->uc_msg_rcv_sems[uC][mclass] || sal_sem_take(soc->uc_msg_rcv_sems[uC][mclass], timeout) ) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "semtake  - uc_msg_rcv_sems failed\n")));
         return SOC_E_TIMEOUT;
@@ -1234,7 +1234,7 @@ static int soc_cmic_uc_msg_receive_internal(int unit, int uC, uint8 mclass,
 
     /* Block others for a bit */
     if (sal_mutex_take(soc->uc_msg_control, soc->uc_msg_ctl_timeout)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "semtake  - uc_msg_control timed out\n")));
         return SOC_E_TIMEOUT;
@@ -1247,7 +1247,7 @@ static int soc_cmic_uc_msg_receive_internal(int unit, int uC, uint8 mclass,
         msg->words[1] = msg_node->msg_data.words[1];
         sal_free(msg_node);
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "NULL node returned from LL\n")));
 
@@ -1262,7 +1262,7 @@ static int soc_cmic_uc_msg_receive_internal(int unit, int uC, uint8 mclass,
     sal_mutex_give(soc->uc_msg_control);
 
     if ((rc == SOC_E_NONE) && (msg->s.mclass != mclass)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Reply from wrong mclass\n")));
         rc = SOC_E_INTERNAL;            /* Reply from wrong mclass */
@@ -1323,7 +1323,7 @@ int soc_cmic_uc_msg_receive_cancel(int unit, int uC, int msg_class)
 
    /* Block others for a bit */
     if (sal_mutex_take(soc->uc_msg_control, soc->uc_msg_ctl_timeout)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "semtake  - uc_msg_control timed out\n")));
         return SOC_E_INTERNAL;

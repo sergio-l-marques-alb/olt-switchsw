@@ -356,7 +356,7 @@ drv_polar_dev_prop_set(int unit, uint32 prop_type, uint32 prop_val)
                     sal_usleep(1000);
                 }
                 if (i == DEV_POLAR_SINGAL_DETECTION_RETRY) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "The signal detection is not clear.\n")));
                     return SOC_E_TIMEOUT;

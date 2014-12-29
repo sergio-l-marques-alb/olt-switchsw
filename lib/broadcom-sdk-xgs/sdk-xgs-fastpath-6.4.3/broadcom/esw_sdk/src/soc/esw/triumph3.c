@@ -1467,42 +1467,42 @@ _soc_tr3_print_parity_fifo_details(int unit, uint8 regmem, soc_block_t blk, uint
     if (bsl_check(bslLayerSoc, bslSourceCommon, bslSeverityError, unit)) {
         switch (type) {
         case 0:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: SOP cell.\n")));
             break;
         case 1:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: MOP cell.\n")));
             break;
         case 2:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: EOP cell.\n")));
             break;
         case 3:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: SBUS transaction.\n")));
             break;
         case 4:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Error in: miscellaneous transaction.\n")));
             break;
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid error reported !!\n")));
             break;
         }
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Blk: %d, Address: 0x%08x, base: 0x%x, stage: %d, index: %d\n"), 
                               sblk, address, base, stage, index));
         if (!regmem) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Mem hwbase: 0x%02x [%s], ISM hwbase: 0x%x\n"), hwmbase,
                                     (hwmbase < 0x35) ? 
@@ -1511,7 +1511,7 @@ _soc_tr3_print_parity_fifo_details(int unit, uint8 regmem, soc_block_t blk, uint
                          (blk == SOC_BLK_ISM) ? hwmbase_ism : 0));
         }
         if (drop) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER caused packet drop.\n")));
         }
@@ -1566,20 +1566,20 @@ _soc_tr3_process_parity_fifo(int unit, soc_block_t blk, char *prefix_str)
                 sblk = SOC_BLOCK2SCH(unit, bidx);
                 break;
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), prefix_str));
             if (soc_mem_field32_get(unit, mem, entry, MULTIPLEf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Multiple: ")));
             }
             if (regmem) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Reg: ")));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Mem: ")));
             }
@@ -1587,23 +1587,23 @@ _soc_tr3_process_parity_fifo(int unit, soc_block_t blk, char *prefix_str)
             spci.double_bit = 0;
             switch (ecc_parity) {
             case 0:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Parity error..\n"))); 
                 break;
             case 1:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Corrected single bit ECC error..\n"))); 
                 break;
             case 2:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Double or Multiple bit ECC error..\n"))); 
                 spci.double_bit = 1;
                 break;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid SER issue !!\n")));
                 return SOC_E_INTERNAL;
@@ -1679,7 +1679,7 @@ _soc_tr3_process_parity_fifo(int unit, soc_block_t blk, char *prefix_str)
                     spci.index = index;
                     (void)soc_ser_correction(unit, &spci);
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s SER mem address un-accessable !!\n"), blk_str));
                     _soc_tr3_print_parity_fifo_details(unit, 0, blk, sblk,
@@ -1710,7 +1710,7 @@ _soc_tr3_process_parity_fifo(int unit, soc_block_t blk, char *prefix_str)
                     spci.index = index;
                     (void)soc_ser_correction(unit, &spci);
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s SER reg address un-accessable !!\n"), blk_str));
                     _soc_tr3_print_parity_fifo_details(unit, 1, blk, sblk,
@@ -1719,7 +1719,7 @@ _soc_tr3_process_parity_fifo(int unit, soc_block_t blk, char *prefix_str)
                 }
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Got invalid mem pop from %s !!\n"),
                                   SOC_MEM_NAME(unit, mem)));
@@ -1798,12 +1798,12 @@ _soc_tr3_parity_process_ecc(int unit, soc_mem_t mem, uint8 force_check, int port
             if (double_bit) {
                 if (!mt) {
                     spci.double_bit = 1;
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s %s entry %d double-bit ECC error\n"),
                                prefix_str, mem_str_ptr, entry_idx));
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s %s table %d entry %d double-bit ECC error\n"),
                                prefix_str, mem_str_ptr, ti, entry_idx));
@@ -1812,7 +1812,7 @@ _soc_tr3_parity_process_ecc(int unit, soc_mem_t mem, uint8 force_check, int port
                 spci.double_bit = 0;
             }
             if (!mt && mem != INVALIDm) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
@@ -1824,7 +1824,7 @@ _soc_tr3_parity_process_ecc(int unit, soc_mem_t mem, uint8 force_check, int port
                 spci.index = entry_idx;
                 (void)soc_ser_correction(unit, &spci);
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s table %d entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, ti, entry_idx));
@@ -1840,7 +1840,7 @@ _soc_tr3_parity_process_ecc(int unit, soc_mem_t mem, uint8 force_check, int port
                                    SOC_SER_ERROR_DATA_FIELD_ID_OFFSET, entry_idx);
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple ECC errors\n"),
                            prefix_str, mem_str_ptr));
@@ -1859,7 +1859,7 @@ _soc_tr3_parity_process_ecc(int unit, soc_mem_t mem, uint8 force_check, int port
         }
     }
     if (!has_error && !force_check) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -1925,7 +1925,7 @@ _soc_tr3_parity_process_mmu_thdo(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            thdo[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, thdo[i].mem), i < 14 ? "2B" : "1B",
@@ -1988,7 +1988,7 @@ _soc_tr3_parity_process_mmu_thdi(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            thdi0[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, thdi0[i].mem), i > 59 ? "2B" : "1B", 
@@ -2025,7 +2025,7 @@ _soc_tr3_parity_process_mmu_thdi(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            thdi1[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s 1B %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, thdi1[i].mem), entry_idx));
@@ -2079,7 +2079,7 @@ _soc_tr3_parity_process_mmu_wred(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            wred[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, wred[i].mem),
@@ -2124,7 +2124,7 @@ _soc_tr3_parity_process_mmu_qcn(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            qcn[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, qcn[i].mem),
@@ -2165,7 +2165,7 @@ _soc_tr3_parity_process_mmu_mtro(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC,
                            mtro[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s %s parity error, entry: %d\n"), prefix_str,
                             SOC_MEM_NAME(unit, mtro[i].mem), entry_idx));
@@ -2399,7 +2399,7 @@ _soc_tr3_parity_process_mmu_lls(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            lls[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, lls[i].mem),
@@ -2429,7 +2429,7 @@ _soc_tr3_parity_process_mmu_lls(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            lls_l0[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, lls_l0[i].mem),
@@ -2460,7 +2460,7 @@ _soc_tr3_parity_process_mmu_lls(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            lls_l1[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, lls_l1[i].mem),
@@ -2490,7 +2490,7 @@ _soc_tr3_parity_process_mmu_lls(int unit, soc_block_t blocktype,
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                            SOC_SWITCH_EVENT_DATA_ERROR_ECC, 
                            lls_l2[i].mem | SOC_SER_ERROR_DATA_ID_OFFSET_SET, entry_idx);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s %s ECC error, entry: %d\n"), prefix_str,
                               SOC_MEM_NAME(unit, lls_l2[i].mem),
@@ -2584,7 +2584,7 @@ _soc_tr3_process_parity(int unit, soc_block_t blocktype,
         switch (info->type) {
         case _SOC_PARITY_TYPE_GENERIC:
              blk = SOC_BLOCK_INFO(unit, blk_inf_idx).cmic;
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "%s Blk: %d %s generic parity error.\n"),
                                    prefix_str, blk, mem_str));
@@ -2727,7 +2727,7 @@ _soc_tr3_parity_process_all(int unit)
             rb->blocktype == SOC_BLK_ISM) {
             if (rb->blocktype == SOC_BLK_IPIPE) {
                 if (READ_IP2_INTR_STATUS_2r(unit, &rval)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d: Error reading %s reg !!\n"),
                                           unit, SOC_REG_NAME(unit, IP2_INTR_STATUS_2r)));
@@ -2760,7 +2760,7 @@ soc_tr3_process_func_intr(void *unit_vp, void *d1, void *d2, void *d3, void *d4)
 
     if (soc_feature(unit, soc_feature_l2_overflow)) {
         if (READ_ISM_INTRr(unit, &rval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d: Error reading %s reg !!\n"),
                                   unit, SOC_REG_NAME(unit, ISM_INTRr)));
@@ -3218,7 +3218,7 @@ soc_tr3_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -3232,7 +3232,7 @@ soc_tr3_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -3246,7 +3246,7 @@ soc_tr3_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ISM_HW_RESET timeout\n"), unit));
             break;
@@ -3261,7 +3261,7 @@ soc_tr3_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : AXP_WRX_MEMORY timeout\n"), unit));
             break;
@@ -3276,7 +3276,7 @@ soc_tr3_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : AXP_WTX_MEMORY timeout\n"), unit));
             break;
@@ -3292,7 +3292,7 @@ soc_tr3_mem_clear(int unit)
                 break;
             }
             if (soc_timeout_check(&to)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "unit %d : AXP_SM_MEMORY timeout\n"), unit));
                 break;
@@ -3427,7 +3427,7 @@ soc_triumph3_init_num_cosq(int unit)
         si->port_num_uc_cosq[port] = uc_numq;
         si->port_uc_cosq_base[port] = uc_base;
         si->port_group[port] = -1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Port-%d : UC: %d:%d, MC: %d:%d\n"),
                                 port, uc_base, uc_numq, mc_base, mc_numq));
@@ -5560,7 +5560,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
     
     sal_memset(&_tr3_flex_port_inf[unit], 0, sizeof(_soc_tr3_flex_port_inf_t));
     _soc_tr3_resolve_port_config(unit, dev_id);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Port config id: %d\n"), _tr3_port_config_id[unit]));
 
@@ -5840,7 +5840,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
             }
         }
         port_groups = i;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Flex port groups: %d\n"), port_groups));
         _tr3_flex_port_data[unit].port_groups = port_groups;
@@ -5849,7 +5849,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
             if (config_str == NULL) {
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Flex group cfg: %d=%s\n"), i, config_str));
             /*
@@ -5858,7 +5858,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
             sub_str = config_str;
             num_lanes = sal_ctoi(sub_str, &sub_str_end);
             if (sub_str == sub_str_end) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Port group %d: Missing number of lanes information \"%s\"\n"),
                                       i, config_str));
@@ -5866,7 +5866,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
                 continue;
             }
             if (num_lanes == 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Port group %d: Missing number of lanes information \"%s\"\n"),
                                       i, config_str));
@@ -5896,7 +5896,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
                         }
                     }
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Flex group: %d, lanes: %d, ports: %d, speed: %d gbps\n"), i, 
                                         num_lanes, _tr3_flex_port_data[unit].ports[i], port_bw));
@@ -5927,7 +5927,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
                         }
                     }
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Flex group: %d, lanes: %d, ports: %d, speed: %d gbps\n"), i, 
                                         num_lanes, _tr3_flex_port_data[unit].ports[i], port_bw));
@@ -5958,7 +5958,7 @@ soc_triumph3_get_port_mapping(int unit, uint16 dev_id)
                         }
                     }
                 }
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Flex group: %d, lanes: %d, ports: %d, speed: %d gbps\n"), i, 
                                         num_lanes, _tr3_flex_port_data[unit].ports[i], port_bw));
@@ -6062,7 +6062,7 @@ soc_tr3_port_is_flex_port(int unit, soc_port_t port)
         }
     }
     port_groups = i;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Flex port groups: %d\n"), port_groups));
     for (i = 0; i < port_groups; i++) {
@@ -6194,7 +6194,7 @@ soc_triumph3_chip_reset(int unit)
         rv = soc_reg_field32_modify(unit, pll_ctrl0_reg[index],
                                     REG_PORT_ANY, CH3_MDIVf, 25);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Modifying TOP_PLL%d_CTRL_0 failed !!\n"),
                            index));
@@ -6208,7 +6208,7 @@ soc_triumph3_chip_reset(int unit)
             reg = pll_ctrl0_reg[index];
             rv = soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Reading TOP_PLL%d_CTRL_0 failed !!\n"),
                            index));
@@ -6219,7 +6219,7 @@ soc_triumph3_chip_reset(int unit)
             soc_reg_field_set(unit, reg, &rval, CH5_MDIVf, 25);
             rv = soc_reg32_set(unit, reg, REG_PORT_ANY, 0, rval);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Writing TOP_PLL%d_CTRL_0 failed !!\n"),
                            index));
@@ -6229,7 +6229,7 @@ soc_triumph3_chip_reset(int unit)
             rv = soc_reg_field32_modify(unit, pll_ctrl4_reg[index],
                                         REG_PORT_ANY, NDIV_INTf, 40);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Modifying TOP_PLL%d_CTRL_4 failed !!\n"),
                            index));
@@ -6239,7 +6239,7 @@ soc_triumph3_chip_reset(int unit)
             rv = soc_reg_field32_modify(unit, pll_ctrl1_reg[index],
                                         REG_PORT_ANY, PDIVf, 2);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Modifying TOP_PLL%d_CTRL_1 failed !!\n"),
                            index));
@@ -6249,7 +6249,7 @@ soc_triumph3_chip_reset(int unit)
             rv = soc_reg_field32_modify(unit, pll_ctrl3_reg[index],
                                         REG_PORT_ANY, CML_BYP_ENf, 1);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Modifying TOP_PLL%d_CTRL_3 failed !!\n"),
                            index));
@@ -6260,7 +6260,7 @@ soc_triumph3_chip_reset(int unit)
 
     rv = READ_TOP_MISC_CONTROLr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_MISC_CONTROL failed !!\n")));
         return rv;
@@ -6275,7 +6275,7 @@ soc_triumph3_chip_reset(int unit)
                       CMIC_TO_XG_PLL3_SW_OVWRf, 1);
     rv = WRITE_TOP_MISC_CONTROLr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_MISC_CONTROL failed !!\n")));
         return rv;
@@ -6284,7 +6284,7 @@ soc_triumph3_chip_reset(int unit)
     /* Bring LCPLL out of reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6293,7 +6293,7 @@ soc_triumph3_chip_reset(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_XG_PLL1_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6304,26 +6304,26 @@ soc_triumph3_chip_reset(int unit)
     if (!SAL_BOOT_SIMULATION) {
         rv = READ_TOP_XG_PLL0_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_XG_PLL0_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_XG_PLL0_STATUSr, rval, TOP_XGPLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 0 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
         }
         rv = READ_TOP_XG_PLL1_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_XG_PLL1_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_XG_PLL1_STATUSr, rval, TOP_XGPLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 1 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -6333,7 +6333,7 @@ soc_triumph3_chip_reset(int unit)
     /* De-assert LCPLL's post reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6342,7 +6342,7 @@ soc_triumph3_chip_reset(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_XG_PLL1_POST_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6449,7 +6449,7 @@ soc_triumph3_chip_reset(int unit)
     /* Timesync and broadsync out of reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6458,7 +6458,7 @@ soc_triumph3_chip_reset(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_BS_PLL_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6470,13 +6470,13 @@ soc_triumph3_chip_reset(int unit)
 
         rv = READ_TOP_TS_PLL_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_TS_PLL_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_TS_PLL_STATUSr, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TimeSync PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -6484,13 +6484,13 @@ soc_triumph3_chip_reset(int unit)
 
         rv = READ_TOP_BS_PLL_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_BS_PLL_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_BS_PLL_STATUSr, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BroadSync PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -6500,7 +6500,7 @@ soc_triumph3_chip_reset(int unit)
     /* Deassert Post reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6511,7 +6511,7 @@ soc_triumph3_chip_reset(int unit)
                       1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -6719,7 +6719,7 @@ soc_triumph3_chip_reset(int unit)
      */
     rv = READ_TOP_SOFT_RESET_REGr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -6734,7 +6734,7 @@ soc_triumph3_chip_reset(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REGr, &rval, TOP_CLP1_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REGr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -6745,7 +6745,7 @@ soc_triumph3_chip_reset(int unit)
     /* Bring network sync out of reset */
     rv = READ_TOP_SOFT_RESET_REGr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -6753,7 +6753,7 @@ soc_triumph3_chip_reset(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REGr, &rval, TOP_NS_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REGr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -6766,7 +6766,7 @@ soc_triumph3_chip_reset(int unit)
     /* Bring IP, EP, ISM, ETU, AXP, and MMU blocks out of reset */
     rv = READ_TOP_SOFT_RESET_REGr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -6779,7 +6779,7 @@ soc_triumph3_chip_reset(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REGr, &rval, TOP_ETU_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REGr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -6812,7 +6812,7 @@ soc_triumph3_chip_reset(int unit)
 
         rv = READ_ESMIF_INIT_CONFIGr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading ESMIF_INIT_CONFIG failed !!\n")));
             return rv;
@@ -6820,7 +6820,7 @@ soc_triumph3_chip_reset(int unit)
         soc_reg_field_set(unit, ESMIF_INIT_CONFIGr, &rval, LATENCYf, 870);
         rv = WRITE_ESMIF_INIT_CONFIGr(unit, rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Writing ESMIF_INIT_CONFIG failed !!\n")));
             return rv;
@@ -6831,7 +6831,7 @@ soc_triumph3_chip_reset(int unit)
                         IESMIF_BYPASS_ENABLEf, 0);
         rv = WRITE_ESMIF_INIT_CONFIGr(unit, rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Writing ESMIF_INIT_CONFIG failed !!\n")));
             return rv;
@@ -6841,7 +6841,7 @@ soc_triumph3_chip_reset(int unit)
     if (0 != soc_property_get(unit, spn_MDIO_IO_VOLTAGE, 0)) {
         rv = READ_TOP_MISC_CONTROLr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_MISC_CONTROL failed !!\n")));
             return rv;
@@ -6850,7 +6850,7 @@ soc_triumph3_chip_reset(int unit)
                           XG_MDIO0_CL_SELf, 1);
         rv = WRITE_TOP_MISC_CONTROLr(unit, rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Writing TOP_MISC_CONTROL failed !!\n")));
             return rv;
@@ -7511,14 +7511,14 @@ soc_tr3_mem_config(int unit, int dev_id, int rev_id)
             }
         }
         if (ism_alloc_size[1].size <= 0 && ism_alloc_size[5].size <= 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "No L2 memory configured !!\n")));
             return SOC_E_RESOURCE;
         }
         rv = soc_ism_mem_config(unit, ism_alloc_size, COUNTOF(ism_alloc_size));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid or unsupported ISM memory config !!\n")));
             return rv;
@@ -8618,7 +8618,7 @@ _soc_tr3_mmu_tdm_init(int unit)
     if (_soc_tr3_flex_tdm.valid) {
         uint16 j, k, c;
         for (j = 0; j < _tr3_flex_port_data[unit].port_groups; j++) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "base slot[port]: %d[%d]\n"), _soc_tr3_flex_tdm.base_slot[j],
                                     _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]]));
@@ -8628,7 +8628,7 @@ _soc_tr3_mmu_tdm_init(int unit)
                         int port_group_range = 
                             _soc_tr3_tdm_arr[i] - _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]];
                         if (port_group_range > 0 && port_group_range <= 3) {
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "arr[%d]: %d->%d\n"), i, _soc_tr3_tdm_arr[i],
                                                     _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]]));
@@ -8722,14 +8722,14 @@ _soc_tr3_mmu_tdm_init(int unit)
                     }
                     switch (_tr3_flex_port_data[unit].ports[j]) {
                     case 1:
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "arr[%d]: %d->%d\n"), i+c, _soc_tr3_tdm_arr[i+c], 
                                                 _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]]));
                         _soc_tr3_tdm_arr[i+c] = _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]];
                         break;
                     case 2:
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "arr[%d]: %d->%d\n"), i+c, _soc_tr3_tdm_arr[i+c], 
                                                 ((k / _soc_tr3_flex_tdm.cell_offset[j]) % 2) ?
@@ -8749,7 +8749,7 @@ _soc_tr3_mmu_tdm_init(int unit)
                             tdmv = _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]] +
                                    (k / _soc_tr3_flex_tdm.cell_offset[j] %4);
                         }
-                         LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "arr[%d]: %d->%d\n"), i+c, _soc_tr3_tdm_arr[i+c], 
                                                  tdmv));
@@ -8767,13 +8767,13 @@ _soc_tr3_mmu_tdm_init(int unit)
         if (_soc_tr3_tdm_arr[i] == -1) {
             soc_IARB_TDM_TABLEm_field32_set(unit, &iarb_tdm, PORT_NUMf,
                                             127);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "TDM slot: %d, NOP\n"), i));
         } else {
             soc_IARB_TDM_TABLEm_field32_set(unit, &iarb_tdm, PORT_NUMf,
                                             _soc_tr3_tdm_arr[i]);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "TDM slot: %d, phy port: %d\n"),
                                     i, _soc_tr3_tdm_arr[i]));
@@ -8796,7 +8796,7 @@ _soc_tr3_mmu_tdm_init(int unit)
                                                     &lls_tdm));
             SOC_IF_ERROR_RETURN(WRITE_LLS_PORT_TDMm(unit, SOC_BLOCK_ALL, 512+(i/2),
                                                     &lls_tdm));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "LLS TDM: %d, [%d],[%d]\n"), i/2,
                                     soc_LLS_PORT_TDMm_field32_get(unit, &lls_tdm, PORT_ID_0f),
@@ -8807,7 +8807,7 @@ _soc_tr3_mmu_tdm_init(int unit)
                 (WRITE_LLS_PORT_TDMm(unit, SOC_BLOCK_ALL, (i/2), &lls_tdm));
             SOC_IF_ERROR_RETURN
                 (WRITE_LLS_PORT_TDMm(unit, SOC_BLOCK_ALL, 512+(i/2), &lls_tdm));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "LLS TDM: %d, [%d],[%d]\n"), i/2,
                                     soc_LLS_PORT_TDMm_field32_get(unit, &lls_tdm, PORT_ID_0f),
@@ -8859,11 +8859,11 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
     soc_info_t *si = &SOC_INFO(unit);
 
     phy = si->port_l2p_mapping[port];
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Phy port: %d\n"), phy));
     for (j = 0; j < _tr3_flex_port_data[unit].port_groups; j++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "base slot[port]: %d[%d]\n"), _soc_tr3_flex_tdm.base_slot[j],
                                 _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]]));
@@ -8958,7 +8958,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                 switch(lanes) { /* Note: The meaning of lanes here is how many lanes/slot does a port use */
                     case 4: /* This is a single high speed port */
                         if (_soc_tr3_tdm_arr[i+c] != _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]]) {
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "arr[%d]: %d->%d\n"), i+c, _soc_tr3_tdm_arr[i+c], 
                                                     _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]]));
@@ -8971,7 +8971,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                                 (_soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]] + 2) : 
                                 _soc_tr3_tdm_arr[_soc_tr3_flex_tdm.base_slot[j]];
                         if (_soc_tr3_tdm_arr[i+c] != p) {
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "arr[%d]: %d->%d\n"), i+c, _soc_tr3_tdm_arr[i+c], 
                                                     ((k / _soc_tr3_flex_tdm.cell_offset[j]) % 2) ?
@@ -8993,7 +8993,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                                    (k / _soc_tr3_flex_tdm.cell_offset[j] %4);
                         }
                         if (_soc_tr3_tdm_arr[i+c] != tdmv ) { 
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "arr[%d]: %d->%d\n"), i+c, _soc_tr3_tdm_arr[i+c], 
                                                     tdmv));
@@ -9008,13 +9008,13 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
         }
     }
     if (!delta) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "No LLs TDM change needed..\n")));
         return SOC_E_NONE;
     }
     if (!update_hw) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "No LLs TDM h/w change requested..\n")));
         return SOC_E_NONE;
@@ -9033,7 +9033,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                  soc_IARB_TDM_TABLEm_field32_get(unit, &iarb_tdm, PORT_NUMf)) {
                  soc_IARB_TDM_TABLEm_field32_set(unit, &iarb_tdm, PORT_NUMf,
                                                  _soc_tr3_tdm_arr[i]);
-                 LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                 LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "TDM slot: %d, phy port: %d\n"),
                                          i, _soc_tr3_tdm_arr[i]));
@@ -9051,7 +9051,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                     soc_LLS_PORT_TDMm_field32_set(unit, &lls_tdm, PORT_ID_0f,
                                                   si->port_p2m_mapping[_soc_tr3_tdm_arr[i]]);
                     delta = 1;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "i_0 %d: %d\n"), i, si->port_p2m_mapping[_soc_tr3_tdm_arr[i]]));
                 }
@@ -9063,7 +9063,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                     soc_LLS_PORT_TDMm_field32_set(unit, &lls_tdm, PORT_ID_1f,
                                                   si->port_p2m_mapping[_soc_tr3_tdm_arr[i]]);
                     delta = 1;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "i_1 %d: %d\n"), i, si->port_p2m_mapping[_soc_tr3_tdm_arr[i]]));
                 }
@@ -9071,7 +9071,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
             if (delta) {
                 SOC_IF_ERROR_RETURN(WRITE_LLS_PORT_TDMm(unit, SOC_BLOCK_ALL, j+(i/2),
                                                         &lls_tdm));
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "LLS TDM: %d, [%d],[%d]\n"), j+(i/2),
                                         soc_LLS_PORT_TDMm_field32_get(unit, &lls_tdm, PORT_ID_0f),
@@ -9083,7 +9083,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
         if ((_soc_tr3_tdm_size%2) && (i == (_soc_tr3_tdm_size-1)) && delta) {
             SOC_IF_ERROR_RETURN(WRITE_LLS_PORT_TDMm(unit, SOC_BLOCK_ALL, j+(i/2),
                                                     &lls_tdm));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "LLS TDM: %d, [%d],[%d]\n"), j+(i/2),
                                     soc_LLS_PORT_TDMm_field32_get(unit, &lls_tdm, PORT_ID_0f),
@@ -9100,7 +9100,7 @@ _soc_tr3_tdm_update(int unit, soc_port_t port, int lanes, int update_hw)
                                CURRENT_CALENDARf) != new_cal) &&
              !(SAL_BOOT_BCMSIM || SAL_BOOT_PLISIM));
     if (iter >= 100000) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "LLS Calendar switch failed !!\n")));
         return SOC_E_INTERNAL;
@@ -9507,7 +9507,7 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
     soc_info_t *si = &SOC_INFO(unit);
     int phy = si->port_l2p_mapping[port];
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Get lane, port: %d\n"), port));
     *lanes = -1;
@@ -9521,10 +9521,10 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
             *lanes = 10;
         }
         rv = SOC_E_NONE;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "CE\n")));
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 ": %d\n"), *lanes));
         return rv;
@@ -9547,7 +9547,7 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
         if (si->port_speed_max[port] == -1) {
             break;
         } 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "XL\n")));
         if (pbt) {
@@ -9585,7 +9585,7 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
             if (si->port_speed_max[port] == -1) {
                 break;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "XT\n")));
             if (pbt) {
@@ -9629,7 +9629,7 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
             if (si->port_speed_max[port] == -1) {
                 break;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "XW\n")));
             if (pbt) {
@@ -9735,7 +9735,7 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
             if (si->port_speed_max[port] == -1) {
                 break;
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "CL\n")));
             if (pbt) {
@@ -9823,7 +9823,7 @@ soc_tr3_port_lanes_gen(int unit, soc_port_t port, int *lanes, soc_block_type_t *
             break;
         }
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             ": %d\n"), *lanes));
     return rv;
@@ -9849,7 +9849,7 @@ _soc_tr3_hx4_clock_sync(int unit, int pll, int port, int stop_clk) {
     uint32 rval;
 
     if (SOC_IS_HELIX4(unit)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "%s called with port %d (stop_clk = %d)\n"),
                      FUNCTION_NAME(), port, stop_clk));
@@ -9909,7 +9909,7 @@ _soc_ser_init_sync(int unit, soc_mem_t mem)
             return;
     }
     if (NULL == tbl_chnk) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "SW cache sync failed !!\n")));
         return;
@@ -9926,7 +9926,7 @@ _soc_ser_init_sync(int unit, soc_mem_t mem)
         rv = soc_mem_read_range(unit, mem, MEM_BLOCK_ANY, chnk_idx,
                                 chnk_idx_max, tbl_chnk);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                        "DMA failure during cache sync for %s mem\n"),
                        SOC_MEM_NAME(unit, mem)));
@@ -10247,7 +10247,7 @@ _soc_tr3_misc_init(int unit)
     /* Main ISM h/w config */
     rv = soc_ism_hw_config(unit);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Error configuring ISM h/w !!\n")));
         return rv;
@@ -10259,7 +10259,7 @@ _soc_tr3_misc_init(int unit)
     rv |= soc_ism_table_hash_config(unit, SOC_ISM_MEM_EP_VLAN_XLATE, 1);
     rv |= soc_ism_table_hash_config(unit, SOC_ISM_MEM_MPLS, 1);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Error configuring ISM hash zero_lsb !!\n")));
         return SOC_E_INTERNAL;
@@ -10271,7 +10271,7 @@ _soc_tr3_misc_init(int unit)
     rv = soc_ism_get_banks(unit, SOC_ISM_MEM_VLAN_XLATE, banks, bank_size, 
                            &count);
     if (rv  < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ISM VLAN_XLATE bank enumeration retrieval failed\n")));
         return rv;
@@ -10280,7 +10280,7 @@ _soc_tr3_misc_init(int unit)
         /* Offset 0 is CRC32 low */
         rv = soc_ism_hash_offset_config(unit, banks[i], i*offset);
         if (rv  < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ISM VLAN_XLATE bank %d hash offset set failure\n"),
                                   banks[i]));
@@ -10290,7 +10290,7 @@ _soc_tr3_misc_init(int unit)
     rv = soc_ism_get_banks(unit, SOC_ISM_MEM_L2_ENTRY, banks, bank_size, 
                            &count);
     if (rv  < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ISM L2 bank enumeration retrieval failed\n")));
         return rv;
@@ -10299,7 +10299,7 @@ _soc_tr3_misc_init(int unit)
         /* Offset 0 is CRC32 low */
         rv = soc_ism_hash_offset_config(unit, banks[i], i*offset);
         if (rv  < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ISM L2 bank %d hash offset set failure\n"), banks[i]));
             return rv;
@@ -10308,7 +10308,7 @@ _soc_tr3_misc_init(int unit)
     rv = soc_ism_get_banks(unit, SOC_ISM_MEM_L3_ENTRY,
                                    banks, bank_size, &count);
     if (rv  < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ISM L3 bank enumeration retrieval failed\n")));
         return rv;
@@ -10317,7 +10317,7 @@ _soc_tr3_misc_init(int unit)
         /* Offset 0 is CRC32 low */
         rv = soc_ism_hash_offset_config(unit, banks[i], i*offset);
         if (rv  < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ISM L3 bank %d hash offset set failure\n"), banks[i]));
             return rv;
@@ -10326,7 +10326,7 @@ _soc_tr3_misc_init(int unit)
     rv = soc_ism_get_banks(unit, SOC_ISM_MEM_EP_VLAN_XLATE,
                                    banks, bank_size, &count);
     if (rv  < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ISM EP_VLAN_XLATE bank enumeration retrieval failed\n")));
         return rv;
@@ -10335,7 +10335,7 @@ _soc_tr3_misc_init(int unit)
         /* Offset 0 is CRC32 low */
         rv = soc_ism_hash_offset_config(unit, banks[i], i*offset);
         if (rv  < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ISM EP_VLAN_XLATE bank %d hash offset set failure\n"),
                                   banks[i]));
@@ -10345,7 +10345,7 @@ _soc_tr3_misc_init(int unit)
     rv = soc_ism_get_banks(unit, SOC_ISM_MEM_MPLS,
                                    banks, bank_size, &count);
     if (rv  < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "ISM MPLS bank enumeration retrieval failed\n")));
         return rv;
@@ -10354,7 +10354,7 @@ _soc_tr3_misc_init(int unit)
         /* Offset 0 is CRC32 low */
         rv = soc_ism_hash_offset_config(unit, banks[i], i*offset);
         if (rv  < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ISM MPLS bank %d hash offset set failure\n"),
                                   banks[i]));
@@ -11113,7 +11113,7 @@ _soc_tr3_misc_init(int unit)
     }
 
     if (soc_mspi_init(unit) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "unit %d : MSPI Init Failed\n"), unit));
     }
@@ -11127,7 +11127,7 @@ _soc_tr3_misc_init(int unit)
         /* initialize the ESMIF too */
         rv = soc_tr3_esmif_init(unit);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ESM if initialization failed\n")));
             return rv;
@@ -11180,7 +11180,7 @@ _soc_tr3_misc_init(int unit)
         /* put ESMIF in bypass */
         rv = READ_ESMIF_INIT_CONFIGr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading ESMIF_INIT_CONFIG failed !!\n")));
             return rv;
@@ -11189,7 +11189,7 @@ _soc_tr3_misc_init(int unit)
                         IESMIF_BYPASS_ENABLEf, 1);
         rv = WRITE_ESMIF_INIT_CONFIGr(unit, rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Writing ESMIF_INIT_CONFIG failed !!\n")));
             return rv;
@@ -11197,7 +11197,7 @@ _soc_tr3_misc_init(int unit)
         /* power down IESMIF memories */
         rv = WRITE_IESMIF_MEMORY_CONTROLr(unit, 3);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Writing IESMIF_MEMORY_CONTROL failed !!\n")));
             return rv;
@@ -11206,7 +11206,7 @@ _soc_tr3_misc_init(int unit)
     if (soc_feature(unit, soc_feature_esm_correction)) {
         rv = soc_tr3_esm_recovery_start(unit);  
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Creating ESM recovery thread failed\n")));
             return rv;
@@ -11253,7 +11253,7 @@ _soc_tr3_port_control(int unit, soc_port_t port, soc_block_type_t pbt,
     soc_info_t *si = &SOC_INFO(unit);
 
     phy = si->port_l2p_mapping[port];
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s port: log %d, phy %d\n"), FUNCTION_NAME(), port, phy));
 
@@ -11266,7 +11266,7 @@ _soc_tr3_port_control(int unit, soc_port_t port, soc_block_type_t pbt,
                                             XMAC0_RESETf, enable ? 0 : 1));
                 return SOC_E_NONE;
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid port !!\n")));
             }        
@@ -11340,7 +11340,7 @@ _soc_tr3_egress_buffer_reset(int unit, soc_port_t port, soc_block_type_t pbt,
     soc_field_t field_cl[] = {CLP0_RESETf, CLP1_RESETf};
 
     phy = si->port_l2p_mapping[port];
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s port: log %d, phy %d\n"), FUNCTION_NAME(), port, phy));
 
@@ -11423,7 +11423,7 @@ _soc_tr3_port_soft_reset(int unit, soc_port_t port, soc_block_type_t pbt,
     soc_info_t *si = &SOC_INFO(unit);
 
     phy = si->port_l2p_mapping[port];
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s port: log %d, phy %d\n"), FUNCTION_NAME(), port, phy));
 
@@ -11436,7 +11436,7 @@ _soc_tr3_port_soft_reset(int unit, soc_port_t port, soc_block_type_t pbt,
                                             XPORT_CORE0f, reset ? 1 : 0));
                 return SOC_E_NONE;
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid port !!\n")));
             }        
@@ -11518,7 +11518,7 @@ _soc_tr3_subport_disable(int unit, soc_port_t port, soc_block_type_t pbt,
     }
 
     phy = si->port_l2p_mapping[port];
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s port: log %d, phy %d\n"), FUNCTION_NAME(), port, phy));
 
@@ -11534,7 +11534,7 @@ _soc_tr3_subport_disable(int unit, soc_port_t port, soc_block_type_t pbt,
                 SOC_IF_ERROR_RETURN(WRITE_PORT_ENABLE_REGr(unit, port, rval));
                 return SOC_E_NONE;
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid port !!\n")));
             }        
@@ -11626,7 +11626,7 @@ _soc_tr3_port_mode_set(int unit, soc_port_t port, soc_block_type_t pbt,
     soc_info_t *si = &SOC_INFO(unit);
 
     phy = si->port_l2p_mapping[port];
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s port: log %d, phy %d\n"), FUNCTION_NAME(), port, phy));
     
@@ -11664,7 +11664,7 @@ _soc_tr3_port_mode_set(int unit, soc_port_t port, soc_block_type_t pbt,
                                             (core_mode == CORE_MODE_QUAD) ? 1 : 0));
                 return SOC_E_NONE;
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid port !!\n")));
             }        
@@ -11951,7 +11951,7 @@ _soc_tr3_get_numq_and_fifo_size(int unit, int port, int *pcredits, int *pnumq)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MMU port=%d numq=%d credits=%d\n"), mmu_port, numq, credits));
 
@@ -12021,7 +12021,7 @@ _soc_tr3_get_numq_and_fifo_size(int unit, int port, int *pcredits, int *pnumq)
         credits = 2048;
     }
         
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s MMU port=%d numq=%d credits=%d\n"),
                             SOC_PORT_NAME(unit, port), mmu_port, numq, credits));
@@ -12047,7 +12047,7 @@ _soc_tr3_set_mcfifo_config(int unit)
         SOC_IF_ERROR_RETURN(WRITE_MCFIFO_CONFIGr(unit, rval));
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MCFIFO_CONFIG=0x%08x\n"), mcfval));
     return 0;
@@ -12103,11 +12103,11 @@ _soc_tr3_update_mcq_fifo(int unit, int *pm2s)
         }
 
         for (i = 0; i < numq; i++) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Updating OVQ credits for port: %s(%d) = %d\n"), 
                                     SOC_PORT_NAME(unit, port),i, credits));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Updating MCQ base for port: %s(%d) = %d\n"), 
                                     SOC_PORT_NAME(unit, port), i, i*credits));
@@ -12183,7 +12183,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
     int8 fgrp;
     int j;
 #endif
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Set lane, port: %d : %d\n"), port, lanes));
     if (!(lanes == 1 || lanes == 2 || lanes == 4)) {
@@ -12194,7 +12194,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
     }
     SOC_IF_ERROR_RETURN(soc_tr3_port_lanes_gen(unit, port, &old_value, &pbt));
     *old_lanes = old_value;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Old value: %d, pbt: %d\n"), old_value, pbt));
     if (old_value == lanes) {
@@ -12300,7 +12300,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                 }
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid port config for hotswap !!\n")));
             SOC_CONTROL_UNLOCK(unit);
@@ -12355,7 +12355,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                     }
                 }
                 if (hgc+1 > _SOC_TR3_MAX_HG_PORT_COUNT) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Port config error (Higig port count[%d] exceeded) !!\n"),
                                           hgc));
@@ -12467,7 +12467,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
             RECONFIGURE_PORT_TYPE_INFO(xe);
             RECONFIGURE_PORT_TYPE_INFO(ge);
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid port config for hotswap !!\n")));
             SOC_CONTROL_UNLOCK(unit);
@@ -12482,7 +12482,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                 }
             }
             if (hgc+3 > _SOC_TR3_MAX_HG_PORT_COUNT) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Port config error (Higig port count[%d] exceeded) !!\n"),
                                       hgc));
@@ -12515,7 +12515,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                 SOC_PBMP_PORT_REMOVE(si->all.disabled_bitmap, i);
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid port config for hotswap !!\n")));
             SOC_CONTROL_UNLOCK(unit);
@@ -12552,7 +12552,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                     }
                 }
                 if (hgc+1 > _SOC_TR3_MAX_HG_PORT_COUNT) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Port config error (Higig port count[%d] exceeded) !!\n"),
                                           hgc));
@@ -12576,7 +12576,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                 RECONFIGURE_PORT_TYPE_INFO(xe);
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid port config for hotswap !!\n")));
             SOC_CONTROL_UNLOCK(unit);
@@ -12619,7 +12619,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                     }
                 }
                 if (hgc+3 > _SOC_TR3_MAX_HG_PORT_COUNT) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Port config error (Higig port count[%d] exceeded) !!\n"),
                                           hgc));
@@ -12738,14 +12738,14 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                 RECONFIGURE_PORT_TYPE_INFO(xe);
                 RECONFIGURE_PORT_TYPE_INFO(ge);
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Invalid port config for hotswap !!\n")));
                 SOC_CONTROL_UNLOCK(unit);
                 return SOC_E_PARAM;
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid port config for hotswap !!\n")));
             SOC_CONTROL_UNLOCK(unit);
@@ -12760,7 +12760,7 @@ soc_tr3_port_lanes_set(int unit, soc_port_t port, int lanes,
                 }
             }
             if (hgc+1 > _SOC_TR3_MAX_HG_PORT_COUNT) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Port config error (Higig port count[%d] exceeded) !!\n"),
                                       hgc));
@@ -13195,7 +13195,7 @@ _soc_tr3_mmu_config_buf_default(int unit, _soc_mmu_cfg_buf_t *buf)
 
     si = &SOC_INFO(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Initializing default MMU config (u=%d)\n"), unit));
     max_packet_cells = _MMU_CFG_MMU_BYTES_TO_CELLS(_TR3_MMU_MAX_PACKET_BYTES +
@@ -14112,7 +14112,7 @@ soc_tr3_mmu_config_init(int unit, int test_only)
     rv = _soc_mmu_cfg_buf_check(unit, buf, &devcfg);
     if (!test_only) {
         if (SOC_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "MMU config: Use default setting\n")));
             _soc_tr3_mmu_config_buf_default(unit, buf);
@@ -14123,7 +14123,7 @@ soc_tr3_mmu_config_init(int unit, int test_only)
 
     soc_mmu_cfg_free(unit, buf);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MMU THDI/THDO init done\n")));
     return rv;
@@ -14165,7 +14165,7 @@ _soc_tr3_mmu_init(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : LLS INIT timeout\n"), unit));
             break;
@@ -14223,11 +14223,11 @@ _soc_tr3_mmu_init(int unit)
         }
 
         for (i = 0; i < numq; i++) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "seting OVQ credits for port: %s(%d) = %d\n"), 
                                     SOC_PORT_NAME(unit, port),i, credits));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "setting MCQ base for port: %s(%d) = %d\n"), 
                                     SOC_PORT_NAME(unit, port), i, i*credits));
@@ -14434,7 +14434,7 @@ soc_tr3_oam_handler_register(int unit, soc_tr3_oam_handler_t handler)
     
     rv = READ_IP2_INTR_ENABLE_2r(unit, &rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP2_INTR_ENABLE_2r)));
@@ -14446,7 +14446,7 @@ soc_tr3_oam_handler_register(int unit, soc_tr3_oam_handler_t handler)
     }
     rv = WRITE_IP2_INTR_ENABLE_2r(unit, rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error writing %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP2_INTR_ENABLE_2r)));

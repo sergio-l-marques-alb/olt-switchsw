@@ -78,7 +78,7 @@ drv_tbx_mstp_port_set(int unit, uint32 mstp_gid, uint32 port,
     uint32  *entry;
 
 
-    LOG_INFO(BSL_LS_SOC_STP,
+    LOG_BSL_INFO(BSL_LS_SOC_STP,
              (BSL_META_U(unit,
                          "drv_mstp_port_set : unit %d, STP id = %d, port = %d, port_state = %d \n"),
               unit, mstp_gid, port, port_state));
@@ -267,7 +267,7 @@ drv_tbx_mstp_port_get(int unit, uint32 mstp_gid, uint32 port,
                 return SOC_E_INTERNAL;
         }
 
-        LOG_INFO(BSL_LS_SOC_STP,
+        LOG_BSL_INFO(BSL_LS_SOC_STP,
                  (BSL_META_U(unit,
                              "drv_mstp_port_get : unit %d, STP id = %d, port = %d, port_state = %d \n"),
                   unit, mstp_gid, port, *port_state));
@@ -312,7 +312,7 @@ drv_tbx_mstp_port_get(int unit, uint32 mstp_gid, uint32 port,
                 break;
         }
 
-        LOG_INFO(BSL_LS_SOC_STP,
+        LOG_BSL_INFO(BSL_LS_SOC_STP,
                  (BSL_META_U(unit,
                              "drv_mstp_port_get : unit %d, STP id = %d, port = %d, port_state = %d \n"),
                   unit, mstp_gid, port, *port_state));

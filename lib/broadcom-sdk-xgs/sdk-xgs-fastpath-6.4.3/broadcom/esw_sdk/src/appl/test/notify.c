@@ -202,7 +202,7 @@ not_link_test(int unit, args_t *a, void *pa)
 
     /* Go through all forwarding port values */
     for (i = 0; i < LS_TEST_PATTERNS; i++) {
-	LOG_INFO(BSL_LS_APPL_TESTS,
+	LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Setting the Forwarding Port register to %s\n"),
                   SOC_PBMP_FMT(ls->ls_bmp[0], pfmt)));
@@ -214,7 +214,7 @@ not_link_test(int unit, args_t *a, void *pa)
 	soc_reg64_write_all_blocks(unit, EPC_LINKr, val64);
 
 	(void)SOC_PBMP_FMT(ls->ls_bmp[i], pfmt);
-	LOG_INFO(BSL_LS_APPL_TESTS,
+	LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Sending Linkstat with value %s\n"), pfmt));
 	/* Send a link status SChannel message */
@@ -244,7 +244,7 @@ not_link_test(int unit, args_t *a, void *pa)
 	/* Wait until a link up/down message is available for us */
 	while (!((value = soc_pci_read(unit, CMIC_SCHAN_CTRL)) &
 		 SC_LINK_STAT_MSG_TST) && (++cnt < LS_MAX_RETRIES)) {
-	    LOG_INFO(BSL_LS_APPL_TESTS,
+	    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Waiting for message...\n")));
 	}
@@ -355,7 +355,7 @@ cos_stat_test(int unit, args_t *a, void *pa)
 	/* Go through all forwarding port values */
 	for (i = 0; i < npat; i++) {
 	    setval = SOC_PBMP_WORD_GET(bmp[0], 0);
-	    LOG_INFO(BSL_LS_APPL_TESTS,
+	    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Setting the COS%d Status register to 0x%x\n"),
                       cos, setval));
@@ -373,7 +373,7 @@ cos_stat_test(int unit, args_t *a, void *pa)
 	    /* Send status change SChannel message */
 
 	    setval = SOC_PBMP_WORD_GET(bmp[i], 0);
-	    LOG_INFO(BSL_LS_APPL_TESTS,
+	    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Sending COS%d status with value 0x%x\n"), cos, setval));
 	    schan_msg_clear(&schMsg);
@@ -467,7 +467,7 @@ regStatus_test(int unit, soc_reg_t reg)
     /* Go through all forwarding port values */
     for (i = 0; i < npat; i++) {
 	setval = SOC_PBMP_WORD_GET(bmp[0], 0);
-	LOG_INFO(BSL_LS_APPL_TESTS,
+	LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Setting register %s to 0x%x\n"),
                   regname, setval));
@@ -488,7 +488,7 @@ regStatus_test(int unit, soc_reg_t reg)
 	    test_error(unit, "ERROR: unexpected register %s\n", regname);
 	    return -1;
 	}
-	LOG_INFO(BSL_LS_APPL_TESTS,
+	LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Sending schan message value 0x%x\n"), setval));
 

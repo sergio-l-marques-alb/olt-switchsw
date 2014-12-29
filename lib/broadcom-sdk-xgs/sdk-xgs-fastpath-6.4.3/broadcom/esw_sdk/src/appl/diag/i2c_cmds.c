@@ -1325,7 +1325,7 @@ uint8 _i2c_mux_channel_get(int unit, int mux)
     channel = mux;
     rv = _i2c_mux_info_get(unit, &name, &flags);
     if (rv == 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "name = %s flags %x\n"), name, flags));
         if (flags & I2C_MUX_F_MAP) {
@@ -1333,7 +1333,7 @@ uint8 _i2c_mux_channel_get(int unit, int mux)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mux %d -> channel %d\n"), mux, channel));
     return channel;
@@ -2359,7 +2359,7 @@ soc_i2c_detect_board(void)
         board_type = G24;
         /* make sure all I2C devices behind the I2C mux device are initialized */
         if (dac_devs_init(0,G24,I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                       (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -2370,7 +2370,7 @@ soc_i2c_detect_board(void)
         board_type = G33;
         /* make sure all I2C devices behind the I2C mux device are initialized */
         if (dac_devs_init(0,G33,I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                       (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -2412,7 +2412,7 @@ soc_i2c_detect_board(void)
         /* make sure all I2C devices behind the I2C mux device
          * are initialized */
         if (dac_devs_init(0,G34,I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                       (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -2424,7 +2424,7 @@ soc_i2c_detect_board(void)
         /* make sure all I2C devices behind the I2C mux device
          * are initialized */
         if (dac_devs_init(0,G35,I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                       (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -2444,7 +2444,7 @@ soc_i2c_detect_board(void)
 	/* make sure all I2C devices behind the I2C mux device
          * are initialized */
         if (dac_devs_init(0, board_type, I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                       (BSL_META("ERROR: dac_devs_init fail\n")));
            return NULL;
         }
@@ -2456,7 +2456,7 @@ soc_i2c_detect_board(void)
         /* make sure all I2C devices behind the I2C mux device
          * are initialized */
         if (dac_devs_init(0, G39, I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                       (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -2479,7 +2479,7 @@ soc_i2c_detect_board(void)
         /* make sure all I2C devices behind the I2C mux device
          * are initialized */
         if (dac_devs_init(0, G42, I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                     (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -2491,7 +2491,7 @@ soc_i2c_detect_board(void)
         /* make sure all I2C devices behind the I2C mux device
          * are initialized */
         if (dac_devs_init(0, board_type, I2C_MUX_3) < 0) {
-            LOG_ERROR(BSL_LS_APPL_I2C,
+            LOG_BSL_ERROR(BSL_LS_APPL_I2C,
                     (BSL_META("ERROR: dac_devs_init fail\n")));
             return NULL;
         }
@@ -3275,7 +3275,7 @@ cmd_clk(int unit, args_t *a)
     do {                                                             \
        if ((_fd = bcm_i2c_open(_u, _nm, _fl, _sp)) < 0) {            \
            _pf = 0;                                                  \
-           LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+           LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                        (BSL_META_U(_u, \
                                    "Could not open %s: %s\n"),   \
                                    _nm, bcm_errmsg(_fd)));                       \
@@ -3288,7 +3288,7 @@ cmd_clk(int unit, args_t *a)
        _rv = bcm_i2c_write(_u, _f, _r, &_d, _l);                     \
        if (_rv < 0) {                                                \
           _pf = 0;                                                   \
-          LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                       (BSL_META_U(_u, \
                                   "%s writing failed: %s\n"), \
                                   _nm, bcm_errmsg(_rv)));                        \
@@ -3301,7 +3301,7 @@ cmd_clk(int unit, args_t *a)
       _rv = bcm_i2c_read(_u, _f, _r, &_d, &_l);                      \
       if (_rv < 0) {                                                 \
           _pf = 0;                                                   \
-          LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                       (BSL_META_U(_u, \
                                   "%s reading failed: %s\n"), \
                                   _nm, bcm_errmsg(_rv)));                        \
@@ -3313,7 +3313,7 @@ cmd_clk(int unit, args_t *a)
       _rv = bcm_i2c_ioctl(_u, _f, _op, &_d, _l);                     \
       if (_rv < 0) {                                                 \
           _pf = 0;                                                   \
-          LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                       (BSL_META_U(_u, \
                                   "%s ioctl failed: %s\n"),   \
                                   _nm, bcm_errmsg(_rv)));                        \
@@ -3346,7 +3346,7 @@ _bb_shadow_test(int unit, bb_type_t *baseboard)
     if (rv == SOC_E_NONE) {
         if (rdval != /* expected board id(s) */) {
             pass = 0;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON_I2C,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON_I2C,
                         (BSL_META_U(unit,
                                     "....Invalid board ID %x\n"), buf[0]));
         }
@@ -3382,30 +3382,30 @@ _bb_shadow_test(int unit, bb_type_t *baseboard)
              * Bit(0) -> Bit(7): read  0, write 1
              * Bit(7) -> Bit(0): read  1, write 0
              */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "\n1. Bit(0) -> Bit(7) write 0\n")));
             for (i = 0; i < 8; i++) {
                 wrval &= ~(_SHADOW_BIT_SET(i));
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "writing 0x%02x "), wrval));
                 _SHADOW_WRITE_TEST(unit, fd, 0, wrval, 1, name, rv, pass);
             }
             wrval = 0;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "2. Bit(0) -> Bit(7) read 0 write 1\n")));
             for (i = 0; i < 8; i++) {
                 _SHADOW_READ_TEST(unit, fd, 0, rdval, len, name, rv, pass);
                 if (rv == SOC_E_NONE) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "read 0x%02x\n"), rdval));
                     if ((rdval & _SHADOW_BIT_SET(i)) !=
                         (wrval & _SHADOW_BIT_SET(i))) {
                         pass = 0;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "%s bit check failed 0x%02x 0x%02x\n"),
                                      name, (rdval & _SHADOW_BIT_SET(i)),
@@ -3413,24 +3413,24 @@ _bb_shadow_test(int unit, bb_type_t *baseboard)
                     }
                 }
                 wrval |= _SHADOW_BIT_SET(i);
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "writing 0x%02x "), wrval));
                 _SHADOW_WRITE_TEST(unit, fd, 0, wrval, 1, name, rv, pass);
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "3. Bit(7) -> Bit(0) read 1 write 0\n")));
             for (i = 7; i > 0 ; i--) {
                 _SHADOW_READ_TEST(unit, fd, 0, rdval, len, name, rv, pass);
                 if (rv == SOC_E_NONE) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "read 0x%02x\n"), rdval));
                     if ((rdval & _SHADOW_BIT_SET(i)) !=
                         (wrval & _SHADOW_BIT_SET(i))) {
                         pass = 0;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "%s bit check failed 0x%02x 0x%02x\n"),
                                      name, (rdval & _SHADOW_BIT_SET(i)),
@@ -3438,19 +3438,19 @@ _bb_shadow_test(int unit, bb_type_t *baseboard)
                     }
                 }
                 wrval &= ~(_SHADOW_BIT_SET(i));
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "writing 0x%02x "), wrval));
                 _SHADOW_WRITE_TEST(unit, fd, 0, wrval, 1, name, rv, pass);
                 _SHADOW_READ_TEST(unit, fd, 0, rdval, len, name, rv, pass);
                 if (rv == SOC_E_NONE) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "read 0x%02x\n"), rdval));
                     if ((rdval & ~(_SHADOW_BIT_SET(i))) !=
                         (wrval & ~(_SHADOW_BIT_SET(i)))) {
                         pass = 0;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "%s bit check failed 0x%02x 0x%02x\n"),
                                      name, (rdval & _SHADOW_BIT_SET(i)),
@@ -6638,94 +6638,94 @@ cmd_bb(int unit, args_t *a)
 #define PFMT "%d"
 #endif
             /* Constants */
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nConstants\n")));
 #ifdef COMPILER_HAS_DOUBLE
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rcu=%1.10f\n"), RCu));
 #else
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rcu=%d\n"), RCu));
 #endif
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Lcal=" PFMT "\n"), l_cal));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Lpwr=" PFMT "\n"), l_pwr));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Wcal=" PFMT "\n"), w_cal));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Wpwr=" PFMT "\n"), w_pwr));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rp=" PFMT "\n"), Rp));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nMeasured Voltage Values\n")));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vdrop_cal_core=" PFMT "\n"), Vdrop_cal_core));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vdrop_cal_phy=" PFMT "\n"), Vdrop_cal_phy));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vdrop_cal_io=" PFMT "\n"), Vdrop_cal_io));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vcal_core=" PFMT "\n"), Vcal_core));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vcal_phy=" PFMT "\n"), Vcal_phy));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vcal_io=" PFMT "\n"), Vcal_io));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Vdrop_coreA=" PFMT "\n"), Vdrop_coreA));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nCalculated Current Values\n")));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Ical_core=" PFMT "\n"), Ical_core));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Ical_phy=" PFMT "\n"), Ical_phy));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Ical_io=" PFMT "\n"), Ical_io));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nCalculated Resistance Values\n")));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rcal_core=" PFMT "\n"), Rcal_core));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rcal_phy=" PFMT "\n"), Rcal_phy));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rcal_io=" PFMT "\n"), Rcal_io));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rseg_coreA=" PFMT "\n"), Rseg_coreA));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rseg_phy=" PFMT "\n"), Rseg_phy));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Rseg_io=" PFMT "\n"), Rseg_io));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Tc=" PFMT "\n"), Tc));
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Tp=" PFMT "\n"), Tp));
 #endif

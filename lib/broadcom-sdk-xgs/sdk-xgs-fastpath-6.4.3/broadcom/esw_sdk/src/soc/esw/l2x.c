@@ -541,7 +541,7 @@ soc_l2x_lookup(int unit,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, NULL);
     if (opcode != READ_MEMORY_ACK_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_l2x_lookup: "
                               "invalid S-Channel reply, expected READ_MEMORY_ACK:\n")));
@@ -579,11 +579,11 @@ soc_l2x_lookup(int unit,
     *index_ptr = schan_msg.readresp.data[1];
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "L2 entry lookup: ")));
         soc_mem_entry_dump(unit, L2Xm, result);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              " (index=%d)\n"), *index_ptr));
     }
@@ -678,11 +678,11 @@ soc_l2x_insert(int unit, l2x_entry_t *entry)
     int                 src_blk;
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Insert table[L2X]: ")));
         soc_mem_entry_dump(unit, L2Xm, entry);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -711,7 +711,7 @@ soc_l2x_insert(int unit, l2x_entry_t *entry)
     rv = soc_schan_op(unit, &schan_msg, 4, 0, 1);
 
     if (rv == SOC_E_FAIL) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Insert table[L2X]: hash bucket full\n")));
         rv = SOC_E_FULL;
@@ -755,11 +755,11 @@ soc_l2x_delete(int unit, l2x_entry_t *entry)
     int                 src_blk;
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Delete table[L2X]: ")));
         soc_mem_entry_dump(unit, L2Xm, entry);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -2020,7 +2020,7 @@ soc_fb_l2x_bank_lookup(int unit, uint8 banks,
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != L2_LOOKUP_ACK_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_fb_l2x_bank_lookup: "
                               "invalid S-Channel reply, expected L2_LOOKUP_ACK_MSG:\n")));
@@ -2051,7 +2051,7 @@ soc_fb_l2x_bank_lookup(int unit, uint8 banks,
                                ((1 << (32 - nbits)) - 1);
                 index |= (schan_msg.readresp.data[3] << (32 - nbits)) &
                          soc_mem_index_max(unit, L2Xm); /* Assume size of table 2^N */
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "Lookup table[L2Xm]: Parity Error Index %d Bucket Bitmap 0x%08x\n"),
                            index,
@@ -2079,11 +2079,11 @@ soc_fb_l2x_bank_lookup(int unit, uint8 banks,
     *index_ptr |= (schan_msg.readresp.data[3] << (32 - nbits));
     *index_ptr &= soc_mem_index_max(unit, L2Xm); /* Assume size of table 2^N */
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "L2 entry lookup: ")));
         soc_mem_entry_dump(unit, L2Xm, result);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              " (index=%d)\n"), *index_ptr));
     }
@@ -2122,11 +2122,11 @@ soc_fb_l2x_bank_insert(int unit, uint8 banks, l2x_entry_t *entry)
     int                 opcode, nack;
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Insert table[L2_ENTRY]: ")));
         soc_mem_entry_dump(unit, L2Xm, entry);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -2151,7 +2151,7 @@ soc_fb_l2x_bank_insert(int unit, uint8 banks, l2x_entry_t *entry)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != ARL_INSERT_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_fb_l2x_bank_insert: "
                               "invalid S-Channel reply, expected L2_INSERT_ACK_MSG:\n")));
@@ -2170,12 +2170,12 @@ soc_fb_l2x_bank_insert(int unit, uint8 banks, l2x_entry_t *entry)
     /* bit-106 OP_FAIL; bit-107 ModFifo Full */
     if ((nack != 0) || (rv == SOC_E_FAIL)) {
         if (schan_msg.readresp.data[3] & (1 << op_fail_pos)) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Insert table[L2Xm]: hash bucket full\n")));
             rv = SOC_E_FULL;
         } else if (schan_msg.readresp.data[3] & (1 << (op_fail_pos + 1))) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Insert table[L2Xm]: Modfifo full\n")));
             rv = SOC_E_BUSY;
@@ -2185,7 +2185,7 @@ soc_fb_l2x_bank_insert(int unit, uint8 banks, l2x_entry_t *entry)
                            ((1 << (32 - nbits)) - 1);
             index |= (schan_msg.readresp.data[3] << (32 - nbits)) &
                      soc_mem_index_max(unit, L2Xm); /* Assume size of table 2^N */
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "Insert table[L2Xm]: Parity Error Index %d Bucket Bitmap 0x%08x\n"),
                        index,
@@ -2230,11 +2230,11 @@ soc_fb_l2x_bank_delete(int unit, uint8 banks, l2x_entry_t *entry)
     int                 opcode, nack;
 
     if (bsl_check(bslLayerSoc, bslSourceSocmem, bslSeverityNormal, unit)) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Delete table[L2Xm]: ")));
         soc_mem_entry_dump(unit, L2Xm, entry);
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -2258,7 +2258,7 @@ soc_fb_l2x_bank_delete(int unit, uint8 banks, l2x_entry_t *entry)
     soc_schan_header_status_get(unit, &schan_msg.header, &opcode, NULL, NULL,
                                 NULL, NULL, &nack);
     if (opcode != ARL_DELETE_DONE_MSG) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_fb_l2x_bank_delete: "
                               "invalid S-Channel reply, expected L2_DELETE_ACK_MSG:\n")));
@@ -2277,12 +2277,12 @@ soc_fb_l2x_bank_delete(int unit, uint8 banks, l2x_entry_t *entry)
     /* bit-106 OP_FAIL; bit-107 ModFifo Full */
     if ((nack != 0) || (rv == SOC_E_FAIL)) {
         if (schan_msg.readresp.data[3] & (1 << op_fail_pos)) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Delete table[L2Xm]: Not found\n")));
             rv = SOC_E_NOT_FOUND;
         } else if (schan_msg.readresp.data[3] & (1 << (op_fail_pos + 1))) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Delete table[L2Xm]: Modfifo full\n")));
             rv = SOC_E_BUSY;
@@ -2292,7 +2292,7 @@ soc_fb_l2x_bank_delete(int unit, uint8 banks, l2x_entry_t *entry)
                            ((1 << (32 - nbits)) - 1);
             index |= (schan_msg.readresp.data[3] << (32 - nbits)) &
                      soc_mem_index_max(unit, L2Xm); /* Assume size of table 2^N */
-            LOG_ERROR(BSL_LS_SOC_L2,
+            LOG_BSL_ERROR(BSL_LS_SOC_L2,
                       (BSL_META_U(unit,
                                   "Delete table[L2Xm]: Parity Error Index %d Bucket Bitmap 0x%08x\n"),
                        index,

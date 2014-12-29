@@ -896,7 +896,7 @@
                  return SOC_E_UNAVAIL;
  
              default:
-                 LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                 LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "drv_snmp_counter_set: Statistic not supported: %d\n"), 
                               counter_type));
@@ -1902,7 +1902,7 @@
              return SOC_E_UNAVAIL;
              
          default:
-             LOG_VERBOSE(BSL_LS_SOC_COMMON,
+             LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "drv_snmp_counter_get: Statistic not supported: %d\n"), counter_type));
              return SOC_E_PARAM;

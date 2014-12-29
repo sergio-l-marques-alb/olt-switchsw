@@ -80,7 +80,7 @@
                 (funct_name), bcm_errmsg(retval));                 \
         return CMD_FAIL;                                           \
     } else {                                                       \
-        LOG_VERBOSE(BSL_LS_APPL_SHELL, \
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL, \
                     (BSL_META_U(unit, \
                                 "FP(unit %d) verb: %s() success \n"),              \
                                 (unit), (funct_name)));                           \
@@ -123,7 +123,7 @@
             return CMD_USAGE;                                           \
         }                                                               \
         if (parse_bcm_port((_unit), (_str), &(_port)) < 0) {            \
-            LOG_ERROR(BSL_LS_APPL_SHELL,                                \
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,                                \
                       (BSL_META_U(unit,                                 \
                                   "FP(unit %d) Error: invalid port string: \"%s\"\n"), \
                        (_unit), (_str)));                               \
@@ -796,7 +796,7 @@ fp_action_add(int unit, args_t *args)
         /* COVERITY: Intentional, stack use of 7740 bytes */
         /* coverity[stack_use_callee_max : FALSE] */
             fp_list_actions(unit, args);
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown action: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -815,7 +815,7 @@ fp_action_add(int unit, args_t *args)
 
             if (parse_bcm_port(unit, subcmd, &port) < 0)
             {
-                LOG_ERROR(BSL_LS_APPL_SHELL,
+                LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: invalid port string: \"%s\"\n"), 
                                       unit, subcmd));
@@ -827,7 +827,7 @@ fp_action_add(int unit, args_t *args)
              * Check if modid passed is local modid.
              */
             if (BCM_FAILURE(bcm_stk_my_modid_get(unit, &my_modid))) {
-                LOG_ERROR(BSL_LS_APPL_SHELL,
+                LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: Failed to retrieve modid info\"%s\"\n"), 
                                       unit, subcmd));
@@ -840,7 +840,7 @@ fp_action_add(int unit, args_t *args)
                  */
                 if (BCM_FAILURE(bcm_port_gport_get(unit, port, &p1)))
                 {
-                    LOG_ERROR(BSL_LS_APPL_SHELL,
+                    LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                               (BSL_META_U(unit,
                                           "FP(unit %d) Error: Failed to convert port \"%s\" "
                                           "(physical port %d) to GPORT.\n"), unit, subcmd, port));
@@ -861,7 +861,7 @@ fp_action_add(int unit, args_t *args)
         case bcmFieldActionRedirectBcastPbmp:
             if (SOC_PORT_ADDR_MAX(unit) > 31) {
 
-                LOG_ERROR(BSL_LS_APPL_SHELL,
+                LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: Use \"fp action ports add\""
                                       " command.\n"), unit));
@@ -874,7 +874,7 @@ fp_action_add(int unit, args_t *args)
                 }
 
                 if (BCM_FAILURE(parse_bcm_pbmp(unit, subcmd, &pbmp))) {
-                    LOG_ERROR(BSL_LS_APPL_SHELL,
+                    LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                               (BSL_META_U(unit,
                                           "FP(unit %d) Error: Unrecognized port bitmap:"
                                           " \"%s\"\n"), unit, subcmd));
@@ -1031,7 +1031,7 @@ fp_action_add(int unit, args_t *args)
             break;
         case bcmFieldActionSrcMacNew:
         case bcmFieldActionDstMacNew:
-            LOG_ERROR(BSL_LS_APPL_SHELL, \
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL, \
                       (BSL_META_U(unit, \
                                   "FP(unit %d) Error: Use \"fp action mac add\" \
                                   command."), unit));
@@ -1056,7 +1056,7 @@ fp_action_add(int unit, args_t *args)
             break;
     }
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: action add eid=%d, action=%s, p0=0x%x, p1=0x%x\n"), 
                             unit, eid, format_field_action(buf, action, 1), p0, p1));
@@ -1100,7 +1100,7 @@ fp_action_ports_add(int unit, args_t *args)
     } else {
         action = parse_field_action(subcmd);
         if (action == bcmFieldActionCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown action: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -1111,7 +1111,7 @@ fp_action_ports_add(int unit, args_t *args)
         (action != bcmFieldActionEgressPortsAdd) &&
         (action != bcmFieldActionEgressMask) &&
         (action != bcmFieldActionRedirectBcastPbmp)) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unrecognized action\n"), unit));
         return CMD_FAIL;
@@ -1121,14 +1121,14 @@ fp_action_ports_add(int unit, args_t *args)
     if ((subcmd = ARG_GET(args)) == NULL) {
         return CMD_USAGE;
     } else if (parse_bcm_pbmp(unit, subcmd, &pbmp) < 0) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: %s Error: unrecognized port bitmap: %s\n"),
                               unit, ARG_CMD(args), subcmd));
         return CMD_FAIL;
     }
 #ifdef BROADCOM_DEBUG
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: action ports add eid=%d, action=%s, pbmp=%s\n"), 
                             unit, eid, format_field_action(buf, action, 1), 
@@ -1169,7 +1169,7 @@ fp_action_mac_add(int unit, args_t *args)
     } else {
         action = parse_field_action(subcmd);
         if (action == bcmFieldActionCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown action: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -1178,7 +1178,7 @@ fp_action_mac_add(int unit, args_t *args)
 
     if ((action != bcmFieldActionSrcMacNew) && 
         (action != bcmFieldActionDstMacNew)) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unrecognized action\n"), unit));
         return CMD_FAIL;
@@ -1244,7 +1244,7 @@ fp_action_get(int unit, args_t *args)
     } else {
         action = parse_field_action(subcmd);
         if (action == bcmFieldActionCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown action: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -1290,7 +1290,7 @@ fp_action_ports_get(int unit, args_t *args)
     } else {
         action = parse_field_action(subcmd);
         if (action == bcmFieldActionCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown action: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -1300,7 +1300,7 @@ fp_action_ports_get(int unit, args_t *args)
     if ((action != bcmFieldActionRedirectPbmp) && 
         (action != bcmFieldActionEgressPortsAdd) &&
         (action != bcmFieldActionEgressMask)) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unrecognized action\n"), unit));
         return CMD_FAIL;
@@ -1346,7 +1346,7 @@ fp_action_mac_get(int unit, args_t *args)
     } else {
         action = parse_field_action(subcmd);
         if (action == bcmFieldActionCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown action: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -1355,7 +1355,7 @@ fp_action_mac_get(int unit, args_t *args)
 
     if ((action != bcmFieldActionSrcMacNew) && 
         (action != bcmFieldActionDstMacNew)) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unrecognized action: %s\n"), unit, subcmd));
         return CMD_FAIL;
@@ -1395,7 +1395,7 @@ fp_action_remove(int unit, args_t *args)
         } else {
             action = parse_field_action(subcmd);
             if (action == bcmFieldActionCount) {
-                LOG_ERROR(BSL_LS_APPL_SHELL,
+                LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: Unrecognized action: %s\n"), unit, subcmd));
                 return CMD_FAIL;
@@ -1433,7 +1433,7 @@ fp_control(int unit, args_t *args)
     } else {
         fp_lookup_control(subcmd, &element);
         if (element == bcmFieldControlCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown FP control: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -1442,7 +1442,7 @@ fp_control(int unit, args_t *args)
 
     if ((subcmd = ARG_GET(args)) == NULL) {
         /* BCM.0> fp control <control_number>*/
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_control_get(element=%s)\n"),
                                 unit, _fp_control_name(element)));
@@ -1454,7 +1454,7 @@ fp_control(int unit, args_t *args)
         if (element == bcmFieldControlStage && !isint(subcmd)) {
             status = fp_lookup_stage(subcmd);
             if (status == bcmFieldStageCount) {
-                LOG_ERROR(BSL_LS_APPL_SHELL,
+                LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                           (BSL_META_U(unit,
                                       "FP(unit %d) Error: Unknown stage: %s\n"), unit, subcmd));
                 return CMD_FAIL;
@@ -1462,7 +1462,7 @@ fp_control(int unit, args_t *args)
         } else {
             status = parse_integer(subcmd);
         }
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_control_set(element=%s, status=%d)\n"), 
                                 unit, _fp_control_name(element), status));
@@ -1549,7 +1549,7 @@ fp_entry_create(int unit, args_t *args)
  
     if ((subcmd = ARG_GET(args)) == NULL) {
         /* BCM.0> fp entry create 'gid'  */
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: _entry_create gid=%d\n"), unit, gid));
         retval = bcm_field_entry_create(unit, gid, &eid);
@@ -1557,7 +1557,7 @@ fp_entry_create(int unit, args_t *args)
     } else {
         /* BCM.0> fp entry create 'gid' 'eid' */
         eid = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: _entry_create gid=%d, eid=%d\n"), unit, gid, eid));
         retval = bcm_field_entry_create_id(unit, gid, eid);
@@ -1585,7 +1585,7 @@ fp_entry_copy(int unit, args_t *args)
     if (subcmd ) {
         /* BCM.0> fp entry copy 'src_eid' 'dst_eid'  */
         dst_eid = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:  bcm_field_entry_copy_id(src_eid=%d, dst_eid=%d)\n"),
                                 unit, src_eid, dst_eid));
@@ -1593,7 +1593,7 @@ fp_entry_copy(int unit, args_t *args)
         FP_CHECK_RETURN(unit, retval, "bcm_field_entry_copy_id");
     } else {
         /* BCM.0> fp entry copy 'src_eid' */
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_copy(src_eid=%d)\n"), unit, src_eid));
         retval = bcm_field_entry_copy(unit, src_eid, &dst_eid);
@@ -1637,7 +1637,7 @@ fp_entry_oper(int unit, args_t *args)
         return CMD_USAGE;
     }
 
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: bcm_field_entry_operation(eid=%d, oper=0x%x)\n"), 
                             unit, entry_oper.entry_id,  entry_oper.flags));
@@ -1662,7 +1662,7 @@ fp_entry_destroy(int unit, args_t *args)
     bcm_field_entry_t           eid;
 
     if ((subcmd = ARG_GET(args)) == NULL) {
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_destroy_all()\n"), unit));
         retval = bcm_field_entry_destroy_all(unit);
@@ -1670,7 +1670,7 @@ fp_entry_destroy(int unit, args_t *args)
         return CMD_OK;
     } else {
         eid = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_destroy(eid=%d)\n"), unit, eid));
         retval = bcm_field_entry_destroy(unit, eid);
@@ -1719,7 +1719,7 @@ fp_entry_reinstall(int unit, args_t *args)
 
     FP_GET_NUMB(eid, subcmd, args);
             
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _entry_reinstall eid=%d\n"), unit, eid));
     retval = bcm_field_entry_reinstall(unit, eid);
@@ -1744,7 +1744,7 @@ fp_entry_remove(int unit, args_t *args)
 
     FP_GET_NUMB(eid, subcmd, args);
             
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _entry_remove eid=%d\n"), unit, eid));
     retval = bcm_field_entry_remove(unit, eid);
@@ -1770,7 +1770,7 @@ fp_entry_enable(int unit, args_t *args)
 
     FP_GET_NUMB(eid, subcmd, args);
             
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _entry_enable_set eid=%d, en=T\n"), unit, eid));
     retval = bcm_field_entry_enable_set(unit, eid, 1);
@@ -1796,7 +1796,7 @@ fp_entry_disable(int unit, args_t *args)
 
     FP_GET_NUMB(eid, subcmd, args);
             
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _entry_enable_set eid=%d, en=F\n"), unit, eid));
     retval = bcm_field_entry_enable_set(unit, eid, 0);
@@ -1825,7 +1825,7 @@ fp_entry_prio(int unit, args_t *args)
 
     /* BCM.0> fp entry prio <eid> */
     if ((subcmd = ARG_GET(args)) == NULL) {
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_prio_get(eid=%d)\n"), unit, eid));
         retval = bcm_field_entry_prio_get(unit, eid, &prio);
@@ -1849,7 +1849,7 @@ fp_entry_prio(int unit, args_t *args)
             }
         }
 
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: bcm_field_entry_prio_set(eid=%d, prio=%d)\n"), 
                                 unit, eid, prio));
@@ -1942,7 +1942,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
 
     if ((subcmd = ARG_GET(args)) == NULL) {
         /* BCM.0> fp group create 'prio'  */
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb: _group_create pri=%d\n"), unit, pri));
         retval = bcm_field_group_create(unit, *qset, pri, &gid);
@@ -1951,7 +1951,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
         gid = parse_integer(subcmd);
         if ((subcmd = ARG_GET(args)) == NULL) {
             /* BCM.0> fp group create 'prio' 'gid' */
-            LOG_VERBOSE(BSL_LS_APPL_SHELL,
+            LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                         (BSL_META_U(unit,
                                     "FP(unit %d) verb: _group_create_id pri=%d gid=%d\n"),
                                     unit, pri, gid));
@@ -1964,7 +1964,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
             } else {
                 mode = parse_field_group_mode(subcmd);
                 if (mode == bcmFieldGroupModeCount) {
-                    LOG_ERROR(BSL_LS_APPL_SHELL,
+                    LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                               (BSL_META_U(unit,
                                           "FP(unit %d) Error: Unknown mode: %s\n"), unit, subcmd));
                     return CMD_FAIL;
@@ -1972,7 +1972,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
             }
             /* BCM.0> fp group create 'prio' 'gid' 'mode' 'pbmp' */
             if ((subcmd = ARG_GET(args)) == NULL) {
-                LOG_VERBOSE(BSL_LS_APPL_SHELL,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                             (BSL_META_U(unit,
                                         "FP(unit %d) verb: _group_create_id pri=%d gid=%d, mode=%d\n"), 
                                         unit, pri, gid, mode));
@@ -1981,7 +1981,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
                 FP_CHECK_RETURN(unit, retval, "bcm_field_group_create_mode_id");
             } else {
                 if (BCM_FAILURE(parse_bcm_pbmp(unit, subcmd, &pbmp))) {
-                    LOG_ERROR(BSL_LS_APPL_SHELL,
+                    LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                               (BSL_META_U(unit,
                                           "FP(unit %d) Error: Unrecognized port bitmap: %s\n"), unit, subcmd));
                     return CMD_FAIL;
@@ -1991,7 +1991,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
                     if (count == 1) {
                         DPORT_BCM_PBMP_ITER(unit, pbmp, dport, port) {
 #ifdef BROADCOM_DEBUG						
-                            LOG_VERBOSE(BSL_LS_APPL_SHELL,
+                            LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                                         (BSL_META_U(unit,
                                                     "FP(unit %d) verb: _group_port_create_id "
                                                     "pri=%d gid=%d, mode=%d port=%s\n"), unit,
@@ -2005,7 +2005,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
                         }
                     } else {
 #ifdef BROADCOM_DEBUG					
-                        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+                        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                                     (BSL_META_U(unit,
                                                 "FP(unit %d) verb: _group_ports_create_mode_id "
                                                 "pri=%d gid=%d, mode=%d pbmp=%s\n"), unit, pri,
@@ -2025,7 +2025,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
                     } else if (0 == sal_strncasecmp(subcmd, "large", 5)) {
                         group_config.flags |= BCM_FIELD_GROUP_CREATE_LARGE;
                     } else {
-                        LOG_ERROR(BSL_LS_APPL_SHELL,
+                        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                                   (BSL_META_U(unit,
                                               "FP(unit %d) Error: Unknown size: %s."
                                               "  size = [large | small]\n"), unit, subcmd));
@@ -2050,7 +2050,7 @@ fp_group_create(int unit, args_t *args, bcm_field_qset_t *qset)
                     group_config.flags |= BCM_FIELD_GROUP_CREATE_WITH_PORT;
                     SOC_PBMP_ASSIGN(group_config.ports, pbmp);
 #ifdef BROADCOM_DEBUG
-                    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+                    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                                 (BSL_META_U(unit,
                                             "FP(unit %d) verb: _group_config_create pri=%d "
                                             "gid=%d, mode=%d pbmp=%s size=%s\n"), unit, pri,
@@ -2085,7 +2085,7 @@ fp_group_destroy(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.0> fp group destroy 'gid' */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:_group_destroy gid=%d\n"), unit, gid));
     retval = bcm_field_group_destroy(unit, gid);
@@ -2111,7 +2111,7 @@ fp_group_get(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.0> fp group create 'prio'  */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: _group_get gid=%d\n"), unit, gid));
     retval = bcm_field_group_get(unit, gid, &qset);
@@ -2184,7 +2184,7 @@ fp_range_create(int unit, args_t *args)
         flags = param[0];
         min   = param[1];
         max   = param[2];
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_create flags=0x%x, min=%d, max=%d \n"),
                                 unit, flags, min, max));
@@ -2196,7 +2196,7 @@ fp_range_create(int unit, args_t *args)
         flags = param[1];
         min   = param[2];
         max   = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_create_id rid=%d, flags=0x%x, min=%d, max=%d \n"),
                                 unit, rid, flags, min, max));
@@ -2236,7 +2236,7 @@ fp_range_group_create(int unit, args_t *args)
         min   = param[1];
         max   = param[2];
         group = param[3];
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_group_create flags=0x%x, min=%d, max=%d group=%d\n"),
                                 unit, flags, min, max, group));
@@ -2249,7 +2249,7 @@ fp_range_group_create(int unit, args_t *args)
         min   = param[2];
         max   = param[3];
         group = parse_integer(subcmd);
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:_range_group_create_id  rid=%d, flags=0x%x, min=%d, max=%d group=%d\n"),
                                 unit, rid, flags, min, max, group));
@@ -2279,7 +2279,7 @@ fp_range_get(int unit, args_t *args)
     FP_GET_NUMB(rid, subcmd, args);
 
     /* BCM.0> fp range get 'rid'  */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:fp_range_get 'rid=%d'\n"), unit, rid));
     retval = bcm_field_range_get(unit, rid, &flags, &min, &max);
@@ -2311,7 +2311,7 @@ fp_range_destroy(int unit, args_t *args)
     FP_GET_NUMB(rid, subcmd, args);
 
     /* BCM.0> fp range destroy 'rid'  */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:fp_range_destroy 'rid=%d'\n"), unit, rid));
     retval = bcm_field_range_destroy(unit, rid);
@@ -2359,7 +2359,7 @@ fp_group_status_get(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.0> fp group status 'gid' */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:_group_status_get gid=%d\n"), unit, gid));
     retval = bcm_field_group_status_get(unit, gid, &gstat);
@@ -2397,7 +2397,7 @@ fp_group_mode_get(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.0> fp group mode 'gid' */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_group_mode_get gid=%d\n"), unit, gid));
     retval = bcm_field_group_mode_get(unit, gid, &mode);
@@ -3267,7 +3267,7 @@ fp_group_compress(int unit, args_t *args)
     FP_GET_NUMB(gid, subcmd, args);
 
     /* BCM.0> fp group compress 'gid' */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_group_compress(gid=%d)\n"), unit, gid));
 
@@ -3295,7 +3295,7 @@ fp_group_lookup(int unit, args_t *args)
 
     if ((subcmd = ARG_GET(args)) == NULL) {
         /* BCM.0> fp group lookup 'gid' */
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:bcm_field_group_enable_get(gid=%d)\n"), unit, gid));
         retval = bcm_field_group_enable_get(unit, gid, &enable);
@@ -3333,7 +3333,7 @@ fp_group_enable_set(int unit, bcm_field_group_t gid, int enable)
     int                         retval = CMD_OK;
 
     /* BCM.0> fp group enable/disable 'gid' */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_group_enable_set(gid=%d, enable=%d)\n"), unit, gid, enable));
     retval = bcm_field_group_enable_set(unit, gid, enable);
@@ -3437,7 +3437,7 @@ fp_qset_add(int unit, args_t *args, bcm_field_qset_t *qset)
      */
     if(!sal_strcasecmp(qual_str, "Data")) {
         FP_GET_NUMB(dq_id, subcmd, args);
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:fp_qset_add: data qualifier=%d\n"), unit, dq_id));
         retval = bcm_field_qset_data_qualifier_add(unit, qset, dq_id);
@@ -3452,7 +3452,7 @@ fp_qset_add(int unit, args_t *args, bcm_field_qset_t *qset)
         qual = parse_field_qualifier(qual_str);
 
         if (qual == bcmFieldQualifyCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown qualifier: %s\n"), unit, qual_str));
             return CMD_FAIL;
@@ -3881,7 +3881,7 @@ fp_qual(int unit, args_t *args)
      */
     if(!sal_strcasecmp(qual_str, "clear")) {
         /* BCM.0> fp qual 'eid' clear  */
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:fp_qual_clear 'eid=%d'\n"), unit, eid));
         rv = bcm_field_qualify_clear(unit, eid);
@@ -3899,7 +3899,7 @@ fp_qual(int unit, args_t *args)
             return CMD_USAGE;
         }
         /* BCM.0> fp qual 'eid' delete 'qual_name' */
-        LOG_VERBOSE(BSL_LS_APPL_SHELL,
+        LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                     (BSL_META_U(unit,
                                 "FP(unit %d) verb:fp_qual_delete  'eid=%d qual=%s'\n"), unit, eid, qual_str));
         rv = bcm_field_qualifier_delete(unit, eid,
@@ -4937,14 +4937,14 @@ fp_qual(int unit, args_t *args)
     case bcmFieldQualifyCount:
     default:
         fp_list_quals(unit, args);
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unknown qualifier: %s\n"), unit, qual_str));
         rv = CMD_FAIL;
     }
 
     if (CMD_OK != rv) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Qualifier installation error: %s\n"), 
                               unit, qual_str));
@@ -4970,7 +4970,7 @@ fp_qual_InPorts(int unit, bcm_field_entry_t eid, args_t *args)
     if ((subcmd = ARG_GET(args)) == NULL) {
         return CMD_USAGE;
     } else if (parse_bcm_pbmp(unit, subcmd, &data) < 0) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: %s: Error: unrecognized port bitmap: %s\n"),
                               unit, ARG_CMD(args), subcmd));
@@ -4978,7 +4978,7 @@ fp_qual_InPorts(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     if (bcm_port_config_get(unit, &pcfg) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: %s: Error: bcm ports not initialized\n"), unit,
                               ARG_CMD(args)));
@@ -5015,7 +5015,7 @@ fp_qual_OutPorts(int unit, bcm_field_entry_t eid, args_t *args)
     if ((subcmd = ARG_GET(args)) == NULL) {
         return CMD_USAGE;
     } else if (parse_bcm_pbmp(unit, subcmd, &data) < 0) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: %s: Error: unrecognized port bitmap: %s\n"),
                               unit, ARG_CMD(args), subcmd));
@@ -5023,7 +5023,7 @@ fp_qual_OutPorts(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     if (bcm_port_config_get(unit, &pcfg) != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: %s: Error: bcm ports not initialized\n"), 
                               unit, ARG_CMD(args)));
@@ -5294,7 +5294,7 @@ fp_qual_ip(int unit, bcm_field_entry_t eid, args_t *args,
         return CMD_USAGE;
     }
     if (parse_ipaddr(subcmd, &data) < 0) { 
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: invalid ip4 addr string: \"%s\"\n"), 
                               unit, subcmd)); 
@@ -5305,7 +5305,7 @@ fp_qual_ip(int unit, bcm_field_entry_t eid, args_t *args,
         return CMD_USAGE;
     }
     if (parse_ipaddr(subcmd, &mask) < 0) {
-        LOG_ERROR(BSL_LS_APPL_SHELL,
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: invalid ip4 addr string: \"%s\"\n"), unit,
                               subcmd));
@@ -5695,7 +5695,7 @@ fp_qual_Decap(int unit, bcm_field_entry_t eid, args_t *args)
     } else {
         decap = parse_field_decap(subcmd);
         if (decap == bcmFieldDecapCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown decap value: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -5766,7 +5766,7 @@ fp_qual_IpInfo(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     /* BCM.0> fp qual <eid> IpInfo [HOZ=<0/1> HFMF=<0/1> COK=<0/1>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_qualify_IpInfo(entry=%d, data=%#x, mask=%#x)\n"),
                             unit, eid, data, mask));
@@ -5810,7 +5810,7 @@ fp_qual_PacketRes(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     /* BCM.0> fp qual <eid> PacketRes [Res=<>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_qualify_PacketRes(entry=%d, data=%#x, mask=%#x)\n"),
                             unit, eid, data, mask));
@@ -5867,7 +5867,7 @@ fp_qual_Color(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     /* BCM.0> fp qual <eid> color [color=<>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: bcm_field_qualify_(entry=%d, data=%#x)\n"),
                             unit, eid, data));
@@ -5993,7 +5993,7 @@ fp_qual_ForwardingType(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     /* BCM.0> fp qual <eid> ForwardingType [fwd_type=<>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_qualify_ForwardingType(entry=%d, data=%#x)\n"),
                             unit, eid, data));
@@ -6026,7 +6026,7 @@ fp_qual_IpFrag(int unit, bcm_field_entry_t eid, args_t *args)
     }
     
     /* BCM.0> fp qual <eid> IpFrag [Frag=<>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb:bcm_field_qualify_IpFrag(entry=%d, data=%#x)\n"),
                             unit, eid, data));
@@ -6082,7 +6082,7 @@ fp_qual_LoopbackType(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     /* BCM.0> fp qual <eid> LoopbackType [lb_type =<>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: bcm_field_qualify_LoopbackType(entry=%d, data=%#x)\n"),
                             unit, eid, data));
@@ -6138,7 +6138,7 @@ fp_qual_TunnelType(int unit, bcm_field_entry_t eid, args_t *args)
     }
 
     /* BCM.0> fp qual <eid> TunnelType [lb_type =<>] */
-    LOG_VERBOSE(BSL_LS_APPL_SHELL,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SHELL,
                 (BSL_META_U(unit,
                             "FP(unit %d) verb: bcm_field_qualify_TunnelType(entry=%d, data=%#x)\n"),
                             unit, eid, data));
@@ -6289,7 +6289,7 @@ fp_qual_IpType(int unit, bcm_field_entry_t eid, args_t *args)
     } else {
         type = fp_lookup_IpType(subcmd);
         if (type == bcmFieldIpTypeCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown IpType value: %s\n"), unit, subcmd));
             return CMD_FAIL;
@@ -6327,7 +6327,7 @@ fp_qual_L2Format(int unit, bcm_field_entry_t eid, args_t *args)
     } else {
         type = fp_lookup_L2Format(subcmd);
         if (type == bcmFieldL2FormatCount) {
-            LOG_ERROR(BSL_LS_APPL_SHELL,
+            LOG_BSL_ERROR(BSL_LS_APPL_SHELL,
                       (BSL_META_U(unit,
                                   "FP(unit %d) Error: Unknown L2Format value: %s\n"), 
                                   unit, subcmd));

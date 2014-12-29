@@ -116,14 +116,14 @@ soc_internal_init_hash_state(pcid_info_t *pcid_info)
             soc_reg_addr_get(pcid_info->unit, _ism_table_bank_cfg_reg[t],
                              REG_PORT_ANY, 0, FALSE, &blk, &at), data);
         rval = data[0];
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Table: %d = %x\n"), t, rval));
         for (s = 0; s < _SOC_ISM_MAX_STAGES; s++) {
             banks = soc_reg_field_get(pcid_info->unit, _ism_table_bank_cfg_reg[t],
                                      rval, _ism_table_bank_cfg_fld[s]);
             for (b = 0; b < _SOC_ISM_BANKS_PER_STAGE; b++) { 
                 if (banks & (1 << b)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META("Bank[%d] = mem[%d]\n"), (s * _SOC_ISM_BANKS_PER_STAGE) + b, t+1));
                     _soc_ism_bank_avail[pcid_info->unit][(s * _SOC_ISM_BANKS_PER_STAGE) + b] = t+1;
                 }
@@ -266,7 +266,7 @@ soc_internal_generic_hash(pcid_info_t *pcid_info, soc_mem_t mem, void *entry,
 
     memidx = soc_ism_get_hash_mem_idx(unit, mem);
     if (memidx < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("Invalid hash memory !!\n")));
         return SOC_E_PARAM;
     }
@@ -275,13 +275,13 @@ soc_internal_generic_hash(pcid_info_t *pcid_info, soc_mem_t mem, void *entry,
     }
     if (soc_generic_get_hash_key(unit, mem, entry, keyflds, &lsbfld, 
                                  &num_flds) == SOC_E_NONE) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Key field(s): ")));
         for (idx = 0; idx < num_flds; idx++) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("%d, "), keyflds[idx]));
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("\nLsb field: %d\n"), lsbfld));
         sal_memset(key, 0, sizeof(key));
         sal_memset(crc_key, 0, sizeof(crc_key));
@@ -333,7 +333,7 @@ soc_internal_generic_hash(pcid_info_t *pcid_info, soc_mem_t mem, void *entry,
         bucket = soc_generic_gen_hash(unit, zero_lsb, num_bits, offset, 
                                       mask, crc_key, lsb);
         sbo[bidx].index = bucket;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Bank[%d]: bucket:%d\n"), bidx, bucket));
         sbo[bidx].index = (shbank[idx].base_entry/idxinc) + 
                          (sbo[bidx].index * (shbank[idx].bkt_size/idxinc));
@@ -354,7 +354,7 @@ soc_internal_generic_hash(pcid_info_t *pcid_info, soc_mem_t mem, void *entry,
                     sbo[bidx].stage = shbank[idx].my_id / _SOC_ISM_BANKS_PER_STAGE;
                     sbo[bidx].bank = shbank[idx].my_id % _SOC_ISM_BANKS_PER_STAGE;
                     sbo[bidx].mode = 1;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META("Existing mem index: %d\n"), sbo[bidx].index+sbo[bidx].entry));
                     if (op != TABLE_INSERT_CMD_MSG) {
                         *index = sbo[bidx].index + midx;
@@ -373,7 +373,7 @@ soc_internal_generic_hash(pcid_info_t *pcid_info, soc_mem_t mem, void *entry,
                 sbo[bidx].stage = shbank[idx].my_id / _SOC_ISM_BANKS_PER_STAGE;
                 sbo[bidx].bank = shbank[idx].my_id % _SOC_ISM_BANKS_PER_STAGE;
                 sbo[bidx].mode = 0;
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META("New mem index: %d\n"), sbo[bidx].index+sbo[bidx].entry));
                 break;
             }
@@ -417,7 +417,7 @@ soc_internal_generic_hash_insert(pcid_info_t *pcid_info, soc_mem_t mem, int32 ba
     int         unit = pcid_info->unit; 
     schan_genresp_v2_t *genresp = (schan_genresp_v2_t *) result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Mem: %d\n"), mem));
     rc = soc_internal_generic_hash(pcid_info, mem, entry, banks, TABLE_INSERT_CMD_MSG,
@@ -431,7 +431,7 @@ soc_internal_generic_hash_insert(pcid_info_t *pcid_info, soc_mem_t mem, int32 ba
         genresp->type = opres;
         if (opres == SCHAN_GEN_RESP_TYPE_FULL) {
             genresp->index = -1;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Full\n")));
         } else {
@@ -442,15 +442,15 @@ soc_internal_generic_hash_insert(pcid_info_t *pcid_info, soc_mem_t mem, int32 ba
                                             soc_mem_addr_get(unit, mem, 0,
                                             blk, index, &at), (uint32 *)entry);
             if (opres == SCHAN_GEN_RESP_TYPE_REPLACED) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Replace ")));
             } else {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "Insert ")));
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Index: %d\n"), index));
         }
@@ -467,7 +467,7 @@ soc_internal_generic_hash_lookup(pcid_info_t *pcid_info, soc_mem_t mem, int bank
     schan_genresp_v2_t *genresp = (schan_genresp_v2_t *) result;
     uint32 opres;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("Mem: %d\n"), mem));
     rc = soc_internal_generic_hash(pcid_info, mem, entry, banks, TABLE_LOOKUP_CMD_MSG,
                                    &index, &opres);
@@ -479,12 +479,12 @@ soc_internal_generic_hash_lookup(pcid_info_t *pcid_info, soc_mem_t mem, int bank
     } else if (opres == SCHAN_GEN_RESP_TYPE_NOT_FOUND) {
         genresp->type = opres;
         genresp->index = -1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Not found\n")));
     } else {
         genresp->type = opres;
         genresp->index = index;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("Found Index: %d\n"), index));
     }
     return SOC_E_NONE;
@@ -501,7 +501,7 @@ soc_internal_generic_hash_delete(pcid_info_t *pcid_info, soc_mem_t mem, int bank
     int         unit = pcid_info->unit; 
     schan_genresp_v2_t *genresp = (schan_genresp_v2_t *) result;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Mem: %d\n"), mem));
     rc = soc_internal_generic_hash(pcid_info, mem, entry, banks, TABLE_DELETE_CMD_MSG,
@@ -514,7 +514,7 @@ soc_internal_generic_hash_delete(pcid_info_t *pcid_info, soc_mem_t mem, int bank
     } else if (opres == SCHAN_GEN_RESP_TYPE_NOT_FOUND) {
         genresp->type = opres;
         genresp->index = -1;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Not found\n")));
     } else {
@@ -542,7 +542,7 @@ soc_internal_generic_hash_delete(pcid_info_t *pcid_info, soc_mem_t mem, int bank
         soc_internal_extended_write_mem(pcid_info, sblk, at,
                                         soc_mem_addr_get(unit, mem, 0,
                                         blk, index, &at), (uint32 *)tmp);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Deleted Index: %d\n"), index));
     }

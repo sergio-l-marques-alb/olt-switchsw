@@ -501,12 +501,12 @@ static int diag_mem_field_get(int unit, char *name, char* field_name, int index,
             soc_mem_field_get(unit, mem, fval, fieldp->field, value);
             _shr_format_long_integer(tmp, value, SOC_MAX_MEM_FIELD_WORDS);
 #if !defined(SOC_NO_NAMES)
-            LOG_VERBOSE(BSL_LS_APPL_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_APPL_COMMON,
                         (BSL_META_U(unit,
                                     "%s="),
                          soc_fieldnames[fieldp->field]));
 #endif
-            LOG_VERBOSE(BSL_LS_APPL_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_APPL_COMMON,
                         (BSL_META_U(unit,
                                     "%s\n"),
                          tmp));
@@ -1783,7 +1783,7 @@ static int init_device_for_mems_ser_test(int unit, ser_mem_read_t *ser_mem_read)
           }
 
           if ((rv = soc_dpp_device_reset(unit, SOC_DPP_RESET_MODE_REG_ACCESS,SOC_DPP_RESET_ACTION_INOUT_RESET)) < 0) {
-              LOG_ERROR(BSL_LS_APPL_COMMON,(BSL_META_U(unit, "ERROR: Unable to reinit unit %d \n"), unit));
+              LOG_BSL_ERROR(BSL_LS_APPL_COMMON,(BSL_META_U(unit, "ERROR: Unable to reinit unit %d \n"), unit));
               return -1;
           } 
            

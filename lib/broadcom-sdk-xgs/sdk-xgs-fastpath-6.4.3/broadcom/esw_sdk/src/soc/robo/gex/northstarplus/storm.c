@@ -230,7 +230,7 @@ drv_nsp_storm_control_enable_set(int unit, uint32 port, uint8 enable)
     uint32  reg_value;
     uint32  specified_port_num;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_nsp_storm_control_enable_set: \
                          unit = %d, port = %d, %sable\n"), unit, port, (enable) ? "en" : "dis"));
@@ -300,7 +300,7 @@ drv_nsp_storm_control_enable_get(int unit, uint32 port, uint8 *enable)
         (unit, &reg_value, EN_BUCKET1f, &temp));
     *enable = temp;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_nsp_storm_control_enable_get: \
                          unit = %d, port = %d, %sable\n"), unit, port, (*enable) ? "en" : "dis"));
@@ -335,7 +335,7 @@ drv_nsp_storm_control_set(int unit, soc_pbmp_t bmp, uint32 type,
     uint32  disable_type = 0, burst_kbyte;
     uint32  specified_port_num;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_nsp_storm_control_set: \
                          unit = %d, bmp = 0x%x, type = 0x%x, limit = %dK\n"), 
@@ -502,7 +502,7 @@ drv_nsp_storm_control_get(int unit, uint32 port, uint32 *type,
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_nsp_storm_control_get: \
                          unit = %d, port = %d, type = 0x%x, limit = %dK\n"), 

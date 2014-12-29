@@ -2392,14 +2392,14 @@ _field_trx_policy_set_l3_info(int unit, soc_mem_t mem, int value, uint32 *buf)
     BCM_IF_ERROR_RETURN(retval);
 
     if (flags & BCM_L3_MULTIPATH) {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: Install mpath L3 policy (Ecmp_group: %d)))"),
                    unit, nh_ecmp_id));
         PolicySet(unit, mem, buf, ECMPf, 1);
         PolicySet(unit, mem, buf, ECMP_PTRf, nh_ecmp_id);
     } else {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: Install unipath L3 policy(Next hop id: %d)))"),
                    unit, nh_ecmp_id));
@@ -2451,7 +2451,7 @@ _field_trx_policy_egr_nexthop_info_set(int unit, soc_mem_t mem,
             /* Non-Trident devices do not support redirect to ECMP action */
             return (BCM_E_UNAVAIL);
         }
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: Set ECMP (Group id: %d\n)))"),
                    unit, nh_ecmp_id));
@@ -2466,7 +2466,7 @@ _field_trx_policy_egr_nexthop_info_set(int unit, soc_mem_t mem,
         } else {
             redirect_to_nhi = (0x1 << 14) | nh_ecmp_id;
         }
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: Set unipath (Nexthop index: %d\n)))"),
                    unit, nh_ecmp_id));
@@ -4715,11 +4715,11 @@ int _bcm_field_trx_ucast_mcast_action_update(int unit, soc_mem_t mem,
         return BCM_E_UNAVAIL;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _bcm_field_trx_ucast_mcast_action_update "),
                unit));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "eid=%d, tcam_idx=0x%x\n "),
                f_ent->eid, tcam_idx));
@@ -5150,11 +5150,11 @@ int _field_kt_action_update(int unit, soc_mem_t mem, _field_entry_t *f_ent,
         return BCM_E_UNAVAIL;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _field_kt_action_update "),
                unit));
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "eid=%d, tcam_idx=0x%x\n "),
                f_ent->eid, tcam_idx));
@@ -5272,7 +5272,7 @@ _bcm_field_trx_action_get(int unit, soc_mem_t mem, _field_entry_t *f_ent,
         return (BCM_E_PARAM);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: BEGIN _bcm_field_trx_action_get(eid=%d, tcam_idx=0x%x)\n"),
                unit, f_ent->eid, tcam_idx));
@@ -7051,7 +7051,7 @@ _bcm_field_trx_action_get(int unit, soc_mem_t mem, _field_entry_t *f_ent,
 
     fa->flags &= ~_FP_ACTION_DIRTY; /* Mark action as installed. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: END _bcm_field_trx_action_get()\n"),
                unit));
@@ -10131,7 +10131,7 @@ _bcm_field_trx_qualify_ip_type(int unit, _field_entry_t *f_ent,
       default:
           break;
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: entry=%d qualifying on Iptype, data=%#x, mask=%#x\n))"),
                unit, f_ent->eid, data, mask));
@@ -10308,7 +10308,7 @@ _bcm_field_trx_range_check_set(int unit, int range, uint32 flags, int enable,
               range_type_encoded = 0x3;
               break;
           default:
-              LOG_ERROR(BSL_LS_BCM_FP,
+              LOG_BSL_ERROR(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "FP(unit %d) Error: unsupported flags %#x\n"),
                          unit, flags));
@@ -10744,7 +10744,7 @@ _field_trx_policer_hw_update(int unit, _field_entry_t *f_ent,
             stage_fc->meter_pool[f_ent->group->instance]
                                 [f_pl->pool_index]->pool_size)
                                 + (2 * f_pl->hw_index) + meter_offset;
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
             (BSL_META_U(unit,
             "FP(unit %d) vverb: pool_idx:%d pool_sz:%d pair_num:%d"
             " hw_idx:%d\n"), unit, f_pl->pool_index,
@@ -10762,7 +10762,7 @@ _field_trx_policer_hw_update(int unit, _field_entry_t *f_ent,
                         [f_pl->pool_index].start_tcam_idx + \
                         (2 * f_pl->hw_index) + meter_offset;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
             (BSL_META_U(unit,
             "FP(unit %d) vverb: slice_num:%d tcam_idx:%d pair_num:%d"
             " hw_idx%d\n"), unit, f_pl->pool_index,
@@ -15371,30 +15371,30 @@ int _field_flex_counter_recover(int            unit,
             case 1:
                 nstat = 1;
                 stat_arr[0] = bcmFieldStatBytes;
-                LOG_VERBOSE(BSL_LS_BCM_FP,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                             (BSL_META_U(unit,
                                         "_field_flex_counter_recover: StatBytes \n")));
                 break;
             case 2:
                 nstat = 1;
                 stat_arr[0] = bcmFieldStatPackets;
-                LOG_VERBOSE(BSL_LS_BCM_FP,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                             (BSL_META_U(unit,
                                         "_field_flex_counter_recover: StatPackets \n")));
                 break;
             case 3:
-                LOG_VERBOSE(BSL_LS_BCM_FP,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                             (BSL_META_U(unit,
                                         "_field_flex_counter_recover:StatBytes & Packets\n")));
                 break;
             default:
-                LOG_WARN(BSL_LS_BCM_FP,
+                LOG_BSL_WARN(BSL_LS_BCM_FP,
                          (BSL_META_U(unit,
                                      "_field_flex_counter_recover:Default Bytes&Pkts.\n")));
                 break;
             }
         } else {
-            LOG_WARN(BSL_LS_BCM_FP,
+            LOG_BSL_WARN(BSL_LS_BCM_FP,
                      (BSL_META_U(unit,
                                  "_field_flex_counter_recover:   flex info not valid!.\n")));
         }
@@ -21579,12 +21579,12 @@ _field_tr2_group_entry_write(int unit, int slice_idx, _field_slice_t *fs,
     if (SOC_PBMP_EQ(fs->pbmp, port_cmic_pbmp)) {
         multigroup = 0;
     } else {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_scache_sync:   Multigroup.\n")));
         multigroup = 1;
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "_field_scache_sync:   Writing slice %d @ byte %d...\n"),
                slice_idx, fc->scache_pos));
@@ -21607,19 +21607,19 @@ _field_tr2_group_entry_write(int unit, int slice_idx, _field_slice_t *fs,
             continue; /* Not in this stage */
         }
         if (fg->slices[0].slice_number != master_slice) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "_field_scache_sync:   No match on group %d.\n"),
                        fg->gid));
             fg = fg->next;
             continue; /* Not in this slice */
         }
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_scache_sync:   Match on group %d...\n"),
                    fg->gid));
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_scache_sync:   Writing group %d @ byte %d...\n"),
                    fg->gid, fc->scache_pos));
@@ -21666,7 +21666,7 @@ _field_tr2_group_entry_write(int unit, int slice_idx, _field_slice_t *fs,
             qset_count++;
         }
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_scache_sync:   Writing qset count (%d) @ byte %d...\n"),
                    qset_count, fc->scache_pos));
@@ -21674,7 +21674,7 @@ _field_tr2_group_entry_write(int unit, int slice_idx, _field_slice_t *fs,
         buf[fc->scache_pos] = qset_count; /* qset_count */
         fc->scache_pos++;
         _FIELD_QSET_INCL_INTERNAL_ITER(fg->qset, q) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "_field_scache_sync:     Writing qid %d @ byte %d...\n"),
                        q, fc->scache_pos));
@@ -22173,7 +22173,7 @@ _field_tr2_scache_sync(int              unit,
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "_field_scache_sync: Synching scache for FP stage %d...\n"),
                stage_fc->stage_id));
@@ -22206,7 +22206,7 @@ _field_tr2_scache_sync(int              unit,
 
         /* Sync Hints information */
         if (soc_feature(unit, soc_feature_field_ingress_two_slice_types)) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,"Syncing hints @pos= %d\r\n"),
                                                     fc->scache_pos));
             BCM_IF_ERROR_RETURN (_bcm_field_hints_scache_sync(unit,
@@ -22246,7 +22246,7 @@ _field_tr2_scache_sync(int              unit,
     }
 
     for (slice_idx = 0; slice_idx < stage_fc->tcam_slices; slice_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "_field_scache_sync: Checking slice %d...\n"),
                    slice_idx));
@@ -22318,7 +22318,7 @@ _field_tr2_scache_sync(int              unit,
         fs = stage_fc->slices[_FP_DEF_INST] + slice_idx;
         /* Skip empty slices */
         if (fs->entry_count == fs->free_count) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "_field_scache_sync:   Slice is empty.\n")));
             continue;
@@ -22405,7 +22405,7 @@ _field_tr2_scache_sync(int              unit,
 
     if (soc_feature(unit, soc_feature_field_ingress_two_slice_types)) {
         if (stage_fc->stage_id == _BCM_FIELD_STAGE_INGRESS) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,"FP(unit %d) vverb:"
                         "_bcm_field_td2_scache_sync() - section  Writing"
                         " HintIds information @ byte %d.\n"),
@@ -22415,7 +22415,7 @@ _field_tr2_scache_sync(int              unit,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
             (BSL_META_U(unit,
                         "_field_scache_sync: Writing end of section @ byte %d.\n"),
              fc->scache_pos));
@@ -22480,7 +22480,7 @@ _field_trx_scache_slice_group_recover(int              unit,
     /* Parse the scache buffer to recover GIDs and QSETs */
     /* To be used in stage reinit */
     slice_idx = buf[fc->scache_pos] >> 1;
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Read slice index %d @ byte %d\n"),
                slice_idx, fc->scache_pos));
@@ -22521,7 +22521,7 @@ _field_trx_scache_slice_group_recover(int              unit,
         port = buf[fc->scache_pos]; /* Rep_port */
         fc->scache_pos++;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Read group id %d @ %d.\n"),
                    gid, fc->scache_pos - 3));
@@ -22552,7 +22552,7 @@ _field_trx_scache_slice_group_recover(int              unit,
         qset_count = buf[fc->scache_pos]; /* QSET_count */
         fc->scache_pos++;
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Read qset count %d @ %d.\n"),
                    qset_count, fc->scache_pos - 1));
@@ -22570,7 +22570,7 @@ _field_trx_scache_slice_group_recover(int              unit,
             }
             BCM_FIELD_QSET_ADD(new_grp->qset, qset);
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "Read qualifier %d @ %d.\n"),
                        qset, fc->scache_pos - 1));
@@ -22599,7 +22599,7 @@ _field_trx_scache_slice_group_recover(int              unit,
     BCM_IF_ERROR_RETURN(rv);
 
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Done reading slice @ %d.\n"),
                fc->scache_pos));
@@ -22675,7 +22675,7 @@ _field_trx_entry_info_retrieve(int               unit,
         fc->scache_pos++;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Read entry id %d @ byte %d.\n"),
                *eid, fc->scache_pos - 2));
@@ -22779,7 +22779,7 @@ _field_trx_entry_info_retrieve(int               unit,
     }
 #endif
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Done reading entry @ %d.\n"),
                fc->scache_pos));
@@ -23750,7 +23750,7 @@ _field_tr2_stage_ingress_reinit(int              unit,
         if (soc_feature(unit, soc_feature_field_ingress_two_slice_types)) {
             if (version >= BCM_WB_VERSION_1_7) {
                 if (stage_fc->stage_id == _BCM_FIELD_STAGE_INGRESS) {
-                    LOG_DEBUG(BSL_LS_BCM_FP,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                             (BSL_META_U(unit,"Recovering hints from "
                                         "pos = %d\r\n"), fc->scache_pos));
                     BCM_IF_ERROR_RETURN (_bcm_field_hints_scache_recover (unit,
@@ -25023,7 +25023,7 @@ _field_tr2_stage_ingress_reinit(int              unit,
         if (soc_feature(unit, soc_feature_field_ingress_two_slice_types)) {
             if (version >= BCM_WB_VERSION_1_7) {
                 if (stage_fc->stage_id == _BCM_FIELD_STAGE_INGRESS) {
-                    LOG_DEBUG(BSL_LS_BCM_FP,
+                    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                             (BSL_META_U(unit,"Recovering hint Ids "
                                         "from pos = %d\r\n"), fc->scache_pos));
                     BCM_IF_ERROR_RETURN (_bcm_hints_scache_hintid_recover(unit,
@@ -25216,7 +25216,7 @@ _bcm_field_trx_egress_secondary_selcodes_set(int unit, _field_group_t *fg,
                      fg->sel_codes[part_idx].egr_class_f4_sel = fldval;
                      break;
                 default:
-                     LOG_ERROR(BSL_LS_BCM_FP,
+                     LOG_BSL_ERROR(BSL_LS_BCM_FP,
                                (BSL_META_U(unit,
                                            "FP(unit %d) Error:Invalid field in efp classid selector \n"),
                                 unit));
@@ -25242,7 +25242,7 @@ _bcm_field_trx_egress_secondary_selcodes_set(int unit, _field_group_t *fg,
                      fg->sel_codes[part_idx].egr_key4_dvp_sel = fldval;
                      break;
                  default:
-                     LOG_ERROR(BSL_LS_BCM_FP,
+                     LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                   "FP(unit %d) Error:Invalid field in efp dvp selector \n"),
                                    unit));
@@ -25269,7 +25269,7 @@ _bcm_field_trx_egress_secondary_selcodes_set(int unit, _field_group_t *fg,
                      fg->sel_codes[part_idx].egr_key4_mdl_sel = fldval;
                      break;
                 default:
-                     LOG_ERROR(BSL_LS_BCM_FP,
+                     LOG_BSL_ERROR(BSL_LS_BCM_FP,
                                (BSL_META_U(unit,
                                            "FP(unit %d) Error:Invalid field in efp mdl selector \n"),
                                 unit));
@@ -29380,7 +29380,7 @@ int _bcm_trx_field_egr_ports_recovery_entry_remove (int unit,
     _field_egr_ports_recovery_t *f_egr_recovery = NULL;
     int port;
 
-    LOG_DEBUG(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,(BSL_META_U(unit,
                     "FP (unit %d) Clear Entry %d from redirect_pbm_recovery database))"), unit, entry));
     _field_egr_ports_recovery_control_get (unit, &f_egr_recovery);
 

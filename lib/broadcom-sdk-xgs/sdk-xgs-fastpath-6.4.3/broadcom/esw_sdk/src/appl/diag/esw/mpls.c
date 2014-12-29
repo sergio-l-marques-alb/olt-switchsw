@@ -661,7 +661,7 @@ _bcm_tr_mpls_cli_vpn_port_add(int unit, args_t * a)
     if (ifl_s) {
         ifl = _bcm_tr_mpls_cli_parse_flags(ifl_s, BCM_MPLS_PORT);
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Adding port %d to vpn 0x%08x, PortMatch=%s,"
                             "IntfFLaGs=%s VCInitLabel=0x%x\n"
@@ -676,7 +676,7 @@ _bcm_tr_mpls_cli_vpn_port_add(int unit, args_t * a)
     bcm_mpls_port_t_init(&mport);
     if (ifl & (BCM_MPLS_PORT_REPLACE | BCM_MPLS_PORT_WITH_ID)) {
         mport.mpls_port_id = port;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "mpls port=%08x\n"), port));
     } else if (BCM_GPORT_IS_SET(port)) {
@@ -685,7 +685,7 @@ _bcm_tr_mpls_cli_vpn_port_add(int unit, args_t * a)
         MPLS_ROE(bcm_port_gport_get, (unit, port, &gp));
     }
     mport.port = gp;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "gport_get gp=%08x\n"), gp));
 
@@ -756,7 +756,7 @@ _bcm_tr_mpls_cli_tunnel_init_set(int unit, args_t * a)
     if (elo_s) {
         elo = _bcm_tr_mpls_cli_parse_flags(elo_s, BCM_MPLS_EGRESS_LABEL);
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Adding INtf=0x%x EgrTunnelLabel=0x%x "
                             "EgrLabelOptions=%s elo=%d EgrTTL=%d\n"),
@@ -784,7 +784,7 @@ _bcm_tr_mpls_cli_tunnel_init_clear(int unit, args_t * a)
     PT_PARSE(a, pt);
     PT_DONE(pt);
     MPLS_ROE(bcm_mpls_tunnel_initiator_clear, (unit, intf_id));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Tunnel init clear intf_id=%d\n"), intf_id));
 
@@ -829,7 +829,7 @@ _bcm_tr_mpls_cli_tunnel_switch_add(int unit, args_t * a)
     PT_ADD(pt, "EgrObject", PQ_HEX, &eo);
     PT_ADD(pt, "VPN", PQ_INT, &vpn_id);
     PT_PARSE(a, pt);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "switch_add  so=0x%x so_s=%s act=%d il=0x%x "
                             "iil=0x%x el=0x%x elttl=%d elexp=%d elo_s=%s\n"
@@ -897,7 +897,7 @@ _bcm_tr_mpls_cli_tunnel_l2_add(int unit, args_t * a)
     PT_ADD(pt, "Mac", PQ_MAC, &mac);
     PT_ADD(pt, "Vlan", PQ_INT, &vlan);
     PT_PARSE(a, pt);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2 add mac=%02x:%02x:%02x:%02x:%02x:%02x vlan=%d\n"),
                  mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], vlan));
@@ -928,7 +928,7 @@ _bcm_tr_mpls_cli_expmap_create(int unit, args_t * a)
     PT_ADD(pt, "ExpMapID", PQ_INT, &exp_map_id);
     PT_PARSE(a, pt);
     flags |= BCM_MPLS_EXP_MAP_WITH_ID;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "exp_map_id %d\n"), exp_map_id));
     PT_DONE(pt);
@@ -957,7 +957,7 @@ _bcm_tr_mpls_cli_expmap_destroy(int unit, args_t * a)
     PT_ADD(pt, "ExpMapID", PQ_INT, &exp_map_id);
     PT_PARSE(a, pt);
     exp_map_id |= type;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "exp_map_id %d\n"), exp_map_id));
     PT_DONE(pt);
@@ -1003,7 +1003,7 @@ _bcm_tr_mpls_cli_expmap_set(int unit, args_t * a)
     map.color = color;
     map.pkt_pri = pkt_pri;
     map.pkt_cfi = pkt_cfi;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "exp_map_id %d priority %d exp %d\n"
                             "Color %d PKtPriority %d PKtCfi %d\n"),
@@ -1088,7 +1088,7 @@ _bcm_tr_mpls_cli_mcast_group_create(int unit, args_t * a)
     PT_INIT(unit, pt);
     PT_ADD(pt, "McastGroup", PQ_INT, &mcast_group);
     PT_PARSE(a, pt);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mcast group %d\n"), mcast_group));
     flags |= BCM_MULTICAST_WITH_ID;
@@ -1112,7 +1112,7 @@ _bcm_tr_mpls_cli_mcast_group_del(int unit, args_t * a)
     PT_PARSE(a, pt);
     PT_DONE(pt);
     MPLS_ROE(bcm_multicast_destroy, (unit, mcast_group));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mcast group %d destroyed\n"),
                             mcast_group));
@@ -1153,7 +1153,7 @@ _bcm_tr_mpls_cli_mcast_group_port_add_del(int unit, args_t * a)
     MPLS_ROE(bcm_port_gport_get, (unit, port, &gp));
     MPLS_ROE(bcm_multicast_vpls_encap_get,
              (unit, mcast_group, gp, mpls_port, &encap_id));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MPLS_CLI: mpls mcast group port %s vpls"
                             "group 0x%x gport 0x%0x mpls_port 0x%08xnh %d\n"),
@@ -1191,7 +1191,7 @@ _bcm_tr_mpls_cli_mcast_group_addr(int unit, args_t * a)
     l2_addr.l2mc_group = mcast_group;
     PT_DONE(pt);
     MPLS_ROE(bcm_l2_addr_add, (unit, &l2_addr));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mcast l2 addr add=%02x:%02x:%02x:%02x:%02x:%02x \n"),
                  mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]));

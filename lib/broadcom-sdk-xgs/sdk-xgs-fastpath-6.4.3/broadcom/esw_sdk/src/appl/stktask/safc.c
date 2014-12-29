@@ -524,7 +524,7 @@ _bcm_board_safc_count_create(int unit,
     rv = bcm_field_stat_create(unit, group, 1, &stat, &id);
     BCM_IF_ERROR_RETURN(rv);
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("counter %d@%s\n"),
                  id, locus));
     return
@@ -815,7 +815,7 @@ _bcm_board_safc_trunk_idx_add(safc_data_t *info, int idx)
         if (_bcm_board_safc_same_link(info->db_ref, idx, i)) {
             unit = entry->base.stk_ports[i].unit;
             port = entry->base.stk_ports[i].port;
-            LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                         (BSL_META("Trunk related spidx %d (%d,%d)\n"),
                          i, unit, port));
             SHR_BITSET(info->trunked, i);
@@ -829,7 +829,7 @@ _bcm_board_safc_trunk_idx_add(safc_data_t *info, int idx)
 
     unit = entry->base.stk_ports[idx].unit;
     port = entry->base.stk_ports[idx].port;
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Trunk base spidx %d (%d,%d)\n"),
                  idx, unit, port));
     BCM_PBMP_PORT_ADD(info->trunk[idx], port);
@@ -1395,13 +1395,13 @@ _bcm_board_safc_unicast_forward_port(safc_data_t *info,
        for this packet type. */
     BCM_PBMP_CLEAR(egress_mask);
     if (BCM_PBMP_NEQ(o_pbmp, s_pbmp)) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META_U(unit,
                     "%s: masking for modid %d egress to %s%d\n"),
                      FUNCTION_NAME(), modid, TRUNK(num_port), s_port));
         BCM_PBMP_ASSIGN(egress_mask, o_pbmp);
     } else {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META_U(unit,
                     "%s: no mask for modid %d egress to %s%d\n"),
                      FUNCTION_NAME(), modid, TRUNK(num_port), s_port));
@@ -1443,7 +1443,7 @@ _bcm_board_safc_unicast_ingress_lag(safc_data_t *info, int unit)
     bcm_field_entry_t e1;
     int rv;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META_U(unit,
                 "%s(<>,%d)\n"),
                  FUNCTION_NAME(), unit));
@@ -1612,7 +1612,7 @@ _bcm_board_safc_only_higig(safc_data_t *info)
     int rv;
 
     rv =_bcm_board_safc_unit_iterate(info, _bcm_board_safc_only_higig_u);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s()=%d\n"),
                  FUNCTION_NAME(), rv));
 
@@ -1626,7 +1626,7 @@ _bcm_board_mixed_higig(safc_data_t *info)
     int rv;
 
     rv = _bcm_board_safc_unit_iterate(info, _bcm_board_mixed_higig_u);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s()=%d\n"),
                  FUNCTION_NAME(), rv));
 
@@ -1641,7 +1641,7 @@ _bcm_board_safc_undo_source_modid_block(safc_data_t *info)
 
     rv = _bcm_board_safc_stkport_iterate
         (info, _bcm_board_safc_undo_source_modid_block_p);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s()=%d\n"),
                  FUNCTION_NAME(), rv));
 
@@ -1656,7 +1656,7 @@ _bcm_board_safc_unicast_forwarding(safc_data_t *info)
 
     rv = _bcm_board_safc_unit_iterate
         (info, _bcm_board_safc_unicast_forwarding_u);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s()=%d\n"),
                  FUNCTION_NAME(), rv));
 
@@ -1671,7 +1671,7 @@ _bcm_board_normal_unicast_forwarding(safc_data_t *info)
 
     rv = _bcm_board_safc_unit_iterate
         (info, _bcm_board_normal_unicast_forwarding_u);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s()=%d\n"),
                  FUNCTION_NAME(), rv));
 
@@ -1686,7 +1686,7 @@ _bcm_board_safc_nonunicast_egress_blocking(safc_data_t *info)
 
     rv = _bcm_board_safc_unit_iterate
         (info, _bcm_board_safc_nonunicast_egress_blocking_u);
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s()=%d\n"),
                  FUNCTION_NAME(), rv));
 
@@ -1714,7 +1714,7 @@ _bcm_board_safc_init(safc_data_t *info,
 {
     int rv;
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s\n"),
                  FUNCTION_NAME()));
 
@@ -1806,7 +1806,7 @@ _bcm_board_safc_configure(topo_cpu_t *tp_cpu,
         sal_free(info);
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("%s=%d\n"),
                  FUNCTION_NAME(), rv));
     return rv;

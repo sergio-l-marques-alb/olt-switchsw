@@ -655,7 +655,7 @@ int16 l75;int32*l205;int l292=0;phy_ctrl_t*l293;l293 = EXT_PHY_SW_STATE(unit,
 port);l205 = sal_alloc(sizeof(*l205)*(4*2*192),"cdiag_taps");if(l205 == NULL)
 {return SOC_E_MEMORY;}l6->fuzz_len = 0;l6->npairs = 4;l6->state = 
 SOC_PORT_CABLE_STATE_OK;l75 = l281(l205,0x0004,l293,l216,l290,&l9,&l291,NULL)
-;sal_free(l205);if(l75!= 0x0000){LOG_WARN(BSL_LS_SOC_PHY, (BSL_META_U(unit,
+;sal_free(l205);if(l75!= 0x0000){LOG_BSL_WARN(BSL_LS_SOC_PHY, (BSL_META_U(unit,
 "Cable Diag return code = %d\n"),l75));return SOC_E_FAIL;}for(l110=0;l110<4;
 l110++){switch(l216[l110]){case 0x0010:l292 = 1;case 0x0000:l6->pair_state[
 l110] = SOC_PORT_CABLE_STATE_OK;break;case 0x0002:l6->pair_state[l110] = 

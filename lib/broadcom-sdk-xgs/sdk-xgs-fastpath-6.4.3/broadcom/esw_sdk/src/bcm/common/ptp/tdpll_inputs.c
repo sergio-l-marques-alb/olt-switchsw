@@ -1164,7 +1164,7 @@ bcm_common_tdpll_input_clock_frequency_set(
      *             operate at 1 kHz / 100 Hz.
      */
     if ((0 == tsevent_frequency) || (tsevent_frequency % BCM_TDPLL_FREQUENCY)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "TS EVENT frequency is not a multiple of %u Hz. fTS: %u\n"),
                      (unsigned)BCM_TDPLL_FREQUENCY, (unsigned)tsevent_frequency));
@@ -1177,7 +1177,7 @@ bcm_common_tdpll_input_clock_frequency_set(
      *             at every Nth input clock edge. 
      */
     if ((0 == tsevent_frequency) || (clock_frequency % tsevent_frequency)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "CLOCK and TS EVENT frequencies are not integrally related. fCLK: %u fTS: %u"),
                      (unsigned)clock_frequency, (unsigned)tsevent_frequency));

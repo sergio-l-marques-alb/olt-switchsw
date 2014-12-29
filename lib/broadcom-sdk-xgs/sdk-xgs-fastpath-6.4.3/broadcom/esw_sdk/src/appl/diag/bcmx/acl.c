@@ -659,7 +659,7 @@ bcmx_cmd_aclrule(int unit, args_t *args) {
     uint32              vlan_min = 0, vlan_max = 0;
     uint32              ethertype = 0;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META_U(unit,
                           "BEGIN bcmx_cmd_aclrule()\n")));
 
@@ -908,7 +908,7 @@ STATIC bcma_acl_rule_t *
 _bcmx_acl_rule_alloc(void) {
     bcma_acl_rule_t     *rule_new;
 
-    LOG_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
+    LOG_BSL_DEBUG(BSL_LS_APPL_ACCESSCTRLLIST,
               (BSL_META("BEGIN _bcmx_acl_rule_alloc()\n")));
     rule_new = sal_alloc(sizeof(bcma_acl_rule_t), "acl rule");
     if (rule_new == NULL) {

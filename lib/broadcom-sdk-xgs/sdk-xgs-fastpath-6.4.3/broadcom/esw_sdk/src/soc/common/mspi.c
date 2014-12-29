@@ -141,25 +141,25 @@ int soc_mspi_config(int unit, int device, int cpol, int cpha) {
             /* Set GPIOs Outputs accordingly */
             switch (device) {
                 case MSPI_FLASH:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "MSPI: Selecting Flash\n")));
                     selval = 0;
                     break;
                 case MSPI_LIU:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "MSPI: Selecting LIU\n")));
                     selval = 1;
                     break;
                 case MSPI_DPLL:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "MSPI: Selecting DPLL\n")));
                     selval = 2;
                     break;
                 case MSPI_EXTRA:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "MSPI: Selecting Extra Mux\n")));
                     selval = 3;
@@ -183,13 +183,13 @@ int soc_mspi_config(int unit, int device, int cpol, int cpha) {
             /* Set GPIOs Outputs accordingly */
             switch (device) {
                 case MSPI_DPLL:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "MSPI: Selecting Flash\n")));
                     selval = 1;
                     break;
                 case MSPI_EXTRA:
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "MSPI: Selecting DPLL\n")));
                     selval = 0;

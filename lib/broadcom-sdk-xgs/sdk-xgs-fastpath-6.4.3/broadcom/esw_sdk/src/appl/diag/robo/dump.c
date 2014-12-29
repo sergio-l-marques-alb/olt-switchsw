@@ -1014,7 +1014,7 @@ cmd_robo_dump(int unit, args_t *a)
                         expect, COMPILER_64_LO(regdata), loop);
 	        break;
 	    }
-	    LOG_INFO(BSL_LS_APPL_PCI,
+	    LOG_BSL_INFO(BSL_LS_APPL_PCI,
                      (BSL_META_U(unit,
                                  "dump reg loops [0x%x 0x%x] got 0x%x for %d times\n"),
                       page, addr, expect, ++loop));

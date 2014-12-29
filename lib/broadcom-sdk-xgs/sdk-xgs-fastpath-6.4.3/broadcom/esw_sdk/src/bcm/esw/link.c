@@ -695,7 +695,7 @@ _bcm_esw_link_reload(int unit)
         PBMP_ITER(PBMP_PORT_ALL(unit), port) {
             BCM_IF_ERROR_RETURN
                 (bcm_esw_port_loopback_get(unit, port, &loopback));
-            LOG_VERBOSE(BSL_LS_BCM_LINK,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                         (BSL_META_U(unit,
                                     "Linkscan init loopback recovery, "
                                     "unit %d, port %d, lb=%d\n"),
@@ -1229,7 +1229,7 @@ _bcm_esw_link_failover_link_up(int unit, int port)
      * to the port first. */
     BCM_IF_ERROR_RETURN(WRITE_XPORT_TO_MMU_BKPr(unit, port, 0));
 
-    LOG_VERBOSE(BSL_LS_BCM_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "Unit %d: LAG Failed port %d status completed\n"),
                  unit, port));
@@ -1372,7 +1372,7 @@ _hawkeye_new_link_check(int unit, int port)
         sal_memset(&local_advert, 0, sizeof(bcm_port_ability_t));
         rv = bcm_esw_port_ability_advert_get(unit, port, &local_advert);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_LINK,
+            LOG_BSL_WARN(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "p=%d soc_phyctrl_adv_local_get rv=%d\n"),
                       port, rv));
@@ -1382,7 +1382,7 @@ _hawkeye_new_link_check(int unit, int port)
         sal_memset(&remote_advert, 0, sizeof(bcm_port_ability_t));
         rv = bcm_esw_port_ability_remote_get(unit, port, &remote_advert);
         if (BCM_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_BCM_LINK,
+            LOG_BSL_WARN(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "p=%d soc_phyctrl_adv_remote_get rv=%d\n"),
                       port, rv));
@@ -1746,7 +1746,7 @@ _bcm_esw_linkscan_hw_link_port_get(int unit, int port,
                      * Remove port from accelerated bitmap.
                      */
                     BCM_PBMP_PORT_REMOVE(lc->lc_pbm_accel, port);
-                    LOG_INFO(BSL_LS_BCM_LINK,
+                    LOG_BSL_INFO(BSL_LS_BCM_LINK,
                              (BSL_META_U(unit,
                                          "Port %s: remove from accelerated mode\n"),
                               SOC_PORT_NAME(unit, port)));
@@ -1755,7 +1755,7 @@ _bcm_esw_linkscan_hw_link_port_get(int unit, int port,
                     if (!BCM_PBMP_MEMBER(lc->lc_pbm_accel, port)) {
                         BCM_PBMP_PORT_ADD(lc->lc_pbm_accel, port);
                         lc->lc_accel_poll_count = 0;
-                        LOG_INFO(BSL_LS_BCM_LINK,
+                        LOG_BSL_INFO(BSL_LS_BCM_LINK,
                                  (BSL_META_U(unit,
                                              "Port %s: add to accelerated mode\n"),
                                   SOC_PORT_NAME(unit, port)));
@@ -1858,7 +1858,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
    /* Here, the assert may lead to thread 'bcmLink' exit. vxWorks  JIRA SDK-64215*/ 
    /* assert(SOC_PORT_VALID(unit, port)); */
    if (!SOC_PORT_VALID(unit, port)) {
-       LOG_ERROR(BSL_LS_BCM_LINK,
+       LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                  (BSL_META_U(unit,
                              "unit=%d port=%d is invaild\n"),
                   unit, port));
@@ -1898,7 +1898,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                                                 cur_link, &new_link);
         unforced = TRUE;
         hw_link_port = TRUE;
-        LOG_VERBOSE(BSL_LS_BCM_LINK,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                     (BSL_META_U(unit,
                                 "Unit %d: HW link p=%d %s\n"),
                                 unit, port, new_link ? "up" : "down"));
@@ -1943,7 +1943,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                             current_time = sal_time();
                             if((current_time > lc->lc_up_time[port-1]) &&
                                !eee_en) {
-                                LOG_VERBOSE(BSL_LS_BCM_LINK,
+                                LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                                             (BSL_META_U(unit,
                                             "u=%d p=%d EEE enabled in MAC\n"),
                                              unit, port));
@@ -1971,7 +1971,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
         }
 #endif /* BCM_RCPU_SUPPORT */
 
-        LOG_ERROR(BSL_LS_BCM_LINK,
+        LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                   (BSL_META_U(unit,
                               "Port %s: Failed to recover link status: %s\n"), 
                    SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2035,7 +2035,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
         /* Check 10G fault status for change */
         rv = _bcm_esw_link_fault_get(unit, port, &new_fault);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_LINK,
+            LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                       (BSL_META_U(unit,
                        "Unit %d, Port %s: Failed to read fault status: %s\n"), 
                        unit, SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2048,7 +2048,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
              * a PHY linkdown event. */
             rv = _bcm_esw_link_failover_link_down_force(unit, port);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                   "Unit %d, Port %s: Failed to force link down "
                                   "for fault on LAG failover: %s\n"), 
@@ -2078,7 +2078,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
         SOC_PBMP_OR(pbm_link_fwd, sop->lc_pbm_linkdown_tx);
         rv = soc_link_fwd_set(unit, pbm_link_fwd);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_LINK,
+            LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                       (BSL_META_U(unit,
                                   "Port %s: soc_link_fwd_set failed: %s\n"),
                        SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2143,7 +2143,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
             rv = soc_link_fwd_set(unit, pbm_link_fwd);
 
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                       "Port %s: soc_link_fwd_set failed: %s\n"),
                            SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2211,7 +2211,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
             if (!SOC_PBMP_MEMBER(sop->lc_pbm_fc, port)) {
                 rv = bcm_esw_port_update(unit, port, new_link);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_LINK,
+                    LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                               (BSL_META_U(unit,
                                     "Port %s: bcm_port_update failed: %s\n"),
                                     SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2274,7 +2274,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                  */
                 rv = _bcm_esw_link_fault_get(unit, port, &new_fault);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_LINK,
+                    LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                               (BSL_META_U(unit,
                                  "Port %s: Failed to read fault status: %s\n"), 
                                  SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2327,7 +2327,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                     rv = _bcm_esw_link_failover_link_up(unit, port);
                     PORT_UNLOCK(unit);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_LINK,
+                        LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                                   (BSL_META_U(unit,
                                               "Port %s: failed link recovery "
                                               "unsuccessful: %s\n"),
@@ -2350,7 +2350,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
             rv = soc_link_fwd_set(unit, pbm_link_fwd);
 
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                       "Port %s: soc_link_fwd_set failed: %s\n"),
                            SOC_PORT_NAME(unit, port), bcm_errmsg(rv)));
@@ -2397,7 +2397,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                          * EEE WA : delay EEE enable in MAC by 1sec once
                          * the link is up
                          */
-                        LOG_VERBOSE(BSL_LS_BCM_LINK,
+                        LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                                     (BSL_META_U(unit,
                                      "u=%d p=%d remote_advert.eee = %d\n"),
                                      unit, port, remote_advert.eee ? 1 : 0));
@@ -2434,7 +2434,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                    (new_link ? BCM_PORT_LINK_STATUS_UP :
                     BCM_PORT_LINK_STATUS_DOWN));
 
-    LOG_VERBOSE(BSL_LS_BCM_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "Unit %d, Port %s: Link: Current %s, New %s\n"
                             "\tFault: Current %s, New %s\n"
@@ -2463,7 +2463,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
             rv = bcm_esw_port_info_get(unit, port, &info);
 
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                     "Port %s: bcm_port_info_get failed: %s\n"),
                                     SOC_PORT_NAME(unit, port),
@@ -2478,7 +2478,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                 rv = _bcm_esw_linkscan_update_asf(unit, port, asf_link,
                                                   info.speed, info.duplex);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_LINK,
+                    LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                               (BSL_META_U(unit,
                                    "Port %s: linkscan ASF update failed: %s\n"),
                                    SOC_PORT_NAME(unit, port),
@@ -2497,12 +2497,12 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
 
     if (cur_failed != new_failed) {
         if (new_failed) {
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Port %s: failed\n"),
                       SOC_PORT_NAME(unit, port)));
         } else {
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Port %s: failed state cleared\n"),
                       SOC_PORT_NAME(unit, port)));
@@ -2512,7 +2512,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
     if (cur_link != new_link) {
         if (new_link) {
             if (hw_link_port) {
-                LOG_INFO(BSL_LS_BCM_LINK,
+                LOG_BSL_INFO(BSL_LS_BCM_LINK,
                          (BSL_META_U(unit,
                                     "Port %s: link up took %d usecs since last "
                                     "HW interrupt\n"),
@@ -2520,7 +2520,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                           SAL_USECS_SUB(sal_time_usecs(),
                           last_time_hw_link_up[unit])));
             }
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Port %s: link %s (%dMb %s %s)\n"),
                       SOC_PORT_NAME(unit, port),
@@ -2530,7 +2530,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
                       PHY_FIBER_MODE(unit, port) ?
                       "Fiber" : "Copper"));
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Link %s processing took %d usecs\n"),
                                  ll_status[logical_link],
@@ -2538,7 +2538,7 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
 #endif /* BCM_LINK_CHANGE_BENCHMARK */
 #ifdef BCM_KATANA2_SUPPORT
    if (SOC_IS_KATANA2(unit)) {
-       LOG_INFO(BSL_LS_BCM_LINK,
+       LOG_BSL_INFO(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "p=%d Applied DOWNSIZER \n"), port));
        /* To recover from clock glitch(not always), Serdes init sequence
@@ -2555,13 +2555,13 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
    }
 #endif
         } else {
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Port %s: link down\n"),
                       SOC_PORT_NAME(unit, port)));
 
 #if defined(BCM_LINK_CHANGE_BENCHMARK)
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Link down processing took %d usecs\n"),
                       SAL_USECS_SUB(time_end, time_start)));
@@ -2570,19 +2570,19 @@ _bcm_esw_linkscan_update_port(int unit, uint32 flags, int port)
     }
 
     if (new_fault) {
-        LOG_INFO(BSL_LS_BCM_LINK,
+        LOG_BSL_INFO(BSL_LS_BCM_LINK,
                  (BSL_META_U(unit,
                              "Port %s: fault detected\n"),
                              SOC_PORT_NAME(unit, port)));
     } else if (cur_fault) {
-        LOG_INFO(BSL_LS_BCM_LINK,
+        LOG_BSL_INFO(BSL_LS_BCM_LINK,
                  (BSL_META_U(unit,
                              "Port %s: fault cleared\n"),
                              SOC_PORT_NAME(unit, port)));
     }
 
     if (notify) {
-        LOG_VERBOSE(BSL_LS_BCM_LINK,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                     (BSL_META_U(unit,
                           "Unit %d, Port %s: logical link notification - %s\n"),
                           unit, SOC_PORT_NAME(unit, port),
@@ -2652,7 +2652,7 @@ _bcm_esw_linkscan_update(int unit, uint32 flags, pbmp_t pbm)
                 err->wait = 0;  /* Exit error state */
                 err->count = 0;
 
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                       "Port %s: restored\n"),
                            SOC_PORT_NAME(unit, port)));
@@ -2671,7 +2671,7 @@ _bcm_esw_linkscan_update(int unit, uint32 flags, pbmp_t pbm)
             if (++err->count >= err->limit && err->limit > 0) {
                 /* Enter error state */
 
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                       "Port %s: temporarily removed from linkscan\n"),
                            SOC_PORT_NAME(unit, port)));
@@ -2755,7 +2755,7 @@ _bcm_esw_linkscan_hw_interrupt(int unit)
         lc->lc_hw_change = 1;
         sal_sem_give(lc->lc_sema);
     }
-    LOG_VERBOSE(BSL_LS_BCM_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "Linkscan interrupt unit %d\n"), unit));
 }
@@ -3094,7 +3094,7 @@ _bcm_esw_link_failover_set(int unit, bcm_port_t port, int enable)
     }
     LC_UNLOCK(unit);
 
-    LOG_VERBOSE(BSL_LS_BCM_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "Unit %d: LAG failover: Port %d - %s\n"),
                  unit, port, enable ? "enabled" : "disabled"));
@@ -3149,7 +3149,7 @@ _bcm_esw_link_failed_clear(int unit, bcm_port_t port)
     /* Signal to finish link down processing in update routine */
     SOC_PBMP_PORT_ADD(sop->lc_pbm_failed_clear, port);
     LC_UNLOCK(unit);
-    LOG_VERBOSE(BSL_LS_BCM_LINK,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_LINK,
                 (BSL_META_U(unit,
                             "Unit %d: LAG failover failed state clear set: Port %d\n"),
                  unit, port));
@@ -3255,7 +3255,7 @@ _bcm_esw_linkscan_thread(int unit)
     pbmp_t            pre_pbmp;
 #endif
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "Linkscan starting on unit %d\n"), unit));
 
@@ -3335,7 +3335,7 @@ _bcm_esw_linkscan_thread(int unit)
     }
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_LINK,
+        LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:%s, "
                               "Failed to clear forwarding ports: %s\n"), 
@@ -3350,7 +3350,7 @@ _bcm_esw_linkscan_thread(int unit)
     rv = soc_linkscan_register(unit, _bcm_esw_linkscan_hw_interrupt);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_LINK,
+        LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:%s, Failed to register handler: %s\n"), 
                    thread_name, bcm_errmsg(rv)));
@@ -3520,7 +3520,7 @@ _bcm_esw_linkscan_thread(int unit)
         /* Stop accelerated mode if max accelerated poll count is reached */
         if (lc->lc_accel_poll_count >= lc->lc_accel_poll_max) {
             BCM_PBMP_CLEAR(lc->lc_pbm_accel);
-            LOG_INFO(BSL_LS_BCM_LINK,
+            LOG_BSL_INFO(BSL_LS_BCM_LINK,
                      (BSL_META_U(unit,
                                  "Stop accelerated mode\n")));
         }
@@ -3611,7 +3611,7 @@ _bcm_esw_linkscan_thread(int unit)
 
     } /* !SOC_WARM_BOOT(unit) */
 
-    LOG_INFO(BSL_LS_BCM_LINK,
+    LOG_BSL_INFO(BSL_LS_BCM_LINK,
              (BSL_META_U(unit,
                          "Linkscan exiting\n")));
 
@@ -4106,7 +4106,7 @@ bcm_esw_linkscan_enable_set(int unit, int us)
             
             while (lc->lc_thread == NULL) {
                 if (soc_timeout_check(&to)) {
-                    LOG_ERROR(BSL_LS_BCM_LINK,
+                    LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                               (BSL_META_U(unit,
                                           "%s: Thread did not start\n"),
                                lc->lc_taskname));
@@ -4133,7 +4133,7 @@ bcm_esw_linkscan_enable_set(int unit, int us)
 
         while (lc->lc_thread != NULL) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_BCM_LINK,
+                LOG_BSL_ERROR(BSL_LS_BCM_LINK,
                           (BSL_META_U(unit,
                                       "%s: Thread did not exit\n"),
                            lc->lc_taskname));

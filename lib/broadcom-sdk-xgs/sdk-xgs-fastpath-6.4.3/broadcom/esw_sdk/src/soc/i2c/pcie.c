@@ -132,7 +132,7 @@ pcie_read(int unit, int devno,
 
     a0 = (uint16) (addr & 0xFFff);
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "pcie_read: addr=0x%x (a0=0x%x) len=%d\n"),
               addr, a0, (int)*len));
@@ -141,7 +141,7 @@ pcie_read(int unit, int devno,
      * read at using the SOC_I2C_TX_ADDR (saddr_w)
      */
     if ( (rv = soc_i2c_start(unit, saddr_w)) < 0) {
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_read(%d,%d,%x,%p,%d): "
                              "failed to generate start.\n"),
@@ -150,13 +150,13 @@ pcie_read(int unit, int devno,
 	return rv;
     }
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "pcie_read(%d,%d,%x,%p,%d): "
                          "to send a0 byte.\n"),
               unit, devno, addr, (void *)data, *len));
     if( (rv = soc_i2c_write_one_byte(unit, ((a0 >> 8) & 0xFF))) < 0) {
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_read(%d,%d,%x,%p,%d): "
                              "failed to send a0 byte.\n"),
@@ -166,7 +166,7 @@ pcie_read(int unit, int devno,
     }
 
     if( (rv = soc_i2c_write_one_byte(unit, a0 & 0xFF)) < 0) {
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_read(%d,%d,%04x,%x,%p,%d): "
                              "failed to send a0 byte.\n"),
@@ -179,7 +179,7 @@ pcie_read(int unit, int devno,
      * the device's read address (note: saddr_r)
      */
     if( (rv = soc_i2c_rep_start(unit, saddr_r)) < 0) {
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_read(%d,%d,%x,%p,%d): "
                              "failed to generate rep start.\n"),
@@ -252,7 +252,7 @@ pcie_write(int unit, int devno,
 
     bus_addr = SOC_I2C_TX_ADDR(soc_i2c_addr(unit, devno));
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "pcie_write: addr=0x%x data=%p len=%d npages=%d\n"),
               caddr, (void *)data, (int)len, numpages));
@@ -281,7 +281,7 @@ pcie_write(int unit, int devno,
 
 	/* Generate Start, for Write address */
 	if( (rv = soc_i2c_start(unit, bus_addr)) < 0){
-	    LOG_INFO(BSL_LS_SOC_I2C,
+	    LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "pcie_write(%d,%d,%x,%d,%d): "
                                  "failed to gen start\n"),
@@ -289,12 +289,12 @@ pcie_write(int unit, int devno,
 	    I2C_UNLOCK(unit);
 	    return rv;
 	}
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_write: unit=%d cpage=%d START on page_addr=0x%x"
                              " nbytes=%d\n"), unit, cpage, ((a0 >> 8) & 0xFF) , nbytes));
         if( (rv = soc_i2c_write_one_byte(unit, ((a0 >> 8) & 0xFF))) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "pcie_write(%d,%d,%x,%p,%d): "
                                  "failed to send a0 byte.\n"),
@@ -303,12 +303,12 @@ pcie_write(int unit, int devno,
             goto error;
         }
 
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_write: unit=%d cpage=%d START on page_addr=0x%x"
                              " nbytes=%d\n"), unit, cpage, ((a0) & 0xFF) , nbytes));
         if( (rv = soc_i2c_write_one_byte(unit, a0 & 0xFF)) < 0) {
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META_U(unit,
                                  "pcie_write(%d,%d,%04x,%x,%p,%d): "
                                  "failed to send a0 byte.\n"),
@@ -319,14 +319,14 @@ pcie_write(int unit, int devno,
 	/* Send up to PAGE_SIZE data bytes, wait for ACK */
 	for ( b = 0; b < nbytes; b++, ptr++, caddr++ ) {
 	    if ( (rv = soc_i2c_write_one_byte(unit, *ptr)) < 0){
-		LOG_INFO(BSL_LS_SOC_I2C,
+		LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META_U(unit,
                                      "pcie_write(%d,%d,%d,%d,%d): "
                                      "tx data byte error\n"),
                           unit, devno, caddr, (uint32)*ptr, b));
 		goto error;
 	    }
-	    LOG_VERBOSE(BSL_LS_SOC_I2C,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_I2C,
                         (BSL_META_U(unit,
                                     "pcie_write(u=%d,id=%d,page=%d "
                                     "caddr=%d,data=0x%x,idx=%d)\n"),
@@ -347,7 +347,7 @@ pcie_write(int unit, int devno,
 	 * which point the internal write cycle has finished.
 	 */
 	rv = pcie_ack_poll(unit, bus_addr);
-	LOG_INFO(BSL_LS_SOC_I2C,
+	LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META_U(unit,
                              "pcie_ack_poll: "
                              "%d address cycles for wr latency.\n"), rv));

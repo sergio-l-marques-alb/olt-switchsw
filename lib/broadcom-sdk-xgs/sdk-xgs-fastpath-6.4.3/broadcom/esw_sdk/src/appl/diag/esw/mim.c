@@ -499,7 +499,7 @@ _bcm_tr2_mim_cli_vpn_port_add(int unit, args_t * a)
     if (ifl_s) {
         ifl = _bcm_tr2_mim_cli_parse_flags(ifl_s, BCM_MIM_PORT);
     }
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Adding port %d to vpn 0x%08x, PhysPort=%d, PortMatch=%s,"
                          "IntfFLaGs=%s MatchVlan=%d MatchInnerVlan=%d\n"
@@ -520,13 +520,13 @@ _bcm_tr2_mim_cli_vpn_port_add(int unit, args_t * a)
     bcm_mim_port_t_init(&mport);
     if (ifl & (BCM_MIM_PORT_REPLACE | BCM_MIM_PORT_WITH_ID)) {
         BCM_GPORT_MIM_PORT_ID_SET(mport.mim_port_id, port);
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "mim port=%08x\n"), port));
     }
     MIM_ROE(bcm_port_gport_get, (unit, phys_port, &gp));
     mport.port = gp;
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "gport_get gp=%08x\n"), gp));
     mport.criteria = pm;
@@ -585,7 +585,7 @@ _bcm_tr2_mim_cli_tunnel_l2_add(int unit, args_t * a)
     PT_ADD(pt, "Mac", PQ_MAC, &mac);
     PT_ADD(pt, "Vlan", PQ_INT, &vlan);
     PT_PARSE(a, pt);
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "l2 add mac=%02x:%02x:%02x:%02x:%02x:%02x vlan=%d\n"),
               mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], vlan));
@@ -615,7 +615,7 @@ _bcm_tr2_mim_cli_mcast_group_create(int unit, args_t * a)
     PT_INIT(unit, pt);
     PT_ADD(pt, "McastGroup", PQ_INT, &mcast_group);
     PT_PARSE(a, pt);
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "mcast group %d\n"), mcast_group));
     flags |= BCM_MULTICAST_WITH_ID;
@@ -639,7 +639,7 @@ _bcm_tr2_mim_cli_mcast_group_del(int unit, args_t * a)
     PT_PARSE(a, pt);
     PT_DONE(pt);
     MIM_ROE(bcm_multicast_destroy, (unit, mcast_group));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "mcast group %d destroyed\n"), mcast_group));
 
@@ -679,7 +679,7 @@ _bcm_tr2_mim_cli_mcast_group_port_add_del(int unit, args_t * a)
     MIM_ROE(bcm_port_gport_get, (unit, port, &gp));
     MIM_ROE(bcm_multicast_mim_encap_get,
              (unit, mcast_group, gp, mim_port, &encap_id));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "MIM_CLI: mim mcast group port %s mim"
                          "group 0x%x gport 0x%0x mim_port 0x%08xnh %d\n"),
@@ -717,7 +717,7 @@ _bcm_tr2_mim_cli_mcast_group_addr(int unit, args_t * a)
     l2_addr.l2mc_group = mcast_group;
     PT_DONE(pt);
     MIM_ROE(bcm_l2_addr_add, (unit, &l2_addr));
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "mcast l2 addr add=%02x:%02x:%02x:%02x:%02x:%02x \n"),
               mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]));

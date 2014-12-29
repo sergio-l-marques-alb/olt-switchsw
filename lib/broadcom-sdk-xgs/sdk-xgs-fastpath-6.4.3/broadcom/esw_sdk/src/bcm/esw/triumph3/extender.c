@@ -1404,7 +1404,7 @@ bcm_tr3_extender_port_add(int unit,
 
     BCM_IF_ERROR_RETURN(bcm_xgs3_l3_egress_mode_get(unit, &mode));
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

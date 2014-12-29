@@ -1617,7 +1617,7 @@ soc_tomahawk_chip_reset(int unit)
             SOC_IF_ERROR_RETURN
                 (soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval));
             if (!soc_reg_field_get(unit, reg, rval, TOP_XGPLL_LOCKf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "LCPLL %d not locked on unit %d "
                                       "status = 0x%08x\n"), index, unit, rval));
@@ -1627,7 +1627,7 @@ soc_tomahawk_chip_reset(int unit)
         reg = TOP_TS_PLL_STATUSr;
         SOC_IF_ERROR_RETURN(soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval));
         if (!soc_reg_field_get(unit, reg, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TS_PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -1636,7 +1636,7 @@ soc_tomahawk_chip_reset(int unit)
         reg = TOP_BS_PLL0_STATUSr;
         SOC_IF_ERROR_RETURN(soc_reg32_get(unit, reg, REG_PORT_ANY, 0, &rval));
         if (!soc_reg_field_get(unit, reg, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BS_PLL0 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -1685,7 +1685,7 @@ soc_tomahawk_chip_reset(int unit)
          */
         temp_thr = soc_property_get(unit, temp_thr_prop[index], _SOC_TH_DEF_TEMP_MAX);
         if (temp_thr > 410) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Unsupported temp value %d !! Max 410. Using %d.\n"),
                        temp_thr, _SOC_TH_DEF_TEMP_MAX));
@@ -2164,7 +2164,7 @@ _soc_tomahawk_alpm_bkt_view_set(int unit, int index, soc_mem_t view)
     int bkt = (index >> (soc_th_get_alpm_banks(unit) + 1) / 2) & SOC_TH_ALPM_BKT_MASK;
 
     if (view != INVALIDm) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Unit:%d ALPM bkt set index:%d bkt:%d view:%s\n"),
                                 unit, index, bkt, SOC_MEM_NAME(unit, view)));
@@ -2180,7 +2180,7 @@ _soc_tomahawk_alpm_bkt_view_get(int unit, int index)
     
     view = _soc_th_alpm_bkt_view_map[unit][bkt];
     if (view != INVALIDm) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Unit:%d ALPM bkt get index:%d bkt:%d view:%s\n"),
                                 unit, index, bkt, SOC_MEM_NAME(unit, view)));
@@ -3343,7 +3343,7 @@ _soc_tomahawk_clear_mmu_memory(int unit)
                 break;
             }
             if (num_views < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "mmu_mem %s, base_type %d will not be"
                                       "cleared \n"),
@@ -3358,7 +3358,7 @@ _soc_tomahawk_clear_mmu_memory(int unit)
                    soc_mem_entry_words(unit, mem) * sizeof(uint32));
         if (use_base_type_views) {
             for (j = 0; j < num_views; j++) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "mmu_mem %s, index %d will be "
                                         "cleared \n"),
@@ -3377,7 +3377,7 @@ _soc_tomahawk_clear_mmu_memory(int unit)
                 }
             }
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "mmu_mem %s, index %d will be "
                                     "cleared \n"),
@@ -3461,7 +3461,7 @@ _soc_tomahawk_clear_all_memory(int unit)
             }
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -3482,7 +3482,7 @@ _soc_tomahawk_clear_all_memory(int unit)
             }
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -4276,7 +4276,7 @@ _soc_tomahawk_tdm_calculation(int unit, int initTime, _soc_tomahawk_tdm_t *tdm)
         tdm->speed[phy_port] = si->port_speed_max[port];
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
         LOG_CLI((BSL_META_U(unit,
                             "frequency: %dMHz\n"), si->frequency));
         LOG_CLI((BSL_META_U(unit,
@@ -4451,7 +4451,7 @@ _soc_tomahawk_tdm_calculation(int unit, int initTime, _soc_tomahawk_tdm_t *tdm)
         }
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_TDM | BSL_INFO)) {
         for (pipe = 0; pipe < _TH_PIPES_PER_DEV; pipe++) {
             LOG_CLI((BSL_META_U(unit,
                                 "Pipe %d idb_tdm:"), pipe));
@@ -5028,7 +5028,7 @@ _soc_tomahawk_tscx_reg_read(int unit, uint32 phy_addr,
     
     port = SOC_INFO(unit).port_p2l_mapping[phy_port];
     blk = SOC_PORT_BLOCK(unit, phy_port);
-    LOG_INFO(BSL_LS_SOC_MII,
+    LOG_BSL_INFO(BSL_LS_SOC_MII,
              (BSL_META_U(unit,
                          "soc_tomahawk_tscx_reg_read[%d]: %d/%d/%d/%d\n"),
               unit, phy_addr, phy_port, port, blk));
@@ -5047,7 +5047,7 @@ _soc_tomahawk_tscx_reg_write(int unit, uint32 phy_addr,
     
     port = SOC_INFO(unit).port_p2l_mapping[phy_port];
     blk = SOC_PORT_BLOCK(unit, phy_port);
-    LOG_INFO(BSL_LS_SOC_MII,
+    LOG_BSL_INFO(BSL_LS_SOC_MII,
              (BSL_META_U(unit,
                          "soc_tomahawk_tscx_reg_write[%d]: %d/%d/%d/%d\n"),
               unit, phy_addr, phy_port, port, blk));
@@ -5740,7 +5740,7 @@ _soc_tomahawk_misc_init(int unit)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MISC Init completed (u=%d)\n"), unit));
     return SOC_E_NONE;
@@ -5975,7 +5975,7 @@ soc_th_mmu_additional_buffer_reserve(int unit, int pipe, int flex)
                           qgrp_min_cells) * num_ports;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_MMU,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MMU,
                 (BSL_META_U(unit,
                             "MMU config: Cells rsvd for Flex/ASF per XPE: %d\n"),
                             total_reserve));
@@ -6009,7 +6009,7 @@ _soc_th_mmu_config_buf_default(int unit, _soc_mmu_cfg_buf_t *buf,
 
     si = &SOC_INFO(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Initializing default MMU config (u=%d)\n"), unit));
     max_packet_cells = _MMU_CFG_MMU_BYTES_TO_CELLS(devcfg->max_pkt_byte +
@@ -6036,7 +6036,7 @@ _soc_th_mmu_config_buf_default(int unit, _soc_mmu_cfg_buf_t *buf,
     asf_reserved /= 2;
 
     if (asf_reserved) {
-        LOG_VERBOSE(BSL_LS_SOC_MMU,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_MMU,
                     (BSL_META_U(unit,
                                 "MMU config: Cells rsvd for ASF per XPE: %d\n"),
                                 asf_reserved));
@@ -6051,7 +6051,7 @@ _soc_th_mmu_config_buf_default(int unit, _soc_mmu_cfg_buf_t *buf,
 #endif
 
     egr_shared_total = total_pool_size - ((lossless) ? 88 : 0) - asf_reserved;
-    LOG_VERBOSE(BSL_LS_SOC_MMU,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MMU,
                 (BSL_META_U(unit,
                             "MMU config: Total Shared size: %d\n"),
                             egr_shared_total));
@@ -6283,7 +6283,7 @@ _soc_th_mmu_config_buf_default_flex_port(int unit, _soc_mmu_cfg_buf_t *buf,
 
     si = &SOC_INFO(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Initializing default MMU config(with FlexPort\
                             (u=%d)\n"), unit));
@@ -6304,7 +6304,7 @@ _soc_th_mmu_config_buf_default_flex_port(int unit, _soc_mmu_cfg_buf_t *buf,
      */
     total_reserved /= 2;
 
-    LOG_VERBOSE(BSL_LS_SOC_MMU,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MMU,
                 (BSL_META_U(unit,
                             "MMU config: Cells rsvd for Flex/ASF per XPE: %d\n"),
                             total_reserved));
@@ -6316,7 +6316,7 @@ _soc_th_mmu_config_buf_default_flex_port(int unit, _soc_mmu_cfg_buf_t *buf,
     per_q_guarentee = ((lossless) ? 0 :8);
 
     egr_shared_total = total_pool_size - ((lossless) ? 88 : 0) - total_reserved;
-    LOG_VERBOSE(BSL_LS_SOC_MMU,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MMU,
                 (BSL_META_U(unit,
                             "MMU config: Total Shared size: %d\n"),
                             egr_shared_total));
@@ -7621,7 +7621,7 @@ soc_th_mmu_config_init(int unit, int test_only)
     rv = _soc_mmu_cfg_buf_check(unit, buf, &devcfg);
     if (!test_only) {
         if (SOC_FAILURE(rv)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "MMU config: Use default setting\n")));
             soc_mmu_config_buf_default(unit, buf, &devcfg, lossless);
@@ -7633,7 +7633,7 @@ soc_th_mmu_config_init(int unit, int test_only)
 
     soc_mmu_cfg_free(unit, buf);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MMU THDI/THDO init done\n")));
     return rv;
@@ -8822,11 +8822,11 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
     int i, rv, unit = PTR_TO_INT(unit_vp);
     
     if ((rv = READ_TOP_PVTMON_INTR_STATUSr(unit, &rval)) != SOC_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "TH Temp Intr, Reg access error.\n")));
     }
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "High temp interrupt: 0x%08x\n"), rval));
     /* Raise event to app for it to take further graceful actions */
@@ -8834,7 +8834,7 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
         if (i & _soc_th_temp_mon_mask[unit]) {
             if ((rv = soc_reg32_get(unit, pvtmon_result_reg[i], REG_PORT_ANY, 0, 
                                     &trval)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "TH Temp Intr, Reg access error.\n")));
             }
@@ -8846,7 +8846,7 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
              * that this will end up being a +ive value.
              */            
             trval = (410040-(trval*487))/1000;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TempMon %d: %d deg C.\n"), i, trval));
             (void)soc_event_generate(unit, SOC_SWITCH_EVENT_ALARM,
@@ -8861,17 +8861,17 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
      */
     if (soc_property_get(unit, "temp_monitor_shutdown", 1)) {
         if ((rv = WRITE_TOP_PVTMON_INTR_MASKr(unit, 0)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, Reg access error.\n")));
         }
         if ((rv = WRITE_TOP_SOFT_RESET_REGr(unit, 0)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, Reg access error.\n")));
         }
         if ((rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, Reg access error.\n")));
         }
@@ -8891,12 +8891,12 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
                           0);
         soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_AVS_RST_Lf, 1);
         if ((rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, Reg access error.\n")));
         }
         if ((rv = WRITE_TOP_SOFT_RESET_REG_3r(unit, 0)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, Reg access error.\n")));
         }
@@ -8904,7 +8904,7 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
         /* Stop all schan transactions on this unit */
 #ifdef  INCLUDE_I2C
         if ((rv = soc_i2c_detach(unit)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, i2c detach error.\n")));
         }
@@ -8912,25 +8912,25 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
         if (!SOC_IS_RCPU_ONLY(unit)) {
             /* Free up DMA memory */
             if ((rv = soc_dma_detach(unit)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "TH Temp Intr, dma detach error.\n")));
             }
         }
         if ((rv = soc_mem_scan_stop(unit)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, mem scan stop error.\n")));
         }
         /* Terminate counter module */
         if ((rv = soc_counter_stop(unit)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, counter stop error.\n")));
         }
         if (SOC_SBUSDMA_DM_INFO(unit)) {
             if ((rv = soc_sbusdma_desc_detach(unit)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "TH Temp Intr, sbusdma stop error.\n")));
             }
@@ -8938,14 +8938,14 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
         if (soc_feature(unit, soc_feature_arl_hashed)) {
             /* Stop L2X thread */
             if ((rv = soc_l2x_stop(unit)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "TH Temp Intr, L2x stop error.\n")));
             }
 
         }
         if ((rv = soc_th_l2_bulk_age_stop(unit)) != SOC_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TH Temp Intr, L2 age stop error.\n")));
         }
@@ -8959,7 +8959,7 @@ soc_tomahawk_temperature_intr(void *unit_vp, void *d1, void *d2,
         SCHAN_LOCK(unit);
         /* Clear all outstanding DPCs owned by this unit */
         sal_dpc_cancel(INT_TO_PTR(unit));
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "\nReboot the system..")));
     }

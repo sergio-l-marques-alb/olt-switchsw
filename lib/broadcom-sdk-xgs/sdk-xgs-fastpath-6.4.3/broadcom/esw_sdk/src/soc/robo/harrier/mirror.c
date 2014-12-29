@@ -73,7 +73,7 @@ drv_harrier_mirror_set(int unit, uint32 enable, soc_pbmp_t mport_bmp,
     uint64  reg_value;
     uint32  temp32;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_mirror_set: unit %d, \
                          %sable, mport_bmp = 0x%x, ingress_bmp = 0x%x, egress_bmp = 0x%x\n"),
@@ -187,7 +187,7 @@ drv_harrier_mirror_get(int unit, uint32 *enable, soc_pbmp_t *mport_bmp,
         (unit, (uint32 *)&reg_value, SMIR_CAP_PORTf, &temp32));
     SOC_PBMP_WORD_SET(*mport_bmp, 0, temp32);
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_mirror_get : unit %d, \
                          %sable, mport_bmp = 0x%x, ingress_bmp = 0x%x, egress_bmp = 0x%x\n"),

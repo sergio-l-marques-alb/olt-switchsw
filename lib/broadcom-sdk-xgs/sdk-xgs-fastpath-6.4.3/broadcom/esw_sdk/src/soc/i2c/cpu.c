@@ -91,7 +91,7 @@ int cpu_i2c_init(int* p_fd, char dev_num)
   /* Try to open the given i2c dev num */
   if ( ((*p_fd) = open(dev_file_name, O_RDWR)) < 0)
   {
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META("ERROR in %s: Failed to open() I2C device num (%d)\n"),
                 FUNCTION_NAME(), (int)dev_num));
     ret = 1;
@@ -143,7 +143,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
 	  rw_data.nmsgs = 1;
 
 	  while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-		  LOG_INFO(BSL_LS_SOC_I2C,
+		  LOG_BSL_INFO(BSL_LS_SOC_I2C,
                            (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                      "- error reading from chip 0x%02x, "
                                      "address 0x%02x, error = %d\n"),
@@ -165,7 +165,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
 	  rw_data.nmsgs = 1;
 
 	  while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-		  LOG_INFO(BSL_LS_SOC_I2C,
+		  LOG_BSL_INFO(BSL_LS_SOC_I2C,
                            (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                      "- error reading from chip 0x%02x, "
                                      "address 0x%02x, error = %d\n"),
@@ -189,7 +189,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
           i2c_rw_msg[0].len = i2c_rw_msg[1].len = 1;
 
           while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-              LOG_INFO(BSL_LS_SOC_I2C,
+              LOG_BSL_INFO(BSL_LS_SOC_I2C,
                        (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                  "- error reading from chip 0x%02x, "
                                  "address 0x%02x, error = %d\n"),
@@ -214,7 +214,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
           i2c_rw_msg[0].len = i2c_rw_msg[1].len = 2;
 
           while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-              LOG_INFO(BSL_LS_SOC_I2C,
+              LOG_BSL_INFO(BSL_LS_SOC_I2C,
                        (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                  "- error reading from chip 0x%02x, "
                                  "address 0x%02x, error = %d\n"),
@@ -238,7 +238,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
 	  i2c_rw_msg[1].len = 4;
 
 	  while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-		  LOG_INFO(BSL_LS_SOC_I2C,
+		  LOG_BSL_INFO(BSL_LS_SOC_I2C,
                            (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                      "- error reading from chip 0x%x, "
                                      "address 0x%x, error = %d\n"),
@@ -261,7 +261,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
 	  i2c_rw_msg[1].len = 4;
 
 	  while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-		  LOG_INFO(BSL_LS_SOC_I2C,
+		  LOG_BSL_INFO(BSL_LS_SOC_I2C,
                            (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                      "- error reading from chip 0x%x, "
                                      "address 0x%x, error = %d\n"),
@@ -286,7 +286,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
           i2c_rw_msg[0].len = i2c_rw_msg[1].len = 4;
 
           while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-              LOG_INFO(BSL_LS_SOC_I2C,
+              LOG_BSL_INFO(BSL_LS_SOC_I2C,
                        (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                  "- error reading from chip 0x%x, "
                                  "address 0x%x, error = %d\n"),
@@ -309,7 +309,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
           i2c_rw_msg[1].len = 2;
 
           while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-              LOG_INFO(BSL_LS_SOC_I2C,
+              LOG_BSL_INFO(BSL_LS_SOC_I2C,
                        (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                  "- error reading from chip 0x%x, "
                                  "address 0x%x, error = %d\n"),
@@ -326,7 +326,7 @@ int cpu_i2c_read_int(cpu_i2c_access_t* p_i2c_access)
 
       default:
 
-          LOG_INFO(BSL_LS_SOC_I2C,
+          LOG_BSL_INFO(BSL_LS_SOC_I2C,
                    (BSL_META("error - unsupported address length given = %d"),
                     p_i2c_access->alen));
           ret = 1;
@@ -345,7 +345,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
     struct i2c_rdwr_ioctl_data rw_data;
     struct i2c_msg i2c_rw_msg;
     
-    /* LOG_INFO(BSL_LS_SOC_I2C,
+    /* LOG_BSL_INFO(BSL_LS_SOC_I2C,
                 (BSL_META("%s(): p_i2c_access->alen=%x, p_i2c_access->chip=%x, "
                           "p_i2c_access->addr=%x, p_i2c_access->data=%x\n"),
                  FUNCTION_NAME(), p_i2c_access->alen, p_i2c_access->chip,
@@ -366,7 +366,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
 		addr_n_data[0] = p_i2c_access->data & 0xff;
 
 		while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-			LOG_INFO(BSL_LS_SOC_I2C,
+			LOG_BSL_INFO(BSL_LS_SOC_I2C,
                                  (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                            "- error to write to chip 0x%x, "
                                            "address 0x%x, error = %d\n"),
@@ -388,7 +388,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
           addr_n_data[1] = p_i2c_access->data & 0xff;
 
           while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-              LOG_INFO(BSL_LS_SOC_I2C,
+              LOG_BSL_INFO(BSL_LS_SOC_I2C,
                        (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                  "- error to write to chip 0x%x, "
                                  "address 0x%x, error = %d\n"),
@@ -412,7 +412,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
             addr_n_data[3] = p_i2c_access->data & 0xff;
 
             while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                    "- error to write to chip 0x%x, "
                                    "address 0x%x, error = %d\n"),
@@ -437,7 +437,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
 		addr_n_data[4] = p_i2c_access->data & 0xff;
 
 		while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-			LOG_INFO(BSL_LS_SOC_I2C,
+			LOG_BSL_INFO(BSL_LS_SOC_I2C,
                                  (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                            "- error to write to chip 0x%x, "
                                            "address 0x%x, error = %d\n"),
@@ -465,7 +465,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
             addr_n_data[7] = p_i2c_access->data & 0xff;
 
             while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-              LOG_INFO(BSL_LS_SOC_I2C,
+              LOG_BSL_INFO(BSL_LS_SOC_I2C,
                        (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                  "- error to write to chip 0x%x, "
                                  "address 0x%x, error = %d\n"),
@@ -490,7 +490,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
             addr_n_data[5] = p_i2c_access->data & 0xff;
 /*         
             while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                    "- error to write to chip 0x%x, "
                                    "address 0x%x, error = %d\n"),
@@ -514,7 +514,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
             addr_n_data[2] = p_i2c_access->data & 0xff;
 
             while (ioctl(p_i2c_access->file_desc, I2C_RDWR, &rw_data) < 0) {
-                LOG_INFO(BSL_LS_SOC_I2C,
+                LOG_BSL_INFO(BSL_LS_SOC_I2C,
                          (BSL_META("ioctl I2C_RDWR failed in %s, %d, %s "
                                    "- error to write to chip 0x%x, "
                                    "address 0x%x, error = %d\n"),
@@ -528,7 +528,7 @@ int cpu_i2c_write_int(cpu_i2c_access_t* p_i2c_access)
    
             break;
         default:
-            LOG_INFO(BSL_LS_SOC_I2C,
+            LOG_BSL_INFO(BSL_LS_SOC_I2C,
                      (BSL_META("error - unsupported address length given = %d"),
                       p_i2c_access->alen));
             ret = 1;
@@ -553,12 +553,12 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
   /* open the given i2c dev num */
   if (cpu_i2c_init(&i2c_access.file_desc, dev_num) != 0)
   {
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META("ERROR in %s: cpu_i2c_init() returned with error.\n"),
                 FUNCTION_NAME()));
     return 1;
   }
-  LOG_INFO(BSL_LS_SOC_I2C,
+  LOG_BSL_INFO(BSL_LS_SOC_I2C,
            (BSL_META("cpu_i2c_write: bus:%d dev:@%02x reg:%0x data:%x\n"),
             dev_num, chip, addr, val));
 
@@ -571,7 +571,7 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
   ret = cpu_i2c_write_int(&i2c_access);
   if (ret)
   {
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META("Error in %s: cpu_i2c_write() returned with error.\n"),
                 FUNCTION_NAME()));
     ret = 1;
@@ -595,7 +595,7 @@ int cpu_i2c_read(int chip, int addr, CPU_I2C_BUS_LEN alen, int* p_val)
   /* open the given i2c dev num */
   if (cpu_i2c_init(&i2c_access.file_desc, dev_num) != 0)
   {
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META("ERROR in %s: cpu_i2c_init() returned with error.\n"),
                 FUNCTION_NAME()));
     return 1;
@@ -604,23 +604,23 @@ int cpu_i2c_read(int chip, int addr, CPU_I2C_BUS_LEN alen, int* p_val)
   i2c_access.chip = chip;
   i2c_access.alen = alen;
   i2c_access.addr = addr;
-  /* LOG_INFO(BSL_LS_SOC_I2C,
+  /* LOG_BSL_INFO(BSL_LS_SOC_I2C,
               (BSL_META("\nRead %x addr %x len %d"), chip, addr, alen));*/
-  LOG_INFO(BSL_LS_SOC_I2C,
+  LOG_BSL_INFO(BSL_LS_SOC_I2C,
            (BSL_META("cpu_i2c_read: bus:%d dev:@%02x reg:%0x\n"),
             dev_num, chip, addr));
 
   ret = cpu_i2c_read_int(&i2c_access);
   if (ret)
   {
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META("Error in %s: cpu_i2c_read() returned with error.\n"),
                 FUNCTION_NAME()));
     ret = 1;
     goto exit;
   }
   *p_val = i2c_access.data;
-  LOG_INFO(BSL_LS_SOC_I2C,
+  LOG_BSL_INFO(BSL_LS_SOC_I2C,
            (BSL_META("cpu_i2c_read: bus:%d dev:@%02x reg:%0x data:%x\n"),
             dev_num, chip, addr, *p_val));
 
@@ -654,7 +654,7 @@ cpu_i2c_device_present(int bus, i2c_saddr_t saddr) {
   /* open the given i2c dev num */
   if (cpu_i2c_init(&i2c_access.file_desc, dev_num) != 0)
   {
-      LOG_INFO(BSL_LS_SOC_I2C,
+      LOG_BSL_INFO(BSL_LS_SOC_I2C,
                (BSL_META("ERROR in %s: cpu_i2c_init() returned with error.\n"),
                 FUNCTION_NAME()));
     return SOC_E_CONFIG;
@@ -707,13 +707,13 @@ cpu_i2c_block_read(int bus, i2c_saddr_t saddr,
     /* Open the device */
     if (cpu_i2c_init(&fd, bus) != 0)
     {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("ERROR in %s: cpu_i2c_init() returned with error.\n"),
                   FUNCTION_NAME()));
         return SOC_E_CONFIG;
     }
     if (*len == 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("ERROR in cpu_i2c_block_read: invalid len specified (%d)"),
                   *len));
         return SOC_E_PARAM;
@@ -738,7 +738,7 @@ cpu_i2c_block_read(int bus, i2c_saddr_t saddr,
     cpu_i2c_deinit(fd);
 
     if (rv < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("\nFailed reading %d bytes data from %x at device saddr %x"),
                   *len, reg, saddr));
         return SOC_E_PARAM;
@@ -772,7 +772,7 @@ cpu_i2c_block_write(int bus, i2c_saddr_t saddr,
     /* Open the device */
     if (cpu_i2c_init(&fd, bus) != 0)
     {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("ERROR in %s: cpu_i2c_init() returned with error.\n"),
                   FUNCTION_NAME()));
         return SOC_E_CONFIG;
@@ -797,7 +797,7 @@ cpu_i2c_block_write(int bus, i2c_saddr_t saddr,
     cpu_i2c_deinit(fd);
 
     if (rv < 0) {
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("\nFailed reading %d bytes data from %x at device saddr %x"),
                   len, reg, saddr));
         return SOC_E_PARAM;
@@ -809,7 +809,7 @@ cpu_i2c_block_write(int bus, i2c_saddr_t saddr,
 int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
 {
     
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META("%s: not implemented for KERNEL mode \n"),
               FUNCTION_NAME()));
     return -1;
@@ -818,7 +818,7 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
 int cpu_i2c_read(int chip, int addr, CPU_I2C_BUS_LEN alen, int* p_val)
 {
     
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META("%s: not implemented for KERNEL mode \n"),
               FUNCTION_NAME()));
     return -1;
@@ -836,7 +836,7 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
     uint8   addr_len, buf_len;
     uint8   buf[4];
 
-    LOG_VERBOSE(BSL_LS_SOC_I2C,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_I2C,
                 (BSL_META("chip:%d addr:%x alen:%d val:%d \n"), 
                  chip, addr, alen, val));
 
@@ -852,7 +852,7 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
         buf_len = 4;
         break;
     default:
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("%s: alen:%x is not supported\n"),
                   FUNCTION_NAME(), alen));
         return SOC_E_INTERNAL;
@@ -868,7 +868,7 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
         buf[3] = val & 0xff;
         break;
     default:
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("%s: buf_len:%x not supported\n"),
                   FUNCTION_NAME(), 
                   buf_len));
@@ -881,7 +881,7 @@ int cpu_i2c_write(int chip, int addr, CPU_I2C_BUS_LEN alen, int val)
         sal_printf("%s: failed. rv:%d \n", FUNCTION_NAME(), rv);
         return SOC_E_INTERNAL;
     }
-    LOG_VERBOSE(BSL_LS_SOC_I2C,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_I2C,
                 (BSL_META("success. wrote val:%x to addr:%x\n"),
                  val, addr));
     return SOC_E_NONE;
@@ -893,7 +893,7 @@ int cpu_i2c_read(int chip, int addr, CPU_I2C_BUS_LEN alen, int* p_val)
     uint8   addr_len, buf_len;
     uint8   buf[4];
     
-    LOG_VERBOSE(BSL_LS_SOC_I2C,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_I2C,
                 (BSL_META("chip:%d addr:%x alen:%d \n"),
                  chip, addr, alen));
     if (p_val == NULL) {
@@ -913,7 +913,7 @@ int cpu_i2c_read(int chip, int addr, CPU_I2C_BUS_LEN alen, int* p_val)
         buf_len = 4;
         break;
     default:
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("%s: alen:%x is not supported\n"),
                   FUNCTION_NAME(), alen));
         return SOC_E_INTERNAL;
@@ -933,13 +933,13 @@ int cpu_i2c_read(int chip, int addr, CPU_I2C_BUS_LEN alen, int* p_val)
         *p_val = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
         break;
     default:
-        LOG_INFO(BSL_LS_SOC_I2C,
+        LOG_BSL_INFO(BSL_LS_SOC_I2C,
                  (BSL_META("%s: buf_len:%x not supported\n"),
                   FUNCTION_NAME(), buf_len));
         return SOC_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_I2C,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_I2C,
                 (BSL_META("success chip:%d addr:%x alen:%d read-val:0x%0x \n"), 
                  chip, addr, alen, *p_val));
     return SOC_E_NONE;

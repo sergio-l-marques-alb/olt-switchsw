@@ -76,7 +76,7 @@ drv_tbx_port_vlan_pvid_set(int unit, uint32 port, uint32 outer_tag, uint32 inner
     uint64  reg_value;
     uint32 vid, pri;
     
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_port_vlan_pvid_set: unit = %d, port = %d, outer_tag = 0x%x, inner_tag = 0x%x\n"),
               unit, port, outer_tag, inner_tag));
@@ -139,7 +139,7 @@ drv_tbx_port_vlan_pvid_get(int unit, uint32 port, uint32 *outer_tag, uint32 *inn
     soc_DEF_PORT_QOS_CFGr_field_get(unit, (void *)&reg_value, CPCPf, &pri);
     *inner_tag = VLAN_CTRL(pri, cfi, vid);
     
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_port_vlan_pvid_get: unit = %d, port = %d, outer_tag = 0x%x, inner_tag = 0x%x\n"),
               unit, port, *outer_tag, *inner_tag));
@@ -170,7 +170,7 @@ drv_tbx_port_vlan_set(int unit, uint32 port, soc_pbmp_t bmp)
     int rv = SOC_E_NONE;
     soc_pbmp_t block_bmp;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_port_vlan_set: unit = %d, port = %d, bmp = %x\n"),
               unit, port, SOC_PBMP_WORD_GET(bmp, 0)));
@@ -217,7 +217,7 @@ drv_tbx_port_vlan_get(int unit, uint32 port, soc_pbmp_t *bmp)
     SOC_PBMP_REMOVE(fwd_bmp, block_bmp);
     SOC_PBMP_ASSIGN(*bmp, fwd_bmp);
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_port_vlan_get: unit = %d, port = %d, bmp = %x\n"),
               unit, port, SOC_PBMP_WORD_GET(*bmp, 0)));
@@ -251,7 +251,7 @@ drv_tbx_vlan_mode_set(int unit, uint32 mode)
     SOC_PBMP_CLEAR(bmp);
     SOC_PBMP_ASSIGN(bmp, PBMP_ALL(unit));
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_vlan_mode_set: unit = %d, mode = %d\n"),
               unit, mode));
@@ -315,7 +315,7 @@ drv_tbx_vlan_mode_get(int unit, uint32 *mode)
      */
     *mode = DRV_VLAN_MODE_TAG;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "drv_vlan_mode_get: unit = %d, mode = %d\n"),
               unit, *mode));
@@ -347,7 +347,7 @@ drv_tbx_vlan_prop_set(int unit, uint32 prop_type, uint32 prop_val)
     uint32 temp = 0;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, prop_val));
@@ -538,7 +538,7 @@ drv_tbx_vlan_prop_get(int unit, uint32 prop_type, uint32 *prop_val)
     uint32  reg_value, temp = 0;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit = %d, property type = %d, value = %x\n"),
               FUNCTION_NAME(), unit, prop_type, *prop_val));
@@ -673,7 +673,7 @@ drv_tbx_vlan_prop_port_enable_set(int unit, uint32 prop_type,
     soc_pbmp_t set_bmp, temp_bmp;
     soc_port_t port;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop=%d, value=0x%x\n"), 
               FUNCTION_NAME(), unit, prop_type, val));
@@ -810,7 +810,7 @@ drv_tbx_vlan_prop_port_enable_get(int unit, uint32 prop_type,
     soc_pbmp_t pbmp;
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_VLAN,
+    LOG_BSL_INFO(BSL_LS_SOC_VLAN,
              (BSL_META_U(unit,
                          "%s: unit=%d, prop=%d, port=%d\n"), 
               FUNCTION_NAME(), unit, prop_type, port_n));

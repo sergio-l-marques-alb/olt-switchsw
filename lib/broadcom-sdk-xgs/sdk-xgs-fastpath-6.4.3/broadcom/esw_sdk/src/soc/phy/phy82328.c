@@ -455,7 +455,7 @@ _phy_82328_dbg_read(int32 unit, phy_ctrl_t *pc, uint32 addr, uint16 *data)
 	int32 rv;
 	rv = (pc->read)(unit, pc->phy_id, addr, data);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Read Addr=0x%04x Val=0x%04x\n"), addr, *data));
 	return rv;
@@ -466,7 +466,7 @@ STATIC int32
 _phy_82328_dbg_write(int32 unit, phy_ctrl_t *pc, uint32 addr, uint16 data)
 {
 	int32 rv;
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Write Addr=0x%04x Val=0x%04x\n"), addr, data));
 	rv = (pc->write)(unit, pc->phy_id, addr, data);
@@ -479,7 +479,7 @@ _phy_82328_dbg_modify(int32 unit, phy_ctrl_t *pc, uint32 addr, uint16 data, uint
 	int32 rv;
 	rv = phy_reg_modify(unit, pc, addr, data, mask);
 	rv = (pc->read)(unit, pc->phy_id, addr, &data);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "Write Addr=0x%04x Val=0x%04x\n"), addr, data));
 	return rv;
@@ -560,7 +560,7 @@ int32 _phy_82328_rom_fw_dload (int32 unit, int32 port, int32 offset,
     
     if (offset == PHYCTRL_UCODE_BCST_SETUP) {
         /* Enable Bcast */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 Enable Bcast u:%d p:%d\n"),
                              unit, port));
@@ -568,7 +568,7 @@ int32 _phy_82328_rom_fw_dload (int32 unit, int32 port, int32 offset,
                           PHY82328_ENABLE));
         return SOC_E_NONE;
     } else if (offset == PHYCTRL_UCODE_BCST_uC_SETUP) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 uC setup u:%d p:%d\n"),
                              unit, port));
@@ -589,7 +589,7 @@ int32 _phy_82328_rom_fw_dload (int32 unit, int32 port, int32 offset,
                           PHY82328_ENABLE));
         return SOC_E_NONE;
     } else if (offset == PHYCTRL_UCODE_BCST_LOAD) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 uCode load u:%d p:%d\n"),
                              unit, port));
@@ -662,7 +662,7 @@ int32 _phy_82328_rom_fw_dload (int32 unit, int32 port, int32 offset,
         SOC_IF_ERROR_RETURN
             (READ_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_MSG_OUT, &data16));
     
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 FW load done u:%d p:%d Read Done:0x%x\n"),
                              unit, port, data16));
@@ -671,13 +671,13 @@ int32 _phy_82328_rom_fw_dload (int32 unit, int32 port, int32 offset,
         SOC_IF_ERROR_RETURN
             (READ_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_GP_REG_4, &data16));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 FW load done u:%d p:%d chksum:0x%x\n"),
                              unit, port, data16));
 
         if (data16 != 0x600D) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "Invalid Checksum:0x%x\n"), data16));
             return SOC_E_INTERNAL;
@@ -704,7 +704,7 @@ int32 _phy_82328_rom_fw_dload (int32 unit, int32 port, int32 offset,
         /* Make sure micro completes its initialization */
         sal_udelay(5000);
     } else {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "u=%d p=%d PHY82328 firmware_bcst: invalid cmd 0x%x\n"),
                    unit, port, offset));
@@ -774,7 +774,7 @@ _phy_82328_intf_line_sys_params_get(int32 unit, soc_port_t port)
         line_intf->type = SOC_PORT_IF_SR4;
         if (!(_phy_82328_intf_is_single_port(sys_intf->type))) {
             /* system side interface is not compatible so overwrite with default */
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY82328 incompatible 40G system side interface, "
                                   "using default: u=%d p=%d\n"), unit, port));
@@ -795,7 +795,7 @@ _phy_82328_intf_line_sys_params_get(int32 unit, soc_port_t port)
             }
         } else {
             /* system side interface is not compatible so overwrite with default */
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY82328 incompatible 10G/1G system side interface, "
                                   "using default: u=%d p=%d\n"), unit, port));
@@ -1124,7 +1124,7 @@ _phy_82328_init_pass2(int32 unit, soc_port_t port)
     uint16 if_sys_idx = 0;
     uint16 chan_data = 0, chan_mask = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY82328 init pass2: u=%d p=%d\n"), unit, port));
     pc = EXT_PHY_SW_STATE(unit, port);
@@ -1165,7 +1165,7 @@ _phy_82328_init_pass2(int32 unit, soc_port_t port)
 	/* Get configured system interface */
     if_sys_idx = soc_property_port_get(unit, port, spn_PHY_SYS_INTERFACE, 0);
     if (if_sys_idx >= (sizeof(phy82328_sys_to_port_if) / sizeof(soc_port_if_t))) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "PHY82328 invalid system side interface: u=%d p=%d intf=%d\n"
                               "Using default interface\n"),
@@ -1190,7 +1190,7 @@ _phy_82328_init_pass2(int32 unit, soc_port_t port)
             line_intf->type = SOC_PORT_IF_SR;
             sys_intf->type = SOC_PORT_IF_XFI;
         }
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "default sys and line intf are used\n")));
     } else {
@@ -1256,7 +1256,7 @@ _phy_82328_init_pass3(int unit, soc_port_t port)
     int rv;
     phy_ctrl_t  *pc, *int_pc;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY82328 init pass3: u=%d p=%d\n"), unit, port));
     pc = EXT_PHY_SW_STATE(unit, port);
@@ -1279,7 +1279,7 @@ _phy_82328_init_pass3(int unit, soc_port_t port)
 		
 		logical_lane0 = soc_property_port_get(unit, port, spn_PHY_LANE0_L2P_MAP, 0);
 		if (logical_lane0 > PHY82328_NUM_LANES) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY82328 bad auto-negotiation lane %d: u=%d p=%d"
                                   " lane must be 0..3\n"), (int)logical_lane0, unit, port));
@@ -1298,7 +1298,7 @@ _phy_82328_init_pass3(int unit, soc_port_t port)
 	if (MOD_AUTO_DETECT(pc)) {
 		uint16 data, mask;
 		
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 module auto detect enabled: u=%d p=%d\n"),
                   unit, port));
@@ -1312,7 +1312,7 @@ _phy_82328_init_pass3(int unit, soc_port_t port)
 		rv = MODIFY_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_GP_REG_0, data, mask);
 		if (SOC_FAILURE(rv)) {
 			MOD_AUTO_DETECT(pc) = 0;
-			LOG_ERROR(BSL_LS_SOC_PHY,
+			LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                   (BSL_META_U(unit,
                                               "PHY82328 setting module auto detect failed: u=%d p%d\n"),
                                    unit, port));
@@ -1376,7 +1376,7 @@ _phy_82328_init_pass1(int32 unit, soc_port_t port)
 		
     pc = EXT_PHY_SW_STATE(unit, port);
 	
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY82328 init pass1: u=%d p=%d\n"), unit, port));
 
@@ -1425,7 +1425,7 @@ _phy_82328_init_pass1(int32 unit, soc_port_t port)
                      spn_PHY_FORCE_FIRMWARE_LOAD, FALSE))) {
              pc->flags &= (~PHYCTRL_MDIO_BCST);
          } else {
-             LOG_INFO(BSL_LS_SOC_PHY,
+             LOG_BSL_INFO(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY82328 Bcast Enabled for Port:%d"), port));
              pc->flags |= PHYCTRL_MDIO_BCST;
@@ -1458,7 +1458,7 @@ _phy_82328_chip_id_get(int32 unit, soc_port_t port, phy_ctrl_t *pc, uint32 *chip
         } else if (chip_id_lsb == 0x2322) {
             *chip_id = PHY82328_ID_82322;
         } else {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY82328  bad chip id: u=%d p=%d chipid %x%x\n"),
                                   unit, port, chip_id_msb, chip_id_lsb));
@@ -1500,7 +1500,7 @@ int32 phy_82328_init(int32 unit, soc_port_t port)
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "PHY82328 init: u=%d p=%d state=%d\n"), 
                          unit, port,PHYCTRL_INIT_STATE(pc)));
@@ -1541,7 +1541,7 @@ int32 phy_82328_init(int32 unit, soc_port_t port)
 
         SOC_IF_ERROR_RETURN( _phy_82328_init_pass3(unit, port));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328 init pass3 completed: u=%d p=%d\n"), unit, port));
         PHYCTRL_INIT_STATE_SET(pc, PHYCTRL_INIT_STATE_DEFAULT);
@@ -1597,7 +1597,7 @@ _phy_82328_intf_link_get(int32 unit, soc_port_t port, int32 *link)
             } else {
                 *link = 0;
             }
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "PhyID:%x link:%d"),
                          pc->phy_id,*link));
@@ -1610,7 +1610,7 @@ _phy_82328_intf_link_get(int32 unit, soc_port_t port, int32 *link)
         }
 #endif
     }
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "-->After MOD PhyID:%x\n"),
                      pc->phy_id));
@@ -1640,7 +1640,7 @@ _phy_82328_mod_auto_detect_speed_check(int unit, soc_port_t port, uint16 csr)
 					   MGT_TOP_PMD_USR_GP_REGISTER_1_SPEED_10G_MASK |
 					   MGT_TOP_PMD_USR_GP_REGISTER_1_SPEED_1G_MASK);
 	if (line_intf->speed != speed_tbl[csr_speed]) {
-		LOG_ERROR(BSL_LS_SOC_PHY,
+		LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "82328 module auto detection unexpected: u=%d p=%d speed=0x%x\n"),
                            unit, port, speed_tbl[csr_speed]));
@@ -1725,7 +1725,7 @@ STATIC int
 _phy_82328_mod_auto_detect_process(int unit, soc_port_t port, uint16 csr) 
 {
 
-	LOG_ERROR(BSL_LS_SOC_PHY,
+	LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "PHY82328 module detected: u=%d p=%d csr=%x\n"), 
                    unit, port, csr));
@@ -1791,7 +1791,7 @@ _phy_82328_mod_auto_detect_update(int unit, soc_port_t port)
                  (MODIFY_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_GP_REGISTER_1, 
                        0, MGT_TOP_PMD_USR_GP_REGISTER_3_SPEED_OR_TYPE_CHANGE_MASK));
 			
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "PHY82328 module removed u=%d p=%d\n"), unit, port));
         }
@@ -1843,7 +1843,7 @@ phy_82328_link_get(int32 unit, soc_port_t port, int32 *link)
                 _phy_82328_mod_auto_detect_update(unit, port));
 	}
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "phy_82328_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -1976,7 +1976,7 @@ _phy_82328_intf_update(int32 unit, soc_port_t port, uint16 reg_data, uint16 reg_
     /* Make sure ucode has acked */
     rv = READ_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_GP_REGISTER_3, &ucode_csr_bef);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "82328 failed reading ucode csr: u=%d p=%d err=%d\n"),
                               unit, port, rv));
@@ -1989,7 +1989,7 @@ _phy_82328_intf_update(int32 unit, soc_port_t port, uint16 reg_data, uint16 reg_
         rv = MODIFY_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_GP_REGISTER_1,
                        0x0,  MGT_TOP_PMD_USR_GP_REGISTER_1_FINISH_CHANGE_MASK);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 failed clearing ack: u=%d p=%d err=%d\n"),
                                   unit, port, rv));
@@ -2003,7 +2003,7 @@ _phy_82328_intf_update(int32 unit, soc_port_t port, uint16 reg_data, uint16 reg_
             goto fail;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 intf update register: u=%d, p=%d, 1.%04x=%04x/%04x ucode_csr=%04x\n"),
                          unit, port, MGT_TOP_GP_REGISTER_1, reg_data, reg_mask, ucode_csr_bef));
@@ -2012,7 +2012,7 @@ _phy_82328_intf_update(int32 unit, soc_port_t port, uint16 reg_data, uint16 reg_
     rv = MODIFY_PHY82328_MMF_PMA_PMD_REG(unit, pc, MGT_TOP_GP_REGISTER_1,
                                       reg_data, reg_mask);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "82328 failed sending command to ucode: u=%d p=%d err=%d\n"),
                    unit, port, rv));
@@ -2058,7 +2058,7 @@ _phy_82328_intf_datapath_reg_get(int32 unit, soc_port_t port, phy82328_datapath_
             *reg_data =	PHY82328_4BIT_DP_DEPTH2;
         break;
         default :
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 invalid datapath: u=%d p=%d datapath=%d\n"),
                                   unit, port, datapath));
@@ -2069,7 +2069,7 @@ _phy_82328_intf_datapath_reg_get(int32 unit, soc_port_t port, phy82328_datapath_
 	             MGT_TOP_PMD_USR_GP_REGISTER_1_ULL_DATAPATH_LATENCY_MASK |
                  MGT_TOP_PMD_USR_GP_REGISTER_1_FINISH_CHANGE_MASK);
 				 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 datapath set register: u=%d, p=%d, reg=%04x/%04x, datapath=%d\n"),
                          unit, port, *reg_data, *reg_mask, datapath));
@@ -2107,7 +2107,7 @@ _phy_82328_intf_speed_reg_get(int32 unit, soc_port_t port, int32 speed, uint16 *
             *reg_data = PHY82328_GP_REG_1_SPD_1G;
         break;
         default :
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 invalid line speed %d: u=%d p=%d\n"),
                                   speed, unit, port));
@@ -2120,7 +2120,7 @@ _phy_82328_intf_speed_reg_get(int32 unit, soc_port_t port, int32 speed, uint16 *
                   MGT_TOP_PMD_USR_GP_REGISTER_1_SPEED_40G_MASK |
                   MGT_TOP_PMD_USR_GP_REGISTER_1_SPEED_100G_MASK);
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 speed set register: u=%d, p=%d, reg=%04x/%04x), speed=%d\n"),
                          unit, port, *reg_data, *reg_mask, speed));
@@ -2192,7 +2192,7 @@ _phy_82328_intf_type_reg_get(int32 unit, soc_port_t port, soc_port_if_t intf_typ
                    (1<< MGT_TOP_PMD_USR_GP_REGISTER_1_LINE_LR_MODE_SHIFT);
         break;
         default:
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 Unsupported interface: u=%d p=%d\n"), unit, port));			
             return SOC_E_UNAVAIL;
@@ -2211,7 +2211,7 @@ _phy_82328_intf_type_reg_get(int32 unit, soc_port_t port, soc_port_if_t intf_typ
                        MGT_TOP_PMD_USR_GP_REGISTER_1_SYSTEM_CU_TYPE_MASK | 
                        MGT_TOP_PMD_USR_GP_REGISTER_1_SYSTEM_TYPE_MASK);
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 intf type register: u=%d, p=%d, reg=%04x/%04x, intf=%d\n"),
                          unit, port, *reg_data, *reg_mask, intf_type));
@@ -2230,14 +2230,14 @@ _phy_82328_intf_debug_print(int32 unit, soc_port_t port, const char *msg)
     line_intf = &(LINE_INTF(pc));
     sys_intf = &(SYS_INTF(pc));
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "%s: "), msg));
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "[LINE:intf=%s,speed=%d], "),
                          phy82328_intf_names[line_intf->type], line_intf->speed));
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "[SYS :intf=%s,speed=%d]\n"),
                          phy82328_intf_names[sys_intf->type], sys_intf->speed));
@@ -2277,7 +2277,7 @@ _phy_82328_intf_line_sys_update(int32 unit, soc_port_t port)
     reg_data |= data;
     reg_mask |= mask;
 	
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328  intf update: line=%s sys=%s speed=%d (1.%x = %04x/%04x): u=%d p=%d\n"),
               phy82328_intf_names[line_intf->type], phy82328_intf_names[sys_intf->type],
@@ -2294,7 +2294,7 @@ _phy_82328_intf_line_sys_update(int32 unit, soc_port_t port)
     reg_data |= data;
     reg_mask |= mask;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328  intf update: line=%s sys=%s speed=%d (1.%x = %04x/%04x): u=%d p=%d\n"),
               phy82328_intf_names[line_intf->type], phy82328_intf_names[sys_intf->type],
@@ -2548,13 +2548,13 @@ phy_82328_speed_set(int32 unit, soc_port_t port, int32 speed)
     line_intf = &(LINE_INTF(pc));
     sys_intf = &(SYS_INTF(pc));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_speed_set: u=%d p=%d speed=%d\n"),
                          unit, port,speed));
     if (PHY82328_SINGLE_PORT_MODE(pc)) {
         if (!_phy_82328_intf_is_single_port(line_intf->type)) {
-             LOG_INFO(BSL_LS_SOC_PHY,
+             LOG_BSL_INFO(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 speed set does not match interface: "
                                   "u=%d p=%d speed=%d intf=%d\n"),
@@ -2575,7 +2575,7 @@ phy_82328_speed_set(int32 unit, soc_port_t port, int32 speed)
             case PHY82328_SPD_100G:  
             break;
             default:
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "82328  invalid speed Single Port: u=%d p=%d speed=%d\n"),
                            unit, port, speed));
@@ -2584,7 +2584,7 @@ phy_82328_speed_set(int32 unit, soc_port_t port, int32 speed)
     } else {
         /*Check for the valid interface*/
         if(_phy_82328_intf_is_single_port(line_intf->type)){
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328  invalid intf in quad port: u=%d p=%d intf=%d\n"),
                        unit, port, line_intf->type));
@@ -2637,7 +2637,7 @@ phy_82328_speed_set(int32 unit, soc_port_t port, int32 speed)
             case PHY82328_SPD_42G:/*42G*/
             case PHY82328_SPD_100G: 
             default:
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "82328  invalid speed Quad Port: u=%d p=%d speed=%d\n"),
                            unit, port, speed));
@@ -2647,7 +2647,7 @@ phy_82328_speed_set(int32 unit, soc_port_t port, int32 speed)
 	
     rv =  _phy_82328_speed_set(unit, port, speed);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "82328  %s failed: u=%d p=%d\n"), FUNCTION_NAME(), unit, port));
     }
@@ -2788,7 +2788,7 @@ _phy_82328_polarity_flip_tx(int32 unit, soc_port_t port, phy82328_intf_side_t si
                 } else {
                     flip = 0;
                 }
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "82328 tx polarity flip=%d: u=%d p=%d" 
                                      "lane=%d\n"), flip, unit, port, lane));
@@ -2809,7 +2809,7 @@ _phy_82328_polarity_flip_tx(int32 unit, soc_port_t port, phy82328_intf_side_t si
             flip = (cfg_pol) ? 1 : 0;
             SOC_IF_ERROR_RETURN
                 (_phy_82328_polarity_flip_tx_set(unit, port, flip));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "82328  polarity flip: u=%d p=%d\n"), unit, port));
         }
@@ -2866,7 +2866,7 @@ _phy_82328_polarity_flip_rx(int32 unit, soc_port_t port, phy82328_intf_side_t si
                     SOC_IF_ERROR_RETURN
                         (_phy_82328_polarity_flip_rx_20bit(unit, port, flip));
                 }
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "82328 rx polarity flip: u=%d p=%d lane=%d\n"), unit, port, lane));
             }
@@ -2891,7 +2891,7 @@ _phy_82328_polarity_flip_rx(int32 unit, soc_port_t port, phy82328_intf_side_t si
          phy82328_intf_side_reg_select(unit, port, PHY82328_INTF_SIDE_LINE));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 rx polarity flip: u=%d p=%d\n"), unit, port));
     return SOC_E_NONE;
@@ -2909,7 +2909,7 @@ _phy_82328_polarity_flip_rx(int32 unit, soc_port_t port, phy82328_intf_side_t si
 STATIC int32
 _phy_82328_polarity_flip(int32 unit, soc_port_t port, uint16 cfg_tx_pol, uint16 cfg_rx_pol)
 {
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 polarity flip: u=%d p%d TX=%x RX=%x\n"), unit, port, 
                          cfg_tx_pol, cfg_rx_pol));
@@ -2974,7 +2974,7 @@ _phy_82328_micro_pause(int32 unit, soc_port_t port, const char *loc)
         if (rv != SOC_E_NONE) {
             goto fail;
         }
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "82328 microcode did not pause in %s: "
                              "u=%d p%d 1.ca18/1.ca19=%04x/%04x checks=%d\n"), 
@@ -3014,7 +3014,7 @@ _phy_82328_micro_resume(int32 unit, soc_port_t port)
             goto fail;
         }
         if (micro_ctrl->count < 0) {
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "82328 unmatched micro resume\n")));
             micro_ctrl->count = 0;;
@@ -3052,7 +3052,7 @@ phy_82328_an_set(int32 unit, soc_port_t port, int32 an)
     int_pc = INT_PHY_SW_STATE(unit, port);
 	line_intf = &(LINE_INTF(pc));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_an_set: u=%d p=%d an=%s\n"),
               unit, port, an ? "enable" : "disable"));
@@ -3091,7 +3091,7 @@ phy_82328_an_set(int32 unit, soc_port_t port, int32 an)
     if (line_intf->speed > 1000) {
         SOC_IF_ERROR_RETURN(phy_82328_an_get(unit, port, &dev_an, &dev_an_done));
         if (dev_an != AN_EN(pc)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 device autonegotiation mismatch: u=%d p=%d an=%s\n"),
                        unit, port, AN_EN(pc) ? "en" : "dis"));
@@ -3132,14 +3132,14 @@ phy_82328_an_get(int32 unit, soc_port_t port, int32 *an, int32 *an_done)
         SOC_IF_ERROR_RETURN(READ_PHY82328_MMF_AN_REG(unit, pc,
                                      PHY82328_AN_CTRL_REG, &data16));
         *an = ((data16 & PHY82328_AN_ENABLE_MSK) == PHY82328_AN_ENABLE_MSK);
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY82328: AN Enable: 0x%x\n"),data16));
         if (*an) {
             SOC_IF_ERROR_RETURN(READ_PHY82328_MMF_AN_REG(unit, pc,
                                PHY82328_AN_STS_REG, &data16));
 
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY82328 AN Done: 0x%x\n"),data16));
            *an_done = ((data16 & PHY82328_AN_COMPLETE_MSK) == PHY82328_AN_COMPLETE_MSK);
@@ -3189,7 +3189,7 @@ _phy_82328_tx_squelch(int32 unit, soc_port_t port, phy82328_intf_side_t side, in
             } else {
                 squelch = 0;
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "82328 tx squelch=%d: u=%d p=%d lane=%d\n"), squelch, unit, port, lane));
 
@@ -3203,7 +3203,7 @@ _phy_82328_tx_squelch(int32 unit, soc_port_t port, phy82328_intf_side_t side, in
     else {  
         squelch = (cfg_sql) ? 1 : 0;
         SOC_IF_ERROR_RETURN(_phy_82328_tx_squelch_enable (unit, port, side, squelch));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "82328 squelch %s side: u=%d p=%d \n"),
                   side ? "SYSTEM" : "LINE", unit, port));
@@ -3499,7 +3499,7 @@ _phy_82328_intf_type_set(int32 unit, soc_port_t port, soc_port_if_t pif, int32 m
 
     if (_phy_82328_intf_is_single_port(pif)) {
         if (!PHY82328_SINGLE_PORT_MODE(pc)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 invalid interface for quad port: u=%d p=%d\n"),
                                   unit, port));
@@ -3529,7 +3529,7 @@ _phy_82328_intf_type_set(int32 unit, soc_port_t port, soc_port_if_t pif, int32 m
         }
     } else if (_phy_82328_intf_is_quad_port(pif)) {
         if (PHY82328_SINGLE_PORT_MODE(pc)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 invalid interface for single port: u=%d p=%d\n"),
                                   unit, port));
@@ -3543,7 +3543,7 @@ _phy_82328_intf_type_set(int32 unit, soc_port_t port, soc_port_if_t pif, int32 m
                                            &reg_data, &reg_mask));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "82328 invalid interface for port: u=%d p=%d intf=%d\n"),
                               unit, port, pif));
@@ -3613,7 +3613,7 @@ phy_82328_interface_set(int32 unit, soc_port_t port, soc_port_if_t pif)
 
     rv = _phy_82328_intf_type_set(unit, port, pif, FALSE);
     if (SOC_FAILURE(rv)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "82328  interface set check failed: u=%d p=%d\n"),
                              unit, port));
@@ -3778,7 +3778,7 @@ _phy_82328_control_prbs_polynomial_set(int32 unit, soc_port_t port, int32 polyno
 {
     phy_ctrl_t  *pc = EXT_PHY_SW_STATE(unit, port);
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328  prbs polynomial set: u=%d p=%d polynomial=%d\n"),
                          unit, port, polynomial));
@@ -3829,47 +3829,47 @@ int32 phy82328_validate_preemphasis(uint8 pre, uint8 main, uint8 post1, uint8 po
 {
     uint8 post2to1 = (post2==0);
     if (pre > 10) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid PRE CURSOR TAP. It should be less than 10\n")));
         return SOC_E_PARAM;
     }
     if (main > 60) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid MAIN CURSOR TAP. It should be less than 60\n")));
         return SOC_E_PARAM;
     }
     if ((!post2to1) && (post1 > 18)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid POST1 CURSOR TAP. It should be less than 18\n")));
         return SOC_E_PARAM;
     }
     if ((post2to1) && (post1 > 23)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid POST1 CURSOR TAP. It should be less than 23\n")));
         return SOC_E_PARAM;
     }
     if (post2 > 5) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid POST2 TAP. It should be less than 5\n")));
         return SOC_E_PARAM;
     }
     if (main < (pre + post1 + post2 + 1)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid MAIN TAP. It should be greater than (pre + post1 + post2 + 1)\n")));
         return SOC_E_PARAM;
     }
     if ((pre + main + post1 + post2) > 60) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid Value. pre + main + post1 + post2 should be less than 60\n")));
         return SOC_E_PARAM;
     }
     if ((!post2to1) && ((pre + post1) > 22)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid Value. pre + post1 greater than 22\n")));
         return SOC_E_PARAM;
     }
     if (post2to1 && ((pre + post1) > 27)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META("Invalid Value. pre + post1 greater than 27\n")));
         return SOC_E_PARAM;
     }
@@ -4873,7 +4873,7 @@ _phy_82328_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
     sal_usecs_t end;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_bsc_read: u=%d p=%d addr=%04x\n"),
               unit, port, addr));
@@ -4963,7 +4963,7 @@ _phy_82328_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
     sal_usleep(10000);
 
 #if defined(BROADCOM_DEBUG) || defined(DEBUG_PRINT)
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "BSC command status %d time=%d\n"),
               (data16 & PHY82328_2W_STAT), SAL_USECS_SUB(end, start)));
@@ -4979,12 +4979,12 @@ _phy_82328_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
                 (READ_PHY82328_MMF_PMA_PMD_REG(unit, pc, (ram_start+i), &data16));
             if (data_type == PHY82328_I2C_16BIT) {
                 ((uint16 *)data_array)[i] = data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "%04x "), data16));
             } else {
                 ((uint8 *)data_array)[i] = (uint8)data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "%02x "), data16));
             }
@@ -5224,12 +5224,12 @@ phy_82328_probe(int32 unit, phy_ctrl_t *pc)
                                       &chip_rev));
     if (devid == PHY82328_ID_82328) {
         if (chip_rev == PHY82328A0_CHIP_REV) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY82328 Dev found")));
             pc->dev_name = dev_name_82328_a0;
         } else if (chip_rev == PHY82328B0_CHIP_REV) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY82328 B0 Dev found")));
             pc->dev_name = dev_name_82328_b0;
@@ -5237,7 +5237,7 @@ phy_82328_probe(int32 unit, phy_ctrl_t *pc)
     } else if (devid == PHY82328_ID_82322) {
         pc->dev_name = dev_name_82322;
     } else {  /* not found */
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "port %d: BCM82xxx type PHY device detected, please use "
                              "phy_82<xxx> config variable to select the specific type\n"),
@@ -5272,7 +5272,7 @@ phy_82328_ability_advert_set(int32 unit, soc_port_t port,
     phy_ctrl_t  *pc, *int_pc;
     phy82328_intf_cfg_t *line_intf;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "82328 Ablity advert Set\n")));
     if (ability == NULL) {
@@ -5309,7 +5309,7 @@ phy_82328_ability_advert_set(int32 unit, soc_port_t port,
         (MODIFY_PHY82328_MMF_AN_REG(unit, pc, 
          IEEE1_AN_BLK_AN_ADVERTISEMENT_1_REGISTER,
          pause, QSFI_AN_IEEE1_AN_ADVERTISEMENT_1_REGISTER_PAUSE_MASK)); 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_ability_advert_set: u=%d p=%d speed(FD)=%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -5385,7 +5385,7 @@ phy_82328_ability_advert_get(int32 unit, soc_port_t port,
         break;
     }
     ability->pause = mode;	 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_ability_advert_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -5426,7 +5426,7 @@ phy_82328_ability_local_get(int32 unit, soc_port_t port, soc_port_ability_t *abi
     ability->medium    = SOC_PA_MEDIUM_FIBER;
     ability->loopback  = SOC_PA_LB_PHY;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_ability_local_get: u=%d p=%d speed=0x%x\n"),
               unit, port, ability->speed_full_duplex));
@@ -5470,7 +5470,7 @@ phy_82328_firmware_set(int32 unit, int32 port, int32 offset, uint8 *array,int32 
            return SOC_E_UNAVAIL; 
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "u=%d p=%d firmware download method not supported\n"),
                              unit, port));
@@ -5812,7 +5812,7 @@ _phy_82328_diag_eyescan(int32 unit, soc_port_t port, uint32 inst)
     for (hoffset = 31; hoffset>=-31; hoffset--) {
         rv = _phy_82328_diag_eyescan_hoffset_set(unit, port, hoffset);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "82328 failed in HOFFSET SET: u=%d p=%d err=%d\n"),
                                   unit, port, rv));
@@ -5822,7 +5822,7 @@ _phy_82328_diag_eyescan(int32 unit, soc_port_t port, uint32 inst)
         for (voffset=-31; voffset < 32; voffset++) {
             rv = _phy_82328_diag_eyescan_livelink_read(unit, port, &err);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "82328 failed in Read BER: u=%d p=%d err=%d\n"),
                                       unit, port, rv));
@@ -6227,7 +6227,7 @@ phy_82328_diag_ctrl(int32 unit, soc_port_t port, uint32 inst, int32 op_type,  in
                SOC_IF_ERROR_RETURN
                    (_phy_82328_control_get(unit, port, intf, lane, op_cmd, (uint32 *)arg));
            } else {
-               LOG_ERROR(BSL_LS_SOC_PHY,
+               LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "82328 diag_ctrl bad operation: u=%d p=%d ctrl=0x%x\n"), 
                                      unit, port, op_cmd));
@@ -6317,7 +6317,7 @@ phy_82328_ability_remote_get(int unit, soc_port_t port,
         }
         ability->pause = mode;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_82328_ability_remote_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -6352,7 +6352,7 @@ phy_82328_precondition_before_probe(int32 unit, phy_ctrl_t *pc)
 
     /* Not required when the port is single PMD */
     if (PHY82328_SINGLE_PORT_MODE(pc)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PMD must not be called when in single PMD\n")));
         return rv;
@@ -6364,7 +6364,7 @@ phy_82328_precondition_before_probe(int32 unit, phy_ctrl_t *pc)
     for (ids = 0; ids < 4; ids++) {
 
         pc->phy_id = (saved_phy_id & ~0x3) + ids;
-         LOG_INFO(BSL_LS_SOC_PHY,
+         LOG_BSL_INFO(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Try device with address %x\n"), pc->phy_id));
 
@@ -6394,7 +6394,7 @@ phy_82328_precondition_before_probe(int32 unit, phy_ctrl_t *pc)
         READ_PHY82328_MMF_PMA_PMD_REG(unit, pc,
                                       MGT_TOP_SINGLE_PMD_CTRL, &pmd_ctrl);
         if (pmd_ctrl & MGT_TOP_CMN_CTLR_SINGLE_PMD_CTRL_SINGLE_PMD_MODE_MASK) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Device responded to address %x. Setting quad PMD mode\n"),
                       pc->phy_id));

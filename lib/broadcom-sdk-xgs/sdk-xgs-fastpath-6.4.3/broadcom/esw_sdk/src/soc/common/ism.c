@@ -577,11 +577,11 @@ soc_ism_log_to_phy_set(int unit)
     int tab, bank;
     uint32 entry[SOC_MAX_MEM_WORDS];
     for (tab = 0; tab < _SOC_ISM_MAX_TABLES; tab++) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Table: %d\n"), tab));
         for (bank = 0; bank < SOC_ISM_INFO(unit)->total_banks; bank++) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "[%d]-%d "), bank, 
                       _soc_ism_log_to_phy_map[unit][tab][bank]));
@@ -594,7 +594,7 @@ soc_ism_log_to_phy_set(int unit)
                 (soc_mem_write(unit, _ism_log_to_phy_mem[tab], 
                                MEM_BLOCK_ALL, bank, &entry));
         }        
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -622,7 +622,7 @@ soc_ism_table_bank_set(int unit)
         if (!_soc_ism_table_bank_count[unit][tab]) {
             continue;
         }
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Table: %d\n"), tab));
         SOC_IF_ERROR_RETURN
@@ -638,7 +638,7 @@ soc_ism_table_bank_set(int unit)
                 val |= _soc_ism_table_bank_config[unit][tab]
                       [(stg*SOC_ISM_INFO(unit)->banks_per_stage)+bank] << (bank + offset);
             }
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "stage: %d - bmask: %x "), stg, val));
             
@@ -654,7 +654,7 @@ soc_ism_table_bank_set(int unit)
         SOC_IF_ERROR_RETURN
             (soc_reg32_set(unit, _ism_table_bank_cfg_reg[tab], 
                            REG_PORT_ANY, 0, rval));
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "\n")));
     }
@@ -884,7 +884,7 @@ soc_ism_mem_config(int unit, soc_ism_mem_size_config_t *mem_cfg, int count)
     _soc_ism_sort_mems(mem_cfg, count, ism_hash_tables);
 
     for (tab = 0; tab < count && tab < SOC_ISM_MEM_TOTAL; tab++) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "ISM mem: [%s], size: %d\n"), 
                      soc_ism_table_to_name(ism_hash_tables[tab].mem),
@@ -928,7 +928,7 @@ soc_ism_mem_config(int unit, soc_ism_mem_size_config_t *mem_cfg, int count)
         rem = size % _SOC_ISM_ENTRY_SIZE_QUANTA;
         if (rem) {
             size = size + (_SOC_ISM_ENTRY_SIZE_QUANTA - rem);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Updated size %s: %d\n"), 
                          soc_ism_table_to_name(mem), size));
@@ -955,7 +955,7 @@ soc_ism_mem_config(int unit, soc_ism_mem_size_config_t *mem_cfg, int count)
                     _ism_total += SOC_ISM_INFO(unit)->bank_raw_sizes[bank] * \
                                   _SOC_ISM_ENTRIES_PER_BKT;
                     size -= SOC_ISM_INFO(unit)->bank_raw_sizes[bank];
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "bank: %d\n"), bank));
                     _soc_ism_bank_avail[unit][bank] = mem;
@@ -979,7 +979,7 @@ soc_ism_mem_config(int unit, soc_ism_mem_size_config_t *mem_cfg, int count)
             } 
         } while (size && avail); /* Keep trying */
         if (size) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Could not allocate banks for mem: %s\n"),
                        soc_ism_table_to_name(mem)));
@@ -987,7 +987,7 @@ soc_ism_mem_config(int unit, soc_ism_mem_size_config_t *mem_cfg, int count)
         }
 next_mem:
         size = ism_hash_tables[tab].size;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Final size %s: %d\n"), 
                      soc_ism_table_to_name(mem), size));
@@ -1033,12 +1033,12 @@ next_mem:
         } 
         continue;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ISM used total: %d k of %d k\n"), 
                  _ism_total/_SOC_ISM_ENTRY_SIZE_QUANTA, 
                  SOC_ISM_INFO(unit)->total_entries/_SOC_ISM_ENTRY_SIZE_QUANTA));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ISM remaining : %d k\n"), 
                  SOC_ISM_INFO(unit)->total_entries/_SOC_ISM_ENTRY_SIZE_QUANTA - 
@@ -1046,7 +1046,7 @@ next_mem:
 
     if (_ism_total/_SOC_ISM_ENTRY_SIZE_QUANTA > 
         SOC_ISM_INFO(unit)->total_entries/_SOC_ISM_ENTRY_SIZE_QUANTA) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Over-allocation of ISM resources !!\n")));
         return SOC_E_PARAM;
@@ -1060,7 +1060,7 @@ next_mem:
     if (SOC_FAILURE(rv)) {
         return rv; 
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ISM configured.\n")));
     return SOC_E_NONE;
@@ -1122,7 +1122,7 @@ soc_ism_hash_init(int unit)
         _SOC_ISM_SETS(unit)[i].num_banks = 0;
     }
     count = _soc_ism_get_sorted_bank_list(unit, mems, banks);    
-    LOG_INFO(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
              (BSL_META_U(unit,
                          "Used banks: %d\n"), count));
     for (i = 0; i < count; i++) {
@@ -1150,7 +1150,7 @@ soc_ism_hash_init(int unit)
                break;
             }
         }
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Bank: %d, base: %d, mem: [%s], buckets: %d, entries: %d "
                              "hash offset: %d\n"), banks[i], 
@@ -1162,7 +1162,7 @@ soc_ism_hash_init(int unit)
     }
     /* Just for sanity */
     for (i = 0; i < SOC_MEM_SET_MAX; i++) {
-        LOG_INFO(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                  (BSL_META_U(unit,
                              "Set: %s, num mems: %d, banks: %d, zero_lsb: %d, \n"), 
                   soc_ism_table_to_name(_SOC_ISM_SETS(unit)[i].mem_set),
@@ -1170,12 +1170,12 @@ soc_ism_hash_init(int unit)
                   _SOC_ISM_SETS(unit)[i].num_banks,
                   _SOC_ISM_SETS(unit)[i].zero_lsb));
         for (j = 0; j < _SOC_ISM_SETS(unit)[i].num_mems; j++) {
-            LOG_INFO(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                      (BSL_META_U(unit,
                                  "Num views: %d\n"), 
                       _SOC_ISM_SETS(unit)[i].shm[j].num_views));
             for (k = 0; k < _SOC_ISM_SETS(unit)[i].shm[j].num_views; k++) {
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "key width: %d\n"), 
                           _SOC_ISM_SETS(unit)[i].shm[j].hmv[k].key_size));
@@ -1275,7 +1275,7 @@ soc_ism_hw_config(int unit)
             }
             stg = j / _SOC_ISM_BANKS_PER_STAGE;
             bank = j % _SOC_ISM_BANKS_PER_STAGE;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Powering down stage[%d] bank[%d]\n"),
                          stg, bank));
@@ -1310,7 +1310,7 @@ soc_ism_hw_config(int unit)
             }
             stg = j / _SOC_ISM_BANKS_PER_STAGE;
             bank = j % _SOC_ISM_BANKS_PER_STAGE;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Powering down hit-bit rams for stage[%d] bank[%d]\n"),
                          stg, bank));
@@ -1388,7 +1388,7 @@ soc_ism_hash_offset_config(int unit, uint8 bank, uint8 offset)
         }
     }
     if (!found) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "No memory mapped to bank: %d\n"), bank));
         return SOC_E_INTERNAL;
@@ -1470,7 +1470,7 @@ soc_ism_hash_offset_config_get(int unit, uint8 bank, uint8 *offset)
         }
     }
     if (!found) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "No memory mapped to bank: %d\n"), bank));
         return SOC_E_INTERNAL;
@@ -1686,7 +1686,7 @@ soc_generic_get_hash_key(int unit, soc_mem_t mem, void *entry,
     }
     i = soc_ism_get_hash_mem_idx(unit, mem);
     if (i < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid hash memory !!\n")));
         return SOC_E_PARAM;
@@ -1694,7 +1694,7 @@ soc_generic_get_hash_key(int unit, soc_mem_t mem, void *entry,
     found = 0;
     for (j = 0; j < _SOC_ISM_MEMS(unit)[i].shms->num_keys; j++) {
         if (key_type == _SOC_ISM_MEMS(unit)[i].shms->shk[j].key_type) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Retreived key_type: %d for mem: %s\n"), 
                          key_type, SOC_MEM_NAME(unit, mem)));
@@ -1743,26 +1743,26 @@ soc_generic_gen_hash(int unit, uint32 zero_lsb, uint32 num_bits,
     uint32 crc_lo;
     uint16 crc_hi;
     int32 i, j = 0;
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "Num bits: %d, zero_lsb: %d, lsb: %x, offset: %d, "
                             "mask: %x\n"), num_bits, zero_lsb, lsb, offset, mask));
     /* mask bit 0 of key */
     key[0] &= 0xfe;
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "Key: [")));
     for (i = num_bits; i > 0; i-=8) {
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "%0x"), key[j++]));
     }
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "]\n")));
     if (offset >= 48) {
         if (!zero_lsb) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Hash(zero)\n")));
             return 0;
@@ -1771,7 +1771,7 @@ soc_generic_gen_hash(int unit, uint32 zero_lsb, uint32 num_bits,
                 lsb = lsb >> (offset-48);
             }
             lsb &= mask;
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Hash(lsb): %d\n"), lsb));
             return lsb & mask;
@@ -1779,10 +1779,10 @@ soc_generic_gen_hash(int unit, uint32 zero_lsb, uint32 num_bits,
     } else {
         crc_lo = _soc_crc32b(key, num_bits);
         crc_hi = _soc_crc16b(key, num_bits);
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "crc32: %x\n"), crc_lo));
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "crc16: %x\n"), crc_hi));
         COMPILER_64_SET(val, crc_hi, crc_lo);
@@ -1792,7 +1792,7 @@ soc_generic_gen_hash(int unit, uint32 zero_lsb, uint32 num_bits,
         COMPILER_64_SET(tmp, 0, mask);
         COMPILER_64_AND(val, tmp);
         COMPILER_64_TO_32_LO(crc_lo, val);
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "Hash(crc): %d\n"), crc_lo));
         return crc_lo & mask;
@@ -1983,7 +1983,7 @@ _soc_append_mem_field_to_data(soc_mem_info_t *meminfo, uint8 *key, uint16 offset
     uint32 mask, i, wp, bp;
     uint32 *entbuf = (uint32 *)key;
 
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META("offset: %d, size: %d\n"), offset, size));
     if (lendian) {
         wp = offset / 32;
@@ -2056,15 +2056,15 @@ soc_ism_gen_key_from_keyfields(int unit, soc_mem_t mem, void *entry,
                                       fieldinfo->flags & SOCF_LE);
         offset += len;
     }
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "Combined Key: ")));
     for (i = offset; i > 0; i-=8) {
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "%0x "), key[j++]));
     }
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "\n")));
 }
@@ -2159,7 +2159,7 @@ soc_gen_entry_from_key(int unit, soc_mem_t mem, uint8 *key, void *entry)
     }
     i = soc_ism_get_hash_mem_idx(unit, mem);
     if (i < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid hash memory !!\n")));
         return SOC_E_PARAM;
@@ -2168,7 +2168,7 @@ soc_gen_entry_from_key(int unit, soc_mem_t mem, uint8 *key, void *entry)
         if (_SOC_ISM_MEMS(unit)[i].shms->shk[j].hmv->shm->mem == mem) {
             if (key_type == _SOC_ISM_MEMS(unit)[i].shms->shk[j].key_type) {
                 found = 1;
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "Input key_type: %d found for mem: %s\n"), 
                              key_type, SOC_MEM_NAME(unit, mem)));
@@ -2225,7 +2225,7 @@ soc_gen_key_from_entry(int unit, soc_mem_t mem, void *entry, void *key)
     int32 memidx = soc_ism_get_hash_mem_idx(unit, mem);
     
     if (memidx < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid hash memory: %s !!\n"), 
                    SOC_MEM_NAME(unit, mem)));
@@ -2293,7 +2293,7 @@ soc_generic_hash(int unit, soc_mem_t mem, void *entry, int32 banks,
 
     memidx = soc_ism_get_hash_mem_idx(unit, mem);
     if (memidx < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid hash memory !!\n")));
         return SOC_E_PARAM;
@@ -2303,15 +2303,15 @@ soc_generic_hash(int unit, soc_mem_t mem, void *entry, int32 banks,
     }
     if (soc_generic_get_hash_key(unit, mem, entry, keyflds, &lsbfld, 
                                  &num_flds) == SOC_E_NONE) {
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "Key field(s): ")));
         for (idx = 0; idx < num_flds; idx++) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "%d, "), keyflds[idx]));
         }
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "\nLsb field: %d\n"), lsbfld));
         sal_memset(key, 0, sizeof(key));
@@ -2352,7 +2352,7 @@ soc_generic_hash(int unit, soc_mem_t mem, void *entry, int32 banks,
         bucket = soc_generic_gen_hash(unit, zero_lsb, num_bits, offset, 
                                       mask, crc_key, lsb);
         sbo[bidx].index = bucket;
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "Bank[%d]: bucket:%d\n"), bidx, bucket));
         if (base_idx) {
@@ -2387,7 +2387,7 @@ soc_generic_hash(int unit, soc_mem_t mem, void *entry, int32 banks,
                     sbo[bidx].stage = shbank[idx].my_id / SOC_ISM_INFO(unit)->banks_per_stage;
                     sbo[bidx].bank = shbank[idx].my_id % SOC_ISM_INFO(unit)->banks_per_stage;
                     sbo[bidx].mode = 1;
-                    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                                 (BSL_META_U(unit,
                                             "Existing mem index: %d\n"), 
                                  sbo[bidx].index+sbo[bidx].entry));
@@ -2408,7 +2408,7 @@ soc_generic_hash(int unit, soc_mem_t mem, void *entry, int32 banks,
                 sbo[bidx].stage = shbank[idx].my_id / SOC_ISM_INFO(unit)->banks_per_stage;
                 sbo[bidx].bank = shbank[idx].my_id % SOC_ISM_INFO(unit)->banks_per_stage;
                 sbo[bidx].mode = 0;
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "New mem index: %d\n"), 
                              sbo[bidx].index+sbo[bidx].entry));
@@ -2470,7 +2470,7 @@ soc_mem_multi_hash_norm_mem(int unit, soc_mem_t mem, void *entry, soc_mem_t *nor
     for (k = 0; k < _SOC_ISM_MEMS(unit)[s].shms->num_keys; k++) {
         if (key_type == _SOC_ISM_MEMS(unit)[s].shms->shk[k].key_type) {
             *norm_mem = _SOC_ISM_MEMS(unit)[s].shms->shk[k].hmv->shm->mem;
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "Normalized for key_type: %d mem: %s\n"), 
                          key_type, SOC_MEM_NAME(unit, *norm_mem)));
@@ -2736,7 +2736,7 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                         mem = orig_mem;
                         index = orig_index;
                         i++;
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                             "Skip(1) bank %d bucket %d, go to bank %d index %d\n"),
                             db, dest_bucket_index, cb, index+i));
@@ -2768,7 +2768,7 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                             mem = orig_mem;
                             index = orig_index;
                             i++;
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                         "Skip(2) bank %d bucket %d, go to mem %d " \
                                         "bank %d index %d \n"),
@@ -2778,7 +2778,7 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                         }
                     }
                 } else {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                  "Depth %d, Existing entry width is narrower, but can't move\n"),
                                  recurse_depth));
@@ -2790,7 +2790,7 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                 mem = norm_mem;
                 index = (index + i) / cmp_rv;
                 rv = soc_mem_read(unit, mem, copyno, index, move_entry);
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                              "Depth %d, G-2nd read %d index %d from bank %d bucket %d\n"),
                              recurse_depth, mem, index, cb, bucket_index));
@@ -2817,7 +2817,7 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
                         index = orig_index;
                         i += soc_ism_get_bucket_offset(unit, mem, -1, entry, 
                                                        move_entry);
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                      "Skip(3) bank %d bucket %d, go to bank %d index %d\n"),
                                      db, dest_bucket_index, cb, index+i));
@@ -2856,7 +2856,7 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
             /* Delete old entry from original location */ 
             rv = soc_mem_generic_delete(unit, mem, MEM_BLOCK_ANY, cb, move_entry, 
                                         NULL, NULL);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Delete moved entry [%d]: %d\n"), mc++, rv));
             mem = orig_mem;
@@ -2882,11 +2882,11 @@ soc_mem_multi_hash_move(int unit, soc_mem_t mem, int32 banks, int copyno,
     }
     rv = soc_mem_generic_insert(unit, mem, copyno, cb, entry, entry, NULL);
     if (rv) {
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "Insert entry: %d\n"), rv));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Insert entry [%d]\n"), ic++));
     }

@@ -826,7 +826,7 @@ bcm_tr2_wlan_init(int unit)
     uint32 capwap_frag_profile;
 
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 module must be initialized first\n")));
         return BCM_E_NONE;
@@ -1991,7 +1991,7 @@ bcm_tr2_wlan_port_add(int unit, bcm_wlan_port_t *wlan_port)
     rv = bcm_xgs3_l3_egress_mode_get(unit, &mode);
     BCM_IF_ERROR_RETURN(rv);
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

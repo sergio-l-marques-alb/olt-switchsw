@@ -3523,7 +3523,7 @@ soc_kt_oam_handler_register(int unit, soc_kt_oam_handler_t handler)
 
     rv = READ_IP1_INTR_ENABLE_1r(unit, &rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLE_1r)));
@@ -3535,7 +3535,7 @@ soc_kt_oam_handler_register(int unit, soc_kt_oam_handler_t handler)
     }
     rv = WRITE_IP1_INTR_ENABLE_1r(unit, rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error writing %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLE_1r)));
@@ -4434,12 +4434,12 @@ _soc_katana_parity_process_parity(int unit,
             has_error = TRUE;
             multiple = soc_reg_field_get(unit, reg, rval, MULTIPLE_ERRf);
             entry_idx = soc_reg_field_get(unit, reg, rval, ENTRY_IDXf);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s entry %d parity error\n"),
                        prefix_str, mem_str_ptr, entry_idx));
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str_ptr));
@@ -4459,7 +4459,7 @@ _soc_katana_parity_process_parity(int unit,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -4518,18 +4518,18 @@ _soc_katana_parity_process_ecc(int unit,
             double_bit = soc_reg_field_get(unit, reg, rval, DOUBLE_BIT_ERRf);
             entry_idx = soc_reg_field_get(unit, reg, rval, ENTRY_IDXf);
             if (double_bit) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d double-bit ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple ECC errors\n"),
                            prefix_str, mem_str_ptr));
@@ -4550,7 +4550,7 @@ _soc_katana_parity_process_ecc(int unit,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -4613,14 +4613,14 @@ _soc_katana_parity_process_hash(int unit,
             for (bits = 0; bits < bucket_size; bits++) {
                 if (bitmap & (1 << bits)) {
                     entry_idx = bank_bkt_idx + bits;
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s %s entry %d parity error\n"),
                                           prefix_str, mem_str, entry_idx));
                 }
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str));
@@ -4641,7 +4641,7 @@ _soc_katana_parity_process_hash(int unit,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -4677,24 +4677,24 @@ _soc_katana_parity_process_edatabuf(int unit,
         double_bit = soc_reg_field_get(unit, reg, rval, ECC_ERR_2B_MGRPf);
         multiple = soc_reg_field_get(unit, reg, rval, ECC_MULTI_MGRPf);
         if (double_bit) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s double-bit ECC error\n"),
                        prefix_str, mem_str));
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s ECC error\n"),
                        prefix_str, mem_str));
         }
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s has multiple ECC errors\n"),
                        prefix_str, mem_str));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -4741,13 +4741,13 @@ _soc_katana_parity_process_counter(int unit,
         counter_reg = cmap->cmap_base[counter_idx].reg;
         if (SOC_REG_IS_VALID(unit, counter_reg)) {
             counter_name = SOC_REG_NAME(unit, counter_reg);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s port %d %s entry %d parity error\n"),
                        prefix_str, mem_str, port_idx, counter_name,
                        entry_idx));
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str));
@@ -4760,13 +4760,13 @@ _soc_katana_parity_process_counter(int unit,
             (void)soc_ser_correction(unit, &spci);
             _stat_error_fixed[unit]++;
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s parity hardware inconsistency\n"),
                        prefix_str, mem_str));
         }
     } else if (!schan) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -4817,7 +4817,7 @@ int _soc_katana_process_sb_type_1_mmu_parity_error(int unit,
              soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                 sub_block_type,
                                 stat_reg, sub_block->sub_block_field);
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "%s MMU subblock %x   reg %s field %s(value = 0x%x) has \
                                    MMU parity error\n"),
@@ -4870,7 +4870,7 @@ int _soc_katana_process_sb_type_1_ci_mmu_parity_error(int unit,
              soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                 sub_block_type,
                                 stat_reg, sub_block->sub_block_field);
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "%s MMU subblock %x   reg %s field %s (value = 0x%x) has \
                                    MMU parity error\n"),
@@ -4925,7 +4925,7 @@ int _soc_katana_process_sb_type_2_mmu_parity_error(int unit,
              soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                 sub_block_type,
                                 stat_reg, sub_block->sub_block_field);
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "%s MMU subblock %x   reg %s field %s (value=0x%x) has \
                                    MMU parity error\n"),
@@ -5538,7 +5538,7 @@ _soc_katana_parity_process_info(int unit, uint8 id,
         /* Handle different parity error reporting style */
         switch (info->type) {
         case _SOC_PARITY_TYPE_GENERIC:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s asserted\n"), prefix_str, mem_str));
             break;
@@ -5653,7 +5653,7 @@ _soc_katana_parity_process_all(int unit)
     } /* Loop through each place-and-route block entry */
     /* Handle OAM interrupt */
     if (READ_IP1_INTR_STATUS_1r(unit, &rval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_STATUS_1r)));
@@ -5799,7 +5799,7 @@ soc_katana_stat_nack(int unit, int *fixed)
 
     if ((rv = _soc_katana_mem_nack_error_process(unit, nack_reg_mem, 0, 
         _SOC_KT_SER_REG)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d STAT SCHAN NACK analysis failure.\n"), unit));
     }
@@ -5831,7 +5831,7 @@ soc_katana_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         offset = address & ~0xC0f00000; /* Strip block ID */
         mem = soc_addr_to_mem(unit, address, &block);
         if (mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d mem decode failed, "
                                   "SCHAN NACK analysis failure\n"), unit));
@@ -5849,12 +5849,12 @@ soc_katana_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     if ((rv = _soc_katana_mem_nack_error_process(unit, nack_reg_mem, block,
         reg_mem)) < 0) {
         if (reg_mem == _SOC_KT_SER_REG) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d REG SCHAN NACK analysis failure\n"),
                        unit));
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                        unit, SOC_MEM_NAME(unit, mem),
@@ -5862,12 +5862,12 @@ soc_katana_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         }
     }
     if (reg_mem == _SOC_KT_SER_REG) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d REG SCHAN NACK analysis\n"),
                        unit));
     } else {
-        LOG_INFO(BSL_LS_SOC_SCHAN,
+        LOG_BSL_INFO(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "unit %d %s entry %d SCHAN NACK analysis\n"),
                   unit, SOC_MEM_NAME(unit, mem),
@@ -5982,7 +5982,7 @@ soc_katana_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -5996,7 +5996,7 @@ soc_katana_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -6073,7 +6073,7 @@ soc_katana_num_cosq_init(int unit)
         num_base_queues += si->port_num_uc_cosq[port];
 
         if (num_base_queues > KATANA_BASE_QUEUES_MAX) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Base queue allocation failed: num_queues %d \n"),
                        num_base_queues));
@@ -6253,7 +6253,7 @@ _soc_katana_get_shaper_rate(int unit, uint32 rate, int *index,
     }
     if (last_mantissa == -1) {
         rv = SOC_E_PARAM;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d Ingress Shaper Rate not found\n"), unit));
         return(rv);
@@ -6262,7 +6262,7 @@ _soc_katana_get_shaper_rate(int unit, uint32 rate, int *index,
         (*index) = i;
         (*rate_mantissa) = last_mantissa;
         (*rate_exponent) = last_exponent;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Closest Rate: %d Kbps, mantissa: %d, exponent: %d\n"),
                      rate, last_mantissa, last_exponent));
@@ -6280,7 +6280,7 @@ _soc_katana_get_shaper_burst_size(int unit, uint32 rate,
     uint32 last_mantissa = -1, last_exponent = -1, cur_mantissa = -1, cur_exponent;
     uint32 last_rate_diff = -1, cur_rate_diff;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "\n\nCalculating default burst size, rate: %d\n"), (unsigned int)rate));
 
@@ -6324,7 +6324,7 @@ _soc_katana_get_shaper_burst_size(int unit, uint32 rate,
     }
     if (last_mantissa == -1) {
         rv = SOC_E_PARAM;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d Ingress Burst Size not found\n"), unit));
         return(rv);
@@ -6333,7 +6333,7 @@ _soc_katana_get_shaper_burst_size(int unit, uint32 rate,
         (*burst_mantissa) = last_mantissa;
         (*burst_exponent) = last_exponent;
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Closest BurstSize: %d kbps burstSize: %d kbps, mantissa: %d, exponent: %d\n"),
                      rate,
@@ -7556,7 +7556,7 @@ _soc_katana_misc_init(int unit)
     SOC_IF_ERROR_RETURN(_katana_ledup_init(unit));
 
     if (soc_mspi_init(unit) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "unit %d : MSPI Init Failed\n"), unit));
     }
@@ -9813,7 +9813,7 @@ _soc_katana_mmu_init(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : LLS INIT timeout\n"), unit));
             break;
@@ -11544,7 +11544,7 @@ _soc_kt_cosq_begin_port_flush(int unit, int port, int hw_index)
         }
 
         if (soc_timeout_check(&timeout)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                "ERROR: Port %d Queue flush operation failed for queue %d \n"),
                 port, hw_index));

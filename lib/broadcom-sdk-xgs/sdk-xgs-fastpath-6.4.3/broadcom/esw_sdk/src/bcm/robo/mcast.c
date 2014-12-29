@@ -134,7 +134,7 @@ _bcm_robo_l2mc_free_index(int unit, int type, int *l2mc_id)
         rv = DRV_DEV_PROP_GET(unit, DRV_DEV_PROP_MCAST_REP_NUM, 
                 (uint32 *)&temp);
         if (rv){
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "%s, %d, device property get problem!\n"),
                        FUNCTION_NAME(), __LINE__));
@@ -199,7 +199,7 @@ bcm_robo_mcast_init(int unit)
         sal_free(L2MC_USED(unit));
     }
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_init()..\n")));
    /* get the number of supported Mcast gourps in this unit */
@@ -273,7 +273,7 @@ int bcm_robo_mcast_port_get(int unit, bcm_mac_t mac, bcm_vlan_t vid,
     MCAST_INIT_RETURN(unit);
     L2MC_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_port_get()..\n")));
 
@@ -297,7 +297,7 @@ int bcm_robo_mcast_port_get(int unit, bcm_mac_t mac, bcm_vlan_t vid,
             if (rv == SOC_E_TIMEOUT) {
                 return BCM_E_TIMEOUT;
             } else {
-               LOG_INFO(BSL_LS_BCM_ARL,
+               LOG_BSL_INFO(BSL_LS_BCM_ARL,
                         (BSL_META_U(unit,
                                     "[bcm.mcast]MC MAC address + VID not found\n")));
                 return BCM_E_NOT_FOUND; 
@@ -309,7 +309,7 @@ int bcm_robo_mcast_port_get(int unit, bcm_mac_t mac, bcm_vlan_t vid,
     BCM_IF_ERROR_RETURN(DRV_MCAST_FROM_MARL(
             unit, (uint32 *)mcaddr, (uint32 *)&marl_result));
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "bcm_robo_mcast_port_get(): mc_pbmp=0x%x\n"),
               SOC_PBMP_WORD_GET(mcaddr->pbmp, 0)));
@@ -341,7 +341,7 @@ int bcm_robo_mcast_addr_add(int unit, bcm_mcast_addr_t *mcaddr)
     MCAST_INIT_RETURN(unit);
     L2MC_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_addr_add()..\n")));
     /* valid VLAN check */
@@ -434,7 +434,7 @@ int bcm_robo_mcast_addr_remove(int unit, bcm_mac_t mac, bcm_vlan_t vid)
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_addr_remove()..\n")));
     
@@ -508,7 +508,7 @@ int bcm_robo_mcast_join(int unit, bcm_mac_t mcMacAddr, bcm_vlan_t vlanId,
     MCAST_INIT_RETURN(unit);
     L2MC_INIT(unit);
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_join()..\n")));
 
@@ -671,7 +671,7 @@ bcm_robo_mcast_addr_remove_w_l2mcindex(int unit, bcm_mcast_addr_t *mcaddr)
     MCAST_INIT_RETURN(unit);
     L2MC_INIT(unit);
     
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_addr_remove_w_l2mcindex()..\n")));
 
@@ -705,7 +705,7 @@ bcm_robo_mcast_addr_remove_w_l2mcindex(int unit, bcm_mcast_addr_t *mcaddr)
     } else {
         /* bcm_l2_addr_get() for existed cases return BCM_E_NONE */
         if (l2addr.l2mc_group != mcaddr->l2mc_index){
-            LOG_INFO(BSL_LS_BCM_L2TABLE,
+            LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
                      (BSL_META_U(unit,
                                  "%s, entry found but mismatch on l2mc_group \n"),
                       FUNCTION_NAME()));
@@ -771,7 +771,7 @@ bcm_robo_mcast_addr_add_w_l2mcindex(int unit, bcm_mcast_addr_t *mcaddr)
         mcindex = mcaddr->l2mc_index;
     }
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API:%s,mc_id=%d..\n"), FUNCTION_NAME(), mcindex));
 
@@ -828,7 +828,7 @@ int bcm_robo_mcast_port_remove(int unit, bcm_mcast_addr_t *mcaddr)
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_port_remove()..\n")));
     sal_memset(&marl_entry, 0, sizeof (marl_entry));
@@ -847,7 +847,7 @@ int bcm_robo_mcast_port_remove(int unit, bcm_mcast_addr_t *mcaddr)
             if (rv == SOC_E_TIMEOUT) {
                 return BCM_E_TIMEOUT;
             } else {
-                LOG_INFO(BSL_LS_BCM_ARL,
+                LOG_BSL_INFO(BSL_LS_BCM_ARL,
                          (BSL_META_U(unit,
                                      "[bcm.mcast]MC MAC address + VID not found\n")));
                 return BCM_E_NOT_FOUND; 
@@ -884,7 +884,7 @@ int bcm_robo_mcast_port_remove(int unit, bcm_mcast_addr_t *mcaddr)
                 (DRV_MEM_OP_BY_HASH_BY_MAC | DRV_MEM_OP_BY_HASH_BY_VLANID |
                 DRV_MEM_OP_DELETE_BY_STATIC));
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR in deleting mcast entry from ARL Table\n")));
             return BCM_E_INTERNAL;
@@ -944,7 +944,7 @@ int bcm_robo_mcast_port_add(int unit, bcm_mcast_addr_t *mcaddr)
         }
     }
 
-    LOG_INFO(BSL_LS_BCM_L2TABLE,
+    LOG_BSL_INFO(BSL_LS_BCM_L2TABLE,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_mcast_port_add()..\n")));
     sal_memset(&marl_entry, 0, sizeof (marl_entry));
@@ -963,7 +963,7 @@ int bcm_robo_mcast_port_add(int unit, bcm_mcast_addr_t *mcaddr)
             if (rv == SOC_E_TIMEOUT) {
                 return BCM_E_TIMEOUT;
             } else {
-                LOG_INFO(BSL_LS_BCM_ARL,
+                LOG_BSL_INFO(BSL_LS_BCM_ARL,
                          (BSL_META_U(unit,
                                      "[bcm.mcast]MC MAC address + VID not found\n")));
                 return BCM_E_NOT_FOUND; 

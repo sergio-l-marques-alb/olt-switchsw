@@ -1073,7 +1073,7 @@ STATIC int _regex_policy_phys_create(int unit, bcm_regex_policy_t policy, _regex
     _regex_policy_t              *policy_ent; /* Field entry structure.           */
     _bcm_esw_regex_device_info_t *device;     /* Regex control structure. */
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: BEGIN %s(policy=%d)\n"),
                unit, FUNCTION_NAME(), policy));
@@ -1090,7 +1090,7 @@ STATIC int _regex_policy_phys_create(int unit, bcm_regex_policy_t policy, _regex
 
     /* Check if free entries are available in the slice. */
     if (device->num_policies >= ESW_REGEX_POLICIES_MAX(unit)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: No room.\n"),
                    unit));
@@ -1099,7 +1099,7 @@ STATIC int _regex_policy_phys_create(int unit, bcm_regex_policy_t policy, _regex
 
     policy_ent = sal_alloc(sizeof(*policy_ent), "regex_policy");
     if (policy_ent == NULL) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: allocation failure for policy_entry\n"),
                    unit));
@@ -2476,7 +2476,7 @@ STATIC int _regex_policy_install(int unit, bcm_regex_policy_t policy)
     _bcm_esw_regex_device_info_t *device; /* Regex control structure. */
     int                           rv;   /* Operation return status.  */
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s(%d)\n"),
                unit, FUNCTION_NAME(), policy));
@@ -2545,7 +2545,7 @@ int _regex_policy_remove(int unit, bcm_regex_policy_t policy)
     _bcm_esw_regex_device_info_t *device; /* Regex control structure. */
     int                           rv;   /* Operation return status.  */
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s(%d)\n"),
                unit, FUNCTION_NAME(), policy));
@@ -2605,14 +2605,14 @@ STATIC int _regex_policy_create_id(int unit, bcm_regex_policy_t policy)
     _bcm_esw_regex_device_info_t *device; /* Regex control structure. */
     int                           rv;     /* Operation return status.     */
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s(policy=%d)\n"),
                unit, FUNCTION_NAME(), policy));
 
     /* Confirm that 'policy' is not already used on unit */
     if (BCM_SUCCESS(_regex_policy_get(unit, policy, &p_ent))) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: policy=(%d) already exists.\n"),
                    unit, policy));
@@ -2625,7 +2625,7 @@ STATIC int _regex_policy_create_id(int unit, bcm_regex_policy_t policy)
     }
 
     if (device->num_policies >= ESW_REGEX_POLICIES_MAX(unit)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: No room.\n"),
                    unit));
@@ -2664,7 +2664,7 @@ int _regex_policy_action_alloc(int unit, bcm_field_action_t action,
 {
     *pa = sal_alloc(sizeof(**pa), "regex_policy_action");
     if (NULL == *pa) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: allocation failure for regex_policy_action\n"),
                    unit));
@@ -2718,7 +2718,7 @@ int _regex_policy_action_add(int unit, bcm_regex_policy_t policy, _regex_policy_
     rv = device->functions->policy_action_support_check(unit,
                                                         pa->action);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: action=%s is not supported.\n"),
                    unit,
@@ -2737,7 +2737,7 @@ int _regex_policy_action_add(int unit, bcm_regex_policy_t policy, _regex_policy_
                                                             pa_iter->action,
                                                             pa->action);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_REGEX,
+            LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                       (BSL_META_U(unit,
                                   "FT(unit %d) Error: action=%s conflicts with existing action in policy=%d\n"),
                        unit,
@@ -2751,7 +2751,7 @@ int _regex_policy_action_add(int unit, bcm_regex_policy_t policy, _regex_policy_
     /* Check action parameters. */
     rv = device->functions->policy_action_params_check(unit, p_ent, pa);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: action=%s parameters check failed (%d)\n"),
                    unit, _regex_policy_action_name(pa->action), rv));
@@ -2808,7 +2808,7 @@ STATIC int _regex_policy_action_ports_add(int unit,
     _regex_policy_action_t       *pa = NULL; /* Policy action descriptor. */
     int                           rv;   /* Operation return status. */
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s(policy=%d, action=%s, p0=%d, p1=%d, p2=%d)\n"),
                unit, FUNCTION_NAME(), policy,
@@ -2826,7 +2826,7 @@ STATIC int _regex_policy_action_ports_add(int unit,
      */
     rv = _regex_policy_action_alloc(unit, action, param0, param1, param2, param3, &pa);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT Error: _regex_policy_action_alloc failed\n")));
         ESW_REGEX_UNLOCK(unit);
@@ -2908,7 +2908,7 @@ STATIC int _regex_policy_action_ports_get(int unit,
 
     if (pa == NULL) {
         ESW_REGEX_UNLOCK(unit);
-        LOG_VERBOSE(BSL_LS_BCM_REGEX,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_REGEX,
                     (BSL_META_U(unit,
                                 "FT(unit %d) Error: action not in policy=%d\n"),
                      unit, policy));
@@ -3197,7 +3197,7 @@ int bcm_esw_regex_policy_destroy_all(int unit)
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s()\n"),
                unit, FUNCTION_NAME()));
@@ -3255,7 +3255,7 @@ int bcm_esw_regex_policy_install(int unit, bcm_regex_policy_t policy)
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s()\n"),
                unit, FUNCTION_NAME()));
@@ -3322,7 +3322,7 @@ int bcm_esw_regex_policy_remove(int unit, bcm_regex_policy_t policy)
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s()\n"),
                unit, FUNCTION_NAME()));
@@ -3377,7 +3377,7 @@ int bcm_esw_regex_policy_action_add(int unit, bcm_regex_policy_t policy,
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_REGEX,
+    LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
               (BSL_META_U(unit,
                           "FT(unit %d) vverb: %s(policy=%d, action=%s, p0=%d, p1=%d)\n"),
                unit, FUNCTION_NAME(), policy,
@@ -3388,7 +3388,7 @@ int bcm_esw_regex_policy_action_add(int unit, bcm_regex_policy_t policy,
          (action == bcmFieldActionEgressMask)     ||
          (action == bcmFieldActionEgressPortsAdd) ||
          (action == bcmFieldActionRedirectBcastPbmp))) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: Use bcm_regex_policy_action_ports_add api.\n"),
                    unit));
@@ -3406,7 +3406,7 @@ int bcm_esw_regex_policy_action_add(int unit, bcm_regex_policy_t policy,
      */
     rv = _regex_policy_action_alloc(unit, action, param0, param1, 0, 0, &pa);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: failure in _regex_policy_action_alloc()\n"),
                    unit));
@@ -3502,7 +3502,7 @@ int bcm_esw_regex_policy_action_ports_add(int unit,
         (action != bcmFieldActionEgressMask) &&
         (action != bcmFieldActionEgressPortsAdd) &&
         (action != bcmFieldActionRedirectBcastPbmp)) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: Incorrect action parameter\n"),
                    unit));
@@ -3559,7 +3559,7 @@ int bcm_esw_regex_policy_action_delete(int unit,
     }
 
     if (action < 0 || bcmFieldActionCount <= action) {
-        LOG_ERROR(BSL_LS_BCM_REGEX,
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: unknown action=%d\n"),
                    unit, action));
@@ -3660,7 +3660,7 @@ int bcm_esw_regex_policy_action_get(int unit,
 
     if (pa == NULL) {
         ESW_REGEX_UNLOCK(unit);
-        LOG_DEBUG(BSL_LS_BCM_REGEX,
+        LOG_BSL_DEBUG(BSL_LS_BCM_REGEX,
                   (BSL_META_U(unit,
                               "FT(unit %d) Error: action not in policy=%d\n"),
                    unit, policy));

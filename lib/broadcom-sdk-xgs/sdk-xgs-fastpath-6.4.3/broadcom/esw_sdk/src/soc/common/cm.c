@@ -5448,18 +5448,18 @@ soc_cm_device_init(int dev, soc_cm_device_vectors_t *vectors)
 #if defined(BCM_ROBO_SUPPORT)
                     return soc_robo_attach(dev);
 #else
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("ERROR: ROBO devices should not be here !")));
 #endif
                 } else if (CMDEV(dev).dev.info->dev_type & SOC_ET_DEV_TYPE) {
 #if defined(BCM_TK371X_SUPPORT)
                     return soc_ea_pre_attach(dev);
 #else
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("ERROR: EA devices should not be here !")));
 #endif /* BCM_TK371X_SUPPORT */
                 } else if (CMDEV(dev).dev.info->dev_type & SOC_EMMI_DEV_TYPE){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META("ERROR: EA devices should not be here !")));
                 }else {
 #if defined(BCM_SBX_SUPPORT)
@@ -5491,7 +5491,7 @@ soc_cm_device_init(int dev, soc_cm_device_vectors_t *vectors)
 #if defined(BCM_ROBO_SUPPORT) || defined(BCM_TK371X_SUPPORT)
             return soc_eth_dma_attach(dev);
 #else
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("ERROR: ROBO devices should not be here !")));
 #endif
 #if defined(BCM_KSCPU_SUPPORT)
@@ -5537,7 +5537,7 @@ soc_cm_device_destroy(int dev)
 #if defined(BCM_ROBO_SUPPORT)
             rv = soc_robo_detach(dev);
 #else
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("ERROR: ROBO devices should not be here !")));
             rv = SOC_E_INTERNAL;
 #endif
@@ -5548,7 +5548,7 @@ soc_cm_device_destroy(int dev)
             rv = soc_ea_detach(dev);
 #endif
 #else
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("ERROR: EA devices should not be here !")));
             rv = SOC_E_INTERNAL;
 #endif
@@ -5583,7 +5583,7 @@ soc_cm_device_destroy(int dev)
 
 
 #if !defined(BCM_ESW_SUPPORT) && !defined(BCM_SBX_SUPPORT) && !defined(BCM_PETRA_SUPPORT) && !defined(BCM_DFE_SUPPORT)
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("ERROR: ESW devices should not be here !")));
             rv = SOC_E_INTERNAL;
 #endif
@@ -5592,7 +5592,7 @@ soc_cm_device_destroy(int dev)
 #if defined(BCM_ROBO_SUPPORT) || defined(BCM_TK371X_SUPPORT)
         rv = soc_eth_dma_detach(dev);
 #else
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("ERROR: ROBO devices should not be here !")));
         rv = SOC_E_INTERNAL;
 #endif
@@ -5618,7 +5618,7 @@ soc_cm_device_destroy(int dev)
             }
         }
         if(dev_idx == soc_ndev) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("ERROR: Device %d does not appear in the array soc_ndev_idx2dev_map !"), dev_idx));
             rv = SOC_E_NOT_FOUND;
         } else {
@@ -5906,7 +5906,7 @@ soc_cm_salloc(int dev, int size, const char *name)
     }
     CM_DB_UNLOCK();
     /*
-    LOG_VERBOSE(BSL_LS_SOC_MEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MEM,
                 (BSL_META("Allocation: Start :%x: Description:%s: Size:%d:"
                           "ModifiedSize:%d: End:%x:\n"),
                  p->start_sentinel ,p->description, p->size,p->modified_size,
@@ -5948,7 +5948,7 @@ soc_cm_sfree(int dev, void *ptr)
     assert(SHARED_GOOD_END(p));
     /*
     size_words = (p->size + 3) / 4;
-    LOG_VERBOSE(BSL_LS_SOC_MEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_MEM,
                 (BSL_META("Freeing Start:%x: Desc:%s: Size:%d: ModifiedSize:%d: End:%x:\n"),
                  p->start_sentinel ,p->description, p->size,p->modified_size,
                  p->user_data[size_words]));
@@ -6062,7 +6062,7 @@ soc_cm_sflush(int dev, void *addr, int length)
         }
         CM_DB_UNLOCK();
         if (rc > 0 && rc < sizeof(buf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("%s"), buf));
         }
 #endif

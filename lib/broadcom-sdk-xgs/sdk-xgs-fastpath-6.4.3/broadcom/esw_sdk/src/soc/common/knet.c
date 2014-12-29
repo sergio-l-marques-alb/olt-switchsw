@@ -139,10 +139,10 @@ soc_knet_handle_cmd_resp(kcom_msg_t *kmsg, unsigned int len, void *cookie)
             LOG_CLI((BSL_META("soc_knet_handle_cmd_resp: resp too long (%d bytes)\n"),
                      len));
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("soc_knet_handle_cmd_resp: got %d bytes\n"), len));
             if (kmsg->hdr.status != 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META("soc_knet_handle_cmd_resp: status %d\n"),
                              kmsg->hdr.status));
             }
@@ -183,11 +183,11 @@ soc_knet_cmd_req(kcom_msg_t *kmsg, unsigned int len, unsigned int buf_size)
         LOG_CLI((BSL_META("soc_knet_cmd_req: command timeout\n")));
         rv = SOC_E_TIMEOUT;
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META("soc_knet_cmd_req: command OK\n")));
         len = ctrl->resp_len;
         if (len > buf_size) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META("soc_knet_cmd_req: oversized response "
                                   "(%d bytes, max %d)\n"),
                          len, buf_size));
@@ -269,7 +269,7 @@ soc_knet_rx_thread(void *context)
     while (knet_rx_thread_run == KNET_RX_THREAD_RUNNING) {
         if ((len = KNET_RECV(KCOM_CHAN_KNET, &kmsg, sizeof(kmsg))) < 0) {
             LOG_CLI((BSL_META("knet rx error - thread aborting\n")));
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("AbnormalThreadExit:%s\n"), thread_name)); 
             break;
         }
@@ -435,7 +435,7 @@ soc_knet_init(int unit)
 
     if (KNET_OPEN == NULL) {
         /* KCOM vectors not assigned */
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "soc_knet_init: No KCOM vectors\n")));
         return SOC_E_CONFIG;
@@ -472,7 +472,7 @@ soc_knet_init(int unit)
     /* Check if kernel messaging is initialized */
     knet_chan = KNET_OPEN(KCOM_CHAN_KNET);
     if (knet_chan == NULL) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "knet open failed\n")));
         soc_knet_cleanup();
@@ -486,7 +486,7 @@ soc_knet_init(int unit)
     sal_strcpy(kmsg.val, "soc_knet_init");
     rv = KNET_SEND(KCOM_CHAN_KNET, &kmsg, sizeof(kmsg), sizeof(kmsg));
     if (rv < 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "knet init failed\n")));
         soc_knet_cleanup();

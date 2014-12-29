@@ -197,7 +197,7 @@ phy_fe_ge_reset(int unit, soc_port_t port, void *user_arg)
     } while ((tmp & MII_CTRL_RESET) != 0);
 
     if (timeout) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_fe_ge_reset: timeout on u=%d p=%d\n"),
                   unit, port));
@@ -1931,7 +1931,7 @@ phy_fe_ge_ability_remote_get(int unit, soc_port_t port, soc_port_ability_t *abil
         /* Simply return local abilities */
         phy_fe_ge_ability_advert_get(unit, port, ability);
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_fe_ge_ability_remote_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));

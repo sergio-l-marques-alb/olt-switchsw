@@ -81,7 +81,7 @@ drv_dino16_mstp_port_set(int unit, uint32 mstp_gid, uint32 port,
     uint64  reg_value;
     uint32  max_gid;
 
-    LOG_INFO(BSL_LS_SOC_STP, \
+    LOG_BSL_INFO(BSL_LS_SOC_STP, \
              (BSL_META_U(unit, \
                          "drv_dino16_mstp_port_set : \
                          unit %d, STP id = %d, port = %d, port_state = %d\n"),
@@ -229,7 +229,7 @@ drv_dino16_mstp_port_get(int unit, uint32 mstp_gid, uint32 port,
                 return SOC_E_INTERNAL;
         }
 
-        LOG_INFO(BSL_LS_SOC_STP, \
+        LOG_BSL_INFO(BSL_LS_SOC_STP, \
                  (BSL_META_U(unit, \
                              "drv_dino16_mstp_port_get : \
                              unit %d, STP id = %d, port = %d, port_state = %d\n"),
@@ -268,7 +268,7 @@ drv_dino16_mstp_port_get(int unit, uint32 mstp_gid, uint32 port,
                 return SOC_E_INTERNAL;
         }
 
-        LOG_INFO(BSL_LS_SOC_STP, \
+        LOG_BSL_INFO(BSL_LS_SOC_STP, \
                  (BSL_META_U(unit, \
                              "drv_dino16_mstp_port_get : \
                              unit %d, STP id = %d, port = %d, port_state = %d\n"),

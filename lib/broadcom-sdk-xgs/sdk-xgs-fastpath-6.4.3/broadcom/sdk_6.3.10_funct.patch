@@ -2903,7 +2903,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/appl/cputrans/atp.c esw_sdk_6.3.10
 +                 _atp_cpu_info[trans->dest_cpu].key.key[5],
 +                 trans->tx_count));
 +#else
-         LOG_ERROR(BSL_LS_TKS_ATP,
+         LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                    (BSL_META("ATP: TX timeout, seq %d. " CPUDB_KEY_FMT 
                     " cli %d. to %d tx cnt %d.\n"),
                     trans->_atp_hdr.seq_num,
@@ -9977,7 +9977,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/appl/stktask/topology.c esw_sdk_6.
                      TP_TX_CXN(db_ref, d_idx, s_idx) = sp->tx_stk_idx;
                      TP_RX_CXN(db_ref, s_idx, d_idx) = i;
                  } else {
-                     LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+                     LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                               (BSL_META("TOPO WARNING: Duplex port already marked, "
 diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcm/common/rx.c esw_sdk_6.3.10/src/bcm/common/rx.c
 --- sdk-xgs-robo-6.3.10/src/bcm/common/rx.c	2014-11-04 02:57:28.000000000 +0000
@@ -10935,7 +10935,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcm/esw/triumph2/wlan.c esw_sdk_6.
 +#endif
 +
      if (!L3_INFO(unit)->l3_initialized) {
-         LOG_INFO(BSL_LS_BCM_L3,
+         LOG_BSL_INFO(BSL_LS_BCM_L3,
                   (BSL_META_U(unit,
                               "L3 module must be initialized first\n")));
          return BCM_E_NONE;
@@ -11131,7 +11131,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcm/esw/triumph3/oam.c esw_sdk_6.3
          rv = bcm_esw_field_group_create(unit, oc->fp_glp_qs, 
                                  BCM_FIELD_GROUP_PRIO_ANY, &(oc->fp_glp_group));
           if (BCM_FAILURE(rv)) {
-             LOG_ERROR(BSL_LS_BCM_OAM,
+             LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                        (BSL_META_U(unit,
 @@ -4279,12 +4282,22 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oa
                        (BSL_META_U(unit,
@@ -11153,7 +11153,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcm/esw/triumph3/oam.c esw_sdk_6.3
          rv = _bcm_esw_gport_resolve(unit, hash_data->gport, &modid, 
                                      &local_port, &tgid, &local_id);
          if (BCM_FAILURE(rv)) {
-             LOG_ERROR(BSL_LS_BCM_OAM,
+             LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                        (BSL_META_U(unit,
                                    "OAM Error: call to _bcm_esw_gport_resolve "
 diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcm/esw/trx/vlan.c esw_sdk_6.3.10/src/bcm/esw/trx/vlan.c
@@ -11980,7 +11980,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/common/cm.c esw_sdk_6.3.10/src
      assert(SHARED_GOOD_END(p));
      /*
      size_words = (p->size + 3) / 4;
-     LOG_VERBOSE(BSL_LS_SOC_MEM,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_MEM,
                  (BSL_META("Freeing Start:%x: Desc:%s: Size:%d: ModifiedSize:%d: End:%x:\n"),
 @@ -5716,12 +5726,16 @@ soc_cm_sfree(int dev, void *ptr)
      if (p == head) {
@@ -12072,7 +12072,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/common/dma.c esw_sdk_6.3.10/sr
  
      if (dv_chain->dv_flags & DV_F_NOTIFY_CHN) {
          if (dv_chain->dv_done_chain == NULL) {
-             LOG_WARN(BSL_LS_SOC_DMA,
+             LOG_BSL_WARN(BSL_LS_SOC_DMA,
 diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/common/mem.c esw_sdk_6.3.10/src/soc/common/mem.c
 --- sdk-xgs-robo-6.3.10/src/soc/common/mem.c	2014-11-04 02:57:33.000000000 +0000
 +++ esw_sdk_6.3.10/src/soc/common/mem.c	2014-12-26 16:08:06.017005843 +0000
@@ -12196,7 +12196,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/esw/drv.c esw_sdk_6.3.10/src/s
              } else
  #endif
              {
-+                LOG_NOTICE(LOG_CTX_STARTUP, "Going to make PCIe bw adjustment...");
++                LOG_INFO(LOG_CTX_STARTUP, "Going to make PCIe bw adjustment...");
                  SOC_IF_ERROR_RETURN(cmic_pcie_cdr_bw_adj(unit, pcie_phy_addr));
              }
          }
@@ -12469,7 +12469,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/hl65.c esw_sdk_6.3.10/src/
  
 +        /* PTin removed */
 +        #if 0
-         LOG_INFO(BSL_LS_SOC_PHY,
+         LOG_BSL_INFO(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_hl65_speed_get: u=%d p=%d GP_STATUS_TOPANSTATUS1 %04x speed= %d\n"),
                    unit, port,
@@ -13102,7 +13102,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/phyreg.c esw_sdk_6.3.10/sr
 +#endif
 +
      if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_SOC_PHY,
+         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                    (BSL_META_U(unit,
                                "phy_reg_ge_read failed:"
                                " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -13136,7 +13136,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/phyreg.c esw_sdk_6.3.10/sr
 +#endif
 +
      if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_SOC_PHY,
+         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                    (BSL_META_U(unit,
                                "phy_reg_ge_write failed:"
                                " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -13170,7 +13170,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/phyreg.c esw_sdk_6.3.10/sr
 +#endif
 +
      if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_SOC_PHY,
+         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                    (BSL_META_U(unit,
                                "phy_reg_ge_modify failed:"
                                " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -13204,7 +13204,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/phyreg.c esw_sdk_6.3.10/sr
 +#endif
 +
      if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_SOC_PHY,
+         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                    (BSL_META_U(unit,
                                "phy_reg_ge_write failed:"
                                " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
@@ -13238,7 +13238,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/phyreg.c esw_sdk_6.3.10/sr
 +#endif
 +
      if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_SOC_PHY,
+         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                    (BSL_META_U(unit,
                                "phy_reg_ge_modify failed:"
                                " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
@@ -13863,18 +13863,18 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/wc40.c esw_sdk_6.3.10/src/
 @@ -10142,12 +10172,14 @@ phy_wc40_firmware_load(int unit, int por
          (READ_WC40_UC_INFO_B1_VERSIONr(unit, pc, 0x00, &ver));
  
-     LOG_VERBOSE(BSL_LS_SOC_PHY,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
  
 +    LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
 +
      if (!no_cksum) {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  " cksum=0x%x\n"), cksum));
      } else {
-         LOG_VERBOSE(BSL_LS_SOC_PHY,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
 diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/wc40_config.c esw_sdk_6.3.10/src/soc/phy/wc40_config.c
 --- sdk-xgs-robo-6.3.10/src/soc/phy/wc40_config.c	2014-11-04 02:57:41.000000000 +0000
 +++ esw_sdk_6.3.10/src/soc/phy/wc40_config.c	2014-12-26 16:07:56.197276636 +0000
@@ -13942,7 +13942,7 @@ diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/soc/phy/wcmod/src/wcmod.c esw_sdk_
 @@ -3619,12 +3620,18 @@ phy_wcmod_init(int unit, soc_port_t port
          (phy_wcmod_ability_advert_set(unit, port, &ability));
  
-     LOG_INFO(BSL_LS_SOC_PHY,
+     LOG_BSL_INFO(BSL_LS_SOC_PHY,
               (BSL_META_U(pc->unit,
                           "phy_wcmod_init: u=%d p=%d\n"), unit, port));
  

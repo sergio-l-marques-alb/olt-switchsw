@@ -56,7 +56,7 @@
 #if defined(BROADCOM_DEBUG)
 #include <soc/debug.h>
 #include <soc/cm.h>
-#define TX_DEBUG(stuff)         LOG_ERROR(BSL_LS_SOC_COMMON, stuff)
+#define TX_DEBUG(stuff)         LOG_BSL_ERROR(BSL_LS_SOC_COMMON, stuff)
 #else
 #define TX_DEBUG(stuff)
 #endif  /* BROADCOM_DEBUG */

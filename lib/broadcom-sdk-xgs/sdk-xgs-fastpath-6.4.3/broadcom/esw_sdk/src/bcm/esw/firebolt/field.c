@@ -1704,7 +1704,7 @@ _field_scache_slice_group_recover(int unit, _field_control_t *fc,
     /* Parse the scache buffer to recover GIDs and QSETs */
     /* To be used in stage reinit */
     slice_idx = buf[fc->scache_pos] >> 1;
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "Read slice index %d @ byte %d\n"),
                  slice_idx, fc->scache_pos));
@@ -1749,7 +1749,7 @@ _field_scache_slice_group_recover(int unit, _field_control_t *fc,
             fc->scache_pos++;
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "Read group id %d @ %d.\n"),
                      gid, fc->scache_pos - 3));
@@ -1777,7 +1777,7 @@ _field_scache_slice_group_recover(int unit, _field_control_t *fc,
         qset_count = buf[fc->scache_pos]; /* QSET_count */
         fc->scache_pos++;
 
-        LOG_VERBOSE(BSL_LS_BCM_FP,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                 "Read qset count %d @ %d.\n"),
                      qset_count, fc->scache_pos - 1));
@@ -1792,7 +1792,7 @@ _field_scache_slice_group_recover(int unit, _field_control_t *fc,
             } 
             BCM_FIELD_QSET_ADD(new_grp->qset, qset);
 
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                         (BSL_META_U(unit,
                                     "Read qualifier @ %d.\n"),
                          fc->scache_pos - 1));
@@ -1816,7 +1816,7 @@ _field_scache_slice_group_recover(int unit, _field_control_t *fc,
     }
     /* The pointer has now advanced to the "entries" section */
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "Done reading slice @ %d.\n"),
                  fc->scache_pos));
@@ -1864,7 +1864,7 @@ _field_entry_info_retrieve(int unit, bcm_field_entry_t *eid, int *prio,
         fc->scache_pos++;
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "Read entry id %d @ byte %d.\n"),
                  *eid, fc->scache_pos - 2));
@@ -1939,7 +1939,7 @@ _field_entry_info_retrieve(int unit, bcm_field_entry_t *eid, int *prio,
         fc->scache_pos++;
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit,
                             "Done reading entry @ %d.\n"),
                  fc->scache_pos));
@@ -4576,7 +4576,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
         return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Beginning ingress stage recovery.\n")));
 
@@ -4622,7 +4622,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
 
     for (slice_index = 0; slice_index < stage_fc->tcam_slices; ++slice_index)
     {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "  Checking slice %d...\n"),
                    slice_index));
@@ -4635,7 +4635,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
             /* Don't need selectors for second slice of double or for
                second and third slices of triple */
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "    Not a primary slice.\n")));
 
@@ -4664,7 +4664,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
         {
             /* No valid groups and entries in the slice */
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "    No valid groups and entries in slice.\n")));
 
@@ -4745,7 +4745,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
                 continue;
             }
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "      Checking entry %d...\n"),
                        entry_index));
@@ -4819,7 +4819,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
             {
                 /* This should never happen */
 
-                LOG_ERROR(BSL_LS_BCM_FP,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP,
                           (BSL_META_U(unit,
                                       "Could not find a matching group for entry %d.\n"),
                            entry_index));
@@ -4845,7 +4845,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
                 goto cleanup;
             }
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "        Entry matches group %d.\n"),
                        fg_p->gid));
@@ -4860,7 +4860,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
 
                 if (BCM_FAILURE(rv))
                 {
-                    LOG_ERROR(BSL_LS_BCM_FP,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,
                               (BSL_META_U(unit,
                                           "Failed to retrieve entry info.")));
 
@@ -5016,7 +5016,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
             entry_p->prio = fc->l2warm ? prio :
                 (slice_index << 10) | (fs_p->entry_count - entry_index);
 
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "        Entry id = %d, priority = %d.\n"),
                        entry_p->eid,
@@ -5071,7 +5071,7 @@ int _field_fb_stage_reinit(int unit, _field_control_t *fc,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Ingress stage recovery complete.\n")));
 
@@ -5088,7 +5088,7 @@ cleanup:
     {
         soc_cm_sfree(unit, fp_policy_table_buffer);
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "Leaving ingress stage recovery.\n")));
 
@@ -7149,7 +7149,7 @@ _bcm_field_fb_entry_move(int unit, _field_entry_t *f_ent, int parts_count,
         /* Index sanity check. */
         if ((tcam_idx_old[idx] < tcam_idx_min) || (tcam_idx_old[idx] > tcam_idx_max) ||
             (tcam_idx_new[idx] < tcam_idx_min) || (tcam_idx_new[idx] > tcam_idx_max)) {
-            LOG_DEBUG(BSL_LS_BCM_FP, \
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP, \
                       (BSL_META_U(unit, \
                                   "FP(unit %d) vverb: Invalid index range for _bcm_field_fb_entry_move \n"
                                   "from %d to %d"), unit, tcam_idx_old[idx], tcam_idx_new[idx]));
@@ -8905,7 +8905,7 @@ _field_fb_action_copy_to_cpu(int unit, soc_mem_t mem, _field_entry_t *f_ent,
     }
 
     if ((fa->param[0] != 0) && (fa->param[1] >= (1 << 8))) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: param1=%d out of range for CopyToCpu.\n"),
                    unit, fa->param[1]));
@@ -8979,12 +8979,12 @@ _field_fb_action_get(int unit, soc_mem_t mem, _field_entry_t *f_ent,
         return (BCM_E_PARAM);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: BEGIN _field_fb_action_get(eid=%d, tcam_idx=0x%x, "),
                unit, f_ent->eid, tcam_idx));
 #ifdef BROADCOM_DEBUG
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "action={%s,%d,%d})\n"),
                _field_fb_action_name(fa->action),
@@ -9375,7 +9375,7 @@ _field_fb_action_get(int unit, soc_mem_t mem, _field_entry_t *f_ent,
         }
         break;
     default:
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: Unknown action (%d)\n"),
                    unit, (uint32)fa->action));
@@ -9384,7 +9384,7 @@ _field_fb_action_get(int unit, soc_mem_t mem, _field_entry_t *f_ent,
 
     fa->flags &= ~_FP_ACTION_DIRTY; /* Mark action as installed. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: END _field_fb_action_get()\n"),
                unit));
@@ -9692,7 +9692,7 @@ _field_fb_bucket_calc(int unit, uint32 burst,
         /* Bucket count is in 1/2 of a bit granularity */
         *bucket_count = 2 * b_size;
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _field_fb_bucket_calc  rate=%d, bucket_count=%d, "
                            "bucket_size=%d\n"), unit, burst, *bucket_count, *bucket_size));
@@ -9875,7 +9875,7 @@ _bcm_field_fb_policer_install(int unit, _field_entry_t *f_ent,
                                          bucket_size, bucket_count,
                                          refresh_count));
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: commited-> bucket_size=%u, bucket_count=%u, "
                                "refresh_count=%u\n"), unit, bucket_size, bucket_count, 
@@ -9904,7 +9904,7 @@ _bcm_field_fb_policer_install(int unit, _field_entry_t *f_ent,
                                          bucket_size, bucket_count,
                                          refresh_count));
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: commited-> bucket_size=%u, bucket_count=%u, "
                                "refresh_count=%u\n"), unit, bucket_size, bucket_count, 
@@ -10199,7 +10199,7 @@ _field_fb_qualify_ip_type(int unit, _field_entry_t *f_ent,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: entry=%d qualifying on Iptype, data=%#x, mask=%#x\n"),
                unit, f_ent->eid, data, mask));

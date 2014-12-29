@@ -395,7 +395,7 @@ static void _bcm_esw_stat_flex_init_pkt_res_values(
                                    sizeof(_flex_pkt_res_values_td2[0]);
    }
    if ( flex_pkt_res_values_count == 0) {
-        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "CONFIG ERROR: flex_pkt_res_values_count=0\n")));
         return ;
@@ -405,7 +405,7 @@ static void _bcm_esw_stat_flex_init_pkt_res_values(
        /* Check Whether Index is exceeding chip specific count */
        if (flex_pkt_res_data[index].pkt_res_field >= 
            flex_pkt_res_values_count) {
-           LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+           LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                      (BSL_META_U(unit,
                                  "Flex Pkt Resolution Value Initialization failed"
                                   "pkt_res_field=%d > flex_pkt_res_values_count=%d=0\n"),
@@ -772,7 +772,7 @@ bcm_error_t _bcm_esw_stat_group_create (
 
     attr = sal_alloc(sizeof(bcm_stat_flex_attr_t),"attr");
     if (attr == NULL) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Failed to allocate memory for bcm_stat_flex_attr_t ")));
         return BCM_E_MEMORY;
@@ -800,7 +800,7 @@ bcm_error_t _bcm_esw_stat_group_create (
         switch(group_mode) {
         case bcmStatGroupModeDlfAll:
         case bcmStatGroupModeSingleWithControl:
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Overiding group_mode->bcmStatGroupModeSingle\n")));
              group_mode = bcmStatGroupModeSingle;
@@ -811,7 +811,7 @@ bcm_error_t _bcm_esw_stat_group_create (
         case bcmStatGroupModeDlfAllWithControl:
         case bcmStatGroupModeTypedWithControl:
         case bcmStatGroupModeTypedAllWithControl: 
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Overiding group_mode to "
                                     "bcmStatGroupModeTrafficType \n")));
@@ -820,7 +820,7 @@ bcm_error_t _bcm_esw_stat_group_create (
         case bcmStatGroupModeDlfIntPri: 
         case bcmStatGroupModeDlfIntPriWithControl: 
         case bcmStatGroupModeTypedIntPriWithControl:
-             LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "Overiding group_mode to "
                                     "bcmStatGroupModeTypedIntPri \n")));
@@ -936,7 +936,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_DlfAll_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeDlfAll is not supported"
                                     "in egress side\n")));
@@ -954,7 +954,7 @@ bcm_error_t _bcm_esw_stat_group_create (
 
          if (attr->direction==bcmStatFlexDirectionEgress) {
              /* Must not hit */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeDlfIntPri IsNotAvailable"
                                     "in EgressSide\n")));
@@ -1082,7 +1082,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_Typed_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeTyped: is not supported"
                                     " in egress side\n")));
@@ -1116,7 +1116,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_TypedAll_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeTypedAll is NotSupported"
                                     " in EgressSide\n")));
@@ -1392,7 +1392,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_SingleWithControl_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeSingleWithControl"
                                     " is not supported in egress side\n")));
@@ -1422,7 +1422,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_TrafficTypeWithControl_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeTrafficTypeWithControl"
                                     "is not supported in egress side\n")));
@@ -1457,7 +1457,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_DlfAllWithControl_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeDlfAllWithControl is not supported "
                                     "in egress side\n")));
@@ -1474,7 +1474,7 @@ bcm_error_t _bcm_esw_stat_group_create (
          /* 3..18) INT_PRI bits: 4bits                                    */
          /* ************************************************************* */
          if (attr->direction==bcmStatFlexDirectionEgress) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "GroupModeDlfIntPriWithControl is not available in "
                                     "egress side\n")));
@@ -1618,7 +1618,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_TypedWithControl_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeTypedWithControl" 
                                     "is not supported in egress side\n")));
@@ -1653,7 +1653,7 @@ bcm_error_t _bcm_esw_stat_group_create (
                  &ing_TypedAllWithControl_res[0]);
          } else {
              /* Group mode is overrided so  control shouldn't hit this part */
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcmStatGroupModeTypedAllWithControl"
                                     " is not supported in egress side\n")));
@@ -1674,7 +1674,7 @@ bcm_error_t _bcm_esw_stat_group_create (
          /* 6..21) INT_PRI bits: 4bits                                      */
          /* *************************************************************** */
          if (attr->direction == bcmStatFlexDirectionEgress) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "GroupModeTypedIntPriWithControl is not available in "
                                     "egress side\n")));
@@ -2012,7 +2012,7 @@ bcm_error_t _bcm_esw_stat_group_create (
          /* ******************************************** */
 
          if (attr->direction==bcmStatFlexDirectionIngress) {
-             LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+             LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                        (BSL_META_U(unit,
                                    "bcm_stat_group_mode_t %d is NotSupported"
                                     " in IngressSide\n"), group_mode));
@@ -2252,7 +2252,7 @@ bcm_error_t _bcm_esw_stat_group_create (
     /* Cleanup activity ... */
     sal_free(attr);
     if (BCM_FAILURE(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "creation of counters failed..\n")));
     } else {
@@ -2266,7 +2266,7 @@ bcm_error_t _bcm_esw_stat_group_create (
     
         _bcm_esw_stat_get_counter_id(group_mode, object, mode,
                                      pool_number, base_index, stat_counter_id);
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Create: mode:%d group_mode:%d pool:%d object:%d"
                                " base:%d\n stat_counter_id:%d\n"),
@@ -2308,7 +2308,7 @@ bcm_error_t _bcm_esw_stat_group_destroy(
 
     _bcm_esw_stat_get_counter_id_info(stat_counter_id,&group_mode,&object, 
                                       &offset_mode,&pool_number,&base_index);
-    LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
               (BSL_META_U(unit,
                           "Deleting : mode:%d group_mode:%d pool:%d object:%d"
                            "base:%d\n stat_counter_id:%d\n"),offset_mode,group_mode,
@@ -2318,7 +2318,7 @@ bcm_error_t _bcm_esw_stat_group_destroy(
     BCM_IF_ERROR_RETURN(_bcm_esw_stat_validate_group(unit,group_mode));
 
     if (offset_mode > (BCM_STAT_FLEX_COUNTER_MAX_MODE-1)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Invalid flex counter mode value %d \n"),
                    offset_mode));
@@ -2503,7 +2503,7 @@ bcm_error_t _bcm_esw_stat_group_destroy(
 
     }
     if (BCM_SUCCESS(rv)) {
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Destroyed %s table counters.."
                                "Trying to delete group mode itself \n"),
@@ -2513,7 +2513,7 @@ bcm_error_t _bcm_esw_stat_group_destroy(
         if (direction == bcmStatFlexDirectionIngress) {
             if (_bcm_esw_stat_flex_delete_ingress_mode(
                 unit,offset_mode) == BCM_E_NONE) {
-                LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Destroyed Ingress Mode also \n")));
                 _bcm_esw_stat_flex_reset_group_mode(
@@ -2523,7 +2523,7 @@ bcm_error_t _bcm_esw_stat_group_destroy(
        } else {
            if (_bcm_esw_stat_flex_delete_egress_mode(
                unit,offset_mode) == BCM_E_NONE) {
-                LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Destroyed Egress Mode also \n")));
                 _bcm_esw_stat_flex_reset_group_mode(
@@ -3167,13 +3167,13 @@ uint32 _bcm_esw_stat_flex_get_pkt_res_value(int unit,uint32 pkt_res_field)
                                    sizeof(_flex_pkt_res_values_tr3[0]);
    }
    if ( flex_pkt_res_values_count == 0) {
-        LOG_WARN(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_WARN(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "CONFIG ERROR: flex_pkt_res_values_count=0\n")));
         return 0;
    }
    if (pkt_res_field >= flex_pkt_res_values_count) {
-       LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+       LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                  (BSL_META_U(unit,
                              "Flex Pkt Resolution Value Initialization failed"
                               "pkt_res_field=%d > flex_pkt_res_values_count=%d=0\n"),
@@ -8457,7 +8457,7 @@ int _bcm_esw_stat_group_mode_id_destroy(
         if ((rv=_bcm_esw_stat_flex_delete_ingress_mode(
                 unit,offset_mode)) == BCM_E_NONE) {
                 group_mode = bcmStatGroupModeFlex1 + offset_mode;
-                LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Destroyed Ingress Mode also \n")));
                 _bcm_esw_stat_flex_reset_group_mode(
@@ -8468,7 +8468,7 @@ int _bcm_esw_stat_group_mode_id_destroy(
         if ((rv=_bcm_esw_stat_flex_delete_egress_mode(
                 unit,offset_mode)) == BCM_E_NONE) {
                 group_mode = bcmStatGroupModeFlex1 + offset_mode;
-                LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                           (BSL_META_U(unit,
                                       "Destroyed Egress Mode also \n")));
                 _bcm_esw_stat_flex_reset_group_mode(
@@ -8737,7 +8737,7 @@ int _bcm_esw_stat_custom_group_associate_object(
          break;
     }
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_ERROR(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "creation of counters passed  failed..\n")));
     } else {
@@ -8752,7 +8752,7 @@ int _bcm_esw_stat_custom_group_associate_object(
     
         _bcm_esw_stat_get_counter_id(group_mode,object, mode,
                                      pool_number,base_index,stat_counter_id);
-        LOG_DEBUG(BSL_LS_BCM_FLEXCTR,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FLEXCTR,
                   (BSL_META_U(unit,
                               "Create: mode:%d group_mode:%d pool:%d object:%d"
                                " base:%d\n stat_counter_id:%d\n"),

@@ -86,12 +86,12 @@
 #define BCM_INIT_FUNC_DEFS \
     int _rv = BCM_E_NONE, _lock_taken = 0; \
     (void)_lock_taken; \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META_U(unit, "enter\n"))); 
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META_U(unit, "enter\n"))); 
 
 #define BCM_INIT_FUNC_DEFS_NO_UNIT \
     int _rv = BCM_E_NONE, _lock_taken = 0; \
     (void)_lock_taken; \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("enter\n"))); 
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("enter\n"))); 
 
 #define BCM_FUNC_ERROR \
     BCM_FAILURE(_rv)
@@ -106,7 +106,7 @@
 #endif
 
 #define BCM_FUNC_RETURN \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META_U(unit, "exit\n"))); \
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META_U(unit, "exit\n"))); \
     return _rv;
 
 #define BCM_RETURN_VAL_EXIT(rv_override) \
@@ -114,15 +114,15 @@
     BCM_EXIT;
 
 #define BCM_FUNC_RETURN_VOID \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META_U(unit, "exit\n"))); \
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META_U(unit, "exit\n"))); \
     COMPILER_REFERENCE(_rv);
 
 #define BCM_FUNC_RETURN_NO_UNIT \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n"))); \
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n"))); \
     return _rv;
 
 #define BCM_FUNC_RETURN_VOID_NO_UNIT \
-    LOG_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n"))); \
+    LOG_BSL_DEBUG(_ERR_MSG_MODULE_NAME, (BSL_META("exit\n"))); \
     COMPILER_REFERENCE(_rv);
 
 #if (defined(BCM_DPP_SUPPORT) || defined(BCM_DFE_SUPPORT)) && defined(BCM_GEN_ERR_MECHANISM)
@@ -131,7 +131,7 @@
         int __err__rc = _rc; \
         GEN_ERR_CHK(unit, GEN_ERR_TYPE_BCM, __err__rc); \
         if(__err__rc != BCM_E_NONE) { \
-            LOG_WARN(_ERR_MSG_MODULE_NAME,       \
+            LOG_BSL_WARN(_ERR_MSG_MODULE_NAME,       \
                      (BSL_META_U(unit, "%s\n"),  \
                       bcm_errmsg(__err__rc)));   \
             _rv = __err__rc; \
@@ -143,7 +143,7 @@
         int __err__rc = _rc; \
         GEN_ERR_CHK(unit, GEN_ERR_TYPE_BCM, __err__rc); \
         if(__err__rc != BCM_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME,      \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,      \
                       (BSL_META_U(unit, "%s\n"), \
                        bcm_errmsg(__err__rc)));  \
             _rv = __err__rc; \
@@ -156,7 +156,7 @@
         int __err__rc = _rc; \
         GEN_ERR_CHK(unit, GEN_ERR_TYPE_BCM, __err__rc); \
         if(__err__rc != BCM_E_NONE && __err__rc != BCM_E_UNAVAIL) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME,      \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,      \
                       (BSL_META_U(unit, "%s\n"), \
                        bcm_errmsg(__err__rc)));  \
             _rv = __err__rc; \
@@ -170,7 +170,7 @@
 		GEN_ERR_CHK(unit, GEN_ERR_TYPE_BCM, __err__rc); \
         if (__err__rc != BCM_E_NONE) { \
             if(__err__rc != BCM_E_NOT_FOUND) { \
-                LOG_ERROR(_ERR_MSG_MODULE_NAME,         \
+                LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,         \
                           (BSL_META_U(unit, "%s\n"),    \
                            bcm_errmsg(__err__rc)));     \
             } \
@@ -183,7 +183,7 @@
       do { \
         int __err__rc = _rc; \
         if(__err__rc != BCM_E_NONE) { \
-            LOG_WARN(_ERR_MSG_MODULE_NAME,       \
+            LOG_BSL_WARN(_ERR_MSG_MODULE_NAME,       \
                      (BSL_META_U(unit, "%s\n"),  \
                       bcm_errmsg(__err__rc)));   \
             _rv = __err__rc; \
@@ -194,7 +194,7 @@
       do { \
         int __err__rc = _rc; \
         if(__err__rc != BCM_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME,      \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,      \
                       (BSL_META_U(unit, "%s\n"), \
                        bcm_errmsg(__err__rc)));  \
             _rv = __err__rc; \
@@ -206,7 +206,7 @@
       do { \
         int __err__rc = _rc; \
         if(__err__rc != BCM_E_NONE && __err__rc != BCM_E_UNAVAIL) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME,      \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,      \
                       (BSL_META_U(unit, "%s\n"), \
                        bcm_errmsg(__err__rc)));  \
             _rv = __err__rc; \
@@ -219,7 +219,7 @@
         int __err__rc = _rc; \
         if (__err__rc != BCM_E_NONE) { \
             if(__err__rc != BCM_E_NOT_FOUND) { \
-                LOG_ERROR(_ERR_MSG_MODULE_NAME,  \
+                LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,  \
                           (BSL_META_U(unit, "%s\n"),    \
                            bcm_errmsg(__err__rc)));     \
             } \
@@ -233,7 +233,7 @@
       do { \
         int __err__rc = _rc; \
         if(__err__rc != BCM_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME,      \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME,      \
                       (BSL_META("%s\n"),         \
                        bcm_errmsg(__err__rc)));  \
             _rv = __err__rc; \
@@ -245,7 +245,7 @@
       do { \
         int __err__rc = _rc; \
         if(__err__rc != BCM_E_NONE) { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, stuff); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, stuff); \
             _rv = __err__rc; \
             BCM_EXIT; \
         } \
@@ -253,7 +253,7 @@
 
 #define BCM_ERR_EXIT_MSG(_rc, stuff) \
       do { \
-            LOG_ERROR(_ERR_MSG_MODULE_NAME, stuff); \
+            LOG_BSL_ERROR(_ERR_MSG_MODULE_NAME, stuff); \
             _rv = _rc; \
             BCM_EXIT; \
       } while(0)

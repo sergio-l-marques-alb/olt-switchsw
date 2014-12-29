@@ -222,7 +222,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
         /* check if any VPORT used tagged_type assigned */
         temp_flags = in_flags & _BCM_SUBPORT_FLAG_TAG_TYPE_FOR_VPORT_MASK;
         if (temp_flags) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -241,7 +241,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                 (temp_flags == _BCM_SUBPORT_FLAG_DOWN_ING_DT)){
             ingress_tag_type |= temp_flags;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -261,7 +261,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                 (temp_flags == _BCM_SUBPORT_FLAG_UP_EGR_DT)){
             egress_tag_type |= temp_flags;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -290,13 +290,13 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
         } else if ((temp_flags == _BCM_SUBPORT_FLAG_EGR_CPCP_VP_CPCP) ||
                 (temp_flags == _BCM_SUBPORT_FLAG_EGR_CPCP_MAPPED) ||
                 (temp_flags == _BCM_SUBPORT_FLAG_EGR_CPCP_ING_CPCP)){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "OP flags(0x%08x) invalid for group on PCP remarking!\n"),
                       in_flags)); 
             return BCM_E_PARAM;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -316,7 +316,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                     _BCM_SUBPORT_FLAG_DOWN_EGR_SPCP_REMARK_DEFAULT;
             *flag_changed = TRUE;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Error configure of SPCP Remark!\n"),
                       FUNCTION_NAME(), __LINE__)); 
@@ -330,7 +330,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
         /* check if any VP_GROUP used tagged_type assigned */
         temp_flags = in_flags & _BCM_SUBPORT_FLAG_TAG_TYPE_FOR_GROUP_MASK;
         if (temp_flags) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -350,7 +350,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                 (temp_flags == _BCM_SUBPORT_FLAG_UP_ING_UNTAG)){
             ingress_tag_type |= temp_flags;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -389,7 +389,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                 (temp_flags == _BCM_SUBPORT_FLAG_DOWN_EGR_UNTAG)){
             egress_tag_type |= temp_flags;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -413,7 +413,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                 (temp_flags == _BCM_SUBPORT_FLAG_EGR_SPCP_ING_SPCP)){
             egress_cpcp_marking |= temp_flags;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Conflict OP flags(0x%08x) occured!\n"),
                       FUNCTION_NAME(), __LINE__, in_flags)); 
@@ -434,7 +434,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
                     _BCM_SUBPORT_FLAG_UP_EGR_CPCP_REMARK_DEFAULT;
             *flag_changed = TRUE;
         } else {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,Error configure of CPCP remarking!\n"),
                       FUNCTION_NAME(), __LINE__)); 
@@ -445,7 +445,7 @@ _bcm_tb_prop_flag_conflict_check(int unit, uint32 check_op, uint32 in_flags,
         *active_flags = new_flags;
         
     } else {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s,Invaild OP code(%d) for internal function.\n"),
                   FUNCTION_NAME(), check_op)); 
@@ -546,7 +546,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = DRV_VM_FLOW_ALLOC(unit, VM_FLOW_ID_GET_FROM_TAIL, &down_vm_flow);
         rv |= DRV_VM_FLOW_ALLOC(unit, VM_FLOW_ID_GET_FROM_TAIL, &up_vm_flow);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Allocating Flow-ID failed!\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -565,7 +565,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_create(unit, ivm_group, &down_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't create Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -590,7 +590,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_VlanFormat(unit, 
                 down_vm_eid, (uint8)t_vm_data, 0);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -603,7 +603,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_OuterVlanId(unit, 
                 down_vm_eid, t_vm_data, t_vm_mask);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -648,7 +648,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
                 bcmFieldActionNewClassId, down_vm_flow, 
                 _bcmFieldActionPrivateUsed);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't set action of Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -668,7 +668,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
                     bcmFieldActionVportCpcpNew, t_vm_data, 0);
         } 
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't set action of Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -682,7 +682,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_prio_set(unit, down_vm_eid, qualifier_weight);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prioritize Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -692,7 +692,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         /* IVM Entry install */
         rv = bcm_field_entry_install(unit, down_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't install Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -705,7 +705,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_create(unit, evm_group, &up_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't create Upstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -719,7 +719,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_FlowId(unit, up_vm_eid, 
                 (uint16)t_vm_data, (uint16)t_vm_mask);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Upstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -756,7 +756,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
                     drvFieldActionInnerVlanNew, 0, BCM_FIELD_TAG_REMOVE);
         }
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't set action of Upstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -769,7 +769,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_prio_set(unit, up_vm_eid, qualifier_weight);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prioritize Upstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -779,7 +779,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         /* EVM Entry install */
         rv = bcm_field_entry_install(unit, up_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't install Upstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -824,7 +824,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
             /* warning message only without error return to finish all remove
              *  related configuration.
              */
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Releasing IVM/EVM entries failed!\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -833,7 +833,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         /* 3. FLOW-ID release. */
         if (down_vm_flow != _BCM_ROBO_INVALID_ID){
             if (DRV_VM_FLOW_FREE(unit, down_vm_flow)){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Releasing Flow-ID failed!\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -841,7 +841,7 @@ _bcm_tb_subport_group_vm_handler(int unit, int op, bcm_port_t phy_port,
         }
         if (up_vm_flow != _BCM_ROBO_INVALID_ID){
             if (DRV_VM_FLOW_FREE(unit, up_vm_flow)){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Releasing Flow-ID failed!\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -868,7 +868,7 @@ group_vm_failed_exit :
      */
     if (down_vm_flow != _BCM_ROBO_INVALID_ID){
         if (DRV_VM_FLOW_FREE(unit, down_vm_flow)){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Releasing Flow-ID failed!\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -876,7 +876,7 @@ group_vm_failed_exit :
     }
     if (up_vm_flow != _BCM_ROBO_INVALID_ID){
         if (DRV_VM_FLOW_FREE(unit, up_vm_flow)){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Releasing Flow-ID failed!\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -886,7 +886,7 @@ group_vm_failed_exit :
     rv_temp |= bcm_field_entry_destroy(unit, up_vm_eid);
 
     if ((rv_temp != BCM_E_NONE) && (rv_temp != BCM_E_NOT_FOUND)) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s,%d, Releasing IVM/EVM entries failed!\n"), 
                   FUNCTION_NAME(), __LINE__));
@@ -987,7 +987,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
             if ((svlan == _BCM_ROBO_INVALID_ID) || 
                     (down_vm_flow == _BCM_ROBO_INVALID_ID) ||
                     (up_vm_flow == _BCM_ROBO_INVALID_ID)){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "No proper configuration of subport group!\n")));
                 return BCM_E_CONFIG;
@@ -1009,7 +1009,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
              *      group creation process.
              */
             if (t_vport_db->svid != svlan){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "This VP was existed to serve other subport group!\n"
                                      " -This SVLAN(%d) conflicts with existed SVLAN(%d)\n"),
@@ -1035,7 +1035,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         */
         rv = bcm_field_entry_create(unit, evm_group, &down_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't create Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1049,7 +1049,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_FlowId(unit, down_vm_eid, 
                 (uint16)t_vm_data, (uint16)t_vm_mask);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1068,7 +1068,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_OutPort(unit, down_vm_eid, 
                 (bcm_port_t)t_vm_data, (bcm_port_t)t_vm_mask);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1082,7 +1082,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_OutVPort(unit, down_vm_eid, 
                 (uint8)t_vm_data, (uint8)t_vm_mask);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1112,7 +1112,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv |= bcm_field_action_add(unit, down_vm_eid, 
                 drvFieldActionInnerVlanNew, param0, param1);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't set action of Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1125,7 +1125,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_prio_set(unit, down_vm_eid, qualifier_weight);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prioritize Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1135,7 +1135,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         /* EVM Entry install */
         rv = bcm_field_entry_install(unit, down_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't install Downstream EVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1148,7 +1148,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_create(unit, ivm_group, &up_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't create Downstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1182,7 +1182,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_VlanFormat(unit, 
                 up_vm_eid, (uint8)t_vm_data, 0);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Upstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1198,7 +1198,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
             rv = bcm_field_qualify_InnerVlanId(unit, up_vm_eid,
                     t_vm_data, t_vm_mask);
             if (rv != BCM_E_NONE) {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Can't prepare Upstream IVM entry.\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -1217,7 +1217,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv = bcm_field_qualify_InPort(unit, up_vm_eid, 
                 (bcm_port_t)t_vm_data, (bcm_port_t)t_vm_mask);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prepare Upstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1265,7 +1265,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
                 bcmFieldActionVportNew, vport, 0);
                 
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't set action of Upstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1293,7 +1293,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
          */
         rv = bcm_field_entry_prio_set(unit, up_vm_eid, qualifier_weight);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't prioritize Upstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1303,7 +1303,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         /* IVM Entry install */
         rv = bcm_field_entry_install(unit, up_vm_eid);
         if (rv != BCM_E_NONE) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Can't install Upstream IVM entry.\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1344,7 +1344,7 @@ _bcm_tb_subport_vport_vm_handler(int unit, int op, bcm_port_t phy_port,
         rv_temp |= bcm_field_entry_destroy(unit, up_vm_eid);
         
         if ((rv_temp != BCM_E_NONE) && (rv_temp != BCM_E_NOT_FOUND)) {
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d, Releasing IVM/EVM entries failed!\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -1369,7 +1369,7 @@ vport_vm_failed_exit:
     rv_temp |= bcm_field_entry_destroy(unit, up_vm_eid);
 
     if ((rv_temp != BCM_E_NONE) && (rv_temp != BCM_E_NOT_FOUND)) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s,%d, Releasing IVM/EVM entries failed!\n"), 
                   FUNCTION_NAME(), __LINE__));
@@ -1534,7 +1534,7 @@ _bcm_robo_subport_hw_clear(int unit)
             if (DRV_VM_FLOW_FREE(unit, temp_flowid)){
                 /* warning message only, no error return to finish all clear 
                  * process. */
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Releasing Flow-ID failed!\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -1545,7 +1545,7 @@ _bcm_robo_subport_hw_clear(int unit)
             if (DRV_VM_FLOW_FREE(unit, temp_flowid)){
                 /* warning message only, no error return to finish all clear 
                  * process. */
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Releasing Flow-ID failed!\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -1557,7 +1557,7 @@ _bcm_robo_subport_hw_clear(int unit)
             if ((rv != BCM_E_NONE) && (rv != BCM_E_NOT_FOUND)){
                 /* warning message only, no error return to finish all clear 
                  * process. */
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Destroy EVM failed!\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -1570,7 +1570,7 @@ _bcm_robo_subport_hw_clear(int unit)
             if ((rv != BCM_E_NONE) && (rv != BCM_E_NOT_FOUND)){
                 /* warning message only, no error return to finish all clear 
                  * process. */
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d, Destroy IVM failed!\n"), 
                           FUNCTION_NAME(), __LINE__));
@@ -1600,7 +1600,7 @@ _bcm_robo_subport_hw_clear(int unit)
                     if ((rv != BCM_E_NONE) && (rv != BCM_E_NOT_FOUND)){
                         /* warning message only, no error return to finish all
                          * clear process. */
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s,%d, Destroy EVM failed!\n"), 
                                   FUNCTION_NAME(), __LINE__));
@@ -1613,7 +1613,7 @@ _bcm_robo_subport_hw_clear(int unit)
                     if ((rv != BCM_E_NONE) && (rv != BCM_E_NOT_FOUND)){
                         /* warning message only, no error return to finish all
                          * clear process. */
-                        LOG_WARN(BSL_LS_BCM_COMMON,
+                        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                                  (BSL_META_U(unit,
                                              "%s,%d, Destroy EVM failed!\n"), 
                                   FUNCTION_NAME(), __LINE__));
@@ -1700,7 +1700,7 @@ bcm_robo_subport_init(int unit)
         return BCM_E_UNAVAIL;
     }
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "%s, unit=%d!!\n"), FUNCTION_NAME(),unit));
     
@@ -1824,7 +1824,7 @@ bcm_robo_subport_cleanup(int unit)
     int rv = BCM_E_NONE;
 #endif
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "%s\n"), FUNCTION_NAME()));
     if (!soc_feature(unit, soc_feature_subport)) {
@@ -1865,7 +1865,7 @@ bcm_robo_subport_cleanup(int unit)
     /* SW clearn up */
     _bcm_tb_subport_free_resource(unit);
 #endif   /* BCM_TB_SUPPORT */
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "%s, Done!!\n"), FUNCTION_NAME()));
 
@@ -1947,7 +1947,7 @@ bcm_robo_subport_group_create(int unit, bcm_subport_group_config_t *config,
             _BCM_TB_SUBPORT_FLAGS_CHECKOP_GROUP, config->prop_flags, 
             &flags_chang, &active_flags);
     if (rv != BCM_E_NONE){
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "The flag(0x%08x) for group creation is internal conflicted!\n"),
                   config->prop_flags));
@@ -1955,7 +1955,7 @@ bcm_robo_subport_group_create(int unit, bcm_subport_group_config_t *config,
         return BCM_E_PARAM;
     } else {
         if (flags_chang == TRUE) {
-            LOG_INFO(BSL_LS_BCM_PORT,
+            LOG_BSL_INFO(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "%s,The original flag=0x%08x reassigned to flags=0x%08x !\n"),
                       FUNCTION_NAME(), config->prop_flags, active_flags));
@@ -1984,7 +1984,7 @@ bcm_robo_subport_group_create(int unit, bcm_subport_group_config_t *config,
         vpgrp_id = BCM_GPORT_SUBPORT_GROUP_GET(*group);
         if (vpgrp_id < 0 || vpgrp_id > (_TB_SUBPORT_NUM_GROUP_PER_PORT - 1)){
 
-            LOG_INFO(BSL_LS_BCM_PORT,
+            LOG_BSL_INFO(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "%s, invalid support group id 0x%x\n"), 
                       FUNCTION_NAME(), *group));
@@ -2000,7 +2000,7 @@ bcm_robo_subport_group_create(int unit, bcm_subport_group_config_t *config,
             
             temp_vpgrp = _tb_vpgrp_db[unit] + vpgrp_mem_id; 
             if (SUBPORT_GROUP_IS_VALID(temp_vpgrp)){
-                LOG_INFO(BSL_LS_BCM_PORT,
+                LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "%s, Subport group %d on port %d is existed!!\n"), 
                           FUNCTION_NAME(), vpgrp_id, port_out));
@@ -2061,7 +2061,7 @@ bcm_robo_subport_group_create(int unit, bcm_subport_group_config_t *config,
      */
     if (_tb_mcrep_vlan_info[unit][vpgrp_id].valid == TRUE){
         if (_tb_mcrep_vlan_info[unit][vpgrp_id].svid != svlan){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "The bounded SVLAN(%d) is conflicted with current "
                                  "bounding SVLAN(%d)\n"),
@@ -2107,7 +2107,7 @@ bcm_robo_subport_group_create(int unit, bcm_subport_group_config_t *config,
             /* Warning message only, no error return! Just to tell user that  
              *  the packet stream through IVM/EVM can't work correctly.
              */
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Configuration failed! Unicast stream not work. rv(%d)\n"),
                       rv));
@@ -2171,7 +2171,7 @@ bcm_robo_subport_group_destroy(int unit, bcm_gport_t group)
     /* check if user's group id is valid */
     vpgrp_mem_id = BCM_GPORT_SUBPORT_GROUP_GET(group);
     if (vpgrp_mem_id < 0 || vpgrp_mem_id > _TB_MAX_SUPORT_GROUP_ID){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, invalid support group id 0x%x\n"), 
                   FUNCTION_NAME(), group));
@@ -2181,7 +2181,7 @@ bcm_robo_subport_group_destroy(int unit, bcm_gport_t group)
     /* check if this the user's group is existed */
     temp_vpgrp = _tb_vpgrp_db[unit] + vpgrp_mem_id;
     if (!SUBPORT_GROUP_IS_VALID(temp_vpgrp)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, not existed support group id 0x%x\n"), 
                   FUNCTION_NAME(), group));
@@ -2206,7 +2206,7 @@ bcm_robo_subport_group_destroy(int unit, bcm_gport_t group)
                         ((vpgrp_mem_id << _TB_SUBPORT_SYSTEM_ID_SHIFT_VPGRP) | 
                         ((vp_id)&_TB_SUBPORT_SYSTEM_ID_MASK_VPID)));
                 if (bcm_subport_port_delete(unit, gport) != BCM_E_NONE){
-                    LOG_INFO(BSL_LS_BCM_PORT,
+                    LOG_BSL_INFO(BSL_LS_BCM_PORT,
                              (BSL_META_U(unit,
                                          "%s, Failed on remove associated vp %d\n"),
                               FUNCTION_NAME(), vp_id));
@@ -2249,7 +2249,7 @@ bcm_robo_subport_group_destroy(int unit, bcm_gport_t group)
             } else if (rv == BCM_E_NOT_FOUND) {
                 continue;
             } else {
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,Internal problem on SW inforamtion.\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -2260,7 +2260,7 @@ bcm_robo_subport_group_destroy(int unit, bcm_gport_t group)
     sal_free(t_vpg_cfg);
     
     if (t_mcrep_act_svlan->valid == FALSE) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "Internal problem on SW inforamtion.\n")));
     } else {
@@ -2271,7 +2271,7 @@ bcm_robo_subport_group_destroy(int unit, bcm_gport_t group)
             rv = _bcm_tb_subport_group_vm_handler(unit, 
                     _BCM_TB_SUBPORT_VM_OP_REMOVE, port_in, vpg_id, svlan);
             if (rv != BCM_E_NONE){
-                LOG_WARN(BSL_LS_BCM_COMMON,
+                LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                          (BSL_META_U(unit,
                                      "Configuration failed internally!rv(%d)\n"),
                           rv));
@@ -2331,7 +2331,7 @@ bcm_robo_subport_group_get(int unit, bcm_gport_t group,
     /* check if user's group id is valid */
     vpgrp_mem_id = BCM_GPORT_SUBPORT_GROUP_GET(group);
     if (vpgrp_mem_id < 0 || vpgrp_mem_id > _TB_MAX_SUPORT_GROUP_ID){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, invalid support group id 0x%x\n"), 
                   FUNCTION_NAME(), group));
@@ -2341,7 +2341,7 @@ bcm_robo_subport_group_get(int unit, bcm_gport_t group,
     /* check if this the user's group is existed */
     temp_vpgrp = _tb_vpgrp_db[unit] + vpgrp_mem_id;
     if (!SUBPORT_GROUP_IS_VALID(temp_vpgrp)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, not existed support group id 0x%x\n"), 
                   FUNCTION_NAME(), group));
@@ -2349,7 +2349,7 @@ bcm_robo_subport_group_get(int unit, bcm_gport_t group,
     }
 
     port_in = _TB_SUBPORT_GROUP_ID_2PORT_ID(vpgrp_mem_id);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "%s, GPORT=0x%08x:vp_group=%d,port=%d\n"), 
               FUNCTION_NAME(), group, vpgrp_mem_id, port_in));
@@ -2434,7 +2434,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
     
     /* valid check : vid is valid at 0-4095 */
     if (config->pkt_vlan > BCM_VLAN_MAX) {
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "CVLAN(%d) out of range\n"), config->pkt_vlan));
         return BCM_E_PARAM;
@@ -2451,7 +2451,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
             _BCM_TB_SUBPORT_FLAGS_CHECKOP_VPORT, config->prop_flags, 
             &flags_chang, &active_flags);
     if (rv != BCM_E_NONE){
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "The flag(0x%08x) for group creation is internal conflicted!\n"),
                   config->prop_flags));
@@ -2459,7 +2459,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
         return BCM_E_PARAM;
     } else {
         if (flags_chang == TRUE) {
-            LOG_INFO(BSL_LS_BCM_PORT,
+            LOG_BSL_INFO(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "%s,The original flag=0x%08x reassigned to flags=0x%08x !\n"),
                       FUNCTION_NAME(), config->prop_flags, active_flags));
@@ -2470,7 +2470,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
     if (active_flags & _BCM_SUBPORT_FLAG_EGR_SPCP_MAPPED){
         if ((config->int_pri < 0) || 
                 (config->int_pri > _BCM_TB_SUBPORT_MAX_INT_PRIROTY)){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "The int_pri0=0x%02x is invalid!\n"),
                       config->int_pri));
@@ -2484,7 +2484,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
          *  - user incomming PCP flags will be checked here.
          */
         if (config->int_pri < 0 || config->int_pri > 7){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "The int_pri0=%d is invalid!\n"),
                       config->int_pri));
@@ -2500,7 +2500,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
      */ 
     if (active_flags & _BCM_SUBPORT_FLAG_UP_ING_PRITAG){
         if (cvlan != 0){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Assigning VP as pri-tagged but cvid is not zero!\n")));
             return BCM_E_PARAM;
@@ -2513,7 +2513,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
     
     vpgrp_mem_id = BCM_GPORT_SUBPORT_GROUP_GET(config->group);
     if (vpgrp_mem_id < 0 || vpgrp_mem_id > _TB_MAX_SUPORT_GROUP_ID){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, invalid support group id 0x%x\n"), 
                   FUNCTION_NAME(), vpgrp_mem_id));
@@ -2577,7 +2577,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
     /* SVLAN conflict check if VPort is member of other vp_group already */
     if (temp_vport_db->valid == TRUE){
         if (temp_vport_db->svid != temp_vpgrp->vlan){
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "The vport with CVID=%d has been existed in other group "
                                  " and SVLAN conflicted occured.\n"
@@ -2646,7 +2646,7 @@ bcm_robo_subport_port_add(int unit, bcm_subport_config_t *config,
         /* warning message only but no error return
          *  >> the downstream for Mcast replication to this vport still work.
          */
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "Vport added but unicast stream forwarding may failed! rv(%d)"), 
                   rv));
@@ -2699,11 +2699,11 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
     _TB_SUBPORT_CHECK_INIT(unit);
     
     /* check if the user port_id(system basis subport id) is valid */
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "%s, port(GPORT)=0x%x\n"),FUNCTION_NAME(),port));
     if (!BCM_GPORT_IS_SUBPORT_PORT(port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, port 0x%x is not at subport type.\n"), 
                   FUNCTION_NAME(), port));
@@ -2713,7 +2713,7 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
     /* check if this subport id is valid */
     vp_id = BCM_GPORT_SUBPORT_PORT_GET(port);
     if (vp_id < 0 || vp_id > _TB_SUBPORT_SYSTEM_ID_MAX){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, port 0x%x is in the valid range\n"), 
                   FUNCTION_NAME(), port));
@@ -2728,7 +2728,7 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
     _SUBPORT_VP_LOCK(unit);
     temp_vpgrp = _tb_vpgrp_db[unit] + vpgrp_mem_id;
     if (!SUBPORT_GROUP_IS_VALID(temp_vpgrp)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, not existed support group id 0x%x\n"), 
                   FUNCTION_NAME(), vpgrp_mem_id));
@@ -2739,7 +2739,7 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
     
     /* check if this subport id is existed in this group */
     if (!VPBMP_BITGET(temp_vpgrp->vp_bmp, vport)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s,subport%d is not existed in this group\n"), 
                   FUNCTION_NAME(), vport));
@@ -2822,7 +2822,7 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
         /* HW/SW updated for this vport is not referneced */
         if (DRV_MCREP_VPORT_CONFIG_SET(unit, port_out, 
                 DRV_MCREP_VPORT_OP_VID, vport, 0)){
-            LOG_INFO(BSL_LS_BCM_PORT,
+            LOG_BSL_INFO(BSL_LS_BCM_PORT,
                      (BSL_META_U(unit,
                                  "%s,Failed on deleting vport=%d on port%d \n"),
                       FUNCTION_NAME(), vport, port_out));
@@ -2838,7 +2838,7 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
         if (vport == ut_vpid){
             if (DRV_MCREP_VPORT_CONFIG_SET(unit, port_out, 
                     DRV_MCREP_VPORT_OP_UNTAG_RESET, vport, 0)){
-                LOG_INFO(BSL_LS_BCM_PORT,
+                LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "%s,Failed on this untag vport=%d of port%d \n"),
                           FUNCTION_NAME(), vport, port_out));
@@ -2864,7 +2864,7 @@ bcm_robo_subport_port_delete(int unit, bcm_gport_t port)
              *  >> the downstream for Mcast replication to this vport still 
              *      work properly.
              */
-            LOG_WARN(BSL_LS_BCM_COMMON,
+            LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                      (BSL_META_U(unit,
                                  "Vport added but unicast stream will be failed! rv(%d)"), 
                       rv));
@@ -2922,7 +2922,7 @@ bcm_robo_subport_port_get(int unit, bcm_gport_t port,
 
     /* check if the user port_id(system basis subport id) is valid */
     if (!BCM_GPORT_IS_SUBPORT_PORT(port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, port 0x%x is not at subport type.\n"), 
                   FUNCTION_NAME(), port));
@@ -2932,7 +2932,7 @@ bcm_robo_subport_port_get(int unit, bcm_gport_t port,
     /* check if this subport id is valid */
     vp_id = BCM_GPORT_SUBPORT_PORT_GET(port);
     if (vp_id < 0 || vp_id > _TB_SUBPORT_SYSTEM_ID_MAX){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, port 0x%x is in the valid range\n"), 
                   FUNCTION_NAME(), port));
@@ -2948,7 +2948,7 @@ bcm_robo_subport_port_get(int unit, bcm_gport_t port,
 
     temp_vpgrp = _tb_vpgrp_db[unit] + vpgrp_mem_id;
     if (!SUBPORT_GROUP_IS_VALID(temp_vpgrp)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s, not existed support group id 0x%x\n"), 
                   FUNCTION_NAME(), vpgrp_mem_id));
@@ -2959,7 +2959,7 @@ bcm_robo_subport_port_get(int unit, bcm_gport_t port,
     
     /* check if this suport id is added into this existed group */
     if (!VPBMP_BITGET(temp_vpgrp->vp_bmp, vport)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s,subport%d is not existed in this group\n"), 
                   FUNCTION_NAME(), vport));
@@ -2983,7 +2983,7 @@ bcm_robo_subport_port_get(int unit, bcm_gport_t port,
     /* special process for the untag vp */
     if (DRV_MCREP_VPORT_CONFIG_GET(unit, port_out, 
                DRV_MCREP_VPORT_OP_VID, &vport, &vid)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "%s,failed on get subport vid!\n"), 
                   FUNCTION_NAME()));
@@ -3051,7 +3051,7 @@ bcm_robo_subport_port_traverse(int unit,
                     BCM_GPORT_SUBPORT_PORT_SET(gport, vp_id);
                     
                     if (bcm_subport_port_get(unit, gport, &config)){
-                        LOG_INFO(BSL_LS_BCM_PORT,
+                        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                  (BSL_META_U(unit,
                                              "[Debug]%s,failed on getting" 
                                              " subport(0x%x) configuration.\n"), 

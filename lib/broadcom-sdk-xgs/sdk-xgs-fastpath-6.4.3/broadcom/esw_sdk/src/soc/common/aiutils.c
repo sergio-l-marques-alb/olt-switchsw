@@ -837,7 +837,7 @@ ai_soc_spi_freq_set(si_t *sih, uint32 speed_hz)
         sii = SI_INFO(sih);
     }
 
-    LOG_INFO(BSL_LS_SOC_REG,
+    LOG_BSL_INFO(BSL_LS_SOC_REG,
              (BSL_META("sys_clock = %d, speed_hz = %d\n"), sys_freq, speed_hz));
 
     sys_freq = ai_soc_clock(sih);

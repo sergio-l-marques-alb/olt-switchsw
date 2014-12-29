@@ -217,7 +217,7 @@ soc_shadow_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -231,7 +231,7 @@ soc_shadow_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -1061,7 +1061,7 @@ soc_shadow_misc_init(int unit)
                 break;
             }
             if (soc_timeout_check(&to)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "unit %d : IL_MEMORY_INIT_DONE timeout\n"), unit));
                 break;
@@ -1170,7 +1170,7 @@ soc_shadow_misc_init(int unit)
                 break;
             }
             if (soc_timeout_check(&to)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "unit %d : IL_MEMORY_INIT_DONE timeout\n"), unit));
                 break;

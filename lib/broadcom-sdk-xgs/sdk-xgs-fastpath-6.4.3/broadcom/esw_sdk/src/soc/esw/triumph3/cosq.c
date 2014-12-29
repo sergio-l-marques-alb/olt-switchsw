@@ -174,7 +174,7 @@ soc_tr3_cosq_set_sched_parent(int unit, soc_port_t port,
 
     mem = _SOC_TR3_NODE_PARENT_MEM(level);
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%d : %d parent:%d\n"),
               port, level - 1, hw_index, parent_hw_idx));
@@ -209,7 +209,7 @@ soc_tr3_sched_weight_set(int unit, int level, int index, int weight)
     SOC_IF_ERROR_RETURN
         (soc_mem_write(unit, mem_weight, MEM_BLOCK_ALL, index, &entry));
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "sched_weight_set L%d index=%d wt=%d\n"),
               level, index, weight));
@@ -229,7 +229,7 @@ soc_tr3_sched_weight_get(int unit, int level, int index, int *weight)
 
     *weight = soc_mem_field32_get(unit, mem_weight, &entry, C_WEIGHTf);
 
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "sched_weight_get L%d index=%d wt=%d\n"),
               level, index, *weight));
@@ -262,7 +262,7 @@ soc_tr3_cosq_set_sched_child_config_dynamic(int unit, soc_port_t port,
 
     sal_memset(entry, 0, sizeof(uint32)*SOC_MAX_MEM_WORDS);
     
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d FC=%d FMC=%d UMAP=0x%x NUMSP=%d\n"),
               port, (level==0) ? "r" : "", level - 1, 
@@ -340,7 +340,7 @@ soc_tr3_cosq_set_sched_child_config(int unit, soc_port_t port,
 
     sal_memset(entry, 0, sizeof(uint32)*SOC_MAX_MEM_WORDS);
     
-    LOG_INFO(BSL_LS_SOC_COSQ,
+    LOG_BSL_INFO(BSL_LS_SOC_COSQ,
              (BSL_META_U(unit,
                          "Port:%d L%s%d config : index=%d FC=%d FMC=%d UMAP=0x%x NUMSP=%d\n"),
               port, (level==0) ? "r" : "", level - 1, 
@@ -2036,7 +2036,7 @@ int soc_tr3_lls_init(int unit)
         /* Too many dynamic ports for HW resources.
          * Use static mode instead.
          */
-        LOG_ERROR(BSL_LS_SOC_COSQ,
+        LOG_BSL_ERROR(BSL_LS_SOC_COSQ,
                   (BSL_META_U(unit,
                               "unit %d : Cannot configure requested dynamic scheduler ports.\n"
                               "\tAvailable HW resources exhausted.\n"),

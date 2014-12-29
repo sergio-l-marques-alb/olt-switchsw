@@ -89,7 +89,7 @@ _field_th_group_add_initialize(int unit, _field_group_add_fsm_t *fsm_ptr)
     fsm_ptr->fsm_state_prev = fsm_ptr->fsm_state;
 
     if (BCM_SUCCESS(_field_group_get(unit, fsm_ptr->group_id, &fg_temp))) {
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
             (BSL_META_U(unit, "FP(unit %d) Error: group=%d already exists.\n"),
              unit, fsm_ptr->group_id));
         fsm_ptr->rv = (BCM_E_EXISTS);
@@ -127,7 +127,7 @@ _field_th_group_add_initialize(int unit, _field_group_add_fsm_t *fsm_ptr)
         /* Verify if requested QSET is supported by the stage. */
         if (FALSE == _field_qset_is_subset(&fsm_ptr->qset,
                         &fsm_ptr->stage_fc->_field_supported_qset)) {
-            LOG_ERROR(BSL_LS_BCM_FP,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP,
                 (BSL_META_U(unit, "FP(unit %d) Error: Qualifier set is not"
                  " supported by the device.\n"), unit));
             fsm_ptr->rv = (BCM_E_UNAVAIL);
@@ -193,7 +193,7 @@ _field_th_group_priority_validate(int unit, _field_stage_t *stage_fc,
     for (lt_idx = 0; lt_idx < stage_fc->num_logical_tables; lt_idx++) {
         lt_info = stage_fc->lt_info[fg->instance][lt_idx];
         if ((TRUE == lt_info->valid) && (fg->priority == lt_info->priority)) {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Group=%d Priority=%d already in-use.\n"),
                  unit, fg->gid, fg->priority));
             return (BCM_E_PARAM);
@@ -251,7 +251,7 @@ _field_th_group_add_alloc(int unit, _field_group_add_fsm_t *fsm_ptr)
     /* Allocate and initialize memory for Field Group. */
     _FP_XGS3_ALLOC(fg, mem_sz, "field group");
     if (NULL == fg) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error:Allocation failure for "
              "_field_group_t\n"), unit));
         /* Memory allocation failure hence proceed to clean up. */
@@ -534,7 +534,7 @@ _field_th_group_create_ace_list(int unit, _field_stage_t *stage_fc,
     _FP_XGS3_ALLOC((*ace_list)->qual_list,
         (qual_count * sizeof(_field_qual_sec_info_t *)), "IFP ace list");
     if (NULL == (*ace_list)->qual_list) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Allocation failure for ACE Qual list"
             " Pointers.\n"), unit));
         sal_free(*ace_list);
@@ -546,7 +546,7 @@ _field_th_group_create_ace_list(int unit, _field_stage_t *stage_fc,
         _FP_XGS3_ALLOC((*ace_list)->qual_list[idx],
             sizeof(_field_qual_sec_info_t), "IFP qual section");
         if (NULL == (*ace_list)->qual_list[idx]) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Allocation failure for ACE Qual list.\n"),
                 unit));
             sal_free((*ace_list)->qual_list);
@@ -630,7 +630,7 @@ _field_th_group_create_ace_list(int unit, _field_stage_t *stage_fc,
                                            width);
         (*ace_list)->qual_list[idx]->size = width;
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: ACE[Level=%d] Gid=%d Qid=%d IPBM=%d size=%d.\n"),
             unit, level, (*ace_list)->gid, (*ace_list)->qual_list[idx]->qid,
             ((*ace_list)->flags & _FP_POST_MUX_IPBM) ? 1 : 0,
@@ -677,7 +677,7 @@ _field_th_group_ibus_copy_create(int unit, _field_stage_t *stage_fc,
     /* Allocate ACE list memory. */
     _FP_XGS3_ALLOC(*buses, sizeof(_field_bus_info_t), "IFP bus info");
     if (NULL == *buses) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Allocation failure for Bus Info.\n"),
             unit));
         return (BCM_E_MEMORY);
@@ -689,7 +689,7 @@ _field_th_group_ibus_copy_create(int unit, _field_stage_t *stage_fc,
          "IFP bus qual sec info ptr");
     if (NULL == (*buses)->qual_list) {
         sal_free(*buses);
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Allocation failure for Bus Qual Sec Info.\n"),
             unit));
         return (BCM_E_MEMORY);
@@ -717,7 +717,7 @@ _field_th_group_ibus_copy_create(int unit, _field_stage_t *stage_fc,
             _FP_XGS3_ALLOC((*buses)->qual_list[qid],
                 sizeof(_field_qual_sec_info_t), "IFP qual sec info");
             if (NULL == (*buses)->qual_list[qid]) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: Allocation failure for Bus Qual"
                     " list.\n"), unit));
 
@@ -736,7 +736,7 @@ _field_th_group_ibus_copy_create(int unit, _field_stage_t *stage_fc,
             /* Increment number of fields in the bus. */
             (*buses)->num_fields += 1;
 
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: IBUS[Level_0] Qid=%d sec_1=%d sec_val_1=%d"
                 " sec_2=%d sec_val_2=%d sec_3=%d sec_val_3=%d sec_4=%d "
                 "sec_val_4=%d qual_size=%d attrib=0x%x bits_used=%d"
@@ -758,7 +758,7 @@ _field_th_group_ibus_copy_create(int unit, _field_stage_t *stage_fc,
                 (*buses)->size
                 ));
         } else {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Unsupported in Ibus qual=%d.\n"),
                 unit, f_qual_arr[idx]->qid));
 
@@ -815,7 +815,7 @@ _field_th_group_qual_extract(int unit, _field_bus_info_t **buses,
 
     /* Skip the extractor section if it's already in use. */
     if ((*ext_cfg)->in_use) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Ext_id=0x%x in_use=%d.\n"),
              unit, (*ext_cfg)->ext_id, (*ext_cfg)->in_use));
         return (BCM_E_NONE);
@@ -854,7 +854,7 @@ _field_th_group_qual_extract(int unit, _field_bus_info_t **buses,
             /* Extract using selective extractors. */
             if ((qual_list[qid]->size - qual_list[qid]->bits_used)
                  < (*ext_cfg)->gran) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Not in selective Diff=%d Gran=%d.\n"),
                     unit, (qual_list[qid]->size - qual_list[qid]->bits_used),
                     (*ext_cfg)->gran));
@@ -891,7 +891,7 @@ _field_th_group_qual_extract(int unit, _field_bus_info_t **buses,
              */
             if (fill_bits >
                 (*ext_info)->sections[(*ext_cfg)->out_sec]->drain_bits) {
-                LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: All bits consumed Out_sec=%d"
                     " Drained_bits=%d.\n"), unit, (*ext_cfg)->out_sec,
                     (*ext_info)->sections[(*ext_cfg)->out_sec]->drain_bits));
@@ -922,7 +922,7 @@ _field_th_group_qual_extract(int unit, _field_bus_info_t **buses,
             *inflation = ((*ext_cfg)->gran
                             - qual_list[qid]->e_params[*chunk_idx].width);
 
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extract[Level=%d] In_Sec=%d Chunk=%d sec=%d"
                 " sec_val=%d width=%d extracted=%d b_off=%d e_gran=%d\n"),
                 unit, level, (*ext_cfg)->in_sec,
@@ -951,7 +951,7 @@ _field_th_group_qual_extract(int unit, _field_bus_info_t **buses,
              */
             _FP_EXT_ID_PARSE((*ext_cfg)->ext_id, p, l, g, e_num);
 
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Enum=%d Level=%d p=%d g=%d\n"),
                 unit, e_num, l, p, g));
 
@@ -1311,7 +1311,7 @@ _field_th_group_copy_extractors_list(int unit, _field_stage_t *stage_fc,
 
         /* Confirm extractor configuration has a valid size. */
         if (0 == alloc_sz) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Error null Ext Config List - Level=%d"
                 " config_sz=%d.\n"), unit, level,
                 orig_ext_info->conf_size[level]));
@@ -1323,7 +1323,7 @@ _field_th_group_copy_extractors_list(int unit, _field_stage_t *stage_fc,
         _FP_XGS3_ALLOC((*ext_info)->ext_cfg[level],
             (alloc_sz * sizeof(_field_ext_cfg_t)), "IFP ext config");
         if (NULL == (*ext_info)->ext_cfg[level]) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Allocation failure for extractor"
                 " config.\n"), unit));
             for (idx = (level - 1); idx >= 0; idx--) {
@@ -1357,7 +1357,7 @@ _field_th_group_copy_extractors_list(int unit, _field_stage_t *stage_fc,
             "Field Ext sections");
         if (NULL == (*ext_info)->sections) {
 
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Allocation failure for extractor"
                 " sections pointer.\n"), unit));
 
@@ -1381,7 +1381,7 @@ _field_th_group_copy_extractors_list(int unit, _field_stage_t *stage_fc,
          */
         num_sec = (*ext_info)->num_sec;
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Num_Sec=%d.\n"), unit, num_sec));
 
         /* Iterate over valid extractors and copy their configuration. */
@@ -1396,7 +1396,7 @@ _field_th_group_copy_extractors_list(int unit, _field_stage_t *stage_fc,
                     sizeof(_field_ext_sections_t), "IFP Ext section");
                 if (NULL == (*ext_info)->sections[ext_sel]) {
 
-                    LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Error: Allocation failure for extractor"
                         " section=%d.\n"), unit, ext_sel));
 
@@ -1425,7 +1425,7 @@ _field_th_group_copy_extractors_list(int unit, _field_stage_t *stage_fc,
 
                 /* Keep track of how many sections are yet to be copied. */
                 num_sec--;
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Ext_sec=%d fill=%d drain=%d"
                     " Rem_Sec=%d.\n"), unit, ext_sel,
                     (*ext_info)->sections[ext_sel]->fill_bits,
@@ -1527,7 +1527,7 @@ _field_th_new_ibus_create(int unit, _field_stage_t *stage_fc,
             (*buses)->qual_list[qid]->e_params[0].width = ext_cfg->gran;
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: [lvl=%d] Chunk=0 Qid=%d qsize=%d Sec=%d"
             " sec_val=%d swidth=%d bus_offset=%d bsize=%d num_fld=%d"
             " nchk=%d.\n"),
@@ -1560,7 +1560,7 @@ _field_th_new_ibus_create(int unit, _field_stage_t *stage_fc,
         } else {
             (*buses)->qual_list[qid]->e_params[chunk].width = ext_cfg->gran;
         }
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: [lvl=%d] Chunk=%d Qid=%d qsize=%d Sec=%d"
             " sec_val=%d swidth=%d bus_offset=%d bsize=%d num_fld=%d"
             " nchk=%d.\n"),
@@ -1629,7 +1629,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
     for (part = 0; part < parts_count; part++) {
         _FP_XGS3_ALLOC(size[part], sizeof(uint8) * qual_count, "q_arr size");
         if (NULL == size[part]) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Size var memory allocation failure.\n"),
                     unit));
             /* Deallocate memory already allocated. */
@@ -1682,7 +1682,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
         }
 
         if (NULL == *obus) {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: qid=%d.\n"), unit, qid));
             continue;
         }
@@ -1740,14 +1740,14 @@ _field_th_group_qual_offsets_set(int unit, int level,
             arr_sz += size[part][qual_idx];
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Part=%d Arr_sz=%d.\n"), unit, part, arr_sz));
 
         if (arr_sz > 0) {
             /* Allocate Qualifier ID array memory. */
             _FP_XGS3_ALLOC(qid_arr, (arr_sz * sizeof(uint16)), "Group qual id");
             if (NULL == qid_arr) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: Group Qual ID memory allocation"
                     " failure.\n"), unit));
                 /* Deallocate memory allocated to store array size. */
@@ -1767,7 +1767,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
                 (arr_sz * sizeof(_bcm_field_qual_offset_t)),
                  "Group qual offset");
             if (NULL == offset_arr) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: Group qual offsets memory allocation"
                     " failure.\n"), unit));
 
@@ -1837,7 +1837,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
                     conf = f_qual_arr[qual_idx]->conf_arr;
                     q_arr->offset_arr[arr_idx].num_offsets =
                                             conf->offset.num_offsets;
-                    LOG_INFO(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_INFO(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Verb: qid=%d num_off=%d off0=%d off1=%d.\n"),
                          unit, qid,
                          q_arr->offset_arr[arr_idx].num_offsets,
@@ -1856,7 +1856,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
                 }
 
                 if (NULL == *obus) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Verb: qid=%d.\n"), unit, qid));
                     continue;
                 }
@@ -1869,7 +1869,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
 
                 /* Validate the Max supported qual offsets */
                 if (bus_qual->num_chunks >= _BCM_FIELD_QUAL_OFFSET_MAX) {
-                    LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Error: Update Max Offsets for Qid=%d "
                         "to %d.\n"), unit, bus_qual->qid, bus_qual->num_chunks
                         ));
@@ -1929,7 +1929,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
                                     bus_qual->e_params[chunk_idx].width;
 
 
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "\tFP(unit %d) Verb: qid[chk=%d]=%d P=%d A_sz=%d"
                         " offset=%d width=%d n_offs=%d\n"),
                         unit, chunk_idx, q_arr->qid_arr[arr_idx], part,
@@ -1962,7 +1962,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
         /* Get qualifiers array pointer. */
         q_arr = &(fg->qual_arr[_FP_ENTRY_TYPE_DEFAULT][part]);
         for (qual_idx = 0; qual_idx < q_arr->size; qual_idx++) {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Qid=%d\n"), unit, q_arr->qid_arr[qual_idx]));
             switch (q_arr->qid_arr[qual_idx]) {
                 case bcmFieldQualifyInPorts:
@@ -2041,7 +2041,7 @@ _field_th_group_qual_offsets_set(int unit, int level,
                  chunk_idx < q_arr->offset_arr[qual_idx].num_offsets;
                  chunk_idx++) {
 
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "\tFP(unit %d) Verb: offset=%d width=%d\n"),
                     unit,
                     q_arr->offset_arr[qual_idx].offset[chunk_idx],
@@ -2272,7 +2272,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
     if (((emode == _FieldExtConfMode160Bits) && (key_size > 160))
         || ((emode == _FieldExtConfMode320Bits) && (key_size > 320))
         || ((emode == _FieldExtConfMode480Bits) && (key_size > 480))) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Invalid Extractor Mode=%d.\n"),
             unit, emode));
         return (BCM_E_CONFIG);
@@ -2285,13 +2285,13 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
     if ((key_size > 80)
         && ((fg->flags & _FP_GROUP_SPAN_SINGLE_SLICE)
             && !(fg->flags & _FP_GROUP_INTRASLICE_DOUBLEWIDE))) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Upgrade group to Intra slice Gid=%d.\n"),
             unit, fg->gid));
         return (BCM_E_CONFIG);
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
         "FP(unit %d) Verb: Extractor mode=%d.\n"), unit, emode));
 
     /* Create the extractors list for the selected extractor mode. */
@@ -2303,7 +2303,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
         rv = _field_th_group_create_ace_list(unit, stage_fc, fg,
                 f_qual_arr, qual_count, key_size, level, &ace_list[level]);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: _field_th_group_create_ace_list=%d.\n"),
                 unit, rv));
             goto cleanup;
@@ -2314,7 +2314,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
     rv = _field_th_group_ibus_copy_create(unit, stage_fc, fg, f_qual_arr,
             qual_count, key_size, &buses[0]);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_group_ibus_copy_create=%d.\n"),
             unit, rv));
         goto cleanup;
@@ -2323,7 +2323,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
     /* Build extractor hierarchy for the group's qset per extraction level. */
     for (level = 1; level < _FP_EXT_LEVEL_COUNT; level++) {
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Start Level=%d extraction.\n"), unit, level));
 
         /* Iterate over list of qualifiers that need extraction. */
@@ -2355,7 +2355,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                 || (bcmFieldQualifyDstVxlanGport == ace_qual->qid)
                 || (bcmFieldQualifyDstVlanGport == ace_qual->qid)
                 || (bcmFieldQualifyDstMplsGport == ace_qual->qid)) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Skip Post Muxed Qid[Level=%d]=%d.\n"),
                         unit, level, ace_qual->qid));
                 continue;
@@ -2377,7 +2377,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
              * been extracted, skip it.
              */
             if (ace_qual->bits_used > 0) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Skip Qid[Level=%d]=%d"
                     " Bits_used([=%d] > 0).\n"), unit,
                     level, ace_qual->qid, ace_qual->bits_used));
@@ -2394,7 +2394,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
             /* Get qualifier information from input bus. */
             ibus_qual = (buses[level - 1])->qual_list[ace_qual->qid];
             if (NULL == ibus_qual) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Pseudo Qualifier - Qid=%d Level=%d.\n"),
                     unit, ace_qual->qid, level));
                 continue;
@@ -2423,7 +2423,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
              * ACL list.
              */
             if (duplicate) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: Duplicate Qid=%d.\n"),
                     unit, ibus_qual->qid));
                 continue;
@@ -2435,7 +2435,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                 /* Get the extractor configuration. */
                 ext_cfg = ext_info->ext_cfg[level] + sec_idx;
 
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Ext_Cfg[Level=%d] Ext_id=0x%d G=%d"
                     " E_No=%d In_Sec=%d Out_Sec=%d flags=0x%x In_Use=%d\n"),
                     unit, level, ext_cfg->ext_id, ext_cfg->gran,
@@ -2449,7 +2449,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                  */
                 if ((ace_list[level]->size <= 80)
                      && (ext_cfg->flags & _FP_EXT_ATTR_NOT_IN_EIGHTY_BIT)) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Verb: ACE size=%d sec=%d"
                         " - Sec Not in 80\n"),
                         unit, ace_list[level]->size, sec_idx));
@@ -2463,7 +2463,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                  */
                 if ((ace_list[level]->flags & _FP_POST_MUX_IPBM)
                     && (ext_cfg->flags & _FP_EXT_ATTR_NOT_WITH_IPBM)) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Verb: ACE ipbm_present=%d - Sec=%d -"
                         " Not with IPBM\n"),
                         unit,
@@ -2494,13 +2494,13 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                  * If yes, move on to next qualifier in the Group's QSET list.
                  */
                 if (ace_qual->bits_used >= ace_qual->size) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Verb: ACE bits_used=%d >= size=%d\n"),
                         unit, ace_qual->bits_used, ace_qual->size));
                     break;
                 }
 
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Start_Ext_ACE Qid=%d bits_used=%d"
                     " size=%d n_chunks=%d.\n"),
                     unit, ace_qual->qid, ace_qual->bits_used, ace_qual->size,
@@ -2511,7 +2511,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                         &ext_cfg, &ace_qual, level, &ext_info, &ff, &chunk_idx,
                         &inflation, fg);
                 if (BCM_FAILURE(rv) && (BCM_E_RESOURCE != rv)) {
-                    LOG_ERROR(BSL_LS_BCM_FP,(BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "FP(unit %d) Error: "
                         "_field_th_group_qual_extract=%d.\n"), unit, rv));
 
@@ -2546,7 +2546,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                             size = ace_qual->size;
                         }
 
-                        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                             "FP(unit %d) Verb: Qid=%d Inflation=%d.\n"),
                             unit, ace_qual->qid, inflation));
                     }
@@ -2574,7 +2574,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
              * extraction.
              */
             if (ace_qual->bits_used < ace_qual->size) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Not fully extracted Qid=%d.\n"),
                     unit, ace_qual->qid));
                 rv = BCM_E_INTERNAL;
@@ -2583,7 +2583,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
 
             /* If qualifier size is zero then it's an error. */
             if (0 == ace_qual->size) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Extractor for Qid=%d Not Found.\n"),
                     unit, ace_qual->qid));
                 rv = BCM_E_INTERNAL;
@@ -2595,14 +2595,14 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
              * extracted.
              */
             if (ace_qual->bits_used == ace_qual->size) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Fully extracted Qid=%d bits_used=%d"
                     " size=%d.\n\n"), unit, ace_qual->qid, ace_qual->bits_used,
                     ace_qual->size));
             }
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Now construct output bus.\n"), unit));
 
         /* Now create the output bus, which is input bus for next level. */
@@ -2621,7 +2621,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
                 rv = _field_th_new_ibus_create(unit, stage_fc, ext_info,
                         ext_cfg, level, &buses[level]);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Error: _field_th_new_ibus_create=%d.\n"),
                         unit, rv));
                     goto cleanup;
@@ -2635,7 +2635,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
             /* Get the qualifier information. */
             ace_qual = ace_list[level]->qual_list[idx];
             for (chunk_idx = 0; chunk_idx < ace_qual->num_chunks; chunk_idx++) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: L=%d Qid=%d sec=%d sec_val=%d.\n"),
                         unit,
                         level,
@@ -2656,7 +2656,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
             }
             for (chunk_idx = 0; chunk_idx < ibus_qual->num_chunks;
                  chunk_idx++) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Verb: Qid[chnk=%d]=%d sz=%d bus_offset=%d "
                     "s_width=%d e=%d sec=%d.\n"),
                     unit,
@@ -2676,7 +2676,7 @@ _field_th_group_process_qset(int unit, _field_stage_t *stage_fc,
         rv = _field_th_group_qual_offsets_set(unit, level, f_qual_arr, qual_count,
                 &buses[3], fg);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: _field_th_group_qual_offsets_set=%d.\n"),
                 unit, rv));
         }
@@ -2745,11 +2745,11 @@ _field_th_group_update_keysize(int unit, _field_stage_t *stage_fc,
         if (NULL != qual_list[qid]) {
             /* Get the real key size of this qualifier. */
             *rkey_size += qual_list[qid]->size;
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: qid=%d size=%d rkey_size=%d\n"),
                 unit, qid, qual_list[qid]->size, *rkey_size));
         } else {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Skip pseudo qualifier=%s\n"),
                  unit, qual_text[qid]));
         }
@@ -2960,12 +2960,12 @@ _field_th_group_add_extractor_codes_get(int unit,
     orig_group_flags = fg->flags;
 
     if (bcmFieldGroupModeAuto == fsm_ptr->mode) {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit, "Group mode auto.\n")));
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit, "Group mode auto.\n")));
 
         /* For Auto mode, try Single -> Double -> Triple modes. */
         /* Single wide Non-Intra slice selection. */
         if (0 == (fsm_ptr->flags & _BCM_FP_GROUP_ADD_INTRA_SLICE_ONLY)) {
-            LOG_VERBOSE(BSL_LS_BCM_FP,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                 (BSL_META_U(unit, "Trying single...\n")));
             /* 80bit mode. */
             fg->flags = (orig_group_flags | _FP_GROUP_SPAN_SINGLE_SLICE);
@@ -2976,7 +2976,7 @@ _field_th_group_add_extractor_codes_get(int unit,
         if ((BCM_FAILURE(fsm_ptr->rv)
              && (fsm_ptr->flags & _BCM_FP_GROUP_ADD_INTRA_SLICE))) {
             if (soc_feature(unit, soc_feature_field_intraslice_double_wide)) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "Trying intra...\n")));
                 /* 160bit mode. */
                 fg->flags = (orig_group_flags | _FP_GROUP_SPAN_SINGLE_SLICE
@@ -2988,7 +2988,7 @@ _field_th_group_add_extractor_codes_get(int unit,
         /* Double wide inter slice selection. */
         if (0 == (fsm_ptr->flags & _BCM_FP_GROUP_ADD_INTRA_SLICE_ONLY)) {
             if (BCM_FAILURE(fsm_ptr->rv)) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "Trying double...\n")));
                 /* 320bit mode. */
                 fg->flags = (orig_group_flags | _FP_GROUP_SPAN_DOUBLE_SLICE);
@@ -2999,7 +2999,7 @@ _field_th_group_add_extractor_codes_get(int unit,
         /* Triple wide inter slice selection. */
         if (0 == (fsm_ptr->flags & _BCM_FP_GROUP_ADD_INTRA_SLICE_ONLY)) {
             if (BCM_FAILURE(fsm_ptr->rv)) {
-                LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "Trying triple...\n")));
                 /* 480bit mode. */
                 fg->flags = (orig_group_flags | _FP_GROUP_SPAN_TRIPLE_SLICE);
@@ -3011,7 +3011,7 @@ _field_th_group_add_extractor_codes_get(int unit,
             case bcmFieldGroupModeSingle:
                 /* Single wide non intra slice selection. */
               if (0 == (fsm_ptr->flags & _BCM_FP_GROUP_ADD_INTRA_SLICE_ONLY)) {
-                  LOG_VERBOSE(BSL_LS_BCM_FP,
+                  LOG_BSL_VERBOSE(BSL_LS_BCM_FP,
                     (BSL_META_U(unit, "Trying single...\n")));
                   fg->flags = (orig_group_flags | _FP_GROUP_SPAN_SINGLE_SLICE);
                   fsm_ptr->rv = _field_th_ext_code_assign(unit, fg->qset, 1,
@@ -3022,7 +3022,7 @@ _field_th_group_add_extractor_codes_get(int unit,
                 /* Double wide intra slice selection. */
                 if ((soc_feature(unit, soc_feature_field_intraslice_double_wide)
                      && (fsm_ptr->flags & _BCM_FP_GROUP_ADD_INTRA_SLICE))) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "Trying intra...\n")));
                     fg->flags = (orig_group_flags | _FP_GROUP_SPAN_SINGLE_SLICE
                                     | _FP_GROUP_INTRASLICE_DOUBLEWIDE);
@@ -3033,7 +3033,7 @@ _field_th_group_add_extractor_codes_get(int unit,
                 if ((BCM_FAILURE(fsm_ptr->rv))
                     && (0 == (fsm_ptr->flags
                         & _BCM_FP_GROUP_ADD_INTRA_SLICE_ONLY))) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "Trying double...\n")));
                     fg->flags = (orig_group_flags |
                                     _FP_GROUP_SPAN_DOUBLE_SLICE);
@@ -3045,7 +3045,7 @@ _field_th_group_add_extractor_codes_get(int unit,
                 /* Triple wide inter slice selection. */
                 if (0 == (fsm_ptr->flags
                             & _BCM_FP_GROUP_ADD_INTRA_SLICE_ONLY)) {
-                    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "Trying triple...\n")));
                     fg->flags = (orig_group_flags |
                                     _FP_GROUP_SPAN_TRIPLE_SLICE);
@@ -3059,7 +3059,7 @@ _field_th_group_add_extractor_codes_get(int unit,
     }
 
     if (BCM_FAILURE(fsm_ptr->rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit, "No success so far.\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit, "No success so far.\n")));
 
         /* No luck so far - try different alternative qset if possible. */
         if ((BCM_E_RESOURCE == fsm_ptr->rv)
@@ -3072,7 +3072,7 @@ _field_th_group_add_extractor_codes_get(int unit,
 
         /* Insert group into units group list. */
         if (BCM_SUCCESS(fsm_ptr->rv)) {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "Configuration found...\n")));
             fsm_ptr->rv = _bcm_field_group_linked_list_insert(unit, fsm_ptr);
         }
@@ -3158,7 +3158,7 @@ _field_th_group_slice_ltmap_validate(int unit,
     for (part = 0; part < parts_count; part++) {
         fs = stage_fc->slices[fg->instance] + slice_id + part;
         if (0 != fs->lt_map) {
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Slice=%d in-use.\n"),
                  unit, (slice_id + part)));
            return (BCM_E_CONFIG);
@@ -3230,7 +3230,7 @@ _bcm_field_th_group_add_slice_validate(int unit,
      * Triple wide group is created using slices within the same memory macro.
      */
     if ((fg->flags & _FP_GROUP_SPAN_TRIPLE_SLICE) && (slice_id % 3 != 0)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: bad slice=%d for Triple wide-mode.\n"), unit,
              slice_id));
         return (BCM_E_CONFIG);
@@ -3262,7 +3262,7 @@ _bcm_field_th_group_add_slice_validate(int unit,
              * HW Limitation: Single wide mode slices (80-bit wide) in use
              * cannot be paired with another slice.
              */
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: bad slice=%d for double-mode.\n"), unit,
                  slice_id));
             return (BCM_E_CONFIG);
@@ -3286,7 +3286,7 @@ _bcm_field_th_group_add_slice_validate(int unit,
              * HW Limitation: Single wide mode slices (80-bit wide) in use
              * cannot be paired with another slice.
              */
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: bad slice=%d for Triple-mode.\n"), unit,
                  slice_id));
             return (BCM_E_CONFIG);
@@ -3297,7 +3297,7 @@ _bcm_field_th_group_add_slice_validate(int unit,
     if (soc_feature(unit, soc_feature_field_virtual_slice_group)) {
         if (stage_fc->flags & _FP_STAGE_AUTO_EXPANSION) {
             fg->flags |= _FP_GROUP_SELECT_AUTO_EXPANSION;
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Group Auto Expansion status=%d.\n"),
                  unit, (fg->flags & _FP_GROUP_SELECT_AUTO_EXPANSION) ? 1: 0));
         }
@@ -4327,7 +4327,7 @@ _field_th_lt_entry_phys_create(int unit, _field_stage_t *stage_fc,
     /* Allocate and zero memory for LT selection entry. */
     _FP_XGS3_ALLOC(lt_f_ent, mem_sz, "LT field entry");
     if (NULL == lt_f_ent) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: allocation failure for LT entry\n"), unit));
         return (BCM_E_MEMORY);
     }
@@ -4539,7 +4539,7 @@ _field_th_lt_entry_phys_destroy(int unit, _field_lt_entry_t *lt_f_ent)
     /* Remove the entry from group entry array. */
     rv = _field_th_group_lt_entry_delete(unit, fg, lt_f_ent);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Group entry delete Eid=%d.\n"),
              unit, lt_f_ent->eid));
     }
@@ -5515,7 +5515,7 @@ _field_th_lt_priority_alloc(int unit, _field_stage_t *stage_fc,
     lt_info[lt_id].valid = TRUE;
 
     for (lt_idx = 0; lt_idx < stage_fc->num_logical_tables; lt_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d): Verb-B4-Sort: lt_id(%d): lt_grp_prio(%d): "
             "lt_actn_prio(%d): valid:(%d) flags(0x%x)\n"),
             unit, lt_info[lt_idx].lt_id,
@@ -5528,7 +5528,7 @@ _field_th_lt_priority_alloc(int unit, _field_stage_t *stage_fc,
         _field_th_lt_prio_cmp);
 
     for (lt_idx = 0; lt_idx < stage_fc->num_logical_tables; lt_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d): Verb-Aft-Sort: lt_id(%d): lt_grp_prio(%d): "
             "lt_actn_prio(%d): valid:(%d) flags(0x%x)\n"),
              unit, lt_info[lt_idx].lt_id, lt_info[lt_idx].priority,
@@ -5548,7 +5548,7 @@ _field_th_lt_priority_alloc(int unit, _field_stage_t *stage_fc,
     }
 
     for (lt_idx = 0; lt_idx < stage_fc->num_logical_tables; lt_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d): Verb-Aft-PrioAssign: lt_id(%d): lt_grp_prio(%d): "
             "lt_actn_prio(%d): valid:(%d) flags(0x%x)\n"),
              unit, lt_info[lt_idx].lt_id, lt_info[lt_idx].priority,
@@ -6204,14 +6204,14 @@ _field_th_entry_move(int unit, _field_entry_t *f_ent, int amount)
         return (BCM_E_PARAM);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
         "FP(unit %d) vverb: BEGIN _field_th_entry_move(entry=%d, amount=%d)\n"),
          unit, f_ent->eid, amount));
 
     fg = f_ent->group;
 
     if (0 == amount) {
-        LOG_WARN(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_WARN(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) warn:  moving entry=%d, same slice_idx=%d(%#x)\n"),
              unit, f_ent->eid, f_ent->slice_idx, f_ent->slice_idx));
         return (BCM_E_NONE);
@@ -6333,7 +6333,7 @@ _field_th_slice_clear(int unit, _field_group_t *fg, _field_slice_t *fs)
     for (entry_idx = 0; entry_idx < fs->entry_count; entry_idx++) {
         if ((NULL != fs->entries[entry_idx])
              && (fs->entries[entry_idx]->group->gid == fg->gid)) {
-             LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+             LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Entries still in slice=%d.\n"),
                  unit, fs->slice_number));
             return (BCM_E_BUSY);

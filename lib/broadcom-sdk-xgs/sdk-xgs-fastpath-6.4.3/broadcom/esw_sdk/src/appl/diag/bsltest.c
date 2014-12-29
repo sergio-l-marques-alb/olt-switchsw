@@ -84,22 +84,22 @@ bsltest_case_basic_macro(int unit)
 {
     bsl_printf(">> bsltest_case_basic_macro\n");
 
-    LOG_FATAL(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_FATAL(BSL_LS_APPL_SYMTAB,
               (BSL_META("LOG_FATAL unit=%d\n"),
                unit));
-    LOG_ERROR(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_ERROR(BSL_LS_APPL_SYMTAB,
               (BSL_META("LOG_ERROR unit=%d\n"),
                unit));
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META("LOG_WARN unit=%d\n"),
               unit));
-    LOG_INFO(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_INFO(BSL_LS_APPL_SYMTAB,
              (BSL_META("LOG_INFO unit=%d\n"),
               unit));
-    LOG_VERBOSE(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_VERBOSE(BSL_LS_APPL_SYMTAB,
                 (BSL_META("LOG_VERBOSE unit=%d\n"),
                  unit));
-    LOG_DEBUG(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_DEBUG(BSL_LS_APPL_SYMTAB,
               (BSL_META("LOG_DEBUG unit=%d\n"),
                unit));
 }
@@ -113,18 +113,18 @@ bsltest_case_option_macro(void)
 
     bsl_printf(">> bsltest_case_option_macro\n");
 
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META("LOG_WARN <nounit> (%d)\n"),
               bsltest_param));
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META_U(unit,
                          "LOG_WARN unit (%d)\n"),
               bsltest_param));
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META_UP(unit, port,
                           "LOG_WARN unit/port (%d)\n"),
               bsltest_param));
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META_UPX(unit, port, xtra,
                            "LOG_WARN unit/port/xtra (%d)\n"),
               bsltest_param));
@@ -169,20 +169,20 @@ bsltest_case_incr_multi_opt(void)
 {
     int idx;
 
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META_O(BSL_META_OPT_START | BSL_META_OPT_PFX_NL,
                          "[OPT_START|OPT_PFX_NL]\n")));
     for (idx = 0; idx < 7; idx++) {
-        LOG_WARN(BSL_LS_APPL_SYMTAB,
+        LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                  (BSL_META_O(0,
                              "[0 #%d]"), idx));
         if ((idx & 0x1) == 1) {
-            LOG_WARN(BSL_LS_APPL_SYMTAB,
+            LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
                      (BSL_META_O(0,
                                  "[0] newline\n")));
         }
     }
-    LOG_WARN(BSL_LS_APPL_SYMTAB,
+    LOG_BSL_WARN(BSL_LS_APPL_SYMTAB,
              (BSL_META_O(BSL_META_OPT_END,
                          "[OPT_END]\n")));
 }

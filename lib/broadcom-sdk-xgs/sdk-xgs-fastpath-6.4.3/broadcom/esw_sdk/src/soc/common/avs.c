@@ -99,7 +99,7 @@ _soc_sbusdma_avs_cb(int unit, int status, sbusdma_desc_handle_t handle,
             avs->cent_rosc_count_sync= 1;
         } 
     } else {
-        LOG_ERROR(BSL_LS_SOC_AVS,
+        LOG_BSL_ERROR(BSL_LS_SOC_AVS,
                   (BSL_META_U(unit,
                               "avs ROSC count SBUSDMA failed: type %d\n"), 
                    PTR_TO_INT(data)));
@@ -135,7 +135,7 @@ _soc_avs_sbusdma_run(int unit, int type)
                 timer_started = 1;
             }
             if (soc_timeout_check(&to)) {
-                LOG_WARN(BSL_LS_SOC_AVS,
+                LOG_BSL_WARN(BSL_LS_SOC_AVS,
                          (BSL_META_U(unit,
                           " sbusdma desc run operation timeout\n")));
                 break;
@@ -352,13 +352,13 @@ soc_avs_voltage_set(int unit, uint32 voltage)
     if ((SOC_AVS_FUNCTIONS(unit) != NULL) &&
         (SOC_AVS_FUNCTIONS(unit)->voltage_set != NULL)) {
         if (voltage > SOC_AVS_MAX_VOLTAGE) {            
-            LOG_WARN(BSL_LS_SOC_AVS,
+            LOG_BSL_WARN(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,
                 "Fail to set voltage %d (> SOC_AVS_MAX_VOLTAGE) try %d \n"),
                     voltage, SOC_AVS_MAX_VOLTAGE));
             voltage = SOC_AVS_MAX_VOLTAGE;
         } else if(voltage < SOC_AVS_MIN_VOLTAGE){
-            LOG_WARN(BSL_LS_SOC_AVS,
+            LOG_BSL_WARN(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,
                 "Fail to set voltage %d (< SOC_AVS_MIN_VOLTAGE) try %d \n"),
                     voltage, SOC_AVS_MIN_VOLTAGE));
@@ -368,7 +368,7 @@ soc_avs_voltage_set(int unit, uint32 voltage)
 
 
         if (SOC_FAILURE(rv)) {
-            LOG_WARN(BSL_LS_SOC_AVS,
+            LOG_BSL_WARN(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,
                 "Fail to set voltage %d\n"),
                     voltage));                
@@ -551,7 +551,7 @@ _soc_avs_cent_osc_count_get(int unit, int start_osc, int num_osc, uint32 *count)
             }
             if (soc_timeout_check(&to)) {
                 use_dma = 0;
-                LOG_WARN(BSL_LS_SOC_AVS,
+                LOG_BSL_WARN(BSL_LS_SOC_AVS,
                          (BSL_META_U(unit,               
                          "cent rosc count read operation timeout\n")));
                 break;
@@ -590,7 +590,7 @@ _soc_avs_cent_osc_count_get(int unit, int start_osc, int num_osc, uint32 *count)
         if (soc_reg_field_get(unit, AVS_REG_RO_REGISTERS_0_CEN_ROSC_STATUSr,
                     count[i], VALIDf) == 0) {
             failed = 1;
-            LOG_WARN(BSL_LS_SOC_AVS,
+            LOG_BSL_WARN(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,
                 "Fail to get cent osc[%d] %x\n"),
                     i, count[i]));    
@@ -657,7 +657,7 @@ _soc_avs_rmt_osc_count_get(int unit, int start_osc, int num_osc,
             }
             if (soc_timeout_check(&to)) {
                 use_dma = 0;
-                LOG_WARN(BSL_LS_SOC_AVS,
+                LOG_BSL_WARN(BSL_LS_SOC_AVS,
                          (BSL_META_U(unit,
                           "rmt rosc count read operation timeout\n")));
                 break;
@@ -1003,7 +1003,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
      * AVS on this part!. */
     SOC_AVS_ASSERT(vhigh > vlow);     
     if ((vhigh - vlow) < SOC_AVS_VHI_VLO_MIN_DIFF) {
-        LOG_INFO(BSL_LS_SOC_AVS,
+        LOG_BSL_INFO(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,
                 "Voltage diff was < "
                     "%0d mV -- stopping AVS processing!\n"),                              
@@ -1022,7 +1022,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
 
     /* we want largest predicted voltage across all the usable oscillators */
     v3_max_cent_osc = 0;
-    LOG_VERBOSE(BSL_LS_SOC_AVS,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
     (BSL_META_U(unit,
         "cent_osc, v1, r_count1, f1, v2, r_count2, f2, f3, v3, exclude, h/s\n")));
     for (i = avs_info->first_cent; i < avs_info->num_centrals; i++) {
@@ -1031,7 +1031,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         uint32 slope;
         uint32 v3;
         if (_soc_avs_xbmp_check(unit, SOC_AVS_ROSC_TYPE_CENTRAL, i)){        
-            LOG_VERBOSE(BSL_LS_SOC_AVS,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,
                 "%d, %d, %d, -, %d, %d, -, -, -, 1, -\n"),
                 i, vhigh, pcount_cent_osc_at_vhigh[i],
@@ -1040,7 +1040,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         }
         if ((pcount_cent_osc_at_vhigh[i] == 0) || 
             (pcount_cent_osc_at_vlow[i] == 0)) {
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "%d, %d, %d, -, %d, %d, -, -, -, 0, -\n"),
             i, vhigh, pcount_cent_osc_at_vhigh[i],
@@ -1068,7 +1068,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         v3 = _soc_avs_calc_v3_for_ref_f3(freq_at_vlow, vlow, slope, f3);
 
 
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "%d, %d, %d, %d, %d, %d, %d, %d, %d, 0, -\n"),
             i, vhigh, pcount_cent_osc_at_vhigh[i],freq_at_vhigh,
@@ -1076,13 +1076,13 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         /* max */
         v3_max_cent_osc = SOC_AVS_MAX(v3, v3_max_cent_osc);
     } /* for all cent_osc */
-    LOG_VERBOSE(BSL_LS_SOC_AVS,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
     (BSL_META_U(unit,
         "Max voltage across "
         "Central oscillators = %0d\n"),v3_max_cent_osc));
             
     v3_max_rmt_osc = 0;
-    LOG_VERBOSE(BSL_LS_SOC_AVS,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
     (BSL_META_U(unit,
         "rmt_osc, v1, r_count1, f1, v2, r_count2, f2, f3, v3, exclude, h/s\n")));
     for (i = avs_info->first_rmt; i < avs_info->num_remotes; i++) {
@@ -1093,12 +1093,12 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         uint32 v3_s, v3_h;
         
         if (_soc_avs_xbmp_check(unit, SOC_AVS_ROSC_TYPE_REMOTE, i)){                    
-            LOG_VERBOSE(BSL_LS_SOC_AVS,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,
                 "%d, %d, %d, -, %d, %d, -, -, -, 1, h\n"),
                 i, vhigh, pcount_rmt_osc_at_vhigh_h[i],
                 vlow, pcount_rmt_osc_at_vlow_h[i]));  
-            LOG_VERBOSE(BSL_LS_SOC_AVS,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,
                 "%d, %d, %d, -, %d, %d, -, -, -, 1, s\n"),
                 i, vhigh, pcount_rmt_osc_at_vhigh_s[i],
@@ -1128,13 +1128,13 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         v3_s = _soc_avs_calc_v3_for_ref_f3(freq_at_vlow_s, vlow, slope, f3_s);
 
 
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "%d, %d, %d, %d, %d, %d, %d, %d, %d, 0, h\n"),
             i, vhigh, pcount_rmt_osc_at_vhigh_h[i],freq_at_vhigh_h,
             vlow, pcount_rmt_osc_at_vlow_h[i],freq_at_vlow_h, f3_h, v3_h));
 
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "%d, %d, %d, %d, %d, %d, %d, %d, %d, 0, s\n"),
             i, vhigh, pcount_rmt_osc_at_vhigh_s[i],freq_at_vhigh_s,
@@ -1143,7 +1143,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
         v3_max_rmt_osc = SOC_AVS_MAX(v3_h, v3_max_rmt_osc);
         v3_max_rmt_osc = SOC_AVS_MAX(v3_s, v3_max_rmt_osc);
     }
-    LOG_VERBOSE(BSL_LS_SOC_AVS,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "Max voltage across "
             "Remote oscillators = %0d\n"),v3_max_rmt_osc));
@@ -1152,7 +1152,7 @@ _soc_avs_predict_vpred(int unit, uint32 dac_code_low, uint32
 
     sal_free(alloc_ptr);
 
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "v1s=%0d, v2s=%0d, "
             "v1r=%0d, v2r=%0d, vpred=%0d\n"),            
@@ -1214,7 +1214,7 @@ _soc_avs_find_final_voltage(int unit, uint32 *vpred, uint32 *vavs_sv)
         v1s = ccv + SOC_AVS_V1_MINUS_V2;
         v2s = ccv;
     }
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "ccv=%0d, "
             "v1s=%0d, v2s=%0d\n"),
@@ -1246,7 +1246,7 @@ _soc_avs_find_final_voltage(int unit, uint32 *vpred, uint32 *vavs_sv)
         } else {
             vavs = vsum;
         }
-        LOG_INFO(BSL_LS_SOC_AVS,
+        LOG_BSL_INFO(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,
                 "pass=%0d, "
                 "vpred=%0d, vavs=%0d, vmargin %0d\n"),
@@ -1269,7 +1269,7 @@ _soc_avs_find_final_voltage(int unit, uint32 *vpred, uint32 *vavs_sv)
     }
     /* Set the final voltage */
     SOC_AVS_ASSERT(vavs > 0);
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
         "set vavs %d \n"),vavs));
 
@@ -1754,7 +1754,7 @@ _soc_avs_set_new_thr(int unit, uint32 vavs_sv)
 
     /* Now, raise the DAC (raise the voltage) to figure out the hi_thr value */
     current_voltage = vavs_sv + avs->new_thr_inc;
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
         "set voltage %d to set hi threshold\n"), current_voltage));
 
@@ -1793,7 +1793,7 @@ _soc_avs_start_main(int unit)
 
     SOC_IF_ERROR_RETURN(_soc_avs_find_final_voltage(unit, &vpred, &vavs_sv));
     if (vpred == 0) {
-        LOG_WARN(BSL_LS_SOC_AVS,
+        LOG_BSL_WARN(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,
             "get the vpred=0\n")));
         return (SOC_E_DISABLED); 
@@ -1919,7 +1919,7 @@ soc_avs_init(int unit)
     avs_info->cen_osc_reg = INVALIDr;
     avs_info->rmt_osc_reg = INVALIDr;
     if (SOC_AVS_FUNCTIONS(unit)->init == NULL) {
-        LOG_ERROR(BSL_LS_SOC_AVS,
+        LOG_BSL_ERROR(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,
             "no init functions registerd\n")));        
         sal_free(avs_info);
@@ -2406,7 +2406,7 @@ _soc_avs_adjust_voltage(int unit, int adjustment_step, soc_avs_bool_t
         } 
         new_set_voltage = last_set_voltage + (uint32)adjustment_step;        
 
-        LOG_INFO(BSL_LS_SOC_AVS,
+        LOG_BSL_INFO(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,                    
                 "adjust step %d to voltage %d\n"),
                 adjustment_step, new_set_voltage));            
@@ -2423,7 +2423,7 @@ _soc_avs_adjust_voltage(int unit, int adjustment_step, soc_avs_bool_t
         if ((int32)read_voltage > new_vmin_avs) {
             SOC_AVS_ASSERT(last_set_voltage > SOC_AVS_ABS(adjustment_step));
             new_set_voltage = last_set_voltage - SOC_AVS_ABS(adjustment_step);
-            LOG_WARN(BSL_LS_SOC_AVS,
+            LOG_BSL_WARN(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,                    
                     "WARNING, read_voltage = %0d, is out of limits,"
                     " voltage will be decreased\n"),
@@ -2431,7 +2431,7 @@ _soc_avs_adjust_voltage(int unit, int adjustment_step, soc_avs_bool_t
 
         } else {
             new_set_voltage = last_set_voltage + SOC_AVS_ABS(adjustment_step);
-            LOG_WARN(BSL_LS_SOC_AVS,
+            LOG_BSL_WARN(BSL_LS_SOC_AVS,
                 (BSL_META_U(unit,                    
                     "WARNING, read_voltage = %0d, is out of limits, "
                     "voltage will be increased\n"),
@@ -2474,7 +2474,7 @@ _soc_avs_converge_process(int unit, int *voltage_change_requested,
     soc_avs_control_t *avs = SOC_AVS_CONTROL(unit);
 
     if ((avs->flags & SOC_AVS_F_THRESHOLD_SET) == 0) {
-        LOG_WARN(BSL_LS_SOC_AVS,
+        LOG_BSL_WARN(BSL_LS_SOC_AVS,
                  (BSL_META_U(unit,
                   "Threshold values are not set. " 
                   "Stop the _soc_avs_converge_process.\n")));
@@ -2510,7 +2510,7 @@ _soc_avs_converge_process(int unit, int *voltage_change_requested,
     SOC_AVS_FREE_IF_ERROR_RETURN(_soc_avs_cent_osc_thr_get(unit,
                 avs_info->first_cent, avs_info->num_centrals, posc_lo_thr,
                 posc_hi_thr), alloc_ptr);
-    LOG_VERBOSE(BSL_LS_SOC_AVS,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
     (BSL_META_U(unit,
         "index, osc_count, lo_thr, hi_thr\n")));
 
@@ -2525,7 +2525,7 @@ _soc_avs_converge_process(int unit, int *voltage_change_requested,
         }
         /* this should have already been handled by exclude list, but ... */
 
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
         (BSL_META_U(unit,
             "%d, %d, %d, %d\n"),
             i, posc_count[i], posc_lo_thr[i],posc_hi_thr[i]));
@@ -2623,7 +2623,7 @@ soc_avs_track(int unit)
                 &voltage_change_requested,
                 &voltage_change_aborted));
 
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
     (BSL_META_U(unit,
         "voltage_change_requested=%0d, voltage_change_aborted=%0d, "
         "last_set_voltage=%0d\n"),
@@ -2644,7 +2644,7 @@ void soc_avs_thread(void *unit_vp)
 #ifdef SOC_AVS_DEBUG
         sal_usecs_t     start_time;
 #endif
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
                     (BSL_META_U(unit,
                                 "sleep %d\n"), interval));
 
@@ -2658,13 +2658,13 @@ void soc_avs_thread(void *unit_vp)
 #endif
         rv = soc_avs_track(unit);
 #ifdef SOC_AVS_DEBUG
-        LOG_VERBOSE(BSL_LS_SOC_AVS,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_AVS,
                     (BSL_META_U(unit,
                                 "Time taken for avs track: %d usec\n"),
                      SAL_USECS_SUB(sal_time_usecs(), start_time)));
 #endif
         if (SOC_FAILURE(rv)) {
-            LOG_INFO(BSL_LS_SOC_AVS,
+            LOG_BSL_INFO(BSL_LS_SOC_AVS,
             (BSL_META_U(unit,
                         "Fail to do avs_track\n")));             
         }
@@ -2673,7 +2673,7 @@ void soc_avs_thread(void *unit_vp)
             break;
         }
     }
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
              (BSL_META_U(unit,
                          "exiting thread\n")));
 
@@ -2693,7 +2693,7 @@ soc_avs_track_stop(int unit)
     if (!soc_avs_inited(unit)) {
         return SOC_E_INIT;
     } 
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
              (BSL_META_U(unit,
                          "stop avs track")));    
     timeout = (1   * SECOND_USEC);
@@ -2704,7 +2704,7 @@ soc_avs_track_stop(int unit)
         soc_timeout_init(&to, timeout, 0);
          while ((avs->avs_track_pid) != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_AVS,
+                LOG_BSL_ERROR(BSL_LS_SOC_AVS,
                           (BSL_META_U(unit,
                                       "thread did not exit\n")));
                 avs->avs_track_pid = SAL_THREAD_ERROR;
@@ -2719,7 +2719,7 @@ soc_avs_track_stop(int unit)
         sal_sem_destroy(avs->avs_track_notify);
         avs->avs_track_notify = NULL;
     }    
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
              (BSL_META_U(unit,
                          "thread stopped\n")));
 
@@ -2734,7 +2734,7 @@ soc_avs_track_start(int unit, int interval)
     if (!soc_avs_inited(unit)) {
         return SOC_E_INIT;
     }     
-    LOG_INFO(BSL_LS_SOC_AVS,
+    LOG_BSL_INFO(BSL_LS_SOC_AVS,
              (BSL_META_U(unit,
                          "avs_track start with interval=%d\n"),
                         interval));
@@ -2770,13 +2770,13 @@ soc_avs_track_start(int unit, int interval)
 
         if (avs->avs_track_pid == SAL_THREAD_ERROR) {
             avs->avs_track_interval = 0;
-            LOG_ERROR(BSL_LS_SOC_AVS,
+            LOG_BSL_ERROR(BSL_LS_SOC_AVS,
                       (BSL_META_U(unit,
                                   "thread create failed\n")));
             return (SOC_E_INTERNAL);
         }
 
-        LOG_INFO(BSL_LS_SOC_AVS,
+        LOG_BSL_INFO(BSL_LS_SOC_AVS,
                  (BSL_META_U(unit,
                              "Created AVS thread\n")));
     }

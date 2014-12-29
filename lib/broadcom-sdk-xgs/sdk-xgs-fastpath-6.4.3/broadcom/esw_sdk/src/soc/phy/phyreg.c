@@ -280,7 +280,7 @@ phy_reg_ge_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         }
     } 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_reg_ge_read failed:"
                               " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -379,7 +379,7 @@ phy_reg_ge_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     } 
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_reg_ge_write failed:"
                               " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -485,7 +485,7 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     } 
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_reg_ge_modify failed:"
                               " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
@@ -563,7 +563,7 @@ phy_reg_xge_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         }
     } 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_reg_ge_read failed:"
                               " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
@@ -630,7 +630,7 @@ phy_reg_xge_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     } 
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_reg_ge_write failed:"
                               " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
@@ -703,7 +703,7 @@ phy_reg_xge_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     } 
 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_reg_ge_modify failed:"
                               " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "

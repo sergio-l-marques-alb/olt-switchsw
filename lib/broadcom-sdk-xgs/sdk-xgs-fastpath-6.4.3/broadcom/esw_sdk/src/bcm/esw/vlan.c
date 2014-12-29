@@ -1439,7 +1439,7 @@ bcm_esw_vlan_create(int unit, bcm_vlan_t vid)
 {
     int                 rv;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: create vid %d\n"),
                  unit, vid));
@@ -1586,7 +1586,7 @@ bcm_esw_vlan_destroy(int unit, bcm_vlan_t vid)
 {
     int         rv;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: destroy vid %d\n"),
                  unit, vid));
@@ -1621,7 +1621,7 @@ bcm_esw_vlan_destroy_all(int unit)
     int                 rv = BCM_E_NONE;
     bcm_vlan_t          vid;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: destroy all VLANs\n"),
                  unit));
@@ -1779,7 +1779,7 @@ bcm_esw_vlan_port_add(int unit, bcm_vlan_t vid, pbmp_t pbmp, pbmp_t ubmp)
     CHECK_INIT(unit);
     VLAN_CHK_ID(unit, vid);
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: port add: vid %d. pbm 0x%x. utpbm 0x%x.\n"),
                  unit, vid, SOC_PBMP_WORD_GET(pbmp, 0),
@@ -1977,7 +1977,7 @@ bcm_esw_vlan_port_remove(int unit, bcm_vlan_t vid, pbmp_t pbmp)
 {
     int                 rv = BCM_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: port remove: vid %d. pbm 0x%x.\n"),
                  unit, vid, SOC_PBMP_WORD_GET(pbmp, 0)));
@@ -2047,7 +2047,7 @@ _bcm_vlan_port_get(int unit, bcm_vlan_t vid, pbmp_t *pbmp, pbmp_t *ubmp,
     }
 #endif /* BCM_TRIUMPH2_SUPPORT && INCLUDE_L3 */
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: bcm_vlan_port_get: vid %d. pbm 0x%x upbm 0x%x.\n"),
                  unit, vid, SOC_PBMP_WORD_GET(*ing_pbmp, 0),
@@ -2324,7 +2324,7 @@ bcm_esw_vlan_default_set(int unit, bcm_vlan_t vid)
 {
     int                 rv;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: dflt vid set: %d\n"),
                  unit, vid));
@@ -2564,7 +2564,7 @@ int bcm_esw_vlan_policer_get(
     rv = _bcm_esw_get_policer_from_table(unit, VLAN_TABm, vlan, &vt, 
                                                  policer, 0); 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_VLAN,
+        LOG_BSL_ERROR(BSL_LS_BCM_VLAN,
                   (BSL_META_U(unit,
                               "Unable to read vlan table entry\n")));
         return (rv);
@@ -2598,7 +2598,7 @@ int bcm_esw_vlan_policer_set(
     soc_mem_lock(unit, VLAN_TABm);
     rv = soc_mem_read(unit, VLAN_TABm, MEM_BLOCK_ANY, vlan, &vt);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_VLAN,
+        LOG_BSL_ERROR(BSL_LS_BCM_VLAN,
                   (BSL_META_U(unit,
                               "Unable to read vlan table entry\n")));
         soc_mem_unlock(unit, VLAN_TABm);
@@ -2608,7 +2608,7 @@ int bcm_esw_vlan_policer_set(
     rv = _bcm_esw_add_policer_to_table(unit, policer,
                                            VLAN_TABm, vlan, (void *)(&vt));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_VLAN,
+        LOG_BSL_ERROR(BSL_LS_BCM_VLAN,
                   (BSL_META_U(unit,
                               "Unable to add policer to vlan table entry\n")));
         soc_mem_unlock(unit, VLAN_TABm);
@@ -2616,7 +2616,7 @@ int bcm_esw_vlan_policer_set(
     }
     rv = soc_mem_write(unit, VLAN_TABm, MEM_BLOCK_ANY, vlan, &vt);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_VLAN,
+        LOG_BSL_ERROR(BSL_LS_BCM_VLAN,
                   (BSL_META_U(unit,
                               "Unable to add policer to vlan table entry\n")));
         soc_mem_unlock(unit, VLAN_TABm);
@@ -7087,7 +7087,7 @@ bcm_esw_vlan_control_set(int unit, bcm_vlan_control_t type, int arg)
 {
     bcm_pbmp_t e_pbmp;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: control set: type %d, arg %d\n"),
                  unit, type, arg));
@@ -8535,7 +8535,7 @@ STATIC int
 _esw_vlan_stk_update(int unit, int vid, bcm_pbmp_t add_ports,
                      bcm_pbmp_t remove_ports)
 {
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: stk update internal: vid %d, add 0x%x, "
                              "rmv 0x%x\n"), unit, vid,
@@ -8634,7 +8634,7 @@ _bcm_esw_vlan_stk_update(int unit, uint32 flags)
     int vid;
     int vlan_count = 0;
 
-    LOG_VERBOSE(BSL_LS_BCM_VLAN,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_VLAN,
                 (BSL_META_U(unit,
                             "VLAN %d: stk_update: flags 0x%x\n"),
                  unit, flags));
@@ -16407,7 +16407,7 @@ _bcm_vlan_reinit(int unit)
         (mbcm_driver[unit]->mbcm_vlan_reload(unit, &vi->bmp, &vi->count));
 
     if (0 == _BCM_VBMP_LOOKUP(vi->bmp, vi->defl)) {
-        LOG_WARN(BSL_LS_BCM_VLAN,
+        LOG_BSL_WARN(BSL_LS_BCM_VLAN,
                  (BSL_META_U(unit,
                              "Warm Reboot: Default VLAN %4d does not exist!\n"),
                   vi->defl));

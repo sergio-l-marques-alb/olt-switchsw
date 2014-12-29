@@ -3745,7 +3745,7 @@ int _tscmod_avg_vga_dfe(tscmod_st* ws, int tapsel, int *avg_value)
          break;
       }
 
-      LOG_INFO(BSL_LS_SOC_PHY,
+      LOG_BSL_INFO(BSL_LS_SOC_PHY,
                (BSL_META_U(ws->unit,
                            "TSC_VEYE : val_curr = %d, val_avg = %d, tap_select = %d\n"),
                 val_curr,val_avg,tapsel));
@@ -3773,7 +3773,7 @@ int _tscmod_avg_vga_dfe(tscmod_st* ws, int tapsel, int *avg_value)
    val_avg += (2 * rem) / avg_cnt;
    *avg_value = val_avg;
 
-   LOG_INFO(BSL_LS_SOC_PHY,
+   LOG_BSL_INFO(BSL_LS_SOC_PHY,
             (BSL_META_U(ws->unit,
                         "TSC_VEYE : val_avg = %d, tap_select = %d\n"), val_avg,tapsel));
    return SOC_E_NONE;
@@ -4138,7 +4138,7 @@ int _tscmod_enable_deadlink_diagnostics(tscmod_st* ws)
     }
 
     /* display the average value written to VGA/DFE */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(ws->unit,
                          "TSC_EYE avg dfe/vga: u=%d p=%d, VGA:0x%x, dfe1:0x%x, dfe2:0x%x, dfe3:0x%x, "
                          "dfe4:0x%x, dfe5:0x%x\n"), ws->unit, ws->port, dfe_vga[0],dfe_vga[1],
@@ -4383,7 +4383,7 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
    max_runtime_loop = 80;
    pInfo->max_loops = MAX_LOOPS;
 
-   LOG_INFO(BSL_LS_SOC_PHY,
+   LOG_BSL_INFO(BSL_LS_SOC_PHY,
             (BSL_META_U(ws->unit,
                         "TSC_VEYE : max_runtime_loop: %d u=%d p=%d\n"),
              max_runtime_loop, ws->unit, ws->port));
@@ -4475,7 +4475,7 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
               DSC1B0_DFE_VGA_CTRL2_DFE_VGA_WRITE_EN_MASK));
    }
 
-   LOG_INFO(BSL_LS_SOC_PHY,
+   LOG_BSL_INFO(BSL_LS_SOC_PHY,
             (BSL_META_U(ws->unit,
                         "TSC_EYE avg dfe/vga: u=%d p=%d, VGA:0d%d, dfe1:0d%d, dfe2:0d%d, dfe3:0d%d, "
                         "dfe4:0d%d, dfe5:0d%d\n"), ws->unit, ws->port, dfe_vga[0],dfe_vga[1],
@@ -4518,13 +4518,13 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
 
    SOC_IF_ERROR_RETURN(READ_WC40_DSC2B0_ACQ_SM_CTRL1r(ws->unit, ws, &data16));
 
-   LOG_INFO(BSL_LS_SOC_PHY,
+   LOG_BSL_INFO(BSL_LS_SOC_PHY,
             (BSL_META_U(ws->unit,
                         "TSC_EYE : offset_max %d DSC2B0_ctrl 0x%x u=%d p=%d\n"),
              offset_max,data16, ws->unit, ws->port));
 
    if (offset_max >= MAX_LOOPS) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(ws->unit,
                               "WC_EYE ERROR: offset_max %d greater than MAX %d  u=%d p=%d\n"),
                    offset_max,MAX_LOOPS, ws->unit, ws->port));
@@ -4557,7 +4557,7 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
       clk90_p_offset &= 0x7f;
       tmp = (short)data16;
 
-      LOG_INFO(BSL_LS_SOC_PHY,
+      LOG_BSL_INFO(BSL_LS_SOC_PHY,
                (BSL_META_U(ws->unit,
                            "Starting BER msmt at offset: %d clk90_p_offset: 0x%x loop_var=%0d u=%d p=%d\n"),
                 tmp,clk90_p_offset, loop_var, ws->unit, ws->port));
@@ -4595,7 +4595,7 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
          } else if (curr_runtime < (4 * MIN_RUNTIME)) {
             curr_runtime = (1 << (runtime_loop - 1)) * MIN_RUNTIME;
          }
-         LOG_INFO(BSL_LS_SOC_PHY,
+         LOG_BSL_INFO(BSL_LS_SOC_PHY,
                   (BSL_META_U(ws->unit,
                               "Starting prbs run for %d seconds run_loop=%0d: u=%d p=%d\n"),
                    curr_runtime, runtime_loop, ws->unit, ws->port));
@@ -4639,7 +4639,7 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
 
          if ((pInfo->total_errs[loop_var] >= HI_CONFIDENCE_ERR_CNT) ||
              (pInfo->total_elapsed_time[loop_var] >= max_total_time)) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(ws->unit,
                                  "TSC_EYE: done PRBS err count: u=%d p=%d, total_err: %d"
                                  " elapsed_time: %d, loop_num: %d\n"), ws->unit, ws->port,
@@ -4648,7 +4648,7 @@ int _tscmod_eye_margin_data_get(tscmod_st* ws, TSCMOD_EYE_DIAG_INFOt *pInfo,int 
          }
       }
 
-      LOG_INFO(BSL_LS_SOC_PHY,
+      LOG_BSL_INFO(BSL_LS_SOC_PHY,
                (BSL_META_U(ws->unit,
                            "finishing BER msmt at offset: %d clk90_p_offset: 0x%x loop_var=%0d u=%d p=%d\n"),
                 tmp,clk90_p_offset, loop_var, ws->unit, ws->port));
@@ -4728,13 +4728,13 @@ _tscmod_eye_margin_ber_cal(TSCMOD_EYE_DIAG_INFOt *pInfo, int type)
         eye_unit = VEYE_UNIT;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("\nBER measurement at each offset, num_data_points: %d\n"),
 pInfo->veye_cnt));
 
     for (loop_var = 0; loop_var < pInfo->veye_cnt; loop_var++) {
         margins[loop_var] = (pInfo->offset_max-loop_var)*eye_unit;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("BER measurement at offset: %f\n"), margins[loop_var]));
         if(type == TSC_UTIL_HEYE_L || type == TSC_UTIL_HEYE_R) {
             printf("[H=%d V=0] ", pInfo->offset_max-loop_var) ;
@@ -4746,7 +4746,7 @@ pInfo->veye_cnt));
             bers[loop_var] = 1.0/(COMPILER_DOUBLE)pInfo->total_elapsed_time[loop_var]/pInfo->rate;
             bers[loop_var] /= 1000;
 
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META("BER @ %04f %% = 1e%04f (%d errors in %d seconds)\n"),
 (COMPILER_DOUBLE)((pInfo->offset_max-loop_var)*eye_unit),
                       1.0*(log10(bers[loop_var])),
@@ -4758,7 +4758,7 @@ pInfo->veye_cnt));
 
             /* the rate unit is KHZ, add -3(log10(1/1000)) for actual display  */
             bers[loop_var] /= 1000;
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META("BER @ %2.2f%% = 1e%2.2f (%d errors in %d seconds)\n"),
 (pInfo->offset_max-loop_var)*eye_unit,
                       log10(bers[loop_var]),
@@ -4773,12 +4773,12 @@ pInfo->veye_cnt));
         }
         prev_ber_log = curr_ber_log;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("cur_be_log %2.2f\n"), curr_ber_log));
         /* find the first data point with good BER */
         if ((curr_ber_log <= good_ber_level) &&
             (pInfo->first_good_ber_idx == INDEX_UNINITIALIZED)) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("cur_be_log %2.2f, loop_var %d\n"),
 curr_ber_log,loop_var));
             pInfo->first_good_ber_idx = loop_var;
@@ -4850,7 +4850,7 @@ _tscmod_eye_margin_diagram_cal(TSCMOD_EYE_DIAG_INFOt *pInfo, int type)
     ber_conf_scale[18] = 1.5136;
     ber_conf_scale[19] = 1.4791;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("first_good_ber_idx: %d, first_small_errcnt_idx: %d\n"),
 pInfo->first_good_ber_idx,pInfo->first_small_errcnt_idx));
     
@@ -4930,7 +4930,7 @@ pInfo->first_good_ber_idx,pInfo->first_small_errcnt_idx));
     /* Below this point the code assumes statistically valid point available */
         delta_n = stop_n - start_n - n_mono;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("start_n: %d, stop_n: %d, veye: %d, n_mono: %d\n"),
 start_n,stop_n,pInfo->veye_cnt,n_mono));
 
@@ -4939,17 +4939,17 @@ start_n,stop_n,pInfo->veye_cnt,n_mono));
         lbers[loop_index] = (COMPILER_DOUBLE)sqrt(-log(bers[loop_index]));
     }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\tstart=%d, stop=%d, low_confidence=%d\n"),
 start_n, stop_n, low_confidence));
         for (loop_index=start_n; loop_index < stop_n; loop_index++){
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("\ttotal_errs[%d]=0x%08x\n"),
 loop_index,(int)pInfo->total_errs[loop_index]));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("\tbers[%d]=%f\n"),
 loop_index,bers[loop_index]));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META("\tlbers[%d]=%f\n"),
 loop_index,lbers[loop_index]));
     }
@@ -4968,7 +4968,7 @@ loop_index,lbers[loop_index]));
         alpha = (Exy - Ey * Ex)/(Exx - Ex * Ex);
         beta = Ey - Ex * alpha;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("Exy=%f, Eyy=%f, Exx=%f, Ey=%f,Ex=%f alpha=%f, beta=%f\n"),
 Exy,Eyy,Exx,Ey,Ex,alpha,beta));
 
@@ -5002,25 +5002,25 @@ Exy,Eyy,Exx,Ey,Ex,alpha,beta));
         outputs[2] = _tscmod_util_round_real(proj_margin_12,1);
         outputs[3] = _tscmod_util_round_real(proj_margin_15,1);
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tlog1e-12=%f, sq=%f\n"),(COMPILER_DOUBLE)log(1e-12),(COMPILER_DOUBLE)sqrt(-log(1e-12))));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\talpha=%f\n"),alpha));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tbeta=%f\n"),beta));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_ber=%f\n"),proj_ber));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_margin12=%f\n"),proj_margin_12));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_margin12=%f\n"),proj_margin_15));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\tproj_margin18=%f\n"),proj_margin_18));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\toutputs[0]=%f\n"),outputs[0]));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\toutputs[1]=%f\n"),outputs[1]));
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META("\t\toutputs[2]=%f\n"),outputs[2]));
 
         /* Extrapolated results, low confidence */

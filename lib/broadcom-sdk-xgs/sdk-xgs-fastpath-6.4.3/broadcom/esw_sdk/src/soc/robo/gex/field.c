@@ -197,7 +197,7 @@ _drv_vulcan_cfp_qual_value_set(int unit, drv_field_qualify_t qual, void *entry,
     }
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s fld_index = 0x%x\n"),
                  FUNCTION_NAME(), fld_index));
@@ -209,14 +209,14 @@ _drv_vulcan_cfp_qual_value_set(int unit, drv_field_qualify_t qual, void *entry,
         (unit, DRV_CFP_RAM_TCAM_MASK, fld_index, 
             drv_entry, p_mask)); 
 
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
                drv_entry->tcam_data[0],drv_entry->tcam_data[1], 
                drv_entry->tcam_data[2], drv_entry->tcam_data[3], 
                drv_entry->tcam_data[4], drv_entry->tcam_data[5]));
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s mask= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
@@ -345,7 +345,7 @@ _drv_vulcan_cfp_qual_value_get(int unit, drv_field_qualify_t qual, void *entry,
     }
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s fld_index = 0x%x\n"),
                  FUNCTION_NAME(), fld_index));
@@ -402,7 +402,7 @@ _drv_blackbird2_cfp_qual_value_set(int unit, drv_field_qualify_t qual, void *ent
     }
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s fld_index = 0x%x\n"),
                  FUNCTION_NAME(), fld_index));
@@ -410,7 +410,7 @@ _drv_blackbird2_cfp_qual_value_set(int unit, drv_field_qualify_t qual, void *ent
         (unit, DRV_CFP_RAM_TCAM, fld_index, 
             drv_entry, p_data));
 
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
@@ -445,7 +445,7 @@ _drv_blackbird2_cfp_qual_value_get(int unit, drv_field_qualify_t qual, void *ent
     }
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s fld_index = 0x%x\n"),
                  FUNCTION_NAME(), fld_index));
@@ -704,7 +704,7 @@ _drv_vulcan_cfp_udf_value_set(int unit, uint32 udf_idx, void *entry,
     } 
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s fld_index = 0x%x\n"),
                  FUNCTION_NAME(), fld_index));
@@ -907,14 +907,14 @@ _drv_vulcan_cfp_udf_value_set(int unit, uint32 udf_idx, void *entry,
                     drv_entry, &temp));
     }
         
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP:  %s data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
                drv_entry->tcam_data[0],drv_entry->tcam_data[1], 
                drv_entry->tcam_data[2], drv_entry->tcam_data[3], 
                drv_entry->tcam_data[4], drv_entry->tcam_data[5]));
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP:  %s mask= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
@@ -1311,7 +1311,7 @@ _drv_vulcan_cfp_udf_value_get(int unit, uint32 udf_idx, void *entry,
     } 
 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s fld_index = 0x%x\n"),
                  FUNCTION_NAME(), fld_index));
@@ -2337,7 +2337,7 @@ _drv_gex_fp_entry_copy(int unit, int stage_id, void *src_entry, void *dst_entry 
     sal_memcpy(dst_entry, src_entry, 
         memsize);
 
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s dst data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
@@ -2345,7 +2345,7 @@ _drv_gex_fp_entry_copy(int unit, int stage_id, void *src_entry, void *dst_entry 
                ((drv_cfp_entry_t *)dst_entry)->tcam_data[2], ((drv_cfp_entry_t *)dst_entry)->tcam_data[3], 
                ((drv_cfp_entry_t *)dst_entry)->tcam_data[4], ((drv_cfp_entry_t *)dst_entry)->tcam_data[5]));
       
-  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s src data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                FUNCTION_NAME(),
@@ -2493,7 +2493,7 @@ _drv_gex_fp_entry_tcam_move(int unit, int stage_id, void *entry, int amount,
         (uint32 *)&tcam_idx_max));
     tcam_idx_max = tcam_idx_max -1;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s old:%d new:%d total(max):%d\n"),
                FUNCTION_NAME(), tcam_idx_old, tcam_idx_new, tcam_idx_max));
@@ -2578,7 +2578,7 @@ _drv_gex_fp_entry_tcam_valid_control(int unit, int stage_id, void *entry, int tc
         DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry));
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV FP: set tcam idx %d valid %d\n"),
                tcam_idx,temp));
@@ -2653,7 +2653,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
 #endif /* BCM_53115 || BCM_53125 || POLAR || NORTHSTAR || NS+ */   
 
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                  FUNCTION_NAME(),
@@ -2661,7 +2661,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
                  drv_entry->tcam_data[2], drv_entry->tcam_data[3], 
                  drv_entry->tcam_data[4], drv_entry->tcam_data[5]));
   
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s action= 0x%x, 0x%x\n"),
                  FUNCTION_NAME(),drv_entry->act_data[0],drv_entry->act_data[1]));
@@ -2675,7 +2675,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
             DRV_CFP_FIELD_L3_FRM_FORMAT,
             drv_entry, &temp);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2694,7 +2694,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_FIELD_SET(unit, DRV_CFP_RAM_TCAM_MASK, 
             DRV_CFP_FIELD_L3_FRM_FORMAT, drv_entry, &temp);   
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2705,7 +2705,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2719,7 +2719,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
                 _DRV_FP_ID_CTRL_ALLOC, 0, &chain_id, NULL);
 
             if (SOC_FAILURE(retval)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "FP Error: Can't get chain_id for Tcam entry index = %d fail.\n"),  
                            tcam_idx));
@@ -2731,7 +2731,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
             chain_id = drv_entry->cfp_chain->chain_id;
         }
 
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "DRV_FP: %s get chain_id %d\n"),
                    FUNCTION_NAME(), chain_id));
@@ -2743,7 +2743,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ACTION_SET(unit, DRV_CFP_ACT_CHAIN_ID, 
                         drv_entry, 0, 0);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Can't set chain_id action for Tcam entry %d..\n"),  
                        tcam_idx));
@@ -2754,7 +2754,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ACTION_SET(unit, DRV_CFP_ACT_CLASSFICATION_ID, 
                         drv_entry, chain_id, 0);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: set chain_id %d action fail.\n"),  
                        chain_id));
@@ -2766,7 +2766,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2782,7 +2782,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = _drv_gex_cfp_qual_value_set(unit, drvFieldQualifyClassId, 
                         drv_entry, (uint32 *)&chain_id, &temp);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: set qualify chain_id %d fail.\n"),  
                        chain_id));
@@ -2804,7 +2804,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ENTRY_WRITE
             (unit, *tcam_chain_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2813,7 +2813,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ENTRY_WRITE
             (unit, *tcam_chain_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2824,7 +2824,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_ACT, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2833,7 +2833,7 @@ _drv_gex_fp_entry_tcam_policy_install(int unit, int stage_id, void *entry, int t
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_TCAM, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -2866,7 +2866,7 @@ _drv_gex_fp_entry_tcam_meter_install(int unit, int stage_id, void *entry,
         retval = DRV_CFP_ENTRY_WRITE
             (unit, tcam_idx, DRV_CFP_RAM_METER, drv_entry);
         if (SOC_FAILURE(retval)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "FP Error: Write Tcam entry index = %d fail.\n"),  
                        tcam_idx));
@@ -3033,7 +3033,7 @@ _drv_gex_fp_entry_tcam_enable_set(int unit, int stage_id,
             unit, stage_id, cfp_entry, tcam_idx, &temp);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP %s : data= 0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x\n"),
                  FUNCTION_NAME(),
@@ -3091,7 +3091,7 @@ _drv_gex_fp_entry_tcam_reinstall(int unit, int stage_id, void *entry, int tcam_i
     retval = DRV_CFP_ENTRY_WRITE
         (unit, tcam_idx, DRV_CFP_RAM_ALL, drv_entry);
     if (SOC_FAILURE(retval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP Error: Write Act/Pol entry index = %d fail.\n"),  
                    tcam_idx));
@@ -3231,7 +3231,7 @@ drv_gex_fp_qual_value_set(int unit, int stage_id, drv_field_qualify_t qual,
     if (DRV_FIELD_STAGE_INGRESS != stage_id)
         return SOC_E_PARAM;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s qual %d \n"),
                FUNCTION_NAME(),qual));
@@ -3298,7 +3298,7 @@ drv_gex_fp_qual_value_get(int unit, int stage_id, drv_field_qualify_t qual,
     if (DRV_FIELD_STAGE_INGRESS != stage_id)
         return SOC_E_PARAM;
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s qual %d \n"),
                FUNCTION_NAME(),qual));
@@ -3641,7 +3641,7 @@ drv_gex_fp_action_add(int unit, int stage_id, void *drv_entry,
         return SOC_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_SOC_COMMON,
+    LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "DRV_FP: %s action %d p0:%x p1:%x\n"),
                FUNCTION_NAME(),action,param0,param1));
@@ -3651,7 +3651,7 @@ drv_gex_fp_action_add(int unit, int stage_id, void *drv_entry,
          action == drvFieldActionMirrorIngress || 
          action == drvFieldActionRpMirrorIngress) &&
         !SOC_PORT_VALID_RANGE(unit, (soc_port_t)param1 & ~(1 << 6))) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "FP ERROR: param1=%d out of range for Redirect.\n"),
                    param1));
@@ -4388,7 +4388,7 @@ drv_gex_fp_action_remove(int unit, int stage_id, void *entry,
             rv = SOC_E_UNAVAIL;
             break;
         }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "DRV_FP: %s action(%d)= 0x%x, 0x%x\n"),
                  FUNCTION_NAME(),action, drv_entry->act_data[0],drv_entry->act_data[1]));
@@ -4423,7 +4423,7 @@ drv_gex_fp_selcode_mode_get(int unit, int stage_id,
 
     if (SOC_FAILURE(rv)) {
         sal_free(drv_entry);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "fail in _fp_qset_to_cfp %d\n"),
                    rv));
@@ -4444,7 +4444,7 @@ drv_gex_fp_selcode_mode_get(int unit, int stage_id,
         SOC_IS_NORTHSTARPLUS(unit)) {
         if (rv == SOC_E_UNAVAIL) {
             sal_free(drv_entry);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "fail in DRV_CFP_SLICE_ID_SELECT %d\n"),
                        rv));
@@ -4453,7 +4453,7 @@ drv_gex_fp_selcode_mode_get(int unit, int stage_id,
     } else {
         if (SOC_FAILURE(rv)) {
             sal_free(drv_entry);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "fail in DRV_CFP_SLICE_ID_SELECT %d\n"),
                        rv));
@@ -4545,7 +4545,7 @@ drv_gex_fp_tcam_parity_check(int unit, drv_fp_tcam_checksum_t *drv_fp_tcam_chksu
 
         rv = REG_READ_TCAM_CHKSUM_STSr(unit, &reg_val);
         SOC_IF_ERROR_RETURN(rv);
-        LOG_DEBUG(BSL_LS_SOC_COMMON,
+        LOG_BSL_DEBUG(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "DRV_FP: %s reg_val %x \n"),
                    FUNCTION_NAME(),reg_val));    

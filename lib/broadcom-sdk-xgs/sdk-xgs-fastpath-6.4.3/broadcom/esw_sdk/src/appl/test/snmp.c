@@ -235,7 +235,7 @@ snmp_test_begin(snmp_test_t *b,
                 b->failures++;
             } else {
                 /* No output */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(b->unit,
                                         "PASS: u=%d:speed=%d:port=%d:object=%d:rv=%d: %s\n"),
                              b->unit, b->speed, port, object, rv, bcm_errmsg(rv)));

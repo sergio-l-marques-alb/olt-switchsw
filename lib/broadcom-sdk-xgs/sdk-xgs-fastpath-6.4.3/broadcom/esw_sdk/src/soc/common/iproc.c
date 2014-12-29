@@ -153,7 +153,7 @@ soc_iproc_shutdown(int unit, uint32 cpu_mask, int level)
         return (SOC_E_FAIL);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "iproc_shutdown\n")));
 
@@ -525,7 +525,7 @@ int soc_iproc_ddr_init(int unit)
                 break;
             }
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit, 
                             "Timed out waiting for PHY to be ready\n")));
 
@@ -589,7 +589,7 @@ int soc_iproc_ddr_init(int unit)
                 break;
             }
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit, 
                       "Timed out waiting for DDR controller to be ready\n")));
 
@@ -613,14 +613,14 @@ int soc_iproc_ddr_init(int unit)
         /* Run or restore SHMOO */
         if (soc_property_get(unit, spn_DDR3_AUTO_TUNE, TRUE)) {
             soc_ddr40_shmoo_ctl(unit, 0, DDR_PHYTYPE_HR2, DDR_CTLR_T1, 0, 1);
-            LOG_INFO(BSL_LS_SOC_COMMON,
+            LOG_BSL_INFO(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit, "DDR tuning completed.\n")));
             
             soc_ddr40_shmoo_savecfg(unit, 0);
             if (soc_mem_config_set != NULL) {
                 soc_mem_config_set("ddr3_auto_tune","0");
             }
-            LOG_INFO(BSL_LS_SOC_COMMON,
+            LOG_BSL_INFO(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit, 
                     "Please save the config to avoid re-tuning.\n")));
         } else {

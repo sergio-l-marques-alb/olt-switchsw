@@ -959,7 +959,7 @@ sal_memory_check(uint32 addr)
 	return -1;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PCI,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PCI,
                 (BSL_META("System Memory Top: 0x%x\n"),
                  PTR_TO_INT(sysMemTop())));
 

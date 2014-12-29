@@ -2931,7 +2931,7 @@ _dpp_phy_addr_default(int unit, int port,
     *phy_addr_int = core_info.mdio_addr;
 
     if(SOC_FAILURE(rv) || array_size==0){
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "_dpp_phy_addr_default: failed to get address for port %d\n"), port));
     }
@@ -3692,7 +3692,7 @@ _bcm88030_wc_phy_addr(int unit, int port, uint16 *phy_addr_int )
 
     rv = soc_sbx_caladan3_port_to_phyid(unit, port, &phyid);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "soc_sbx_caladan3_phy_addr_multi_get: failed to get address for port %d\n"), 
                    port));
@@ -3881,7 +3881,7 @@ _bcm88030_phy_addr_default(int unit, int port,
 
     rv = soc_sbx_caladan3_port_to_phyid(unit, port, &phyid);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "soc_sbx_caladan3_phy_addr_multi_get: failed to get address for port %d\n"), port));
         return ;
@@ -3965,7 +3965,7 @@ _sirius_phy_addr_default(int unit, int port,
     block_number = SOC_PORT_BLOCK_NUMBER(unit, port);
     block_index  = SOC_PORT_BLOCK_INDEX(unit, port);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "block_type %d, block_num %d, block_index %d\n"),
                             block_type, block_number, block_index));
@@ -5309,7 +5309,7 @@ _chk_sfp_phy(int unit, soc_port_t port, soc_phy_table_t *my_entry,
 
     if (soc_property_port_get(unit, port, spn_PHY_COPPER_SFP, 0)) {
         if (!(phy_id0 == (uint16)0xFFFF && phy_id1 == (uint16)0xFFFF)) {
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_chk_sfp_phy: u=%d p=%d id0=0x%x, id1=0x%x,"
                                  " oui=0x%x,model=0x%x,rev=0x%x\n"),
@@ -5637,7 +5637,7 @@ _int_phy_probe(int unit, soc_port_t port,
              */
             rv = PHY_PROBE(_int_phy_table[i].driver, unit, int_pc);
             if ((rv == SOC_E_NONE) || (rv == SOC_E_UNAVAIL)) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "<%d> int Index = %d Mynum = %d %s\n"),
                                      rv, i, _int_phy_table[i].myNum, _int_phy_table[i].phy_name));
@@ -5837,17 +5837,17 @@ _int_phy_probe(int unit, soc_port_t port,
 #if defined(BCM_HURRICANE_SUPPORT)
         if ((&phy_hl65_hg == int_phyd) && SOC_IS_HURRICANE(unit) && ((IS_HG_PORT(unit, port)) || IS_XE_PORT(unit, port))) {
             if ((port == 26) && (!SOC_PORT_VALID(unit, 27))) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "Port 26 in combo mode\n")));
                 pi->phy_name = "HL65/0";
             } else if ((port == 28) && (!SOC_PORT_VALID(unit, 29))) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "Port 28 in combo mode\n")));
                 pi->phy_name = "HL65/1";
             } else {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "Port %d in HGd mode\n"), port));
                 PHY_FLAGS_SET(unit, port, PHY_FLAGS_INDEPENDENT_LANE);
@@ -6301,7 +6301,7 @@ _ext_phy_probe(int unit, soc_port_t port,
              */
             rv = PHY_PROBE(phy_table[i]->driver, unit, ext_pc);
             if ((rv == SOC_E_NONE) || (rv == SOC_E_UNAVAIL)) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "<%d> ext Index = %d Mynum = %d %s\n"),
                                      rv, i, phy_table[i]->myNum, phy_table[i]->phy_name));
@@ -6602,7 +6602,7 @@ soc_phy_probe(int unit, soc_port_t port, phy_ctrl_t *ext_pc,
         soc_property_port_get(unit, port,
                               spn_PHY_AUTONEG_TIMEOUT, 250000);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "soc_phy_probe: port=%d addr=0x%x "
                          "id1=0x%x id0=0x%x flg=0x%x driver=\"%s\"\n"),
@@ -7285,7 +7285,7 @@ _phy_ident_type_get(uint16 phy_id0, uint16 phy_id1)
     model     = PHY_MODEL(phy_id0, phy_id1);
     rev_map   = 1 << PHY_REV(phy_id0, phy_id1);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META("phy_id0 = %04x phy_id1 %04x oui = %04x model = %04x rev_map = %04x\n"),
               phy_id0, phy_id1, oui, model, rev_map));
     for (i = 0; i < COUNTOF(phy_id_map); i++) {

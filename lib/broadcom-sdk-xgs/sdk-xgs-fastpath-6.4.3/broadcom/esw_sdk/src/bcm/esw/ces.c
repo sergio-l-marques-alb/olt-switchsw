@@ -683,7 +683,7 @@ AgResult bcm_esw_ces_pbi_cb(AG_U32 n_channel_id, AG_U32 n_user_data) {
     if (BCM_CES_IS_FREE(&record->config))
 	return AG_S_OK;
 
-    LOG_WARN(BSL_LS_BCM_CES,
+    LOG_BSL_WARN(BSL_LS_BCM_CES,
              (BSL_META_U(unit,
                          "PBFoverflowonservice:%lu\n"), n_channel_id));
 
@@ -736,7 +736,7 @@ AgResult bcm_esw_ces_cwi_cb(AG_U32 n_channel_id, AG_U32 n_user_data, AG_U16 n_cw
      */
     record->rx_control_word = n_cw;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Service:%luCEScontrolwordbitschangedto:0x%04x\n"),
                  n_channel_id, n_cw));
@@ -787,7 +787,7 @@ AgResult bcm_esw_ces_psi_cb(AG_U32 n_channel_id, AG_U32 n_user_data, AgNdSyncTyp
     if (BCM_CES_IS_FREE(&record->config))
 	return AG_S_OK;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Service:%lusyncstatuschangedto:%s\n"),
                  n_channel_id, (n_sync==0?"LOPS":"AOPS")));
@@ -841,7 +841,7 @@ AgResult bcm_esw_ces_tpi_cb(AG_U32 n_channel_id, AG_U32 n_user_data) {
     if (BCM_CES_IS_FREE(&record->config))
 	return AG_S_OK;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Service:%luFLLsamplecomplete\n"),
                  n_channel_id));
@@ -1401,7 +1401,7 @@ int bcm_esw_ces_init(int unit)
      * Base address
      */
     addr = soc_reg_addr(unit, COREIDr, REG_PORT_ANY, 0);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "CESbaseaddress:0x%08x\n"), addr));
 
@@ -1425,12 +1425,12 @@ int bcm_esw_ces_init(int unit)
         return BCM_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "CESCORID:0x%04x\n"), (uint16)coreid));
 
     if (coreid != BCM_CES_COREID) {
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "CES CORID:0x%04x does not match expected value:0x%04x\n"), 
                                     (uint16)coreid, (uint16)BCM_CES_COREID));
@@ -1692,7 +1692,7 @@ bcm_esw_ces_services_init(int unit) {
      * Grab ge0 for CES
      */
     if ((ret = bcm_esw_ces_enable_mii_port(unit, config->ces_mii_port, TRUE)) != BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "FailedtosetGE0portspeed\n")));
 	CES_UNLOCK(unit);
@@ -1706,7 +1706,7 @@ bcm_esw_ces_services_init(int unit) {
 	 */
 	ret = bcm_esw_ces_crm_init(unit, BCM_CES_CRM_FLAG_INIT | (SOC_WARM_BOOT(unit) ? BCM_CES_CRM_FLAG_WB:0x00));
 	if (ret != BCM_E_NONE) {
-	    LOG_ERROR(BSL_LS_BCM_CES,
+	    LOG_BSL_ERROR(BSL_LS_BCM_CES,
                       (BSL_META_U(unit,
                                   "CESfailedtolocateCRM\n")));
 	    CES_UNLOCK(unit);
@@ -2676,7 +2676,7 @@ bcm_esw_ces_service_create(
                 n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_CIRCUIT_ENABLE, &ndCircuitEnable);
                 if (!AG_SUCCEEDED(n_ret))
                 {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "AG_ND_OPCODE_CONFIG_CIRCUIT_ENABLEfailed\n")));
 					if (!(flags & BCM_CES_WITH_ID))
@@ -2694,7 +2694,7 @@ bcm_esw_ces_service_create(
                 ndFramer.n_circuit_id = (AgNdCircuit) bcm_ces_port_to_circuit_id(unit, config->ingress_channel_map.circuit_id[i]);
                 n_ret = ag_nd_device_read(ctrl->ndHandle, AG_ND_OPCODE_FRAMER_PORT_CONFIG, &ndFramer);
                 if (!AG_SUCCEEDED(n_ret)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "AG_ND_OPCODE_FRAMER_PORT_CONFIGfailed\n")));
                     if (!(flags & BCM_CES_WITH_ID))
@@ -2708,7 +2708,7 @@ bcm_esw_ces_service_create(
 
                 n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_FRAMER_PORT_CONFIG, &ndFramer);
                 if (!AG_SUCCEEDED(n_ret)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "AG_ND_OPCODE_FRAMER_PORT_CONFIGfailed\n")));
                     if (!(flags & BCM_CES_WITH_ID))
@@ -2724,7 +2724,7 @@ bcm_esw_ces_service_create(
                  */
                 if ((record->tdmRecord = bcm_esw_port_tdm_find_port(unit,(AgNdCircuit) config->ingress_channel_map.circuit_id[i])) == NULL)
                 {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "bcm_esw_port_tdm_find_port()failed\n")));
                     if (!(flags & BCM_CES_WITH_ID))
@@ -2745,7 +2745,7 @@ bcm_esw_ces_service_create(
                                                          config->ingress_channel_map.slot);
                     if (n_ret != BCM_E_NONE)
                     {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "bcm_esw_port_tdm_add_service()failed\n")));
                         bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -2768,7 +2768,7 @@ bcm_esw_ces_service_create(
                     if (flags & BCM_CES_TDM_UPDATE_WITH_ID) {
                         n_ret = ag_nd_device_read(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_NEMO_CIRCUIT, &ndCircuit);
                         if (!AG_SUCCEEDED(n_ret)) {
-                            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                         (BSL_META_U(unit,
                                                     "AG_ND_OPCODE_CONFIG_NEMO_CIRCUIT "
                                                     "failed\n")));
@@ -2793,7 +2793,7 @@ bcm_esw_ces_service_create(
                     n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_NEMO_CIRCUIT, &ndCircuit);
                     if (!AG_SUCCEEDED(n_ret))
                     {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "AG_ND_OPCODE_CONFIG_NEMO_CIRCUITfailed"
                                                 "\n")));
@@ -2821,7 +2821,7 @@ bcm_esw_ces_service_create(
                     n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_FRAMER_PORT_CONFIG, &ndFramer);
                     if (!AG_SUCCEEDED(n_ret))
                     {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "AG_ND_OPCODE_FRAMER_PORT_CONFIGfailed\n")));
                         bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -2950,7 +2950,7 @@ bcm_esw_ces_service_create(
 	 */
 	if (config->header.vlan_count > 0) {
 	    if (config->header.vlan_count > BCM_CES_PROTO_VLAN_TAG_MAX) {
-		LOG_VERBOSE(BSL_LS_SOC_COMMON,
+		LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "VLANcountoutofrange\n")));
 		bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3082,7 +3082,7 @@ bcm_esw_ces_service_create(
 	n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_NEMO_DCR_CONFIGURATIONS, &ndDcrConfig);
 	if (!AG_SUCCEEDED(n_ret))
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "AG_ND_OPCODE_CONFIG_NEMO_DCR_CONFIGURATIONSfailed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3105,7 +3105,7 @@ bcm_esw_ces_service_create(
 	n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_NEMO_DCR_CLK_SOURCE, &ndDcrClkSource);
 	if (!AG_SUCCEEDED(n_ret))
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "AG_ND_OPCODE_CONFIG_NEMO_DCR_CLK_SOURCEfailed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3119,7 +3119,7 @@ bcm_esw_ces_service_create(
 	n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_CHANNEL_INGRESS, &ndChannelIngress);
 	if (!AG_SUCCEEDED(n_ret))
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "AG_ND_OPCODE_CONFIG_CHANNEL_INGRESSfailed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3173,7 +3173,7 @@ bcm_esw_ces_service_create(
 	n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_CAS_CHANNEL_INGRESS, &ndCasIngress);
 	if (!AG_SUCCEEDED(n_ret))
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "AG_ND_OPCODE_CONFIG_CAS_CHANNEL_INGRESSfailed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3223,7 +3223,7 @@ bcm_esw_ces_service_create(
 	n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_CHANNEL_EGRESS, &ndChannelEgress);
 	if (!AG_SUCCEEDED(n_ret))
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "AG_ND_OPCODE_CONFIG_CHANNEL_EGRESSfailed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3242,7 +3242,7 @@ bcm_esw_ces_service_create(
 	n_ret = bcm_esw_ces_service_config_channelizer(unit, record, &config->ingress_channel_map, AG_ND_PATH_INGRESS);
 	if (n_ret != BCM_E_NONE)
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "bcm_esw_ces_service_config_channelizer()failed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3261,7 +3261,7 @@ bcm_esw_ces_service_create(
 	n_ret = bcm_esw_ces_service_config_channelizer(unit, record, &config->egress_channel_map, AG_ND_PATH_EGRESS);
 	if (n_ret != BCM_E_NONE)
 	{
-	    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+	    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "bcm_esw_ces_service_config_channelizer()failed\n")));
 	    bcm_esw_ces_service_free_tdm(unit, *ces_service);
@@ -3372,7 +3372,7 @@ bcm_esw_ces_service_enable_set(
                 ndFramer.n_circuit_id = (AgNdCircuit)bcm_ces_port_to_circuit_id(unit, record->config.ingress_channel_map.circuit_id[i]);
                 n_ret = ag_nd_device_read(ctrl->ndHandle, AG_ND_OPCODE_FRAMER_PORT_CONFIG, &ndFramer);
                 if (!AG_SUCCEEDED(n_ret)) {
-                    LOG_ERROR(BSL_LS_BCM_CES,
+                    LOG_BSL_ERROR(BSL_LS_BCM_CES,
                               (BSL_META_U(unit, "1\n")));
                     CES_UNLOCK(unit);
                     return BCM_E_INTERNAL;
@@ -3382,7 +3382,7 @@ bcm_esw_ces_service_enable_set(
                 n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_FRAMER_PORT_CONFIG, &ndFramer);
                 if (!AG_SUCCEEDED(n_ret))
                 {
-                    LOG_ERROR(BSL_LS_BCM_CES,
+                    LOG_BSL_ERROR(BSL_LS_BCM_CES,
                               (BSL_META_U(unit, "2\n")));
                     CES_UNLOCK(unit);
                     return BCM_E_INTERNAL;
@@ -3393,7 +3393,7 @@ bcm_esw_ces_service_enable_set(
                 n_ret = ag_nd_device_write(ctrl->ndHandle, AG_ND_OPCODE_CONFIG_CIRCUIT_ENABLE, &ndCircuitEnable);
                 if (!AG_SUCCEEDED(n_ret))
                 {
-                    LOG_ERROR(BSL_LS_BCM_CES,
+                    LOG_BSL_ERROR(BSL_LS_BCM_CES,
                               (BSL_META_U(unit, "3\n")));
                     CES_UNLOCK(unit);
                     return BCM_E_INTERNAL;
@@ -5035,7 +5035,7 @@ bcm_esw_ces_service_control_word_set(int unit, bcm_ces_service_t ces_service, ui
     msg.n_r_bit  = ((tx_control_word & tx_control_word_mask) & BCM_CES_CW_R) >> BCM_CES_CW_R_START_BIT;
     msg.n_m_bits = ((tx_control_word & tx_control_word_mask) & BCM_CES_CW_M) >> BCM_CES_CW_M_START_BIT;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Service:%d mask:0x%04x LBit:0x%01x RBit:0x%01x "
                             "MBit:0x%01x\n"),
@@ -5115,7 +5115,7 @@ bcm_esw_ces_cb_register(int unit,
 
     CES_CHECK_INIT(unit);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Events:0x%02x cb:%p user_data:%p\n"),
                  events,

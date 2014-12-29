@@ -4722,7 +4722,7 @@ int _soc_katana2_process_sb_mmu_leaf_parity_error (int unit,
              soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                 SOC_SWITCH_EVENT_DATA_ERROR_UNCORRECTABLE,
                                 0, minfo);
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "%s MMU subblock %x   reg %s field %s(value = 0x%x) has \
                                    MMU parity error\n"),
@@ -5209,12 +5209,12 @@ _soc_katana2_parity_ser_correction(int unit, const _soc_katana2_parity_info_t *i
     int rv = SOC_E_NONE;
     _soc_ser_correct_info_t spci = {0};
     
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "%s %s entry %d parity error\n"), prefix_str, 
                           mem_str_ptr, entry_idx));
     if (multiple) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s has multiple parity errors\n"),
                               prefix_str, mem_str_ptr));
@@ -5367,7 +5367,7 @@ _soc_katana2_parity_process_parity(int unit, soc_port_t port,
     }
                 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -5439,17 +5439,17 @@ _soc_katana2_parity_process_ecc(int unit, soc_port_t port,
                 entry_idx = soc_reg_field_get(unit, reg, rval, ENTRY_IDXf);
             }
             if (double_bit) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d double-bit ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
             } else if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple ECC errors\n"),
                            prefix_str, mem_str_ptr));
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s entry %d ECC error\n"),
                            prefix_str, mem_str_ptr, entry_idx));
@@ -5479,7 +5479,7 @@ _soc_katana2_parity_process_ecc(int unit, soc_port_t port,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -5566,7 +5566,7 @@ _soc_katana2_parity_process_hash(int unit, soc_port_t port,
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR, 
                                        SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                        entry_idx, minfo);
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s %s entry %d parity error\n"),
                                           prefix_str, mem_str, entry_idx));
@@ -5586,7 +5586,7 @@ _soc_katana2_parity_process_hash(int unit, soc_port_t port,
                 }
             }
             if (multiple) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s has multiple parity errors\n"),
                            prefix_str, mem_str));
@@ -5597,7 +5597,7 @@ _soc_katana2_parity_process_hash(int unit, soc_port_t port,
     }
 
     if (!has_error) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -5637,24 +5637,24 @@ _soc_katana2_parity_process_edatabuf(int unit, soc_port_t port,
                            SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 0, 
                            minfo);
         if (double_bit) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s double-bit ECC error\n"),
                        prefix_str, mem_str));
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s ECC error\n"),
                        prefix_str, mem_str));
         }
         if (multiple) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s has multiple ECC errors\n"),
                        prefix_str, mem_str));
         }
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s ECC hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -5709,13 +5709,13 @@ _soc_katana2_parity_process_counter(int unit, soc_port_t port,
                                SOC_SWITCH_EVENT_DATA_ERROR_PARITY, 
                                entry_idx, minfo);
                 counter_name = SOC_REG_NAME(unit, counter_reg);
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s port %d %s entry %d parity error\n"),
                            prefix_str, mem_str, port_idx, counter_name,
                            entry_idx));
                 if (multiple) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s %s has multiple parity errors\n"),
                                prefix_str, mem_str));
@@ -5733,18 +5733,18 @@ _soc_katana2_parity_process_counter(int unit, soc_port_t port,
                 }
                 _stat_error_fixed[unit]++;
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s %s parity hardware inconsistency\n"),
                            prefix_str, mem_str));
             }
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "cmap is NULL\n")));
         }
     } else if (!schan) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s %s parity hardware inconsistency\n"),
                    prefix_str, mem_str));
@@ -5794,7 +5794,7 @@ _soc_katana2_parity_process_info(int unit, soc_port_t port,
         /* Handle different parity error reporting style */
         switch (info->type) {
         case _SOC_PARITY_TYPE_GENERIC:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s %s asserted\n"), prefix_str, mem_str));
             break;
@@ -5931,7 +5931,7 @@ _soc_katana2_parity_process_all(int unit)
 
     /* Handle OAM interrupt */
     if (READ_IP1_INTR_STATUS_1r(unit, &rval)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_STATUS_1r)));
@@ -6088,7 +6088,7 @@ soc_katana2_stat_nack(int unit, int *fixed)
 
     if ((rv = _soc_katana2_mem_nack_error_process(unit, nack_reg_mem, 
         _SOC_KT2_SER_REG)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d STAT SCHAN NACK analysis failure.\n"), unit));
     }
@@ -6119,7 +6119,7 @@ soc_katana2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
         offset = address & ~0xC0f00000; /* Strip block ID */
         mem = soc_addr_to_mem_extended(unit, block, 0, address);
         if (mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d mem decode failed, "
                                   "SCHAN NACK analysis failure\n"), unit));
@@ -6137,12 +6137,12 @@ soc_katana2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     if ((rv = _soc_katana2_mem_nack_error_process(unit, nack_reg_mem,
         reg_mem)) < 0) {
         if (reg_mem == _SOC_KT2_SER_REG) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d REG SCHAN NACK analysis failure\n"),
                        unit));
         } else {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d %s entry %d SCHAN NACK analysis failure\n"),
                        unit, SOC_MEM_NAME(unit, mem),
@@ -6151,12 +6151,12 @@ soc_katana2_mem_nack(void *unit_vp, void *addr_vp, void *blk_vp,
     }
     
     if (reg_mem == _SOC_KT2_SER_REG) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "unit %d REG SCHAN NACK analysis\n"),
                        unit));
     } else {
-        LOG_INFO(BSL_LS_SOC_SCHAN,
+        LOG_BSL_INFO(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "unit %d %s entry %d SCHAN NACK analysis\n"),
                   unit, SOC_MEM_NAME(unit, mem),
@@ -6295,7 +6295,7 @@ _soc_katana2_mem_nack_error_test(int unit, _soc_ser_test_t test_type, int *testE
                     if ((info[table].enable_reg == INVALIDr) ||
                         !soc_reg_field_valid(unit, info[table].enable_reg,
                                              info[table].enable_field)) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "unit %d %s has no parity toggle\n"),
                                    unit, SOC_MEM_NAME(unit, mem)));
@@ -8532,13 +8532,13 @@ soc_error_t _katana2_get_wc_phy_info(int unit,
   *phy_mode = PHYCTRL_QUAD_LANE_PORT; /* XAUI */
 
   if (IS_GE_PORT(unit, port)) {
-      LOG_VERBOSE(BSL_LS_SOC_COMMON,
+      LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,"\n GE port so forced Single Lane GMII\n")));
       *phy_mode = PHYCTRL_ONE_LANE_PORT;
       return SOC_E_NONE;
   }
   if (IS_HG_PORT(unit, port)) {
-      LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+      LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                   "\n HG port so Forced Four Lanes XGMII \n")));
       *phy_mode = PHYCTRL_QUAD_LANE_PORT;
       return SOC_E_NONE;
@@ -8547,17 +8547,17 @@ soc_error_t _katana2_get_wc_phy_info(int unit,
       SOC_IF_ERROR_RETURN(
           soc_katana2_get_core_port_mode(unit, port, &mode));
       if (mode == bcmMxqCorePortModeQuad) {
-          LOG_WARN(BSL_LS_SOC_COMMON,
+          LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                    "\n Internal Error. 4 XE ports not possible \n")));
           return SOC_E_INTERNAL;
       }
-      LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+      LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                   "\n Checking %s config setting \n"), spn_SERDES_IF_TYPE));
       intf_type= soc_property_port_get_str(unit, port, spn_SERDES_IF_TYPE);
 
       if (intf_type != NULL) {
-          LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                       "\n As per %s config setting \n"), spn_SERDES_IF_TYPE));
           if ((sal_strcmp(intf_type, "XAUI") == 0) ||
               (sal_strcmp(intf_type, "xaui") == 0)) {
@@ -8565,7 +8565,7 @@ soc_error_t _katana2_get_wc_phy_info(int unit,
                   *phy_mode = PHYCTRL_QUAD_LANE_PORT;
                   return SOC_E_NONE;
               } else {
-                  LOG_WARN(BSL_LS_SOC_COMMON,
+                  LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                            (BSL_META_U(unit,
                            "Discarded XAUI setting.Faliing through\n")));
               }
@@ -8580,17 +8580,17 @@ soc_error_t _katana2_get_wc_phy_info(int unit,
               *phy_mode = PHYCTRL_ONE_LANE_PORT;
               return SOC_E_NONE;
           }
-          LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                        "\n Interface Type: %s "
                        "Supports only XAUI,RXAUI & XFI so falling through"),
                        intf_type));
       } 
-      LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+      LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                   "\n Checking %s config setting \n"), spn_SERDES_RXAUI_MODE));
       rxaui =  soc_property_port_get(unit, port, 
                                      spn_SERDES_RXAUI_MODE, 0xFF);
       if ((rxaui == 0) || (rxaui == 1)) {
-           LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+           LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                        "\nAs per %s config setting\n"), spn_SERDES_RXAUI_MODE));
            if (rxaui == 1) {
                *phy_mode = PHYCTRL_DUAL_LANE_PORT; /* Reduced XAUI */
@@ -8601,13 +8601,13 @@ soc_error_t _katana2_get_wc_phy_info(int unit,
       } 
       if (rxaui == 0xFF) { /* Not defined */
           if (mode == bcmMxqCorePortModeDual) {
-               LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+               LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                            "\n Two XE ports so Could be either RXAUI/XFI"
                            "\n so assuing XFI \n")));
                *phy_mode = PHYCTRL_ONE_LANE_PORT; /* XFI */
                return SOC_E_NONE;
           }
-          LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
              "\nOne XE ports so decision as per original config=%s setting\n"),
              spn_PORTGROUP));
           return SOC_E_EMPTY; /* Not Sure what to do */
@@ -8669,7 +8669,7 @@ soc_error_t katana2_get_wc_phy_info(int unit,
   }
 
 
-  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
               "Checking config %s settings \n"), spn_PORTGROUP));
   num_lanes = soc_property_port_get(unit, port, spn_PORTGROUP, 0);
   switch(num_lanes) {
@@ -8683,7 +8683,7 @@ soc_error_t katana2_get_wc_phy_info(int unit,
           if (var_get("flex_io_operation_going") == NULL) {
               rv =  _katana2_get_wc_phy_info(unit, port, phy_mode);
               if (rv == SOC_E_EMPTY) {
-                  LOG_WARN(BSL_LS_SOC_COMMON,
+                  LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                   "\nWARN:Unpredictable results could be observed "
                   "\nPlease use below serdes config variables for WC port:%d\n"
@@ -9004,12 +9004,12 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
 
     /* C13 */
     if (_soc_kt2_mmu_params.packing_mode_d_c) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Packing mode enabled \n")));
         _soc_kt2_mmu_params.max_pkt_size_support_packing = 10;
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Packing mode disabled \n")));
     }
@@ -13153,7 +13153,7 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
                    queue <  si->port_uc_cosq_base[sub_port] +
                             si->port_num_uc_cosq[sub_port];
                    queue++) {
-                   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                (BSL_META_U(unit,
                                            "sub_port:%d queue:%d"), sub_port, queue));
                    SOC_IF_ERROR_RETURN(_soc_katana2_mmu_config_extra_queue(
@@ -13266,7 +13266,7 @@ soc_katana2_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : ING_HW_RESET timeout\n"), unit));
             break;
@@ -13280,7 +13280,7 @@ soc_katana2_pipe_mem_clear(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : EGR_HW_RESET timeout\n"), unit));
             break;
@@ -13441,7 +13441,7 @@ soc_error_t kt2_tdm_verify(int unit,
         expected_tdm_cycles_max=84;
         break;
     default:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Unsupported tdm frequency:%d\n"),
                    tdm_freq));
@@ -13449,7 +13449,7 @@ soc_error_t kt2_tdm_verify(int unit,
     }
    if (!((total_tdm_slots >= expected_tdm_cycles_min) && 
          (total_tdm_slots <= expected_tdm_cycles_max))) {
-          LOG_ERROR(BSL_LS_SOC_COMMON,
+          LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Unsupported tdm cycles:%d (min:%d max:%d\n"),
                      total_tdm_slots,
@@ -13479,7 +13479,7 @@ soc_error_t kt2_tdm_verify(int unit,
          }
          if (((index - 1) != 0) && (index != total_tdm_slots - 1) && 
              (idle_flag == 1) && (idle_rule == 0)) {
-              LOG_ERROR(BSL_LS_SOC_COMMON,
+              LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                           "### Internal Error: TDM Verification failed \n"
                           "### Two consecutive idle not found at position:%d\n"
@@ -13502,7 +13502,7 @@ soc_error_t kt2_tdm_verify(int unit,
          } 
          current->next=sal_alloc(sizeof(tdm_port_slots_info_t),"TDM Pointer");
          count++;
-         LOG_VERBOSE(BSL_LS_SOC_COMMON,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Count=%d SkipCount:%d  Port:%d  Addr:%p\n"),
                       count,skip_count,port,(void *)current->next));
@@ -13516,7 +13516,7 @@ soc_error_t kt2_tdm_verify(int unit,
        /* Special case */
        if (!((tdm[0] == KT2_IDLE1) &&
              (tdm[total_tdm_slots-1] == KT2_IDLE1))) {
-              LOG_ERROR(BSL_LS_SOC_COMMON,
+              LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                        "### Internal Error: TDM Verification failed \n"
                        "### Two consecutive idle not found at Edges \n"
@@ -13525,13 +13525,13 @@ soc_error_t kt2_tdm_verify(int unit,
            return SOC_E_CONFIG;
        }
    }
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Final Count=%d SkipCount:%d\n"),count,skip_count));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Verifying rule  \n")));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Rule3: Loopback (LPBK) ports require min 3 cycle spacing "
                            "among LPBK or CMIC ports \n")));
@@ -13567,7 +13567,7 @@ soc_error_t kt2_tdm_verify(int unit,
                           (total_tdm_slots - current->position +
                            current->next->position) - 1;
       if (prev_tdm_slot_spacing <= 3) {
-          LOG_ERROR(BSL_LS_SOC_COMMON,
+          LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Loopback Ports need min 3 spacing but(prev)found"
                                 "(current:%d , prev:%d)=%d\n"),
@@ -13576,7 +13576,7 @@ soc_error_t kt2_tdm_verify(int unit,
           continue;
       } 
       if (next_tdm_slot_spacing < 3) {
-          LOG_ERROR(BSL_LS_SOC_COMMON,
+          LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Loopback Ports need min 3 spacing but(next)found"
                                 "(current:%d , prev:%d)=%d\n"),
@@ -13595,7 +13595,7 @@ soc_error_t kt2_tdm_verify(int unit,
                           (total_tdm_slots - current1->position + 
                            current->position) - 1  ;
          if (tdm_slot_spacing < 3) {
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "Loopback and CMIC ports need min 3 spacing but "
                                    "found:%u" "(Loopack current:%d , CMIC Current:%d)\n"),
@@ -13609,13 +13609,13 @@ soc_error_t kt2_tdm_verify(int unit,
       }while ((current1 !=head1) && (rv == SOC_E_NONE));
       current = current->next;
    } while ((current !=head) && (rv == SOC_E_NONE));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Verifying rules \n")));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Rule1 : Each Loopback port need 2.5G bandwidth \n")));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Rule2 : Each CMIC port need 2G bandwidth       \n")));
    for (index=0;index < KT2_MAX_LOGICAL_PORTS && rv == SOC_E_NONE ;index++ ) {
@@ -13623,24 +13623,24 @@ soc_error_t kt2_tdm_verify(int unit,
         if (kt2_tdm_port_slots_info[port].position == -1) {
             continue;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 " %d ==>\n\n"),port));
         switch(port) {
         case KT2_CMIC_PORT:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "CMIM \n")));
             speed =2000; 
             break;
         case KT2_LPBK_PORT:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "LOOPBAKC \n")));
             speed =2500; 
             break;
         default:
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     " Port:%d Speed %d ==>\n\n"),
                          port,port_speed[port-1]));
@@ -13670,7 +13670,7 @@ soc_error_t kt2_tdm_verify(int unit,
             speed_index=6;
             break;
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Unsupported speed:%d \n"),speed));
             return SOC_E_FAIL;
@@ -13698,7 +13698,7 @@ soc_error_t kt2_tdm_verify(int unit,
            } else {
                prev_tdm_slot_spacing = next_tdm_slot_spacing = 0;
            }
-           LOG_VERBOSE(BSL_LS_SOC_COMMON,
+           LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "Pos:%d Spacing (Prev %d - %d =  )%d"
                                    "(Next %d - %d =  )%d\n"), current->position,
@@ -13707,7 +13707,7 @@ soc_error_t kt2_tdm_verify(int unit,
                         current->position , next_tdm_slot_spacing));
            if ((prev_tdm_slot_spacing > worse_tdm_slot_spacing) ||
                (next_tdm_slot_spacing > worse_tdm_slot_spacing)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "WorseSpacing:%d NOK !!!! port:%d\n"),
                            worse_tdm_slot_spacing,port));
@@ -13718,11 +13718,11 @@ soc_error_t kt2_tdm_verify(int unit,
            count++;
            current = current->next;
         } while ((current !=head) && (rv == SOC_E_NONE)) ;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "TDM Cycles: %d \n"),count));
         if (count < min_tdm_cycles) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "min_tdm_cycles:%dNOK  !!!! port:%d\n"),
                        min_tdm_cycles,port));
@@ -13730,18 +13730,18 @@ soc_error_t kt2_tdm_verify(int unit,
             *offender_port=port;
             continue;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "n== %d <==\n\n"),port));
    }
 
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Verifying rule  \n")));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Rule4 : Each subport in MXQPORT operates with 4 cycle TDM \n")));
-   LOG_VERBOSE(BSL_LS_SOC_COMMON,
+   LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                            "Verifying MXQports spacing concern\n")));
    for(mxqblock=0;mxqblock<(KT2_MAX_MXQBLOCKS-1) && rv == SOC_E_NONE ;mxqblock++) {
@@ -13795,7 +13795,7 @@ soc_error_t kt2_tdm_verify(int unit,
                                  (total_tdm_slots - current1->position +
                                   current->position) - 1;
                        if (spacing < 3) {
-                           LOG_ERROR(BSL_LS_SOC_COMMON,
+                           LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "Outer Port:%d Inner Port:%d "
                                                  "MXQSpacing Issue"
@@ -13821,7 +13821,7 @@ soc_error_t kt2_tdm_verify(int unit,
           temp = current->next;
           if (current != head) {
               count++;
-              LOG_VERBOSE(BSL_LS_SOC_COMMON,
+              LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Freed count :%d\n"),count));
               sal_free(current);
@@ -13960,31 +13960,31 @@ void kt2_tdm_display(int unit,
      uint32 inner_index=0;
      uint32 outer_index=0;
 
-     LOG_VERBOSE(BSL_LS_SOC_COMMON,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "\n")));
-     LOG_VERBOSE(BSL_LS_SOC_COMMON,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "\t\t\t\t======TDM======\n")));
      for (outer_index=0;outer_index < col ; outer_index ++ ) {
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "\t%d"),outer_index));
      }
-     LOG_VERBOSE(BSL_LS_SOC_COMMON,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "\n")));
      for (outer_index=0;outer_index < col ; outer_index ++ ) {
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "\t%d#"),outer_index));
      }
-     LOG_VERBOSE(BSL_LS_SOC_COMMON,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "\n")));
 
      for (outer_index=0; outer_index < total_tdm_slots ; outer_index +=col ) {
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%d==>\t"),outer_index/col));
           for (inner_index=0;
@@ -13993,41 +13993,41 @@ void kt2_tdm_display(int unit,
                inner_index++ ) {
               switch(tdm[outer_index+inner_index]) {
               case KT2_IDLE :
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "IDLE\t"))); 
                   break;
               case KT2_IDLE1 :
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "IDLE1\t"))); 
                   break;
               case KT2_LPBK_PORT :
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "LPBK\t"))); 
                   break;
               case KT2_CMIC_PORT :
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "CMIC\t"))); 
                   break;
               case KT2_OLP_PORT :
                   if (SOC_INFO(unit).olp_port[0]) {
-                      LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                      LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "OLP\t"))); 
                       break;
                   }
               default :
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%d\t"),
                                           tdm[outer_index+inner_index]));
                   break;
               }
           }
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "\n")));
      }
@@ -14137,7 +14137,7 @@ soc_error_t kt2_tdm_generate(
         reserved_flag=1;
         break;
     default:
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Unsupported tdm frequency:%d \n"),
                    tdm_freq));
@@ -14186,7 +14186,7 @@ soc_error_t kt2_tdm_generate(
         case 0:
             continue;
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Unsupported speed%d\n"),port_speed[port]));
             return SOC_E_FAIL;
@@ -14204,7 +14204,7 @@ soc_error_t kt2_tdm_generate(
                 130 * kt2_13g_ports +
                 210 * kt2_21g_ports) / 10;
     if (total_bw > 92) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Exceeded max bw:92 %d \n"),total_bw));
         return SOC_E_FAIL;
@@ -14217,7 +14217,7 @@ soc_error_t kt2_tdm_generate(
                         min_tdm_cycles;
     if (total_slots > (total_tdm_slots -
                        lpbk_min_tdm_cycles - cmic_min_tdm_cycles)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Exceeded max slots:%d %d \n"),
                               (total_tdm_slots-
@@ -14303,7 +14303,7 @@ soc_error_t kt2_tdm_generate(
     /* 10G ports can still be used(2 more) if 13G ports are not used !! */
     if (count < kt2_10g_ports) {
         if (kt2_13g_ports != 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "13G ports being used.."
                                   "max 10G port can be 6 only\n")));
@@ -14362,7 +14362,7 @@ soc_error_t kt2_tdm_generate(
                 if (tdm[kt2_10g_reserved_position[0]] == KT2_IDLE) {
                     pos = kt2_10g_reserved_position[0] ; break;
                 }
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "21G  and 10G ports Slots are not free :%d \n"),
                            index));
@@ -14620,7 +14620,7 @@ _soc_katana2_mmu_tdm_init(int unit)
          tdm_freq= bcm56450_tdm_info[cfg_num].tdm_freq;
          row= bcm56450_tdm_info[cfg_num].row;
          col= bcm56450_tdm_info[cfg_num].col;
-         LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                              "Cfg=%d freq=%d size=%d raw=%d col=%d \n"),
                   cfg_num,tdm_freq,tdm_size,row,col));
          arr = bcm56450_tdm[cfg_num];
@@ -14636,7 +14636,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 1:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 1:/* kt2_tdm_A_56450_1 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_1 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0],sizeof(kt2_tdm_56450A_ref));
@@ -14647,7 +14647,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 2:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 2:/* kt2_tdm_A_56450_2 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_2 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0], sizeof(kt2_tdm_56450A_ref));
@@ -14657,7 +14657,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 3:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 3:/* kt2_tdm_A_56450_3 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_3 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0],sizeof(kt2_tdm_56450A_ref));
@@ -14666,7 +14666,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 4:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 4:/* kt2_tdm_A_56450_4 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_4 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0], sizeof(kt2_tdm_56450A_ref));
@@ -14674,7 +14674,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 5:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 5:/* kt2_tdm_A_56450_5 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_5 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0], sizeof(kt2_tdm_56450A_ref));
@@ -14694,7 +14694,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 6:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 6:/*  kt2_tdm_A_56450_6 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_6 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0], sizeof(kt2_tdm_56450A_ref));
@@ -14709,7 +14709,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 7:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 7:/* kt2_tdm_A_56450_7 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A_56450_7 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A_ref[0], sizeof(kt2_tdm_56450A_ref));
@@ -14737,7 +14737,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 8:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 8:/* kt2_tdm_A1_56450_8 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A1_56450_8 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A1_ref[0], 
@@ -14746,7 +14746,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 9:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 9:/* kt2_tdm_A1_56450_9 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A1_56450_9 \n")));
                 sal_memcpy(arr,
                            &kt2_tdm_56450A1_ref[0],
@@ -14774,7 +14774,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 10:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 10: /* kt2_tdm_A2_56450_10 */
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                       "kt2_tdm_A2_56450_10 \n")));
                   sal_memcpy(arr,
                              &kt2_tdm_56450A2_ref[0],
@@ -14784,7 +14784,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                   break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 11:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 11: /* kt2_tdm_A2_56450_11 */
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                       "kt2_tdm_A2_56450_11 \n")));
                   sal_memcpy(arr,
                             &kt2_tdm_56450A2_ref[0],
@@ -14793,7 +14793,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                   break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 12:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 12: /* kt2_tdm_A3_56450_12 */
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                       "kt2_tdm_A3_56450_12 \n")));
                   sal_memcpy(arr,
                              &kt2_tdm_56450A3_ref[0],
@@ -14802,7 +14802,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                   break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 13:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 13: /* kt2_tdm_A2_56450_13 */
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                       "kt2_tdm_A2_56450_13 \n")));
                   sal_memcpy(arr,
                              &kt2_tdm_56450A2_ref[0],
@@ -14813,7 +14813,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                   break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 14:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 14: /* kt2_tdm_A2_56450_14 */
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                       "kt2_tdm_A2_56450_14 \n")));
                   sal_memcpy(arr,
                              &kt2_tdm_56450A2_ref[0],
@@ -14824,7 +14824,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                   break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 15:
          case BCM56450_DEVICE_ID_OFFSET_CFG + 15: /* kt2_tdm_A2_56450_15 */
-                  LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                  LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                       "kt2_tdm_A2_56450_15 \n")));
                   memcpy(arr,
                          &kt2_tdm_56450A2_ref[0],
@@ -14859,21 +14859,21 @@ _soc_katana2_mmu_tdm_init(int unit)
                   olp_port_flag=1;
                   break;
          case BCM56450_DEVICE_ID_OFFSET_CFG + 16: /* kt2_tdm_F_56450_16 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_F_56450_16 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56450F_ref[0], sizeof(kt2_tdm_56450F_ref));
                 olp_port_flag=0;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 1:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_C_56452_1 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56455C_ref[0], sizeof(kt2_tdm_56455C_ref));
                 olp_port_flag=0;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 2:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_C1_56452_2 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452C1_ref[0], sizeof(kt2_tdm_56452C1_ref));
@@ -14893,18 +14893,18 @@ _soc_katana2_mmu_tdm_init(int unit)
                     kt2_tdm_replace(arr,64,port,KT2_IDLE,0);
                 }
                 if (cfg_num == BCM56452_DEVICE_ID_OFFSET_CFG + 3) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                         "kt2_tdm_C1_56452_3 \n")));
                     olp_port_flag=0;
                     kt2_tdm_replace(arr,64,KT2_OLP_PORT,KT2_IDLE,0);
                 } else {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                         "kt2_tdm_C1_56452_4 \n")));
                     olp_port_flag=1;
                 }
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 5:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_B_56452_5 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452B_ref[0], sizeof(kt2_tdm_56452B_ref));
@@ -14921,7 +14921,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 olp_port_flag=1;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 6:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_B1_56452_6 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452B1_ref[0], sizeof(kt2_tdm_56452B1_ref));
@@ -14938,7 +14938,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 olp_port_flag=1;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 7:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_B_56452_7 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452B_ref[0], sizeof(kt2_tdm_56452B_ref));
@@ -14956,7 +14956,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                 olp_port_flag=1;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 8:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_B_56452_8 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452B_new_ref[0], 
@@ -14973,28 +14973,28 @@ _soc_katana2_mmu_tdm_init(int unit)
                 olp_port_flag=0;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 9:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_B1_56452_9 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452B1_ref[0], sizeof(kt2_tdm_56452B1_ref));
                 olp_port_flag=1;
                 break;
          case BCM56452_DEVICE_ID_OFFSET_CFG + 10:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_B2_56452_10 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56452B2_ref[0], sizeof(kt2_tdm_56452B2_ref));
                 olp_port_flag=1;
                 break;
          case BCM56454_DEVICE_ID_OFFSET_CFG + 1: /* kt2_tdm_D_56454_1 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_D1_56454_1 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56454D1_ref[0], sizeof(kt2_tdm_56454D1_ref));
                 olp_port_flag=1;
                 break;
          case BCM56454_DEVICE_ID_OFFSET_CFG + 2: /* kt2_tdm_D_56454_2 */
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_D2_56454_2 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56454D1_ref[0], sizeof(kt2_tdm_56454D1_ref));
@@ -15004,14 +15004,14 @@ _soc_katana2_mmu_tdm_init(int unit)
                 olp_port_flag=0;
                 break;
          case BCM56455_DEVICE_ID_OFFSET_CFG + 1:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_C_56455_1 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56455C_ref[0], sizeof(kt2_tdm_56455C_ref));
                 olp_port_flag = 0;
                 break;
          case BCM56455_DEVICE_ID_OFFSET_CFG + 2:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_C_56455_2 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56455C_ref[0], sizeof(kt2_tdm_56455C_ref));
@@ -15025,14 +15025,14 @@ _soc_katana2_mmu_tdm_init(int unit)
                 olp_port_flag = 0;
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 16:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_A3_56450_16 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56450A3_ref[0], sizeof(kt2_tdm_56450A3_ref));
                 olp_port_flag=1;
                 break;
          case BCM56248_DEVICE_ID_OFFSET_CFG + 17:
-                LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                                     "kt2_tdm_D2_56248_17 \n")));
                 sal_memcpy(arr,
                           &kt2_tdm_56248D2_ref[0], sizeof(kt2_tdm_56248D2_ref));
@@ -15091,7 +15091,7 @@ _soc_katana2_mmu_tdm_init(int unit)
                  (bcm56450_test_selection <=19)) {
                  pos = 16; row = 4; col = 4;freq=80;
              }
-             LOG_WARN(BSL_LS_SOC_COMMON,
+             LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "\n###############\n")));
              SOC_IF_ERROR_RETURN(kt2_tdm_generate(
@@ -15133,13 +15133,13 @@ _soc_katana2_mmu_tdm_init(int unit)
                   }while(retVal == SOC_E_CONFIG);
              } 
              SOC_IF_ERROR_RETURN(retVal);
-             LOG_WARN(BSL_LS_SOC_COMMON,
+             LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Configuration:%d:(freq:%d Cycles:%d) %s"),
                                   bcm56450_test_selection,freq,pos,
                        tdm_config_string));
              kt2_tdm_display(unit,kt2_tdm_under_testing_idle,pos,row,col);
-             LOG_WARN(BSL_LS_SOC_COMMON,
+             LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "###############\n")));
          } 
@@ -15292,7 +15292,7 @@ soc_katana2_port_enable_set(int unit, soc_port_t port, int enable)
            soc_reg_field_set(unit, TXLP_PORT_ENABLEr, &regval, 
                              LP_ENABLEf,lp_enable);
        }
-       LOG_VERBOSE(BSL_LS_SOC_COMMON,
+       LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                                "TXLP port_enable=%d lp_enable=%d\n"),
                                port_enable,lp_enable));
@@ -15307,7 +15307,7 @@ soc_katana2_port_enable_set(int unit, soc_port_t port, int enable)
            soc_reg_field_set(unit, RXLP_PORT_ENABLEr, &regval, 
                              LP_ENABLEf,lp_enable);
        }
-       LOG_VERBOSE(BSL_LS_SOC_COMMON,
+       LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                    (BSL_META_U(unit,
                                "RXLP lp_enable=%d\n"),lp_enable));
        SOC_IF_ERROR_RETURN(WRITE_RXLP_PORT_ENABLEr(unit, port, regval));
@@ -15436,7 +15436,7 @@ soc_katana2_reconfigure_tdm(int unit,uint32 new_tdm_size,uint32 *new_tdm)
               soc_LLS_PORT_TDMm_field32_set(unit, &lls_tdm[index], 
                                             PORT_ID_0_ENABLEf, 1);
          } else {
-              LOG_VERBOSE(BSL_LS_SOC_COMMON,
+              LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "IDLE SLOTs so PORT_ID_0_ENABLEf=0 for index=%d\n"),
                                       index));
@@ -15449,7 +15449,7 @@ soc_katana2_reconfigure_tdm(int unit,uint32 new_tdm_size,uint32 *new_tdm)
               soc_LLS_PORT_TDMm_field32_set(unit, &lls_tdm[index],   
                                             PORT_ID_1_ENABLEf, 1);
          } else {
-              LOG_VERBOSE(BSL_LS_SOC_COMMON,
+              LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "IDLE SLOTs so PORT_ID_1_ENABLEf=0 for index=%d\n"),
                            index));
@@ -15503,7 +15503,7 @@ soc_katana2_reconfigure_tdm(int unit,uint32 new_tdm_size,uint32 *new_tdm)
         }
     } while (iter++ < 100000);
     if (iter >= 100000) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "LLS Calendar switch failed !!\n")));
         return SOC_E_INTERNAL;
@@ -15949,7 +15949,7 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
     }
     mxqspeeds[unit] =  sal_alloc(sizeof(mxqspeeds_s), "mxqspeed_t");
     if (mxqspeeds[unit] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Resource issue: Couldn't allocate memory=%d \n"),
                    (int)sizeof(mxqspeeds_t)));
@@ -15966,7 +15966,7 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
                                        sizeof(bcm56450_speed_s[0])), 
                                       "bcm56450_speed");
     if (bcm56450_speed[unit] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Resource issue: Couldn't allocate memory=%d \n"),
                    (int)sizeof(mxqspeeds_t)));
@@ -15986,7 +15986,7 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
     }
     kt2_port_to_mxqblock[unit] =  sal_alloc(sizeof(kt2_port_to_mxqblock_s), "kt2_port_to_mxqblock_t");
     if (kt2_port_to_mxqblock[unit] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Resource issue: Couldn't allocate memory=%d \n"),
                    (int)sizeof(kt2_port_to_mxqblock)));
@@ -15999,7 +15999,7 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
     }
     kt2_port_to_mxqblock_subports[unit] =  sal_alloc(sizeof(kt2_port_to_mxqblock_subports_s), "kt2_port_to_mxqblock_t");
     if (kt2_port_to_mxqblock_subports[unit] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Resource issue: Couldn't allocate memory=%d \n"),
                    (int)sizeof(kt2_port_to_mxqblock_subports)));
@@ -16012,7 +16012,7 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
     }
     kt2_mxqblock_ports[unit] =  sal_alloc(sizeof(kt2_mxqblock_ports_s), "kt2_mxqblock_ports_t");
     if (kt2_mxqblock_ports[unit] == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Resource issue: Couldn't allocate memory=%d \n"),
                    (int)sizeof(kt2_mxqblock_ports)));
@@ -16072,7 +16072,7 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
     }
     loop_index=0;
     while(kt2_selected_port_details[loop_index].port_speed != 0) {
-          LOG_VERBOSE(BSL_LS_SOC_COMMON,
+          LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "start:%d end:%d incr:%d type:%d speed:%d\n"),
                                   kt2_selected_port_details[loop_index].start_port_no,
@@ -16112,12 +16112,12 @@ soc_katana2_pbmp_init(int unit, kt2_pbmp_t kt2_pbmp)
                        SOC_PBMP_PORT_ADD(*kt2_pbmp.pbmp_xport_xe, port);
                        if (bcm56450_speed[unit][kt2_port_details_index][port-1] >=
                            10000) {
-                           LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                           LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                        (BSL_META_U(unit,
                                                    "Original: %d \n"),
                                                    bcm56450_speed[unit][kt2_port_details_index][port-1]));
                            bcm56450_speed[unit][kt2_port_details_index][port-1]=10000;
-                           LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                           LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                        (BSL_META_U(unit,
                                                    "Updated: %d \n"),
                                                    bcm56450_speed[unit][kt2_port_details_index][port-1]));
@@ -16225,7 +16225,7 @@ soc_katana2_subport_init(int unit)
              * For Katana2(BCM56450) port 27 to 34 only support LinkPHY */
             SOC_PBMP_ITER(pbmp_linkphy, port) {
                 if (!SOC_REG_PORT_VALID(unit, RXLP_PORT_ENABLEr, port)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "\nCONFIG ERROR\n"
                                           "pbmp_linkphy member port %d is invalid for "
@@ -16241,7 +16241,7 @@ soc_katana2_subport_init(int unit)
 
             SOC_PBMP_ITER(pbmp_linkphy, port) {
                 if (!SOC_PBMP_MEMBER(pbmp_subport, port)) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "\nCONFIG ERROR\n"
                                           "pbmp_linkphy member port %d is not member of "
@@ -16256,7 +16256,7 @@ soc_katana2_subport_init(int unit)
         }
     } else {
         if (SOC_PBMP_NOT_NULL(pbmp_linkphy)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "\nCONFIG ERROR\n"
                                   "config variable pbmp_linkphy should be sub-set of "
@@ -16295,7 +16295,7 @@ soc_katana2_subport_init(int unit)
                 }
 
                 if (num_subport == 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "\nCONFIG ERROR\n"
                                           "num_subports_%d should be non-zero for "
@@ -16306,7 +16306,7 @@ soc_katana2_subport_init(int unit)
                 }
 
                 if (num_subport > available_subport) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "\nCONFIG ERROR\n"
                                           "num_subports_%d=%d unavailable for LinkPHY port\n\n"),
@@ -16343,7 +16343,7 @@ soc_katana2_subport_init(int unit)
                     available_subport -= num_subport;
                     num_subports_valid = 0;
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "\nCONFIG ERROR\n"
                                           "contiguous num_subport=%d unavailable "
@@ -16365,7 +16365,7 @@ soc_katana2_subport_init(int unit)
                 soc_property_port_get(unit, port, spn_NUM_SUBPORTS, 0);
 
             if (num_subport == 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "\nCONFIG ERROR\n"
                                       "num_subports_%d should be non-zero for SubTag port %d\n\n"),
@@ -16375,7 +16375,7 @@ soc_katana2_subport_init(int unit)
             }
 
             if (num_subport > available_subport) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "\nCONFIG ERROR\n"
                                       "num_subports_%d=%d unavailable for SubTag port\n\n"),
@@ -17748,7 +17748,7 @@ int _soc_katana2_misc_init(int unit)
                                                    ddr3_clock_mhz);
     SOC_DDR3_MEM_GRADE(unit) = soc_property_get(unit, spn_DDR3_MEM_GRADE, 
                                                    ddr3_mem_grade);
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                         "num_cis=%d num_rows=%d ddr3_clock_mhz=%d ddr3_mem_grade=%d "
                         "num_col=%d num_banks=%d \n"),
              SOC_DDR3_NUM_MEMORIES(unit),
@@ -18187,7 +18187,7 @@ int _soc_katana2_misc_init(int unit)
     SOC_IF_ERROR_RETURN(WRITE_CMIC_TXBUF_CONFIGr(unit, rval));
 
     if (soc_mspi_init(unit) != SOC_E_NONE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "unit %d : MSPI Init Failed\n"), unit));
     }
@@ -18385,7 +18385,7 @@ _soc_katana2_mmu_init_phase1_port(int unit,int port,uint32 *nxtaddr)
         rval = 0;
         soc_reg_field_set(unit, DEQ_EFIFO_CFGr, &rval, 
                           EGRESS_FIFO_START_ADDRESSf, *nxtaddr);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "port=%d nxtaddr=%d \n"),port,*nxtaddr));
         if (si->port_speed_max[port] <= 1000) {
@@ -18481,7 +18481,7 @@ _soc_katana2_mmu_init_phase1(int unit)
          }
     }
     for (mxqblock=0;mxqblock<KT2_MAX_MXQBLOCKS ; mxqblock++) {
-         LOG_VERBOSE(BSL_LS_SOC_COMMON,
+         LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "start=%d end=%d \n"),
                                  mxqblock_max_startaddr[mxqblock],
@@ -18578,7 +18578,7 @@ _soc_katana2_mmu_init_phase3(int unit)
              } else {
                  if (!((port == KT2_OLP_PORT) && 
                        (SOC_INFO(unit).olp_port[0] == 1))) {
-                     LOG_WARN(BSL_LS_SOC_COMMON,
+                     LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "WARN: Suspicious Config: Port=%d\n"),
                                port));
@@ -18629,7 +18629,7 @@ _soc_katana2_mmu_init(int unit)
             break;
         }
         if (soc_timeout_check(&to)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "unit %d : LLS INIT timeout\n"), unit));
             break;
@@ -19035,7 +19035,7 @@ soc_katana2_num_cosq_init(int unit)
         }
         if (si->port_cosq_base[port] + si->port_num_uc_cosq[port] >
             max_queue_num) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "###ATTN:Physical queue assignment for port:%d exceeded"
                                   " max value:%d###\n INFO: Start queue:%d End Queue %d\n"), 
@@ -19053,7 +19053,7 @@ soc_katana2_num_cosq_init(int unit)
             start_pp_port = si->port_subport_base[port];
             end_pp_port = si->port_subport_base[port] + 
                           si->port_num_subport[port];
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "start_pp_port:%d end_pp_port:%d \n"),
                          start_pp_port, end_pp_port));
@@ -19063,14 +19063,14 @@ soc_katana2_num_cosq_init(int unit)
                 si->port_cosq_base[i] = si->port_uc_cosq_base[i];
                 si->port_num_uc_cosq[i] = pp_port_cos;
                 numq += pp_port_cos;
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "port:%d port_uc_cosq_base[pp_port%d]:%d:End:%d \n"), 
                              port, i, si->port_uc_cosq_base[i],
                              si->port_uc_cosq_base[i] + si->port_num_uc_cosq[i]));
                 if (si->port_cosq_base[i] + si->port_num_uc_cosq[i] >
                     max_queue_num) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "###ATTN:Subport queue assignment for port:%d exceeded"
                                           " max value:%d###\n INFO: Start queue:%d End Queue %d \n"), 
@@ -19083,13 +19083,13 @@ soc_katana2_num_cosq_init(int unit)
                 if (packing_mode) {
                     si->port_cosq_base[i] += (soc_mem_index_count(unit,LLS_L2_PARENTm) >> 1);
                     si->port_num_cosq[i] = si->port_num_uc_cosq[i];    
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Packing Cosq Base:%d Num Cosq:%d \n"),
                                  si->port_cosq_base[i], si->port_num_cosq[i]));
                     if (si->port_cosq_base[i] + si->port_num_cosq[i] >
                         max_queue_num) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "###ATTN:Packing queue assignment for port:%d exceeded "
                                               "max value:%d###\n INFO:Start queue:%d End Queue %d\n"), 
@@ -19110,7 +19110,7 @@ soc_katana2_num_cosq_init(int unit)
             si->port_num_cosq[port] = si->port_num_uc_cosq[port];    
         }
         
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nport num %d cosq_base %d num_cosq %d"),
                      port, si->port_cosq_base[port], si->port_num_uc_cosq[port]));
@@ -19193,7 +19193,7 @@ soc_kt2_oam_interrupt_process(int unit)
         fidx++;
     }
     if (!found) {
-        LOG_ERROR(BSL_LS_SOC_COMMON, \
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                   (BSL_META_U(unit, \
                               "Unexpected interrupt \
                               received for OAM rv=0x%x!!\n"), rv));
@@ -19215,7 +19215,7 @@ soc_kt2_oam_handler_register(int unit, soc_kt2_oam_handler_t handler)
     
     rv = READ_IP1_INTR_ENABLE_1r(unit, &rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error reading %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLE_1r)));
@@ -19227,7 +19227,7 @@ soc_kt2_oam_handler_register(int unit, soc_kt2_oam_handler_t handler)
     }
     rv = WRITE_IP1_INTR_ENABLE_1r(unit, rval);
     if (rv) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d: Error writing %s reg !!\n"),
                               unit, SOC_REG_NAME(unit, IP1_INTR_ENABLE_1r)));
@@ -19707,7 +19707,7 @@ int _soc_katana2_get_cfg_num(int unit, int *new_cfg_num)
                  def_cfg_num-offset_cfg_num,1,max_cfg_num-offset_cfg_num));
         return BCM_E_PARAM; 
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, (BSL_META_U(unit,
                         "Info Cfg_num:%d Internal cfg_num:%d \n"),cfg_num,*new_cfg_num)); 
     return BCM_E_NONE;
 }
@@ -20065,7 +20065,7 @@ int _soc_katana2_flexio_scache_allocate(int unit)
     if (NULL == flexio_scache_ptr) {
         return SOC_E_MEMORY;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s()[LINE:%d] DONE \n"),FUNCTION_NAME(),  __LINE__));
     return SOC_E_NONE;
@@ -20151,7 +20151,7 @@ int _soc_katana2_flexio_scache_retrieve(int unit)
                             "Corrupt scache for flexio operation \n")));
         return SOC_E_INTERNAL;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s()[LINE:%d] \n"),FUNCTION_NAME(),  __LINE__));
     
@@ -20306,7 +20306,7 @@ int _soc_katana2_flexio_scache_sync(int unit)
     sal_memcpy(&flexio_scache_ptr[scache_offset], 
                &scache_end_magic_number[0],
                sizeof(scache_end_magic_number));
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s()[LINE:%d] \n"),FUNCTION_NAME(),  __LINE__));
     return SOC_E_NONE;
@@ -20707,7 +20707,7 @@ _soc_kt2_cosq_begin_port_flush(int unit, int port, int hw_index)
         }
 
         if (soc_timeout_check(&timeout)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                (BSL_META_U(unit,
                "ERROR: Port %d Queue flush operation failed for queue %d \n"),
                 port, hw_index));

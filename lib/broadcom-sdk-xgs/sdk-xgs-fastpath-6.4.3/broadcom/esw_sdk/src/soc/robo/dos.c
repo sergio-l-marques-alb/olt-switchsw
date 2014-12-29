@@ -134,7 +134,7 @@ soc_robo_dos_monitor_thread(int unit)
             if (rv){
                 dm->err_cnt ++;
                 if (dm->err_cnt == DM_MAX_ERR_COUNT){
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s Thread stop for %d times failed processes.\n"),
                               dm->task_name, DM_MAX_ERR_COUNT));
@@ -160,7 +160,7 @@ soc_robo_dos_monitor_thread(int unit)
                             SOC_SWITCH_EVENT_DOS_ATTACK, 
                             events_bmp, 0, 0);
                     dm->last_dos_events = events_bmp;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Check DOS event bmp=0x%x\n"), 
                                  events_bmp));
@@ -228,7 +228,7 @@ soc_robo_dos_monitor_enable_set(int unit, sal_usecs_t interval)
                         
                 dm->interval = 0;
                 dm->err_cnt = 0;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Thread is not created\n")));
                 soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -242,7 +242,7 @@ soc_robo_dos_monitor_enable_set(int unit, sal_usecs_t interval)
                     if (soc_timeout_check(&to)) {
                         dm->interval = 0;
                         dm->err_cnt = 0;
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "%s: Thread did not start\n"),
                                    dm->task_name));
@@ -267,7 +267,7 @@ soc_robo_dos_monitor_enable_set(int unit, sal_usecs_t interval)
             if (soc_timeout_check(&to)) {
                 dm->interval = 0;
                 dm->err_cnt = 0;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s: Thread did not exit\n"),
                            dm->task_name));
@@ -356,7 +356,7 @@ soc_robo_dos_monitor_deinit(int unit)
         SOC_IF_ERROR_RETURN(soc_robo_dos_monitor_enable_set(unit, 0));
         
         if (dm->dm_thread != NULL){
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "HW DOS monitor disabled but still exist!,thread(%p)\n"),
                        (void *)dm->dm_thread));

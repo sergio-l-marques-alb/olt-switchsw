@@ -256,7 +256,7 @@ int bcm_common_sat_init(int unit)
     rv = mbcm_sat_init(unit);
     if (rv != SOC_E_NONE)
     {
-        LOG_ERROR(BSL_LS_SOC_INIT,
+        LOG_BSL_ERROR(BSL_LS_SOC_INIT,
                   (BSL_META_U(unit,
                               "soc_dpp_init error in mbcm_sat_init\n")));
         return rv;

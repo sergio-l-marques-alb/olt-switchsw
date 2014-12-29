@@ -1977,7 +1977,7 @@ bcm_tr3_mpls_tunnel_switch_add(int unit, bcm_mpls_tunnel_switch_t *info)
     rv = bcm_xgs3_l3_egress_mode_get(unit, &mode);
     BCM_IF_ERROR_RETURN(rv);
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

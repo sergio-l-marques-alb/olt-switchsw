@@ -223,7 +223,7 @@ int pcid_process_request(pcid_info_t *pcid_info, int sockfd,
      */
     r = send_interrupt(pcid_info->client->intsock, 0);
         if (r < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "RPC error: soc_internal_send_int failed. \n")));
             pcid_info->opt_rpc_error = 1;
@@ -237,7 +237,7 @@ int pcid_process_request(pcid_info_t *pcid_info, int sockfd,
         pcid_info->opt_rpc_error = 1;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Client registration: 0x%x DMA=0x%x, INT=0x%x, PIO=0x%x -OK\n"),
                      pcid_info->client->inetaddr,

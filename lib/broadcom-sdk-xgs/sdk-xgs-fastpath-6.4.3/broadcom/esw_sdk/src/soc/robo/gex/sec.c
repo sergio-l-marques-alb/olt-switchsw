@@ -128,7 +128,7 @@ drv_gex_security_set(int unit, soc_pbmp_t bmp, uint32 state, uint32 mask)
     uint32 specified_port_num;
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT */
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_gex_security_set: unit = %d, bmp= 0x%x, state = %d, mask = 0x%x\n"),
               unit, SOC_PBMP_WORD_GET(bmp, 0), state, mask));
@@ -469,7 +469,7 @@ drv_gex_security_get(int unit, uint32 port, uint32 *state, uint32 *mask)
         *state = DRV_SECURITY_PORT_UNCONTROLLED;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_gex_security_get: unit = %d, port= %d, state = %d, mask = 0x%x\n"),
               unit, port, *state, *mask));

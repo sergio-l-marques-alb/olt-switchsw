@@ -207,7 +207,7 @@ mac_robo_fe_init(int unit, soc_port_t port)
     int shift;
     
     /* initialize per port mac */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_init\n")));
 
@@ -227,7 +227,7 @@ mac_robo_fe_init(int unit, soc_port_t port)
     }
     SOC_IF_ERROR_RETURN(REG_WRITE_TH_PCTLr(unit, port, &reg_value));
     
-    LOG_INFO(BSL_LS_SOC_TESTS,
+    LOG_BSL_INFO(BSL_LS_SOC_TESTS,
              (BSL_META_U(unit,
                          "mac_robo_fe_init: diable SW flow control bit at port=%d\n"),
               port));
@@ -317,7 +317,7 @@ mac_robo_fe_enable_set(int unit, soc_port_t port, int enable)
     uint32  field_id;
 
     /* initialize per port mac */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_enable_set\n")));
 
@@ -387,7 +387,7 @@ mac_robo_fe_enable_get(int unit, soc_port_t port, int *enable)
     uint32  field_id;
 
     /* initialize per port mac */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_enable_get\n")));
 
@@ -455,7 +455,7 @@ mac_robo_fe_ge_duplex_set(int unit, soc_port_t port, int duplex)
     }
 #endif /* BCM_NORTHSTAR_SUPPORT || NS+ */
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_duplex_set: u=%d p=%d FD=%x\n"),
                  unit, port, duplex));
@@ -657,7 +657,7 @@ mac_robo_fe_ge_duplex_get(int unit, soc_port_t port, int *duplex)
             }
         }
     }
-     LOG_VERBOSE(BSL_LS_SOC_COMMON,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "mac_robo_fe_ge_duplex_get: u=%d p=%d FD=%x\n"),
                   unit, port, *duplex));
@@ -704,7 +704,7 @@ mac_robo_fe_ge_speed_set(int unit, soc_port_t port, int speed)
     }
 #endif /* BCM_NORTHSTAR_SUPPORT || NS+ */
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_speed_set: u=%d p=%d sp=%d\n"),
                  unit, port, speed));
@@ -877,7 +877,7 @@ mac_robo_fe_ge_speed_set(int unit, soc_port_t port, int speed)
                         ((speed == 100) ? 0x1 : 0x0);
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s: u=%d p=%d is incorrect!\n"),
                   FUNCTION_NAME(), unit, port));
@@ -1171,7 +1171,7 @@ mac_robo_fe_ge_speed_get(int unit, soc_port_t port, int *speed)
     } else {
         return SOC_E_PARAM;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_speed_get: u=%d p=%d sp=%d\n"), 
                  unit, port, *speed));
@@ -1222,7 +1222,7 @@ mac_robo_fe_ge_pause_set(int unit, soc_port_t port, int pause_tx, int pause_rx)
     COMPILER_64_ZERO(reg_value64);
     COMPILER_64_ZERO(temp64);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_pause_set: u=%d p=%d rxpause=0x%x txpause=0x%x\n"),
                  unit, port, pause_rx, pause_tx));
@@ -1656,7 +1656,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
             /* hard coded below for register specific bit mask defined */
             temp = temp >> 9;  
             *pause_rx = (temp & (1 << port)) ? TRUE : FALSE;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "\t TxPause=%d,RxPause=%d\n"),
                          *pause_tx,*pause_rx));
@@ -1675,7 +1675,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
                     /* hard coded below for register specific bit mask defined */
                     temp = temp >> 9;  
                     *pause_rx = (temp & (1 << port)) ? TRUE : FALSE;
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "\t TxPause=%d,RxPause=%d\n"),
                                  *pause_tx,*pause_rx));
@@ -1722,7 +1722,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
         }
                 
     } else if (SOC_IS_HARRIER(unit)){
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "mac_robo_fe_ge_pause_get: harrier..\n")));
         if ((rv = REG_READ_SW_FLOW_CONr(unit, (void *)&reg_value64)) < 0) {
@@ -1793,7 +1793,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
         soc_PAUSESTSr_field_get(unit, &reg_value, 
             RXPAUSE_STSf, &temp);
         *pause_rx = (temp & (1 << port)) ? TRUE : FALSE;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\t TxPause=%d,RxPause=%d\n"),
                      *pause_tx,*pause_rx));
@@ -1806,7 +1806,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
             }
                 
             *pause_tx = (temp & (1 << port)) ? TRUE : FALSE;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "\t TxPause=%d\n"),*pause_tx));
 
@@ -1814,7 +1814,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
                 return rv;
             }
             *pause_rx = (temp & (1 << port)) ? TRUE : FALSE;
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "\t RxPause=%d\n"),*pause_rx));
         } else {
@@ -1825,7 +1825,7 @@ mac_robo_fe_ge_pause_get(int unit, soc_port_t port,
         return SOC_E_RESOURCE;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_pause_get: %x %x\n"), *pause_tx, *pause_rx));
 
@@ -1850,7 +1850,7 @@ STATIC  int
 mac_robo_fe_ge_pause_addr_set(int unit, soc_port_t port, 
     sal_mac_addr_t pause_mac)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_pause_addr_set:\n")));
     
@@ -1890,7 +1890,7 @@ STATIC  int
 mac_robo_fe_ge_pause_addr_get(int unit, soc_port_t port, 
     sal_mac_addr_t pause_mac)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_pause_addr_get:\n")));
     
@@ -1931,7 +1931,7 @@ mac_robo_fe_ge_pause_addr_get(int unit, soc_port_t port,
 STATIC int
 mac_robo_fe_ge_loopback_set(int unit, soc_port_t port, int loopback)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_loopback_set\n")));    
     if (loopback == TRUE){
@@ -1957,7 +1957,7 @@ mac_robo_fe_ge_loopback_set(int unit, soc_port_t port, int loopback)
 STATIC int
 mac_robo_fe_ge_loopback_get(int unit, soc_port_t port, int *loopback)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_loopback_get\n")));
     *loopback = FALSE;    
@@ -1982,7 +1982,7 @@ mac_robo_fe_ge_loopback_get(int unit, soc_port_t port, int *loopback)
 STATIC int
 mac_robo_fe_ge_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
 {
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_interface_set\n")));  
     return SOC_E_UNAVAIL;
@@ -2083,7 +2083,7 @@ mac_robo_fe_ge_interface_get(int unit, soc_port_t port, soc_port_if_t *pif)
         return SOC_E_PARAM;
     }
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_interface_get : pif = %d\n"), *pif));  
     
@@ -2140,7 +2140,7 @@ mac_robo_fe_ge_ability_get(int unit, soc_port_t port, soc_port_mode_t *mode)
         return SOC_E_PARAM;
     }
     
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_ability_get: ability=0x%x\n"), 
                  *mode));
@@ -2285,7 +2285,7 @@ mac_robo_fe_ge_ability_local_get(int unit, soc_port_t port,
         return SOC_E_PARAM;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_ability_get\n")));
     return (SOC_E_NONE);
@@ -2301,7 +2301,7 @@ mac_robo_fe_ge_frame_max_set(int unit, soc_port_t port, int size)
     uint32  ctrl_type = 0;
     uint32  ctrl_cnt = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_frame_max_set\n"))); 
     
@@ -2524,7 +2524,7 @@ mac_robo_fe_ge_frame_max_get(int unit, soc_port_t port, int *size)
     uint32  ctrl_cnt = 0;
     uint32  enable = 0;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_fe_ge_frame_max_get\n")));  
 
@@ -2694,7 +2694,7 @@ mac_robo_ge_init(int unit, soc_port_t port)
     COMPILER_64_ZERO(val64);
 
     /* initialize per port mac */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_ge_init\n")));
 
@@ -2929,7 +2929,7 @@ mac_robo_ge_enable_set(int unit, soc_port_t port, int enable)
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT || NS+ */
 
     /* initialize per port mac */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_ge_enable_set\n")));
 
@@ -3098,7 +3098,7 @@ mac_robo_ge_enable_get(int unit, soc_port_t port, int *enable)
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT || NS+ */
 
     /* initialize per port mac */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "mac_robo_ge_enable_get\n")));
 

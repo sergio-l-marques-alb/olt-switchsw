@@ -207,7 +207,7 @@ lb2_port_test(int unit, args_t *a, void *pa)
 
     COMPILER_REFERENCE(a);
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "lb_mac_test[%d]: Starting ....\n"), unit));
 
@@ -233,7 +233,7 @@ lb2_port_test(int unit, args_t *a, void *pa)
          * Get our current MAC address for this port and be sure the
          * SOC will route packets to the CPU.
          */
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Setting up ARL\n")));
         if (lbu_setup_arl_cmic(lw)) {

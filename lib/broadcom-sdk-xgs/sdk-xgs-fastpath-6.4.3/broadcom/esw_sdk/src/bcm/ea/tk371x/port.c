@@ -95,7 +95,7 @@ bcm_tk371x_port_loopback_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -154,7 +154,7 @@ bcm_tk371x_port_loopback_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -210,7 +210,7 @@ bcm_tk371x_port_pause_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -254,7 +254,7 @@ bcm_tk371x_port_pause_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -295,7 +295,7 @@ bcm_tk371x_port_medium_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -345,7 +345,7 @@ bcm_tk371x_port_mdix_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -394,7 +394,7 @@ bcm_tk371x_port_mdix_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -437,7 +437,7 @@ bcm_tk371x_port_mdix_status_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -482,7 +482,7 @@ bcm_tk371x_port_interface_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -526,7 +526,7 @@ bcm_tk371x_port_interface_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -565,7 +565,7 @@ bcm_tk371x_port_master_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -605,7 +605,7 @@ bcm_tk371x_port_master_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -643,7 +643,7 @@ bcm_tk371x_port_ability_advert_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -703,7 +703,7 @@ bcm_tk371x_port_ability_advert_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -750,7 +750,7 @@ bcm_tk371x_port_ability_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -794,7 +794,7 @@ bcm_tk371x_port_ability_remote_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -851,7 +851,7 @@ bcm_tk371x_port_ability_local_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -895,7 +895,7 @@ bcm_tk371x_port_ability_local_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -964,7 +964,7 @@ bcm_tk371x_port_advert_remote_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -1009,7 +1009,7 @@ bcm_tk371x_port_advert_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -1049,7 +1049,7 @@ int bcm_tk371x_port_autoneg_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -1086,7 +1086,7 @@ bcm_tk371x_port_autoneg_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -1119,7 +1119,7 @@ bcm_tk371x_port_config_get(
 {
 	char pbuf[SOC_PBMP_FMT_LEN + 1];
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "BCM API : bcm_tk371x_port_config_get()..\n")));
     if (0 == BCM_TK371X_UNIT_VALID(unit)){
@@ -1128,32 +1128,32 @@ bcm_tk371x_port_config_get(
     if (NULL == config){
     	return BCM_E_PARAM;
     }
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "before call soc marcos:\n")));
     sal_memset(pbuf, 0, sizeof(pbuf));
     SOC_PBMP_FMT(config->fe, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->fe=%s\n"), pbuf));
     SOC_PBMP_FMT(config->ge, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->ge=%s\n"), pbuf));
     SOC_PBMP_FMT(config->port, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->port=%s\n"), pbuf));
     SOC_PBMP_FMT(config->all, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->all=%s\n"), pbuf));
     SOC_PBMP_FMT(config->llid, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->llid=%s\n"), pbuf));
     SOC_PBMP_FMT(config->pon, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->pon=%s\n"), pbuf));
 	config->fe      = PBMP_FE_ALL(unit);
@@ -1162,32 +1162,32 @@ bcm_tk371x_port_config_get(
     config->all     = PBMP_ALL(unit);
     config->llid	= PBMP_LLID_ALL(unit);
     config->pon		= PBMP_PON_ALL(unit);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "after call soc marcos:\n")));
     sal_memset(pbuf, 0, sizeof(pbuf));
     SOC_PBMP_FMT(config->fe, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->fe=%s\n"), pbuf));
     SOC_PBMP_FMT(config->ge, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->ge=%s\n"), pbuf));
     SOC_PBMP_FMT(config->port, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->port=%s\n"), pbuf));
     SOC_PBMP_FMT(config->all, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->all=%s\n"), pbuf));
     SOC_PBMP_FMT(config->llid, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->llid=%s\n"), pbuf));
     SOC_PBMP_FMT(config->pon, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "config->pon=%s\n"), pbuf));
     return BCM_E_NONE;
@@ -1235,7 +1235,7 @@ bcm_tk371x_port_control_get(
 {
     int rv = BCM_E_INTERNAL;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_control_get(),"
                              " unit=%d, port=%d, type=%d\n"), unit, port, (int)type));
@@ -1243,7 +1243,7 @@ bcm_tk371x_port_control_get(
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return value: BCM_E_PORT, Invaild PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1278,14 +1278,14 @@ bcm_tk371x_port_control_set(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_phy_control_get()..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1320,7 +1320,7 @@ bcm_tk371x_port_duplex_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -1367,7 +1367,7 @@ bcm_tk371x_port_duplex_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -1411,21 +1411,21 @@ bcm_tk371x_port_enable_get(
 {
     int         rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_enable_get..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
 	}
 
     rv = _bcm_ea_port_enable_get(unit, port, enable);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_port_enable_get: u=%d p=%d rv=%d enable=%d\n"),
               unit, port, rv, *enable));
@@ -1455,14 +1455,14 @@ bcm_tk371x_port_enable_set(
     int         rv = BCM_E_NONE ;
     int 		state;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_enable_set.., unit=%d\n"), unit));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1472,13 +1472,13 @@ bcm_tk371x_port_enable_set(
     	state = enable;
     }
     else{
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PARAM, invalid value : %d\n"), (enable)));
     	return BCM_E_PARAM;
     }
     rv = _bcm_ea_port_enable_set(unit, port, state);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_ea_port_enable_set:unit=%d port=%d rv=%d enable=%d\n"),
               unit, port, rv, enable));
@@ -1513,14 +1513,14 @@ bcm_tk371x_port_frame_max_get(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_frame_max_get.., unit=%d\n"), unit));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1532,7 +1532,7 @@ bcm_tk371x_port_frame_max_get(
 	}else{
 		return BCM_E_UNAVAIL;
 	}
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_bcm_ea_port_frame_max_get:unit=%d port=%d rv=%d size=%d\n"),
               unit, port, rv,*size));
@@ -1565,14 +1565,14 @@ bcm_tk371x_port_frame_max_set(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_frame_max_set.., unit=%d\n"), unit));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1586,7 +1586,7 @@ bcm_tk371x_port_frame_max_set(
 	}else{
 		return BCM_E_UNAVAIL;
 	}
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "_bcm_ea_port_frame_max_set:unit=%d port=%d rv=%d size=%d\n"),
                   unit, port, rv, size));
@@ -1694,17 +1694,17 @@ bcm_tk371x_port_info_save(
 	    bcm_port_t port,
 	    bcm_port_info_t *info)
 {
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_info_save..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1712,7 +1712,7 @@ bcm_tk371x_port_info_save(
 
     info->action_mask = BCM_PORT_ATTR_ALL_MASK;
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "BCM API : bcm_robo_port_info_save()..\n")));
     BCM_IF_ERROR_RETURN(_bcm_tk371x_port_selective_get(unit, port, info));
@@ -1744,17 +1744,17 @@ bcm_tk371x_port_info_set(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_info_set..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1811,7 +1811,7 @@ bcm_tk371x_port_init(int unit)
 	if (0 == BCM_TK371X_UNIT_VALID(unit)){
 		return BCM_E_UNIT;
 	}
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_tk371x_port_init, unit = %d\n"), unit));
 	rv = _bcm_tk371x_port_detach(unit);
@@ -1840,14 +1840,14 @@ bcm_tk371x_port_learn_get(
 	    bcm_port_t port,
 	    uint32 *flags)
 {
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_learn_get..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1877,14 +1877,14 @@ bcm_tk371x_port_learn_modify(
 	    uint32 add,
 	    uint32 remove)
 {
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_learn_modify..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1913,14 +1913,14 @@ bcm_tk371x_port_learn_set(
 	    bcm_port_t port,
 	    uint32 flags)
 {
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_learn_set..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -1960,7 +1960,7 @@ bcm_tk371x_port_link_status_get(
 {
 	int rv = BCM_E_NONE;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_link_status_get..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
@@ -1997,17 +1997,17 @@ bcm_tk371x_port_phy_control_get(
 {
     int rv = BCM_E_INTERNAL;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_phy_control_get..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -2040,17 +2040,17 @@ bcm_tk371x_port_phy_control_set(
 {
     int rv = BCM_E_INTERNAL;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_phy_control_set..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "UNIT : %d\n"), (unit)));
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -2091,7 +2091,7 @@ bcm_tk371x_port_speed_get(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -2136,7 +2136,7 @@ int bcm_tk371x_port_speed_max(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -2195,7 +2195,7 @@ bcm_tk371x_port_speed_set(
     	return BCM_E_UNIT;
     }
     if (0 == TK371X_PORT_VALID( port)){
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "Return value: BCM_E_PORT: invalid PORT : %d\n"), (port)));
         return BCM_E_PORT;
@@ -2233,15 +2233,15 @@ int bcm_tk371x_port_probe(
 	int okay = 0;
 
 	char pbuf[100];
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "ibp:\n")));
     sal_memset(pbuf, 0, sizeof(pbuf));
     SOC_PBMP_FMT(ibp, pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "ibp=%s\n"), pbuf));
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_probe()..\n")));
 	BCM_PBMP_CLEAR(*obp);
@@ -2253,12 +2253,12 @@ int bcm_tk371x_port_probe(
 			BCM_PBMP_PORT_ADD(*obp, port);
 		}
 	}
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "obp:\n")));
     sal_memset(pbuf, 0, sizeof(pbuf));
     SOC_PBMP_FMT((*obp), pbuf);
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "obp=%s\n"), pbuf));
 	return BCM_E_NONE;
@@ -2293,14 +2293,14 @@ bcm_tk371x_port_info_restore(
 {
     uint32      mask = 0;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "BCM API : bcm_tk371x_port_info_restore..\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -2366,7 +2366,7 @@ _bcm_tk371x_port_selective_get(
 {
     uint32      mask = 0;
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "BCM API : _bcm_tk371x_port_selective_get()..\n")));
     mask = info->action_mask;
@@ -2458,14 +2458,14 @@ int bcm_tk371x_port_pon_info_get(
 	OamEponPortInfo pon_port_info;
 	int i = 0, llid;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_tk371x_port_pon_info_get...\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -2479,7 +2479,7 @@ int bcm_tk371x_port_pon_info_get(
 	}
 	rv = TkExtOamGetEponPortInfo(unit, 0, &pon_port_info);
 	if (rv != OK){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "_soc_ea_pon_reg_status_get Return BCM_E_INTERNAL, invalid value=%d\n"), rv));
 		return BCM_E_FAIL;
@@ -2506,34 +2506,34 @@ int bcm_tk371x_port_pon_info_get(
 		sal_memcpy((void*)(pon->olt_mac_addr),
 				(void*)pon_state.Olt_MAC_addr, sizeof(bcm_mac_t));
 	}
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "_soc_ea_pon_reg_status_get:unit=%d port=%d rv=%d\n"),
               unit, port, rv));
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "pon->enable=%d\n"), pon->enable));
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "pon->linkstatus=%d\n"), pon->linkstatus));
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "pon->llid=%d\n"), pon->llid));
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "pon->loopback=%d\n"), pon->loopback));
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "pon->oam_discovery_status=%d\n"), pon->oam_discovery_status));
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "pon->olt_mac_addr=")));
 	for (i = 0; i < sizeof(bcm_mac_t); i++){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "%02X"), pon->olt_mac_addr[i]));
 	}
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "\n")));
 	return BCM_E_NONE;;
@@ -2547,14 +2547,14 @@ int bcm_tk371x_port_pon_info_set(
 	int rv = BCM_E_NONE;
 	int pon_state, pon_loopback;
 
-	LOG_INFO(BSL_LS_BCM_PORT,
+	LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_tk371x_port_pon_info_set...\n")));
 	if (0 == BCM_TK371X_UNIT_VALID((unit))){
 		return BCM_E_UNIT;
 	}
 	if (0 == TK371X_PORT_VALID( port)){
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "Return BCM_E_PORT, invalid PORT : %d\n"), (port)));
 		return BCM_E_PORT;
@@ -2564,7 +2564,7 @@ int bcm_tk371x_port_pon_info_set(
 	}
 	if (1 == TK371X_PON_PORT_VALID(port)){ 
 		if (pon->enable != 0 && pon->enable != 1){
-			LOG_INFO(BSL_LS_BCM_PORT,
+			LOG_BSL_INFO(BSL_LS_BCM_PORT,
                                  (BSL_META_U(unit,
                                              "Return BCM_E_PARAM, invalid value is %d\n"), pon->enable));
 			return BCM_E_PARAM;
@@ -2572,7 +2572,7 @@ int bcm_tk371x_port_pon_info_set(
 
 		pon_state = (pon->enable == 1) ? 0 : 1;
 		rv = TkExtOamSetEponAdmin(unit, port, pon_state);
-		LOG_INFO(BSL_LS_BCM_PORT,
+		LOG_BSL_INFO(BSL_LS_BCM_PORT,
                          (BSL_META_U(unit,
                                      "TkExtOamSetEponAdmin:unit=%d port=%d rv=%d, pon->enable=%d\n"),
                           unit, port, rv, pon->enable));

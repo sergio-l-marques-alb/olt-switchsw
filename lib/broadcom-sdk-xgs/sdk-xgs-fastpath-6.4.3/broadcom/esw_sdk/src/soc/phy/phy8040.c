@@ -221,7 +221,7 @@ _phy_8040_mux(int unit, soc_port_t port)
     active_mport = dc->lp[dc->inx].port;
     switch_port  = dc->switch_port;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "8040: u=%d port=%d primary=%d secondary=%d.\n"), 
                          pc->unit, pc->port, switch_port, active_mport));
@@ -365,7 +365,7 @@ phy_8040_init(int unit, soc_port_t port)
         if (new_pc->pd != NULL) {
             dc->lp[i].nxt_pc = new_pc;
             num_pc += 1;
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_8040_init: found next phy device"
                                  " u=%d p=%d id0=0x%x id1=0x%x\n"),
@@ -537,7 +537,7 @@ phy_8040_link_get(int unit, soc_port_t port, int *link)
             *link &= (((sp_sync_stat & mp_sync_stat) & 0xf) == 0xf) ? 
                   MII_STAT_LA : 0;
             if (!*link) {
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "8040: Link set but no sync.\n"
                                      "      u=%d port=%d primary lane status=%X secondary lane"
@@ -545,7 +545,7 @@ phy_8040_link_get(int unit, soc_port_t port, int *link)
                           pc->unit, pc->port, sp_sync_stat, mp_sync_stat));
             }
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "8040: u=%d port=%d switch port=%X mux port=%X.\n"), 
                          pc->unit, pc->port, switch_port_stat, mux_port_stat));
@@ -1112,7 +1112,7 @@ int phy_8040_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *ab
     pc = EXT_PHY_SW_STATE(unit, port);
     dc = PHY8040_DEV_DESC(pc);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8040_ability_local_get: u=%d p=%d\n"),
               pc->unit, pc->port));                                                                                      
@@ -1129,7 +1129,7 @@ int phy_8040_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *ab
         ability->medium    = SOC_PA_MEDIUM_FIBER;
         ability->loopback  = SOC_PA_LB_PHY;
         ability->flags     = 0;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "phy_8040_ability_local_get: u=%d p=%d speed=0x%x\n"),
                   pc->unit, pc->port, ability->speed_full_duplex));

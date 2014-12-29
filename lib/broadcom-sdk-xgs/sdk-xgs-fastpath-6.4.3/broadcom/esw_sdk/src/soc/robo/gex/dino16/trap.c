@@ -69,7 +69,7 @@ drv_dino16_trap_set(int unit, soc_pbmp_t bmp, uint32 trap_mask)
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_dino16_trap_set: unit = %d, trap mask = 0x%x\n"), unit, trap_mask));
 
@@ -180,7 +180,7 @@ drv_dino16_trap_get(int unit, soc_port_t port, uint32 *trap_mask)
         *trap_mask |= DRV_SWITCH_TRAP_BCST;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_dino16_trap_get: unit = %d, trap mask = 0x%x\n"), unit, *trap_mask));
 
@@ -207,7 +207,7 @@ drv_dino16_snoop_set(int unit, uint32 snoop_mask)
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_snoop_set: \
                             unit = %d, snoop mask = 0x%x\n"), unit, snoop_mask));
@@ -276,7 +276,7 @@ drv_dino16_snoop_get(int unit, uint32 *snoop_mask)
        *snoop_mask = DRV_SNOOP_IGMP;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_dino16_snoop_get: \
                             unit = %d, snoop mask = 0x%x\n"), unit, *snoop_mask));

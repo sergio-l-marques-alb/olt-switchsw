@@ -147,7 +147,7 @@ phy_5690_init(int unit, soc_port_t port)
     phy_ctrl_t         *pc;
 
     pc       = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5690_init: u=%d p=%d\n"),
               unit, port));
@@ -339,7 +339,7 @@ phy_5690_enable_set(int unit, soc_port_t port, int enable)
     uint16	misc_ctrl;
 
     pc       = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5690_enable_set: u=%d p=%d en=%d\n"),
               unit, port, enable));
@@ -893,7 +893,7 @@ phy_5690_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
 	break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5690_interface_set: u=%d p=%d pif=%d rv=%d\n"),
               unit, port, pif, rv));
@@ -1076,7 +1076,7 @@ _phy_5690_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     pc       = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_5690_notify_duplex: u=%d p=%d duplex=%d fiber=%d\n"),
               unit, port, duplex, fiber));
@@ -1162,7 +1162,7 @@ _phy_5690_notify_speed(int unit, soc_port_t port, uint32 speed)
 
     pc       = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_5690_notify_speed: u=%d p=%d speed=%d fiber=%d\n"),
               unit, port, speed, fiber));
@@ -1257,7 +1257,7 @@ _phy_5690_stop(int unit, soc_port_t port)
 	       PHY_STOP_DUPLEX_CHG |
 	       PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5690_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,

@@ -1074,7 +1074,7 @@ bcm_tr2_mim_init(int unit)
 
 
     if (!L3_INFO(unit)->l3_initialized) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 module must be initialized first\n")));
         return BCM_E_NONE;
@@ -1224,7 +1224,7 @@ bcm_tr2_mim_vpn_create(int unit, bcm_mim_vpn_config_t *info)
     if ( info->lookup_id >= 0 ) {
         if (!SOC_MEM_FIELD32_VALUE_FIT(unit, mpls_mem, MIM_ISID__ISIDf, 
                                       info->lookup_id)) {
-            LOG_WARN(BSL_LS_BCM_MIM,
+            LOG_BSL_WARN(BSL_LS_BCM_MIM,
                      (BSL_META_U(unit,
                                  "lookup_id value exceeds 0x%x \n"),
                                  SOC_MEM_FIELD32_VALUE_MAX(unit, MPLS_ENTRYm, MIM_ISID__ISIDf)));
@@ -3572,7 +3572,7 @@ bcm_tr2_mim_port_add(int unit, bcm_mim_vpn_t vpn, bcm_mim_port_t *mim_port)
     rv = bcm_xgs3_l3_egress_mode_get(unit, &mode);
     BCM_IF_ERROR_RETURN(rv);
     if (!mode) {
-        LOG_INFO(BSL_LS_BCM_L3,
+        LOG_BSL_INFO(BSL_LS_BCM_L3,
                  (BSL_META_U(unit,
                              "L3 egress mode must be set first\n")));
         return BCM_E_DISABLED;

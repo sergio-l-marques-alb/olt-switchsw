@@ -86,7 +86,7 @@ drv_tbx_mac_set(int unit, soc_pbmp_t pbmp, uint32 mac_type,
     uint64  reg_v64, mac_field;
     uint8   temp_mac[6];
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_mac_set: unit %d, pbmp = %x, type = %d"),
                  unit, SOC_PBMP_WORD_GET(pbmp, 0), mac_type));
@@ -177,7 +177,7 @@ drv_tbx_mac_set(int unit, soc_pbmp_t pbmp, uint32 mac_type,
         ctrl_val = l2_useradd_en;
         rv = DRV_DEV_CONTROL_SET(unit, &ctrl_cnt, &ctrl_type, &ctrl_val);
         if (rv != SOC_E_NONE){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s, %d, SOC Error!\n"), 
                       FUNCTION_NAME(), __LINE__));
@@ -282,7 +282,7 @@ drv_tbx_mac_get(int unit, uint32 val, uint32 mac_type,
                     bmp_fld, &fld_v32));  
         SOC_PBMP_WORD_SET(*bmp, 0, fld_v32);
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_mac_get: unit %d, port = %d, type = %d,  \
                             mac =%02x-%02x-%02x-%02x-%02x-%02x\n"),

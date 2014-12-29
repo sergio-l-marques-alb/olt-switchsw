@@ -300,7 +300,7 @@ _bcm8726_pmad_write_en(int unit, phy_ctrl_t *pc, int enable)
         if ((data == 0x0011) || (data == 0x0012)) {
             SOC_IF_ERROR_RETURN
                 (WRITE_PHY8706_AN_REG(unit, pc, 0x800d, enable ? 0x400d : 0x4009));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_bcm8726_pmad_write_en: unit=%d port=%d\n"), unit, pc->port));
         }
@@ -403,7 +403,7 @@ _8727_rom_load_war(int unit, int port, phy_ctrl_t *pc)
                 (pc->read(unit, pc->phy_id-1, SOC_PHY_CLAUSE45_ADDR(0x1,0xca1c), &status1));
             SOC_IF_ERROR_RETURN
                 (pc->read(unit, pc->phy_id, SOC_PHY_CLAUSE45_ADDR(0x1,0xca1c), &status2));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Channel 2: PRTAD = %x status1 = %x Status2 = %x\n"),
                                  pc->phy_id, status1, status2)); 
@@ -419,7 +419,7 @@ _8727_rom_load_war(int unit, int port, phy_ctrl_t *pc)
                 (pc->read(unit, pc->phy_id, SOC_PHY_CLAUSE45_ADDR(0x1,0xca1c), &status1));
             SOC_IF_ERROR_RETURN
                 (pc->read(unit, pc->phy_id+1, SOC_PHY_CLAUSE45_ADDR(0x1,0xca1c), &status2));
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Channel 1: PRTAD = %x status1 = %x Status2 = %x\n"),
                                  pc->phy_id, status1, status2)); 
@@ -452,7 +452,7 @@ _8727_rom_load_war(int unit, int port, phy_ctrl_t *pc)
             }
         }
         if ((data16 & MII_CTRL_RESET) != 0) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8706/8726 reset failed: u=%d p=%d\n"),
                       unit, pc->port));
@@ -510,7 +510,7 @@ _8727_rom_load_war(int unit, int port, phy_ctrl_t *pc)
         }
     }
     if ((data16 & MII_CTRL_RESET) != 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "PHY8706/8726 reset failed: u=%d p=%d\n"),
                   unit, pc->port));
@@ -660,7 +660,7 @@ _8726_nxt_dev_probe(int unit, soc_port_t port)
         return SOC_E_NOT_FOUND;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "8726_nxt_dev_probe: found phy device"
                          " u=%d p=%d id0=0x%x id1=0x%x\n"), 
@@ -756,7 +756,7 @@ phy_8706_init(int unit, soc_port_t port)
             }
         }
         if ((data16 & MII_CTRL_RESET) != 0) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "PHY8706/8726 reset failed: u=%d p=%d\n"),
                       unit, port));
@@ -784,7 +784,7 @@ phy_8706_init(int unit, soc_port_t port)
                 rv = _phy_8727_firmware_ram_set(unit,port,0,phy8727c_ucode_bin,
                              phy8727c_ucode_bin_len);
                 if (SOC_FAILURE(rv)) {
-                    LOG_WARN(BSL_LS_SOC_PHY,
+                    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "8706: p=%d RAM load didn't complete\n"), port));
                 }
@@ -793,7 +793,7 @@ phy_8706_init(int unit, soc_port_t port)
             rv = _phy_8747_firmware_ram_set(unit,port,0,phy8747_ucode_bin,
                          phy8747_ucode_bin_len);
             if (SOC_FAILURE(rv)) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "8706: p=%d RAM load didn't complete\n"), port));
             }
@@ -846,12 +846,12 @@ phy_8706_init(int unit, soc_port_t port)
 
     if (soc_timeout_check(&to) || SOC_FAILURE(rv)) {
         if (phy_ext_rom_boot) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "8706: p=%d SPI-ROM load didn't complete (0x%x)\n"),
                                  port,data16));
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "8706: p=%d RAM boot didn't complete (0x%x)\n"),
                                  port,data16));
@@ -1109,7 +1109,7 @@ phy_8706_init(int unit, soc_port_t port)
         }
     }
     if ((data16 & 0x000f) != 0x000f) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "8706: u=%d p=%d XAUI lane out of sync (0x%x)\n"),
                              unit, port, (data16 & 0x000f)));
@@ -1408,7 +1408,7 @@ phy_8726_an_set(int unit, int port, int an)
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8726_an_set: u=%d p=%d an=%d\n"),
                          unit, port, an));
@@ -1484,7 +1484,7 @@ phy_8706_an_set(int unit, soc_port_t port, int an)
 
     pc = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_an_set: u=%d p=%d an=%d\n"),
                          unit, port, an));
@@ -1599,7 +1599,7 @@ phy_8706_ability_advert_get(int unit, soc_port_t port,
             break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_ability_advert_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -1659,7 +1659,7 @@ phy_8706_ability_remote_get(int unit, soc_port_t port,
         (READ_PHY8706_AN_REG(unit, pc, AN_STATUS_REG, &lp_abil));
     ability->flags     = (lp_abil & 0x1) ? SOC_PA_AUTONEG : 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_ability_remote_get: u=%d p=%d speed(FD)=0x%x pause=0x%x\n"),
               unit, port, ability->speed_full_duplex, ability->pause));
@@ -1732,7 +1732,7 @@ phy_8706_ability_advert_set(int unit, soc_port_t port,
                               MII_ANA_C37_FD |
                               MII_ANA_C37_HD ));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_ability_advert_set: u=%d p=%d pause=0x%08x adv_reg1=0x%04x\n"),
               unit, port, ability->pause, an_adv));
@@ -1759,7 +1759,7 @@ phy_8706_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
     pc = EXT_PHY_SW_STATE(unit, port);
 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_ability_local_get: u=%d p=%d\n"),
               unit, port));
@@ -1784,7 +1784,7 @@ phy_8706_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
     ability->loopback  = SOC_PA_LB_PHY;
     ability->flags     = SOC_PA_AUTONEG;
                                                                                
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_ability_local_get: u=%d p=%d speed=0x%x\n"),
               unit, port, ability->speed_full_duplex));
@@ -1863,7 +1863,7 @@ _phy_8706_link_get(int unit, soc_port_t port, int *link)
         }
     } 
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_8706_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -1891,7 +1891,7 @@ _phy_5942_link_get(int unit, soc_port_t port, int *link)
       *link =  ((xgxsstatus1 & (1U << 9)) | (status1000x1 & (1U << 1))) ? 1 : 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_phy_5942_link_get: u=%d port%d: link:%s\n"),
                  unit, port, *link ? "Up": "Down"));
@@ -2257,7 +2257,7 @@ _phy_8706_lb_get(int unit, soc_port_t port, int *enable)
     *enable =  ((tmp != 0xffff) && ((tmp & (0xf << 8)) == (6 << 8)));
 #endif /* PHY_8706_XAUI_LOOPBACK */
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_lb_get: u=%d port%d: loopback:%s\n"),
               unit, port, *enable ? "Enabled": "Disabled"));
@@ -2881,7 +2881,7 @@ _phy_8706_speed_set(int unit, soc_port_t port, int speed)
     COMPILER_REFERENCE(unit);
     COMPILER_REFERENCE(port); 
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_speed_set: u=%d p=%d speed=%d\n"), 
                          unit, port,speed));
@@ -3162,7 +3162,7 @@ _phy_8747_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
         (READ_PHY8706_PMA_PMD_REG(unit, pc,
                                  PHY8706_PMAD_M8051_MSGOUT_REG, &data16));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy8706_mdio_firmware_download: p=%d msgout 0x%x\n"),
                          port,data16));
@@ -3234,7 +3234,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
     SOC_IF_ERROR_RETURN
         (READ_PHY8706_PMA_PMD_REG(unit, pc, 0xCA13, &data16));
     if (data16 != 0x101) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set: p=%d wrong msgout value (0x%x) vs 0x%x\n"),
                              port,data16,0x101));
@@ -3250,7 +3250,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
     SOC_IF_ERROR_RETURN
         (READ_PHY8706_PMA_PMD_REG(unit, pc, 0xCA13, &data16));
     if (data16 != 0xabcd) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set: p=%d wrong msgout value (0x%x) vs 0x%x\n"),
                              port,data16,0xabcd));
@@ -3267,7 +3267,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
     SOC_IF_ERROR_RETURN
         (READ_PHY8706_PMA_PMD_REG(unit, pc, 0xCA13, &data16));
     if (data16 != 0xadd) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set: p=%d wrong msgout value (0x%x) vs 0x%x\n"),
                              port,data16,0xadd));
@@ -3284,7 +3284,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
     SOC_IF_ERROR_RETURN
         (READ_PHY8706_PMA_PMD_REG(unit, pc, 0xCA13, &data16));
     if (data16 != 0xab00) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set: p=%d wrong msgout value (0x%x) vs 0x%x\n"),
                              port,data16,0xab00));
@@ -3307,7 +3307,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
 
     if (data16 != 0x4321) {
         /* Download failure */
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set: p=%d wrong msgout value (0x%x) vs 0x%x\n"),
                              port,data16,0x4321));
@@ -3328,7 +3328,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
     /* Need to check if checksum is correct */
     if (data16 != 0x300) {
         /* Bad CHECKSUM */
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set: p=%d wrong msgout value (0x%x) vs 0x%x\n"),
                              port,data16,0x300));
@@ -3361,7 +3361,7 @@ _phy_8727_firmware_ram_set(int unit, int port, int offset, uint8 *array,int data
     }
     if (data16 != 0x202) {
         rv = SOC_E_TIMEOUT;
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "firmware_ram_set fail: p=%d msgout 0x%x vs 0x%x\n"),
                              port,data16,0x202));
@@ -3403,7 +3403,7 @@ phy_8706_rom_wait(int unit, int port)
         }
     } while (!soc_timeout_check(&to));
     if (!(rd_data & 0x0100)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "phy_8706_rom_program: u = %d p = %d "
                               "timeout 1\n"), unit, port));
@@ -3471,7 +3471,7 @@ phy_8706_rom_wait(int unit, int port)
             }
         } while (!soc_timeout_check(&to));
         if (!(rd_data & 0x0100)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "phy_8706_rom_program: u = %d p = %d "
                                   "timeout 2\n"), unit, port));
@@ -3731,7 +3731,7 @@ phy_8706_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
      /* set SPI-ROM write enable */
     SOC_IF_ERROR_RETURN(phy_8706_rom_write_enable_set(unit, port, 1));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "init0: u=%d p=%d\n"),
                          unit, port));
@@ -3783,7 +3783,7 @@ phy_8706_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
         wr_data = (((j & 0x00FF) * 0x0100) | ((j & 0xFF00) / 0x0100));
         SOC_IF_ERROR_RETURN(write_message(unit, pc, wr_data, &rd_data));
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "loop: u=%d p=%d,inxj: %d,inxi:%d\n"),
                              unit, port,j,i));
@@ -3901,7 +3901,7 @@ phy_8706_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
     SOC_IF_ERROR_RETURN
         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0x9, tx_disable_reg));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8706_rom_program: u=%d p=%d done\n"), unit, port));
 
@@ -3950,7 +3950,7 @@ write_message(int unit, phy_ctrl_t *pc, uint16 wrdata, uint16 *rddata)
             break;
     } while (!soc_timeout_check(&to));
     if (!(tmp_data & 0x4)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "write_message failed: wrdata %04x\n"), wrdata));
         return SOC_E_FAIL;
@@ -3978,7 +3978,7 @@ _phy_8727_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
     int access_type;
     int data_type;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_8727_bsc_read: u=%d p=%d addr=%04x\n"), 
                          unit, port, addr));
@@ -4055,7 +4055,7 @@ _phy_8727_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
     /* need some delays */
     sal_usleep(10000);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "BSC command status %d time=%d\n"), 
                          (data16 & PHY_8727_2W_STAT), SAL_USECS_SUB(end, start)));
@@ -4070,12 +4070,12 @@ _phy_8727_bsc_rw(int unit, soc_port_t port, int dev_addr, int opr,
                 (READ_PHY8706_PMA_PMD_REG(unit, pc, (ram_start+i), &data16));
             if (data_type == PHY_8727_I2C_16BIT) {
                 ((uint16 *)data_array)[i] = data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "%04x "), data16));
             } else {
                 ((uint8 *)data_array)[i] = (uint8)data16;
-                LOG_INFO(BSL_LS_SOC_PHY,
+                LOG_BSL_INFO(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "%02x "), data16));
             }

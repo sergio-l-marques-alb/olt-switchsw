@@ -509,7 +509,7 @@ soc_schan_override_enable(int unit)
     if (SOC_WARM_BOOT(unit)) {
         if (sal_mutex_take(SOC_CONTROL(unit)->schan_wb_mutex,
                            SOC_SCHAN_WB_TIME_OUT)) {
-            LOG_ERROR(BSL_LS_SOC_SCHAN,
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN,
                       (BSL_META_U(unit,
                                   "Failed to take schan_wb_mutex.\n")));
             return SOC_E_INTERNAL;
@@ -529,7 +529,7 @@ soc_schan_override_disable(int unit)
     if (SOC_CONTROL(unit)->schan_wb_thread_id == sal_thread_self()) {
         SOC_CONTROL(unit)->schan_wb_thread_id = SAL_THREAD_ERROR;
         if (sal_mutex_give(SOC_CONTROL(unit)->schan_wb_mutex)) {
-            LOG_ERROR(BSL_LS_SOC_SCHAN,
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN,
                       (BSL_META_U(unit,
                                   "Failed to release schan_wb_mutex.\n")));
             return SOC_E_INTERNAL;
@@ -573,7 +573,7 @@ soc_schan_op(int unit,
              int intr)
 {
     if (SOC_CONTROL(unit)->schan_op == NULL) {
-        LOG_FATAL(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+        LOG_BSL_FATAL(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                   "SOC_SCHAN_OP() function is undefined\n")));
         return SOC_E_FAIL;
     } else {
@@ -709,7 +709,7 @@ _soc_schan_op_arad_sanity_check(int unit, schan_msg_t *msg, int dwc_write,
         msg->header.v3.opcode != READ_MEMORY_CMD_MSG &&
         ((SOC_WARM_BOOT(unit) && !IS_WRITE_ALLOWED_DURING_WB(unit)) || SOC_IS_DETACHING(unit)))
     {
-        LOG_WARN(BSL_LS_SOC_SCHAN,
+        LOG_BSL_WARN(BSL_LS_SOC_SCHAN,
             (BSL_META_U(unit,
                             "soc_schan_op: ERROR, trying to access HW during deinit or warm reboot\n")));
         return SOC_E_FAIL;
@@ -749,8 +749,8 @@ _soc_schan_op_sanity_check(int unit, schan_msg_t *msg, int dwc_write,
         return TRUE;
     }
 
-    if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+    if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
             (BSL_META_U(unit,
                             "S-CHANNEL %s: (unit %d)\n"),
                  soc_schan_op_name(msg->header.v2.opcode), unit));
@@ -774,8 +774,8 @@ _soc_schan_op_wrapper_plibde(int unit, schan_msg_t *msg, int dwc_write,
     int rv;
 
     /* Back door into the simulation to perform direct SCHANNEL operations */
-    if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+    if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
             (BSL_META_U(unit,
                             "S-CHANNEL %s: (unit %d)\n"),
                  soc_schan_op_name(msg->header.v2.opcode), unit));
@@ -784,7 +784,7 @@ _soc_schan_op_wrapper_plibde(int unit, schan_msg_t *msg, int dwc_write,
 
     rv = plibde_schan_op(unit, msg, dwc_write, dwc_read);
 
-    if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
+    if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
         soc_schan_dump(unit, msg, dwc_read);
     }
 
@@ -805,7 +805,7 @@ _soc_schan_op_wrapper_rcpu(int unit, schan_msg_t *msg, int dwc_write,
                           int dwc_read, int intr)
 {
     if (SOC_CONTROL(unit)->soc_rcpu_schan_op == NULL) {
-        LOG_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                   "No soc_rcpu_schan_op callback defined\n")));
         return SOC_E_FAIL;
     }
@@ -834,7 +834,7 @@ _soc_schan_cmicm_intr_wait(int unit)
                      SOC_CONTROL(unit)->schanTimeout) != 0) {
         rv = SOC_E_TIMEOUT;
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "  Interrupt received\n")));
 
@@ -855,7 +855,7 @@ _soc_schan_cmicm_intr_wait(int unit)
 
             if (err_bit) {
                 rv = SOC_E_FAIL;
-                LOG_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                     "  ERRBIT received in CMIC_SCHAN_ERR.\n")));
             }
         }
@@ -897,7 +897,7 @@ _soc_schan_cmicm_poll_wait(int unit, schan_msg_t *msg)
     }
 
     if (rv == SOC_E_NONE) {
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "  Done in %d polls\n"), to.polls));
     }
@@ -910,7 +910,7 @@ _soc_schan_cmicm_poll_wait(int unit, schan_msg_t *msg)
             soc_pci_read(unit, CMIC_SCHAN_MESSAGE(unit, 1));
 
         rv = SOC_E_FAIL;
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "  NAK received from SCHAN.\n")));
 
@@ -944,7 +944,7 @@ _soc_schan_cmicm_poll_wait(int unit, schan_msg_t *msg)
     if ((schanCtrl & SC_CMCx_MSG_SER_CHECK_FAIL) &&
         soc_feature(unit, soc_feature_ser_parity)){
         rv = SOC_E_FAIL;
-        LOG_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                   "  SER Parity Check Error.\n")));
 
 #if defined(BCM_XGS_SUPPORT)
@@ -967,7 +967,7 @@ _soc_schan_cmicm_poll_wait(int unit, schan_msg_t *msg)
 
         if (err_bit) {
             rv = SOC_E_FAIL;
-            LOG_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                       "  ERRBIT received in CMIC_SCHAN_ERR.\n")));
         }
     }
@@ -1002,7 +1002,7 @@ _soc_schan_no_cmicm_dpp_err_check(int unit)
         if (err_bit) {
             soc_pci_write(unit, CMIC_SCHAN_ERR, 0);
             rv = SOC_E_FAIL;
-            LOG_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                       "  ERRBIT received in CMIC_SCHAN_ERR.\n")));
         }
     }
@@ -1029,7 +1029,7 @@ _soc_schan_no_cmicm_intr_wait(int unit)
                      SOC_CONTROL(unit)->schanTimeout) != 0) {
         rv = SOC_E_TIMEOUT;
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "  Interrupt received\n")));
 
@@ -1113,7 +1113,7 @@ _soc_schan_no_cmicm_check_ser_parity(int unit, uint32 *schanCtrl, schan_msg_t *m
     if ((*schanCtrl & SC_MSG_SER_CHECK_FAIL_TST) &&
         soc_feature(unit, soc_feature_ser_parity)) {
             rv = SOC_E_FAIL;
-            LOG_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN, (BSL_META_U(unit,
                       "  SER Parity Check Error.\n")));
             sal_dpc(soc_ser_fail, INT_TO_PTR(unit),
                     INT_TO_PTR(msg->gencmd.address), 0, 0, 0);
@@ -1148,7 +1148,7 @@ _soc_schan_no_cmicm_poll_wait(int unit, schan_msg_t *msg)
     }
 
     if (rv == SOC_E_NONE) {
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "  Done in %d polls\n"), to.polls));
     }
@@ -1158,7 +1158,7 @@ _soc_schan_no_cmicm_poll_wait(int unit, schan_msg_t *msg)
 #ifdef _SER_TIME_STAMP
         ser_time_1 = sal_time_usecs();
 #endif
-        LOG_VERBOSE(BSL_LS_SOC_SCHAN,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SCHAN,
                  (BSL_META_U(unit,
                              "  NAK received from SCHAN.\n")));
 
@@ -1217,7 +1217,7 @@ _soc_schan_op_td2(int unit, schan_msg_t *msg, int dwc_write,
         }
 
         if (rv == SOC_E_TIMEOUT) {
-            LOG_WARN(BSL_LS_SOC_SCHAN,
+            LOG_BSL_WARN(BSL_LS_SOC_SCHAN,
                 (BSL_META_U(unit,
                                 "soc_schan_op: operation attempt timed out\n")));
             SOC_CONTROL(unit)->stat.err_sc_tmo++;
@@ -1230,7 +1230,7 @@ _soc_schan_op_td2(int unit, schan_msg_t *msg, int dwc_write,
             msg->dwords[i] = soc_pci_read(unit, CMIC_CMCx_SCHAN_MESSAGEn(cmc, i));
         }
 
-        if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
             soc_schan_dump(unit, msg, dwc_read);
         }
 
@@ -1241,8 +1241,8 @@ _soc_schan_op_td2(int unit, schan_msg_t *msg, int dwc_write,
     SCHAN_UNLOCK(unit);
 
     if (rv == SOC_E_TIMEOUT) {
-        if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_ERROR)) {
-            LOG_ERROR(BSL_LS_SOC_SCHAN,
+        if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_ERROR)) {
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN,
                       (BSL_META_U(unit,
                                   "SchanTimeOut:soc_schan_op operation timed out\n")));
             soc_schan_dump(unit, msg, dwc_write);
@@ -1272,7 +1272,7 @@ _soc_schan_timeout_check(int unit, int *rv, schan_msg_t *msg)
             *rv = SOC_E_NONE;
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_SCHAN,
+        LOG_BSL_WARN(BSL_LS_SOC_SCHAN,
             (BSL_META_U(unit,
                 "soc_schan_op: operation attempt timed out\n")));
         SOC_CONTROL(unit)->stat.err_sc_tmo++;
@@ -1330,7 +1330,7 @@ _soc_schan_op_cmicm(int unit, schan_msg_t *msg, int dwc_write,
             msg->dwords[i] = soc_pci_read(unit, CMIC_CMCx_SCHAN_MESSAGEn(cmc, i));
         }
 
-        if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
             soc_schan_dump(unit, msg, dwc_read);
         }
 
@@ -1341,8 +1341,8 @@ _soc_schan_op_cmicm(int unit, schan_msg_t *msg, int dwc_write,
     SCHAN_UNLOCK(unit);
 
     if (rv == SOC_E_TIMEOUT) {
-        if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_ERROR)) {
-            LOG_ERROR(BSL_LS_SOC_SCHAN,
+        if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_ERROR)) {
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN,
                       (BSL_META_U(unit,
                                   "SchanTimeOut:soc_schan_op operation timed out\n")));
             soc_schan_dump(unit, msg, dwc_write);
@@ -1400,7 +1400,7 @@ _soc_schan_op_no_cmicm(int unit, schan_msg_t *msg, int dwc_write,
             msg->dwords[i] = soc_pci_read(unit, CMIC_SCHAN_MESSAGE(unit, i));
         }
 
-        if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
+        if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_VERBOSE)) {
             soc_schan_dump(unit, msg, dwc_read);
         }
 
@@ -1411,8 +1411,8 @@ _soc_schan_op_no_cmicm(int unit, schan_msg_t *msg, int dwc_write,
     SCHAN_UNLOCK(unit);
 
     if (rv == SOC_E_TIMEOUT) {
-        if (LOG_CHECK(BSL_LS_SOC_SCHAN | BSL_ERROR)) {
-            LOG_ERROR(BSL_LS_SOC_SCHAN,
+        if (LOG_BSL_CHECK(BSL_LS_SOC_SCHAN | BSL_ERROR)) {
+            LOG_BSL_ERROR(BSL_LS_SOC_SCHAN,
                       (BSL_META_U(unit,
                                   "SchanTimeOut:soc_schan_op operation timed out\n")));
             soc_schan_dump(unit, msg, dwc_write);

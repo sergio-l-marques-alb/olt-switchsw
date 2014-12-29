@@ -1243,7 +1243,7 @@ _field_th_slices_init(int unit, _field_stage_t *stage_fc, _field_control_t *fc)
     for (inst = 0; inst < stage_fc->num_instances; inst++) {
         rv = _field_th_instance_slices_init(unit, stage_fc, inst);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: _field_th_instance_slices_init=%d\n"),
                  unit, rv));
             return (rv);
@@ -1775,7 +1775,7 @@ _field_th_instance_lt_init(int unit, _field_stage_t *stage_fc, int inst)
         /* Allocate memory to store LT information. */
         lt_p = sal_alloc(sizeof(_field_lt_config_t), "logical table config");
         if (NULL == lt_p) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: LT(Inst=%d) allocation=%d\n"),
                  unit, inst, (BCM_E_MEMORY)));
             return (BCM_E_MEMORY);
@@ -1826,7 +1826,7 @@ _field_th_stage_logical_tables_init(int unit,
         /* Initialize logical table configuration. */
         rv = _field_th_instance_lt_init(unit, stage_fc, inst);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: LT(Inst=%d) Config Init=%d\n"),
                  unit, inst, rv));
             return (rv);
@@ -1835,7 +1835,7 @@ _field_th_stage_logical_tables_init(int unit,
         /* Initialize logical table slices for IFP stage. */
         rv = _field_th_instance_lt_slices_init(unit, stage_fc, inst);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: LT(Inst=%d) Slices Init=%d\n"),
                  unit, inst, rv));
             return (rv);
@@ -1844,7 +1844,7 @@ _field_th_stage_logical_tables_init(int unit,
         /* Initialize logical table slice entries for IFP. */
         rv = _field_th_instance_lt_entries_init(unit, stage_fc, inst);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: LT(Inst=%d) Entries Init=%d\n"),
                  unit, inst, rv));
             return (rv);
@@ -2010,7 +2010,7 @@ _field_th_counters_init(int unit,
                 /* Allocate new set of counters for the slice. */
                 rv = _field_th_instance_slice_counters_alloc(unit, fs);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Error: "
                         "_field_th_instance_slice_counters_alloc=%d\n"),
                          unit, rv));
@@ -2088,7 +2088,7 @@ _field_th_keygen_profiles_init(int unit, _field_stage_t *stage_fc)
             rv = soc_profile_mem_create(unit, mem, entry_words, 2,
                     &stage_fc->keygen_profile[_FP_DEF_INST].profile);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: Keygen profile creation failed."
                     "=%d\n"), unit, rv));
                 return (rv);
@@ -2114,7 +2114,7 @@ _field_th_keygen_profiles_init(int unit, _field_stage_t *stage_fc)
                 rv = soc_profile_mem_create(unit, mem, entry_words, 2,
                             &stage_fc->keygen_profile[inst].profile);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                         "FP(unit %d) Error: KeyGen profile creation failed."
                         "=%d\n"), unit, rv));
                     return (rv);
@@ -2166,7 +2166,7 @@ _field_th_stage_core_init(int unit,
     /* Initialize stage slices information. */
     rv = _field_th_slices_init(unit, stage_fc, fc);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_slices_init=%d\n"), unit, rv));
         _field_th_stage_delete(unit, fc, stage_fc);
         return (rv);
@@ -2175,7 +2175,7 @@ _field_th_stage_core_init(int unit,
     /* Initialize stage slices entries information. */
     rv = _field_th_entries_init(unit, stage_fc);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_entries_init=%d\n"), unit, rv));
         _field_th_stage_delete(unit, fc, stage_fc);
         return (rv);
@@ -2184,7 +2184,7 @@ _field_th_stage_core_init(int unit,
     /* Initialize Meters. */
     rv = _field_th_meters_init(unit, stage_fc);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_meters_init=%d\n"), unit, rv));
         _field_th_stage_delete(unit, fc, stage_fc);
         return (rv);
@@ -2193,7 +2193,7 @@ _field_th_stage_core_init(int unit,
     /* Initialize counters usage bitmap. */
     rv = _field_th_counters_init(unit, fc, stage_fc);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_counters_init=%d\n"), unit, rv));
         _field_th_stage_delete(unit, fc, stage_fc);
         return (rv);
@@ -2218,7 +2218,7 @@ _field_th_stage_core_init(int unit,
         rv = soc_profile_mem_create(unit, &mem, &entry_words, 1,
                 &stage_fc->redirect_profile);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Redirection profile creation failed.=%d\n"),
                  unit, rv));
             _field_th_stage_delete(unit, fc, stage_fc);
@@ -2228,7 +2228,7 @@ _field_th_stage_core_init(int unit,
         /* Initialize regular keygen and post mux keygen program profiles. */
         rv = _field_th_keygen_profiles_init(unit, stage_fc);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: _field_th_keygen_profiles_init=%d\n"),
                  unit, rv));
             _field_th_stage_delete(unit, fc, stage_fc);
@@ -2241,7 +2241,7 @@ _field_th_stage_core_init(int unit,
         /* Initialize stage data control information. */
         rv = _field_th_stage_data_ctrl_init(unit, stage_fc);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: _field_th_stage_data_ctrl_init=%d\n"),
                  unit, rv));
             _field_th_stage_delete(unit, fc, stage_fc);
@@ -2258,7 +2258,7 @@ _field_th_stage_core_init(int unit,
             /* Initialize stage select codes table. */
             rv = _bcm_field_stage_fpf_init(unit, stage_fc);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: _bcm_field_stage_fpf_init=%d\n"),
                      unit, rv));
                 _field_th_stage_delete(unit, fc, stage_fc);
@@ -2284,7 +2284,7 @@ _field_th_stage_core_init(int unit,
             /* Initialize stage legacy select codes table. */
             rv = _bcm_field_stage_fpf_init(unit, stage_fc);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: _bcm_field_stage_fpf_init=%d\n"),
                      unit, rv));
                 _field_th_stage_delete(unit, fc, stage_fc);
@@ -2294,7 +2294,7 @@ _field_th_stage_core_init(int unit,
             /* Initialize stage logical tables information. */
             rv = _field_th_stage_logical_tables_init(unit, fc, stage_fc);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: _field_th_stage_logical_tables_init=%d"
                     "\n"), unit, rv));
                 _field_th_stage_delete(unit, fc, stage_fc);
@@ -2307,7 +2307,7 @@ _field_th_stage_core_init(int unit,
              */
             rv = _field_th_stage_extractors_init(unit, stage_fc);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: _field_th_stage_extractors_init=%d\n"),
                     unit, rv));
                 _field_th_stage_delete(unit, fc, stage_fc);
@@ -2317,7 +2317,7 @@ _field_th_stage_core_init(int unit,
             /* Initialize IFP qualifers to HW input bus fields & offsets. */
             rv = _field_th_stage_quals_ibus_map_init(unit, stage_fc);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+                LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                     "FP(unit %d) Error: _field_th_stage_extractors_init=%d\n"),
                     unit, rv));
                 _field_th_stage_delete(unit, fc, stage_fc);
@@ -2375,7 +2375,7 @@ _field_th_stage_add(int unit,
     /* Allocate field stage structure instance memory. */
     stage_fc = sal_alloc(sizeof(_field_stage_t), "FP stage info.");
     if (NULL == stage_fc) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Allocation failure for stage info\n"), unit));
         return (BCM_E_MEMORY);
     }
@@ -2492,7 +2492,7 @@ _field_th_stage_add(int unit,
         if (NULL != stage_fc) {
             sal_free(stage_fc);
         }
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_stage_core_init=%d\n"), unit, rv));
     }
 
@@ -2573,7 +2573,7 @@ _bcm_field_th_stages_add(int unit, _field_control_t *fc)
         rv = _field_th_stage_add(unit, fc, _BCM_FIELD_STAGE_LOOKUP,
                 bcmFieldGroupOperModeCount);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_stage_add(Lookup)=%d\n"), unit, rv));
             _bcm_field_th_stages_delete(unit, fc);
             return (rv);
@@ -2583,7 +2583,7 @@ _bcm_field_th_stages_add(int unit, _field_control_t *fc)
         rv = _field_th_stage_add(unit, fc, _BCM_FIELD_STAGE_EGRESS,
                 bcmFieldGroupOperModeCount);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_stage_add(Egress)=%d\n"), unit, rv));
             _bcm_field_th_stages_delete(unit, fc);
             return (rv);
@@ -2594,7 +2594,7 @@ _bcm_field_th_stages_add(int unit, _field_control_t *fc)
     rv = _field_th_stage_add(unit, fc, _BCM_FIELD_STAGE_INGRESS,
             bcmFieldGroupOperModeCount);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: _field_th_stage_add(Ingress)=%d\n"), unit, rv));
         /*
          * Delete all previous stages initialized on this device in case of
@@ -3237,7 +3237,7 @@ _field_th_actions_init(int unit, _field_stage_t *stage_fc)
                    (bcmFieldActionCount * sizeof(_bcm_field_action_conf_t *)),
                    "Field Actions");
     if (NULL == stage_fc->f_action_arr) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Memory Resource Error\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Memory Resource Error\n")));
         return (BCM_E_MEMORY);
     }
 
@@ -5009,7 +5009,7 @@ _bcm_field_action_config_get(int unit, _field_stage_t *stage_fc,
     /* Input parameters check. */
     if (NULL == stage_fc || NULL == ptr ||
         (action < 0) || (action > bcmFieldActionCount)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5051,7 +5051,7 @@ _bcm_field_action_offset_get(int unit, _field_stage_t *stage_fc,
     /* Input parameters check. */
     if (NULL == stage_fc || NULL == ptr ||
         (action < 0) || (action > bcmFieldActionCount)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5077,7 +5077,7 @@ _bcm_field_action_offset_get(int unit, _field_stage_t *stage_fc,
     } while (NULL != offset);
 
     if (!found) {
-        LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                 "Action offset info for flags %d is not available.\n"), flags));
         return BCM_E_UNAVAIL;
     }
@@ -5275,10 +5275,10 @@ _bcm_field_th_mirror_resolve(int unit,
     params->mtp_index = mtp_index;
     params->mtp_type_index = mtp_type_index;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters: ")));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters: ")));
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                   "MTP Index = %d, "), params->mtp_index));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "MTP Type Index = %d, "), params->mtp_type_index));
 
     return (BCM_E_NONE);
@@ -5306,7 +5306,7 @@ _bcm_field_th_cosq_resolve(int unit, _field_entry_t *f_ent,
     uint32 cosq;       /* Cosq Value passed by User. */
 
     if (NULL == f_ent || NULL == fa || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5344,7 +5344,7 @@ _bcm_field_th_cosq_resolve(int unit, _field_entry_t *f_ent,
             }
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s can't be resolved.\n"), action_name[fa->action]));
             return BCM_E_UNAVAIL;
     }
@@ -5355,7 +5355,7 @@ _bcm_field_th_cosq_resolve(int unit, _field_entry_t *f_ent,
 
     params->cosq_new = cosq_new;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                 "Resolved Parameters:\n cosq_new = %d \n"), params->cosq_new));
     return BCM_E_NONE;
 }
@@ -5381,7 +5381,7 @@ int _bcm_field_th_fabric_tag_resolve(int unit, _field_entry_t *f_ent,
     uint32 fabric_tag;     /* Fabric Tag Value. */
 
     if (NULL == f_ent || NULL == fa || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5417,8 +5417,8 @@ int _bcm_field_th_fabric_tag_resolve(int unit, _field_entry_t *f_ent,
     params->fabric_tag_type = fabric_tag_type;
     params->fabric_tag = fabric_tag;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                "fabric_tag_type = %d \n fabric_tag = %d\n"),
                                params->fabric_tag_type, params->fabric_tag));
     return BCM_E_NONE;
@@ -5445,7 +5445,7 @@ _bcm_field_th_i2e_class_resolve(int unit, _field_entry_t *f_ent,
     uint32 i2e_cl_sel; /* Ingress to Egress Class Selector. */
 
     if (NULL == f_ent || NULL == fa || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5487,13 +5487,13 @@ _bcm_field_th_i2e_class_resolve(int unit, _field_entry_t *f_ent,
             i2e_cl_sel = 0xf;
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "Invalid i2e class selector: %d.\n"), fa->param[0]));
             return (BCM_E_PARAM);
     }
 
     params->i2e_cl_sel = i2e_cl_sel;
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
              "Resolved Parameters:\n i2e_cl_sel = %d \n"), params->i2e_cl_sel));
     return BCM_E_NONE;
 }
@@ -5518,7 +5518,7 @@ _bcm_field_th_i2e_hg_class_resolve(int unit, _field_entry_t *f_ent,
     uint32 i2e_hg_cl_sel; /* Ingress to Egress HiGiG Class selector. */
 
     if (NULL == f_ent || NULL == fa || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5531,14 +5531,14 @@ _bcm_field_th_i2e_hg_class_resolve(int unit, _field_entry_t *f_ent,
             break;
         default:
             /* Invalid parameter should have been caught earlier */
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                      "Invalid i2e higig class selector: %d.\n"), fa->param[0]));
             return (BCM_E_PARAM);
     }
 
     params->i2e_hg_cl_sel = i2e_hg_cl_sel;
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                               "i2e_hg_cl_sel = %d \n"), params->i2e_hg_cl_sel));
     return BCM_E_NONE;
 }
@@ -5565,7 +5565,7 @@ _bcm_field_th_nat_resolve(int unit, _field_entry_t *f_ent,
     int32 hw_half;
 
     if (NULL == f_ent || NULL == fa || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5573,15 +5573,15 @@ _bcm_field_th_nat_resolve(int unit, _field_entry_t *f_ent,
     BCM_L3_NAT_EGRESS_HW_IDX_GET(fa->param[0], hw_idx, hw_half);
     if ((hw_idx < 0) || (hw_idx > soc_mem_index_max(unit,
                                   EGR_NAT_PACKET_EDIT_INFOm))) {
-       LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Invalid Parameters.\n")));
+       LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Invalid Parameters.\n")));
        return BCM_E_PARAM;
     }
 
     params->hw_idx = hw_idx;
     params->hw_half = hw_half;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                           "hw_idx = %d \n hw_half = %d \n"),
                                            params->hw_idx, params->hw_half));
     return BCM_E_NONE;
@@ -5615,7 +5615,7 @@ _bcm_field_th_redirect_resolve(int unit, _field_entry_t *f_ent,
     uint32 redir_field;            /* Dest object to redirect the packet. */
 
     if (NULL == fa || NULL == f_ent || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -5747,7 +5747,7 @@ _bcm_field_th_redirect_resolve(int unit, _field_entry_t *f_ent,
             ucast_redirect_control = 0x1;
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s can't be resolved.\n"), action_name[fa->action]));
             return (BCM_E_UNAVAIL);
     }
@@ -5760,19 +5760,19 @@ _bcm_field_th_redirect_resolve(int unit, _field_entry_t *f_ent,
     params->ucast_redirect_control = ucast_redirect_control;
     params->mcast_redirect_control = mcast_redirect_control;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                          "is_dvp = %d \n"), params->is_dvp));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                       "is_trunk = %d \n"), params->is_trunk));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                   "nh_ecmp_id = %d \n"), params->nh_ecmp_id));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                           "redirect_value = %d \n"), params->redirect_value));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                             "ucast_redirect_control = %d \n"),
                                              params->ucast_redirect_control));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                             "mcast_redirect_control = %d \n"),
                                              params->mcast_redirect_control));
 
@@ -5802,7 +5802,7 @@ _bcm_field_th_l3swl2change_resolve(int unit,
     uint32 flags;   /* Multippath Flags. */
 
     if (NULL == fa || NULL == f_ent || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -5816,7 +5816,7 @@ _bcm_field_th_l3swl2change_resolve(int unit,
             break;
 #endif
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s can't be resolved.\n"), action_name[fa->action]));
             return BCM_E_UNAVAIL;
     }
@@ -5824,8 +5824,8 @@ _bcm_field_th_l3swl2change_resolve(int unit,
     params->flags |= flags;
     params->nh_ecmp_id = nh_ecmp_id;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
-    LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit, "Resolved Parameters:\n")));
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                                           "flags = %d \n  nh_ecmp_id = %d \n"),
                                            params->flags, params->nh_ecmp_id));
     return rv;
@@ -5848,7 +5848,7 @@ _bcm_field_action_resolve(int unit, _field_entry_t *f_ent,
                           _field_action_t *fa, _field_action_params_t *params)
 {
     if (NULL == f_ent || NULL == fa || NULL == params) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -5898,7 +5898,7 @@ _bcm_field_action_resolve(int unit, _field_entry_t *f_ent,
         case bcmFieldActionMirrorEgress:
             return _bcm_field_th_mirror_resolve(unit, f_ent, fa, params);
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s can't be resolved.\n"), action_name[fa->action]));
             return BCM_E_UNAVAIL;
    }
@@ -5932,7 +5932,7 @@ _bcm_field_th_ingress_action_params_check(int unit,
 
     if (NULL == f_ent ||
         NULL == fa) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -6225,7 +6225,7 @@ _bcm_field_th_ingress_action_params_check(int unit,
             BCM_IF_ERROR_RETURN(rv);
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                 "Unsupported Action %s.\n"), action_name[fa->action]));
             return BCM_E_UNAVAIL;
    }
@@ -6255,7 +6255,7 @@ _bcm_field_th_action_params_check(int unit,
 
     if (NULL == f_ent ||
         NULL == fa) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -6393,7 +6393,7 @@ _bcm_field_th_val_set(uint32 *p_fn_data, uint32 *p_data,
     int idx, wp, bp, len;
 
     if (NULL == p_fn_data || NULL == p_data) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -6457,7 +6457,7 @@ _bcm_field_th_val_get(uint32 *p_fn_data, uint32 *p_data,
 
     /* Input parameters check. */
     if (NULL == p_fn_data || NULL == p_data) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -6507,7 +6507,7 @@ _bcm_field_action_val_set(int unit, _field_entry_t *f_ent, uint32 *entbuf,
     uint32 value;
 
     if (NULL == entbuf || NULL == f_ent || NULL == a_offset) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -6560,7 +6560,7 @@ _bcm_field_action_val_get(int unit,
     _field_stage_t *stage_fc;
 
     if (NULL == entbuf || NULL == a_offset || NULL == f_ent) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -6621,7 +6621,7 @@ _bcm_field_th_profile1_cd_action_set(int unit,
     _bcm_field_action_offset_t a_offset;
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -6866,7 +6866,7 @@ _bcm_field_th_profile1_cd_action_set(int unit,
             ACTION_SET(unit, f_ent, entbuf, &a_offset);
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s is not found.\n"), action_name[action]));
             return BCM_E_UNAVAIL;
     }
@@ -6900,7 +6900,7 @@ _bcm_field_th_profile1_action_set(int unit, _field_entry_t *f_ent,
     int rv;
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7072,7 +7072,7 @@ _bcm_field_th_profile2_cd_action_set(int unit,
 
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7112,7 +7112,7 @@ _bcm_field_th_profile2_cd_action_set(int unit,
             ACTION_SET(unit, f_ent, entbuf, &a_offset);
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s is not found.\n"), action_name[action]));
             return BCM_E_UNAVAIL;
     }
@@ -7146,7 +7146,7 @@ _bcm_field_th_profile2_action_set(int unit, _field_entry_t *f_ent,
     int rv;
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7302,7 +7302,7 @@ _bcm_field_th_redirect_action_set(int unit,
 
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7378,7 +7378,7 @@ _bcm_field_th_redirect_action_set(int unit,
             ACTION_SET(unit, f_ent, entbuf, &a_offset);
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s is not found.\n"), action_name[fa->action]));
             return BCM_E_UNAVAIL;
     }
@@ -7416,7 +7416,7 @@ _bcm_field_th_l3swl2change_action_set(int unit,
     _bcm_field_action_offset_t a_offset;
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7484,7 +7484,7 @@ _bcm_field_th_l3swl2change_action_set(int unit,
             ACTION_SET(unit, f_ent, entbuf, &a_offset);
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s is not found.\n"), action_name[fa->action]));
             return BCM_E_UNAVAIL;
     }
@@ -7523,7 +7523,7 @@ _bcm_field_th_misc_cd_action_set(int unit,
     _bcm_field_action_offset_t a_offset;
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7627,7 +7627,7 @@ _bcm_field_th_misc_cd_action_set(int unit,
             ACTION_SET(unit, f_ent, entbuf, &a_offset);
             break;
         default:
-            LOG_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP,(BSL_META_U(unit,
                         "%s is not found.\n"), action_name[action]));
             return BCM_E_UNAVAIL;
     }
@@ -7667,7 +7667,7 @@ _bcm_field_th_misc_action_set(int unit,
 
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return BCM_E_PARAM;
     }
 
@@ -7859,7 +7859,7 @@ _bcm_field_th_action_set(int unit, soc_mem_t mem, _field_entry_t *f_ent,
     int rv;
 
     if (NULL == f_ent || NULL == fa || NULL == entbuf) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -8061,7 +8061,7 @@ _bcm_field_th_qual_sec_info_insert(int unit, _field_stage_t *stage_fc,
     stage_fc->input_bus.size += ptr->size;
     stage_fc->input_bus.num_fields++;
 
-    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
         "FP(unit %d) Verb: IBUS Qid=%d BusWidth=%d Num_Fields=%d.\n"),
         unit, qual->qid, stage_fc->input_bus.size,
         stage_fc->input_bus.num_fields));
@@ -9170,11 +9170,11 @@ _bcm_field_th_egress_key_match_type_set (int unit, _field_entry_t *f_ent)
 
     /* Input parameters check. */
     if (NULL == f_ent) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
     if (NULL == (fg = f_ent->group)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -9284,7 +9284,7 @@ _bcm_field_th_egress_selcode_get(int unit, _field_stage_t *stage_fc,
 
     /* Input parameters check. */
     if ((NULL == fg) || (NULL == qset_req) || (NULL == stage_fc)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -9664,7 +9664,7 @@ _bcm_field_th_selcode_get(int unit, _field_stage_t *stage_fc,
 
     /* Input parameters check. */
     if ((NULL == fg) || (NULL == qset_req) || (NULL == stage_fc)) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -9701,7 +9701,7 @@ _field_th_group_install(int unit, _field_group_t *fg)
     int    idx;                /* Iteration index.         */
 
     if (NULL == fg) {
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META("Invalid Parameters\n")));
         return (BCM_E_PARAM);
     }
 
@@ -10500,7 +10500,7 @@ _bcm_field_th_ingress_stat_hw_alloc(int unit,
 
     /* If counter is disabled skip allocation. */
     if (0 == f_st->hw_stat) {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
                                "FP(unit %d): Stat is not enabled.\n "), unit));
         return (BCM_E_INTERNAL);
     }
@@ -10511,7 +10511,7 @@ _bcm_field_th_ingress_stat_hw_alloc(int unit,
 
     /* If bitmap is zero - no mode selection is required. */
     if (0 == req_bmap) {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
                                   "FP(unit %d): No Valid stats.\n "), unit));
         return BCM_E_INTERNAL;
     }
@@ -13195,7 +13195,7 @@ _field_th_ext_config_list_add(int unit, _field_stage_t *stage_fc,
         alloc_sz = sizeof(_field_ext_info_t);
         _FP_XGS3_ALLOC(ext_info, alloc_sz, "FP extractor info");
         if (NULL == ext_info) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Allocation failure for extractor info.\n"),
                  unit));
             return (BCM_E_MEMORY);
@@ -13210,7 +13210,7 @@ _field_th_ext_config_list_add(int unit, _field_stage_t *stage_fc,
     alloc_sz = (ext_info->conf_size[level] + 1) * sizeof(_field_ext_cfg_t);
     _FP_XGS3_ALLOC(ext_cfg, alloc_sz, "FP extractor config");
     if (NULL == ext_cfg) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Allocation failure for extractor config.\n"),
              unit));
         if (NULL != ext_info) {
@@ -13287,7 +13287,7 @@ _field_th_ext_section_add(int unit, _field_stage_t *stage_fc,
             alloc_sz, "Field Ext sections");
         if (NULL == stage_fc->ext_cfg_arr[emode]->sections) {
 
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Allocation failure for extractor "
                 "sections.\n"), unit));
 
@@ -13306,7 +13306,7 @@ _field_th_ext_section_add(int unit, _field_stage_t *stage_fc,
         alloc_sz = sizeof(_field_ext_sections_t);
         _FP_XGS3_ALLOC(ext_sec, alloc_sz, "FP extractor section");
         if (NULL == ext_sec) {
-            LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Error: Allocation failure for extractor "
                 "section.\n"), unit));
             return (BCM_E_MEMORY);
@@ -13324,14 +13324,14 @@ _field_th_ext_section_add(int unit, _field_stage_t *stage_fc,
         stage_fc->ext_cfg_arr[emode]->sections[in_sec_idx] = ext_sec;
 
     } else {
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: B4-Extractor Sec=%d Gran=%d drain_bits=%d\n"),
             unit, ext_sec->sec, new_ext_cfg->gran, ext_sec->drain_bits));
 
         /* Update drain bit capacity. */
         ext_sec->drain_bits += new_ext_cfg->gran;
 
-        LOG_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Aft-Extractor Sec=%d Gran=%d drain_bits=%d\n"),
             unit, ext_sec->sec, new_ext_cfg->gran, ext_sec->drain_bits));
     }
@@ -13669,14 +13669,14 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
         _FieldKeygenExtSelL4, _FieldKeygenExtSelDisable, 0, 0, 0, 0);
 
     /* Temporary debug log messages. */
-    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
         "FP(unit %d) Verb: Extractor slice mode=%s.\n"), unit,
          (_FieldExtConfMode160Bits == stage_fc->ext_cfg_arr[emode]->mode)
          ? "160b" : "Invalid"));
 
     for (idx = 0; idx < _FP_EXT_LEVEL_COUNT; idx++) {
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Extractor Level=%d conf_sz=%d.\n"),
              unit, idx, stage_fc->ext_cfg_arr[emode]->conf_size[idx]));
 
@@ -13684,14 +13684,14 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
              conf++) {
             cfg = stage_fc->ext_cfg_arr[emode]->ext_cfg[idx][conf];
 
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Ext_id=0x%x Gran=%d Ext_num=%d IN=%d OUT=%d"
                 " Flags=%d In_use=%x.\n"),
                 unit, cfg.ext_id, cfg.gran, cfg.ext_num, cfg.in_sec,
                 cfg.out_sec, cfg.flags, cfg.in_use));
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extractor Num Sections=%d\n"),
                  unit, stage_fc->ext_cfg_arr[emode]->num_sec));
 
@@ -13701,7 +13701,7 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
             if (NULL == stage_fc->ext_cfg_arr[emode]->sections[sec]) {
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extractor section name=%d fill_bits=%d"
                 " drain_bits=%d.\n"),
                  unit,
@@ -14113,14 +14113,14 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
         _FieldKeygenExtSelL4B, _FieldKeygenExtSelDisable, 0, 0, 0, 0);
 
     /* Temporary debug log messages. */
-    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
         "FP(unit %d) Verb: Extractor slice mode=%s.\n"), unit,
          (_FieldExtConfMode320Bits == stage_fc->ext_cfg_arr[emode]->mode)
          ? "320" : "Invalid"));
 
     for (idx = 0; idx < _FP_EXT_LEVEL_COUNT; idx++) {
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Extractor Level=%d conf_sz=%d.\n"),
              unit, idx, stage_fc->ext_cfg_arr[emode]->conf_size[idx]));
 
@@ -14128,14 +14128,14 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
              conf++) {
             cfg = stage_fc->ext_cfg_arr[emode]->ext_cfg[idx][conf];
 
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Ext_id=0x%x Gran=%d Ext_num=%d IN=%d OUT=%d"
                 " Flags=%d In_use=%x.\n"),
                 unit, cfg.ext_id, cfg.gran, cfg.ext_num, cfg.in_sec,
                 cfg.out_sec, cfg.flags, cfg.in_use));
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extractor Num Sections=%d\n"),
                  unit, stage_fc->ext_cfg_arr[emode]->num_sec));
 
@@ -14145,7 +14145,7 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
             if (NULL == stage_fc->ext_cfg_arr[emode]->sections[sec]) {
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extractor section name=%d fill_bits=%d"
                 " drain_bits=%d.\n"),
                  unit,
@@ -14707,14 +14707,14 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
         _FieldKeygenExtSelL4C, _FieldKeygenExtSelDisable, 0, 0, 0, 0);
 
     /* Temporary debug log messages. */
-    LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
         "FP(unit %d) Verb: Extractor slice mode=%s.\n"), unit,
          (_FieldExtConfMode480Bits == stage_fc->ext_cfg_arr[emode]->mode)
          ? "480" : "Invalid"));
 
     for (idx = 0; idx < _FP_EXT_LEVEL_COUNT; idx++) {
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Verb: Extractor Level=%d conf_sz=%d.\n"),
              unit, idx, stage_fc->ext_cfg_arr[emode]->conf_size[idx]));
 
@@ -14722,14 +14722,14 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
              conf++) {
             cfg = stage_fc->ext_cfg_arr[emode]->ext_cfg[idx][conf];
 
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Ext_id=0x%x Gran=%d Ext_num=%d IN=%d OUT=%d"
                 " Flags=%d In_use=%x.\n"),
                 unit, cfg.ext_id, cfg.gran, cfg.ext_num, cfg.in_sec,
                 cfg.out_sec, cfg.flags, cfg.in_use));
         }
 
-        LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extractor Num Sections=%d\n"),
                  unit, stage_fc->ext_cfg_arr[emode]->num_sec));
 
@@ -14739,7 +14739,7 @@ _field_th_stage_extractors_init(int unit, _field_stage_t *stage_fc)
             if (NULL == stage_fc->ext_cfg_arr[emode]->sections[sec]) {
                 continue;
             }
-            LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META_U(unit,
                 "FP(unit %d) Verb: Extractor section name=%d fill_bits=%d"
                 " drain_bits=%d.\n"),
                  unit,
@@ -14967,14 +14967,14 @@ _field_ingress_pipe_pbmp_get(int               unit,
        if (inst < num_pipe) {
           pipe_port = port - (inst * pipe_ports_max);
           if (pipe_port > pbm_len) {
-             LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+             LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                "Entry Data Pipe Port[%d] going beyond PBMP field length:[%d].\n\r"),
                 pipe_port, pbm_len));
              return BCM_E_PARAM;
           }
           BCM_PBMP_PORT_ADD(_out_f_pbmp[inst].data, pipe_port);
        } else {
-          LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+          LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
            "Retrieved Port instance:%d is out of Output Data pbmp range.\r"),
             inst));
            return BCM_E_INTERNAL;
@@ -14988,14 +14988,14 @@ _field_ingress_pipe_pbmp_get(int               unit,
        if (inst < num_pipe) {
           pipe_port = port - (inst * pipe_ports_max);
           if (pipe_port > pbm_len) {
-             LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+             LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                "Entry Mask Pipe Port[%d] going beyond PBMP field length:[%d].\n\r"),
                 pipe_port, pbm_len));
              return BCM_E_PARAM;
           }
           BCM_PBMP_PORT_ADD(_out_f_pbmp[inst].mask, pipe_port);
        } else {
-          LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+          LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
            "Retrieved Port instance:%d is out of Output Mask pbmp range.\r"),
             inst));
            return BCM_E_INTERNAL;
@@ -15062,7 +15062,7 @@ _field_th_ingress_entry_qual_tcam_install(int unit, _field_entry_t *f_ent,
 
           pbm_len = soc_mem_field_length(unit, IFP_TCAM_WIDE_PIPE0m, IPBMf);
           if (pbm_len == 0) {
-              LOG_ERROR(BSL_LS_BCM_FP, (BSL_META("Invalid length,"
+              LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META("Invalid length,"
                     " Failed to write PBMP on IFP_TCAM Pipes.\n\r")));
               return BCM_E_INTERNAL;
           }
@@ -15072,7 +15072,7 @@ _field_th_ingress_entry_qual_tcam_install(int unit, _field_entry_t *f_ent,
           rv = _field_ingress_pipe_pbmp_get(unit, &f_ent->pbmp, pbm_len,
                                             _FP_MAX_NUM_PIPES, _f_pipe_pbmp);
           if (BCM_FAILURE(rv)) {
-             LOG_ERROR(BSL_LS_BCM_FP, (BSL_META("Failed to retrieve Pipe PBMP,"
+             LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META("Failed to retrieve Pipe PBMP,"
                     " Failed to write PBMP on IFP_TCAM Pipes.\n\r")));
              return BCM_E_INTERNAL;
           }
@@ -15081,7 +15081,7 @@ _field_th_ingress_entry_qual_tcam_install(int unit, _field_entry_t *f_ent,
                                                       _f_pipe_pbmp,
                                                       _FP_MAX_NUM_PIPES);
           if (BCM_FAILURE(rv)) {
-             LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+             LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                       " Failed to write PBMP on IFP_TCAM Pipes.\n\r")));
              return BCM_E_INTERNAL;
           }
@@ -15502,7 +15502,7 @@ _field_th_entry_policy_mem_install(int unit, _field_entry_t *f_ent,
             rv = _bcm_field_th_action_set(unit, policy_mem, f_ent,
                                           policy_idx, fa, e_buf);
             if (BCM_FAILURE(rv)) {
-               LOG_ERROR(BSL_LS_BCM_FP, (BSL_META("TH Action set failed.\n")));
+               LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META("TH Action set failed.\n")));
                return rv;
             }
         }
@@ -15627,7 +15627,7 @@ _bcm_field_th_entry_install(int unit, _field_entry_t *f_ent, int tcam_idx)
     /* Write actions into Policy Table */
     rv = _field_th_entry_policy_mem_install(unit, f_ent, policy_mem, tcam_idx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                  "Failed to Install Policy Table for Entry[%d]"
                  " tcam_idx:[%d].\n\r"),
                  f_ent->eid, tcam_idx));
@@ -15642,7 +15642,7 @@ _bcm_field_th_entry_install(int unit, _field_entry_t *f_ent, int tcam_idx)
        if ((f_ent->fs->slice_flags & _BCM_FIELD_SLICE_HW_ENABLE) == 0)  {
           if (BCM_FAILURE(_bcm_field_th_slice_enable_set(unit,
                                                 f_ent->group, f_ent->fs, 1))) {
-             LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+             LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                       "Failed to Enable Field Slice[%d] for Entry[%d].\n\r"),
                       f_ent->fs->slice_number, f_ent->eid));
           }
@@ -15651,7 +15651,7 @@ _bcm_field_th_entry_install(int unit, _field_entry_t *f_ent, int tcam_idx)
        /* Increment the HW Slice entry count */
        f_ent->fs->hw_ent_count++;
     } else {
-       LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+       LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                  "Failed to Install the TCAM Entry[%d] tcam_idx:[%d].\n\r"),
                  f_ent->eid, tcam_idx));
     }
@@ -16023,7 +16023,7 @@ _bcm_field_th_entry_move(int unit, _field_entry_t *f_ent, int parts_count,
                (tcam_idx_old[idx] > tcam_idx_max) ||
                (tcam_idx_new[idx] < tcam_idx_min) ||
                (tcam_idx_new[idx] > tcam_idx_max)) {
-               LOG_DEBUG(BSL_LS_BCM_FP,
+               LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                          (BSL_META_U(unit,
                           "Invalid index range for _field_td2_entry_move\n"
                      "from %d to %d"), tcam_idx_old[idx], tcam_idx_new[idx]));
@@ -16131,7 +16131,7 @@ _bcm_field_th_entry_remove(int unit, _field_entry_t *f_ent, int tcam_idx)
 
     rv = _field_th_tcam_policy_clear(unit, f_ent, tcam_idx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META(
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META(
                   "Failed to Remove the TCAM entry for entry[%d] tcam_idx[%d]."
                   "\n\r"),
                   f_ent->eid, tcam_idx));
@@ -16145,7 +16145,7 @@ _bcm_field_th_entry_remove(int unit, _field_entry_t *f_ent, int tcam_idx)
     if (f_ent->fs->hw_ent_count == 0) {
        if (BCM_FAILURE
            (_bcm_field_th_slice_enable_set(unit, f_ent->group, f_ent->fs, 0))) {
-             LOG_WARN(BSL_LS_BCM_FP, (BSL_META(
+             LOG_BSL_WARN(BSL_LS_BCM_FP, (BSL_META(
                       "Failed to Disable Field Slice[%d] for Entry[%d].\n\r"),
                       f_ent->fs->slice_number, f_ent->eid));
        }
@@ -16368,7 +16368,7 @@ _field_ser_oper_mode_init(
    for (ct = 0; num_tcam > 0; ct++,num_tcam--) {
       rv = soc_generic_ser_mem_update(unit, tcam_mem[ct], set_mode[ct]);
       if (SOC_FAILURE(rv)) {
-         LOG_ERROR(BSL_LS_BCM_FP,
+         LOG_BSL_ERROR(BSL_LS_BCM_FP,
                    (BSL_META_U(unit,
                     "SER memory update failed[%d] to set"
                     " '%s' mode for tcam[%d].\n"),
@@ -16472,7 +16472,7 @@ _bcm_field_th_group_oper_mode_set(
     /* To reinitialize the stage, first delete the stage. */
    rv = _field_th_stage_delete(unit, fc, stage_fc);
    if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Stage=%d Delete failed = %d.\n"),
             unit, stage_fc->stage_id, rv));
         return (rv);
@@ -16485,7 +16485,7 @@ _bcm_field_th_group_oper_mode_set(
     */
    rv = _field_th_stage_add(unit, fc, stage_id, mode);
    if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
             "FP(unit %d) Error: Stage=%d Add failed = %d.\n"),
              unit, stage_fc->stage_id, rv));
         return (rv);
@@ -16678,7 +16678,7 @@ _bcm_field_th_slice_enable_set(int                unit,
                                                     fs->slice_number, enable));
              break;
         default:
-             LOG_VERBOSE(BSL_LS_BCM_FP, (BSL_META(
+             LOG_BSL_VERBOSE(BSL_LS_BCM_FP, (BSL_META(
                          "Invalid stage_id[%d].\n\r"),
                          fg->stage_id));
              break;
@@ -17043,7 +17043,7 @@ _bcm_field_th_qual_part_offset_get(int unit, _field_entry_t *f_ent,
                                            of multiple types      */
     int                     idx;        /* Entry qualifiers iterator. */
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                "_field_qual_offset_get\n")));
 
@@ -17062,7 +17062,7 @@ _bcm_field_th_qual_part_offset_get(int unit, _field_entry_t *f_ent,
 
     if (0 == BCM_FIELD_QSET_TEST(fg->qset, qid)) {
         /* Only qualifiers that were explicitly requested may be used */
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                   "FP(unit %d) Error: qual=%s not in group=%d Qset\n"),
                    unit, _field_qual_name(qid), f_ent->group->gid));
@@ -17188,7 +17188,7 @@ _bcm_field_th_qual_complete_value_get(int unit, _field_entry_t *f_ent,
     * Verify whether qualifier offset is present in the qual Array.
     */
     if (start_offset == 0 && width == 0) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
               "Qualifier[%s] Offset not found for Entry:%d\n\r"),
                _field_qual_name(qid), f_ent->eid));
         return BCM_E_NOT_FOUND; 
@@ -17357,7 +17357,7 @@ _bcm_field_th_qualify_set(int unit, bcm_field_entry_t entry,
      * Verify whether qualifier offset is present in the qual Array.
      */
     if (start_offset == 0 && multi_width == 0) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
               "Qualifier[%s] Offset not found for Entry:%d\n\r"),
                _field_qual_name(qual), entry));
 
@@ -17455,7 +17455,7 @@ _bcm_field_th_entry_qualifier_key_get(int unit,
     * Verify whether qualifier offset is present in the qual Array.
     */
     if (start_offset == 0 && width == 0) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
               "Qualifier[%s] Offset not found for Entry:%d\n\r"),
                _field_qual_name(qual_id), entry));
         return BCM_E_NOT_FOUND; 
@@ -17510,7 +17510,7 @@ _bcm_field_th_qualifier_delete(int unit, bcm_field_entry_t entry,
     rv = _bcm_field_th_qualify_set(unit, entry, qual_id,
                                    q_data, q_mask);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP, (BSL_META_U(unit,
               "Qualifier[%s] delete failed for Entry:%d\n\r"),
                _field_qual_name(qual_id), entry));
     }
@@ -17778,7 +17778,7 @@ _bcm_field_th_scache_sync(int              unit,
             return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d): _bcm_field_th_scache_sync() - "
                           "Synching scache for FP stage %d...\n"),
@@ -17788,7 +17788,7 @@ _bcm_field_th_scache_sync(int              unit,
 
     if (stage_fc->stage_id == _BCM_FIELD_STAGE_INGRESS) {
 
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d): _bcm_field_th_scache_sync() -"
                               " Writing end of section @ byte %d.\n"),
@@ -17843,7 +17843,7 @@ _bcm_field_th_scache_sync(int              unit,
     }
 
     for (slice_idx = 0; slice_idx < stage_fc->tcam_slices; slice_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d): _bcm_field_th_scache_sync() - "
                               "Checking slice %d...\n"),
@@ -17915,7 +17915,7 @@ _bcm_field_th_scache_sync(int              unit,
         fs = stage_fc->slices[_FP_DEF_INST] + slice_idx;
         /* Skip empty slices */
         if (fs->entry_count == fs->free_count) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d): _bcm_field_th_scache_sync() - "
                                   "Slice is empty.\n"),
@@ -17989,7 +17989,7 @@ _bcm_field_th_scache_sync(int              unit,
             (_field_tr2_group_entry_write(unit, slice_idx, fs, fc, stage_fc));
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d): _bcm_field_th_scache_sync() -"
                           " Writing end of section @ byte %d.\n"),

@@ -623,13 +623,13 @@ _board_connect_vertex(tree_t *t, vertex_t *vertex, void *user_data)
        likely be attached for slave systems, and bcm_unit_remote will
        return false. */
     if (!bcm_unit_local(vertex->unit)) {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META("Board programming for remote unit %d not required.\n"),
                      vertex->unit));
         return BCM_E_NONE;
     }
 
-    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                 (BSL_META("Board programming unit %d\n"),
                  vertex->unit));
     for (edge = vertex->edge; edge != NULL; edge = edge->next) {
@@ -649,7 +649,7 @@ _board_connect_vertex(tree_t *t, vertex_t *vertex, void *user_data)
     }
 
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META("Board programming unit %d failed (%d)\n"),
                      vertex->unit, rv));
     }

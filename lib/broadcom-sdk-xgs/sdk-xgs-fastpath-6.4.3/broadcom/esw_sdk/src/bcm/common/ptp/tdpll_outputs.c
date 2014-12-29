@@ -440,7 +440,7 @@ bcm_common_tdpll_output_clock_synth_frequency_set(
      *             operate at 1 kHz / 100 Hz.
      */
     if ((0 == tsevent_frequency) || (tsevent_frequency % BCM_TDPLL_FREQUENCY)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "TS EVENT frequency is not a multiple of %u Hz. fTS: %u\n"),
                      (unsigned)BCM_TDPLL_FREQUENCY, (unsigned)tsevent_frequency));
@@ -453,7 +453,7 @@ bcm_common_tdpll_output_clock_synth_frequency_set(
      *             at every Nth synthesizer clock edge. 
      */
     if ((0 == synth_frequency) || (synth_frequency % tsevent_frequency)) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "SYNTH and TS EVENT frequencies are not integrally related. fSYNTH: %u fTS: %u"),
                      (unsigned)synth_frequency, (unsigned)tsevent_frequency));
@@ -634,7 +634,7 @@ bcm_common_tdpll_output_clock_deriv_frequency_set(
     synth_frequency = OUTPUT_CLOCK(clock_index).frequency.synth;
     if (deriv_frequency) {
         if ((0 == synth_frequency) || (synth_frequency % deriv_frequency)) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "SYNTH and DERIV frequencies are not integrally related. fSYNTH: %u fDERIV: %u"),
                          (unsigned)synth_frequency, (unsigned)deriv_frequency));

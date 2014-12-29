@@ -385,7 +385,7 @@ qsgmiie_show_serdes_info(phy_ctrl_t *pc, qsgmiie_dev_info_t *pInfo, phymod_core_
     pInfo->name[len] = 0;  /* string terminator */
 
     if (len > QSGMIIE_LANE_NAME_LEN) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("QSGMIIE info string length %d exceeds max length 0x%x: u=%d p=%d\n"),
                    len,QSGMIIE_LANE_NAME_LEN, pc->unit, pc->port));
         return SOC_E_MEMORY;
@@ -1690,7 +1690,7 @@ phy_qsgmiie_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abi
     ability->medium    = SOC_PA_MEDIUM_FIBER;
     ability->loopback  = SOC_PA_LB_PHY;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "phy_qsgmiie_ability_local_get:unit=%d p=%d sp=%08x\n"),
               unit, port, ability->speed_full_duplex));
@@ -5132,7 +5132,7 @@ phy_qsgmiie_cleanup(soc_phymod_ctrl_t *pmc)
     for (idx = 0; idx < pmc->num_phys ; idx++) {
         phy = pmc->phy[idx];
         if (phy == NULL) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(pmc->unit,
                                  "phy object is empty")));
             continue;
@@ -5454,7 +5454,7 @@ _qsgmiie_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "qsgmiie_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,
@@ -5544,7 +5544,7 @@ _qsgmiie_notify_speed(int unit, soc_port_t port, uint32 speed)
     pCfg = (qsgmiie_config_t *) pc->driver_data;
     fiber = pCfg->fiber_pref;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(pc->unit,
                          "_qsgmiie_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -5677,7 +5677,7 @@ phy_qsgmiie_diag_ctrl(
 {
     switch(op_cmd) {
         case PHY_DIAG_CTRL_DSC:
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_tscmod_diag_ctrl: "
                                  "u=%d p=%d PHY_DIAG_CTRL_DSC 0x%x\n"),

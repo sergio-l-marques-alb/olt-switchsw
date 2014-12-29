@@ -297,7 +297,7 @@ extern char *_build_os;
 
 #define UNSUPPORTED_COMMAND(unit, chiptype, a)\
     if (SOC_CHIP_GROUP(unit) == chiptype) { \
-        LOG_ERROR(BSL_LS_APPL_SHELL, \
+        LOG_BSL_ERROR(BSL_LS_APPL_SHELL, \
                   (BSL_META_U(unit, \
                               "%s: command unsupported on %s\n"),    \
                    ARG_CMD(a), soc_dev_name(unit)));      \

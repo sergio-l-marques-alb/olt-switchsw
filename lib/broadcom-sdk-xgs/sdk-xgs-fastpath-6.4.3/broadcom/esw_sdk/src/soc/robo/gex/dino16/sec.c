@@ -82,7 +82,7 @@ drv_dino16_security_set(int unit, soc_pbmp_t bmp,
     soc_pbmp_t  temp_pbmp;
     uint32  sec_mask;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_dino16_security_set: \
                          unit = %d, bmp= 0x%x, state = %d, mask = 0x%x\n"),

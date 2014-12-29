@@ -191,7 +191,7 @@ _robo_phy_5482_medium_check(int unit, soc_port_t port, int *medium)
                   SOC_PORT_MEDIUM_COPPER;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_robo_phy_5482_medium_check: "
                             "u=%d p=%d fiber_pref=%d 0x1c(11111)=%04x fiber=%d\n"),
@@ -491,7 +491,7 @@ _robo_phy_5482_no_reset_setup(int unit, soc_port_t port)
     uint16 dev_id = 0;
     uint8 rev_id = 0;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_robo_phy_5482_no_reset_setup: u=%d p=%d medium=%s\n"),
                          unit, port,
@@ -508,7 +508,7 @@ _robo_phy_5482_no_reset_setup(int unit, soc_port_t port)
         data = pc->fiber.enable? 0: MII_CTRL_PD;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "%s: u=%d p=%d Pri-SerDes PowerDown=%d!\n"),
                          FUNCTION_NAME(), unit, port, 0));
@@ -526,14 +526,14 @@ _robo_phy_5482_no_reset_setup(int unit, soc_port_t port)
     /* copper regs */
     if (!pc->copper.enable || (!pc->automedium && pc->fiber.preferred)) {
         /* Copper interface is not used. Powered down. */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s: u=%d p=%d Copper PowerDown=%d!\n"),
                              FUNCTION_NAME(), unit, port, 1));
         SOC_IF_ERROR_RETURN
             (MODIFY_PHY5482_MII_CTRLr(unit, pc, MII_CTRL_PD, MII_CTRL_PD));
     } else {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s: u=%d p=%d Copper PowerDown=%d!\n"),
                              FUNCTION_NAME(), unit, port, 0));
@@ -596,7 +596,7 @@ _robo_phy_5482_no_reset_setup(int unit, soc_port_t port)
 
     if (PHY_SECONDARY_SERDES_MODE(unit, port)){
         /* Power down secondary SerDes */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s: u=%d p=%d Sec-SerDes PowerDown=%d!\n"),
                              FUNCTION_NAME(), unit, port, 1));
@@ -627,7 +627,7 @@ _robo_phy_5482_no_reset_setup(int unit, soc_port_t port)
                 (WRITE_PHY5482_2ND_SERDES_CTRLr(unit, pc, data));
         
             /* remove power down of secondary SerDes */
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "%s: u=%d p=%d Sec-SerDes PowerDown=%d!\n"),
                                  FUNCTION_NAME(), unit, port, 0));
@@ -785,7 +785,7 @@ robo_phy_5482_init(int unit, soc_port_t port)
     int                 fiber_preferred;
     uint16              data;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "robo_phy_5482_init: u=%d p=%d\n"),
                          unit, port));
@@ -832,7 +832,7 @@ robo_phy_5482_init(int unit, soc_port_t port)
             soc_property_port_get(unit, port, spn_PHY_FIBER_DETECT, 0);
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_init: "
                          "u=%d p=%d type=5482%s automedium=%d fiber_pref=%d detect=%d\n"),
@@ -914,7 +914,7 @@ robo_phy_5482_enable_set(int unit, soc_port_t port, int enable)
             SOC_IF_ERROR_RETURN
                 (MODIFY_PHY5482_MII_CTRLr(unit, pc, power, MII_CTRL_PD));
     
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_5482_enable_set: "
                                  "Power %s copper medium\n"), (enable) ? "up" : "down"));
@@ -933,7 +933,7 @@ robo_phy_5482_enable_set(int unit, soc_port_t port, int enable)
                     (MODIFY_PHY5482_2ND_SERDES_1000X_CTRLr(unit, pc, power, 
                                                    MII_CTRL_PD));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "robo_phy_5482_enable_set: "
                                  "Power %s fiber medium\n"), (enable) ? "up" : "down"));
@@ -985,7 +985,7 @@ _robo_phy_5482_fiber_100fx_setup(int unit, soc_port_t port)
 
     pc          = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_robo_phy_5482_fiber_100fx_setup: u=%d p=%d \n"),
               unit, port));
@@ -996,7 +996,7 @@ _robo_phy_5482_fiber_100fx_setup(int unit, soc_port_t port)
                             
         /* 2. enable primary SerDes register */                    
         /* 3. reset the power down of the SerDes function */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s:p=%d,Pri-SerDes mode. Fiber PowerDown(%s)!\n"),
                   FUNCTION_NAME(), port, "No"));
@@ -1051,7 +1051,7 @@ _robo_phy_5482_fiber_100fx_setup(int unit, soc_port_t port)
         sal_usleep(10000);
 
         /* Power up the secondary SerDes      */ 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s:p=%d,Sec-SerDes mode. Fiber PowerDown(%s)!\n"),
                   FUNCTION_NAME(), port, "No"));
@@ -1091,7 +1091,7 @@ _robo_phy_5482_fiber_1000x_setup(int unit, soc_port_t port)
 
     pc          = EXT_PHY_SW_STATE(unit, port);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "_robo_phy_5482_fiber_1000x_setup: u=%d p=%d \n"),
                  unit, port));
@@ -1120,7 +1120,7 @@ _robo_phy_5482_fiber_1000x_setup(int unit, soc_port_t port)
         
         /* 3.clear the SerDes power down bit */ 
             /* bit[11]=0 */
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s:p=%d,Pri-SerDes Mode. Fiber PowerDown(%s)!\n"),
                   FUNCTION_NAME(), port, "No"));
@@ -1153,7 +1153,7 @@ _robo_phy_5482_fiber_1000x_setup(int unit, soc_port_t port)
             data |= MII_CTRL_PD;
         }
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s:p=%d,Sec-SerDes Mode. Fiber PowerDown(%s)!\n"),
                   FUNCTION_NAME(), port, "No"));
@@ -1193,7 +1193,7 @@ _robo_phy_5482_medium_change(int unit, soc_port_t port, int force_update)
                      (_robo_phy_5482_medium_config_update(unit, port, 
                                                           &pc->copper));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "%s: u=%d p=%d [F->C]\n"),
                       FUNCTION_NAME(), unit, port));
@@ -1211,7 +1211,7 @@ _robo_phy_5482_medium_change(int unit, soc_port_t port, int force_update)
                      (_robo_phy_5482_medium_config_update(unit, port, 
                                 &pc->fiber));
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "%s: u=%d p=%d [C->F]\n"),
                       FUNCTION_NAME(), unit, port));
@@ -1322,7 +1322,7 @@ robo_phy_5482_link_get(int unit, soc_port_t port, int *link)
             } else {
                 data = MII_CTRL_PD;
             }            
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "%s:p=%d,Copper preferred. Fiber PowerDown(%s)!\n"),
                       FUNCTION_NAME(), port, 
@@ -1342,7 +1342,7 @@ robo_phy_5482_link_get(int unit, soc_port_t port, int *link)
             } else {
                 data = MII_CTRL_PD;
             }
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "%s:p=%d,Fiber preferred. Copper PowerDown(%s)!\n"),
                       FUNCTION_NAME(), port, 
@@ -1352,7 +1352,7 @@ robo_phy_5482_link_get(int unit, soc_port_t port, int *link)
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "robo_phy_5482_link_get: u=%d p=%d mode=%s%s link=%d\n"),
                  unit, port,
@@ -1416,7 +1416,7 @@ robo_phy_5482_duplex_set(int unit, soc_port_t port, int duplex)
         }
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_duplex_set: u=%d p=%d d=%d rv=%d\n"),
               unit, port, duplex, rv));
@@ -1519,7 +1519,7 @@ robo_phy_5482_speed_set(int unit, soc_port_t port, int speed)
     if (SOC_SUCCESS(rv) && !PHY_SGMII_AUTONEG_MODE(unit, port)) {
         uint16 mii_ctrl;
 
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "%s: u=%d p=%d NONE SGMII_AUTONEG set spd(%d) ON 1000X!\n"),
                   FUNCTION_NAME(), unit, port, speed));
@@ -1546,7 +1546,7 @@ robo_phy_5482_speed_set(int unit, soc_port_t port, int speed)
             (WRITE_PHY5482_1000X_MII_CTRLr(unit, pc, mii_ctrl));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_5482_speed_set: u=%d p=%d s=%d fiber=%d rv=%d\n"),
               unit, port, speed, PHY_FIBER_MODE(unit, port), rv));
@@ -1595,7 +1595,7 @@ robo_phy_5482_speed_get(int unit, soc_port_t port, int *speed)
             *speed = 1000;
             break;
         default:
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "phy_5482_speed_get: u=%d p=%d invalid speed\n"),
                       unit, port));
@@ -1634,7 +1634,7 @@ robo_phy_5482_master_set(int unit, soc_port_t port, int master)
             pc->copper.master = master;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "robo_phy_5482_master_set: u=%d p=%d master=%d fiber=%d rv=%d\n"),
               unit, port, master, PHY_FIBER_MODE(unit, port), rv));
@@ -1746,7 +1746,7 @@ robo_phy_5482_autoneg_set(int unit, soc_port_t port, int autoneg)
         pc->fiber.autoneg_enable = autoneg ? TRUE : FALSE;
     }
  
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "robo_phy_5482_autoneg_set: u=%d p=%d autoneg=%d rv=%d\n"),
               unit, port, autoneg, rv));
@@ -1880,7 +1880,7 @@ robo_phy_5482_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
             pc->fiber.autoneg_advert = mode & ADVERT_ALL_FIBER;
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "robo_phy_5482_adv_local_set: u=%d p=%d mode=0x%x, rv=%d\n"),
               unit, port, mode, rv));
@@ -2135,7 +2135,7 @@ robo_phy_5482_lb_set(int unit, soc_port_t port, int enable)
                 }
             }
             if (!link) {
-                LOG_WARN(BSL_LS_SOC_PHY,
+                LOG_BSL_WARN(BSL_LS_SOC_PHY,
                          (BSL_META_U(unit,
                                      "phy_5482_lb_set: u=%d p=%d TIMEOUT\n"),
                           unit, port));
@@ -2144,7 +2144,7 @@ robo_phy_5482_lb_set(int unit, soc_port_t port, int enable)
             }
         }
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "robo_phy_5482_lb_set: u=%d p=%d en=%d rv=%d\n"), 
               unit, port, enable, rv));

@@ -98,7 +98,7 @@ static int sfp_write(int unit, int devno, uint32 addr, uint32 wdata)
     int mux = bscbus->devs[devno]->mux;
     int retv;
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "saddr = %02X chan = %02X mux = %02X addr = %02X wdata = %02X\n"),
               saddr, chan, mux, addr, wdata));
@@ -130,7 +130,7 @@ static int sfp_read(int unit, int devno, uint32 addr, uint32 *rdata)
     int retv;
 
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "saddr = %02X chan = %02X mux = %02X addr = %02X\n"),
               saddr, chan, mux, addr));
@@ -152,7 +152,7 @@ static int sfp_read(int unit, int devno, uint32 addr, uint32 *rdata)
     }
     BSC_UNLOCK(unit);
 
-    LOG_INFO(BSL_LS_SOC_I2C,
+    LOG_BSL_INFO(BSL_LS_SOC_I2C,
              (BSL_META_U(unit,
                          "saddr = %02X chan = %02X mux = %02X addr = %02X rdata = %02X\n"),
               saddr, chan, mux, addr, (rdata != NULL) ? *rdata : 0));

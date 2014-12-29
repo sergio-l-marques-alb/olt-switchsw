@@ -260,7 +260,7 @@ bcm_robo_knet_netif_create(int unit, bcm_knet_netif_t *netif)
         break;
     case BCM_KNET_NETIF_T_TX_META_DATA:
     default:
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Unsupported interface type\n")));
         return BCM_E_PARAM;
@@ -494,7 +494,7 @@ bcm_robo_knet_filter_create(int unit, bcm_knet_filter_t *filter)
         filter_create.filter.dest_type = KCOM_DEST_T_API;
         break;
     default:
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "KNET: Unsupported destination type\n")));
         return BCM_E_PARAM;
@@ -538,7 +538,7 @@ bcm_robo_knet_filter_create(int unit, bcm_knet_filter_t *filter)
     /* Check if specified reason is supported */
     if (filter->match_flags & BCM_KNET_FILTER_M_REASON) {
         if (reason  == 0) {
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "KNET: Unsupported Rx reason\n")));
             return BCM_E_PARAM;
@@ -666,14 +666,14 @@ bcm_robo_knet_filter_create(int unit, bcm_knet_filter_t *filter)
 
     /* Dump raw data for debugging purposes */
     for (idx = 0; idx < BYTES2WORDS(oob_size); idx++) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "OOB[%d]: 0x%08x [0x%08x]\n"), idx,
                      filter_create.filter.data.w[idx],
                      filter_create.filter.mask.w[idx]));
     }
     for (idx = 0; idx < filter_create.filter.pkt_data_size; idx++) {
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PKT[%d]: 0x%02x [0x%02x]\n"),
                      idx + filter_create.filter.pkt_data_offset,

@@ -205,11 +205,11 @@ _bcm_ft_report_process_export_entry(int unit,
 
         dir = soc_mem_field32_get(unit, mem, entry, KEY_DIRECTIONf);
         *pdir = dir;
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              " KEY_DIRECTION = 0x%x\n"),
                   dir));
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              " KEY_TYPE = 0x%x\n"),
                   type));
@@ -233,14 +233,14 @@ _bcm_ft_report_process_export_entry(int unit,
             }
         }
         val = soc_mem_field32_get(unit, mem, entry, FLOW_STATEf);
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              " FLOW_STATE = 0x%03x\n"),
                   val));
 
         soc_mem_field_get(unit, mem, entry, KEYf, pk);
         p8 = (uint8*) pk;
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "pk = %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
                   *p8, *(p8+1), *(p8+2), *(p8+3), *(p8+4), *(p8+5), *(p8+6), *(p8+7), *(p8+8), *(p8+9), *(p8+10), *(p8+11), *(p8+12)));
@@ -275,7 +275,7 @@ _bcm_ft_report_process_export_entry(int unit,
             }
             data->protocol = pt;
         } else if (type == _REGEX_SESSION_KEY_TYPE_IPV6_UPPER) {
-            LOG_INFO(BSL_LS_BCM_REGEX,
+            LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                      (BSL_META_U(unit,
                                  " Get upper address, direction = %d...\n"),
                       dir));
@@ -302,7 +302,7 @@ _bcm_ft_report_process_export_entry(int unit,
             }
         }
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              " FT_EXPORT_FIFOm = 0x%x, mem = 0x%x\n"), FT_EXPORT_FIFOm,
                   mem));
@@ -372,18 +372,18 @@ _bcm_ft_report_process_export_entry(int unit,
         dir = *pdir;
 
         type = soc_mem_field32_get(unit, mem, entry, KEY_TYPEf);
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              " KEY_TYPE = 0x%x\n"),
                   type));
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              " Get lower address, direction = %d, ports, proto...\n"),
                   dir));
 
         soc_mem_field_get(unit, mem, entry, IPV6_LOWER_KEYf, pkl);
         p8 = (uint8*) pkl;
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "pkl = %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
                   *p8, *(p8+1), *(p8+2), *(p8+3), *(p8+4), *(p8+5), *(p8+6), *(p8+7), *(p8+8), *(p8+9), *(p8+10), *(p8+11), *(p8+12),
@@ -405,13 +405,13 @@ _bcm_ft_report_process_export_entry(int unit,
             }
         data->protocol = pt;
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "p8 = %p, p8+port/proto = %p\n"),
                   p8, p8+_REGEX_PROTOCOL_PORT_LENGTH_V6/8));
         p8 += _REGEX_PROTOCOL_PORT_LENGTH_V6/8; /* skip past ports/proto */
 
-        LOG_INFO(BSL_LS_BCM_REGEX,
+        LOG_BSL_INFO(BSL_LS_BCM_REGEX,
                  (BSL_META_U(unit,
                              "pkl+port/proto = %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
                   *p8, *(p8+1), *(p8+2), *(p8+3), *(p8+4), *(p8+5), *(p8+6), *(p8+7), *(p8+8), *(p8+9), *(p8+10), *(p8+11), *(p8+12),
@@ -449,11 +449,11 @@ _bcm_ft_report_process_export_entry(int unit,
     data->match_flags |= (*pdir == 1) ? BCM_REGEX_MATCH_TO_SERVER :
                                  BCM_REGEX_MATCH_TO_CLIENT;
 
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "Flags :0x%x\n"),
               data->flags));
-    LOG_INFO(BSL_LS_BCM_REGEX,
+    LOG_BSL_INFO(BSL_LS_BCM_REGEX,
              (BSL_META_U(unit,
                          "Match Flags :0x%x\n"),
               data->match_flags));
@@ -482,14 +482,14 @@ _bcm_report_fifo_dma_thread(void *unit_vp)
     chan = SOC_MEM_FIFO_DMA_CHANNEL_0;
     rv = bcm_esw_regex_config_get(unit, &config);
     if (BCM_FAILURE(rv)) {
-        LOG_VERBOSE(BSL_LS_BCM_INTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                     (BSL_META_U(unit,
                                 " failed to retrieve configuration, rv = %d\n"), rv));
         goto cleanup_exit;
     }
     entries_per_buf = config.report_buffer_size;
 
-    LOG_VERBOSE(BSL_LS_BCM_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                 (BSL_META_U(unit,
                             " starting _bcm_report_fifo_dma_thread\n")));
 
@@ -511,7 +511,7 @@ _bcm_report_fifo_dma_thread(void *unit_vp)
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR,
                            SOC_SWITCH_EVENT_THREAD_REGEX_REPORT,
                            __LINE__, rv);
-        LOG_VERBOSE(BSL_LS_BCM_INTR,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                     (BSL_META_U(unit,
                                 " soc_mem_fifo_dma_start failed, rv = %d\n"), rv));
         goto cleanup_exit;
@@ -525,13 +525,13 @@ _bcm_report_fifo_dma_thread(void *unit_vp)
         if (soc->ftreportIntrEnb) {
             soc_cmicm_intr0_enable(unit, IRQ_CMCx_FIFO_CH_DMA(chan));
             if (sal_sem_take(SOC_CONTROL(unit)->ftreportIntr, interval) < 0) {
-                LOG_VERBOSE(BSL_LS_BCM_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                             (BSL_META_U(unit,
                                         " polling timeout ft_export_fifo=%d\n"), interval));
             } else {
                 /* Disabling the interrupt (CHAN0) as the read process is underway */
                 soc_cmicm_intr0_disable(unit, IRQ_CMCx_FIFO_CH_DMA(chan));
-                LOG_VERBOSE(BSL_LS_BCM_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                             (BSL_META_U(unit,
                                         "woken up interval=%d\n"), interval));
                 /* check for timeout or overflow and either process or continue */
@@ -608,7 +608,7 @@ _bcm_report_fifo_dma_thread(void *unit_vp)
                     soc_pci_write(unit,
                                   CMIC_CMCx_FIFO_CHy_RD_DMA_STAT_CLR_OFFSET(cmc, chan), rval);
                 }
-                LOG_VERBOSE(BSL_LS_BCM_INTR,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                             (BSL_META_U(unit,
                                         " soc_mem_fifo_dma_get_num_entries failed, rv=%d\n"), rv));
                 non_empty = FALSE;
@@ -617,7 +617,7 @@ _bcm_report_fifo_dma_thread(void *unit_vp)
     }
 
 cleanup_exit:
-    LOG_VERBOSE(BSL_LS_BCM_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                 (BSL_META_U(unit,
                             " stopping _bcm_report_fifo_dma_thread\n")));
     (void)soc_mem_fifo_dma_stop(unit, chan);
@@ -634,7 +634,7 @@ _bcm_regex_report_init(int unit)
 {
     _bcm_ft_report_ctrl_t *rctrl = _bcm_ft_report_ctrl[unit];
 
-    LOG_VERBOSE(BSL_LS_BCM_INTR,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_INTR,
                 (BSL_META_U(unit,
                             " _bcm_regex_report_init\n")));
     if (rctrl == NULL) {
@@ -670,7 +670,7 @@ bcm_regex_report_control(int unit, sal_usecs_t interval)
                                                 _bcm_report_fifo_dma_thread,
                                                 INT_TO_PTR(unit));
             if (rctrl->pid == SAL_THREAD_ERROR) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Could not start thread %s\n"), name));
                 return BCM_E_MEMORY;

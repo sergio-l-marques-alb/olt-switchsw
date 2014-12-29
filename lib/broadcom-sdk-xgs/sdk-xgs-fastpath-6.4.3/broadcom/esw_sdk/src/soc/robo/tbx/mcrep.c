@@ -89,7 +89,7 @@ int drv_tbx_mcrep_vpgrp_vport_config_set(int unit, uint32 mc_group,
     uint32      vports = 0;
     int         mcrep_grp_id = -1;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "%s,%d,START! mcgrp=%x,port=%x,op=%d,param=%d\n"),
               FUNCTION_NAME(),__LINE__,mc_group,port,op,*param));
@@ -97,7 +97,7 @@ int drv_tbx_mcrep_vpgrp_vport_config_set(int unit, uint32 mc_group,
     /* valid section : assume the port id is verified already */
     assert(param);
     if (mc_group >= DRV_TBX_MAX_MCREP_MCAST_GROUP_NUM){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,MCast group_id is not vaild!\n"),FUNCTION_NAME()));
         return SOC_E_PARAM;
@@ -122,7 +122,7 @@ int drv_tbx_mcrep_vpgrp_vport_config_set(int unit, uint32 mc_group,
             vports = 0;
             break;
         default : 
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,invalid op %d!\n"), FUNCTION_NAME(), op));
             return SOC_E_PARAM;
@@ -157,7 +157,7 @@ int drv_tbx_mcrep_vpgrp_vport_config_get(int unit, uint32 mc_group,
     int         mcrep_grp_id = -1;
     uint32      vports = 0;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "%s,%d,START! mcgrp=%x,port=%x,op=%d,param=%x\n"),
               FUNCTION_NAME(),__LINE__,mc_group,port,op,*param));
@@ -165,7 +165,7 @@ int drv_tbx_mcrep_vpgrp_vport_config_get(int unit, uint32 mc_group,
     /* valid section : assume the port id is verified already */
     assert(param);
     if (mc_group >= DRV_TBX_MAX_MCREP_MCAST_GROUP_NUM){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,MCast group_id is not vaild!\n"),FUNCTION_NAME()));
         return SOC_E_PARAM;
@@ -192,13 +192,13 @@ int drv_tbx_mcrep_vpgrp_vport_config_get(int unit, uint32 mc_group,
             *param = mcrep_grp_id;
             break;
         default :
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,invalid op %d!\n"), FUNCTION_NAME(), op));
             return SOC_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "%s,%d,Done! param=%x\n"), 
               FUNCTION_NAME(),__LINE__, *param));
@@ -231,20 +231,20 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
     uint32 fld_val32 = 0;
     vport_vid_map_entry_t *vpvid_map_entry = 0;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "%s,%d,START! port=%x,op=%d,vport%d,vid=%x\n"),
               FUNCTION_NAME(),__LINE__,port,op,vport,vid));
 
     /* valid section : assume the port id is verified already */
     if (vport >= DRV_TBX_MAX_MCREP_VPORT_NUM){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,invalid vPort ID %d!\n"), FUNCTION_NAME(), vport));
         return SOC_E_PARAM;
     }
     if (vid > DRV_MAX_VPORT_VID){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,invalid vPort VID %d!\n"), FUNCTION_NAME(), vid));
         return SOC_E_PARAM;
@@ -256,7 +256,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
     MEM_LOCK(unit, INDEX(VPORT_VID_MAPm));
     rv = MEM_READ_VPORT_VID_MAPm(unit, port, (uint32 *)vpvid_map_entry);
     if (rv) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,%d,mem_read failed!!\n"),
                   FUNCTION_NAME(), __LINE__));
@@ -272,7 +272,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
                         (uint32 *)vpvid_map_entry, 
                         &fld_val32);
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_set failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -288,7 +288,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
                 VPORT_UNTAGf, &fld_val32);
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_get failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -301,7 +301,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
                 VPORT_UNTAGf, &fld_val32);
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_set failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -320,7 +320,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
                 VPORT_UNTAGf, &fld_val32);
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_set failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -335,7 +335,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
                 VPORT_UNTAGf, &fld_val32);
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_set failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -347,7 +347,7 @@ int drv_tbx_mcrep_vport_config_set(int unit, uint32 port,
             sal_memset(vpvid_map_entry, 0, sizeof(vport_vid_map_entry_t));
             break;
         default:
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,invalid op %d!\n"), FUNCTION_NAME(), op));
             rv = SOC_E_PARAM;
@@ -390,7 +390,7 @@ int drv_tbx_mcrep_vport_config_get(int unit, uint32 port,
     uint32  fld_val32 = 0;
     vport_vid_map_entry_t *vpvid_map_entry = 0;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "%s,%d,START! port=%x,op=%d,vport%d,vid=%x\n"),
               FUNCTION_NAME(), __LINE__, port,op, *vport, *vid));
@@ -400,7 +400,7 @@ int drv_tbx_mcrep_vport_config_get(int unit, uint32 port,
     assert(vid != NULL);
     if ((op == DRV_MCREP_VPORT_OP_VID) && 
             (*vport >= DRV_TBX_MAX_MCREP_VPORT_NUM)){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,invalid vPort ID %d!\n"), FUNCTION_NAME(), *vport));
         return SOC_E_PARAM;
@@ -411,7 +411,7 @@ int drv_tbx_mcrep_vport_config_get(int unit, uint32 port,
 
     rv = MEM_READ_VPORT_VID_MAPm(unit, port, (uint32 *)vpvid_map_entry);
     if (rv) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,%d,mem_read failed!!\n"),
                   FUNCTION_NAME(), __LINE__));
@@ -426,7 +426,7 @@ int drv_tbx_mcrep_vport_config_get(int unit, uint32 port,
                         (uint32 *)vpvid_map_entry, 
                         &fld_val32);
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_get failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -445,7 +445,7 @@ int drv_tbx_mcrep_vport_config_get(int unit, uint32 port,
                     VPORT_UNTAGf, &fld_val32);
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,%d,mem_field_set failed!!\n"),
                           FUNCTION_NAME(), __LINE__));
@@ -469,7 +469,7 @@ int drv_tbx_mcrep_vport_config_get(int unit, uint32 port,
             break;
 
         default:
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,invalid op %d!\n"), FUNCTION_NAME(), op));
             rv = SOC_E_PARAM;
@@ -509,7 +509,7 @@ int drv_tbx_mcrep_vport_vid_search(int unit, uint32 port,
     uint32  fld_val32 = 0;
     vport_vid_map_entry_t *vpvid_map_entry = 0;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "%s,%d,START! port=%x,param=%x\n"),
               FUNCTION_NAME(),__LINE__,port,*param));
@@ -519,7 +519,7 @@ int drv_tbx_mcrep_vport_vid_search(int unit, uint32 port,
     /* valid check : vid must be verified first (0-4095) */
     assert(param);
     if ((vid < 0) || (vid > DRV_MAX_VPORT_VID)){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,invalid vPort VID %d!\n"), FUNCTION_NAME(), vid));
         return SOC_E_PARAM;
@@ -531,7 +531,7 @@ int drv_tbx_mcrep_vport_vid_search(int unit, uint32 port,
     rv = MEM_READ_VPORT_VID_MAPm(unit, port, (uint32 *)vpvid_map_entry);
 
     if (rv){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s,%d,mem_read failed entry_id=1!!\n"),
                   FUNCTION_NAME(), __LINE__));
@@ -545,7 +545,7 @@ int drv_tbx_mcrep_vport_vid_search(int unit, uint32 port,
                     (uint32 *)vpvid_map_entry, 
                     &fld_val32);
         if (rv){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,mem_field_get failed!!\n"),
                       FUNCTION_NAME(), __LINE__));
@@ -561,7 +561,7 @@ int drv_tbx_mcrep_vport_vid_search(int unit, uint32 port,
         rv = soc_VPORT_VID_MAPm_field_get(unit, (uint32 *)vpvid_map_entry,
             VPORT_UNTAGf, &fld_val32);
         if (rv){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,%d,mem_field_get failed!!\n"),
                       FUNCTION_NAME(), __LINE__));

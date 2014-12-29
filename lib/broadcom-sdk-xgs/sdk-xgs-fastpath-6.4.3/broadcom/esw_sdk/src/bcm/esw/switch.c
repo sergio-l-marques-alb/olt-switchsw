@@ -511,14 +511,14 @@ _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
         /* scache out of space - requested scache chunk
          * is greater than available scache space  */
         if (stable_size > 0) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "Scache out of space."
                                    "max=%d bytes, used=%d bytes, alloc_size=%d bytes\n "),
                        stable_size, stable_used, alloc_size ));
             return BCM_E_RESOURCE;
         } else { /* level 1 recovery */
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Scache not found...Level 1 recovery\n")));
             return BCM_E_NOT_FOUND;
@@ -531,14 +531,14 @@ _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
                 rv = soc_scache_ptr_get(unit, handle, scache_ptr,
                                         &alloc_get);
             } else if (alloc_size != alloc_get) {
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Reallocating %d bytes of scache space\n"),
                              (alloc_size - alloc_get)));
                 BCM_IF_ERROR_RETURN
                    (soc_scache_realloc(unit, handle, (alloc_size - alloc_get)));
             }
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Allocated raw scache pointer=%p, %d bytes\n"),
                          scache_ptr, alloc_size));
@@ -550,7 +550,7 @@ _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
             /* Expected size doesn't match retrieved size.
              * This is expected during 'sync' operation
              * during SDK downgrade */
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Reallocating %d bytes of scache space\n"),
                          (alloc_size - alloc_get)));
@@ -568,7 +568,7 @@ _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
         if (SOC_WARM_BOOT(unit)) {
             /* Warm Boot recovery, verify the correct version */
             sal_memcpy(&version, *scache_ptr, sizeof(uint16));
-            LOG_VERBOSE(BSL_LS_BCM_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                         (BSL_META_U(unit,
                                     "Obtained scache pointer=%p, %d bytes, "
                                      "version=%d.%d\n"),
@@ -577,7 +577,7 @@ _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
                          SOC_SCACHE_VERSION_MINOR(version)));
 
             if (version > default_ver) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "Downgrade detected.  "
                                        "Current version=%d.%d  found %d.%d\n"),
@@ -596,7 +596,7 @@ _bcm_esw_scache_ptr_get(int unit, soc_scache_handle_t handle, int create,
                 rv = BCM_E_NONE;
 
             } else if (version < default_ver) {
-                LOG_VERBOSE(BSL_LS_BCM_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                             (BSL_META_U(unit,
                                         "Upgrade scenario supported.  "
                                          "Current version=%d.%d  found %d.%d\n"),

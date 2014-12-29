@@ -74,14 +74,14 @@ int
 soc_port_phy_eyescan_counter_register(int unit, soc_port_phy_eyscan_counter_t counter, soc_port_phy_eyescan_counter_cb_t* cf)
 {
     if (!SOC_UNIT_VALID(unit)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Invalid unit\n")));
         return SOC_E_UNIT;
     }
 
     if(counter >= socPortPhyEyescanNofCounters || counter < 0) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Counter %d isn't supported\n"), counter));
         return SOC_E_PARAM;
@@ -121,7 +121,7 @@ soc_port_phy_eyescan_check_bounds(int unit, soc_port_t port, uint32 inst, int fl
         rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                    PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_GET_MAX_LEFT_HOFFSET, (int *) (&l_hmax));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             goto exit;
@@ -129,7 +129,7 @@ soc_port_phy_eyescan_check_bounds(int unit, soc_port_t port, uint32 inst, int fl
         rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                    PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_GET_MAX_RIGHT_HOFFSET, (int *) (&r_hmax));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             goto exit;
@@ -139,7 +139,7 @@ soc_port_phy_eyescan_check_bounds(int unit, soc_port_t port, uint32 inst, int fl
     rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_GET_MIN_VOFFSET, (int *) (&vmin));
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         goto exit;
@@ -147,7 +147,7 @@ soc_port_phy_eyescan_check_bounds(int unit, soc_port_t port, uint32 inst, int fl
     rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_GET_MAX_VOFFSET, (int *) (&vmax));
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         goto exit;
@@ -229,7 +229,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_ENABLE_LIVELINK, (void *) (0));
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -237,7 +237,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_GET_INIT_VOFFSET, voffset);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -255,7 +255,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
                     rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                                PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_SET_HOFFSET, &hoffset_init);
                     if (SOC_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_SOC_PHY,
+                        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                   (BSL_META_U(unit,
                                               "%s\n"), soc_errmsg(rv)));
                         goto exit;
@@ -264,7 +264,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
                 rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                            PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_SET_VOFFSET, (int *) voffset);
                 if (SOC_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "%s\n"), soc_errmsg(rv)));
                     goto exit;
@@ -273,7 +273,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_DISABLE_LIVELINK, (void *) (0));
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -289,7 +289,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_ENABLE_DEADLINK, (void *) (0));
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -298,7 +298,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_SET_HOFFSET,  &hoffset_init);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -306,7 +306,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_SET_VOFFSET,  &hoffset_init);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -314,7 +314,7 @@ soc_port_phy_eyescan_enable(int unit, uint32 inst, int flags, soc_port_t port,
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_DISABLE_DEADLINK, (void *) (0));
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 goto exit;
@@ -342,7 +342,7 @@ soc_port_phy_eyescan_counter_clear(int unit, soc_port_t port, uint32 inst, soc_p
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_CLEAR_LIVELINK, (void *) (0));
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 return rv;
@@ -352,14 +352,14 @@ soc_port_phy_eyescan_counter_clear(int unit, soc_port_t port, uint32 inst, soc_p
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_READ_DEADLINK, &error);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
                 return rv;
             }
             break;
         default:
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "counter isn't supported by the device\n")));
             return SOC_E_PARAM;
@@ -382,7 +382,7 @@ soc_port_phy_eyescan_start(int unit,  soc_port_t port, uint32 inst, soc_port_phy
         rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                    PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_START_LIVELINK, (void *) (0));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
         }
@@ -395,7 +395,7 @@ soc_port_phy_eyescan_start(int unit,  soc_port_t port, uint32 inst, soc_port_phy
         rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                    PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_START_DEADLINK, (void *) (0));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
         }
@@ -415,7 +415,7 @@ soc_port_phy_eyescan_stop(int unit, soc_port_t port, uint32 inst, soc_port_phy_e
         rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                    PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_STOP_LIVELINK, (void *) (0));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -444,7 +444,7 @@ soc_port_phy_eyescan_counter_get(int unit, soc_port_t port, uint32 inst, soc_por
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_READ_LIVELINK, err_count);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
             }
@@ -453,14 +453,14 @@ soc_port_phy_eyescan_counter_get(int unit, soc_port_t port, uint32 inst, soc_por
             rv = soc_phyctrl_diag_ctrl(unit, port, inst,
                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_READ_DEADLINK, err_count);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "%s\n"), soc_errmsg(rv)));
             }
             break;
         default:
             rv = SOC_E_PARAM;
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "Counter isn't supported by the device\n")));
             break;
@@ -499,21 +499,21 @@ int _soc_port_phy_eyescan_run(
 
     /*validate input*/
     if (!SOC_UNIT_VALID(unit)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Invalid unit\n")));
         return SOC_E_UNIT;
     }
 
     if (params == NULL || ports == NULL || results == NULL) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if(params->counter >= socPortPhyEyescanNofCounters || params->counter < 0) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Counter %d isn't supported\n"), params->counter));
         return SOC_E_PARAM;
@@ -526,7 +526,7 @@ int _soc_port_phy_eyescan_run(
     }
     if(NULL == local_ports) {
         rv = SOC_E_MEMORY;
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Failed to allocate local_ports array\n")));
         goto exit;
@@ -536,7 +536,7 @@ int _soc_port_phy_eyescan_run(
     local_lane_num = (int*)sal_alloc(sizeof(int)*nof_ports,"eyecan local_lane_num");
     if(NULL == local_lane_num) {
         rv = SOC_E_MEMORY;
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Failed to allocate local_lane_num array\n")));
         goto exit;
@@ -564,7 +564,7 @@ int _soc_port_phy_eyescan_run(
                         SOC_PHY_CONTROL_RX_SEQ_DONE, &is_enable);
                 }
                 if (SOC_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "%s\n"), soc_errmsg(rv)));
                     goto exit;
@@ -574,7 +574,7 @@ int _soc_port_phy_eyescan_run(
                                              SOC_PHY_CONTROL_RX_SEQ_DONE,
                                              &is_enable);
                 if (SOC_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "%s\n"), soc_errmsg(rv)));
                     goto exit;
@@ -588,7 +588,7 @@ int _soc_port_phy_eyescan_run(
             }
         } else {
             rv = SOC_E_PORT;
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "Invalid port %d\n"), ports[j]));
             goto exit;
@@ -610,7 +610,7 @@ int _soc_port_phy_eyescan_run(
     start_time = (uint32*)sal_alloc(sizeof(sal_usecs_t)*nof_ports,"eyecan start time");
     if(NULL == start_time) {
         rv = SOC_E_MEMORY;
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Failed to allocate start_time array\n")));
         goto exit;
@@ -620,7 +620,7 @@ int _soc_port_phy_eyescan_run(
     v_init_offset = (int*)sal_alloc(sizeof(int)*nof_ports,"eyecan v_init_offset");
     if(NULL == v_init_offset) {
         rv = SOC_E_MEMORY;
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Failed to allocate v_init_offset array\n")));
         goto exit;
@@ -635,7 +635,7 @@ int _soc_port_phy_eyescan_run(
         if (local_ports[j] == -1) continue;
         rv = soc_port_phy_eyescan_enable(unit, inst, flags, local_ports[j], params->counter, 1, &(v_init_offset[j]));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             goto exit;
@@ -650,7 +650,7 @@ int _soc_port_phy_eyescan_run(
         if (local_ports[j] == -1) continue;
         rv = soc_port_phy_eyescan_check_bounds(unit, local_ports[j], inst, flags, params->counter, &(params->bounds));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             goto exit;
@@ -718,7 +718,7 @@ int _soc_port_phy_eyescan_run(
                             rv = soc_phyctrl_diag_ctrl(unit, local_ports[j], inst,
                                                        PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_SET_HOFFSET, (int*) (&h));
                             if (SOC_FAILURE(rv)) {
-                                LOG_ERROR(BSL_LS_SOC_PHY,
+                                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                           (BSL_META_U(unit,
                                                       "%s\n"), soc_errmsg(rv)));
                                 goto exit;
@@ -727,14 +727,14 @@ int _soc_port_phy_eyescan_run(
                         rv = soc_phyctrl_diag_ctrl(unit, local_ports[j], inst,
                                                    PHY_DIAG_CTRL_CMD, PHY_DIAG_CTRL_EYE_SET_VOFFSET, (int *) (&v));/*start measure*/
                         if (SOC_FAILURE(rv)) {
-                            LOG_ERROR(BSL_LS_SOC_PHY,
+                            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                       (BSL_META_U(unit,
                                                   "%s\n"), soc_errmsg(rv)));
                             goto exit;
                         }
                         rv = soc_port_phy_eyescan_start(unit, local_ports[j], inst, params->counter);
                         if (SOC_FAILURE(rv)) {
-                            LOG_ERROR(BSL_LS_SOC_PHY,
+                            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                       (BSL_META_U(unit,
                                                   "%s\n"), soc_errmsg(rv)));
                             goto exit;
@@ -748,7 +748,7 @@ int _soc_port_phy_eyescan_run(
                     /*clear counters*/
                     rv = soc_port_phy_eyescan_counter_clear(unit, local_ports[j], inst, params->counter, &(start_time[j]));
                     if (SOC_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_SOC_PHY,
+                        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                   (BSL_META_U(unit,
                                               "%s\n"), soc_errmsg(rv)));
                         goto exit;
@@ -764,14 +764,14 @@ int _soc_port_phy_eyescan_run(
                     /*stop measure*/
                     rv = soc_port_phy_eyescan_stop(unit, local_ports[j], inst, params->counter, &end_time);
                     if (SOC_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_SOC_PHY,
+                        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                   (BSL_META_U(unit,
                                               "%s\n"), soc_errmsg(rv)));
                         goto exit;
                     }
                     rv = soc_port_phy_eyescan_counter_get(unit, local_ports[j], inst,  params->counter, &err_count);
                     if (SOC_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_SOC_PHY,
+                        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                                   (BSL_META_U(unit,
                                               "%s\n"), soc_errmsg(rv)));
                         goto exit;
@@ -922,7 +922,7 @@ int is_eyescan_algorithm_legacy_mode(int unit, uint32 nof_ports, soc_port_t* por
             return(0);
         }
 
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               " Phy ID0: 0x%X, Phy ID1: 0x%X Phy Model: 0x%X \n"),
                    pc->phy_id0, pc->phy_id1, pc->phy_model));
@@ -965,7 +965,7 @@ _soc_port_generate_phy_array(
     for(j = 0 ; j < nof_ports ; j++) {
 
         if(!SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), ports[j])){
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit, "Port %d can't run eyescan \n"), ports[j]));
             continue;
         }
@@ -1007,14 +1007,14 @@ _soc_port_generate_phy_array(
                     SOC_IF_ERROR_RETURN(rv);
 
                     if(!locked) {
-                        LOG_WARN(BSL_LS_SOC_PHY,
+                        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit, "Port %d is skipped, Phy RX isn't locked \n"), ports[j]));
                         continue;
                     } 
                 }
 
                 if(phy_acc_count >= phy_acc_max_length) {
-                    LOG_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
                                           "ERROR: No space left for phy_acc\n")));
                     return SOC_E_INTERNAL;
                 }
@@ -1033,14 +1033,14 @@ _soc_port_generate_phy_array(
         } else {
             pc = INT_PHY_SW_STATE(unit, ports[j]);
             if (pc == NULL) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit, "Err: port %d, pc is NULL \n"), ports[j]));
                 continue;
             }
 
             pmc = &pc->phymod_ctrl;
             if (pmc == NULL) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit, "Err: port %d, pcm is NULL \n"), ports[j]));
                 continue;
             }
@@ -1053,7 +1053,7 @@ _soc_port_generate_phy_array(
             for (idx = 0; idx < pmc->num_phys; idx++) {
                 pa = _get_phymod_phy_access(pmc, idx);
                 if (!pa) {
-                    LOG_ERROR(BSL_LS_SOC_PHY,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                               (BSL_META_U(unit,
                                           "ERROR: phymod Access on port%d is NULL\n"), j));
                     continue;
@@ -1064,14 +1064,14 @@ _soc_port_generate_phy_array(
                     SOC_IF_ERROR_RETURN(rv);
 
                     if(!locked) {
-                        LOG_WARN(BSL_LS_SOC_PHY,
+                        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit, "Port %d is skipped, Phy RX isn't locked \n"), ports[j]));
                         continue;
                     } 
                 }
 
                 if(phy_acc_count >= phy_acc_max_length) {
-                    LOG_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
+                    LOG_BSL_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
                                           "ERROR: No space left for phy_acc\n")));
                     pc->lane_num = local_lane_num;
                     return SOC_E_INTERNAL;
@@ -1080,7 +1080,7 @@ _soc_port_generate_phy_array(
                 if(line_rates) {
                     rv = soc_phyctrl_speed_get(unit, ports[j], &(line_rates[phy_acc_count]));
                     if(SOC_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
+                        LOG_BSL_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
                                           "ERROR: Failed to retrive speed for port %d \n"), ports[j]));
                         pc->lane_num = local_lane_num;
                         return SOC_E_INTERNAL;
@@ -1117,14 +1117,14 @@ int _soc_port_phy_eyescan_run_lowber(
 
     /*validate input*/
     if (params == NULL || ports == NULL || results == NULL) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
     }
 
     if(params->counter >= socPortPhyEyescanNofCounters || params->counter < 0) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Counter %d isn't supported\n"), params->counter));
         return SOC_E_PARAM;
@@ -1146,7 +1146,7 @@ int _soc_port_phy_eyescan_run_lowber(
     phy_acc = (phymod_phy_access_t*) sal_alloc(sizeof(phymod_phy_access_t)*array_max_size, "eyescan phymod_phy_access_t");
     line_rates = (int*)sal_alloc(sizeof(int)*array_max_size, "eyescan line rates");
     if(NULL == phy_acc || NULL == line_rates) {
-        LOG_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY, (BSL_META_U(unit,
                 "Failed to allocate Memory phy_acc=%d line_rates=%d\n"), phy_acc?1:0, line_rates?1:0));
         rv = SOC_E_MEMORY;
         goto exit;
@@ -1202,14 +1202,14 @@ int _soc_port_phy_eyescan_run_uc(
 
     /*validate input*/
     if (!SOC_UNIT_VALID(unit)) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Invalid unit\n")));
         return SOC_E_UNIT;
     }
 
     if (params == NULL || ports == NULL || results == NULL) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Null parameter\n")));
         return SOC_E_PARAM;
@@ -1218,7 +1218,7 @@ int _soc_port_phy_eyescan_run_uc(
     /* Allocate Mem */
     phy_acc = (phymod_phy_access_t*) sal_alloc(sizeof(phymod_phy_access_t)*nof_ports*PHYMOD_CONFIG_MAX_CORES_PER_PORT, "eyescan phymod_phy_access_t");
     if(NULL == phy_acc) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "Failed to allocate Memory\n")));
         return SOC_E_MEMORY;
@@ -1359,7 +1359,7 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
     ber_conf_scale[18] = 1.5136;
     ber_conf_scale[19] = 1.4791;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "first_good_ber_idx: %d, first_small_errcnt_idx: %d\n"),
                  pInfo->first_good_ber_idx,pInfo->first_small_errcnt_idx));
@@ -1431,11 +1431,11 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
         outputs[2] = -100.0;
         outputs[3] = -100.0;
         /*  No need to print out the decimal portion of the BER */
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "BER *worse* than 1e-%d\n"),
                      (int)outputs[0]));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "Negative margin @ 1e-12, 1e-15 & 1e-18\n")));
         results->ext_better = -1;
@@ -1465,7 +1465,7 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
         /* Below this point the code assumes statistically valid point available */
         delta_n = stop_n - start_n - n_mono;
         
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "start_n: %d, stop_n: %d, veye: %d, n_mono: %d\n"),
                      start_n,stop_n,pInfo->veye_cnt,n_mono));
@@ -1475,26 +1475,26 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
             lbers[loop_index] = (COMPILER_DOUBLE)sqrt(-log(bers[loop_index]));
         }
         
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\tstart=%d, stop=%d, low_confidence=%d\n"),
                      start_n, stop_n, low_confidence));
         for (loop_index = start_n; loop_index < stop_n; loop_index++){
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "\ttotal_errs[%d]=0x%08x\n"),
                          loop_index,(int)pInfo->total_errs[loop_index]));
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "\tbers[%d]=%f\n"),
                          loop_index,bers[loop_index]));
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "\tlbers[%d]=%f\n"),
                          loop_index,lbers[loop_index]));
         }
         
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "delta_n = %d\n"),
                      delta_n));
@@ -1513,7 +1513,7 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
         alpha = (Exy - Ey * Ex)/(Exx - Ex * Ex);
         beta = Ey - Ex * alpha;
         
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "Exy=%f, Eyy=%f, Exx=%f, Ey=%f,Ex=%f alpha=%f, beta=%f\n"),
                      Exy,Eyy,Exx,Ey,Ex,alpha,beta));
@@ -1548,43 +1548,43 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
         outputs[2] = _eyescan_util_round_real(proj_margin_12,1);
         outputs[3] = _eyescan_util_round_real(proj_margin_15,1);
         
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\tlog1e-12=%f, sq=%f\n"),
                      (COMPILER_DOUBLE)log(1e-12),(COMPILER_DOUBLE)sqrt(-log(1e-12))));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\talpha=%f\n"),
                      alpha));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\tbeta=%f\n"),
                      beta));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\tproj_ber=%f\n"),
                      proj_ber));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\tproj_margin12=%f\n"),
                      proj_margin_12));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\tproj_margin12=%f\n"),
                      proj_margin_15));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\tproj_margin18=%f\n"),
                      proj_margin_18));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\toutputs[0]=%f\n"),
                      outputs[0]));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\toutputs[1]=%f\n"),
                      outputs[1]));
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "\t\toutputs[2]=%f\n"),
                      outputs[2]));
@@ -1592,18 +1592,18 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
         /* Extrapolated results, low confidence */
         if( low_confidence == 1 ) {
             if(beta_max){
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "BER(extrapolated) is *better* than 1e-37\n")));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-12    is *better* than %f\n"),
                              outputs[2]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-15    is *better* than %f\n"),
                              outputs[3]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-18    is *better* than %f\n"),
                              outputs[1]));
@@ -1612,19 +1612,19 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
                 results->ext_results_remainder = 0;
             }
             else{
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "BER(extrapolated) is *better* than 1e-%f\n"),
                              outputs[0]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-12    is *better* than %f\n"),
                              outputs[2]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-15    is *better* than %f\n"),
                              outputs[3]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-18    is *better* than %f\n"),
                              outputs[1]));
@@ -1636,18 +1636,18 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
         /* JPA> Extrapolated results, high confidence */
         } else {           
             if(beta_max){
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "BER(extrapolated) = 1e-37\n")));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-12    is *better* than %f\n"),
                              outputs[2]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-15    is *better* than %f\n"),
                              outputs[3]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-18    is *better* than %f\n"),
                              outputs[1]));
@@ -1656,19 +1656,19 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
                 results->ext_results_remainder = 0;
             }
             else{
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "BER(extrapolated) = 1e-%4.2f\n"),
                              outputs[0]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-12    = %4.2f%%\n"),
                              outputs[2]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-15    = %4.2f%%\n"),
                              outputs[3]));
-                LOG_VERBOSE(BSL_LS_SOC_PHY,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                             (BSL_META_U(unit,
                                         "Margin @ 1e-18    = %4.2f%%\n"),
                              outputs[1]));
@@ -1685,7 +1685,7 @@ _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_re
 STATIC int  
 _eye_margin_diagram_cal(int unit, EYE_DIAG_INFOt *pInfo, soc_port_phy_eyescan_results_t* results) 
 {
-    LOG_ERROR(BSL_LS_SOC_PHY,
+    LOG_BSL_ERROR(BSL_LS_SOC_PHY,
               (BSL_META_U(unit,
                           "_eye_margin_diagram_cal unavailable with this compiler\n")));
 
@@ -1712,14 +1712,14 @@ _eye_margin_ber_cal(int unit, EYE_DIAG_INFOt *pInfo)
     
     eye_unit = VEYE_UNIT;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "\nBER measurement at each offset, num_data_points: %d\n"),
                  pInfo->veye_cnt));
     
     for (loop_var = 0; loop_var < pInfo->veye_cnt; loop_var++) { 
         margins[loop_var] = (pInfo->offset_max-loop_var)*eye_unit;
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "BER measurement at offset: %f\n"),
                      margins[loop_var]));
@@ -1729,7 +1729,7 @@ _eye_margin_ber_cal(int unit, EYE_DIAG_INFOt *pInfo)
             bers[loop_var] = 1000.0/(COMPILER_DOUBLE)pInfo->total_elapsed_time[loop_var]/pInfo->rate;
             bers[loop_var] /= 1000;
             
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "BER @ %04f %% = 1e%04f (%d errors in %d miliseconds)\n"),
                          (COMPILER_DOUBLE)((pInfo->offset_max-loop_var)*eye_unit), 
@@ -1742,7 +1742,7 @@ _eye_margin_ber_cal(int unit, EYE_DIAG_INFOt *pInfo)
             
             /* the rate unit is KHZ, add -3(log10(1/1000)) for actual display  */
             bers[loop_var] /= 1000;
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "BER @ %2.2f%% = 1e%2.2f (%d errors in %d miliseconds)\n"),
                          (pInfo->offset_max-loop_var)*eye_unit,
@@ -1758,14 +1758,14 @@ _eye_margin_ber_cal(int unit, EYE_DIAG_INFOt *pInfo)
         }
         prev_ber_log = curr_ber_log;
         
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "cur_be_log %2.2f\n"),
                      curr_ber_log));
         /* find the first data point with good BER */
         if ((curr_ber_log <= good_ber_level) && 
             (pInfo->first_good_ber_idx == INDEX_UNINITIALIZED)) { 
-            LOG_VERBOSE(BSL_LS_SOC_PHY,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                         (BSL_META_U(unit,
                                     "cur_be_log %2.2f, loop_var %d\n"),
                          curr_ber_log,loop_var));
@@ -1803,7 +1803,7 @@ soc_port_phy_eyescan_extrapolate(int unit,
         for (i = 0 ; i < nof_ports; i++) {
             rv = soc_phyctrl_speed_get(unit, ports[i], &speed);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "soc_phyctrl_speed_get failed\n")));
                 return rv;
@@ -1836,7 +1836,7 @@ soc_port_phy_eyescan_extrapolate(int unit,
             }
             if (veye_info.veye_cnt > MAX_EYE_LOOPS) {
                 rv = SOC_E_PARAM;
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "ERROR: veye_cnt > MAX_EYE_LOOPS\n")));
                 return rv;

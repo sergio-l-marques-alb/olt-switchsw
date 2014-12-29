@@ -278,7 +278,7 @@ drv_dino16_mac_set(int unit, soc_pbmp_t pbmp, uint32 mac_type,
     COMPILER_64_ZERO(reg_v64);
     COMPILER_64_ZERO(mac_field);
     if (mac_type != DRV_MAC_SECURITY_CLEAR) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "drv_dino16_mac_set: unit %d, bmp = 0x%x, type = %d, \
                                 mac = %02x-%02x-%02x-%02x-%02x-%02x\n"),
@@ -292,7 +292,7 @@ drv_dino16_mac_set(int unit, soc_pbmp_t pbmp, uint32 mac_type,
             mcast = 0;
         }
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "drv_dino16_mac_set: unit %d, bmp = 0x%x, type = %d"),
                      unit, SOC_PBMP_WORD_GET(pbmp, 0), mac_type));
@@ -462,7 +462,7 @@ drv_dino16_mac_get(int unit, uint32 port, uint32 mac_type,
         SOC_PBMP_WORD_SET(*bmp, 0, fld_v32);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "drv_dino16_mac_get: unit %d, port = %d, type = %d, \
                             mac =%02x-%02x-%02x-%02x-%02x-%02x\n"),

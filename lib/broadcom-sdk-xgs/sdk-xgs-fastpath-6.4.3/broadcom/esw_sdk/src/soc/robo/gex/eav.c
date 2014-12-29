@@ -1954,7 +1954,7 @@ _drv_vulcan_eav_queue_control_set(int unit,
         case DRV_EAV_QUEUE_Q4_BANDWIDTH:
             /* Q4 BW maxmum value = 16383(0x3fff) */
             if (param > EAV_GEX_MAX_BANDWIDTH_VALUE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_gex_eav_queue_control_set : BW unsupported. \n")));
                 return  SOC_E_PARAM;
@@ -1971,7 +1971,7 @@ _drv_vulcan_eav_queue_control_set(int unit,
             /* Q5 BW maxmum value = 16383(0x3fff) */
     /*    coverity[unsigned_compare]    */
             if (param > EAV_GEX_MAX_BANDWIDTH_VALUE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_gex_eav_queue_control_set : BW unsupported. \n")));
                 return  SOC_E_PARAM;
@@ -2052,7 +2052,7 @@ _drv_vulcan_eav_queue_control_get(int unit,
                 finfop);
             assert(finfop);
             if (!finfop) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_gex_eav_queue_control_get : Invalid field of C4_BW. \n")));
                 return  SOC_E_PARAM;
@@ -2078,7 +2078,7 @@ _drv_vulcan_eav_queue_control_get(int unit,
                 finfop);
             assert(finfop);
             if (!finfop) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_gex_eav_queue_control_get : Invalid field of C5_BW. \n")));
                 return  SOC_E_PARAM;
@@ -2108,7 +2108,7 @@ _drv_starfighter_eav_queue_control_set(int unit,
         case DRV_EAV_QUEUE_Q4_BANDWIDTH:
             /* Q4 BW maxmum value = 16383(0x3fff) */
             if (param > EAV_GEX_MAX_BANDWIDTH_VALUE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_starfighter_eav_queue_control_set : BW unsupported. \n")));
                 return  SOC_E_PARAM;
@@ -2125,7 +2125,7 @@ _drv_starfighter_eav_queue_control_set(int unit,
             /* Q5 BW maxmum value = 16383(0x3fff) */
             /*    coverity[unsigned_compare]    */
             if (param > EAV_GEX_MAX_BANDWIDTH_VALUE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_starfighter_eav_queue_control_set : BW unsupported. \n")));
                 return  SOC_E_PARAM;
@@ -2206,7 +2206,7 @@ _drv_starfighter_eav_queue_control_get(int unit,
                 finfop);
             assert(finfop);
             if (!finfop) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_gex_eav_queue_control_get : Invalid field of C4_BW. \n")));
                 return  SOC_E_PARAM;
@@ -2232,7 +2232,7 @@ _drv_starfighter_eav_queue_control_get(int unit,
                 finfop);
             assert(finfop);
             if (!finfop) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_gex_eav_queue_control_get : Invalid field of C5_BW. \n")));
                 return  SOC_E_PARAM;

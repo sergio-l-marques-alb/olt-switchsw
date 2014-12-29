@@ -216,7 +216,7 @@ soc_mmu_init(int unit)
 {
     int                 rv;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_mmu_init\n")));
 
@@ -275,7 +275,7 @@ soc_chip_driver_find(uint16 pci_dev_id, uint8 pci_rev_id)
         }
     }
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META("soc_chip_driver_find: driver in devid table "
                         "not in soc_base_driver_table\n")));
 
@@ -1352,7 +1352,7 @@ soc_info_config(int unit, soc_control_t *soc)
     default:
         si->chip = 0;
         si->modid_count = 0;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_info_config: driver device %04x unexpected\n"),
                   drv_dev_id));
@@ -2295,7 +2295,7 @@ soc_info_config(int unit, soc_control_t *soc)
     case BCM53394_DEVICE_ID:
         SOC_FEATURE_SET(unit, soc_feature_logical_port_num);
         if (soc_hu2_port_config_init(unit, dev_id) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!\n")));
             return SOC_E_CONFIG;
@@ -2325,7 +2325,7 @@ soc_info_config(int unit, soc_control_t *soc)
     case BCM53426_DEVICE_ID:
         SOC_FEATURE_SET(unit, soc_feature_logical_port_num);
         if (soc_greyhound_port_config_init(unit, dev_id) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!")));
             return SOC_E_CONFIG;
@@ -2937,7 +2937,7 @@ soc_info_config(int unit, soc_control_t *soc)
         SOC_FEATURE_SET(unit, soc_feature_logical_port_num);
         rv = soc_trident_port_config_init(unit, dev_id);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!\n")));
             return SOC_E_CONFIG;
@@ -2974,7 +2974,7 @@ soc_info_config(int unit, soc_control_t *soc)
         }
         rv = soc_trident2_port_config_init(unit, dev_id, rev_id);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!\n")));
         }
@@ -3010,7 +3010,7 @@ soc_info_config(int unit, soc_control_t *soc)
         SOC_FEATURE_SET(unit, soc_feature_sbus_format_v4);
         rv = soc_tomahawk_port_config_init(unit, dev_id);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!")));
             return rv;
@@ -3249,7 +3249,7 @@ soc_info_config(int unit, soc_control_t *soc)
         SOC_FEATURE_SET(unit, soc_feature_logical_port_num);
         rv = soc_tr3_port_config_init(unit, dev_id);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!\n")));
             return SOC_E_CONFIG;
@@ -3312,7 +3312,7 @@ soc_info_config(int unit, soc_control_t *soc)
                                                       spn_PBMP_XPORT_XE,
                                                       pbmp_xport_xe);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error !!\n")));
             return SOC_E_CONFIG;
@@ -3942,14 +3942,14 @@ soc_info_config(int unit, soc_control_t *soc)
             if ((SOC_BLOCK_INFO(unit, blk).type == SOC_BLK_MXQPORT) &&
                 (SOC_BLOCK_INFO(unit, blk).number == 10)) {
                 si->olp_block = blk;
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "OLP blk:%d \n"),si->olp_block ));
             }
             if ((SOC_BLOCK_INFO(unit, blk).type == SOC_BLK_MXQPORT) &&
                 (SOC_BLOCK_INFO(unit, blk).number == 7)) {
                 mxq7_blk = blk;
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "OLP blk:%d \n"),si->olp_block ));
             }
@@ -3997,7 +3997,7 @@ soc_info_config(int unit, soc_control_t *soc)
             blk_list[0] = SOC_BLOCK_INFO(unit, blk).type;
             blk_list[1] = SOC_BLOCK_TYPE_INVALID;
             if (SOC_BLOCK_IN_LIST(blk_list, SOC_BLK_CPU)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "soc_info_config: "
                                      "cannot disable cpu port\n")));
@@ -4038,7 +4038,7 @@ soc_info_config(int unit, soc_control_t *soc)
                     SOC_BLOCK_INFO(unit, blk).number &= ~0xf00;
                 }
                 skip_blk_port = 1;
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "skip the phy_port %d blk %d\n"),
                                         phy_port,blk));
@@ -4584,7 +4584,7 @@ soc_info_config(int unit, soc_control_t *soc)
                     si->block_port[si->olp_block] = port; 
                         SOC_PBMP_PORT_REMOVE(si->block_bitmap[mxq7_blk], port);
                     SOC_PBMP_PORT_ADD(si->block_bitmap[si->olp_block], port);
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                  "OLP Port Configuration blk=%d"
                                  "schain=%d cmic=%d\n"),
@@ -4600,7 +4600,7 @@ soc_info_config(int unit, soc_control_t *soc)
                     si->block_port[mxq7_blk] = port; 
                     SOC_PBMP_PORT_ADD(si->block_bitmap[mxq7_blk], port);
                     SOC_PBMP_PORT_REMOVE(si->block_bitmap[si->olp_block], port);
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                  "OLP Port Configuration blk=%d"
                                  "schain=%d cmic=%d\n"),
@@ -4724,7 +4724,7 @@ soc_info_config(int unit, soc_control_t *soc)
             }
         }
         if (hgc > _SOC_TR3_MAX_HG_PORT_COUNT) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Port config error (Higig port count[%d] exceeded) !!\n"),
                                   hgc));
@@ -5647,7 +5647,7 @@ cmicm_pcie_deemphasis_set(int unit, uint16 phy_addr) {
     uint16  phy_reg_val;
     uint32  cmic_reg_val;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Changing the CMICm PCIe SerDes deemphasis on unit %d\n"), unit));
 
@@ -5688,7 +5688,7 @@ int
 cmice_pcie_deemphasis_set(int unit, uint16 phy_addr) {
     uint16  phy_reg_val;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Changing the CMICe PCIe SerDes deemphasis on unit %d\n"), unit));
 
@@ -5767,7 +5767,7 @@ iproc_pcie_deemphasis_set(int unit, uint16 phy_addr) {
     }
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Changing the iProc PCIe SerDes deemphasis on unit %d\n"), unit));
 
@@ -5913,7 +5913,7 @@ soc_do_init(int unit, int reset)
 #endif
 
     if (!SOC_UNIT_VALID(unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_init: unit %d not valid\n"), unit));
         return SOC_E_UNIT;
@@ -5923,7 +5923,7 @@ soc_do_init(int unit, int reset)
     sop = SOC_PERSIST(unit);
 
     if (!(soc->soc_flags & SOC_F_ATTACHED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_init: unit %d not attached\n"), unit));
         return(SOC_E_UNIT);
@@ -5981,7 +5981,7 @@ soc_do_init(int unit, int reset)
             }
             SOC_IF_ERROR_RETURN(READ_CMIC_PCIE_USERIF_PURGE_STATUSr(unit, &reg));
             if (reg) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "PCIE purge clear 0x%08x.\n"), reg));
                 SOC_IF_ERROR_RETURN(WRITE_CMIC_PCIE_USERIF_PURGE_CONTROLr(unit, 0));
@@ -6081,7 +6081,7 @@ soc_do_init(int unit, int reset)
                 (soc_event_generate(unit, SOC_SWITCH_EVENT_STABLE_ERROR,
                                     SOC_STABLE_CORRUPT,
                                     SOC_STABLE_FLAGS(unit), 0));
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Corrupt stable cache.\n")));
         } else {
@@ -6706,7 +6706,7 @@ soc_do_init(int unit, int reset)
      * Configure DMA channels.
      */
     if (soc_dma_init(unit) != 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_init: unit %d DMA initialization failed\n"),
                    unit));
@@ -6753,7 +6753,7 @@ soc_do_init(int unit, int reset)
             numq += cmc_numq;
 
             if (numq > NUM_CPU_COSQ(unit)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "soc_do_init: total cpu and arm cosq %04x unexpected\n"),
                           numq));
@@ -7033,7 +7033,7 @@ soc_do_init(int unit, int reset)
                                                 &hcfg);
             rv |= soc_ism_table_hash_config_get(unit, SOC_ISM_MEM_MPLS, &hcfg);
             if (rv != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error retreiving ISM hash zero_lsb(s) !!\n")));
                 return SOC_E_INTERNAL;
@@ -7049,7 +7049,7 @@ soc_do_init(int unit, int reset)
             rv |= soc_ism_hash_table_offset_config_get(unit, SOC_ISM_MEM_MPLS,
                                                        offsets, &count);
             if (rv != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Error retreiving ISM hash offset(s) !!\n")));
                 return SOC_E_INTERNAL;
@@ -7090,7 +7090,7 @@ soc_shutdown(int unit)
     int                 ix;
 
     if (!SOC_UNIT_VALID(unit)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_shutdown: unit %d not valid\n"), unit));
         return SOC_E_UNIT;
@@ -7099,7 +7099,7 @@ soc_shutdown(int unit)
     soc = SOC_CONTROL(unit);
 
     if (!(soc->soc_flags & SOC_F_ATTACHED)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_shutdown: unit %d not attached\n"), unit));
         return(SOC_E_UNIT);
@@ -7202,7 +7202,7 @@ soc_shutdown(int unit)
         /* Detach interrupt handler, if we installed one */
         /* unit # is ISR arg */
         if (soc_cm_interrupt_disconnect(unit) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_shutdown: could not disconnect interrupt line\n")));
             return SOC_E_INTERNAL;
@@ -7449,7 +7449,7 @@ soc_shutdown(int unit)
         if (--soc_ndev_attached == 0) {
             /* Work done after the last SOC device is detached. */
             /* (currently nothing) */
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_shutdown: all units detached\n")));
         }
@@ -7641,12 +7641,12 @@ soc_system_scrub(int unit)
 #if !defined(SOC_NO_NAMES)
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || \
     defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Scrub: %s\n"), SOC_MEM_NAME(unit, mem)));
 #endif
 #else
-                LOG_INFO(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_INFO(BSL_LS_SOC_SOCMEM,
                          (BSL_META_U(unit,
                                      "Scrub: %d\n"), mem));
 #endif
@@ -7655,7 +7655,7 @@ soc_system_scrub(int unit)
     }
     if (table) {
         soc_cm_sfree(unit, table);
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Mem scrub count: %d tmax: %d\n"), c, tmax));
     }
@@ -7830,7 +7830,7 @@ _bradley_lcpll_lock_check(int unit)
     }
 
     if (!locked) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bradley_lcpll_lock_check: LCPLL0 not locked on unit %d "
                               "status = 0x%08x\n"),
@@ -7878,7 +7878,7 @@ _bradley_lcpll_lock_check(int unit)
     }
 
     if (!locked) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bradley_lcpll_lock_check: LCPLL1 not locked on unit %d "
                               "status = 0x%08x\n"),
@@ -8387,7 +8387,7 @@ soc_reset_bcm56504_a0(int unit)
             sal_usleep(to_usec);
         }
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_reset_bcm56504_a0: Device status valid check failed on unit %d\n"),
                        unit));
@@ -8403,7 +8403,7 @@ soc_reset_bcm56504_a0(int unit)
      * Extract the XPORT LMD operation mode.
      */
     if (_xmac_lmd_enable_status_update(unit) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reset_bcm56504_a0: LMD status update failed on unit %d\n"),
                    unit));
@@ -8611,7 +8611,7 @@ soc_reset_bcm53314_a0(int unit)
             sal_usleep(to_usec);
         }
         if (!locked) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL not locked on unit %d "
                                   "status = 0x%08x\n"),
@@ -8786,7 +8786,7 @@ soc_reset_bcm56624_a0(int unit)
         READ_CMIC_XGXS0_PLL_STATUSr(unit, &val);
         if (!soc_reg_field_get(unit, CMIC_XGXS0_PLL_STATUSr, val,
                                CMIC_XGPLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 0 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, val));
@@ -8796,7 +8796,7 @@ soc_reset_bcm56624_a0(int unit)
         READ_CMIC_XGXS1_PLL_STATUSr(unit, &val);
         if (!soc_reg_field_get(unit, CMIC_XGXS1_PLL_STATUSr, val,
                                CMIC_XGPLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 1 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, val));
@@ -8892,7 +8892,7 @@ soc_reset_bcm56624_a0(int unit)
             /* Get DDR PLL lock status (bit 1) */
             READ_CMIC_MISC_STATUSr(unit, &val);
             if (!(val & 0x2)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "DDR PLL not locked.\n")));
             }
@@ -8913,7 +8913,7 @@ soc_reset_bcm56624_a0(int unit)
             /* Get TCAM PLL lock status (bit 2) */
             READ_CMIC_MISC_STATUSr(unit, &val);
             if (!(val & 0x4)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "TCAM PLL not locked.\n")));
             }
@@ -9091,7 +9091,7 @@ soc_reset_bcm56634_a0(int unit)
             /* Get DDR PLL lock status (bit 1) */
             READ_CMIC_MISC_STATUSr(unit, &val);
             if (!(val & 0x2)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "DDR PLL not locked.\n")));
             }
@@ -9112,7 +9112,7 @@ soc_reset_bcm56634_a0(int unit)
             /* Get TCAM PLL lock status (bit 2) */
             READ_CMIC_MISC_STATUSr(unit, &val);
             if (!(val & 0x4)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "TCAM PLL not locked.\n")));
             }
@@ -9395,7 +9395,7 @@ soc_reset_bcm88732_a0(int unit)
         READ_CMIC_XGXS0_PLL_STATUSr(unit, &val);
         if (!(soc_reg_field_get(unit, CMIC_XGXS0_PLL_STATUSr,
                                 val, CMIC_XGPLL_LOCKf))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 0 not locked on unit %d status = 0x%08x\n"),
                        unit, val));
@@ -9404,7 +9404,7 @@ soc_reset_bcm88732_a0(int unit)
         READ_CMIC_XGXS1_PLL_STATUSr(unit, &val);
         if (!(soc_reg_field_get(unit, CMIC_XGXS1_PLL_STATUSr,
                                 val, CMIC_XGPLL_LOCKf))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 1 not locked on unit %d status = 0x%08x\n"),
                        unit, val));
@@ -9413,7 +9413,7 @@ soc_reset_bcm88732_a0(int unit)
         READ_CMIC_XGXS2_PLL_STATUSr(unit, &val);
         if (!(soc_reg_field_get(unit, CMIC_XGXS2_PLL_STATUSr,
                                 val, CMIC_XGPLL_LOCKf))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 2 not locked on unit %d status = 0x%08x\n"),
                        unit, val));
@@ -9726,7 +9726,7 @@ soc_reset_bcm56150_a0(int unit)
         }
     }
     if (ts_idx == sizeof(ts_pll)/sizeof(ts_pll[0])) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid value for PTP_TS_PLL_REF (%u).  No default PLL params.\n"), ts_ref_freq));
         /* Could check for existence of SOC properties for VCO_DIV2, KA, KI, KP, NDIV_INT, NDIV_FRAC, MDIV, PDIV, and if
@@ -9781,7 +9781,7 @@ soc_reset_bcm56150_a0(int unit)
          && soc_reg_field_get(unit, TOP_BS_PLL0_CTRL_1r,
                               rval, KPf) == broadsync_default_kp);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "BSPLL regs:  %s\n"), initialize_broadsync ? "Default" : "Configured"));
 
@@ -9811,7 +9811,7 @@ soc_reset_bcm56150_a0(int unit)
         if (config == 0 && clk_ctrl == 0 && heartbeat_ctrl == 0 && heartbeat_down == 0 && heartbeat_up == 0) {
             /* PLL was initialized, but there is no saved state.  Reset BroadSync. */
             initialize_broadsync = 1;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BSPLL Configured, but no BS state to restore\n")));
         } else {
@@ -9827,7 +9827,7 @@ soc_reset_bcm56150_a0(int unit)
             WRITE_CMIC_BS0_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
             WRITE_CMIC_BS0_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Restored BS0 regs:\n"
                                     "  config: %08x  clk_ctrl: %08x hb_ctrl: %08x\n"
@@ -9860,7 +9860,7 @@ soc_reset_bcm56150_a0(int unit)
             WRITE_CMIC_BS1_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
             WRITE_CMIC_BS1_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Restored BS1 regs:\n"
                                     "  config: %08x  clk_ctrl: %08x hb_ctrl: %08x\n"
@@ -9908,7 +9908,7 @@ soc_reset_bcm56150_a0(int unit)
             }
         }
         if (bs_idx == sizeof(bs_pll)/sizeof(bs_pll[0])) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid value for PTP_BS_REF (%u).  No default PLL params.\n"), bs_ref_freq));
             /* Could check for existence of SOC properties for VCO_DIV2, KA, KI, KP, NDIV_INT,
@@ -10324,7 +10324,7 @@ soc_reset_bcm56820_a0(int unit)
             /* Get Core PLL lock status (bit 0) */
             READ_CMIC_MISC_STATUSr(unit, &val);
             if (!(val & 0x1)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "Core PLL not locked.\n")));
             }
@@ -10345,7 +10345,7 @@ soc_reset_bcm56820_a0(int unit)
         /* Get DDR PLL lock status (bit 1) */
         READ_CMIC_MISC_STATUSr(unit, &val);
         if (!(val & 0x2)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "IP2 clock doubler not locked.\n")));
         }
@@ -10365,7 +10365,7 @@ soc_reset_bcm56820_a0(int unit)
         /* Get DDR PLL lock status (bit 2) */
         READ_CMIC_MISC_STATUSr(unit, &val);
         if (!(val & 0x4)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "MMU0 clock doubler not locked.\n")));
         }
@@ -10385,7 +10385,7 @@ soc_reset_bcm56820_a0(int unit)
         /* Get DDR PLL lock status (bit 3) */
         READ_CMIC_MISC_STATUSr(unit, &val);
         if (!(val & 0x8)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "MMU1 clock doubler not locked.\n")));
         }
@@ -10408,7 +10408,7 @@ soc_reset_bcm56820_a0(int unit)
         READ_CMIC_XGXS0_PLL_STATUSr(unit, &val);
         if (!(soc_reg_field_get(unit, CMIC_XGXS0_PLL_STATUSr,
                                 val, CMIC_XGPLL_LOCKf))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 0 not locked on unit %d status = 0x%08x\n"),
                        unit, val));
@@ -10417,7 +10417,7 @@ soc_reset_bcm56820_a0(int unit)
         READ_CMIC_XGXS1_PLL_STATUSr(unit, &val);
         if (!(soc_reg_field_get(unit, CMIC_XGXS1_PLL_STATUSr,
                                 val, CMIC_XGPLL_LOCKf))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 1 not locked on unit %d status = 0x%08x\n"),
                        unit, val));
@@ -10426,7 +10426,7 @@ soc_reset_bcm56820_a0(int unit)
         READ_CMIC_XGXS2_PLL_STATUSr(unit, &val);
         if (!(soc_reg_field_get(unit, CMIC_XGXS2_PLL_STATUSr,
                                 val, CMIC_XGPLL_LOCKf))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 2 not locked on unit %d status = 0x%08x\n"),
                        unit, val));
@@ -10579,7 +10579,7 @@ soc_reset_bcm56840_a0(int unit)
             addr = soc_reg_addr(unit, reg, REG_PORT_ANY, 0);
             soc_pci_getreg(unit, addr, &rval);
             if (!soc_reg_field_get(unit, reg, rval, CMIC_XGPLL_LOCKf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "LCPLL %d not locked on unit %d "
                                       "status = 0x%08x\n"), index, unit, rval));
@@ -10849,7 +10849,7 @@ soc_reset_bcm56340_a0(int unit)
     if ( (BCM56340_DEVICE_ID == soc_dev) || (BCM56041_DEVICE_ID == soc_dev) ||
          (BCM56042_DEVICE_ID == soc_dev) || (BCM56345_DEVICE_ID == soc_dev)) {
         if (SOC_E_NONE != (rv = _soc_hx4_xmac_cclk_config(unit))) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Helix4 XMAC cclk config failed !!\n")));
             return rv;
@@ -10865,7 +10865,7 @@ soc_reset_bcm56340_a0(int unit)
         rv = soc_reg_field32_modify(unit, pll_ctrl4_reg[index],
                                     REG_PORT_ANY, NDIV_INTf, rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Modifying TOP_XG_PLL%d_CTRL_4 failed !!\n"),
                        index));
@@ -10881,7 +10881,7 @@ soc_reset_bcm56340_a0(int unit)
     rv = soc_reg_field32_modify(unit, pll_ctrl4_reg[0],
                                 REG_PORT_ANY, NDIV_INTf, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Modifying TOP_XG_PLL0_CTRL_4:QG_PLL failed !!\n")));
         return rv;
@@ -10895,7 +10895,7 @@ soc_reset_bcm56340_a0(int unit)
     rv = soc_reg_field32_modify(unit, pll_ctrl4_reg[1],
                                 REG_PORT_ANY, NDIV_INTf, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Modifying TOP_XG_PLL1_CTRL_4:WC_PLL failed !!\n")));
         return rv;
@@ -10905,7 +10905,7 @@ soc_reset_bcm56340_a0(int unit)
         rv = soc_reg_field32_modify(unit, pll_ctrl0_reg[index],
                                     REG_PORT_ANY, CH3_MDIVf, 25);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Modifying TOP_XG_PLL%d_CTRL_0 failed !!\n"),
                            index));
@@ -10915,7 +10915,7 @@ soc_reset_bcm56340_a0(int unit)
 
     rv = READ_TOP_MISC_CONTROL_1r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_MISC_CONTROL_1 failed !!\n")));
         return rv;
@@ -10932,7 +10932,7 @@ soc_reset_bcm56340_a0(int unit)
                       IO_HYS_EN_CTRLf, 1);
     rv = WRITE_TOP_MISC_CONTROL_1r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_MISC_CONTROL_1 failed !!\n")));
         return rv;
@@ -10941,7 +10941,7 @@ soc_reset_bcm56340_a0(int unit)
     /* Bring LCPLL out of reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -10950,7 +10950,7 @@ soc_reset_bcm56340_a0(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_XG_PLL1_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -10961,26 +10961,26 @@ soc_reset_bcm56340_a0(int unit)
     if (!SAL_BOOT_SIMULATION) {
         rv = READ_TOP_XG_PLL0_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_XG_PLL0_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_XG_PLL0_STATUSr, rval, TOP_XGPLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 0 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
         }
         rv = READ_TOP_XG_PLL1_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_XG_PLL1_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_XG_PLL1_STATUSr, rval, TOP_XGPLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 1 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -10990,7 +10990,7 @@ soc_reset_bcm56340_a0(int unit)
     /* De-assert LCPLL's post reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -10999,7 +10999,7 @@ soc_reset_bcm56340_a0(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_XG_PLL1_POST_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11042,7 +11042,7 @@ soc_reset_bcm56340_a0(int unit)
     /* put broadsync pll in reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11051,7 +11051,7 @@ soc_reset_bcm56340_a0(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_BS_PLL0_POST_RST_Lf, 0);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11097,7 +11097,7 @@ soc_reset_bcm56340_a0(int unit)
     /* Timesync and broadsync out of reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11106,7 +11106,7 @@ soc_reset_bcm56340_a0(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REG_2r, &rval, TOP_BS_PLL0_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11118,13 +11118,13 @@ soc_reset_bcm56340_a0(int unit)
 
         rv = READ_TOP_TS_PLL_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_TS_PLL_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_TS_PLL_STATUSr, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TimeSync PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -11132,13 +11132,13 @@ soc_reset_bcm56340_a0(int unit)
 
         rv = READ_TOP_BS_PLL0_STATUSr(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_BS_PLL0_STATUS failed !!\n")));
             return rv;
         }
         if (!soc_reg_field_get(unit, TOP_BS_PLL0_STATUSr, rval, PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BroadSync PLL0 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -11148,7 +11148,7 @@ soc_reset_bcm56340_a0(int unit)
     /* Deassert Post reset */
     rv = READ_TOP_SOFT_RESET_REG_2r(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11159,7 +11159,7 @@ soc_reset_bcm56340_a0(int unit)
                       1);
     rv = WRITE_TOP_SOFT_RESET_REG_2r(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG_2 failed !!\n")));
         return rv;
@@ -11176,7 +11176,7 @@ soc_reset_bcm56340_a0(int unit)
         }
         rv = soc_iproc_shutdown(unit, cpu_mask, val-1);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Putting iproc in shutdown failed !!\n")));
         }
@@ -11246,7 +11246,7 @@ soc_reset_bcm56340_a0(int unit)
      */
     rv = READ_TOP_SOFT_RESET_REGr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -11262,7 +11262,7 @@ soc_reset_bcm56340_a0(int unit)
 
     rv = WRITE_TOP_SOFT_RESET_REGr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -11273,7 +11273,7 @@ soc_reset_bcm56340_a0(int unit)
     /* Bring network sync out of reset */
     rv = READ_TOP_SOFT_RESET_REGr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -11281,7 +11281,7 @@ soc_reset_bcm56340_a0(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REGr, &rval, TOP_NS_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REGr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -11294,7 +11294,7 @@ soc_reset_bcm56340_a0(int unit)
     /* Bring IP, EP, ISM, ETU, AXP, and MMU blocks out of reset */
     rv = READ_TOP_SOFT_RESET_REGr(unit, &rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Reading TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -11306,7 +11306,7 @@ soc_reset_bcm56340_a0(int unit)
     soc_reg_field_set(unit, TOP_SOFT_RESET_REGr, &rval, TOP_AXP_RST_Lf, 1);
     rv = WRITE_TOP_SOFT_RESET_REGr(unit, rval);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Writing TOP_SOFT_RESET_REG failed !!\n")));
         return rv;
@@ -11337,7 +11337,7 @@ soc_reset_bcm56340_a0(int unit)
     if (0 != soc_property_get(unit, spn_MDIO_IO_VOLTAGE, 0)) {
         rv = READ_TOP_MISC_CONTROL_1r(unit, &rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Reading TOP_MISC_CONTROL_1 failed !!\n")));
             return rv;
@@ -11346,7 +11346,7 @@ soc_reset_bcm56340_a0(int unit)
                           XG_MDIO0_CL_SELf, 1);
         rv = WRITE_TOP_MISC_CONTROL_1r(unit, rval);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Writing TOP_MISC_CONTROL_1 failed !!\n")));
             return rv;
@@ -11495,7 +11495,7 @@ soc_reset_bcm56440_a0(int unit)
         SOC_IF_ERROR_RETURN(READ_TOP_XGXS0_PLL_STATUSr(unit, &rval));
 
         if (!soc_reg_field_get(unit, TOP_XGXS0_PLL_STATUSr, rval, TOP_XGPLL0_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "LCPLL 0 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -11507,7 +11507,7 @@ soc_reset_bcm56440_a0(int unit)
             /* Variants that don't use LCPLL-1 */
             SOC_IF_ERROR_RETURN(READ_TOP_XGXS1_PLL_STATUSr(unit, &rval));
             if (!soc_reg_field_get(unit, TOP_XGXS1_PLL_STATUSr, rval, TOP_XGPLL1_LOCKf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "LCPLL 1 not locked on unit %d "
                                       "status = 0x%08x\n"), unit, rval));
@@ -11698,7 +11698,7 @@ soc_reset_bcm56440_a0(int unit)
         if (soc_feature(unit, soc_feature_ces)) {
             SOC_IF_ERROR_RETURN(READ_TOP_CES_PLL_STATUSr(unit, &rval));
             if (!soc_reg_field_get(unit, TOP_CES_PLL_STATUSr, rval, TOP_CES_PLL_LOCKf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "CES PLL not locked on unit %d "
                                       "status = 0x%08x\n"), unit, rval));
@@ -11707,7 +11707,7 @@ soc_reset_bcm56440_a0(int unit)
         SOC_IF_ERROR_RETURN(READ_TOP_TIME_SYNC_PLL_STATUSr(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_TIME_SYNC_PLL_STATUSr, rval,
                                TOP_TIME_SYNC_PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TimeSync PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -11716,7 +11716,7 @@ soc_reset_bcm56440_a0(int unit)
         SOC_IF_ERROR_RETURN(READ_TOP_BROAD_SYNC_PLL_STATUSr(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_BROAD_SYNC_PLL_STATUSr, rval,
                                TOP_BROAD_SYNC_PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BroadSync PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -11871,20 +11871,20 @@ soc_reset_bcm56450_a0(int unit)
     if (!SAL_BOOT_SIMULATION) {
         SOC_IF_ERROR_RETURN(READ_TOP_MMU_PLL_STATUS0r(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_MMU_PLL_STATUS0r, rval, MMU_PLL1_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MMUPLL 1 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
         }
         if (!soc_reg_field_get(unit, TOP_MMU_PLL_STATUS0r, rval, MMU_PLL2_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MMUPLL 2 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
         }
         SOC_IF_ERROR_RETURN(READ_TOP_MMU_PLL_STATUS1r(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_MMU_PLL_STATUS1r, rval, MMU_PLL3_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "MMUPLL 3 not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -11915,7 +11915,7 @@ soc_reset_bcm56450_a0(int unit)
         }
     }
     if (ts_idx == sizeof(ts_pll)/sizeof(ts_pll[0])) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Invalid value for PTP_TS_PLL_REF (%u).  No default PLL params.\n"), ts_ref_freq));
         /* Could check for existence of SOC properties for VCO_DIV2, KA, KI, KP, NDIV_INT, NDIV_FRAC, MDIV, PDIV, and if
@@ -11973,7 +11973,7 @@ soc_reset_bcm56450_a0(int unit)
          && soc_reg_field_get(unit, TOP_BROAD_SYNC0_PLL_CTRL_REGISTER_1r,
                               rval, KPf) == broadsync_default_kp);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "BSPLL regs:  %s\n"), initialize_broadsync ? "Default" : "Configured"));
 
@@ -12003,7 +12003,7 @@ soc_reset_bcm56450_a0(int unit)
         if (config == 0 && clk_ctrl == 0 && heartbeat_ctrl == 0 && heartbeat_down == 0 && heartbeat_up == 0) {
             /* PLL was initialized, but there is no saved state.  Reset BroadSync. */
             initialize_broadsync = 1;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BSPLL Configured, but no BS state to restore\n")));
         } else {
@@ -12019,7 +12019,7 @@ soc_reset_bcm56450_a0(int unit)
             WRITE_CMIC_BS0_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
             WRITE_CMIC_BS0_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Restored BS0 regs:\n"
                                     "  config: %08x  clk_ctrl: %08x hb_ctrl: %08x\n"
@@ -12052,7 +12052,7 @@ soc_reset_bcm56450_a0(int unit)
             WRITE_CMIC_BS1_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
             WRITE_CMIC_BS1_HEARTBEAT_UP_DURATIONr(unit, heartbeat_up);
 
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Restored BS1 regs:\n"
                                     "  config: %08x  clk_ctrl: %08x hb_ctrl: %08x\n"
@@ -12100,7 +12100,7 @@ soc_reset_bcm56450_a0(int unit)
             }
         }
         if (bs_idx == sizeof(bs_pll)/sizeof(bs_pll[0])) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "Invalid value for PTP_BS_REF (%u).  No default PLL params.\n"), bs_ref_freq));
             /* Could check for existence of SOC properties for VCO_DIV2, KA, KI, KP, NDIV_INT,
@@ -12249,7 +12249,7 @@ soc_reset_bcm56450_a0(int unit)
         SOC_IF_ERROR_RETURN(READ_TOP_TIME_SYNC_PLL_STATUSr(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_TIME_SYNC_PLL_STATUSr, rval,
                                TOP_TIME_SYNC_PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "TimeSync PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -12258,7 +12258,7 @@ soc_reset_bcm56450_a0(int unit)
         SOC_IF_ERROR_RETURN(READ_TOP_BROAD_SYNC0_PLL_STATUSr(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_BROAD_SYNC0_PLL_STATUSr, rval,
                                TOP_BROAD_SYNC0_PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BroadSync0 PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -12267,7 +12267,7 @@ soc_reset_bcm56450_a0(int unit)
         SOC_IF_ERROR_RETURN(READ_TOP_BROAD_SYNC1_PLL_STATUSr(unit, &rval));
         if (!soc_reg_field_get(unit, TOP_BROAD_SYNC1_PLL_STATUSr, rval,
                                TOP_BROAD_SYNC1_PLL_LOCKf)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "BroadSync1 PLL not locked on unit %d "
                                   "status = 0x%08x\n"), unit, rval));
@@ -12277,7 +12277,7 @@ soc_reset_bcm56450_a0(int unit)
             SOC_IF_ERROR_RETURN(READ_TOP_DDR_PLL0_STATUSr(unit, &rval));
             if (!soc_reg_field_get(unit, TOP_DDR_PLL0_STATUSr, rval,
                                    DDR_PLL0_LOCKf)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "DDR PLL not locked on unit %d "
                                       "status = 0x%08x\n"), unit, rval));
@@ -12374,7 +12374,7 @@ soc_reset_bcm56450_a0(int unit)
     mmu_pkg_enable = soc_property_get(unit, spn_MMU_MULTI_PACKETS_PER_CELL, 0);
     if(mmu_pkg_enable > ((1 << (soc_reg_field_length(unit, TOP_SW_BOND_OVRD_CTRL1r,
                                                      MMU_PACKING_ENABLEf))) - 1)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_reset_bcm56450_a0: "
                               "specified MMU_MULTI_PACKETS_PER_CELL %d exceeds "
@@ -12447,7 +12447,7 @@ soc_reset(int unit)
     soc_ipoll_pause(unit);
 
     if (soc_property_get(unit, spn_SOC_SKIP_RESET, 0)) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_init: skipping hard reset\n")));
     }
@@ -13374,7 +13374,7 @@ soc_detach(int unit)
     soc_mem_t       mem, act_mem, lock_mem;
     int             ix;
 
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "Detaching\n")));
 
@@ -13451,7 +13451,7 @@ soc_detach(int unit)
     /* Detach interrupt handler, if we installed one */
     /* unit # is ISR arg */
     if (soc_cm_interrupt_disconnect(unit) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_detach: could not disconnect interrupt line\n")));
     }
@@ -13959,7 +13959,7 @@ soc_attach(int unit)
 #endif
     soc_pbmp_t          pbmp_all;
 
-    LOG_INFO(BSL_LS_SOC_PCI,
+    LOG_BSL_INFO(BSL_LS_SOC_PCI,
              (BSL_META_U(unit,
                          "soc_attach: unit %d\n"), unit));
 
@@ -14000,7 +14000,7 @@ soc_attach(int unit)
     soc->chip_driver = soc_chip_driver_find(dev_id, rev_id);
 
     if (soc->chip_driver == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_attach: unit %d has no driver "
                               "(device 0x%04x rev 0x%02x)\n"),
@@ -14011,7 +14011,7 @@ soc_attach(int unit)
     soc->soc_functions = _soc_functions_find(soc->chip_driver);
 
     if (soc->soc_functions == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_attach: unit %d has no functions\n"),
                               unit));
@@ -14058,7 +14058,7 @@ soc_attach(int unit)
         SOC_CMCS_NUM(unit) = 3; 
         SOC_PCI_CMC(unit) = soc_property_uc_get(unit, 0, spn_CMC, 0);
         if (SOC_PCI_CMC(unit) >= SOC_CMCS_NUM(unit)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_attach: "
                                   "specified PCI CMC %d exceeds maximum of %d\n"),
@@ -14085,7 +14085,7 @@ soc_attach(int unit)
 #endif
     if (soc_property_get(unit, spn_POLLED_IRQ_MODE, 0)) {
         if (soc_ipoll_connect(unit, iph, INT_TO_PTR(unit)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_attach: "
                                   "error initializing polled interrupt mode\n")));
@@ -14095,7 +14095,7 @@ soc_attach(int unit)
     } else {
         /* unit # is ISR arg */
         if (soc_cm_interrupt_connect(unit, iph, INT_TO_PTR(unit)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_attach: could not connect interrupt line\n")));
             return SOC_E_INTERNAL;
@@ -14103,7 +14103,7 @@ soc_attach(int unit)
     }
 
     if (soc->soc_flags & SOC_F_ATTACHED) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_attach: unit %d already attached\n"),
                               unit));
@@ -14326,11 +14326,11 @@ soc_attach(int unit)
 #ifdef PLISIM
 #if defined(BCM_KATANA_SUPPORT)
     if (SOC_IS_KATANAX(unit) && (SAL_BOOT_PLISIM || SAL_BOOT_BCMSIM)) {
-       LOG_ERROR(BSL_LS_SOC_COMMON,
+       LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "WARNING:TABLE DMA is currently not working"
                              " so ignoring its setting %d\n"), table_dma_enable));
-       LOG_ERROR(BSL_LS_SOC_COMMON,
+       LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "WARNING:TSLAM DMA is currently not working"
                              " so ignoring its setting %d\n"), tslam_dma_enable));
@@ -14338,10 +14338,10 @@ soc_attach(int unit)
        tslam_dma_enable = 0;
      }
 #else
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "INFO:TABLE DMA setting %d \n"),table_dma_enable));
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "INFO:TSLAM DMA setting %d \n"),tslam_dma_enable));
 #endif
@@ -15161,7 +15161,7 @@ soc_attach(int unit)
     return(SOC_E_NONE);
 
  error:
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "soc_attach: unit %d failed\n"), unit));
 
@@ -15440,7 +15440,7 @@ int soc_esw_div64(uint64 x, uint32 y, uint32 *result)
          *  res = (uint64_t) (high << 32);
          *  rem -= (uint64_t)((high * y) << 32);
          */
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META("soc_sbx_div64: result > 32bits\n")));
         return SOC_E_PARAM;
     }
@@ -15463,7 +15463,7 @@ int soc_esw_div64(uint64 x, uint32 y, uint32 *result)
     *result = COMPILER_64_LO(res);
 
     /*
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "%s: divisor 0x%x%8.8x dividor 0x%x result 0x%x\n"),
                  FUNCTION_NAME(), high, COMPILER_64_LO(x), y, *result));
@@ -15740,7 +15740,7 @@ soc_sbus_mdio_reg_read(int unit, int port, int blk, int wc_instance,
 
     *phy_data = ucmem_entry[0];
 
-    LOG_INFO(BSL_LS_SOC_MII,
+    LOG_BSL_INFO(BSL_LS_SOC_MII,
              (BSL_META_U(unit,
                          "soc_sbus_mdio_reg_read[%d]: "
                          "addr=0x%x reg=0x%08x data=0x%04x (%d/%d/%d/%d)\n"),
@@ -15793,7 +15793,7 @@ soc_sbus_mdio_reg_write(int unit, int port, int blk, int wc_instance,
 
     soc_mem_unlock(unit, wc_ucmem_data);
 
-    LOG_INFO(BSL_LS_SOC_MII,
+    LOG_BSL_INFO(BSL_LS_SOC_MII,
              (BSL_META_U(unit,
                          "soc_sbus_mdio_reg_write[%d]: "
                          "addr=0x%x reg=0x%08x data=0x%04x (%d/%d/%d/%d)\n"),
@@ -15812,7 +15812,7 @@ soc_sbus_tsc_reg_read(int unit, int port, int blk, uint32 phy_addr,
     uint32 ucmem_entry[16];
     soc_mem_t mem = XLPORT_WC_UCMEM_DATAm;
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "soc_sbus_tsc_reg_read"
                           "(%d,%d,%d,0x%x,0x%08x,*phy_data)..\n"), 
@@ -15835,7 +15835,7 @@ soc_sbus_tsc_reg_read(int unit, int port, int blk, uint32 phy_addr,
     /* assigning TSC register address to wc_ucmem_data[31:0] */
     ucmem_entry[0] = phy_reg & 0xffffffff;
     ucmem_entry[2] = 0; /* for TSC register READ */
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "  ucmem_data_entry[95:64-63:32-31:0]="
                           "0x%08x-0x%08x-0x%08x\n"),
@@ -15850,7 +15850,7 @@ soc_sbus_tsc_reg_read(int unit, int port, int blk, uint32 phy_addr,
 
     soc_mem_unlock(unit, mem);
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "soc_sbus_tsc_reg_read: *phy_data=0x%04x,rv=%d\n"),
                *phy_data, rv));
@@ -15869,7 +15869,7 @@ soc_sbus_tsc_reg_write(int unit, int port, int blk, uint32 phy_addr,
     uint32 data, data_mask;
     soc_mem_t mem = XLPORT_WC_UCMEM_DATAm;    
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "soc_sbus_tsc_reg_write"
                           "(%d,%d,%d,0x%x,0x%08x,0x%04x)..\n"), 
@@ -15902,7 +15902,7 @@ soc_sbus_tsc_reg_write(int unit, int port, int blk, uint32 phy_addr,
     data_mask = (~phy_data & 0xffff0000) >> 16;
     ucmem_entry[1] = data | data_mask;
     ucmem_entry[2] = 1; /* for TSC register write */
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "  ucmem_data_entry[95:64-63:32-31:0]="
                           "0x%08x-0x%08x-0x%08x\n"),
@@ -15912,7 +15912,7 @@ soc_sbus_tsc_reg_write(int unit, int port, int blk, uint32 phy_addr,
 
     soc_mem_unlock(unit, mem);
 
-    LOG_DEBUG(BSL_LS_SOC_MII,
+    LOG_BSL_DEBUG(BSL_LS_SOC_MII,
               (BSL_META_U(unit,
                           "soc_sbus_tsc_reg_write : rv=%d\n"),rv));
 

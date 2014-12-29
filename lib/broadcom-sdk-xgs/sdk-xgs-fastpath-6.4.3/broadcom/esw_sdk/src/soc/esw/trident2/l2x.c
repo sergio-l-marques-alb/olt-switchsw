@@ -61,7 +61,7 @@
         if (!SOC_SUCCESS(rv)) { \
             sal_sem_give(soc->l2x_age_sync); \
             soc_mem_unlock(unit, L2Xm); \
-            LOG_ERROR(BSL_LS_SOC_L2, \
+            LOG_BSL_ERROR(BSL_LS_SOC_L2, \
                       (BSL_META_U(unit, \
                                   "rv: %d\n"), rv)); \
             goto thread_exit; \
@@ -99,7 +99,7 @@ _soc_td2_l2_bulk_age(void *unit_vp)
             goto age_delay;
         }
 
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "l2_bulk_age_thread: "
                                 "Process iters(total:%d, this run:%d\n"),
@@ -206,7 +206,7 @@ age_exit:
         sal_sem_give(soc->l2x_age_sync);
 
         etime = sal_time_usecs();
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "l2_bulk_age_thread: unit=%d: done in %d usec with rv=%d\n"),
                      unit, SAL_USECS_SUB(etime, stime), rv));
@@ -230,7 +230,7 @@ age_delay:
     }
 
 thread_exit:
-    LOG_VERBOSE(BSL_LS_SOC_L2,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_L2,
                 (BSL_META_U(unit,
                             "l2_bulk_age_thread: exiting\n")));
 
@@ -279,7 +279,7 @@ soc_td2_l2_bulk_age_start(int unit, int interval)
                                          soc_property_get(unit, spn_L2AGE_THREAD_PRI, thread_prio),
                                          _soc_td2_l2_bulk_age, INT_TO_PTR(unit));
     if (soc->l2x_age_pid == SAL_THREAD_ERROR) {
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "Could not start L2 bulk age thread\n")));
         SOC_CONTROL_UNLOCK(unit);
@@ -323,7 +323,7 @@ soc_td2_l2_bulk_age_stop(int unit)
 
         while (soc->l2x_age_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_L2,
+                LOG_BSL_ERROR(BSL_LS_SOC_L2,
                           (BSL_META_U(unit,
                                       "thread will not exit\n")));
                 rv = SOC_E_INTERNAL;

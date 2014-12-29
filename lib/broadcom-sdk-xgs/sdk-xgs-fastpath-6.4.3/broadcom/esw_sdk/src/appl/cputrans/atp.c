@@ -730,7 +730,7 @@ _atp_key_add(cpudb_key_t key)
             sal_memset(&_atp_cpu_info[idx], 0, sizeof(_atp_cpu_info_t));
             _atp_cpu_info[idx].flags = _ATP_CPU_VALID;
             CPUDB_KEY_COPY(_atp_cpu_info[idx].key, key);
-            LOG_VERBOSE(BSL_LS_TKS_ATP,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                         (BSL_META("ATP: Adding CPU %d " CPUDB_KEY_FMT_EOLN),
                          idx,
                          CPUDB_KEY_DISP(key)));
@@ -851,7 +851,7 @@ atp_tx_trans_delete(_atp_tx_trans_t *tx_trans)
                 if (CPU_VALID_IDX(cpu)) {
                     client->cpu[cpu].tx_trans = tx_trans->next;
                 } else {
-                    LOG_VERBOSE(BSL_LS_TKS_ATP,
+                    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                                 (BSL_META("ATP: invalid cpu index %d\n"),
                                  cpu));
                 }
@@ -867,7 +867,7 @@ atp_tx_trans_delete(_atp_tx_trans_t *tx_trans)
                 if (CPU_VALID_IDX(cpu)) {
                     client->cpu[cpu].tx_tail = tx_trans->prev;
                 } else {
-                    LOG_VERBOSE(BSL_LS_TKS_ATP,
+                    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                                 (BSL_META("ATP: invalid cpu index %d\n"),
                                  cpu));
                 }
@@ -883,14 +883,14 @@ atp_tx_trans_delete(_atp_tx_trans_t *tx_trans)
 
     if ((tx_trans->tx_sem != NULL) &&
             (tx_trans->flags & _ATP_TX_F_SEM_WAITING)) {
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("TT delete deferred %p\n"),
                    tx_trans));
 	tx_trans->flags &= ~_ATP_TX_F_SEM_WAITING;
 	sal_sem_give(tx_trans->tx_sem);
         return;
     }
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("TT delete %p\n"),
                tx_trans));
 
@@ -994,7 +994,7 @@ atp_rx_trans_delete(_atp_rx_trans_t *rx_trans)
     ATP_RXQ_UNLOCK;
 
     INCR_COUNTER(rxt_free);
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("RT delete %p\n"),
                rx_trans));
 }
@@ -1021,7 +1021,7 @@ _atp_cpu_purge(int idx)
 
     FOREACH_CLIENT(client, bkt) {
         if (client->cpu[idx].cpu_flags & ATP_CPU_ACK_PENDING) {
-            LOG_WARN(BSL_LS_TKS_ATP,
+            LOG_BSL_WARN(BSL_LS_TKS_ATP,
                      (BSL_META("ATP: purge cpu %d while ack pending\n"),
                       idx));
         }
@@ -1031,7 +1031,7 @@ _atp_cpu_purge(int idx)
 
         atp_tx_trans_delete_all(client, idx);
         if (client->cpu[idx].rx_tail != NULL) {
-            LOG_WARN(BSL_LS_TKS_ATP,
+            LOG_BSL_WARN(BSL_LS_TKS_ATP,
                      (BSL_META("ATP: purge cpu %d while RX trans pending\n"),
                       idx));
         }
@@ -1050,7 +1050,7 @@ _atp_cpu_purge(int idx)
 STATIC void
 _atp_cpu_remove(int idx)
 {
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: Removing CPU %d\n"),
                  idx));
     _atp_cpu_purge(idx);
@@ -1159,7 +1159,7 @@ rx_trans_process(int cpu,
     int do_callback = TRUE;
 
     if (rx_trans->flags & _ATP_RX_F_LOOPBACK) {
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("ATP RX: Loopback packet cli %d\n"),
                    client->client_id));
         payload = rx_trans->lb_data + CPUTRANS_HEADER_BYTES;
@@ -1168,7 +1168,7 @@ rx_trans_process(int cpu,
         if (client->flags & ATP_F_REASSEM_BUF) {
             pkt->alloc_ptr = _pkt_reassem(rx_trans);
             if (pkt->alloc_ptr == NULL) {
-                LOG_WARN(BSL_LS_TKS_ATP,
+                LOG_BSL_WARN(BSL_LS_TKS_ATP,
                          (BSL_META("ATP RX: Failed to alloc for reassem\n")));
                 do_callback = FALSE;
             } else {  /* alloc pointer is set */
@@ -1338,13 +1338,13 @@ _handle_rx_data(_atp_pkt_data_t *pkt_p)
         if (_atp_flags & ATP_F_LEARN_SLF) {
             src_cpu = _atp_key_add(src_key);
             if (src_cpu < 0) {
-                LOG_VERBOSE(BSL_LS_TKS_ATP,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                             (BSL_META("ATP pkt: could not add key\n")));
                 ++mem_rx_drop;
                 return BCM_RX_HANDLED;
             }
         } else {
-            LOG_VERBOSE(BSL_LS_TKS_ATP,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                         (BSL_META("ATP pkt: SLF drop\n")));
             ++slf_rx_drop;
             return BCM_RX_HANDLED;
@@ -1400,7 +1400,7 @@ atp_rx_thread(void *cookie)
 {
     COMPILER_REFERENCE(cookie);
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: RX Thread starting\n")));
     atp_rx_thread_exit = FALSE;
     while (1) {
@@ -1417,7 +1417,7 @@ atp_rx_thread(void *cookie)
     }
 
     atp_rx_thread_id = SAL_THREAD_ERROR;
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: RX Thread exiting\n")));
     sal_thread_exit(0);
 }
@@ -1440,7 +1440,7 @@ atp_rx_trans_create(_atp_client_t *client, int src_cpu, uint8 *pkt_buf,
     bcm_pkt_t *pkt;
     int seg;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP new RX, cpu %d, new seq %d, cli %d, old seq %d,"
                         "flags: %sseen\n"),
                src_cpu, (_atp_hdr != NULL) ? _atp_hdr->seq_num : -1,
@@ -1450,7 +1450,7 @@ atp_rx_trans_create(_atp_client_t *client, int src_cpu, uint8 *pkt_buf,
                "" : "not "));
     if (!loopback) {
         if (_atp_hdr->segment >= _atp_hdr->tot_segs) {
-            LOG_WARN(BSL_LS_TKS_ATP,
+            LOG_BSL_WARN(BSL_LS_TKS_ATP,
                      (BSL_META("ATP RX: Bad seg num %d >= tot %d.\n"),
                       _atp_hdr->segment, _atp_hdr->tot_segs));
             return NULL;
@@ -1467,7 +1467,7 @@ atp_rx_trans_create(_atp_client_t *client, int src_cpu, uint8 *pkt_buf,
     ATP_RXQ_UNLOCK;
 
     if (rx_trans == NULL) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP RX freelist empty\n")));
         INCR_COUNTER(rx_trans_fail);
         return NULL;
@@ -1486,7 +1486,7 @@ atp_rx_trans_create(_atp_client_t *client, int src_cpu, uint8 *pkt_buf,
         rx_trans->lb_data = pkt_buf;
         rx_trans->pkt = NULL;
         rx_trans->payload_len = pkt_len - CPUTRANS_HEADER_BYTES;
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("RT create LB %p\n"),
                    rx_trans));
         return rx_trans;
@@ -1507,7 +1507,7 @@ atp_rx_trans_create(_atp_client_t *client, int src_cpu, uint8 *pkt_buf,
      */
     pkt = rx_trans->pkt = cputrans_rx_pkt_alloc(2 * _atp_hdr->tot_segs);
     if (pkt == NULL) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP RX Could not allocate packet\n")));
 
         /* Return to freelist; transaction not yet queued */
@@ -1525,7 +1525,7 @@ atp_rx_trans_create(_atp_client_t *client, int src_cpu, uint8 *pkt_buf,
         rx_trans->flags |= _ATP_RX_F_DATA_READY;
     }
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("RT create %p\n"),
                rx_trans));
     return rx_trans;
@@ -1657,7 +1657,7 @@ atp_rx_ack(_atp_client_t *cli, int cpu, _atp_rx_trans_t *rx_trans,
     }
 
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("Sending ACK to %d cli %d seq %d bytes %d\n"),
                cpu,
                cli->client_id, cp->atp_hdr.seq_num, cp->atp_hdr.start_byte));
@@ -1694,7 +1694,7 @@ atp_rx_ack(_atp_client_t *cli, int cpu, _atp_rx_trans_t *rx_trans,
 #ifdef BROADCOM_DEBUG
         {
             int proto = ((pkt_buf[52]<<8) |  pkt_buf[53]); /* Always Big Endian */
-            LOG_VERBOSE(BSL_LS_TKS_ATP,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                         (BSL_META("ATP: Failed sending ACK to %x:%x for protocol %d (%d): %s\n"),
                          pkt_buf[10], pkt_buf[11], proto, rv, bcm_errmsg(rv)));
         }
@@ -1721,7 +1721,7 @@ new_rx_trans_add(_atp_client_t *client, _atp_hdr_t *_atp_hdr,
         /* New transaction; previous pkt should be done */
         if (!(tail_trans->flags & _ATP_RX_F_DATA_READY)) {
             /* Drop tail packet by marking all done */
-            LOG_WARN(BSL_LS_TKS_ATP,
+            LOG_BSL_WARN(BSL_LS_TKS_ATP,
                      (BSL_META("ATP RX Dropping non-ready rx trans, cpu %d, "
                       "client %d, seq %d\n"), src_cpu, client->client_id,
                       _atp_hdr->seq_num));
@@ -1772,11 +1772,11 @@ current_rx_trans_update(_atp_client_t *client,
     _atp_rx_trans_t *cur_trans = NULL;
 
     /* On going transaction */
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP Ongoing RX: client %d. cpu %d. seq %d\n"),
                client->client_id, src_cpu, client->cpu[src_cpu].rx_seq_num));
     if (_atp_hdr->segment >= _atp_hdr->tot_segs) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP RX: Bad seg num %d >= tot %d.\n"),
                   _atp_hdr->segment, _atp_hdr->tot_segs));
         return BCM_RX_HANDLED;
@@ -1790,7 +1790,7 @@ current_rx_trans_update(_atp_client_t *client,
         pkt_blks = cur_trans->pkt->pkt_data;
 
         if (pkt_blks[2 * seg_idx].data == NULL) {     /* New data */
-            LOG_DEBUG(BSL_LS_TKS_ATP,
+            LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                       (BSL_META("ATP new data\n")));
             SET_PKT_BLK_DATA(seg_idx, cur_trans->pkt, pkt_buf, pkt_len);
             cur_trans->payload_len +=
@@ -1801,7 +1801,7 @@ current_rx_trans_update(_atp_client_t *client,
             }
             rv = BCM_RX_HANDLED_OWNED;
         } else {
-            LOG_DEBUG(BSL_LS_TKS_ATP,
+            LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                       (BSL_META("ATP old data\n")));
             rv = BCM_RX_HANDLED;
         }
@@ -1830,7 +1830,7 @@ atp_ack_handle(int src_cpu, _atp_hdr_t *_atp_hdr)
     uint16 new_seq_num;
 
     new_seq_num = _atp_hdr->seq_num;
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP ACK from %d cli %d. seq %d. bytes %d. tot %d\n"),
                src_cpu,
                _atp_hdr->client_id, new_seq_num, _atp_hdr->start_byte,
@@ -1839,7 +1839,7 @@ atp_ack_handle(int src_cpu, _atp_hdr_t *_atp_hdr)
     /* Look for the TX operation this is ACK-ing */
     client = client_find(_atp_hdr->client_id);
     if (client == NULL) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP: ACK on NULL client %d\n"),
                   _atp_hdr->client_id));
         return BCM_RX_HANDLED;
@@ -1862,7 +1862,7 @@ atp_ack_handle(int src_cpu, _atp_hdr_t *_atp_hdr)
             !(trans->flags & _ATP_TX_F_DONE)) {
         if (_atp_hdr->start_byte == 0 || /* 0 means all ACK'd */
             _atp_hdr->start_byte >= _atp_hdr->tot_bytes) {
-            LOG_DEBUG(BSL_LS_TKS_ATP,
+            LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                       (BSL_META("ATP ACK SN %d marking done.\n"),
                        new_seq_num));
             trans->flags |= _ATP_TX_F_DONE;
@@ -1870,7 +1870,7 @@ atp_ack_handle(int src_cpu, _atp_hdr_t *_atp_hdr)
             trans->bytes_acked = _atp_hdr->start_byte;
         }
     } else { /* Redundant ACK */
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("ATP extra ACK SN %d (trans SN %d) from %d\n"),
                    new_seq_num,
                    trans != NULL ? trans->_atp_hdr.seq_num : -1, src_cpu));
@@ -1899,14 +1899,14 @@ atp_data_handle(int src_cpu, uint8 *pkt_buf, int pkt_len,
 
     client = client_find(_atp_hdr->client_id);
     if (client == NULL) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP rx: Unknown client id %d\n"),
                      _atp_hdr->client_id));
         return BCM_RX_NOT_HANDLED;
     }
 
     if (!CPU_VALID_IDX(src_cpu)) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP rx: invalid cpu index %d\n"),
                      src_cpu));
         return BCM_RX_NOT_HANDLED;
@@ -1925,14 +1925,14 @@ atp_data_handle(int src_cpu, uint8 *pkt_buf, int pkt_len,
             (new_seq_num == 0) &&
             (!(_atp_hdr->hdr_flags & _ATP_HDR_RETRANSMIT))) {
         /* Special case indicating remote reset; clear CPU state */
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP: New CPU data for cpu %d, cli %d\n"),
                      src_cpu,
                      _atp_hdr->client_id));
         _atp_cpu_purge(src_cpu);
     } else {
         if ((seq_num_diff > 1) && (new_seq_num > 1)) {
-            LOG_VERBOSE(BSL_LS_TKS_ATP,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                         (BSL_META("ATP Warning: seq num jump cpu %d, cli %d: new %d. "
                          "diff %d.\n"), src_cpu, client->client_id, new_seq_num,
                          seq_num_diff));
@@ -1944,7 +1944,7 @@ atp_data_handle(int src_cpu, uint8 *pkt_buf, int pkt_len,
             new_trans = atp_rx_trans_create(client, src_cpu, pkt_buf,
                                         pkt_len, _atp_hdr, FALSE);
             if (new_trans == NULL) {
-                LOG_VERBOSE(BSL_LS_TKS_ATP,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                             (BSL_META("ATP Could not allocate new RX transaction\n")));
             } else {
                 rv = new_rx_trans_add(client, _atp_hdr, new_trans, src_cpu,
@@ -1954,7 +1954,7 @@ atp_data_handle(int src_cpu, uint8 *pkt_buf, int pkt_len,
             rv = current_rx_trans_update(client, src_cpu, _atp_hdr,
                                          pkt_buf, pkt_len);
         } else { /* seq_num_diff < 0; old transaction, bad data */
-            LOG_VERBOSE(BSL_LS_TKS_ATP,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                         (BSL_META("ATP: old RX data SN %d. Diff %d. cpu %d\n"),
                          new_seq_num,
                          seq_num_diff,
@@ -2023,7 +2023,7 @@ bet_rx_multi_seg_check(_atp_client_t *client, int src_cpu, _atp_hdr_t *_atp_hdr,
             bet_rx_pkt_drop(client, src_cpu, TRUE);
             make_new_pkt = TRUE;
         } else if ((2 * seg_idx) >= pkt->blk_count) {
-            LOG_WARN(BSL_LS_TKS_ATP,
+            LOG_BSL_WARN(BSL_LS_TKS_ATP,
                      (BSL_META("ATP BET bad segment index\n")));
             bet_rx_pkt_drop(client, src_cpu, TRUE);
         } else {
@@ -2082,14 +2082,14 @@ bet_data_handle(int src_cpu, uint8 *pkt_buf, int len, _atp_hdr_t *_atp_hdr)
     /* Find the client pointer for this pkt */
     client = client_find(_atp_hdr->client_id);
     if (client == NULL) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("BET rx: Unknown client id %d\n"),
                      _atp_hdr->client_id));
         return BCM_RX_NOT_HANDLED;
     }
 
     if (!CPU_VALID_IDX(src_cpu)) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("BET rx: invalid cpu index %d\n"),
                      src_cpu));
         return BCM_RX_NOT_HANDLED;
@@ -2240,7 +2240,7 @@ enqueue_atp_data(uint8 *pkt_buf, int len, uint32 flags)
         break;
 
     default:                       /* Uh oh. */
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP: Bad packet opcode: %d\n"),
                    opcode));
         return -1;
@@ -2263,7 +2263,7 @@ _atp_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
     COMPILER_REFERENCE(cookie);
 
     if (!_atp_running) {
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META_U(unit,
                               "ATP pkt in, not running\n")));
         return BCM_RX_NOT_HANDLED;
@@ -2276,7 +2276,7 @@ _atp_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
 
     /* Local ID field matches ATP? */
     if (mplx_num != ATP_PKT_TYPE) {
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META_U(unit,
                               "ATP pkt in, bad pkt type %d\n"),
                    mplx_num));
@@ -2310,7 +2310,7 @@ _atp_next_hop_callback(cpudb_key_t src_key, int mplx_num, int unit, int port,
     COMPILER_REFERENCE(mplx_num);
 
     if (!_atp_running) {
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META_U(unit,
                               "BETNH pkt in, not running\n")));
         return BCM_RX_NOT_HANDLED;
@@ -2365,7 +2365,7 @@ _atp_tx_trans_create(int dest_cpu,
     }
 
     if (tot_bytes > ATP_MTU) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP TX:  Packet too big (%d bytes)\n"),
                    tot_bytes));
         return NULL;
@@ -2471,7 +2471,7 @@ _atp_tx_trans_create(int dest_cpu,
     }
     _atp_hdr->segment = 0;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("TT create %p\n"),
                trans));
     return trans;
@@ -2488,7 +2488,7 @@ _atp_loopback(_atp_client_t *client, int local_cpu,
     uint8 *payload = pkt_buf;
     int alloc_len = len;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP TX: Loopback packet len %d, "
                         "flgs 0x%x\n"),
                len, ct_flags));
@@ -2512,7 +2512,7 @@ _atp_loopback(_atp_client_t *client, int local_cpu,
                                   alloc_len, 0, (void*)&rx_buf);
     if (rx_buf == NULL) {
         INCR_COUNTER(lb_buf_alloc_fail);
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP LB Could not alloc RX pkt\n")));
         return BCM_E_RESOURCE;
     }
@@ -2522,7 +2522,7 @@ _atp_loopback(_atp_client_t *client, int local_cpu,
                                     alloc_len, NULL, TRUE);
     if (new_trans == NULL) {
         _atp_trans_ptr->tp_data_free(_atp_trans_ptr->tp_unit, rx_buf);
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP LB Could not alloc RX trans %d\n"),
                   alloc_len));
         return BCM_E_RESOURCE;
@@ -2657,12 +2657,12 @@ atp_start(uint32 flags,
 
     /* Register to receive next hop packets for ATP */
     if (!next_hop_running()) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP Warning:  next hop is not running\n")));
     }
     rv = next_hop_register(_atp_next_hop_callback, NULL, ATP_PKT_TYPE);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP Warning:  cannot register with next hop\n")));
     }
 
@@ -2691,7 +2691,7 @@ atp_start(uint32 flags,
                                   ATP_RX_PRIORITY, NULL,
                                   rco_flags);
     if (rv != BCM_E_NONE) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP Warning: Could not register RX %d: %s\n"),
                   rv, bcm_errmsg(rv)));
     }
@@ -2700,7 +2700,7 @@ atp_start(uint32 flags,
     _atp_units = unit_bmp;
     _atp_running = TRUE;
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: Started\n")));
 
     return BCM_E_NONE;
@@ -2730,7 +2730,7 @@ atp_stop(void)
     atp_cleanup();
     ATP_UNLOCK;
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: Stopped\n")));
 
     return BCM_E_NONE;
@@ -2860,14 +2860,14 @@ atp_db_update(cpudb_ref_t db_ref)
     ATP_UNLOCK;
 
     if (rv == BCM_E_NONE) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP: Updating c2c db\n")));
         rv = c2c_cpu_update(db_ref);
     } else if (rv == BCM_E_MEMORY) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP ERROR:  Too many CPUs in DB\n")));
     } else if (rv == BCM_E_RESOURCE) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP WARN: Failed to add CPU key\n")));
     }
     return rv;
@@ -2906,11 +2906,11 @@ _atp_end_threads(int retries)
         if (atp_rx_thread_id != SAL_THREAD_ERROR ||
             atp_tx_thread_id != SAL_THREAD_ERROR) {
             if (atp_tx_thread_id != SAL_THREAD_ERROR) {
-                LOG_WARN(BSL_LS_TKS_ATP,
+                LOG_BSL_WARN(BSL_LS_TKS_ATP,
                          (BSL_META("Warning:  ATP TX thread did not exit\n")));
             }
             if (atp_rx_thread_id != SAL_THREAD_ERROR) {
-                LOG_WARN(BSL_LS_TKS_ATP,
+                LOG_BSL_WARN(BSL_LS_TKS_ATP,
                          (BSL_META("Warning:  ATP RX thread did not exit\n")));
             }
             return BCM_E_FAIL;
@@ -3001,7 +3001,7 @@ int
 atp_timeout_set(int retry_usecs, int num_retries)
 {
     if (retry_usecs < ATP_RETRY_TIMEOUT_MIN) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP Warning: changing retry timeout "
                   "from %d to %d\n"), retry_usecs, ATP_RETRY_TIMEOUT_MIN));
         atp_retry_timeout = ATP_RETRY_TIMEOUT_MIN;
@@ -3010,7 +3010,7 @@ atp_timeout_set(int retry_usecs, int num_retries)
     }
 
     if (num_retries < 1) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP Warning: changing retry count from "
                   "%d to %d\n"), num_retries, 1));
         atp_retry_count = 1;
@@ -3558,7 +3558,7 @@ _atp_tx_trans_send(_atp_tx_trans_t *trans)
     first_pkt = trans->pkt_list;
     assert(first_pkt->next != first_pkt);
     if (!no_ack) {  /* Use ACK */
-        LOG_DEBUG(BSL_LS_TKS_ATP,
+        LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                   (BSL_META("TX ATP send cli %d, seq %d txcount %d lasttx %u\n"),
                    trans->client->client_id, 
                    trans->_atp_hdr.seq_num,
@@ -3601,7 +3601,7 @@ _atp_tx_trans_send(_atp_tx_trans_t *trans)
 
     if (rv != BCM_E_NONE) {
         trans->flags |= _ATP_TX_ERROR_SEEN;
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP TX error %d: %s\n"),
                    rv, bcm_errmsg(rv)));
     } else {
@@ -3675,7 +3675,7 @@ _atp_tx_trans_setup(_atp_tx_trans_t *trans, int *trans_deleted)
             if (trans->tx_sem == NULL) {
                 atp_tx_trans_delete(trans);
                 *trans_deleted = TRUE;
-                LOG_ERROR(BSL_LS_TKS_ATP,
+                LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                           (BSL_META("ATP TX:  Failed to create sem\n")));
                 return BCM_E_MEMORY;
             }
@@ -3773,7 +3773,7 @@ _atp_simple_send(cpudb_key_t dest_key,
         trans->cookie = cookie;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_TX,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TX,
                 (BSL_META("ATP simple %d:  NH %d. ctf %x. cb %p\n"),
                  client->client_id, next_hop, ct_flags, callback));
     if (next_hop) {  /* Next hop packet */
@@ -3883,7 +3883,7 @@ tx_done_handle(_atp_client_t *client, int cpu, _atp_tx_trans_t *trans)
 {
 
     if (trans->flags & _ATP_TX_F_TIMEOUT) {
-        LOG_ERROR(BSL_LS_TKS_ATP,
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP: TX timeout, seq %d. " CPUDB_KEY_FMT 
                    " cli %d. to %d tx cnt %d.\n"),
                    trans->_atp_hdr.seq_num,
@@ -3986,7 +3986,7 @@ tx_transactions_check(void)
                 }
                 if (trans->flags & _ATP_TX_F_DONE &&
                         !(trans->flags & _ATP_TX_F_PENDING)) {
-                    LOG_DEBUG(BSL_LS_TKS_ATP,
+                    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                               (BSL_META("TX done cli %d, to %d, seq %d\n"),
                                client->client_id, cpu,
                                trans->_atp_hdr.seq_num));
@@ -4053,7 +4053,7 @@ _handle_tx_data(_atp_pkt_data_t *pkt_p)
     CPUDB_KEY_UNPACK(&pkt_buf[CPUTRANS_SRC_KEY_OFS], src_key);
     src_cpu = _atp_key_lookup(src_key);
     if (src_cpu < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP ACK pkt: could not find source CPU key\n")));
         return BCM_RX_HANDLED;
     }
@@ -4102,7 +4102,7 @@ atp_tx_thread(void *cookie)
 
     COMPILER_REFERENCE(cookie);
 
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: TX Thread starting\n")));
     atp_tx_thread_exit = FALSE;
     while (1) {
@@ -4125,7 +4125,7 @@ atp_tx_thread(void *cookie)
 
     /* Give any pending TX transactions */
     atp_tx_thread_id = SAL_THREAD_ERROR;
-    LOG_VERBOSE(BSL_LS_TKS_ATP,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                 (BSL_META("ATP: TX Thread exiting\n")));
     sal_thread_exit(0);
 }
@@ -4198,7 +4198,7 @@ atp_tx(cpudb_key_t dest_key,
     atp_tx_f callout;
     int trans_deleted;
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("ATP tx cli %d%s\n"),
                client_id,
                _atp_running ? "" : " (not running)"));
@@ -4217,7 +4217,7 @@ atp_tx(cpudb_key_t dest_key,
         if (_atp_cpu_info[dest_cpu].override_tx != NULL) { /* Override TX */
             callout = _atp_cpu_info[dest_cpu].override_tx;
             ATP_TX_UNLOCK;
-            LOG_DEBUG(BSL_LS_TKS_ATP,
+            LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
                       (BSL_META("ATP tx calling override %d\n"),
                        dest_cpu));
             return callout(dest_key, client_id, pkt_buf, len, ct_flags,
@@ -4236,12 +4236,12 @@ atp_tx(cpudb_key_t dest_key,
     client = client_find(client_id);
     if (client == NULL) {  /* Client must exist */
         ATP_TX_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("ATP TX: Client not found\n")));
         return BCM_E_NOT_FOUND;
     }
 
-    LOG_DEBUG(BSL_LS_TKS_ATP,
+    LOG_BSL_DEBUG(BSL_LS_TKS_ATP,
               (BSL_META("TX cli %d, flags 0x%x ctflags 0x%x, cb %p to "
                         CPUDB_KEY_FMT_EOLN), 
                client_id, client->flags, ct_flags, callback,
@@ -4284,7 +4284,7 @@ atp_tx(cpudb_key_t dest_key,
 
     if (trans == NULL) {
         ATP_TX_UNLOCK;
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META("TX unable to alloc trans/pkt, cli %d\n"),
                      client_id));
         return BCM_E_RESOURCE;
@@ -4502,14 +4502,14 @@ void
 atp_attach_callback(int unit, int attach, cpudb_entry_t *cpuent, int cpuunit)
 {
     if (attach) {
-        LOG_VERBOSE(BSL_LS_TKS_ATP,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                     (BSL_META_U(unit,
                                 "ATP attach unit %d; key " CPUDB_KEY_FMT_EOLN),
                      unit, CPUDB_KEY_DISP(cpuent->base.key)));
         atp_key_add(cpuent->base.key, cpuent->flags & CPUDB_F_IS_LOCAL);
     } else {
         if (!(cpuent->flags & CPUDB_F_IS_LOCAL)) {
-            LOG_VERBOSE(BSL_LS_TKS_ATP,
+            LOG_BSL_VERBOSE(BSL_LS_TKS_ATP,
                         (BSL_META_U(unit,
                                     "ATP detach unit %d; key " CPUDB_KEY_FMT_EOLN),
                          unit, CPUDB_KEY_DISP(cpuent->base.key)));
@@ -4821,7 +4821,7 @@ atp_rx_inject(cpudb_key_t src_key, int client_id, uint8 *pkt_buf, int len)
     ATP_RX_LOCK;
     client = client_find(client_id);
     if (client == NULL) {
-        LOG_WARN(BSL_LS_TKS_ATP,
+        LOG_BSL_WARN(BSL_LS_TKS_ATP,
                  (BSL_META("ATP rx inject: Unknown client id %d\n"),
                   client_id));
         ATP_RX_UNLOCK;
@@ -4846,55 +4846,55 @@ atp_rx_inject(cpudb_key_t src_key, int client_id, uint8 *pkt_buf, int len)
 void
 atp_counter_dump(void)
 {
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("tx_retry_cnt              = %d\n"),
               tx_retry_cnt));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("tx_timeout_cnt            = %d\n"),
               tx_timeout_cnt));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("reassem_alloc_fail        = %d\n"),
               reassem_alloc_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("rx_trans_fail             = %d\n"),
               rx_trans_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("stale_rx_trans            = %d\n"),
               stale_rx_trans));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("rx_pkt_drops              = %d\n"),
               rx_pkt_drops));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("ack_pkt_drops             = %d\n"),
               ack_pkt_drops));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("stale_rx_trans            = %d\n"),
               stale_rx_trans));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("rxt_pkt_alloc_fail        = %d\n"),
               rxt_pkt_alloc_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("rx_mseg_alloc_fail        = %d\n"),
               rx_mseg_alloc_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("tx_trans_fail             = %d\n"),
               tx_trans_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("txt_pkt_alloc_fail        = %d\n"),
               txt_pkt_alloc_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("lb_buf_alloc_fail         = %d\n"),
               lb_buf_alloc_fail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("gc_deferrals              = %d\n"),
               gc_deferrals));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("gc_blocked                = %d\n"),
               gc_blocked));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("cli_del_tx_busy           = %d\n"),
               cli_del_tx_busy));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("clients_deleted           = %d\n"),
               clients_deleted));
 }
@@ -4908,54 +4908,54 @@ atp_dump(int verbose)
     _atp_client_t *client;
     int cos, int_prio;
 
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("Init %d. run %d.\n"),
               init_done, _atp_running));
     if (verbose) {
         for (i = 0; i < CPUDB_CPU_MAX; i++) {
             if (CPU_VALID(i)) {
-                LOG_INFO(BSL_LS_TKS_ATP,
+                LOG_BSL_INFO(BSL_LS_TKS_ATP,
                          (BSL_META("  CPU %d " CPUDB_KEY_FMT_EOLN),
                           i, CPUDB_KEY_DISP(CPU_KEY(i))));
             }
         }
     }
 
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("atp_tx_mutex %p\n"),
               atp_tx_mutex));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("atp_rx_mutex %p\n"),
               atp_rx_mutex));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("atp_rxq_mutex %p\n"),
               atp_rxq_mutex));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("atp_tx_sem: %p\n"),
               atp_tx_sem));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("atp_rx_sem: %p\n"),
               atp_rx_sem));
 
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("tx_pending %d. sleep cnt %d.\n"),
               atp_tx_pending, tx_sleep_count));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("Cntrs: rxt_cr %d. rxt_free %d. rx raw free %d.\n"),
               rxt_create, rxt_free, rxraw_free));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("  txt_cr %d\n"),
               txt_create));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("  rx raw grab %d. tx raw grab %d.\n"),
               rxraw_grab, txraw_grab));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("Drops: bet %d. atp %d. mem %d. slf %d. "
               "old rx %d.\n"),
               bet_rx_drop, atp_rx_drop, mem_rx_drop, slf_rx_drop,
               old_rx_trans_drop));
 
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("tx free %p. rx free %p.\n"),
               tx_trans_freelist,
               rx_trans_freelist));
@@ -4971,14 +4971,14 @@ atp_dump(int verbose)
             int_prio = cos;
         }
 
-        LOG_INFO(BSL_LS_TKS_ATP,
+        LOG_BSL_INFO(BSL_LS_TKS_ATP,
                  (BSL_META("Client %d. fl 0x%x. cos %d int_prio %d. vl %d. bet sn %d\n"),
                   client->client_id, client->flags, cos, int_prio,
                   client->vlan, client->bet_tx_seq_num));
         if (verbose) {
             for (cpu = 0; cpu < CPUDB_CPU_MAX ; cpu++) {
                 if (client->cpu[cpu].cpu_flags != 0) {
-                    LOG_INFO(BSL_LS_TKS_ATP,
+                    LOG_BSL_INFO(BSL_LS_TKS_ATP,
                              (BSL_META("  CPU %d: Flags 0x%x. rx SN %d. tx SN %d.\n"),
                               cpu, client->cpu[cpu].cpu_flags,
                               client->cpu[cpu].rx_seq_num,
@@ -4987,12 +4987,12 @@ atp_dump(int verbose)
                 
                 for (rx_trans = client->cpu[cpu].rx_trans;
                      rx_trans != NULL; rx_trans = rx_trans->next) {
-                    LOG_INFO(BSL_LS_TKS_ATP,
+                    LOG_BSL_INFO(BSL_LS_TKS_ATP,
                              (BSL_META("    CPU %d: RX %p: flags 0x%x. cpu %d. rsegs %d. "
                               "ack %d.\n"), cpu, rx_trans, rx_trans->flags,
                               rx_trans->src_cpu, rx_trans->rcv_segs,
                               rx_trans->ack_count));
-                    LOG_INFO(BSL_LS_TKS_ATP,
+                    LOG_BSL_INFO(BSL_LS_TKS_ATP,
                              (BSL_META("      time %u. cli %d. pkt %p. len %d. seq %d\n"),
                               rx_trans->rcvd_time, rx_trans->client->client_id,
                               rx_trans->pkt, rx_trans->payload_len,
@@ -5001,12 +5001,12 @@ atp_dump(int verbose)
 
                 for (tx_trans = client->cpu[cpu].tx_trans;
                      tx_trans != NULL; tx_trans = tx_trans->next) {
-                    LOG_INFO(BSL_LS_TKS_ATP,
+                    LOG_BSL_INFO(BSL_LS_TKS_ATP,
                              (BSL_META("    CPU %d: TX %p: flags 0x%x. ct_flags 0x%x. "
                               "cpu %d. len %d.\n"), cpu, tx_trans,
                               tx_trans->flags, tx_trans->ct_flags,
                               tx_trans->dest_cpu, tx_trans->len));
-                    LOG_INFO(BSL_LS_TKS_ATP,
+                    LOG_BSL_INFO(BSL_LS_TKS_ATP,
                              (BSL_META("      b ack %d. last tx %u. tx_rv %d. "
                               "cli %d. sem %p\n"), tx_trans->bytes_acked,
                               tx_trans->last_tx, tx_trans->tx_rv,
@@ -5017,10 +5017,10 @@ atp_dump(int verbose)
         }
     }
 
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("BET queue %p tail %p\n"),
               bet_queue, bet_queue_tail));
-    LOG_INFO(BSL_LS_TKS_ATP,
+    LOG_BSL_INFO(BSL_LS_TKS_ATP,
              (BSL_META("atp_cpu_max: %d\n"),
               atp_cpu_max));
 

@@ -102,7 +102,7 @@ _soc_th_l2_bulk_age(void *unit_vp)
         if (!iter) {
             goto age_delay;
         }
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "l2_bulk_age_thread: "
                                 "Process iters(total:%d, this run:%d\n"),
@@ -155,7 +155,7 @@ _soc_th_l2_bulk_age(void *unit_vp)
             goto cleanup_exit;
         }
         etime = sal_time_usecs();
-        LOG_VERBOSE(BSL_LS_SOC_ARL,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                     (BSL_META_U(unit,
                                 "l2_bulk_age_thread: unit=%d: done in %d usec\n"),
                      unit, SAL_USECS_SUB(etime, stime)));
@@ -185,7 +185,7 @@ age_delay:
     }
 
 cleanup_exit:
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "l2_bulk_age_thread: exiting\n")));
     soc->l2x_age_pid = SAL_THREAD_ERROR;
@@ -218,7 +218,7 @@ soc_th_l2_bulk_age_start(int unit, int interval)
                                          soc_property_get(unit, spn_L2AGE_THREAD_PRI, 50),
                                          _soc_th_l2_bulk_age, INT_TO_PTR(unit));
     if (soc->l2x_age_pid == SAL_THREAD_ERROR) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bcm_esw_l2_init: Could not start L2 bulk age thread\n")));
         SOC_CONTROL_UNLOCK(unit);
@@ -262,7 +262,7 @@ soc_th_l2_bulk_age_stop(int unit)
 
         while (soc->l2x_age_pid != SAL_THREAD_ERROR) {
             if (soc_timeout_check(&to)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "thread will not exit\n")));
                 rv = SOC_E_INTERNAL;

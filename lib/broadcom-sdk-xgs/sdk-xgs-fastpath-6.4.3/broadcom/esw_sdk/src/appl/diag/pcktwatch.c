@@ -550,7 +550,7 @@ pw_exit(int unit, int stat)
     if (pu->pu_flags & PU_F_SYNC) {
 	sal_sem_give(pu->pu_sync);
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "PW-Daemon[%d]: Exiting\n"), unit));
     }
@@ -559,7 +559,7 @@ pw_exit(int unit, int stat)
 
     PW_UNLOCK(unit);   
     if (stat < 0) {
-        LOG_ERROR(BSL_LS_SOC_PKT,
+        LOG_BSL_ERROR(BSL_LS_SOC_PKT,
                   (BSL_META_U(unit,
                               "AbnormalThreadExit:%s\n"), thread_name));  
     }
@@ -1031,7 +1031,7 @@ pw_command(int unit, args_t *a)
                                 ARG_NEXT(a);    /* Bump arg if matched report */
                                 continue;
                             } else {
-                                LOG_ERROR(BSL_LS_APPL_PKT,
+                                LOG_BSL_ERROR(BSL_LS_APPL_PKT,
                                           (BSL_META_U(unit,
                                                       "%s: Unable to configure DMA channels "
                                                       "L0node valid values <0-5>\n"), pw_name[unit]));
@@ -1039,7 +1039,7 @@ pw_command(int unit, args_t *a)
                             }
                         }
                     }
-                    LOG_ERROR(BSL_LS_APPL_PKT,
+                    LOG_BSL_ERROR(BSL_LS_APPL_PKT,
                               (BSL_META_U(unit,
                                           "%s: Unable to configure DMA channels "
                                           "L0node must be specified\n"), pw_name[unit]));
@@ -1721,7 +1721,7 @@ pw_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
 
     pup = pw_pup_alloc(unit);
     if (!pup) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "PW: Failed to allocate pup struct.  Discarding\n")));
         return BCM_RX_NOT_HANDLED;

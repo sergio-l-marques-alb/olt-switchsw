@@ -154,7 +154,7 @@ soc_th_field_mem_mode_get(
 
    rv = _bcm_field_th_group_oper_mode_get(unit, stage, &oper_mode);
    if (SOC_FAILURE(rv)) {
-       LOG_ERROR(BSL_LS_BCM_FP,
+       LOG_BSL_ERROR(BSL_LS_BCM_FP,
                  (BSL_META_U(unit,
                              "Failed to get Group Operation Mode[%d] for "
                              "Stage Qualifier[%d]/TCAM Memory[%d].\n"),

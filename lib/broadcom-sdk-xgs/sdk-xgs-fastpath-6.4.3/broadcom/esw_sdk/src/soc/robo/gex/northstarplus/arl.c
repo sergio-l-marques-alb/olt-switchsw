@@ -85,7 +85,7 @@ drv_nsp_arl_learn_count_set(int unit, uint32 port,
         sys_based = TRUE;
     }
     
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "%s,%d: port=%d,type=%d,value=%d\n"),
               FUNCTION_NAME(),__LINE__,port,type,value));
@@ -221,7 +221,7 @@ drv_nsp_arl_learn_count_set(int unit, uint32 port,
                 (port_counter == 0)){
             if (type == DRV_PORT_SA_LRN_CNT_DECREASE) {
                 /* improper condition, show warning message */
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "SA learned count is zero already.\n")));
             }
@@ -246,7 +246,7 @@ drv_nsp_arl_learn_count_set(int unit, uint32 port,
                     soc_TOTAL_SA_LIMIT_CTLr_field_get(unit, &reg_value, 
                     TOTAL_SA_LRN_CNT_LIMf, &limit));
             if (sys_counter >= limit) {
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "%s,%d,rach System Learn LIMIT!!\n"),
                           FUNCTION_NAME(),__LINE__));
@@ -267,7 +267,7 @@ drv_nsp_arl_learn_count_set(int unit, uint32 port,
                     soc_PORT_N_SA_LIMIT_CTLr_field_get(unit, &reg_value, 
                     SA_LRN_CNT_LIMf, &limit));
             if (port_counter >= limit) {
-                LOG_INFO(BSL_LS_SOC_ARL,
+                LOG_BSL_INFO(BSL_LS_SOC_ARL,
                          (BSL_META_U(unit,
                                      "%s,%d,rach Port %d Learn LIMIT!!\n"),
                           FUNCTION_NAME(),__LINE__, port));
@@ -362,7 +362,7 @@ drv_nsp_arl_learn_count_get(int unit, uint32 port,
         sys_based = TRUE;
     }
 
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "%s,%d: port=%d,type=%d\n"),
               FUNCTION_NAME(),__LINE__,port,type));

@@ -97,8 +97,8 @@ phy_ctrl_t **ext_phy_ctrl[SOC_MAX_NUM_DEVICES];
     }
 
 #ifdef PHYCTRL_DEBUG_PRINT
-#define PHYCTRL_WARN(_stuff) LOG_WARN(BSL_LS_SOC_PHY, _stuff)
-#define PHYCTRL_VERBOSE(_stuff) LOG_VERBOSE(BSL_LS_SOC_PHY, _stuff)
+#define PHYCTRL_WARN(_stuff) LOG_BSL_WARN(BSL_LS_SOC_PHY, _stuff)
+#define PHYCTRL_VERBOSE(_stuff) LOG_BSL_VERBOSE(BSL_LS_SOC_PHY, _stuff)
 #else
 #define PHYCTRL_WARN(_stuff) 
 #define PHYCTRL_VERBOSE(_stuff) 
@@ -128,7 +128,7 @@ soc_phyctrl_software_deinit(int unit)
 {
     int port;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_software_deinit: unit %d\n"), unit));
     
@@ -231,7 +231,7 @@ soc_phyctrl_software_init(int unit)
     int cmic_port;
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_software_init: unit %d\n"), unit));
     
@@ -305,7 +305,7 @@ soc_phyctrl_software_init(int unit)
 #endif
         if (PHY_ADDR(unit, port) >= EXT_PHY_ADDR_MAX ||
             PHY_ADDR_INT(unit, port) >= EXT_PHY_ADDR_MAX) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "soc_phyctrl_software_init: intPhyAddr 0x%x "
                                   "or extPhyAddr 0x%x exceeds max size u=%d p=%d FAILED "), 
@@ -326,7 +326,7 @@ int
 soc_phyctrl_software_port_init(int unit, soc_port_t port)
 {
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_software_port_init: "
                             "unit %d, port %d\n"), unit, port));
@@ -337,7 +337,7 @@ soc_phyctrl_software_port_init(int unit, soc_port_t port)
 
     if (PHY_ADDR(unit, port) >= EXT_PHY_ADDR_MAX ||
         PHY_ADDR_INT(unit, port) >= EXT_PHY_ADDR_MAX) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "soc_phyctrl_software_init: intPhyAddr 0x%x "
                               "or extPhyAddr 0x%x exceeds max size u=%d p=%d FAILED "), 
@@ -374,7 +374,7 @@ soc_phyctrl_drv_name_get(int unit, soc_port_t port, char *name, int len)
     phy_driver_t      *pd;
     int               string_len;
    
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_drv_name_get: "
                             "unit %d, port %d, name %s, len %d\n"), unit, port, name, len));
@@ -475,7 +475,7 @@ soc_phyctrl_probe(int unit, soc_port_t port)
     sal_memset(&ext_pc, 0, sizeof(phy_ctrl_t));
     sal_memset(&int_pc, 0, sizeof(phy_ctrl_t));
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_probe: "
                             "unit %d, port %d\n"), unit, port));
@@ -661,7 +661,7 @@ soc_phyctrl_probe(int unit, soc_port_t port)
             rv = soc_phy_reset_register(unit, port, pc->pd->pd_reset, 
                                         NULL, TRUE);
             PHY_ADDR_TO_PORT(unit, PHY_ADDR(unit, port)) = port;
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "soc_phyctrl_probe external: u=%d p=%d %s\n"),
                       unit, port, ext_pd->drv_name));
@@ -717,7 +717,7 @@ soc_phyctrl_probe(int unit, soc_port_t port)
                                             NULL, TRUE);
             }
 
-            LOG_INFO(BSL_LS_SOC_PHY,
+            LOG_BSL_INFO(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "soc_phyctrl_probe internal: u=%d p=%d %s\n"),
                       unit, port, int_pd->drv_name));
@@ -749,13 +749,13 @@ soc_phyctrl_probe(int unit, soc_port_t port)
                 if (IS_GE_PORT(unit, port) && !IS_GMII_PORT(unit, port)){
                     /* for those GE port bounded with internal serdes */
                     if (IS_S_PORT(unit, port)){
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "port=%d(2.5G) have no Ext-PHY, "
                                              "No SGMII_AUTONEG required!\n"), 
                                   port));
                     } else {
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "port=%d, SGMII_AUTONEG flag set!!\n"),
                                   port));
@@ -813,7 +813,7 @@ soc_phyctrl_init(int unit, soc_port_t port)
     uint32      rval=0;
 #endif
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_init: "
                             "unit %d, port %d\n"), unit, port));
@@ -861,13 +861,13 @@ soc_phyctrl_init(int unit, soc_port_t port)
                        * VO: S_PORT means 2.5G GMII port connected with EPON
                        */
                     if (IS_S_PORT(unit, port)){
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "port=%d(2.5G) have no Ext-PHY, "
                                              "No SGMII_AUTONEG required!\n"), 
                                   port));
                     } else {
-                        LOG_INFO(BSL_LS_SOC_PHY,
+                        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                                  (BSL_META_U(unit,
                                              "port=%d, SGMII_AUTONEG flag set!!\n"),
                                   port));
@@ -897,7 +897,7 @@ soc_phyctrl_init(int unit, soc_port_t port)
     if (NULL != ext_pc) {
         rv = (PHY_INIT(ext_pc->pd, unit, port));
         if (!SOC_SUCCESS(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "soc_phyctrl_probe: Init failed for"
                                   " u=%d p=%d FAILED "), unit, port));
@@ -952,7 +952,7 @@ soc_phyctrl_init(int unit, soc_port_t port)
     if (switchmacsec_attached) {
         rv = soc_switchmacsec_init(unit, port);
         if (!SOC_SUCCESS(rv)) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "Switch-MACSEC Init failed!u=%d p=%d rv=%d\n"), 
                        unit, port, rv));
@@ -1132,7 +1132,7 @@ soc_phyctrl_reset(int unit, soc_port_t port, void *user_arg)
     int           rv;
     phy_driver_t *pd=NULL;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_reset: "
                             "unit %d, port %d\n"), unit, port));
@@ -1170,7 +1170,7 @@ soc_phyctrl_drv_name(int unit, soc_port_t port)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_drv_name: "
                             "unit %d, port %d\n"), unit, port));
@@ -1207,7 +1207,7 @@ soc_phyctrl_link_get(int unit, soc_port_t port, int *link)
 
     SOC_NULL_PARAM_CHECK(link);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_link_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1270,7 +1270,7 @@ soc_phyctrl_linkfault_get(int unit, soc_port_t port, int *fault)
 
     SOC_NULL_PARAM_CHECK(fault);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_linkfault_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1313,7 +1313,7 @@ soc_phyctrl_enable_set(int unit, soc_port_t port, int enable)
     phy_ctrl_t    *ext_pc;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_enable_set: "
                             "unit %d, port %d, enable %d\n"), unit, port, enable));
@@ -1367,7 +1367,7 @@ soc_phyctrl_enable_get(int unit, soc_port_t port, int *enable)
     
     SOC_NULL_PARAM_CHECK(enable);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_enable_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1406,7 +1406,7 @@ soc_phyctrl_duplex_set(int unit, soc_port_t port, int duplex)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_duplex_set: "
                             "unit %d, port %d, duplex %d\n"), unit, port, duplex));
@@ -1446,7 +1446,7 @@ soc_phyctrl_duplex_get(int unit, soc_port_t port, int *duplex)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_duplex_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1484,7 +1484,7 @@ soc_phyctrl_speed_set(int unit, soc_port_t port, int speed)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_speed_set: "
                             "unit %d, port %d, speed %d\n"), unit, port, speed));
@@ -1524,7 +1524,7 @@ soc_phyctrl_speed_get(int unit, soc_port_t port, int *speed)
     
     SOC_NULL_PARAM_CHECK(speed);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_speed_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1564,7 +1564,7 @@ soc_phyctrl_master_set(int unit, soc_port_t port, int master)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_master_set: "
                             "unit %d, port %d, master %d\n"), unit, port, master));
@@ -1605,7 +1605,7 @@ soc_phyctrl_master_get(int unit, soc_port_t port, int *master)
     
     SOC_NULL_PARAM_CHECK(master);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_master_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1642,7 +1642,7 @@ soc_phyctrl_auto_negotiate_set(int unit, soc_port_t port, int an)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_auto_negotiate_set: "
                             "unit %d, port %d, an %d\n"), unit, port, an));
@@ -1749,7 +1749,7 @@ soc_phyctrl_auto_negotiate_get(int unit, soc_port_t port, int *an, int *an_done)
     SOC_NULL_PARAM_CHECK(an);
     SOC_NULL_PARAM_CHECK(an_done);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_auto_negotiate_get: "
                             "unit %d, port %d\n"), 
@@ -1851,7 +1851,7 @@ soc_phyctrl_adv_local_set(int unit, soc_port_t port, soc_port_mode_t mode)
     phy_driver_t         *pd = NULL;
     soc_port_ability_t    ability;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_adv_local_set: "
                             "unit %d, port %d, mode %d\n"), unit, port, mode));
@@ -1902,7 +1902,7 @@ soc_phyctrl_adv_local_get(int unit, soc_port_t port, soc_port_mode_t *mode)
 
     SOC_NULL_PARAM_CHECK(mode);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_adv_local_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1948,7 +1948,7 @@ soc_phyctrl_adv_remote_get(int unit, soc_port_t port, soc_port_mode_t *mode)
 
     SOC_NULL_PARAM_CHECK(mode);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_adv_remote_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -1997,7 +1997,7 @@ soc_phyctrl_loopback_set(int unit, soc_port_t port, int enable, int serdes_linku
     phy_ctrl_t   *ext_pc;
     phy_driver_t *pd;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_loopback_set: "
                             "unit %d, port %d, enable %d\n"), unit, port, enable));
@@ -2039,7 +2039,7 @@ soc_phyctrl_loopback_set(int unit, soc_port_t port, int enable, int serdes_linku
                     }
                 } while (!soc_timeout_check(&to));
                 if (!link) {
-                    LOG_WARN(BSL_LS_SOC_PHY,
+                    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "soc_phyctrl_loopback_set: u=%d p=%d TIMEOUT\n"),
                               unit, port));
@@ -2099,7 +2099,7 @@ soc_phyctrl_redirect_loopback_set(int unit, soc_port_t port, int phyn,
     phy_ctrl_t *pc_head = NULL;
 
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_redirect_loopback_set: "
                             "unit %d, port %d, enable %d\n"), unit, port, enable));
@@ -2146,7 +2146,7 @@ soc_phyctrl_redirect_loopback_set(int unit, soc_port_t port, int phyn,
                     }
                 } while (!soc_timeout_check(&to));
                 if (!link) {
-                    LOG_WARN(BSL_LS_SOC_PHY,
+                    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                              (BSL_META_U(unit,
                                          "soc_phyctrl_redirect_loopback_set: u=%d p=%d TIMEOUT\n"),
                               unit, port));
@@ -2199,7 +2199,7 @@ soc_phyctrl_loopback_extended_set(int unit, soc_port_t port, int enable,
         return soc_phyctrl_loopback_set(unit, port, enable, serdes_linkup_wait);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_loopback_extended_set: "
                             "unit %d, port %d, enable %d\n"), unit, port, enable));
@@ -2249,7 +2249,7 @@ soc_phyctrl_loopback_get(int unit, soc_port_t port, int *enable)
 
     SOC_NULL_PARAM_CHECK(enable);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_loopback_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2340,7 +2340,7 @@ soc_phyctrl_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_interface_set: "
                             "unit %d, port %d, pif %d\n"), unit, port, pif));
@@ -2378,7 +2378,7 @@ soc_phyctrl_interface_get(int unit, soc_port_t port, soc_port_if_t *pif)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_interface_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2404,7 +2404,7 @@ _soc_phy_ability_get(int unit, soc_port_t port,
     int                 rv;
     soc_port_ability_t  ability;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phy_ability_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2447,7 +2447,7 @@ soc_phyctrl_ability_get(int unit, soc_port_t port, soc_port_mode_t *mode)
     phy_ctrl_t      *int_pc;
     phy_ctrl_t      *ext_pc;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_ability_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2461,7 +2461,7 @@ soc_phyctrl_ability_get(int unit, soc_port_t port, soc_port_mode_t *mode)
     if (NULL != int_pc) {
 
         if (int_pc->speed_max > 16000) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "soc_phyctrl_ability_get: Speed support above 16Gbps will"
                                   "not work. Use soc_phyctrl_ability_local_get\n")));
@@ -2483,7 +2483,7 @@ soc_phyctrl_ability_get(int unit, soc_port_t port, soc_port_mode_t *mode)
     if (SOC_FAILURE(rv)) {
         PHYCTRL_WARN(("soc_phyctrl_ability_get failed %d\n", rv));
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "soc_phyctrl_ability_get E=%08x I=%08x C=%08x\n"),
               mode_speed_ext, mode_speed_int,*mode));
@@ -2507,7 +2507,7 @@ soc_phyctrl_linkup_evt(int unit, soc_port_t port)
     int           rv;
     phy_driver_t *pd;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_linkup_evt: "
                             "unit %d, port %d\n"), unit, port));
@@ -2541,7 +2541,7 @@ soc_phyctrl_linkdn_evt(int unit, soc_port_t port)
     int           rv;
     phy_driver_t *pd;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_linkdn_evt: "
                             "unit %d, port %d\n"), unit, port));
@@ -2582,7 +2582,7 @@ soc_phyctrl_port_phy_multi_get(int unit, soc_port_t port, uint32 flags,
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_port_phy_multi_get: "
                             "unit=%d, port=%d\n"), unit, port));
@@ -2620,7 +2620,7 @@ soc_phyctrl_mdix_set(int unit, soc_port_t port, soc_port_mdix_t mdix)
     int           rv;
     phy_driver_t *pd=NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_mdix_set: "
                             "unit %d, port %d, mdix %d\n"), unit, port, mdix));
@@ -2660,7 +2660,7 @@ soc_phyctrl_mdix_get(int unit, soc_port_t port, soc_port_mdix_t *mdix)
 
     SOC_NULL_PARAM_CHECK(mdix);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_mdix_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2700,7 +2700,7 @@ soc_phyctrl_mdix_status_get(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(status);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_mdix_status_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2742,7 +2742,7 @@ soc_phyctrl_medium_config_set(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(cfg);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_medium_config_set: "
                             "unit %d, port %d, medium %d\n"), 
@@ -2786,7 +2786,7 @@ soc_phyctrl_medium_config_get(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(cfg);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_medium_config_get: "
                             "unit %d, port %d, medium %d\n"), 
@@ -2827,7 +2827,7 @@ soc_phyctrl_medium_get(int unit, soc_port_t port, soc_port_medium_t *medium)
 
     SOC_NULL_PARAM_CHECK(medium);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_medium_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -2866,7 +2866,7 @@ soc_phyctrl_cable_diag(int unit, soc_port_t port, soc_port_cable_diag_t *status)
 
     SOC_NULL_PARAM_CHECK(status);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_cable_diag: "
                             "unit %d, port %d\n"), unit, port));
@@ -2906,7 +2906,7 @@ soc_phyctrl_link_change(int unit, soc_port_t port, int *link)
 
     SOC_NULL_PARAM_CHECK(link);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_link_change: "
                             "unit %d, port %d\n"), unit, port));
@@ -2946,7 +2946,7 @@ soc_phyctrl_control_set(int unit, soc_port_t port,
     int           rv;
     phy_driver_t *pd = NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_control_set: "
                             "unit %d, port %d, phy_ctrl %d, value %u\n"), 
@@ -2989,7 +2989,7 @@ soc_phyctrl_control_get(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(value);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_control_get: "
                             "unit %d, port %d, phy_ctrl %d\n"), 
@@ -3178,7 +3178,7 @@ soc_phyctrl_reg_read(int unit, soc_port_t port, uint32 flags,
 
     SOC_NULL_PARAM_CHECK(data);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_reg_read: "
                             "unit %d, port %d, flags %u, addr %u\n"), 
@@ -3223,7 +3223,7 @@ soc_phyctrl_reg_write(int unit, soc_port_t port, uint32 flags,
     int         rv;
     phy_ctrl_t *pc;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_reg_write: "
                             "unit %d, port %d, flags %u, addr %u, data %u\n"), 
@@ -3270,7 +3270,7 @@ soc_phyctrl_lane_control_set(int unit, soc_port_t port, int lane,
     int           rv;
     phy_driver_t *pd = NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_lane_conrol_set: "
                             "unit %d, port %d, lane %d, phy_ctrl %d, value %u\n"), 
@@ -3314,7 +3314,7 @@ soc_phyctrl_lane_control_get(int unit, soc_port_t port, int lane,
 
     SOC_NULL_PARAM_CHECK(value);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_lane_control_get: "
                             "unit %d, port %d, lane %d, phy_ctrl %d\n"), 
@@ -3359,7 +3359,7 @@ soc_phyctrl_lane_reg_read(int unit, soc_port_t port, int lane,
 
     SOC_NULL_PARAM_CHECK(data);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_lane_reg_read: "
                             "unit %d, port %d, lane %d, flags %u, addr %u\n"), 
@@ -3407,7 +3407,7 @@ soc_phyctrl_lane_reg_write(int unit, soc_port_t port, int lane,
     int         rv;
     phy_ctrl_t *pc;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_lane_reg_write: "
                             "unit %d, port %d, lane %d, flags %u, addr %u, data %u\n"), 
@@ -3456,7 +3456,7 @@ soc_phyctrl_reg_modify(int unit, soc_port_t port, uint32 flags,
     int         rv;
     phy_ctrl_t *pc;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_reg_modify: "
                             "unit %d, port %d, flags %u, addr %u, data %u, mask %u\n"), 
@@ -3504,7 +3504,7 @@ soc_phyctrl_ability_advert_get(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(ability);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_ability_advert_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -3554,7 +3554,7 @@ soc_phyctrl_ability_advert_set(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(ability);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_ability_advert_set: "
                             "unit %d, port %d\n"), unit, port));
@@ -3602,7 +3602,7 @@ soc_phyctrl_ability_remote_get(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(ability);
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_ability_remote_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -3637,7 +3637,7 @@ _soc_phy_ability_local_get(int unit, soc_port_t port,
     int              rv;
     soc_port_mode_t  mode;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phy_ability_local_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -3681,7 +3681,7 @@ soc_phyctrl_ability_local_get(int unit, soc_port_t port,
 
     SOC_NULL_PARAM_CHECK(ability);
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_ability_local_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -3741,7 +3741,7 @@ soc_phyctrl_firmware_set(int unit, soc_port_t port, uint32 flags,
     int         rv;
     phy_ctrl_t *pc;
                   
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_firmare_set: "
                             "unit %d, port %d, flags %u, offset %d, len %d\n"), 
@@ -3804,7 +3804,7 @@ soc_phyctrl_diag_ctrl(
     phy_ctrl_t *int_pc;
     phy_ctrl_t *ext_pc;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_diag_ctrl: "
                             "unit %d, port %d, inst %u, op_type %d, op_cmd %d\n"), 
@@ -3816,7 +3816,7 @@ soc_phyctrl_diag_ctrl(
 
     rv = SOC_E_UNAVAIL;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "u=%d p=%d inst=0x%x op_type=0x%x, op_cmd=0x%x, arg=0x%x\n"),
               unit, port, inst, op_type, op_cmd, PTR_TO_INT(arg)));
@@ -3857,7 +3857,7 @@ soc_phyctrl_primary_set(int unit, soc_port_t port, soc_port_t primary)
 {
     soc_phy_chip_info_t *chip_info;
                                                                                 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_primary_set: "
                             "unit %d, port %d, primary %d\n"), unit, port, primary));
@@ -3896,7 +3896,7 @@ soc_phyctrl_primary_get(int unit, soc_port_t port, soc_port_t *primary)
 {
     soc_phy_chip_info_t *chip_info;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_primary_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -3930,7 +3930,7 @@ soc_phyctrl_offset_set(int unit, soc_port_t port, int offset)
 {
     soc_phy_chip_info_t *chip_info, *primary_chip_info;
                       
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_offset_set: "
                             "unit %d, port %d, offset %d\n"), unit, port, offset));
@@ -3976,7 +3976,7 @@ soc_phyctrl_offset_get(int unit, soc_port_t port, soc_port_t *offset)
 {
     soc_phy_chip_info_t *chip_info, *primary_chip_info;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_offset_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -4017,7 +4017,7 @@ soc_phy_primary_and_offset_get(int unit, soc_port_t port, soc_port_t *primary_po
 {
     uint32 primary_and_offset;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phy_primary_and_offset_get: "
                             "unit %d, port %d\n"), unit, port));
@@ -4058,7 +4058,7 @@ soc_phyctrl_toplvl_reg_read(int unit, soc_port_t port, soc_port_t primary_port,
     soc_phy_chip_info_t *chip_info;
     int         rv = SOC_E_NONE;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_toplvl_reg_read: "
                             "unit %d, port %d, primary_port %d, reg_offset %u\n"), 
@@ -4140,7 +4140,7 @@ soc_phyctrl_toplvl_reg_write(int unit, soc_port_t port, soc_port_t primary_port,
     soc_phy_chip_info_t *chip_info;
     int         rv = SOC_E_NONE;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_toplvl_reg_write: "
                             "unit %d, port %d, primary_port %d, reg_offset %u, data %u\n"), 
@@ -4235,7 +4235,7 @@ soc_phyctrl_detach(int unit, soc_port_t port)
     phy_ctrl_t    *ext_pc;
     phy_ctrl_t    *int_pc;
  
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_detach: "
                             "unit %d, port %d\n"), unit, port));
@@ -4290,7 +4290,7 @@ _soc_phyctrl_bcst_init(int unit, pbmp_t pbmp,char *dev_name,int bus_num,int ctrl
 	int rv;
     char pfmt[SOC_PBMP_FMT_LEN];
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_bcst_init: "
                             "unit %d, pbmp %s, dev_name %s, bus_num %d, ctrl %d, ext_bus %d\n"), 
@@ -4321,7 +4321,7 @@ _soc_phyctrl_bcst_init(int unit, pbmp_t pbmp,char *dev_name,int bus_num,int ctrl
                            ctrl,NULL,0);
 
              if (rv != SOC_E_NONE) {
-                 LOG_WARN(BSL_LS_SOC_PHY,
+                 LOG_BSL_WARN(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "u=%d p=%d: Firmware download failed.\n"), unit, port));
              }
@@ -4347,7 +4347,7 @@ _soc_phyctrl_ucode_bcst(int unit, pbmp_t pbmp, int ext_bus)
     char *dev_name[PHYDEV_TYPE_MAX];
     char pfmt[SOC_PBMP_FMT_LEN];
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_ucode_bcst: "
                             "unit %d, pbmp %s, ext_bus %d\n"), 
@@ -4462,7 +4462,7 @@ soc_phyctrl_mdio_ucode_bcst(int unit, pbmp_t pbmp)
     int rv = SOC_E_NONE;
     char pfmt[SOC_PBMP_FMT_LEN];
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_mdio_ucode_bcst: "
                             "unit %d, pbmp %s\n"), unit, SOC_PBMP_FMT(pbmp, pfmt)));
@@ -4484,7 +4484,7 @@ soc_phyctrl_pbm_probe_init(int unit, pbmp_t pbmp, pbmp_t *okay_pbmp)
     phy_ctrl_t *ext_pc;
     char pfmt[SOC_PBMP_FMT_LEN];
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_pbm_probe_init: "
                             "unit %d, pbmp %s,\n"), 
@@ -4492,12 +4492,12 @@ soc_phyctrl_pbm_probe_init(int unit, pbmp_t pbmp, pbmp_t *okay_pbmp)
     SOC_PBMP_CLEAR(*okay_pbmp);
 
     PBMP_ITER(pbmp, port) {
-        LOG_VERBOSE(BSL_LS_SOC_PORT,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PORT,
                     (BSL_META_U(unit,
                                 "Init port %d PHY...\n"), port));
 
         if ((rv = soc_phyctrl_probe(unit, port)) < 0) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Port %s: Failed to probe PHY: %s\n"),
                       SOC_PORT_NAME(unit, port), soc_errmsg(rv)));
@@ -4516,7 +4516,7 @@ soc_phyctrl_pbm_probe_init(int unit, pbmp_t pbmp, pbmp_t *okay_pbmp)
 
         /* do PHY init pass1 */
         if ((rv = soc_phyctrl_init(unit, port)) < 0) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "Port %s: Failed to initialize PHY: %s\n"),
                       SOC_PORT_NAME(unit, port), soc_errmsg(rv)));
@@ -4577,7 +4577,7 @@ soc_phyctrl_event_string(soc_phy_event_t event)
 {
      static char *phy_event[] = PHY_EVENT_STRING;
 
-     LOG_VERBOSE(BSL_LS_SOC_PHY,
+     LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                  (BSL_META("entered soc_phyctrl_event_string: "
                            "event %d\n"), event));
      
@@ -4609,7 +4609,7 @@ soc_phyctrl_notify(int unit, soc_port_t port,
     phy_ctrl_t *int_pc;
     phy_ctrl_t *ext_pc;
     
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_notify: "
                             "unit %d, port %d, event %d, data %u\n"), 
@@ -4657,7 +4657,7 @@ soc_phyctrl_notify(int unit, soc_port_t port,
 int
 soc_cmic_rate_param_get(int unit, int *dividend, int *divisor)
 {
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_cmic_rate_param_get: "
                             "unit %d\n"), unit));
@@ -4675,7 +4675,7 @@ soc_cmic_rate_param_get(int unit, int *dividend, int *divisor)
 int
 soc_cmic_rate_param_set(int unit, int dividend, int divisor)
 {
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_cmic_rate_param_set: "
                             "unit %d, dividend %d, divisor %d\n"), unit, dividend, divisor));
@@ -4699,7 +4699,7 @@ _soc_phyctrl_dump(phy_ctrl_t *pc)
                                  "XGMII", "RGMII",
                                  "RvMII", "1000X"};
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META("entered soc_phyctrl_dump\n")));
                                                                       
                                  
@@ -4767,7 +4767,7 @@ soc_phyctrl_port_dump(int unit, soc_port_t port)
 {
     phy_ctrl_t *pc;
 
-    LOG_VERBOSE(BSL_LS_SOC_PHY,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "entered soc_phyctrl_port_dump: "
                             "unit %d, port %d\n"), unit, port));

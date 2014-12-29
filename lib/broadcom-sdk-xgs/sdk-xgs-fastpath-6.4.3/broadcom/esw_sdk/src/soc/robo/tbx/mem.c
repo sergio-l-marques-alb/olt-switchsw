@@ -340,12 +340,12 @@ _vo_cfp_mem_modify(int unit, uint32 mem,
             ((entry_id + count - 1) > index_max)) {
         if ((count < 1) || (((entry_id + count - 1) > index_max) && 
                 ((entry_id) < index_max))){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x,entry_id=0x%x, invlaid count=%d\n"),
                       FUNCTION_NAME(), mem_id, entry_id, count));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x, invalid entry_id=0x%x\n"),
                       FUNCTION_NAME(), mem_id, entry_id));
@@ -597,12 +597,12 @@ _vo_cfp_mem_fill(int unit, uint32 mem,
             ((entry_id + count - 1) > index_max)) {
         if ((count < 1) || (((entry_id + count - 1) > index_max) && 
                 ((entry_id) < index_max))){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x,entry_id=0x%x, invlaid count=%d\n"),
                       FUNCTION_NAME(), mem_id, entry_id, count));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x, invalid entry_id=0x%x\n"),
                       FUNCTION_NAME(), mem_id, entry_id));
@@ -884,7 +884,7 @@ _drv_tbx_search_key_op(int unit, uint32 *sw_arl, uint32 int_flag,
         for (i = 0; i < ROBO_TBX_L2_BUCKET_SIZE; i++){
             rep_entry = (l2_arl_sw_entry_t *)result_entry + i;
             if (rep_entry == NULL){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s,entries buffer not allocated!\n"), 
                           FUNCTION_NAME()));
@@ -912,7 +912,7 @@ _drv_tbx_search_key_op(int unit, uint32 *sw_arl, uint32 int_flag,
     SOC_IF_ERROR_RETURN(rv);    
     if (!temp){
         /* means device is at SVL mode, VID will be zero */
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,%d,SVL mode,vid=%d reset to vid=0\n"),
                   FUNCTION_NAME(),__LINE__,vid_key));
@@ -985,7 +985,7 @@ _drv_tbx_search_key_op(int unit, uint32 *sw_arl, uint32 int_flag,
     rv = soc_MEM_ADDR_1r_field_get(unit, &reg_val, 
             MEM_ADDR_OFFSETf, &eid_crc32);
     SOC_IF_ERROR_RETURN(rv);        
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "%s,%d,eid_crc16=%d,eid_crc32=%d\n"),
               FUNCTION_NAME(), __LINE__,eid_crc16, eid_crc32));
@@ -1046,7 +1046,7 @@ _drv_tbx_search_key_op(int unit, uint32 *sw_arl, uint32 int_flag,
         COMPILER_64_SET(temp_reg_val, temp_hi, temp_lo | temp);
         
         *(((uint32 *)&temp_sw_arl) + 2) =  COMPILER_64_LO(temp_reg_val);
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,%d,temp_sw_arl[2-0]=%08x-%08x-%08x\n"),
                   FUNCTION_NAME(), __LINE__, *((uint32 *)&temp_sw_arl+2),
@@ -1067,7 +1067,7 @@ _drv_tbx_search_key_op(int unit, uint32 *sw_arl, uint32 int_flag,
             } else {
                 cd_status |= (temp) ? ((i == 2) ? 0x2 : 0x1) : 0;
             }
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "%s,%d, bin%d ab_status=%d, cd_status=%d!!\n"),
                       FUNCTION_NAME(), __LINE__, i, ab_status, cd_status));
@@ -1103,7 +1103,7 @@ _drv_tbx_search_key_op(int unit, uint32 *sw_arl, uint32 int_flag,
                 VIDf, &vid_result);
             SOC_IF_ERROR_RETURN(rv);    
 
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "%s,%d, MAC[1-0](%08x-%08x)+VID(%d) checking...\n"),
                       FUNCTION_NAME(), __LINE__, COMPILER_64_HI(mac_result), 
@@ -1288,14 +1288,14 @@ _drv_tbx_search_valid_op(int unit, uint32 *key, uint32 *entry,
                     _TB_ARL_VALID_SEARCH_REPORT_VALID_SHIFT);                
                 if (temp) {
                     if (retry) {
-                        LOG_INFO(BSL_LS_SOC_ARL,
+                        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                                  (BSL_META_U(unit,
                                              "=search_vallid (%x), table address valid (%x) retry: %d\n"), 
                                   srch_ctrl, reg_value,retry));
                     }                
                     break;
                 } else {
-                    LOG_INFO(BSL_LS_SOC_ARL,
+                    LOG_BSL_INFO(BSL_LS_SOC_ARL,
                              (BSL_META_U(unit,
                                          "=search_vallid (%x), but table address not valid(%x) retry: %d\n"), 
                               srch_ctrl, reg_value,retry));
@@ -1640,7 +1640,7 @@ _drv_tbx_mem_table_reset(int unit, uint32 mem)
             rv = DRV_ARL_LEARN_COUNT_SET
                 (unit, port, DRV_PORT_SA_LRN_CNT_RESET, 0);
             if (rv != SOC_E_NONE){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "Failed on reset ARL LRN_CNT on port %d\n"), port));
                 return SOC_E_INTERNAL;
@@ -1694,7 +1694,7 @@ _drv_tbx_arl_hash_index_get(int unit, int is_crc16, uint32 *sw_arl, int *index)
             unit, &reg_val, VID_MAC_CTRLf, &temp));
     if (!temp){
         /* means device is at SVL mode, VID will be zero */
-        LOG_INFO(BSL_LS_SOC_ARLMON,
+        LOG_BSL_INFO(BSL_LS_SOC_ARLMON,
                  (BSL_META_U(unit,
                              "%s,%d,SVL mode,vid=%d reset to vid=0\n"),
                   FUNCTION_NAME(),__LINE__,vid_key));
@@ -1813,7 +1813,7 @@ drv_tbx_mem_clear(int unit, uint32 mem)
 {
     int rv = SOC_E_NONE;
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_clear : mem=0x%x\n"), mem));
 
@@ -1903,7 +1903,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
     int         search_arl_index[ROBO_TBX_L2_BUCKET_SIZE];
     l2_arl_sw_entry_t   search_sw_arl[ROBO_TBX_L2_BUCKET_SIZE];
     
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_delete : mem=0x%x, flags = 0x%x)\n"),
               mem, flags));
@@ -1947,7 +1947,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
      *  2. no uper layer called mem_delete for ARL delete by this flag.
      */
     if (flags & DRV_MEM_OP_DELETE_ALL_ARL){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s, DRV_MEM_OP_DELETE_ALL_ARL is not implemented for TB\n"),
                    FUNCTION_NAME()));        
@@ -1977,7 +1977,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
         assert(temp == 0);
         
         if (flags & DRV_MEM_OP_PENDING){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "  FastAging can't serve 'PENDING' flag\n")));
             return SOC_E_UNAVAIL;
@@ -2044,7 +2044,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                         DRV_MEM_OP_DELETE_BY_ST_MCAST |
                         DRV_MEM_OP_DELETE_BY_ST_UCAST;
             } else {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      " Conflict fast aging control!\n")));                
                 return SOC_E_CONFIG;
@@ -2089,7 +2089,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
 
         if (flags & DRV_MEM_OP_DELETE_BY_PORT){
             if (single_fastaging == FALSE){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "  Multi-FastAging requested! "
                                      "Performing Port-FastAging mode only.\n")));
@@ -2105,7 +2105,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                 unit, &ageout_reg, AGE_EN_PORTf, &temp_key);
         } else if (flags & DRV_MEM_OP_DELETE_BY_VLANID){
             if (single_fastaging == FALSE){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "  Multi-FastAging requested! "
                                      "Performing VLAN-FastAging mode only.\n")));
@@ -2120,7 +2120,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
                 unit, &ageout_reg, AGE_EN_VIDf, &temp_key);
         } else if (flags & DRV_MEM_OP_DELETE_BY_SPT){
             if (single_fastaging == FALSE){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "  Multi-FastAging requested! "
                                      "Performing SPT-FastAging mode only.\n")));
@@ -2137,7 +2137,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
              *  processing flow changed.
              */
             if (single_fastaging == FALSE){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "  Multi-FastAging requested! "
                                      "Performing TRUNK-FastAging mode only.\n")));
@@ -2361,7 +2361,7 @@ drv_tbx_mem_delete(int unit, uint32 mem, uint32 *entry, uint32 flags)
             if (SOC_FAILURE(rv)){
                 goto mem_arl_delete_exist;
             }
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "%s,port%d, SA_LRN_CNT decreased one!\n"),
                       FUNCTION_NAME(), temp));
@@ -2678,7 +2678,7 @@ _tbx_mem_mapping(int unit, uint32 mem, uint32 field_index, int *map_mem_id, int 
             } else if (field_index == DRV_MEM_FIELD_VPORT_VID15){
                 field_id = INDEX(VPORT_VID_15f);
             } else {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s,%d,TBD!(UNAVAIL)\n"), 
                            FUNCTION_NAME(), __LINE__));
@@ -2909,7 +2909,7 @@ drv_tbx_mem_field_get(int unit, uint32 mem,
     assert(fieldinfo);
 
     if (!fieldinfo){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s mem %d: no matched field %d\n"), 
                    FUNCTION_NAME(),mem_id, field_id));
@@ -3091,7 +3091,7 @@ drv_tbx_mem_field_set(int unit, uint32 mem,
 
     assert(fieldinfo);
     if (!fieldinfo){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s mem %d: no matched field %d\n"), 
                    FUNCTION_NAME(),mem_id, field_id));
@@ -3254,7 +3254,7 @@ drv_tbx_mem_read(int unit, uint32 mem,
     uint32 field_change = 0;
 #endif
 
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_read(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -3369,12 +3369,12 @@ drv_tbx_mem_read(int unit, uint32 mem,
             ((entry_id + count - 1) > index_max)) {
         if ((count < 1) || (((entry_id + count - 1) > index_max) && 
                 ((entry_id) < index_max))){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x,entry_id=0x%x, invlaid count=%d\n"),
                       FUNCTION_NAME(), mem_id, entry_id, count));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x, invalid entry_id=0x%x\n"),
                       FUNCTION_NAME(), mem_id, entry_id));
@@ -3680,7 +3680,7 @@ drv_tbx_mem_write(int unit, uint32 mem,
     char *s;
     uint32 table_mask=-1;
     
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_write(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -3810,12 +3810,12 @@ drv_tbx_mem_write(int unit, uint32 mem,
             ((entry_id + count - 1) > index_max)) {
         if ((count < 1) || (((entry_id + count - 1) > index_max) && 
                 ((entry_id) < index_max))){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x,entry_id=0x%x, invlaid count=%d\n"),
                       FUNCTION_NAME(), mem_id, entry_id, count));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x, invalid entry_id=0x%x\n"),
                       FUNCTION_NAME(), mem_id, entry_id));
@@ -4060,7 +4060,7 @@ drv_tbx_mem_search(int unit, uint32 mem,
         }
         MEM_RWCTRL_REG_UNLOCK(soc);
     } else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, flags=0x%x indicated no major search operation!\n"),
                   FUNCTION_NAME(), flags));
@@ -4122,7 +4122,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
     int         search_arl_index[ROBO_TBX_L2_BUCKET_SIZE];
     l2_arl_sw_entry_t   search_sw_arl[ROBO_TBX_L2_BUCKET_SIZE];
     
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "drv_mem_insert : mem=0x%x, flags = 0x%x\n"),
               mem, flags));
@@ -4149,7 +4149,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
     }
     rv = soc_L2_ARL_SWm_field_get(unit, entry, VAf, &temp);
     if (rv < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s,%d,SOC problem!\n"),FUNCTION_NAME(),__LINE__));
         return rv;
@@ -4214,7 +4214,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
      */
     table_index = search_arl_index[0];
     sal_memcpy(&temp_sw_arl, &search_sw_arl, sizeof(l2_arl_sw_entry_t));
-    LOG_INFO(BSL_LS_SOC_ARL,
+    LOG_BSL_INFO(BSL_LS_SOC_ARL,
              (BSL_META_U(unit,
                          "%s,%d,rv=%d, id=%d\n"), 
               FUNCTION_NAME(), __LINE__, rv, table_index));
@@ -4226,7 +4226,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
             for (i = 0; i < _TB_ARL_BIN_NUMBER; i++){
                 rv = MEM_DATA_READ(unit, i * 2, &temp_mem_data);
                 if (rv){
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "%s,%d,SOC driver problem!\n"),
                                FUNCTION_NAME(),__LINE__));
@@ -4277,7 +4277,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
         /* For the legacy support, MODIFY flag is allowed here for insert 
          *  to support the case from L2 Replace BCM APIs.
          */ 
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,%d, entry existed already!!!\n"),
                   FUNCTION_NAME(), __LINE__));
@@ -4321,7 +4321,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
         assert(bin_id != -1);
                 
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s,%d,ARL search problem!\n"), 
                    FUNCTION_NAME(),__LINE__));
@@ -4343,7 +4343,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
         assert(temp == ARL_TABLE);
         
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s,%d,SOC driver problem!\n"),
                        FUNCTION_NAME(),__LINE__));
@@ -4465,7 +4465,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
             }
         }
 
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,%d,sw_arl[2-0]=%08x-%08x-%08x\n"),
                   FUNCTION_NAME(), __LINE__, *(((uint32 *)&temp_sw_arl)+2),
@@ -4476,7 +4476,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
         if (SOC_FAILURE(rv)){
             goto mem_insert_exit;
         }   
-        LOG_INFO(BSL_LS_SOC_ARL,
+        LOG_BSL_INFO(BSL_LS_SOC_ARL,
                  (BSL_META_U(unit,
                              "%s,%d,HW_ARL[2-0]=%08x-%08x-%08x\n"),
                   FUNCTION_NAME(), __LINE__, *(((uint32 *)&temp_hw_arl)+2),
@@ -4605,7 +4605,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
                     if (SOC_FAILURE(rv)){
                         goto mem_insert_exit;
                     }   
-                    LOG_INFO(BSL_LS_SOC_ARL,
+                    LOG_BSL_INFO(BSL_LS_SOC_ARL,
                              (BSL_META_U(unit,
                                          "%s,port%d,SA_LRN_CNT decrease one!\n"),
                               FUNCTION_NAME(), ori_port));
@@ -4618,7 +4618,7 @@ drv_tbx_mem_insert(int unit, uint32 mem, uint32 *entry,
             if (SOC_FAILURE(rv)){
                 goto mem_insert_exit;
             }   
-            LOG_INFO(BSL_LS_SOC_ARL,
+            LOG_BSL_INFO(BSL_LS_SOC_ARL,
                      (BSL_META_U(unit,
                                  "%s,port%d,SA_LRN_CNT %s one!\n"),
                       FUNCTION_NAME(), src_port, 
@@ -4949,12 +4949,12 @@ drv_tbx_mem_fill(int unit, uint32 mem,
             ((entry_id + count - 1) > index_max)) {
         if ((count < 1) || (((entry_id + count - 1) > index_max) && 
                 ((entry_id) < index_max))){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x,entry_id=0x%x, invlaid count=%d\n"),
                       FUNCTION_NAME(), mem_id, entry_id, count));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x, invalid entry_id=0x%x\n"),
                       FUNCTION_NAME(), mem_id, entry_id));
@@ -5071,7 +5071,7 @@ _drv_tbx_mem_sa_lrncnt_control_set(int unit, uint32 entry_id,
     } else if (control_type == DRV_PORT_SA_LRN_CNT_RESET){
         mem_op = MEM_OP_RESET;
     } else {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s, incorrect control type for this internal routine!\n"),
                    FUNCTION_NAME()));
@@ -5161,7 +5161,7 @@ _tb_mem_modify(int unit, uint32 mem,
     char *s;
 
     
-    LOG_INFO(BSL_LS_SOC_MEM,
+    LOG_BSL_INFO(BSL_LS_SOC_MEM,
              (BSL_META_U(unit,
                          "_tb_mem_modify(mem=0x%x,entry_id=0x%x,count=%d)\n"),
               mem, entry_id, count));
@@ -5237,12 +5237,12 @@ _tb_mem_modify(int unit, uint32 mem,
             ((entry_id + count - 1) > index_max)) {
         if ((count < 1) || (((entry_id + count - 1) > index_max) && 
                 ((entry_id) < index_max))){
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x,entry_id=0x%x, invlaid count=%d\n"),
                       FUNCTION_NAME(), mem_id, entry_id, count));
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "%s,mem_id=0x%x, invalid entry_id=0x%x\n"),
                       FUNCTION_NAME(), mem_id, entry_id));

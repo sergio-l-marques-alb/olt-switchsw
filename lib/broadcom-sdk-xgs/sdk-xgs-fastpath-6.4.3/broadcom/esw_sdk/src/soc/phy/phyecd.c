@@ -160,7 +160,7 @@ SOC_IF_ERROR_RETURN(READ_PHY_REG(l1,l3,0x1,&l10));SOC_IF_ERROR_RETURN(
 READ_PHY_REG(l1,l3,0x1,&l10));sal_usleep(10000);SOC_IF_ERROR_RETURN(
 READ_PHY_REG(l1,l3,0x1,&l11));SOC_IF_ERROR_RETURN(l5(l1,l3,l12));if(l12[0]&
 0x0800){l9|= 0x0002;SOC_IF_ERROR_RETURN(phy_reg_ge_write((l1),(l3),0x00,
-0x0f00|((0xc0)&0xff),0x15,(l14&0x7fff)));LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+0x0f00|((0xc0)&0xff),0x15,(l14&0x7fff)));LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->ECD engine still busy during intial flush! (u=%d p=%d) \n"),l1,l2));l13 = 
 0;return SOC_E_FAIL;}if((((l10&l11&0x0004)!= 0)&&((l14&0x1000) == 0))){if(l12
 [0]&0x4){l13 = 1;}else{l13 = 0;}}else{SOC_IF_ERROR_RETURN(WRITE_PHY_REG(l1,l3
@@ -181,19 +181,19 @@ l1,l3,0x17,0x4030));SOC_IF_ERROR_RETURN(WRITE_PHY_REG(l1,l3,0x15,0x1872));
 SOC_IF_ERROR_RETURN(WRITE_PHY_REG(l1,l3,0x18,0x0400));SOC_IF_ERROR_RETURN(
 phy_reg_ge_write((l1),(l3),0x00,0x0f00|((0xc0)&0xff),0x15,(l14&0x7FFF)));}if(
 l13 == 0){l9|= 0x0008;}if(l12[0]&0x8){l9|= 0x0004;}if(l9){if(l9&0x0001){
-LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->ECD on demand not done - busy time out! (u:%d p:%d) \n"),l1,l2));}if(l9&
-0x0008){LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META("\t->ECD no fresh result! (u:%d p:%d)\n"),
-l1,l2));}if(l9&0x0004){LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+0x0008){LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META("\t->ECD no fresh result! (u:%d p:%d)\n"),
+l1,l2));}if(l9&0x0004){LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->ECD result invalid! (u:%d p:%d)\n"),l1,l2));}}if((l12[2] == 0x47AE)||(l12
-[3] == 0x47AE)||(l12[4] == 0x47AE)||(l12[5] == 0x47AE)){LOG_VERBOSE(BSL_LS_SOC_PHY,
+[3] == 0x47AE)||(l12[4] == 0x47AE)||(l12[5] == 0x47AE)){LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
 (BSL_META("\t->ECD failure type 183! (u:%d p:%d)\n"),l1,l2));}if((l9&0xff)||(
 (l12[2] == 0x47AE)||(l12[3] == 0x47AE)||(l12[4] == 0x47AE)||(l12[5] == 0x47AE
-))){LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META("\t->EXP_C[0]: %x\n"),l12[0]));LOG_VERBOSE(
-BSL_LS_SOC_PHY,(BSL_META("\t->EXP_C[1]: %x\n"),l12[1]));LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
-"\t->EXP_C[2]: %x\n"),l12[2]));LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
-"\t->EXP_C[3]: %x\n"),l12[3]));LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
-"\t->EXP_C[4]: %x\n"),l12[4]));LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+))){LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META("\t->EXP_C[0]: %x\n"),l12[0]));LOG_BSL_VERBOSE(
+BSL_LS_SOC_PHY,(BSL_META("\t->EXP_C[1]: %x\n"),l12[1]));LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+"\t->EXP_C[2]: %x\n"),l12[2]));LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+"\t->EXP_C[3]: %x\n"),l12[3]));LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+"\t->EXP_C[4]: %x\n"),l12[4]));LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->EXP_C[5]: %x\n"),l12[5]));l7->pair_state[0] = 
 SOC_PORT_CABLE_STATE_UNKNOWN;return SOC_E_FAIL;}l7->npairs = 4;l7->fuzz_len = 
 10;l7->state = SOC_PORT_CABLE_STATE_OK;switch((l12[1]>>12)&0x000f){case 1:l7
@@ -202,7 +202,7 @@ case 2:l7->pair_state[0] = SOC_PORT_CABLE_STATE_OPEN;l7->pair_len[0] = l12[2]
 /100;break;case 3:l7->pair_state[0] = SOC_PORT_CABLE_STATE_SHORT;l7->pair_len
 [0] = l12[2]/100;break;case 4:l7->pair_state[0] = 
 SOC_PORT_CABLE_STATE_CROSSTALK;l7->pair_len[0] = l12[2]/100;break;case 9:
-LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->Cabel Diag (40nm) pair A: u=%d p=%d\n, Persistent noise present on MDI\n")
 ,l1,l2));l7->pair_state[0] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[0] = 0
 ;break;default:l7->pair_state[0] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[
@@ -211,7 +211,7 @@ SOC_PORT_CABLE_STATE_OK;l7->pair_len[1] = l12[3]/100;break;case 2:l7->
 pair_state[1] = SOC_PORT_CABLE_STATE_OPEN;l7->pair_len[1] = l12[3]/100;break;
 case 3:l7->pair_state[1] = SOC_PORT_CABLE_STATE_SHORT;l7->pair_len[1] = l12[3
 ]/100;break;case 4:l7->pair_state[1] = SOC_PORT_CABLE_STATE_CROSSTALK;l7->
-pair_len[1] = l12[3]/100;break;case 9:LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+pair_len[1] = l12[3]/100;break;case 9:LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->Cabel Diag (40nm) pair B: u=%d p=%d\n, Persistent noise present on MDI\n")
 ,l1,l2));l7->pair_state[0] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[0] = 0
 ;break;default:l7->pair_state[1] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[
@@ -220,7 +220,7 @@ SOC_PORT_CABLE_STATE_OK;l7->pair_len[2] = l12[4]/100;break;case 2:l7->
 pair_state[2] = SOC_PORT_CABLE_STATE_OPEN;l7->pair_len[2] = l12[4]/100;break;
 case 3:l7->pair_state[2] = SOC_PORT_CABLE_STATE_SHORT;l7->pair_len[2] = l12[4
 ]/100;break;case 4:l7->pair_state[2] = SOC_PORT_CABLE_STATE_CROSSTALK;l7->
-pair_len[2] = l12[4]/100;break;case 9:LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+pair_len[2] = l12[4]/100;break;case 9:LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->Cabel Diag (40nm) pair C: u=%d p=%d\n, Persistent noise present on MDI\n")
 ,l1,l2));l7->pair_state[0] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[0] = 0
 ;break;default:l7->pair_state[2] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[
@@ -229,13 +229,13 @@ SOC_PORT_CABLE_STATE_OK;l7->pair_len[3] = l12[5]/100;break;case 2:l7->
 pair_state[3] = SOC_PORT_CABLE_STATE_OPEN;l7->pair_len[3] = l12[5]/100;break;
 case 3:l7->pair_state[3] = SOC_PORT_CABLE_STATE_SHORT;l7->pair_len[3] = l12[5
 ]/100;break;case 4:l7->pair_state[3] = SOC_PORT_CABLE_STATE_CROSSTALK;l7->
-pair_len[3] = l12[5]/100;break;case 9:LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+pair_len[3] = l12[5]/100;break;case 9:LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "\t->Cabel Diag (40nm) pair D: u=%d p=%d\n, Persistent noise present on MDI\n")
 ,l1,l2));l7->pair_state[0] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[0] = 0
 ;break;default:l7->pair_state[3] = SOC_PORT_CABLE_STATE_UNKNOWN;l7->pair_len[
 3] = 0;break;}return SOC_E_NONE;}int phy_ecd_cable_diag_40nm(int l1,
 soc_port_t l2,soc_port_cable_diag_t*l7,uint16 l14){unsigned int l16 = 1;int
-l17 = SOC_E_FAIL;do{LOG_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
+l17 = SOC_E_FAIL;do{LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,(BSL_META(
 "Cable diag 40nm run (attempt %d)\n"),l16));l17 = phy_ecd_cable_diag_run_40nm(
 l1,l2,l7,l14);if(l17 == SOC_E_NONE){break;}}while(l16++<30);return l17;}int
 phy_ecd_cable_diag_init_40nm(int l1,soc_port_t l2){phy_ctrl_t*l3;uint16 l4;l3

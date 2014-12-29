@@ -563,7 +563,7 @@ soc_drain_cells(int unit, soc_port_t port)
                 break;
             }
 
-            LOG_ERROR(BSL_LS_SOC_GE,
+            LOG_BSL_ERROR(BSL_LS_SOC_GE,
                       (BSL_META_U(unit,
                                   "MacDrainTimeOut:port %d,%s, "
                                   "timeout draining packets (%d cells remain)\n"),
@@ -633,7 +633,7 @@ soc_mac_mode_set(int unit, soc_port_t port, soc_mac_mode_t new_mode)
     int                 save_pause_rx;          /* Pause Rx enable status */
     int                 save_lb;                /* Mac LB enable status */
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "soc_mac_mode_set: reconfiguring port=%d mode=%d\n"),
               port, new_mode));
@@ -712,7 +712,7 @@ soc_mac_mode_set(int unit, soc_port_t port, soc_mac_mode_t new_mode)
     switch (new_mode) {
     case SOC_MAC_MODE_10:
     case SOC_MAC_MODE_10_100:
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "soc_mac_mode_set: port=%d, 10/100 mode\n"),
                   port));
@@ -723,7 +723,7 @@ soc_mac_mode_set(int unit, soc_port_t port, soc_mac_mode_t new_mode)
         }
         break;
     case SOC_MAC_MODE_1000_T:
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "soc_mac_mode_set: port=%d, Gig mode\n"),
                   port));
@@ -3539,7 +3539,7 @@ mac_ge_control_set(int unit, soc_port_t port, soc_mac_control_t type,
     soc_mac_mode_t mode;
     uint32 regval, copy;
 
-    LOG_VERBOSE(BSL_LS_SOC_GE,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_GE,
                 (BSL_META_U(unit,
                             "mac_ge_control_set: unit %d port %s type=%d value=%d\n"),
                  unit, SOC_PORT_NAME(unit, port),
@@ -3621,7 +3621,7 @@ mac_ge_control_get(int unit, soc_port_t port, soc_mac_control_t type,
         return SOC_E_UNAVAIL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_GE,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_GE,
                 (BSL_META_U(unit,
                             "mac_ge_control_get: unit %d port %s type=%d value=%d\n"),
                  unit, SOC_PORT_NAME(unit, port),

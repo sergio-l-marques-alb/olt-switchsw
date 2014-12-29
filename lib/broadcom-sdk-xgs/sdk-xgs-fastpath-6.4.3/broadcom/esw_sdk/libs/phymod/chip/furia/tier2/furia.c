@@ -126,7 +126,7 @@ int furia_core_identify(const phymod_core_access_t* core, uint32_t core_id,
         /* PHY IDs match */
         *is_identified = 1;
     }
-    LOG_WARN(BSL_LS_SOC_PHY,
+    LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(0,
                              "Furia PROBE is identified:%d chip ID:%x\n"),
                   *is_identified, chip_id));

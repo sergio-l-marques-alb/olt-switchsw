@@ -193,7 +193,7 @@ phy_xgxs5_init(int unit, soc_port_t port)
                    (MODIFY_PHYXGXS5_BLK2_RX_LANE_SWAPr(unit, pc,
                                                     0x8000 | hw_map, 0x80ff));
             } else {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "unit %d port %s: Invalid RX lane map 0x%04x.\n"),
                            unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -217,7 +217,7 @@ phy_xgxs5_init(int unit, soc_port_t port)
                    (MODIFY_PHYXGXS5_BLK2_TX_LANE_SWAPr(unit, pc,
                                                     0x8000 | hw_map, 0x80ff));
             } else {
-                LOG_ERROR(BSL_LS_SOC_PHY,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                           (BSL_META_U(unit,
                                       "unit %d port %s: Invalid TX lane map 0x%04x.\n"),
                            unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -267,12 +267,12 @@ phy_xgxs5_init(int unit, soc_port_t port)
     }
 
     if (!locked) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "unit %d port %s: XGXS PLL did not lock PLL_STAT %04x\n"),
                    unit, SOC_PORT_NAME(unit, port), pll_stat));
     } else {
-        LOG_VERBOSE(BSL_LS_SOC_PHY,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_PHY,
                     (BSL_META_U(unit,
                                 "unit %d port %s: XGXS PLL locked in %d usec\n"),
                      unit, SOC_PORT_NAME(unit, port),
@@ -304,7 +304,7 @@ phy_xgxs5_init(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (phy_xgxs5_lb_set(unit, port, FALSE));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs5_init: u=%d p=%d\n"),
               unit, port));
@@ -745,7 +745,7 @@ _phy_xgxs5_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs5_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,

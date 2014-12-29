@@ -683,7 +683,7 @@ bcm_th_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_th_cosq_gport_get: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -724,7 +724,7 @@ bcm_th_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         *port = local_port;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       port=0x%x numq=%d flags=0x%x\n"),
               *port, *numq, *flags));
@@ -3677,7 +3677,7 @@ bcm_th_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     int id;
     uint32 sched_encap;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_th_cosq_gport_add: unit=%d port=0x%x "
                          "numq=%d flags=0x%x\n"),
@@ -3802,7 +3802,7 @@ bcm_th_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     node->numq = numq;
     node->in_use = 1;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       gport=0x%x\n"),
               *gport));
@@ -3833,7 +3833,7 @@ bcm_th_cosq_gport_attach(int unit, bcm_gport_t input_gport,
     int input_hw_index = -1, parent_hw_index = -1;
     soc_info_t *si = &SOC_INFO(unit);
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_th_cosq_gport_attach: unit=%d parent_gport=0x%x "
                          "input_gport=0x%x cosq=%d\n"),
@@ -3950,7 +3950,7 @@ bcm_th_cosq_gport_detach(int unit, bcm_gport_t input_gport,
     bcm_port_t input_port, parent_port;
     int input_hw_index = -1, parent_hw_index = -1;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_th_cosq_gport_detach: unit=%d input_gport=0x%x "
                          "parent_gport=0x%x cosq=%d\n"),
@@ -4093,7 +4093,7 @@ bcm_th_cosq_gport_delete(int unit, bcm_gport_t gport)
     _bcm_th_cosq_port_info_t *port_info = NULL;
     int local_port, i;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_th_cosq_gport_delete: unit=%d gport=0x%x\n"),
               unit, gport));

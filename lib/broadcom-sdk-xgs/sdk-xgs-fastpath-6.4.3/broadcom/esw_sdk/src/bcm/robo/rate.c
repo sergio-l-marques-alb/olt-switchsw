@@ -163,7 +163,7 @@ int bcm_robo_rate_set(int unit, int pps, int flags)
     uint32 value[SOC_PBMP_WORD_MAX];
     int i;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_set()..\n")));
     rate_type |= (flags & BCM_RATE_BCAST) ? 
@@ -228,7 +228,7 @@ int bcm_robo_rate_get(int unit, int *pps, int *flags)
     int     port;
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_get()..\n")));
     /* get first enabled ethernet port */
@@ -278,7 +278,7 @@ int bcm_robo_rate_mcast_set(int unit, int pps, int flags, int port)
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     int tmp_port=0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_mcast_set()..\n")));
 
@@ -349,7 +349,7 @@ int bcm_robo_rate_bcast_set(int unit, int pps, int flags, int port)
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     int tmp_port=0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_bcast_set()..\n")));
 
@@ -420,7 +420,7 @@ int bcm_robo_rate_dlfbc_set(int unit, int pps, int flags, int port)
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
      int tmp_port=0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_dlfbc_set()..\n")));
 
@@ -486,7 +486,7 @@ int bcm_robo_rate_mcast_get(int unit, int *pps, int *flags, int port)
 {
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_mcast_get()..\n")));
 
@@ -531,7 +531,7 @@ int bcm_robo_rate_dlfbc_get(int unit, int *pps, int *flags, int port)
 {
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_dlfbc_get()..\n")));
 
@@ -576,7 +576,7 @@ int bcm_robo_rate_bcast_get(int unit, int *pps, int *flags, int port)
 {
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_bcast_get()..\n")));
 
@@ -626,7 +626,7 @@ int bcm_robo_rate_type_get(int unit, bcm_rate_limit_t *rl)
     int     port;
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_type_get()..\n")));
     /* get first enabled ethernet port */
@@ -693,14 +693,14 @@ int bcm_robo_rate_type_set(int unit, bcm_rate_limit_t *rl)
                 ~(BCM_RATE_BCAST | BCM_RATE_MCAST | BCM_RATE_DLF);
     int i;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_type_set()..\n")));
                 
     /* error return if the carrying flag is out of supporting type */
     if (temp_flag){
         
-        LOG_WARN(BSL_LS_BCM_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON,
                  (BSL_META_U(unit,
                              "%s, flag=0x%X, the 0x%X are not supported!\n"), 
                   FUNCTION_NAME(), rl->flags, temp_flag));
@@ -808,7 +808,7 @@ bcm_robo_rate_bandwidth_get(int unit, bcm_port_t port, int flags,
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     int loc_flags;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_bandwidth_get()..\n")));
     
@@ -909,7 +909,7 @@ bcm_robo_rate_bandwidth_set(int unit, bcm_port_t port, int flags,
     uint32  rate_type = 0, rate_limit = 0, burst_size = 0; 
     int tmp_port=0;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_rate_bandwidth_set()..\n")));
     if (!SOC_UNIT_VALID(unit)) {

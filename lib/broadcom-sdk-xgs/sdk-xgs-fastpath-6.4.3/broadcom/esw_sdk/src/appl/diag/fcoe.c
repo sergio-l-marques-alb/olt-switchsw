@@ -613,7 +613,7 @@ fcoe_tx_pkt_helper(int unit, int port, unsigned char *pkt_data, int len)
   
     sal_memcpy(pkt.pkt_data[0].data, pkt_data, pktSize );
     if ((rv = bcm_tx(unit, &pkt, NULL)) != BCM_E_NONE) {        
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               unit, bcm_errmsg(rv)));        
@@ -634,7 +634,7 @@ fip_tx_vlan_response(bcm_pkt_t *info)
     if ((rv = fcoe_tx_pkt_helper(info->unit, info->src_port, 
                            FIP_VLAN_Response, sizeof(FIP_VLAN_Response))) !=
                            BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(info->unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               info->unit, bcm_errmsg(rv)));
@@ -655,7 +655,7 @@ fip_tx_advertisement(bcm_pkt_t *info)
     if ((rv = fcoe_tx_pkt_helper(info->unit, info->src_port, 
                            FIP_Advertisement, sizeof(FIP_Advertisement))) !=
                            BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(info->unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               info->unit, bcm_errmsg(rv)));
@@ -755,7 +755,7 @@ fip_handle_flogi(bcm_pkt_t *info)
     if ((rv = fcoe_tx_pkt_helper(info->unit, fcoe_fc_port, 
                            fdisc_req, sizeof(FDISC_Request))) !=
                            BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(info->unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               info->unit, bcm_errmsg(rv)));
@@ -876,7 +876,7 @@ fip_tx_els_reply(int unit, bcm_pkt_t *info)
 
 
     if ((rv = bcm_tx(info->unit, &pkt, NULL)) != BCM_E_NONE) {        
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               info->unit, bcm_errmsg(rv)));
@@ -998,7 +998,7 @@ fcoe_transmit_LLDP(bcm_pkt_t *info)
     int rv = 0;
     if ((rv = fcoe_tx_pkt_helper(info->unit, info->src_port, lldp, sizeof(lldp))) !=
                            BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(info->unit,
                               "bcm_tx failed: Unit %d: %s\n"),
                               info->unit, bcm_errmsg(rv)));
@@ -1118,7 +1118,7 @@ fcoe_flogi_timer(void *p_owner, void *p2, void *p3, void *p4, void *p5)
         if ((rv = fcoe_tx_pkt_helper(p_fip_flogi->unit, p_fip_flogi->port, 
                                FLOGI_Request, sizeof(FLOGI_Request))) !=
                                BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META("Couldn't send FLOGI Unit %d: %s\n"),                   
                        p_fip_flogi->unit, bcm_errmsg(rv)));
             return;
@@ -1151,7 +1151,7 @@ fcoe_transmit_FLOGI(int unit, int port)
     if ((rv = fcoe_tx_pkt_helper(unit, port, 
                            FLOGI_Request, sizeof(FLOGI_Request))) !=
                            BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Couldn't send FLOGI Unit %d: %s\n"),
                               unit, bcm_errmsg(rv)));
@@ -1356,7 +1356,7 @@ fcoe_fip_thread(void *cookie)
             if ((rv = fcoe_tx_pkt_helper(0, fip_flogi_pending[i].port, 
                                    FIP_Advertisement, sizeof(FIP_Advertisement))) !=
                                    BCM_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META("Periodic DISC bcm_tx failed: port %d: %s\n"),
                            fip_flogi_pending[i].port, bcm_errmsg(rv)));
             }

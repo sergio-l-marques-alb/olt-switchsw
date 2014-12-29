@@ -111,7 +111,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
                     return (BCM_E_UNAVAIL);                                  \
                 }                                                            \
                 if (_oam_control[unit] == NULL) {                            \
-                    LOG_ERROR(BSL_LS_BCM_OAM, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, \
                               (BSL_META_U(unit, \
                                           "OAM Error: Module not initialized\n"))); \
                     return (BCM_E_INIT);                                     \
@@ -187,7 +187,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
                 if((_ptr_) != NULL) {                                    \
                     sal_memset((_ptr_), 0, (_size_));                    \
                 }  else {                                                \
-                    LOG_ERROR(BSL_LS_BCM_OAM, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, \
                               (BSL_META("OAM Error: Allocation failure %s\n"), \
                                (_descr_)));                                 \
                 }                                                        \
@@ -204,7 +204,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
 #define _BCM_OAM_GROUP_INDEX_VALIDATE(_group_)                               \
             do {                                                             \
                 if ((_group_) < 0 || (_group_) >= oc->group_count) {         \
-                    LOG_ERROR(BSL_LS_BCM_OAM, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, \
                               (BSL_META("OAM Error: Invalid Group ID = %d.\n"), \
                                _group_));                                 \
                     return (BCM_E_PARAM);                                    \
@@ -222,7 +222,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
 #define _BCM_OAM_EP_INDEX_VALIDATE(_ep_)                               \
             do {                                                       \
                 if ((_ep_) < 0 || (_ep_) >= oc->ep_count) {            \
-                    LOG_ERROR(BSL_LS_BCM_OAM, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, \
                               (BSL_META("OAM Error: Invalid Endpoint ID" \
                                " = %d.\n"), _ep_));                  \
                     return (BCM_E_PARAM);                              \
@@ -240,7 +240,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
 #define _BCM_OAM_RMEP_INDEX_VALIDATE(_ep_)                              \
             do {                                                        \
                 if ((_ep_) < 0 || (_ep_) >= oc->rmep_count) {           \
-                    LOG_ERROR(BSL_LS_BCM_OAM, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, \
                               (BSL_META("OAM Error: Invalid RMEP Index"   \
                                " = %d.\n"), _ep_));                   \
                     return (BCM_E_PARAM);                               \
@@ -285,7 +285,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
                 << (_shr_popcount((unsigned int) SOC_PORT_ADDR_MAX(_u_)))   \
                 | (SOC_PORT_ADDR_MAX(_u_) & (_p_))));                       \
         }                                                                   \
-        LOG_DEBUG(BSL_LS_BCM_OAM, \
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM, \
                   (BSL_META("u:%d m:%d p:%d t:%d tgid:%d glp:%x\n"),        \
                    _u_, _m_, _p_, _t_, _tgid_, _glp_));                            \
     } while (0)
@@ -319,7 +319,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
                 (_BCM_OAM_LMEP_DEST_MODID_SHIFT)                            \
                 | (SOC_PORT_ADDR_MAX(_u_) & (_p_))));                       \
         }                                                                   \
-        LOG_DEBUG(BSL_LS_BCM_OAM, \
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM, \
                   (BSL_META("u:%d m:%d p:%d t:%d tgid:%d glp:%x\n"), \
                    _u_, _m_, _p_, _t_, _tgid_, _glp_));                            \
     } while (0)
@@ -413,7 +413,7 @@ _bcm_oam_control_t *_oam_control[SOC_MAX_NUM_DEVICES];
                 if (((_ep_) < _BCM_OAM_BHH_ENDPOINT_OFFSET) ||         \
                     ((_ep_) >= (_BCM_OAM_BHH_ENDPOINT_OFFSET           \
                                          + oc->bhh_endpoint_count))) { \
-                    LOG_ERROR(BSL_LS_BCM_OAM, \
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, \
                               (BSL_META("OAM Error: Invalid Endpoint ID" \
                                " = %d.\n"), _ep_));                  \
                     _BCM_OAM_UNLOCK(oc);                               \
@@ -1220,14 +1220,14 @@ _bcm_oam_group_endpoint_count_init(int unit, _bcm_oam_control_t *oc)
     /* Max number of endpoints supported by the device. */
     oc->ep_count = (oc->rmep_count + oc->lmep_count + oc->ma_idx_count);
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: Total No. endpoint Count = %d.\n"),
                oc->ep_count));
 
     /* Max number of MA Groups supported by device. */
     oc->group_count = soc_mem_index_count(unit, MA_STATEm);
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: Total No. Group Count = %d.\n"),
                oc->group_count));
@@ -1295,7 +1295,7 @@ _bcm_oam_ccm_rx_timeout_set(int unit, uint8 state)
 
     rv = WRITE_OAM_TIMER_CONTROLr(unit, rval);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Timer enable - Failed.\n")));
         return (rv);
@@ -1338,7 +1338,7 @@ _bcm_oam_ccm_tx_config_set(int unit, uint8 state)
 
     rv = WRITE_OAM_TX_CONTROLr(unit, rval);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Tx config enable - Failed.\n")));
     }
@@ -1374,7 +1374,7 @@ _bcm_oam_misc_config(int unit)
 
     rv = WRITE_LMEP_COMMONr(unit, rval);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Misc config - Failed.\n")));
         return (rv);
@@ -1387,7 +1387,7 @@ _bcm_oam_misc_config(int unit)
     rv = bcm_esw_port_control_set(unit, CMIC_PORT(unit),
                                   bcmPortControlFilterIngress, 1);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: bcm_esw_port_control_set"
                                " - Failed.\n")));
@@ -1430,7 +1430,7 @@ _bcm_oam_profile_tables_init(int unit, _bcm_oam_control_t *oc)
     rv = soc_profile_mem_create(unit, &mem, &entry_words, 1,
                                 &oc->ing_service_pri_map);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: service map profile - Failed.\n")));
         return (rv);
@@ -1457,7 +1457,7 @@ _bcm_oam_profile_tables_init(int unit, _bcm_oam_control_t *oc)
                              (void *) &entries, BCM_OAM_INTPRI_MAX,
                              &profile_index);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: service map init - Failed.\n")));
         return (rv);
@@ -1473,7 +1473,7 @@ _bcm_oam_profile_tables_init(int unit, _bcm_oam_control_t *oc)
     rv = soc_profile_mem_create(unit, &mem, &entry_words, 1,
                                 &oc->oam_opcode_control_profile);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: opcode control profile - Failed.\n")));
         return (rv);
@@ -1519,7 +1519,7 @@ _bcm_tr3_oam_control_free(int unit, _bcm_oam_control_t *oc)
     if (NULL != oc->ma_mep_htbl) {
         status = shr_htb_destroy(&oc->ma_mep_htbl, NULL);
         if (BCM_FAILURE(status)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "Freeing ma_mep_htbl failed\n")));
         }
@@ -1781,13 +1781,13 @@ _bcm_tr3_oam_clear_rmep (int unit, _bcm_oam_hash_data_t *h_data_p, int valid)
     int                rv = BCM_E_INTERNAL; /* Operation return status entry  */
     uint32             oam_cur_time;    /* Current time in H/w state machine  */
 
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM, EP id %d, valid %d\n"), 
                  h_data_p->remote_index, valid));
     
     if (h_data_p == NULL) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM ERR: Arg h_data_p NULL check failed\n")));
         return BCM_E_INTERNAL;
@@ -1801,7 +1801,7 @@ _bcm_tr3_oam_clear_rmep (int unit, _bcm_oam_hash_data_t *h_data_p, int valid)
         rv = WRITE_RMEPm(unit, MEM_BLOCK_ALL, h_data_p->remote_index,
                          &rmep_entry);
         if (rv != BCM_E_NONE) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM ERR: Deleting RMEP entry failied\n")));
         }
@@ -1832,7 +1832,7 @@ _bcm_tr3_oam_clear_rmep (int unit, _bcm_oam_hash_data_t *h_data_p, int valid)
     rv = WRITE_RMEPm(unit, MEM_BLOCK_ALL, h_data_p->remote_index,
                      &rmep_entry);
     if (rv != BCM_E_NONE) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM ERR: Clearing RMEP entry failied\n")));
         return (rv);
@@ -1865,13 +1865,13 @@ _bcm_tr3_oam_clear_ma_state(int unit, _bcm_oam_group_data_t *group_info,
 
     ma_state_entry_t       ma_state_entry;       /* MA State table entry.     */
     
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM *group_info %p, index %d, valid %d\n"), 
                  group_info, index, valid));
                
     if (group_info == NULL) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM ERR: Arg group_info NULL check failed\n")));
         return BCM_E_INTERNAL;
@@ -1934,14 +1934,14 @@ _bcm_tr3_oam_group_recreate(int unit, int index)
     
     /*if unused Group, just clear the MA_STATE index, including the valid bit*/
     if (!(group_info->in_use)) {
-        LOG_WARN(BSL_LS_BCM_OAM,
+        LOG_BSL_WARN(BSL_LS_BCM_OAM,
                  (BSL_META_U(unit,
                              "OAM, WARN: Recieved group recreate request for " 
                               "unused Group Id %d\n"), index));
     
         rv = _bcm_tr3_oam_clear_ma_state(unit, group_info, index, 0);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: MA_STATE clear failed group id %d - "
                                    "%s.\n"), index, bcm_errmsg(rv)));
@@ -1958,7 +1958,7 @@ _bcm_tr3_oam_group_recreate(int unit, int index)
         if (cur_ep_ptr->ep_data_p->is_remote && cur_ep_ptr->ep_data_p->in_use) {
             rv = _bcm_tr3_oam_clear_rmep(unit, cur_ep_ptr->ep_data_p, 0);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: RMEP delete failed Ep id %d - "
                                        "%s.\n"), cur_ep_ptr->ep_data_p->ep_id, bcm_errmsg(rv)));
@@ -1971,7 +1971,7 @@ _bcm_tr3_oam_group_recreate(int unit, int index)
     /* 2. Clear the MA_STATE table faults */
     rv = _bcm_tr3_oam_clear_ma_state(unit, group_info, index, 1);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: MA_STATE clear failed group id %d - "
                                "%s.\n"), index, bcm_errmsg(rv)));
@@ -1986,7 +1986,7 @@ _bcm_tr3_oam_group_recreate(int unit, int index)
         if (cur_ep_ptr->ep_data_p->is_remote && cur_ep_ptr->ep_data_p->in_use) {
             rv = _bcm_tr3_oam_clear_rmep(unit, cur_ep_ptr->ep_data_p, 1);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: RMEP clear failed EP id %d - "
                                        "%s.\n"), cur_ep_ptr->ep_data_p->ep_id, bcm_errmsg(rv)));
@@ -2020,7 +2020,7 @@ _bcm_tr3_oam_ser_handler(int unit, soc_mem_t mem, int index)
     bcm_oam_endpoint_t      remote_ep_index;    /* Remote Endpoint index.     */
     _bcm_oam_hash_data_t    *ep_data = NULL;    /* Remote Endpoint hash data  */
     rmep_entry_t         rmep_entry;        /* Remote MEP entry.             */
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM SER on mem %s, index %d\n"), 
                  SOC_MEM_NAME(unit, mem), index));
@@ -2054,7 +2054,7 @@ _bcm_tr3_oam_ser_handler(int unit, soc_mem_t mem, int index)
             
             if (!(ep_data->in_use)) {
                 /* If endpoint not in use, just clear the RMEP entry in memory */
-                LOG_WARN(BSL_LS_BCM_OAM,
+                LOG_BSL_WARN(BSL_LS_BCM_OAM,
                          (BSL_META_U(unit,
                                      "OAM, WARN: Recieved Parity Error on"
                                       "unused Remote Id %d\n"), remote_ep_index));
@@ -2068,14 +2068,14 @@ _bcm_tr3_oam_ser_handler(int unit, soc_mem_t mem, int index)
             break;
 
         default:
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM, ERR: Invalid mem in OAM SER correction "
                                    "routine %s\n"), SOC_MEM_NAME(unit, mem)));
             return BCM_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM SER completed on mem %s, index %d, rv %d\n"), 
                  SOC_MEM_NAME(unit, mem), index, rv));
@@ -2145,7 +2145,7 @@ _bcm_tr3_oam_read_clear_faults(int unit, int index, soc_mem_t mem,
     uint32                  rval = 0;       /* Hardware register value.      */
     uint32                  clear_mask = 0; /* Mask to clear persistent faults*/
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_read_clear_faults index=%d "
                            "Table=%d.\n"), index, mem));
@@ -2207,7 +2207,7 @@ _bcm_tr3_oam_read_clear_faults(int unit, int index, soc_mem_t mem,
     /* Check if faults need to be cleared. */
     if (clear_mask && clear_p_faults) {
 
-        LOG_VERBOSE(BSL_LS_BCM_OAM,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                     (BSL_META_U(unit,
                                 "OAM: clear_mask %d.\n"),
                      clear_mask));
@@ -2284,7 +2284,7 @@ _bcm_tr3_oam_get_group(int unit, bcm_oam_group_t group_index,
                                         (uint32 *) &ma_state_entry,
                                         group_info);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Clean Faults Group ID=%d- Failed.\n"),
                    group_index));
@@ -2321,7 +2321,7 @@ _bcm_oam_group_ep_list_add(int unit,
     /* coverity : this check is present as part of secure coding method */
     /* coverity[dead_error_condition] */
     if (NULL == group_p) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
         /* coverity[dead_error_begin] */
                   (BSL_META_U(unit,
                               "OAM Error: Group data access for GID=%d failed"
@@ -2333,7 +2333,7 @@ _bcm_oam_group_ep_list_add(int unit,
     /* this check is present as part of secure coding method */
     /* coverity[dead_error_condition] */
     if (NULL == h_data_p) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint data access for EP=%d failed"
         /* coverity[dead_error_begin] */
@@ -2344,7 +2344,7 @@ _bcm_oam_group_ep_list_add(int unit,
     _BCM_OAM_ALLOC(ep_list_p, _bcm_oam_ep_list_t, sizeof(_bcm_oam_ep_list_t),
                 "EP list");
     if (NULL == ep_list_p) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint list alloc for EP=%d failed"
                                " %s.\n"), ep_id, bcm_errmsg(BCM_E_MEMORY)));
@@ -2364,7 +2364,7 @@ _bcm_oam_group_ep_list_add(int unit,
         *group_p->ep_list = ep_list_p;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_oam_group_ep_list_add (GID=%d) (EP=%d).\n"),
                group_id, ep_id));
@@ -2401,7 +2401,7 @@ _bcm_oam_group_ep_list_remove(int unit,
     cur =  *group_p->ep_list;
     if (NULL == cur) {
         /* No endpoints to remove from this group. */
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: No endpoints to delete in group"
                                " GID:%d.\n"), group_id));
@@ -2419,7 +2419,7 @@ _bcm_oam_group_ep_list_remove(int unit,
             *group_p->ep_list = NULL;
         }
         sal_free(del_node);
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: Head node delete GID=%d - Success\n"),
                    group_id));
@@ -2430,7 +2430,7 @@ _bcm_oam_group_ep_list_remove(int unit,
     while (NULL != cur->next->next) {
         h_data_p = cur->next->ep_data_p;
         if (NULL == h_data_p) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group=%d endpoints access failed -"
                                    " %s.\n"), group_id, bcm_errmsg(BCM_E_INTERNAL)));
@@ -2442,7 +2442,7 @@ _bcm_oam_group_ep_list_remove(int unit,
             cur->next = del_node->next;
             del_node->next->prev = cur;
             sal_free(del_node);
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Info: Node delete GID=%d - Success\n"),
                        group_id));
@@ -2458,7 +2458,7 @@ _bcm_oam_group_ep_list_remove(int unit,
         del_node = cur->next;
         cur->next = NULL;
         sal_free(del_node);
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: Tail node delete GID=%d - Success\n"),
                    group_id));
@@ -2505,7 +2505,7 @@ _bcm_oam_remote_mep_hw_set(int unit,
     /* Get endpoint hash data pointer. */
     h_data_p = &oc->oam_hash_data[ep_p->id];
     if (!(h_data_p->in_use)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: EP valid check failed.\n")));
         return (BCM_E_INTERNAL);
@@ -2541,7 +2541,7 @@ _bcm_oam_remote_mep_hw_set(int unit,
     rv = WRITE_RMEPm(unit, MEM_BLOCK_ALL, h_data_p->remote_index,
                      &rmep_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: RMEP table write failed EP=%d %s.\n"),
                    ep_info_p->id, bcm_errmsg(rv)));
@@ -2588,7 +2588,7 @@ _bcm_oam_remote_mep_hw_set(int unit,
     rv = soc_mem_insert(unit, mem, 
                         MEM_BLOCK_ALL, &l3_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: L3 table insert failed EP=%d %s.\n"),
                    ep_p->id, bcm_errmsg(rv)));
@@ -2658,7 +2658,7 @@ _bcm_tr3_oam_find_lmep(int unit, const _bcm_oam_hash_data_t *h_data_p,
 
     }
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: L3 entry lookup vlan=%d port=%x %s.\n"),
                    h_data_p->vlan, h_data_p->sglp, bcm_errmsg(rv)));
@@ -2708,7 +2708,7 @@ _bcm_oam_local_tx_mep_hw_set(int unit,
     /* Get the stored endpoint information from hash table. */
     hash_data = &oc->oam_hash_data[ep_p->id];
     if (!(hash_data->in_use)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: EP valid check failed.\n")));
         return (BCM_E_INTERNAL);
@@ -2873,7 +2873,7 @@ _bcm_oam_local_rx_mep_hw_set(int unit,
                                                    ep_p->opcode_flags,
                                                    &opcode_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Opcode profile set failed for EP=%d"
                                    "  %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -2883,7 +2883,7 @@ _bcm_oam_local_rx_mep_hw_set(int unit,
         /* Use default opcode control profile settings. */
         rv = _bcm_tr3_oam_opcode_profile_entry_init(unit, &opcode_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Opcode profile init failed for EP=%d"
                                    "  %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -2899,7 +2899,7 @@ _bcm_oam_local_rx_mep_hw_set(int unit,
     rv = soc_profile_mem_add(unit, &oc->oam_opcode_control_profile,
                              (void *) &entries, 1, &profile_index);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Opcode profile add failed for EP=%d"
                                "  %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -2939,7 +2939,7 @@ _bcm_oam_local_rx_mep_hw_set(int unit,
     rv = WRITE_MA_INDEXm(unit, MEM_BLOCK_ALL, h_data_p->local_rx_index,
                          &ma_idx_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: MA_INDEX table write failed for EP=%d"
                                "  %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -2969,7 +2969,7 @@ _bcm_oam_local_rx_mep_hw_set(int unit,
         rv = soc_mem_field32_modify(unit, mem, l3_index,
                                     LMEP__MDL_BITMAPf, mdl);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: L3_ENTRY table update failed for EP=%d"
                                    "  %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -3019,7 +3019,7 @@ _bcm_oam_local_rx_mep_hw_set(int unit,
 
         rv = soc_mem_insert(unit, mem, MEM_BLOCK_ALL, &l3_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: L3_ENTRY table insert failed for EP=%d"
                                    "  %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -3100,13 +3100,13 @@ _bcm_oam_rx_endpoint_reserve(int unit,
                                        (shr_idxres_element_t *) rx_index,
                                        (shr_idxres_element_t *) &count);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: MA_INDEX index alloc failed EP:%d"
                                    " %s.\n"), ep_p->id, bcm_errmsg(rv)));
             return (rv);
         } else {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Info: MA_INDEX alloc for EP:%d success."
                                    " rx_idx_base:%p alloc-count:%d.\n"), ep_p->id,
@@ -3140,7 +3140,7 @@ _bcm_oam_rx_endpoint_reserve(int unit,
                     | ep_p->level);
         } else {
             /* Rx index already taken return error. */
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: No free Rx index found for EP:%d"
                                    " %s.\n"), ep_p->id, bcm_errmsg(rv)));
@@ -3190,7 +3190,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
     /* Get remote endpoint entry value from hardware. */
     rv = READ_RMEPm(unit, MEM_BLOCK_ANY, h_data_p->remote_index, &rmep_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: RMEP table read failed for EP=%d"
                                "%s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3211,7 +3211,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
         rv = READ_MA_STATEm(unit, MEM_BLOCK_ANY, h_data_p->group_index,
                             &ma_state_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group state (GID=%d) table read"
                                    " failed - %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3265,7 +3265,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
         rv = WRITE_MA_STATEm(unit, MEM_BLOCK_ALL, h_data_p->group_index,
                              &ma_state_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group state (GID=%d) table write"
                                    " failed - %s.\n"), h_data_p->group_index,
@@ -3279,7 +3279,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
     rv = WRITE_RMEPm(unit, MEM_BLOCK_ALL, h_data_p->remote_index,
                      &rmep_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: RMEP table write index=%x (EP=%d)"
                                " - %s.\n"), h_data_p->remote_index,
@@ -3306,7 +3306,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
 #endif
     }
     if (BCM_FAILURE(rv) && (oc->init)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: RMEP view update (EP=%d)"
                                " - %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3322,7 +3322,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
                                    &validLow, &validHigh,
                                    &freeCount, &allocCount);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: RMEP pool state get failed "
                                " - %s.\n"), bcm_errmsg(rv)));
@@ -3340,7 +3340,7 @@ _bcm_tr3_oam_remote_endpoint_delete(int unit,
         rv = WRITE_MA_STATEm(unit, MEM_BLOCK_ALL, h_data_p->group_index,
                 &ma_state_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                     (BSL_META_U(unit,
                                 "OAM Error: Group state (GID=%d) table write"
                                 " failed - %s.\n"), h_data_p->group_index,
@@ -3398,7 +3398,7 @@ _bcm_tr3_oam_local_endpoint_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
                          &lmep_entry);
 
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: LMEP table write (EP=%d)"
                                    " failed - %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3418,7 +3418,7 @@ _bcm_tr3_oam_local_endpoint_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
               BCM_OAM_ENDPOINT_DELAY_MEASUREMENT) ) {
             rv = _bcm_tr3_oam_loss_delay_measurement_delete(unit, oc, h_data_p);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: LM DM delete failed (EP=%d)"
                                        "- %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3430,7 +3430,7 @@ _bcm_tr3_oam_local_endpoint_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
         rv = soc_profile_mem_delete(unit, &oc->oam_opcode_control_profile,
                                     h_data_p->profile_index);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Profile table update error (idx=%d)"
                                    "- %s.\n"), h_data_p->profile_index, bcm_errmsg(rv)));
@@ -3466,7 +3466,7 @@ _bcm_tr3_oam_local_endpoint_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
             }
             L3_UNLOCK(unit);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: LMEP view update (EP=%d) -"
                                        " %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3487,7 +3487,7 @@ _bcm_tr3_oam_local_endpoint_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
                                               (shr_idxres_element_t *) rx_index,
                                               (shr_idxres_element_t *) &count);
                 if (BCM_FAILURE(rv) || (8 != count)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: Rx index list free (EP=%d)"
                                            " (count=%d).\n"), h_data_p->ep_id, count));
@@ -3495,7 +3495,7 @@ _bcm_tr3_oam_local_endpoint_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
                 }
             }
         } else if (BCM_FAILURE(rv) && (oc->init)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: LMEP table write (EP=%d) -"
                                    " %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
@@ -3540,7 +3540,7 @@ _bcm_tr3_oam_endpoint_destroy(int unit,
     rv = shr_idxres_list_elem_state(oc->mep_pool, ep_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    ep_id, bcm_errmsg(rv)));
@@ -3556,7 +3556,7 @@ _bcm_tr3_oam_endpoint_destroy(int unit,
     rv = _bcm_oam_group_ep_list_remove(unit, h_data_p->group_index,
                                        h_data_p->ep_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Remove from group list (EP=%d) -"
                                " %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -3619,7 +3619,7 @@ _bcm_tr3_oam_endpoint_destroy(int unit,
                deleted by respective module init. */ 
             rv = _bcm_tr3_oam_bhh_session_hw_delete(unit, h_data_p);
             if (BCM_FAILURE(rv) && rv != BCM_E_NOT_FOUND) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: bhh_session_hw_delete failled " 
                                        "(EP=%d) - %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -3641,7 +3641,7 @@ _bcm_tr3_oam_endpoint_destroy(int unit,
             rv = _bcm_oam_group_ep_list_remove(unit, h_data_p->group_index,
                                        h_data_p->ep_id);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Remove from group list (EP=%d) -"
                                        " %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -3689,7 +3689,7 @@ _bcm_tr3_oam_group_endpoints_destroy(int unit,
     /* Get the endpoint list head pointer. */
     cur = *(g_info_p->ep_list);
     if (NULL == cur) {
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: No endpoints in group.\n")));
         return (BCM_E_NONE);
@@ -3698,7 +3698,7 @@ _bcm_tr3_oam_group_endpoints_destroy(int unit,
     while (NULL != cur) {
         ep_id = cur->ep_data_p->ep_id;
 
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: GID=%d EP:%d.\n"),
                    cur->ep_data_p->group_index, ep_id));
@@ -3707,7 +3707,7 @@ _bcm_tr3_oam_group_endpoints_destroy(int unit,
 
         rv = _bcm_tr3_oam_endpoint_destroy(unit, ep_id);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Endpoint destroy (EP=%d) - "
                                    "%s.\n"), ep_id, bcm_errmsg(rv)));
@@ -3911,7 +3911,7 @@ _bcm_tr3_oam_mepid_validate(int unit,
     while (NULL != cur) {
         h_data_p = cur->ep_data_p;
         if (NULL == h_data_p) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                      (BSL_META_U(unit,
                      "OAM Error: Hash data is empty\n")));
             return (BCM_E_INTERNAL);
@@ -3950,7 +3950,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
     int                 rv;  /* Operation return status. */
     _bcm_oam_hash_data_t h_stored_data;
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_endpoint_params_validate.\n")));
 
@@ -3969,7 +3969,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
 
     /* Supported MDL level is 0 - 7. */
     if ((ep_info_p->level < 0) || (ep_info_p->level > _BCM_OAM_EP_LEVEL_MAX)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: EP Level should be in the range(0-%d).\n"),
                    _BCM_OAM_EP_LEVEL_MAX ));
@@ -3978,7 +3978,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
 
     /* Check if any unsupported flags are passed the return BCM_E_PARAM */
     if (ep_info_p->flags & BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM  Error: Unsupported flag\n")));
         return (BCM_E_PARAM);
@@ -3998,7 +3998,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
      * Check and return error if MEPID is not unique within the group 
      */
     if(_bcm_tr3_oam_mepid_validate(unit, ep_info_p)) {
-        LOG_ERROR(BSL_LS_BCM_OAM, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM, (BSL_META_U(unit,
              "OAM Error: MEPID:%x passed is not unique in group %x\n"),
              ep_info_p->name, ep_info_p->group));
         return (BCM_E_PARAM);
@@ -4023,7 +4023,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
 
     rv = shr_idxres_list_elem_state(oc->group_pool, ep_info_p->group);
     if (BCM_E_EXISTS != rv) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Group (GID:%d) does not exist.\n"),
                    ep_info_p->group));
@@ -4059,7 +4059,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
     if (BCM_SUCCESS(rv)
         && !(ep_info_p->flags & BCM_OAM_ENDPOINT_REPLACE)) {
 
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint ID=%d %s.\n"),
                    ep_info_p->id, bcm_errmsg(BCM_E_EXISTS)));
@@ -4069,7 +4069,7 @@ _bcm_tr3_oam_endpoint_params_validate(int unit,
 
     } else {
 
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: Endpoint ID=%d Available. %s.\n"),
                    ep_info_p->id, bcm_errmsg(rv)));
@@ -4106,7 +4106,7 @@ _bcm_tr3_oam_fp_entry_id_allocate(int unit, bcm_field_group_t fp_group,
     
     rv = bcm_esw_field_entry_create(unit, fp_group, fp_entry_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Entry Tx creation (tx), %s.\n"),
                    bcm_errmsg(rv)));
@@ -4115,7 +4115,7 @@ _bcm_tr3_oam_fp_entry_id_allocate(int unit, bcm_field_group_t fp_group,
 
     rv = bcm_esw_field_entry_prio_set(unit, *fp_entry_id, prio);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Entry Tx Prio Set (tx), %s.\n"),
                    bcm_errmsg(rv)));
@@ -4152,7 +4152,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
     rv = bcm_esw_field_action_add(unit, fp_entry_id, 
                                   bcmFieldActionOamLmepEnable, 1, 0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action OamLmepEnable, EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4162,7 +4162,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
     rv = bcm_esw_field_action_add(unit, fp_entry_id, bcmFieldActionOamLmEnable,
                 hash_data->flags & BCM_OAM_ENDPOINT_LOSS_MEASUREMENT? 1:0, 0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action OamLmEnable, EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4172,7 +4172,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
     rv = bcm_esw_field_action_add(unit, fp_entry_id, bcmFieldActionOamDmEnable, 
                 hash_data->flags & BCM_OAM_ENDPOINT_DELAY_MEASUREMENT? 1:0, 0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action OamDmEnable, EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4186,7 +4186,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
                 BCM_FIELD_OAM_DM_TIME_FORMAT_NTP : 
                 BCM_FIELD_OAM_DM_TIME_FORMAT_IEEE1588), 0);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Adding action DmTimeFormat, "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4197,7 +4197,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
     rv = bcm_esw_field_action_add(unit, fp_entry_id, bcmFieldActionOamLmepMdl, 
                                 hash_data->level, 0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action LmepMdl (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4207,7 +4207,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
     rv = bcm_esw_field_action_add(unit, fp_entry_id, bcmFieldActionOamUpMep, 
                         hash_data->flags & BCM_OAM_ENDPOINT_UP_FACING? 1:0, 0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action OamUpMep (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4218,7 +4218,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
     rv = bcm_esw_field_action_add(unit, fp_entry_id, 
                                   bcmFieldActionOamTx, isTx, 0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action OamTx (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4231,7 +4231,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
         rv = bcm_esw_field_action_add(unit, fp_entry_id, 
                     bcmFieldActionOamLmBasePtr, hash_data->lm_counter_index, 0);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Adding action OamUpMep (tx), "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4241,7 +4241,7 @@ _bcm_tr3_oam_fp_entry_action_add(int unit, _bcm_oam_hash_data_t *hash_data,
         rv = bcm_esw_field_action_add(unit, fp_entry_id, 
             bcmFieldActionOamServicePriMappingPtr, hash_data->pri_map_index, 0);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Adding action OamUpMep (tx), "
                                   "EP=%d %s.\n"), hash_data->pri_map_index, bcm_errmsg(rv)));
@@ -4285,7 +4285,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     
     /* Group should already be created by now*/
     if( oc->fp_glp_group == -1 ){
-         LOG_ERROR(BSL_LS_BCM_OAM,
+         LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                    (BSL_META_U(unit,
                                "OAM Error: FP Croup not present, EP=%d %s.\n"),
                     hash_data->pri_map_index, bcm_errmsg(rv)));
@@ -4300,7 +4300,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     rv = _bcm_tr3_oam_fp_entry_id_allocate(unit, oc->fp_glp_group, prio, 
                                            &(hash_data->fp_entry_trunk[0]));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Trunk Entry allocate (tx), EP=%d %s\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4313,7 +4313,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     rv = bcm_esw_field_qualify_OuterVlanId(unit, fp_entry, hash_data->vlan, 
                                            BCM_FIELD_EXACT_MATCH_MASK);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Qualifying OuterVlanId (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4322,13 +4322,13 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     
     /* hash_data->dglp already contains resolved trunk index port, use it to get
      * port and module for qualifying LM/DM packet transmitted from CPU */
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM - dglp %d.\n"), 
                  hash_data->dglp));
     local_port = _BCM_OAM_GLP_PORT_GET(unit, hash_data->dglp);
     modid = _BCM_OAM_DGLP_MODULE_ID_GET(hash_data->dglp);
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM - Local Port %d, modid %d.\n"), 
                  local_port, modid));
@@ -4336,7 +4336,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     rv = bcm_esw_field_qualify_DstPort(unit, fp_entry, modid, 
             BCM_FIELD_EXACT_MATCH_MASK, local_port, BCM_FIELD_EXACT_MATCH_MASK);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Qualifying DstPort (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4346,7 +4346,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     rv  = bcm_esw_field_qualify_EtherType(unit, fp_entry, _BCM_OAM_ETHER_TYPE, 
                                           BCM_FIELD_EXACT_MATCH_MASK);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: EtherType (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4360,7 +4360,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     
     rv  = bcm_esw_field_qualify_DstIp6(unit, fp_entry, mdl_data, mdl_mask);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Qualifying MDL (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4371,7 +4371,7 @@ _bcm_tr3_oam_fp_trunk_create(int unit, _bcm_oam_control_t *oc,
     /**************/
     rv = _bcm_tr3_oam_fp_entry_action_add(unit, hash_data, fp_entry, 1);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4443,7 +4443,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_group_create(unit, oc->fp_glp_qs, 
                                 BCM_FIELD_GROUP_PRIO_ANY, &(oc->fp_glp_group));
          if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group creation, EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -4467,7 +4467,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     rv = _bcm_tr3_oam_fp_entry_id_allocate(unit, oc->fp_glp_group, prio, 
                                            &(hash_data->fp_entry_tx));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Entry allocate (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4477,7 +4477,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     rv = _bcm_tr3_oam_fp_entry_id_allocate(unit, oc->fp_glp_group, prio, 
                                            &(hash_data->fp_entry_rx));
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Entry allocate (rx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4489,7 +4489,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     /******************/    
     /* 1. VP Case */
     if (hash_data->vp != 0) {
-        LOG_VERBOSE(BSL_LS_BCM_OAM,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                     (BSL_META_U(unit,
                                 "OAM: MEP on VP\n")));
         BCM_GPORT_MIM_PORT_ID_SET(gport, hash_data->vp);
@@ -4497,7 +4497,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_qualify_DstMimGport(unit, hash_data->fp_entry_tx, 
                                                gport);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Qualifying DstMimGport (tx), "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4507,7 +4507,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     	rv = bcm_esw_field_qualify_SrcMimGport(unit, hash_data->fp_entry_rx, 
                                                gport);
     	if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Qualifying SrcMimGport (rx), "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4520,7 +4520,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
          rv = bcm_esw_field_qualify_OuterVlanId(unit, hash_data->fp_entry_tx, 
                                 hash_data->vlan, BCM_FIELD_EXACT_MATCH_MASK);
          if (BCM_FAILURE(rv)) {
-             LOG_ERROR(BSL_LS_BCM_OAM,
+             LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                        (BSL_META_U(unit,
                                    "OAM Error: Qualifying OuterVlanId (tx), "
                                    "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4530,7 +4530,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_qualify_OuterVlanId(unit, hash_data->fp_entry_rx, 
                                 hash_data->vlan, BCM_FIELD_EXACT_MATCH_MASK);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Qualifying OuterVlanId (rx), "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4540,25 +4540,25 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv = _bcm_esw_gport_resolve(unit, hash_data->gport, &modid, 
                                     &local_port, &tgid, &local_id);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: call to _bcm_esw_gport_resolve "
                                   "failed, EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
             return (rv);
         }
-        LOG_VERBOSE(BSL_LS_BCM_OAM,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                     (BSL_META_U(unit,
                                 "OAM - Local Port %d, modid %d, trunkid %d.\n"), 
                      local_port, modid, tgid));
 
         /* 2. Trunk Case */
         if (SOC_GPORT_IS_TRUNK(hash_data->gport)) {
-            LOG_VERBOSE(BSL_LS_BCM_OAM,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                         (BSL_META_U(unit,
                                     "OAM: MEP on Trunk\n")));
             
             if (BCM_TRUNK_INVALID == tgid)  {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Invalid Trunkid, EP=%d %s.\n"), 
                            hash_data->ep_id, bcm_errmsg(rv)));
@@ -4568,7 +4568,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
             rv  = bcm_esw_field_qualify_DstTrunk(unit, hash_data->fp_entry_tx, 
                                 tgid, BCM_FIELD_EXACT_MATCH_MASK);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Qualifying DstTrunk (tx), "
                                       "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4578,7 +4578,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
             rv  = bcm_esw_field_qualify_SrcTrunk(unit, hash_data->fp_entry_rx, 
                                     tgid, BCM_FIELD_EXACT_MATCH_MASK);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Qualifying SrcTrunk (rx), "
                                       "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4592,7 +4592,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
             if (!(hash_data->flags & BCM_OAM_ENDPOINT_UP_FACING)){
                 rv = _bcm_tr3_oam_fp_trunk_create(unit, oc, hash_data);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: Creating Fp Entry on Trunk Tx "
                                           "port, EP=%d %s\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4603,7 +4603,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         } else {
         
             /*3. Local Port*/
-            LOG_VERBOSE(BSL_LS_BCM_OAM,
+            LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                         (BSL_META_U(unit,
                                     "OAM: MEP on Local Port\n")));
 
@@ -4611,7 +4611,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
                                         modid, BCM_FIELD_EXACT_MATCH_MASK, 
                                         local_port, BCM_FIELD_EXACT_MATCH_MASK);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Qualifying DstPort (tx), "
                                       "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4622,7 +4622,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
                                         modid, BCM_FIELD_EXACT_MATCH_MASK, 
                                         local_port, BCM_FIELD_EXACT_MATCH_MASK);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Qualifying SrcPort (rx), "
                                       "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4644,7 +4644,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     sal_memset(&mdl_data, 0, sizeof(bcm_ip6_t));
     sal_memset(&mdl_mask, 0, sizeof(bcm_ip6_t));
     mdl_mask[0] = 0xE0;
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM _bcm_oam_lm_dm_search_data.match_count %d, "
                             "_bcm_oam_lm_dm_search_data.highest_level %d, hash_data->level %d\n"), 
@@ -4675,14 +4675,14 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         }
     }
     if (add_mdl) {
-        LOG_VERBOSE(BSL_LS_BCM_OAM,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                     (BSL_META_U(unit,
                                 "OAM add_mdl=true\n")));
 
         rv  = bcm_esw_field_qualify_EtherType(unit, fp_entry_tx, 
         _BCM_OAM_ETHER_TYPE, BCM_FIELD_EXACT_MATCH_MASK);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: EtherType (tx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -4691,7 +4691,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv  = bcm_esw_field_qualify_EtherType(unit, fp_entry_rx, 
                             _BCM_OAM_ETHER_TYPE, BCM_FIELD_EXACT_MATCH_MASK);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: EtherType (rx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -4701,7 +4701,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv  = bcm_esw_field_qualify_DstIp6(unit, fp_entry_tx, 
                                             mdl_data, mdl_mask);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Qualifying MDL (tx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -4710,7 +4710,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         rv  = bcm_esw_field_qualify_DstIp6(unit, fp_entry_rx, 
                                             mdl_data, mdl_mask);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Qualifying MDL (rx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -4726,7 +4726,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
                         hash_data, hash_data->fp_entry_tx, 
                         hash_data->flags & BCM_OAM_ENDPOINT_UP_FACING? 0:1);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4736,7 +4736,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     rv = _bcm_tr3_oam_fp_entry_action_add(unit, hash_data, 
     hash_data->fp_entry_rx, hash_data->flags & BCM_OAM_ENDPOINT_UP_FACING? 1:0);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Adding action (rx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4748,7 +4748,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     /* Tx Entry */
     rv = bcm_esw_field_entry_install(unit, hash_data->fp_entry_tx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Install failed (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4757,7 +4757,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     /* Rx Entry */
     rv = bcm_esw_field_entry_install(unit, hash_data->fp_entry_rx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Install failed (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4767,7 +4767,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
     if (hash_data->fp_entry_trunk[0] != -1){
         rv = bcm_esw_field_entry_install(unit, hash_data->fp_entry_trunk[0]);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: FP Install failed (Trunk), "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4779,7 +4779,7 @@ _bcm_tr3_oam_fp_create(int unit, _bcm_oam_control_t *oc,
         if (modify_entry[i] != -1) {
             rv = bcm_esw_field_entry_install(unit, modify_entry[i]);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: FP Modify failed, EP=%d %s.\n"),
                            hash_data->ep_id, bcm_errmsg(rv)));
@@ -4844,7 +4844,7 @@ _bcm_tr3_oam_pri_map_profile_create(int unit, _bcm_oam_control_t *oc,
     rv = soc_profile_mem_add(unit, &oc->ing_service_pri_map,
                          (void *) &entries, BCM_OAM_INTPRI_MAX, &profile_index);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: service map profile add, EP=%d %s.\n"), 
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -4932,14 +4932,14 @@ _bcm_tr3_oam_loss_delay_measurement_add(int unit, _bcm_oam_control_t *oc,
     if port vlan matching entry already exists */
     rv = shr_htb_iterate(unit, oc->ma_mep_htbl, _bcm_lm_dm_search_cb);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: LM Search failed, EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
         return (rv);
     }
     
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM: Existing EP on vlan port count=%d, "
                             "Highest level=%d, EP=%d\n"),
@@ -4965,7 +4965,7 @@ _bcm_tr3_oam_loss_delay_measurement_add(int unit, _bcm_oam_control_t *oc,
             rv  = _bcm_tr3_oam_pri_map_profile_create(unit, oc, hash_data, 
                                                       endpoint_info);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: ING_SERVICE_PRI_MAP profile "
                                       "creation, EP=%d %s\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4976,7 +4976,7 @@ _bcm_tr3_oam_loss_delay_measurement_add(int unit, _bcm_oam_control_t *oc,
             rv = shr_idxres_list_alloc(oc->lm_counter_pool,
                         (shr_idxres_element_t *)&hash_data->lm_counter_index);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: lm counter idx alloc failed, "
                                       "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -4988,7 +4988,7 @@ _bcm_tr3_oam_loss_delay_measurement_add(int unit, _bcm_oam_control_t *oc,
     /* Create Field entries / modify existing if needed. Also install*/
     rv  = _bcm_tr3_oam_fp_create(unit, oc, hash_data);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Create failed, EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -5015,7 +5015,7 @@ _bcm_tr3_oam_loss_delay_measurement_add(int unit, _bcm_oam_control_t *oc,
     
     /* Increment the group FP count */
     oc->fp_glp_entry_cnt++;
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM: oc->fp_glp_entry_cnt=%d\n"), 
                  oc->fp_glp_entry_cnt));
@@ -5062,14 +5062,14 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
        other port vlan matching entry already exists */
     rv = shr_htb_iterate(unit, oc->ma_mep_htbl, _bcm_lm_dm_search_cb);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: LM Search failed, EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
         return (rv);
     }
     
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM: Existing EP on vlan port count=%d, "
                             "Highest level=%d, EP=%d\n"), 
@@ -5088,7 +5088,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
                             &oc->ing_service_pri_map, 
                             (hash_data->pri_map_index * BCM_OAM_INTPRI_MAX));
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: ING_SERVICE_PRI_MAP profile "
                                       "deletion, EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -5099,7 +5099,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
             rv = shr_idxres_list_free( oc->lm_counter_pool, 
                             (shr_idxres_element_t)hash_data->lm_counter_index);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: lm counter idx free failed, "
                                       "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -5120,7 +5120,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_qualifier_delete(unit, 
                 existing_ep_hash_data->fp_entry_tx, bcmFieldQualifyEtherType);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Eth Type dequlaify (tx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5130,7 +5130,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_qualifier_delete(unit, 
                 existing_ep_hash_data->fp_entry_tx, bcmFieldQualifyDstIp6);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Level dequlaify (tx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5140,7 +5140,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_qualifier_delete(unit, 
                 existing_ep_hash_data->fp_entry_rx, bcmFieldQualifyEtherType);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Eth Type dequlaify (rx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5150,7 +5150,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_qualifier_delete(unit, 
                 existing_ep_hash_data->fp_entry_rx, bcmFieldQualifyDstIp6);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Level dequlaify (rx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5161,7 +5161,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_entry_install(unit, 
                                          existing_ep_hash_data->fp_entry_tx);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: FP Install failed (tx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5171,7 +5171,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
         rv = bcm_esw_field_entry_install(unit, 
                                          existing_ep_hash_data->fp_entry_rx);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: FP Install failed (tx), EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5184,7 +5184,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
     /* Tx Entry */
     rv = bcm_esw_field_entry_destroy(unit, hash_data->fp_entry_tx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Destroy failed (tx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -5195,7 +5195,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
     /* Rx Entry */
     rv = bcm_esw_field_entry_destroy(unit, hash_data->fp_entry_rx);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: FP Destroy failed (rx), EP=%d %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -5207,7 +5207,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
     if (hash_data->fp_entry_trunk[0] != -1) {
         rv = bcm_esw_field_entry_destroy(unit, hash_data->fp_entry_trunk[0]);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: FP Destroy failed (Trunk), "
                                   "EP=%d %s.\n"), hash_data->ep_id, bcm_errmsg(rv)));
@@ -5218,7 +5218,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
     
     /* Decrement the group FP count */
     oc->fp_glp_entry_cnt--;
-    LOG_VERBOSE(BSL_LS_BCM_OAM,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                             "OAM: oc->fp_glp_entry_cnt=%d\n"), 
                  oc->fp_glp_entry_cnt));
@@ -5226,7 +5226,7 @@ _bcm_tr3_oam_loss_delay_measurement_delete(int unit, _bcm_oam_control_t *oc,
     if (!(oc->fp_glp_entry_cnt)) {
         rv = bcm_esw_field_group_destroy(unit, oc->fp_glp_group);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: FP Group Destroy failed, EP=%d %s.\n"),
                        hash_data->ep_id, bcm_errmsg(rv)));
@@ -5483,7 +5483,7 @@ _bcm_tr3_oam_wb_group_recover(int unit, int stable_size, uint8 **oam_scache,
         rv = READ_MAID_REDUCTIONm(unit, MEM_BLOCK_ANY, index,
                                   &maid_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: (GID=%d) MAID_REDUCTION table read"
                                    " failed  - %s.\n"), index, bcm_errmsg(rv)));
@@ -5492,7 +5492,7 @@ _bcm_tr3_oam_wb_group_recover(int unit, int stable_size, uint8 **oam_scache,
 
         rv = READ_MA_STATEm(unit, MEM_BLOCK_ANY, index, &ma_state_ent);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: (GID=%d) MA_STATE table read"
                                    " failed  - %s.\n"), index, bcm_errmsg(rv)));
@@ -5537,7 +5537,7 @@ _bcm_tr3_oam_wb_group_recover(int unit, int stable_size, uint8 **oam_scache,
             rv = shr_idxres_list_reserve(oc->group_pool, index, index);
             if (BCM_FAILURE(rv)) {
                 rv = (rv == BCM_E_RESOURCE) ? (BCM_E_EXISTS) : rv;
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: (GID=%d) Index reserve "
                                        " failed  - %s.\n"), index, bcm_errmsg(rv)));
@@ -5601,7 +5601,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
     soc_mem_t               mem;             /* L3 entry memory               */
     int                     rmep_index;      /* Index of RMEP table           */ 
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_rmep_recover.\n")));
     /*
@@ -5624,7 +5624,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
         rv = shr_idxres_list_reserve(oc->mep_pool, ep_id, ep_id);
         if (BCM_FAILURE(rv)) {
             rv = (rv == BCM_E_RESOURCE) ? (BCM_E_EXISTS) : rv;
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                 (BSL_META_U(unit,
                     "OAM Error: (EP_ID=%d) Index reserve "
                     " failed  - %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -5637,7 +5637,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
         rv = shr_idxres_list_alloc(oc->mep_pool,
                                (shr_idxres_element_t *)&ep_id);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Endpoint alloc (EP=%d) - %s.\n"),
                        ep_id, bcm_errmsg(rv)));
@@ -5660,7 +5660,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
     /* Get RMEP table entry contents. */
     rv = READ_RMEPm(unit, MEM_BLOCK_ANY, h_data_p->remote_index, &rmep_entry);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: RMEP (index=%d) read failed  - %s.\n"),
                    h_data_p->remote_index, bcm_errmsg(rv)));
@@ -5722,7 +5722,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
             BCM_GPORT_MPLS_PORT_ID_SET(h_data_p->gport, h_data_p->vp);
 
          } else {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Invalid Virtual Port (SVP=%d) "
                                    "- %s.\n"), h_data_p->vp, bcm_errmsg(BCM_E_INTERNAL)));
@@ -5749,7 +5749,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
 
         rv = _bcm_esw_gport_construct(unit, &gport_dest, &gport);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Gport construct failed - %s.\n"),
                        bcm_errmsg(rv)));
@@ -5763,7 +5763,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
                                  h_data_p->remote_index,
                                  h_data_p->remote_index);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: (RMEP=%d) Index reserve failed  - %s.\n"),
                    h_data_p->remote_index, bcm_errmsg(rv)));
@@ -5798,14 +5798,14 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
 
     rv = shr_htb_insert(oc->ma_mep_htbl, hash_key, h_data_p);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Hash table insert failed "
                                "EP=%d %s.\n"), h_data_p->ep_id, bcm_errmsg(rv)));
         _bcm_oam_group_ep_list_remove(unit, h_data_p->group_index, ep_id);
         goto cleanup;
     } else {
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: Hash Tbl (EP=%d) inserted"
                                " - %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -5813,7 +5813,7 @@ _bcm_tr3_oam_rmep_recover(int unit, int index, uint32 *l3_entry, uint8 **scache,
     sal_free(ep_info);
     ep_info = NULL;
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_rmep_recover - done.\n")));
 
@@ -5841,7 +5841,7 @@ cleanup:
         _BCM_OAM_HASH_DATA_CLEAR(h_data_p);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_rmep_recover - error_done.\n")));
     return (rv);
@@ -5880,7 +5880,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
     soc_mem_t               mem;          /* L3 entry memory                 */
     int                     ma_idx;       /* MA_TABLE index                  */ 
     
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_lmep_rx_config_recover.\n")));
     /*
@@ -5910,7 +5910,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
                 rv = shr_idxres_list_reserve(oc->mep_pool, ep_id, ep_id);
                 if (BCM_FAILURE(rv)) {
                     rv = (rv == BCM_E_RESOURCE) ? (BCM_E_EXISTS) : rv;
-                    LOG_ERROR(BSL_LS_BCM_OAM, 
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM, 
                               (BSL_META_U(unit,
                             "OAM Error: (EP_ID=%d) Index reserve "
                             " failed  - %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -5922,7 +5922,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
                 rv = shr_idxres_list_alloc(oc->mep_pool,
                                        (shr_idxres_element_t *)&ep_id);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: Endpoint alloc (EP=%d) - %s.\n"),
                                ep_id, bcm_errmsg(rv)));
@@ -5951,7 +5951,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
                     (unit, MEM_BLOCK_ANY, h_data_p->local_rx_index,
                      &ma_idx_entry);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: MA_INDEX (index:%d) read failed -"
                                        " %s.\n"), h_data_p->local_rx_index,
@@ -6010,7 +6010,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
                     BCM_GPORT_MPLS_PORT_ID_SET(h_data_p->gport, h_data_p->vp);
 
                 } else {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: Invalid Virtual Port (SVP=%d)"
                                            " - %s.\n"), h_data_p->vp,
@@ -6037,7 +6037,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
 
                 rv = _bcm_esw_gport_construct(unit, &gport_dest, &gport);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: Gport construct failed -"
                                            " %s.\n"), bcm_errmsg(rv)));
@@ -6060,7 +6060,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
                level BCM_E_RESOURCE is expected and not an error 
              */ 
             if ( (BCM_FAILURE(rv)) && (rv != BCM_E_RESOURCE) ) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: (RMEP=%d) Index reserve failed"
                                        "  - %s.\n"), h_data_p->remote_index,
@@ -6101,7 +6101,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
 
             rv = shr_htb_insert(oc->ma_mep_htbl, hash_key, h_data_p);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Hash table insert"
                                        " (EP=%d) failed - %s.\n"),
@@ -6112,7 +6112,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
                                               ep_id);
                 goto cleanup;
             } else {
-                LOG_DEBUG(BSL_LS_BCM_OAM,
+                LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Info: Hash Tbl (EP=%d)"
                                        " inserted  - %s.\n"), ep_id,
@@ -6121,7 +6121,7 @@ _bcm_tr3_oam_lmep_rx_config_recover(int unit, int index, uint32 *l3_entry,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_lmep_rx_config_recover"
                            " - done.\n")));
@@ -6148,7 +6148,7 @@ cleanup:
         _BCM_OAM_HASH_DATA_CLEAR(h_data_p);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_lmep_rx_config_recover"
                            " - error_done.\n")));
@@ -6193,7 +6193,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
     _bcm_oam_hash_data_t    *sh_data_p = NULL; /* Endpoint hash data pointer. */
     uint32                  ccm_period = 0;
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_lmep_tx_config_recover.\n")));
 
@@ -6217,7 +6217,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
         /* Get the LMEP table entry. */
         rv = READ_LMEPm(unit, MEM_BLOCK_ANY, index, &lmep_entry);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: LMEP table read (index=%d) failed "
                                    "- %s.\n"), index, bcm_errmsg(rv)));
@@ -6234,7 +6234,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
    
        rv = READ_MAID_REDUCTIONm(unit, MEM_BLOCK_ANY, grp_idx, &maid_red_ent);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: MAID_REDU read (GID=%d) failed "
                                    "- %s.\n"), grp_idx, bcm_errmsg(rv)));
@@ -6280,7 +6280,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
 
             rv = _bcm_esw_gport_construct(unit, &gport_dest, &gport);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Gport construct failed"
                                        " - %s.\n"), bcm_errmsg(rv)));
@@ -6293,7 +6293,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
                 while (NULL != cur) {
                     h_data_p = cur->ep_data_p;
                     if (NULL == h_data_p) {
-                        LOG_ERROR(BSL_LS_BCM_OAM,
+                        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                   (BSL_META_U(unit,
                                               "OAM Error: Group (GID=%d) NULL"
                                                " endpoint list.\n"), grp_idx));
@@ -6361,7 +6361,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
                     rv = shr_idxres_list_reserve(oc->mep_pool, ep_id, ep_id);
                     if (BCM_FAILURE(rv)) {
                         rv = (rv == BCM_E_RESOURCE) ? (BCM_E_EXISTS) : rv;
-                        LOG_ERROR(BSL_LS_BCM_OAM,
+                        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                         (BSL_META_U(unit,
                             "OAM Error: (EP_ID=%d) Index reserve "
                             " failed  - %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -6372,7 +6372,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
                     rv = shr_idxres_list_alloc(oc->mep_pool,
                                            (shr_idxres_element_t *)&ep_id);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_OAM,
+                        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                   (BSL_META_U(unit,
                                               "OAM Error: Endpoint alloc (EP=%d)"
                                                " - %s.\n"), ep_id, bcm_errmsg(rv)));
@@ -6388,7 +6388,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
 
                 rv = _bcm_oam_group_ep_list_add(unit, grp_idx, ep_id);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: Adding (EP=%d)"
                                            " to (GID=%d) failed - %s.\n"),
@@ -6420,7 +6420,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
                                          h_data_p->local_tx_index,
                                          h_data_p->local_tx_index);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Tx index=%d reserve failed"
                                        " - %s.\n"), index, bcm_errmsg(rv)));
@@ -6450,7 +6450,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
 
             rv = shr_htb_insert(oc->ma_mep_htbl, hash_key, h_data_p);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Hash table insert"
                                        " (EP=%d) failed - %s.\n"),
@@ -6462,7 +6462,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
 
                 goto cleanup;
             } else {
-                LOG_DEBUG(BSL_LS_BCM_OAM,
+                LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Info: Hash Tbl (EP=%d)"
                                        " inserted  - %s.\n"), h_data_p->ep_id,
@@ -6475,7 +6475,7 @@ _bcm_tr3_oam_lmep_tx_config_recover(int unit, uint8 **scache,
         h_data_p = NULL;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_lmep_tx_config_recover"
                            " - done.\n")));
@@ -6506,7 +6506,7 @@ cleanup:
         shr_idxres_list_free(oc->lmep_pool, index);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: _bcm_tr3_oam_lmep_tx_config_recover"
                            " - error_done.\n")));
@@ -6564,7 +6564,7 @@ _bcm_tr3_oam_wb_endpoints_recover(int unit, int stable_size,
             rv = READ_L3_ENTRY_1m(unit, MEM_BLOCK_ANY, index, &l3_entry);
         }
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: L3_ENTRY (index=%d) read"
                                    " failed  - %s.\n"), index, bcm_errmsg(rv)));
@@ -6580,7 +6580,7 @@ _bcm_tr3_oam_wb_endpoints_recover(int unit, int stable_size,
                         rv = _bcm_tr3_oam_rmep_recover(unit, index, l3_entry, 
                                                     oam_scache, recovered_ver);
                         if (BCM_FAILURE(rv)) {
-                            LOG_ERROR(BSL_LS_BCM_OAM,
+                            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                       (BSL_META_U(unit,
                                                   "OAM Error: Remote endpoint"
                                                    " (index=%d) reconstruct failed  - %s.\n"),
@@ -6593,7 +6593,7 @@ _bcm_tr3_oam_wb_endpoints_recover(int unit, int stable_size,
                         rv = _bcm_tr3_oam_lmep_rx_config_recover(unit, index,
                                         l3_entry, oam_scache, recovered_ver);
                         if (BCM_FAILURE(rv)) {
-                            LOG_ERROR(BSL_LS_BCM_OAM,
+                            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                       (BSL_META_U(unit,
                                                   "OAM Error: Local endpoint"
                                                    " (index=%d) reconstruct failed  - %s.\n"),
@@ -6617,7 +6617,7 @@ _bcm_tr3_oam_wb_endpoints_recover(int unit, int stable_size,
                     rv = _bcm_tr3_oam_rmep_recover(unit, index, l3_entry, 
                                                     oam_scache, recovered_ver);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_OAM,
+                        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                   (BSL_META_U(unit,
                                               "OAM Error: Remote endpoint"
                                                " (index=%d) reconstruct failed  - %s.\n"),
@@ -6630,7 +6630,7 @@ _bcm_tr3_oam_wb_endpoints_recover(int unit, int stable_size,
                     rv = _bcm_tr3_oam_lmep_rx_config_recover(unit, index,
                                         l3_entry, oam_scache, recovered_ver);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_OAM,
+                        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                   (BSL_META_U(unit,
                                               "OAM Error: Local endpoint"
                                                " (index=%d) reconstruct failed  - %s.\n"),
@@ -6648,7 +6648,7 @@ _bcm_tr3_oam_wb_endpoints_recover(int unit, int stable_size,
     }
     rv = _bcm_tr3_oam_lmep_tx_config_recover(unit, oam_scache, recovered_ver);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint Tx config recovery"
                                " failed  - %s.\n"), bcm_errmsg(rv)));
@@ -6679,7 +6679,7 @@ _bcm_tr3_oam_reinit(int unit)
     uint16              recovered_ver = 0;
     int                 realloc_size = 0;
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: OAM warm boot recovery.....\n")));
 
@@ -6723,7 +6723,7 @@ _bcm_tr3_oam_reinit(int unit)
     }
     
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Group recovery failed  - %s.\n"),
                    bcm_errmsg(rv)));
@@ -6733,7 +6733,7 @@ _bcm_tr3_oam_reinit(int unit)
     rv = _bcm_tr3_oam_wb_endpoints_recover(unit, stable_size, &oam_scache, 
                                                                 recovered_ver);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint recovery failed  - %s.\n"),
                    bcm_errmsg(rv)));
@@ -6769,7 +6769,7 @@ _bcm_tr3_oam_reinit(int unit)
         SOC_SCACHE_HANDLE_SET(scache_handle, unit, BCM_MODULE_OAM, 0); 
         rv = soc_scache_realloc(unit, scache_handle, realloc_size); 
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
             (BSL_META_U(unit,"OAM Error: scache alloc failed  - %s.\n"),
                     bcm_errmsg(rv)));
             goto cleanup;
@@ -6859,7 +6859,7 @@ bcm_tr3_oam_init(int unit)
 
     /* Ensure that the unit has OAM support. */
     if (!soc_feature(unit, soc_feature_oam)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: OAM not supported \n")));
         return (BCM_E_UNAVAIL);
@@ -6870,7 +6870,7 @@ bcm_tr3_oam_init(int unit)
         
         if(SOC_E_NONE != soc_cmic_uc_msg_active_wait(unit, 0))
         {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "uKernel Not Ready, bhh not started\n")));
             return (BCM_E_NONE);
@@ -6887,7 +6887,7 @@ bcm_tr3_oam_init(int unit)
         /* coverity[stack_use_overflow] */
         rv = bcm_tr3_oam_detach(unit);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Module deinit - %s.\n"),
                        bcm_errmsg(rv)));
@@ -6933,7 +6933,7 @@ bcm_tr3_oam_init(int unit)
     oc->ep_count += oc->bhh_endpoint_count;
 
     if(oc->ep_count >= _BCM_OAM_TRIUMPH3_ENDPOINT_MAX) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: OAM EP count %d not supported \n"), 
                    oc->ep_count));
@@ -7431,7 +7431,7 @@ bcm_tr3_oam_detach(int unit)
                 sal_usleep(1000);
             } else {
                 /*timeout*/
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH event thread did not exit.\n")));
                 return BCM_E_INTERNAL;
@@ -7587,14 +7587,14 @@ bcm_tr3_oam_group_create(int unit, bcm_oam_group_info_t *group_info)
             rv = shr_idxres_list_elem_state(oc->group_pool, group_info->id);
             if (BCM_E_EXISTS != rv) {
                 _BCM_OAM_UNLOCK(oc);
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Group does not exist.\n")));
                 return (BCM_E_PARAM);
             }
         } else {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Replace command needs a valid Group ID.\n")));
             return (BCM_E_PARAM);
@@ -7616,7 +7616,7 @@ bcm_tr3_oam_group_create(int unit, bcm_oam_group_info_t *group_info)
                                     (shr_idxres_element_t *) &group_info->id);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group allocation (GID=%d)"
                                    " %s\n"), group_info->id, bcm_errmsg(rv)));
@@ -7671,7 +7671,7 @@ bcm_tr3_oam_group_create(int unit, bcm_oam_group_info_t *group_info)
            cur = *(ma_group->ep_list);
            if (NULL == cur) {
                _BCM_OAM_UNLOCK(oc);
-               LOG_DEBUG(BSL_LS_BCM_OAM,
+               LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                          (BSL_META_U(unit,
                                      "OAM Info: No endpoints in group GID=%d.\n"),
                           group_info->id));
@@ -7682,7 +7682,7 @@ bcm_tr3_oam_group_create(int unit, bcm_oam_group_info_t *group_info)
            while (NULL != cur) {
                h_data_p = cur->ep_data_p;
                if (NULL == h_data_p) {
-                   LOG_ERROR(BSL_LS_BCM_OAM,
+                   LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                              (BSL_META_U(unit,
                                          "OAM Error: Group=%d endpoints access failed -"
                                           " %s.\n"), group_info->id, bcm_errmsg(BCM_E_INTERNAL)));
@@ -7711,7 +7711,7 @@ bcm_tr3_oam_group_create(int unit, bcm_oam_group_info_t *group_info)
                                                  MOS_MSG_SUBCLASS_BHH_SESS_SET_REPLY,
                                                  &reply_len, _BHH_UC_MSG_TIMEOUT_USECS);
                if (BCM_FAILURE(rv)) {
-                   LOG_ERROR(BSL_LS_BCM_OAM,
+                   LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                              (BSL_META_U(unit,
                                          "OAM Error: ukernel msg failed for"
                                           "%s.\n"), bcm_errmsg(rv)));
@@ -7810,7 +7810,7 @@ bcm_tr3_oam_group_get(int unit, bcm_oam_group_t group,
     rv = shr_idxres_list_elem_state(oc->group_pool, group);
     if (BCM_E_EXISTS != rv) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: GID=%d - %s.\n"),
                    group, bcm_errmsg(rv)));
@@ -7824,7 +7824,7 @@ bcm_tr3_oam_group_get(int unit, bcm_oam_group_t group,
     rv = _bcm_tr3_oam_get_group(unit, group, group_p, group_info);
     if (BCM_FAILURE(rv)) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: bcm_tr3_oam_group_get Group ID=%d "
                                "- Failed.\n"), group));
@@ -7868,7 +7868,7 @@ bcm_tr3_oam_group_destroy(int unit,
     rv = shr_idxres_list_elem_state(oc->group_pool, group);
     if (BCM_E_EXISTS != rv) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: GID=%d - %s.\n"),
                    group, bcm_errmsg(rv)));
@@ -7881,7 +7881,7 @@ bcm_tr3_oam_group_destroy(int unit,
     rv = _bcm_tr3_oam_group_endpoints_destroy(unit, g_info_p);
     if (BCM_FAILURE(rv)) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: bcm_tr3_oam_endpoint_destroy_all"
                                " (GID=%d) - %s.\n"), group, bcm_errmsg(rv)));
@@ -7893,7 +7893,7 @@ bcm_tr3_oam_group_destroy(int unit,
                           &maid_reduction_entry);
     if (BCM_FAILURE(rv)) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: MAID REDUCTION write "
                                "(GID=%d) - %s.\n"), group, bcm_errmsg(rv)));
@@ -7908,7 +7908,7 @@ bcm_tr3_oam_group_destroy(int unit,
     rv = WRITE_MA_STATEm(unit, MEM_BLOCK_ALL, group, &ma_state_entry);
     if (BCM_FAILURE(rv)) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: MA STATE write "
                                "(GID=%d) - %s.\n"), group, bcm_errmsg(rv)));
@@ -7962,7 +7962,7 @@ bcm_tr3_oam_group_destroy_all(int unit)
         rv = bcm_tr3_oam_group_destroy(unit, group);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group destroy failed "
                                    "(GID=%d) - %s.\n"), group, bcm_errmsg(rv)));
@@ -8029,7 +8029,7 @@ bcm_tr3_oam_group_traverse(int unit, bcm_oam_group_traverse_cb cb,
             rv = _bcm_tr3_oam_get_group(unit, grp_idx, group_p, &group_info);
             if (BCM_FAILURE(rv)) {
                 _BCM_OAM_UNLOCK(oc);
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: _bcm_tr3_oam_get_group "
                                        "(GID=%d) - %s.\n"), grp_idx, bcm_errmsg(rv)));
@@ -8040,7 +8040,7 @@ bcm_tr3_oam_group_traverse(int unit, bcm_oam_group_traverse_cb cb,
             rv = cb(unit, &group_info, user_data);
             if (BCM_FAILURE(rv)) {
                 _BCM_OAM_UNLOCK(oc);
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: User call back routine "
                                        "(GID=%d) - %s.\n"), grp_idx, bcm_errmsg(rv)));
@@ -8083,7 +8083,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
     int                  remote = 0;        /* Remote endpoint status.      */
 
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: bcm_tr3_oam_endpoint_create "
                            "Endpoint ID=%d.\n"), endpoint_info->id));
@@ -8109,7 +8109,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
     rv = _bcm_tr3_oam_endpoint_params_validate(unit, oc, &hash_key,
                                                endpoint_info);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: (EP=%d) - %s.\n"),
                    endpoint_info->id, bcm_errmsg(rv)));
@@ -8124,7 +8124,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
         {
             rv = bcm_tr3_oam_bhh_endpoint_create(unit, endpoint_info, &hash_key);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: BHH Endpoint create (EP=%d) - %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -8139,7 +8139,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
     /* Resolve given endpoint gport value to Source GLP and Dest GLP values. */
     rv = _bcm_tr3_oam_endpoint_gport_resolve(unit, endpoint_info, &sglp, &dglp);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Gport resolve (EP=%d) - %s.\n"),
                    endpoint_info->id, bcm_errmsg(rv)));
@@ -8164,7 +8164,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
         
         rv = _bcm_tr3_oam_endpoint_destroy(unit, endpoint_info->id);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Endpoint destroy (EP=%d) - %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -8180,7 +8180,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
         rv = shr_idxres_list_reserve(oc->mep_pool, ep_req_index,
                                      ep_req_index);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Endpoint reserve (EP=%d) - %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -8193,7 +8193,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
             rv = shr_idxres_list_alloc(oc->mep_pool,
                                    (shr_idxres_element_t *)&ep_req_index);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Endpoint alloc failed - %s.\n"),
                            bcm_errmsg(rv)));
@@ -8243,7 +8243,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
                  (shr_idxres_element_t *)&hash_data->remote_index);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: RMEP index alloc failed EP:%d %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -8258,7 +8258,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
                      (shr_idxres_element_t *)&hash_data->local_tx_index);
             if (BCM_FAILURE(rv)) {
                 _BCM_OAM_UNLOCK(oc);
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: LMEP Tx index alloc failed EP:%d "
                                        "%s.\n"), endpoint_info->id, bcm_errmsg(rv)));
@@ -8280,7 +8280,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
                 shr_idxres_list_free(oc->mep_pool, endpoint_info->id);
 
                 _BCM_OAM_UNLOCK(oc);
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: LMEP Rx index alloc failed EP:%d "
                                        "%s.\n"), endpoint_info->id, bcm_errmsg(rv)));
@@ -8292,7 +8292,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
 
     rv = shr_htb_insert(oc->ma_mep_htbl, hash_key, hash_data);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Hash table insert failed EP=%d %s.\n"),
                    endpoint_info->id, bcm_errmsg(rv)));
@@ -8302,7 +8302,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
     if (1 == remote) {
         rv = _bcm_oam_remote_mep_hw_set(unit, endpoint_info);
         if (BCM_FAILURE(rv)) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Remote MEP set failed EP=%d %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -8328,7 +8328,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
         if (mep_ccm_tx) {
             rv = _bcm_oam_local_tx_mep_hw_set(unit, endpoint_info);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Tx config failed for EP=%d %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -8356,7 +8356,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
         if (mep_ccm_rx) {
             rv = _bcm_oam_local_rx_mep_hw_set(unit, endpoint_info);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: Rx config failed for EP=%d %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -8395,7 +8395,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
                     rv  = _bcm_tr3_oam_loss_delay_measurement_add(unit, 
                                                 oc, hash_data, endpoint_info);
                     if (BCM_FAILURE(rv)) {
-                        LOG_ERROR(BSL_LS_BCM_OAM,
+                        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                                   (BSL_META_U(unit,
                                               "OAM Error: FP insert failed for "
                                               "LM DM over EP=%d %s.\n"), endpoint_info->id, 
@@ -8437,7 +8437,7 @@ bcm_tr3_oam_endpoint_create(int unit, bcm_oam_endpoint_info_t *endpoint_info)
     rv = _bcm_oam_group_ep_list_add(unit, endpoint_info->group,
                                     endpoint_info->id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Tx config failed for EP=%d %s.\n"),
                    endpoint_info->id, bcm_errmsg(rv)));
@@ -8497,7 +8497,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
     rv = shr_idxres_list_elem_state(oc->mep_pool, endpoint);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    endpoint, bcm_errmsg(rv)));
@@ -8511,7 +8511,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
         return (BCM_E_INTERNAL);
     }
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "OAM Info: Endpoint (EP=%d) remote=%d local_tx=%d"
                            "local_tx_idx=%d local_rx_en=%d local_rx_idx=%d\n"),
@@ -8527,7 +8527,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
             rv = READ_RMEPm(unit, MEM_BLOCK_ANY, h_data_p->remote_index,
                             &rmep_entry);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: RMEP table read failed for"
                                       " EP=%d %s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8539,7 +8539,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
                                                 RMEPm, (uint32 *) &rmep_entry,
                                                 (void *) endpoint_info);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "OAM Error: RMEP table read failed for"
                                       " EP=%d %s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8554,7 +8554,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
                 rv = READ_LMEPm(unit, MEM_BLOCK_ANY, h_data_p->local_tx_index,
                                 &lmep_entry);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: LMEP table read failed for"
                                           " EP=%d %s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8583,7 +8583,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
                 rv = READ_LMEP_DAm(unit, MEM_BLOCK_ANY, h_data_p->local_tx_index,
                                    &dmac_entry);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: LMEP_DA table read failed for"
                                           " EP=%d %s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8616,7 +8616,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
                                                MOS_MSG_SUBCLASS_BHH_SESS_GET_REPLY,
                                                &reply_len, _BHH_UC_MSG_TIMEOUT_USECS);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: ukernel msg failed for"
                                   " EP=%d %s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8631,7 +8631,7 @@ bcm_tr3_oam_endpoint_get(int unit, bcm_oam_endpoint_t endpoint,
 
         if (reply_len != buffer_len) {
             rv = BCM_E_INTERNAL;
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: ukernel msg failed for"
                                   " EP=%d %s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8718,7 +8718,7 @@ bcm_tr3_oam_endpoint_destroy(int unit, bcm_oam_endpoint_t endpoint)
 
     rv = _bcm_tr3_oam_endpoint_destroy(unit, endpoint);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint destroy EP=%d failed - "
                               "%s.\n"), endpoint, bcm_errmsg(rv)));
@@ -8758,7 +8758,7 @@ bcm_tr3_oam_endpoint_destroy_all(int unit, bcm_oam_group_t group)
     rv = shr_idxres_list_elem_state(oc->group_pool, group);
     if (BCM_E_EXISTS != rv) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Group ID=%d does not exist.\n"),
                    group));
@@ -8769,7 +8769,7 @@ bcm_tr3_oam_endpoint_destroy_all(int unit, bcm_oam_group_t group)
     g_info_p = &oc->group_info[group];
     rv = _bcm_tr3_oam_group_endpoints_destroy(unit, g_info_p);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Group (GID=%d) endpoints destroy"
                               " failed - %s.\n"), group, bcm_errmsg(rv)));
@@ -8824,7 +8824,7 @@ bcm_tr3_oam_endpoint_traverse(int unit, bcm_oam_group_t group,
     rv = shr_idxres_list_elem_state(oc->group_pool, group);
     if (BCM_E_EXISTS != rv) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Group ID=%d does not exist.\n"),
                    group));
@@ -8838,7 +8838,7 @@ bcm_tr3_oam_endpoint_traverse(int unit, bcm_oam_group_t group,
     cur = *(g_info_p->ep_list);
     if (NULL == cur) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_DEBUG(BSL_LS_BCM_OAM,
+        LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Info: No endpoints in group GID=%d.\n"),
                    group));
@@ -8849,7 +8849,7 @@ bcm_tr3_oam_endpoint_traverse(int unit, bcm_oam_group_t group,
     while (NULL != cur) {
         h_data_p = cur->ep_data_p;
         if (NULL == h_data_p) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Group=%d endpoints access failed -"
                                   " %s.\n"), group, bcm_errmsg(BCM_E_INTERNAL)));
@@ -8861,7 +8861,7 @@ bcm_tr3_oam_endpoint_traverse(int unit, bcm_oam_group_t group,
         rv = bcm_tr3_oam_endpoint_get(unit, h_data_p->ep_id, &ep_info);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: EP=%d info get failed %s.\n"),
                        h_data_p->ep_id, bcm_errmsg(rv)));
@@ -8876,7 +8876,7 @@ bcm_tr3_oam_endpoint_traverse(int unit, bcm_oam_group_t group,
         rv = cb(unit, &ep_info, user_data);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: EP=%d callback failed - %s.\n"),
                        h_data_p->ep_id, bcm_errmsg(rv)));
@@ -8924,7 +8924,7 @@ bcm_tr3_oam_event_register(int unit, bcm_oam_event_types_t event_types,
     SHR_BITTEST_RANGE(event_types.w, 0, bcmOAMEventCount, event_bmp);
     if (0 == event_bmp) {
         /* No events specified. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: No events specified for register.\n")));
         return (BCM_E_PARAM);
@@ -8949,7 +8949,7 @@ bcm_tr3_oam_event_register(int unit, bcm_oam_event_types_t event_types,
 
         if (NULL == event_h_p) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Event handler alloc failed -"
                                   " %s.\n"), bcm_errmsg(BCM_E_MEMORY)));
@@ -8970,7 +8970,7 @@ bcm_tr3_oam_event_register(int unit, bcm_oam_event_types_t event_types,
     rv = READ_CCM_INTERRUPT_CONTROLr(unit, &rval);
     if (BCM_FAILURE(rv)) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: CCM interrupt control read failed -"
                               " %s.\n"), bcm_errmsg(rv)));
@@ -9024,7 +9024,7 @@ bcm_tr3_oam_event_register(int unit, bcm_oam_event_types_t event_types,
         rv = WRITE_CCM_INTERRUPT_CONTROLr(unit, rval);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: CCM interrupt control write failed -"
                                   " %s.\n"), bcm_errmsg(rv)));
@@ -9083,7 +9083,7 @@ bcm_tr3_oam_event_unregister(int unit, bcm_oam_event_types_t event_types,
     SHR_BITTEST_RANGE(event_types.w, 0, bcmOAMEventCount, event_bmp);
     if (0 == event_bmp) {
         /* No events specified. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: No events specified for register.\n")));
         return (BCM_E_PARAM);
@@ -9109,7 +9109,7 @@ bcm_tr3_oam_event_unregister(int unit, bcm_oam_event_types_t event_types,
     rv = READ_CCM_INTERRUPT_CONTROLr(unit, &rval);
     if (BCM_FAILURE(rv)) {
         _BCM_OAM_UNLOCK(oc);
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: CCM interrupt control read failed -"
                                " %s.\n"), bcm_errmsg(rv)));
@@ -9168,7 +9168,7 @@ bcm_tr3_oam_event_unregister(int unit, bcm_oam_event_types_t event_types,
         rv = WRITE_CCM_INTERRUPT_CONTROLr(unit, rval);
         if (BCM_FAILURE(rv)) {
             _BCM_OAM_UNLOCK(oc);
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: CCM interrupt control write failed -"
                                    " %s.\n"), bcm_errmsg(rv)));
@@ -9256,7 +9256,7 @@ _bcm_tr3_oam_bhh_fp_set(int unit, _bcm_oam_hash_data_t *hash_data, uint32 nhi,
     rv = _bcm_esw_gport_resolve(unit,
             hash_data->gport, &module_id, &port_id, &trunk_id, &local_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error: Gport resolve (EP=%d) - %s.\n"),
                    hash_data->ep_id, bcm_errmsg(rv)));
@@ -9321,7 +9321,7 @@ _bcm_tr3_oam_bhh_fp_set(int unit, _bcm_oam_hash_data_t *hash_data, uint32 nhi,
                           (shr_idxres_element_t *)&hash_data->lm_counter_index);
         if (BCM_FAILURE(rv)) {
             rv = (rv == BCM_E_RESOURCE) ? (BCM_E_FULL) : rv;
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH Error: lm counter idx alloc failed - %s.\n"),
                            bcm_errmsg(rv)));
@@ -9342,7 +9342,7 @@ _bcm_tr3_oam_bhh_fp_set(int unit, _bcm_oam_hash_data_t *hash_data, uint32 nhi,
         rv = soc_profile_mem_add(unit, &oc->ing_service_pri_map,
                 (void *) &entries, BCM_OAM_INTPRI_MAX, &profile_index);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error: Adding ING_SERVICE_PRI_MAP entry"
                                    " - %s.\n"), bcm_errmsg(rv)));
@@ -10158,7 +10158,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
     uint32 session_flags;
     int bhh_pool_ep_idx = 0;
 
-    LOG_DEBUG(BSL_LS_BCM_OAM,
+    LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
               (BSL_META_U(unit,
                           "BHH Info: bcm_tr3_oam_bhh_endpoint_create"
                            "Endpoint ID=%d.\n"), endpoint_info->id));
@@ -10177,7 +10177,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
     rv = _bcm_esw_gport_resolve(unit,
             endpoint_info->gport, &module_id, &port_id, &trunk_id, &local_id);
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error: Gport resolve (EP=%d) - %s.\n"),
                    endpoint_info->id, bcm_errmsg(rv)));
@@ -10220,7 +10220,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
         }
 
         if(BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error: Endpoint check (EP=%d) - %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -10232,7 +10232,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
                                      bhh_pool_ep_idx);
             if (BCM_FAILURE(rv)) {
                 rv = (rv == BCM_E_RESOURCE) ? (BCM_E_EXISTS) : rv;
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH Error: Endpoint reserve (EP=%d) - %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -10259,7 +10259,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
                                    (shr_idxres_element_t *)&bhh_pool_ep_idx);
             if (BCM_FAILURE(rv)) {
                 rv = (rv == BCM_E_RESOURCE) ? (BCM_E_FULL) : rv;
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH Error: Endpoint alloc failed - %s.\n"),
                            bcm_errmsg(rv)));
@@ -10308,7 +10308,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
                           MOS_MSG_SUBCLASS_BHH_SESS_ENABLE_REPLY,
                           &reply_len, _BHH_UC_MSG_TIMEOUT_USECS);
         if (BCM_FAILURE(rv) || (reply_len != 0)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error: Endpoint destroy (EP=%d) - %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -10348,7 +10348,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
     /* hash collision!!! Is this needed for BHH? */
         rv = shr_htb_insert(oc->ma_mep_htbl, hash_key, hash_data);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error: Hash table insert failed EP=%d %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -10362,7 +10362,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
         if(BCM_FAILURE(rv)) {
             /* Return ID back to free MEP ID pool.*/
             BCM_IF_ERROR_RETURN(shr_idxres_list_free(oc->bhh_pool, bhh_pool_ep_idx));
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error: Endpoint destroy (EP=%d) - %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -10374,7 +10374,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
             if(BCM_FAILURE(rv)) {
                 /* Return ID back to free MEP ID pool.*/
                 BCM_IF_ERROR_RETURN(shr_idxres_list_free(oc->bhh_pool, bhh_pool_ep_idx));
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH Error: Endpoint destroy (EP=%d) - %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -10395,7 +10395,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
             if(BCM_FAILURE(rv)) {
                 /* Return ID back to free MEP ID pool.*/
                 BCM_IF_ERROR_RETURN(shr_idxres_list_free(oc->bhh_pool, bhh_pool_ep_idx));
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH Error: Endpoint destroy (EP=%d) - %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -10426,7 +10426,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
             {
                 /* Return ID back to free MEP ID pool.*/
                 BCM_IF_ERROR_RETURN(shr_idxres_list_free(oc->bhh_pool, bhh_pool_ep_idx));
-                LOG_ERROR(BSL_LS_BCM_OAM,
+                LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                           (BSL_META_U(unit,
                                       "BHH Error: Endpoint destroy (EP=%d) - %s.\n"),
                            endpoint_info->id, bcm_errmsg(rv)));
@@ -10489,7 +10489,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
         if (BCM_FAILURE(rv) || (reply_len != 0)) {
             /* Return ID back to free MEP ID pool.*/
             BCM_IF_ERROR_RETURN(shr_idxres_list_free(oc->bhh_pool, bhh_pool_ep_idx));
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error: Endpoint destroy (EP=%d) - %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -10504,7 +10504,7 @@ bcm_tr3_oam_bhh_endpoint_create(int unit,
         if (BCM_FAILURE(rv)) {
             /* Return ID back to free MEP ID pool.*/
             BCM_IF_ERROR_RETURN(shr_idxres_list_free(oc->bhh_pool, bhh_pool_ep_idx));
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "OAM Error: Tx config failed for EP=%d %s.\n"),
                        endpoint_info->id, bcm_errmsg(rv)));
@@ -10641,7 +10641,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
      */
     rv = READ_CPU_CONTROL_0r(unit, &val);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. Read CPU Control Reg %s.\n"),
                    bcm_errmsg(rv)));
@@ -10658,7 +10658,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
 
     rv = WRITE_CPU_CONTROL_0r(unit, val);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. Write CPU Control_0 Reg %s.\n"),
                    bcm_errmsg(rv)));
@@ -10672,7 +10672,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
 
     rv = READ_CPU_CONTROL_Mr(unit, &val);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. Read CPU Control Reg %s.\n"),
                    bcm_errmsg(rv)));
@@ -10685,7 +10685,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
                         MPLS_UNKNOWN_ACH_VERSION_TOCPUf, 1); 
     rv = WRITE_CPU_CONTROL_Mr(unit, val);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. Write CPU Control_m Reg %s.\n"),
                    bcm_errmsg(rv)));
@@ -10707,7 +10707,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
      max_cosq = min_cosq + num_cosq - 1;
 
      if(max_cosq < min_cosq) {
-         LOG_ERROR(BSL_LS_BCM_OAM,
+         LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                    (BSL_META_U(unit,
                                "BHH Error: No BHH COS Queue available from uC%d - %s\n"),
                     oc->uc_num, bcm_errmsg(BCM_E_CONFIG)));
@@ -10755,7 +10755,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
 
     if (i < min_cosq) {
         rv = BCM_E_RESOURCE;
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. queue channel set %s.\n"),
                    bcm_errmsg(rv)));
@@ -10781,7 +10781,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
     invalid_error_index    = -1;   /* COSQ map index for error packets */
     rv = bcm_esw_rx_cosq_mapping_size_get(unit, &cosq_map_size);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. cosq maps size %s.\n"),
                    bcm_errmsg(rv)));
@@ -10806,7 +10806,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
             }
         }
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(unit,
                                   "BHH Error:hw init. cosq maps get %s.\n"),
                        bcm_errmsg(rv)));
@@ -10816,7 +10816,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
     }
 
     if (ach_error_index == -1 || invalid_error_index == -1) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. ACH error %s.\n"),
                    bcm_errmsg(rv)));
@@ -10838,7 +10838,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
                                      0, 0, /* Any packet type */
                                      oc->cpu_cosq);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. cosq map set %s.\n"),
                    bcm_errmsg(rv)));
@@ -10859,7 +10859,7 @@ _bcm_tr3_oam_bhh_hw_init(int unit)
                                      0, 0, /* Any packet type */
                                      oc->cpu_cosq);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "BHH Error:hw init. cosq map set %s.\n"),
                    bcm_errmsg(rv)));
@@ -11026,7 +11026,7 @@ _bcm_tr3_oam_bhh_session_hw_delete(int unit, _bcm_oam_hash_data_t *h_data_p)
                 rv = soc_mem_write(unit, MPLS_ENTRYm, MEM_BLOCK_ANY, 
                         mpls_index, &mpls_entry);
                 if (BCM_FAILURE(rv)) {
-                    LOG_ERROR(BSL_LS_BCM_OAM,
+                    LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                               (BSL_META_U(unit,
                                           "OAM Error: MPLS_ENTRY write failed - "
                                            "%s.\n"), bcm_errmsg(rv)));
@@ -11224,7 +11224,7 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
     thread_name[0] = 0x0;
     oc->event_thread_id   = sal_thread_self();
     oc->event_thread_kill = 0;
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(oc->unit,
                             "BHH callback thread starting\n")));
 
@@ -11246,7 +11246,7 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
 
         if (sess_id < 0 || 
             sess_id >= oc->ep_count) {
-            LOG_WARN(BSL_LS_BCM_OAM,
+            LOG_BSL_WARN(BSL_LS_BCM_OAM,
                      (BSL_META_U(oc->unit,
                                  "Invalid sess_id:%d\n"), sess_id));
         } else {
@@ -11254,7 +11254,7 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
         rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
         if ((BCM_E_EXISTS != rv)) {
             /* Endpoint not in use. */
-            LOG_ERROR(BSL_LS_BCM_OAM,
+            LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "OAM Error: Endpoint EP=%d %s.\n"),
                        ep_id, bcm_errmsg(rv)));
@@ -11273,7 +11273,7 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
         sal_memset(&events, 0, sizeof(events));
 
         if (event_mask & BHH_BTE_EVENT_LB_TIMEOUT) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH LB Timeout ******\n")));
 
@@ -11281,21 +11281,21 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
             SHR_BITSET(events.w, bcmOAMEventBHHLBTimeout);
         }
         if (event_mask & BHH_BTE_EVENT_LB_DISCOVERY_UPDATE) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH LB Discovery Update ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHLBDiscoveryUpdate] > 0)
             SHR_BITSET(events.w, bcmOAMEventBHHLBDiscoveryUpdate);
         }
         if (event_mask & BHH_BTE_EVENT_CCM_TIMEOUT) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH CCM Timeout ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHCCMTimeout] > 0)
             SHR_BITSET(events.w, bcmOAMEventBHHCCMTimeout);
         }
         if (event_mask & BHH_BTE_EVENT_STATE) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH State ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHCCMState] > 0)
@@ -11303,28 +11303,28 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
         }
    
         if (event_mask & BHH_BTE_EVENT_CCM_RDI) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH CCM RDI ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHCCMRdi] > 0)
             SHR_BITSET(events.w, bcmOAMEventBHHCCMRdi);
         }
         if (event_mask & BHH_BTE_EVENT_CCM_UNKNOWN_MEG_LEVEL) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH CCM Unknown MEG Level ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHCCMUnknownMegLevel] > 0)
             SHR_BITSET(events.w, bcmOAMEventBHHCCMUnknownMegLevel);
         }
         if (event_mask & BHH_BTE_EVENT_CCM_UNKNOWN_MEG_ID) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH CCM Unknown MEG ID ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHCCMUnknownMegId] > 0)
             SHR_BITSET(events.w, bcmOAMEventBHHCCMUnknownMegId);
         }
         if (event_mask & BHH_BTE_EVENT_CCM_UNKNOWN_MEP_ID) {
-            LOG_DEBUG(BSL_LS_BCM_OAM,
+            LOG_BSL_DEBUG(BSL_LS_BCM_OAM,
                       (BSL_META_U(oc->unit,
                                   "****** OAM BHH CCM Unknown MEP ID ******\n")));
             if (oc->event_handler_cnt[bcmOAMEventBHHCCMUnknownMepId] > 0)
@@ -11358,11 +11358,11 @@ _bcm_tr3_oam_bhh_callback_thread(void *param)
     oc->event_thread_kill = 0;
     oc->event_thread_id   = NULL;
     if (BCM_FAILURE(rv)) { 
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(oc->unit,
                               "AbnormalThreadExit:%s\n"), thread_name));  
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(oc->unit,
                             "BHH callback thread stopped\n")));
     sal_thread_exit(0);
@@ -11494,7 +11494,7 @@ bcm_tr3_oam_loopback_add(int unit, bcm_oam_loopback_t *loopback_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loopback_p->id, bcm_errmsg(rv)));
@@ -11606,7 +11606,7 @@ bcm_tr3_oam_loopback_get(int unit, bcm_oam_loopback_t *loopback_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loopback_p->id, bcm_errmsg(rv)));
@@ -11629,7 +11629,7 @@ bcm_tr3_oam_loopback_get(int unit, bcm_oam_loopback_t *loopback_p)
                       MOS_MSG_SUBCLASS_BHH_LOOPBACK_GET_REPLY,
                       &reply_len, _BHH_UC_MSG_TIMEOUT_USECS);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loopback_p->id, bcm_errmsg(rv)));
@@ -11728,7 +11728,7 @@ bcm_tr3_oam_loopback_delete(int unit, bcm_oam_loopback_t *loopback_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loopback_p->id, bcm_errmsg(rv)));
@@ -11805,7 +11805,7 @@ bcm_tr3_oam_loss_add(int unit, bcm_oam_loss_t *loss_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loss_p->id, bcm_errmsg(rv)));
@@ -11978,7 +11978,7 @@ bcm_tr3_oam_loss_get(int unit, bcm_oam_loss_t *loss_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loss_p->id, bcm_errmsg(rv)));
@@ -12001,7 +12001,7 @@ bcm_tr3_oam_loss_get(int unit, bcm_oam_loss_t *loss_p)
                       MOS_MSG_SUBCLASS_BHH_LOSS_MEASUREMENT_GET_REPLY,
                       &reply_len, _BHH_UC_MSG_TIMEOUT_USECS);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loss_p->id, bcm_errmsg(rv)));
@@ -12085,7 +12085,7 @@ bcm_tr3_oam_loss_delete(int unit, bcm_oam_loss_t *loss_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    loss_p->id, bcm_errmsg(rv)));
@@ -12162,7 +12162,7 @@ bcm_tr3_oam_delay_add(int unit, bcm_oam_delay_t *delay_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    delay_p->id, bcm_errmsg(rv)));
@@ -12258,7 +12258,7 @@ bcm_tr3_oam_delay_get(int unit, bcm_oam_delay_t *delay_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    delay_p->id, bcm_errmsg(rv)));
@@ -12281,7 +12281,7 @@ bcm_tr3_oam_delay_get(int unit, bcm_oam_delay_t *delay_p)
                       MOS_MSG_SUBCLASS_BHH_DELAY_MEASUREMENT_GET_REPLY,
                       &reply_len, _BHH_UC_MSG_TIMEOUT_USECS);
     if(BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    delay_p->id, bcm_errmsg(rv)));
@@ -12383,7 +12383,7 @@ bcm_tr3_oam_delay_delete(int unit, bcm_oam_delay_t *delay_p)
     rv = shr_idxres_list_elem_state(oc->bhh_pool, sess_id);
     if ((BCM_E_EXISTS != rv)) {
         /* Endpoint not in use. */
-        LOG_ERROR(BSL_LS_BCM_OAM,
+        LOG_BSL_ERROR(BSL_LS_BCM_OAM,
                   (BSL_META_U(unit,
                               "OAM Error: Endpoint EP=%d %s.\n"),
                    delay_p->id, bcm_errmsg(rv)));

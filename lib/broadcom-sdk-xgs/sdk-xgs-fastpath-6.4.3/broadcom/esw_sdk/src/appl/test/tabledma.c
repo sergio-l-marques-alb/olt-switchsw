@@ -709,13 +709,13 @@ td_test_test(int unit, args_t *a, void *pa)
 
 #ifdef BCM_CMICM_SUPPORT
     if(td_test_data.ccm) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Note:  Cross Coupled Memory \n")));
     } else 
 #endif
     {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Table DMA %s: copy %d, from entry %d for %d entries SEED = %d\n"),
                   td_test_data.mem_str,

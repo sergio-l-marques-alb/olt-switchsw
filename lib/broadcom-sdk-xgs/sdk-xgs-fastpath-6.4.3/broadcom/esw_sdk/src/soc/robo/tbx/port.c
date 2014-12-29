@@ -1069,7 +1069,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
     soc_pbmp_t tmp_pbmp;
     mac_driver_t *p_mac = NULL;    
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_tbx_port_set: unit=%d bmp=%x %x\n"), \
               unit, SOC_PBMP_WORD_GET(bmp, 0), SOC_PBMP_WORD_GET(bmp, 1)));
@@ -1077,7 +1077,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
     SOC_ROBO_PORT_INIT(unit);
     switch (prop_type) {
         case DRV_PORT_PROP_SPEED:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_SPEED\n")));
 
@@ -1120,7 +1120,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             break;
 
         case DRV_PORT_PROP_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_DUPLEX\n")));
             switch (prop_val) {
@@ -1157,7 +1157,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             break;
         case DRV_PORT_PROP_RESTART_AUTONEG:
         case DRV_PORT_PROP_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_AUTONEG\n")));
             PBMP_ITER(bmp, port) {
@@ -1166,7 +1166,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_TX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_TX_PAUSE\n")));
             PBMP_ITER(bmp, port) {
@@ -1185,7 +1185,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_RX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_RX_PAUSE\n")));
             PBMP_ITER(bmp, port) {
@@ -1204,7 +1204,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_LOCAL_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: LOCAL_ADVER\n")));
             PBMP_ITER(bmp, port) {
@@ -1213,35 +1213,35 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_REMOTE_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: REMOTE_ADVER not support\n")));
             /* can not set remote advert */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_PORT_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PORT_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_MAC_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_MAC_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_PHY_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_ABILITY not support\n")));
             /* can not be set */
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_INTERFACE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_INTERFACE\n")));
             PBMP_ITER(bmp, port) {
@@ -1250,7 +1250,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             break;
         case DRV_PORT_PROP_MAC_ENABLE:
             /* This case is called for _bcm_robo_port_update() only. */
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_MAC_ENABLE\n")));
             PBMP_ITER(bmp, port) {
@@ -1269,7 +1269,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_ENABLE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_ENABLE\n")));
             PBMP_ITER(bmp, port) {
@@ -1321,7 +1321,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
         case DRV_PORT_PROP_ENABLE_RX:
         case DRV_PORT_PROP_ENABLE_TX:
         case DRV_PORT_PROP_ENABLE_TXRX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_ENABLE_SET\n")));
             PBMP_ITER(bmp, port) {
@@ -1333,7 +1333,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
         case DRV_PORT_PROP_EGRESS_CFI_REMARK:
         case DRV_PORT_PROP_EGRESS_DSCP_REMARK:
         case DRV_PORT_PROP_EGRESS_ECN_REMARK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_EGRESS REMARKING\n")));
             PBMP_ITER(bmp, port) {
@@ -1343,7 +1343,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             break;
         case DRV_PORT_PROP_IPG_FE:
         case DRV_PORT_PROP_IPG_GE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_IPG_FE/GE\n")));
             if (SOC_PBMP_EQ(bmp, PBMP_ALL(unit))) { /* per system */
@@ -1358,7 +1358,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_JAM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_JAM\n")));
             
@@ -1381,7 +1381,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_BPDU_RX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_BPDU_RX\n")));
             if (SOC_PBMP_EQ(bmp, PBMP_ALL(unit))) {
@@ -1397,7 +1397,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_MAC_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_MAC_LOOPBACK\n")));
             PBMP_ITER(bmp, port) {
@@ -1415,7 +1415,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_LOOPBACK\n")));
             PBMP_ITER(bmp, port) {
@@ -1431,7 +1431,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
                     soc_MIICTLr_field_get(unit, &reg32_value, F_SPD_SELf, 
                             &temp);
                     if (!temp) {    /* F_SPD_SEL == b0 means speed=10 */
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "No loopback on port%d for speed=10!\n"),
                                   port));
@@ -1443,13 +1443,13 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_MEDIUM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_MEDIUM not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_PHY_MDIX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_MDIX\n")));
             PBMP_ITER(bmp, port) {
@@ -1457,13 +1457,13 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_MDIX_STATUS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_MDIX_STATUS not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_MS not support\n")));
             PBMP_ITER(bmp, port) {
@@ -1471,7 +1471,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_SEC_MODE_NONE\n")));
             PBMP_ITER(bmp, port) {
@@ -1568,7 +1568,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
         case DRV_PORT_PROP_SA_UNKNOWN_CPUCOPY:
         case DRV_PORT_PROP_SA_OVERLIMIT_DROP:
         case DRV_PORT_PROP_SA_OVERLIMIT_CPUCOPY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PORT PROPERTY : SA VIOLATION DROP or CPUCOPY\n")));
             PBMP_ITER(bmp, port) {
@@ -1577,7 +1577,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP\n")));
             PBMP_ITER(bmp, port) {
@@ -1589,7 +1589,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU\n")));
             PBMP_ITER(bmp, port) {
@@ -1602,7 +1602,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_L2_LEARN_LIMIT_PORT_ACTION_NONE\n")));
             PBMP_ITER(bmp, port) {
@@ -1618,7 +1618,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION\n"))); 
             /* tbx can be at action in one of NONE, CPU-COPY, CPU-REDIRECT and DROP */
@@ -1662,7 +1662,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break; 
         case DRV_PORT_PROP_PHY_LINKUP_EVT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_LINKUP_EVT\n")));
             PBMP_ITER(bmp, port) {
@@ -1674,7 +1674,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_LINKDN_EVT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_LINKDN_EVT\n")));
             PBMP_ITER(bmp, port) {
@@ -1686,7 +1686,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PHY_RESET:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_PHY_RESET\n")));
             PBMP_ITER(bmp, port) {
@@ -1694,14 +1694,14 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_DTAG_MODE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_DTAG_MODE\n")));
             rv = _drv_tbx_port_property_enable_set(
                 unit, 0, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_ISP_PORT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_DTAG_ISP_PORT\n")));
             PBMP_ITER(bmp, port) {
@@ -1710,7 +1710,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_DTAG_TPID:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_DTAG_TPID\n")));
             SOC_IF_ERROR_RETURN(REG_READ_ISP_TPIDr(unit, &reg32_value));
@@ -1719,13 +1719,13 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             SOC_IF_ERROR_RETURN(REG_WRITE_ISP_TPIDr(unit, &reg32_value));
             break;
         case DRV_PORT_PROP_802_1X_MODE :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_802_1X_MODE\n")));
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_802_1X_BLK_RX :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_802_1X_BLK_RX\n")));
             rv = SOC_E_PARAM;
@@ -1778,7 +1778,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
                     
             SOC_PBMP_WORD_SET(tmp_pbmp, 0, temp);
             
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s,current ing_sflow_en pbm=0x%x\n"),
                       FUNCTION_NAME(), temp));
@@ -1795,7 +1795,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             rv |= soc_INGRESS_SFLOW_PORTr_field_set(unit, &reg32_value,
                     EN_INGRESS_PORTMAPf, &temp);
             rv |= REG_WRITE_INGRESS_SFLOW_PORTr(unit, &reg32_value);
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s,last ing_sflow_en pbm=0x%x\n"),
                       FUNCTION_NAME(), reg32_value));
@@ -1807,7 +1807,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             if (prop_val) {
                 temp = drv_robo_port_sample_rate_get(unit, prop_val);
 
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "%s,setting user rate=%d, trans_rate=%d\n"),
                           FUNCTION_NAME(), prop_val, temp));
@@ -1828,7 +1828,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
                 PBMP_ITER(bmp, port) {
                     SOC_ROBO_PORT_INFO(unit, port).ing_sample_rate = prop_val;
                 }        
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "%s, chip rate=%x\n"),
                           FUNCTION_NAME(), temp));
@@ -1848,7 +1848,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
                     SOC_ROBO_PORT_INFO(unit, port).ing_sample_rate = prop_val;
                 }
             }
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s, ingress sample rate=%d\n"),
                       FUNCTION_NAME(), prop_val));
@@ -1860,7 +1860,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             rv |= soc_EGRESS_SFLOWr_field_get(unit, &reg32_value,
                     EGRESS_PORTf, &temp);
 
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s,current egr_sflow_port=%d, user rate=%x\n"),
                       FUNCTION_NAME(), temp, prop_val));
@@ -1905,7 +1905,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
                 rv |= soc_EGRESS_SFLOWr_field_set(unit, &reg32_value,
                         EGRESS_CFGf, &temp);
 
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "%s,last egr_sflow_port=%d, chip rate=%x\n"),
                           FUNCTION_NAME(), conf_port, temp));
@@ -1932,7 +1932,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             rv |= REG_WRITE_EGRESS_SFLOWr(unit, &reg32_value);
             
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "%s, egress sample rate=%d\n"),
                       FUNCTION_NAME(), SOC_ROBO_PORT_INFO(unit, conf_port).eg_sample_rate));
@@ -1946,7 +1946,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
         case DRV_PORT_PROP_DEFAULT_TC_PRIO:
         case DRV_PORT_PROP_DEFAULT_DROP_PRECEDENCE:
         case DRV_PORT_PROP_UNTAG_DEFAULT_TC:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_set: PROP_DEFAULT_QOS CONFIGURATION\n")));
             PBMP_ITER(bmp, port) {
@@ -1955,7 +1955,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
             }
             break;
         case DRV_PORT_PROP_PROFILE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: DRV_PORT_PROP_PROFILE\n")));
             /* valid check */
@@ -1981,7 +1981,7 @@ drv_tbx_port_set(int unit, soc_pbmp_t bmp,
         break;
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_tbx_port_set: Exit\n")));
     return rv;
@@ -2022,7 +2022,7 @@ int drv_tbx_port_get(int unit, int port,
     p_mac = SOC_ROBO_PORT_MAC_DRIVER(unit, port);
     switch (prop_type) {
         case DRV_PORT_PROP_SPEED:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Speed\n")));
             temp = 0;
@@ -2059,7 +2059,7 @@ int drv_tbx_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Duplex\n")));
             temp = 0;
@@ -2089,7 +2089,7 @@ int drv_tbx_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_AUTONEG:     /* get PHY auto-neg */
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Autoneg\n")));
             
@@ -2099,7 +2099,7 @@ int drv_tbx_port_get(int unit, int port,
                         DRV_PORT_STATUS_AUTONEG_DISABLED;
             break;
         case DRV_PORT_PROP_TX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: TX Pause\n")));
             if (p_mac != NULL) {
@@ -2114,7 +2114,7 @@ int drv_tbx_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_RX_PAUSE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: RX Pause\n")));
             if (p_mac != NULL) {
@@ -2129,13 +2129,13 @@ int drv_tbx_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_LOCAL_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Local Advertise\n")));
             rv = soc_phyctrl_adv_local_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_REMOTE_ADVERTISE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Remote Advertise\n")));
             /* if auto-negotiation is ON and negotiation is completed */
@@ -2143,7 +2143,7 @@ int drv_tbx_port_get(int unit, int port,
             rv = soc_phyctrl_adv_remote_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PORT_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Port Ability\n")));
             rv = soc_phyctrl_ability_get(unit, port, &phy_ability);
@@ -2163,7 +2163,7 @@ int drv_tbx_port_get(int unit, int port,
             *prop_val |= phy_ability & SOC_PM_ABILITY_PHY;
             break;
         case DRV_PORT_PROP_MAC_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: MAC Ability\n")));
             if (p_mac != NULL) {
@@ -2179,13 +2179,13 @@ int drv_tbx_port_get(int unit, int port,
             *prop_val = mac_ability;
             break;
         case DRV_PORT_PROP_PHY_ABILITY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PHY Ability\n")));
             rv = soc_phyctrl_ability_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_INTERFACE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Interface\n")));
             if (p_mac != NULL) {
@@ -2200,7 +2200,7 @@ int drv_tbx_port_get(int unit, int port,
             } 
             break;
         case DRV_PORT_PROP_ENABLE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Enable\n")));
             /* get PHY enable status only! (the same design flow with ESW) */
@@ -2217,7 +2217,7 @@ int drv_tbx_port_get(int unit, int port,
         case DRV_PORT_PROP_ENABLE_RX:
         case DRV_PORT_PROP_ENABLE_TX:
         case DRV_PORT_PROP_ENABLE_TXRX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: Enable Get\n")));
             rv = _drv_tbx_port_property_enable_get(
@@ -2227,7 +2227,7 @@ int drv_tbx_port_get(int unit, int port,
         case DRV_PORT_PROP_EGRESS_CFI_REMARK:
         case DRV_PORT_PROP_EGRESS_DSCP_REMARK:
         case DRV_PORT_PROP_EGRESS_ECN_REMARK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_EGRESS REMARKING\n")));
             rv = _drv_tbx_port_property_enable_get(
@@ -2235,7 +2235,7 @@ int drv_tbx_port_get(int unit, int port,
             break;
         case DRV_PORT_PROP_IPG_FE:
         case DRV_PORT_PROP_IPG_GE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: IPG FE/GE\n")));
             SOC_IF_ERROR_RETURN(REG_READ_SWMODEr(unit, &reg32_value));
@@ -2254,7 +2254,7 @@ int drv_tbx_port_get(int unit, int port,
 
             break;
         case DRV_PORT_PROP_JAM:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: JAM\n")));
             if (p_mac != NULL) {
@@ -2270,7 +2270,7 @@ int drv_tbx_port_get(int unit, int port,
             } 
             break;
         case DRV_PORT_PROP_BPDU_RX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: BPDU RX\n")));
             SOC_IF_ERROR_RETURN(REG_READ_GMNGCFGr(unit, &reg32_value));
@@ -2282,13 +2282,13 @@ int drv_tbx_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_RESTART_AUTONEG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_RESTART_AUTONEG not support\n")));
             rv = SOC_E_UNAVAIL;
             break;
         case DRV_PORT_PROP_MAC_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_MAC_LOOPBACK\n")));
             if (p_mac != NULL) {
@@ -2303,7 +2303,7 @@ int drv_tbx_port_get(int unit, int port,
             }
             break;
         case DRV_PORT_PROP_PHY_LOOPBACK:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_PHY_LOOPBACK\n")));
             rv = soc_phyctrl_loopback_get(unit, port, (int *) prop_val);
@@ -2312,25 +2312,25 @@ int drv_tbx_port_get(int unit, int port,
             rv = soc_phyctrl_medium_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PHY_MDIX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_PHY_MDIX\n")));
             rv = soc_phyctrl_mdix_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_PHY_MDIX_STATUS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_PHY_MDIX_STATUS\n")));
             rv = soc_phyctrl_mdix_status_get(unit, port, prop_val);
             break;
         case DRV_PORT_PROP_MS:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_MS\n")));
             rv = soc_phyctrl_master_get(unit, port, (int *) prop_val);
             break;
         case DRV_PORT_PROP_SEC_MAC_MODE_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_SEC_MODE_NONE\n")));
             rv = _drv_tbx_port_security_mode_get(
@@ -2376,28 +2376,28 @@ int drv_tbx_port_get(int unit, int port,
         case DRV_PORT_PROP_SA_UNKNOWN_CPUCOPY:
         case DRV_PORT_PROP_SA_OVERLIMIT_DROP:
         case DRV_PORT_PROP_SA_OVERLIMIT_CPUCOPY:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PORT PROPERTY SA VIOLATION DROP or CPUCOPY\n")));
             rv = _drv_tbx_port_property_enable_get(
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_L2_LEARN_LIMIT_PORT_ACTION_DROP\n")));
             SOC_IF_ERROR_RETURN(_drv_tbx_port_property_enable_get
                 (unit, port, DRV_PORT_PROP_SA_OVERLIMIT_DROP, prop_val));
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_L2_LEARN_LIMIT_PORT_ACTION_CPU\n")));
             SOC_IF_ERROR_RETURN(_drv_tbx_port_property_enable_get
                 (unit, port, DRV_PORT_PROP_SA_OVERLIMIT_CPUCOPY, prop_val));
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION_NONE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_L2_LEARN_LIMIT_PORT_ACTION_NONE\n")));
             /* check if the drop and toCPU action both not been enabled */
@@ -2411,7 +2411,7 @@ int drv_tbx_port_get(int unit, int port,
             *prop_val = (temp) ? FALSE : TRUE;
             break;
         case DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: DRV_PORT_PROP_L2_LEARN_LIMIT_PORT_ACTION\n")));
             /* tbx can be at action in one of NONE, CPU-COPY, CPU-REDIRECT 
@@ -2443,32 +2443,32 @@ int drv_tbx_port_get(int unit, int port,
             break; 
 
         case DRV_PORT_PROP_PHY_CABLE_DIAG:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_PHY_CABLE_DIAG\n")));
             rv = soc_phyctrl_cable_diag(unit, port, 
                                         (soc_port_cable_diag_t *)prop_val);
             break;
         case DRV_PORT_PROP_PHY_LINK_CHANGE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_PHY_LINKCHANGE\n")));
             rv = soc_phyctrl_link_change(unit, port, (int *) prop_val);
             break;
         case DRV_PORT_PROP_DTAG_MODE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_DTAG_MODE\n")));
             rv = _drv_tbx_port_property_enable_get(unit, 0, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_ISP_PORT:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_DTAG_ISP_PORT\n")));
             rv = _drv_tbx_port_property_enable_get(unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_DTAG_TPID:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_DTAG_TPID\n")));
             SOC_IF_ERROR_RETURN(REG_READ_ISP_TPIDr(unit, &reg32_value));
@@ -2476,13 +2476,13 @@ int drv_tbx_port_get(int unit, int port,
             *prop_val = temp;
             break;
         case DRV_PORT_PROP_802_1X_MODE :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_802_1X_MODE\n")));
             rv = SOC_E_PARAM;
             break;
         case DRV_PORT_PROP_802_1X_BLK_RX :
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_802_1X_BLK_RX\n")));
             rv = SOC_E_PARAM;
@@ -2567,14 +2567,14 @@ int drv_tbx_port_get(int unit, int port,
         case DRV_PORT_PROP_DEFAULT_TC_PRIO:
         case DRV_PORT_PROP_DEFAULT_DROP_PRECEDENCE:
         case DRV_PORT_PROP_UNTAG_DEFAULT_TC:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: PROP_DEFAULT_QOS_CONFIGURATION\n")));
             rv = _drv_tbx_port_default_qos_config_get(
                 unit, port, prop_type, prop_val);
             break;
         case DRV_PORT_PROP_PROFILE:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_get: DRV_PORT_PROP_PROFILE\n")));
             rv = REG_READ_DEF_PORT_QOS_CFGr(unit, port, (void *)&reg64_value);
@@ -2632,12 +2632,12 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
         *val = TRUE;
         rv = drv_robo_port_sw_detach(unit);
         if (rv < 0) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "Port detach failed!\n")));
             *val = FALSE;
         }
-        LOG_INFO(BSL_LS_SOC_PORT,
+        LOG_BSL_INFO(BSL_LS_SOC_PORT,
                  (BSL_META_U(unit,
                              "drv_tbx_port_status_get: DETACH %s\n"),
                   *val ? "OK" : "FAIL"));
@@ -2657,7 +2657,7 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
      
 
     /* remarked for performance issue when debugging LinkScan
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_port_status_get: unit = %d, port = %d\n"),
               unit, port));
@@ -2670,7 +2670,7 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             rv = soc_phyctrl_loopback_get(unit, port, (int *) &port_lb_phy);
 
             if (port_lb_phy){
-                LOG_INFO(BSL_LS_SOC_PORT,
+                LOG_BSL_INFO(BSL_LS_SOC_PORT,
                          (BSL_META_U(unit,
                                      "port%d at loopback status.\n"), port));
                 reg_addr = DRV_REG_ADDR(unit, INDEX(LNKSTSr), 0, 0);
@@ -2741,7 +2741,7 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             }
 
             if (rv){
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, Can't get the PHY speed!\n"), FUNCTION_NAME())); 
                 return rv;
@@ -2752,13 +2752,13 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
                     (speed == 100) ? DRV_PORT_STATUS_SPEED_100M :
                                     DRV_PORT_STATUS_SPEED_10M;
                 
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_status_get: SPEED = %d\n"),
                       *val));
             break;
         case DRV_PORT_STATUS_LINK_DUPLEX:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_status_get: DUPLEX\n")));
             return SOC_E_RESOURCE;
@@ -2767,12 +2767,12 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             rv = drv_robo_port_probe(unit, port, &okay);
             *val = okay;
             if (rv < 0) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "Port probe failed on port %s\n"),
                           SOC_PORT_NAME(unit, port)));
             }
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_status_get: PROBE %s\n"),
                       *val ? "OK" : "FAIL"));
@@ -2786,7 +2786,7 @@ drv_tbx_port_status_get(int unit, uint32 port, uint32 status_type, uint32 *val)
             }
             break;
         case DRV_PORT_STATUS_PHY_DRV_NAME:
-            LOG_INFO(BSL_LS_SOC_PORT,
+            LOG_BSL_INFO(BSL_LS_SOC_PORT,
                      (BSL_META_U(unit,
                                  "drv_tbx_port_status_get: PHY_DRV_NAME\n")));
             SOC_ROBO_PORT_INIT(unit);            

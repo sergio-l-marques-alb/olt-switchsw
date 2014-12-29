@@ -331,14 +331,14 @@ _bcm_api_xlate_port_init(int unit)
     if (soc_property_get(unit, spn_BCM_XLATE_PORT_ENABLE, TRUE) != FALSE &&
         soc_property_get(unit, spn_BCM_XLATE_API_PORT_ENABLE, TRUE) != FALSE) {
         pt->flags |= _BCM_XLATE_PORT_F_API_PORT_EN;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "API port translation on unit %d\n"), unit));
     }
     if (soc_property_get(unit, spn_BCM_XLATE_PORT_ENABLE, TRUE) != FALSE &&
         soc_property_get(unit, spn_BCM_XLATE_SYSPORT_ENABLE, FALSE) != FALSE) {
         pt->flags |= _BCM_XLATE_PORT_F_SYSPORT_EN;
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "System port translation on unit %d\n"), unit));
     }
@@ -362,7 +362,7 @@ _bcm_api_xlate_port_init(int unit)
         } else if (sal_strcmp(mstr, "bcm56636_single_modid_alt") == 0) {
             MAP_ARRAY(unit, bcm56636_single_modid_alt_map);
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Unknown bcm_xlate_port_map: %s\n"), mstr));
         }

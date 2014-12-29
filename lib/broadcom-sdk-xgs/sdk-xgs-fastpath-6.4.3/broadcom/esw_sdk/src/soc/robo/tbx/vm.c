@@ -465,7 +465,7 @@ _drv_tbx_vm_field_set(int unit, uint32 mem_type, uint32 field_type,
     }
     
     if (( rv = _drv_tbx_vm_field_mapping(unit, field_type, &fld_id)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_vm_field_set : UNKNOW FIELD ID. \n")));
         return rv;
@@ -582,7 +582,7 @@ _drv_tbx_vm_field_get(int unit, uint32 mem_type, uint32 field_type,
         return rv;
     }
     if (( rv = _drv_tbx_vm_field_mapping(unit, field_type, &fld_id)) < 0) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "drv_vm_field_get : UNKNOW FIELD ID. \n")));
         return rv;
@@ -1434,7 +1434,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_IVM_ALL:
             if ((rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_IVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read IVM Key with index = 0x%x, rv = %d. \n"), 
                            index, rv));
@@ -1442,7 +1442,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
             }
             if ( (rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_IVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read IVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1453,7 +1453,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_IVM_KEY_DATA:
             if ((rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_IVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read IVM Key with index = 0x%x, rv = %d. \n"), 
                            index, rv));
@@ -1464,7 +1464,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_IVM_ACT:
             if ( (rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_IVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read IVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1476,7 +1476,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_EVM_ALL:
             if ((rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_EVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read EVM Key with index = 0x%x, rv = %d. \n"), 
                            index, rv));
@@ -1484,7 +1484,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
             }
             if ( (rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_EVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read EVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1495,7 +1495,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_EVM_KEY_DATA:
             if ((rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_EVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read EVM Key with index = 0x%x, rv = %d. \n"), 
                            index, rv));
@@ -1506,7 +1506,7 @@ drv_tbx_vm_entry_read(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_EVM_ACT:
             if ( (rv = _drv_tbx_vm_read(unit, DRV_VM_RAM_EVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_read : failed to read EVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1549,7 +1549,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_IVM_ALL:
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_IVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write : failed to write IVM Key with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1557,7 +1557,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
             }
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_IVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write:failed to write IVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1568,7 +1568,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_IVM_KEY_DATA:
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_IVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write : failed to write IVM Key with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1579,7 +1579,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_IVM_ACT:
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_IVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write:failed to write IVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1591,7 +1591,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_EVM_ALL:
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_EVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write : failed to write EVM Key with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1599,7 +1599,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
             }
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_EVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write:failed to write EVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1610,7 +1610,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_EVM_KEY_DATA:
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_EVM_KEY_DATA, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write : failed to write EVM Key with index = 0x%x, rv = %d. \n"),
                            index, rv));
@@ -1621,7 +1621,7 @@ drv_tbx_vm_entry_write(int unit, uint32 index, uint32 ram_type,
         case DRV_VM_RAM_EVM_ACT:
             if ((rv = _drv_tbx_vm_write(unit, DRV_VM_RAM_EVM_ACT, index, entry)) 
                 != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "drv_vm_entry_write:failed to write EVM Action with index = 0x%x, rv = %d. \n"),
                            index, rv));

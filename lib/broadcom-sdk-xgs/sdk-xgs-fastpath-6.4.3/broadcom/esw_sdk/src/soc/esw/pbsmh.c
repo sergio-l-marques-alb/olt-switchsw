@@ -284,7 +284,7 @@ soc_pbsmh_v1_field_set(int unit, soc_pbsmh_hdr_t *mh,
     case PBSMH_dst_port:mh->dst_port = val;break;
     case PBSMH_cos:     mh->cos = val;break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%s val=0x%x\n"),
                   unit, soc_pbsmh_field_to_name(unit, field), val));
@@ -303,7 +303,7 @@ soc_pbsmh_v1_field_get(int unit, soc_pbsmh_hdr_t *mh, soc_pbsmh_field_t field)
     case PBSMH_dst_port:    return mh->dst_port;
     case PBSMH_cos:         return mh->cos;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -329,7 +329,7 @@ soc_pbsmh_v2_field_set(int unit, soc_pbsmh_v2_hdr_t *mh,
     case PBSMH_pri:             mh->pri = val; break;
     case PBSMH_l3pbm_sel:       mh->l3pbm_sel = val; break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -352,7 +352,7 @@ soc_pbsmh_v2_field_get(int unit,
     case PBSMH_pri:         return mh->pri;
     case PBSMH_l3pbm_sel:   return mh->l3pbm_sel;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -380,7 +380,7 @@ soc_pbsmh_v3_field_set(int unit, soc_pbsmh_v3_hdr_t *mh,
     case PBSMH_pri:             mh->pri = val; break;
     case PBSMH_l3pbm_sel:       mh->l3pbm_sel = val; break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -403,7 +403,7 @@ soc_pbsmh_v3_field_get(int unit,
     case PBSMH_pri:         return mh->pri;
     case PBSMH_l3pbm_sel:   return mh->l3pbm_sel;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -433,7 +433,7 @@ soc_pbsmh_v4_field_set(int unit, soc_pbsmh_v4_hdr_t *mh,
                                 break;
     case PBSMH_l3pbm_sel:       mh->l3pbm_sel = val; break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -456,7 +456,7 @@ soc_pbsmh_v4_field_get(int unit,
     case PBSMH_pri:         return ((mh->pri_hi << 3) | (mh->pri_lo));
     case PBSMH_l3pbm_sel:   return mh->l3pbm_sel;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -494,7 +494,7 @@ soc_pbsmh_v5_field_set(int unit, soc_pbsmh_v5_hdr_t *mh,
     case PBSMH_spap:            mh->spap = val; break;
     case PBSMH_queue_num:       mh->queue_num = val; break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -524,7 +524,7 @@ soc_pbsmh_v5_field_get(int unit,
     case PBSMH_spap:          return mh->spap;
     case PBSMH_queue_num:     return mh->queue_num;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -573,7 +573,7 @@ soc_pbsmh_v6_field_set(int unit, soc_pbsmh_v6_hdr_t *mh,
     case PBSMH_regen_udp_checksum: mh->regen_upd_chksum = val; break;
     case PBSMH_ipcf_ptr:        mh->ipcf_ptr = val; break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -610,7 +610,7 @@ soc_pbsmh_v6_field_get(int unit,
     case PBSMH_regen_udp_checksum: return mh->regen_upd_chksum;
     case PBSMH_ipcf_ptr:      return mh->ipcf_ptr;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -676,7 +676,7 @@ soc_pbsmh_v7_field_set(int unit, soc_pbsmh_v7_hdr_t *mh,
     case PBSMH_header_type:     mh->overlay1.header_type = val; break;
     case PBSMH_cell_error:      mh->overlay1.cell_error = val; break;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -733,7 +733,7 @@ soc_pbsmh_v7_field_get(int unit,
     case PBSMH_header_type:   return mh->overlay1.header_type;
     case PBSMH_cell_error:    return mh->overlay1.cell_error;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -832,7 +832,7 @@ soc_pbsmh_v8_field_set(int unit, soc_pbsmh_v8_hdr_t *mh,
         break;
 
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -897,7 +897,7 @@ soc_pbsmh_v8_field_get(int unit,
     case PBSMH_pp_port:       return mh->overlay3.pp_port;
 
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -931,7 +931,7 @@ soc_pbsmh_v9_field_set(int unit, soc_pbsmh_v9_hdr_t *mh,
     case PBSMH_regen_udp_checksum: mh->regen_udp_checksum = val; break;
 
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_set: unit %d: Unknown pbsmh field=%d val=0x%x\n"),
                   unit, field, val));
@@ -964,7 +964,7 @@ soc_pbsmh_v9_field_get(int unit,
     case PBSMH_header_type:   return mh->header_type;
     case PBSMH_regen_udp_checksum: return mh->regen_udp_checksum;
     default:
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "pbsmh_get: unit %d: Unknown pbsmh field=%d\n"),
                   unit, field));
@@ -989,7 +989,7 @@ soc_pbsmh_common_field_get(int unit, soc_pbsmh_field_attr_t *field_attr,
         }
     }
     else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit, 
                              "pbsmh_common_field_get: unit %d: "
                              "Unknown pbsmh field=%d\n"), 
@@ -1013,14 +1013,14 @@ soc_pbsmh_common_field_set(int unit, soc_pbsmh_field_attr_t *field_attr,
                     field_attr [field].off, 
                     field_attr [field].size);
         } else {
-            LOG_WARN(BSL_LS_SOC_COMMON, 
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON, 
                      (BSL_META_U(unit, 
                                  "pbsmh_common_field_set: unit %d:"
                                  " Unknown size for pbsmh field=%d(%s)\n"),
                       unit, field, soc_pbsmh_field_to_name(unit, field)));
         }
     } else {
-        LOG_WARN(BSL_LS_SOC_COMMON, 
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON, 
                  (BSL_META_U(unit, 
                              "pbsmh_common_field_set: unit %d:"
                              " Unknown pbsmh field=%d\n"),

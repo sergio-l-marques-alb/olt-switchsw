@@ -329,7 +329,7 @@ bcmx_tx(bcm_pkt_t *pkt, uint32 flags)
 
     default:
         /* Error */
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("bcmx_tx: packet resolve error (%d): %s\n"),
                   rv, bcm_errmsg(rv)));
         break;
@@ -469,7 +469,7 @@ bcmx_tx_lplist(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
 
     if (tx_ports == NULL || BCMX_LPLIST_IS_EMPTY(tx_ports)) {
         if (untagged_ports == NULL || BCMX_LPLIST_IS_EMPTY(untagged_ports)) {
-            LOG_VERBOSE(BSL_LS_BCMX_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_BCMX_COMMON,
                         (BSL_META("bcmx_tx_lplist: No TX ports given\n")));
             return BCM_E_NONE;
         }
@@ -542,7 +542,7 @@ bcmx_tx_lplist(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
 
             rv = bcmx_tx_uc(pkt, lport, flags);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_BCMX_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCMX_COMMON,
                           (BSL_META_U(unit,
                                       "BCMX tx_lplist: Failed on unit %d port 0x%x: %s\n"),
                            unit, lport, bcm_errmsg(rv)));
@@ -604,7 +604,7 @@ bcmx_tx_lplist(bcm_pkt_t *pkt, bcmx_lplist_t *tx_ports,
             rv = bcm_tx(unit, pkt, NULL);
 
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_BCMX_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCMX_COMMON,
                           (BSL_META_U(unit,
                                       "BCMX tx_lplist: Failed on unit %d:%s\n"),
                            unit, bcm_errmsg(rv)));
@@ -762,7 +762,7 @@ bcmx_tx_port_list(bcmx_lplist_t *lplist, bcm_pkt_t *pkt)
     BCMX_TX_INIT_CHECK;
 
     if (pkt->call_back != NULL) {
-        LOG_WARN(BSL_LS_BCMX_COMMON,
+        LOG_BSL_WARN(BSL_LS_BCMX_COMMON,
                  (BSL_META("WARNING: bcmx_tx_port_list: async not supported\n")));
     }
     BCMX_LPLIST_ITER(*lplist, lport, count) {

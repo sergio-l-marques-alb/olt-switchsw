@@ -152,7 +152,7 @@ bcm_stack_topo_update(cpudb_ref_t db_ref)
     }
     if (TOPO_ACTIVE) {
         ST_TOPO_UNLOCK;
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("TOPO: Activated twice\n")));
         return BCM_E_FAIL;
     }
@@ -163,16 +163,16 @@ bcm_stack_topo_update(cpudb_ref_t db_ref)
     if (db_ref->local_entry == db_ref->master_entry) { /* Local is master */
         /* Generate the topology and send out topo packets */
         if ((rv = topology_mod_ids_assign(db_ref)) < 0) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("Could not assign all mod ids: %s\n"),
                        bcm_errmsg(rv)));
         } else if ((rv = topology_create(db_ref)) < 0) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("Failed to create topology: %s\n"),
                        bcm_errmsg(rv)));
         } else if ((rv = topo_pkt_send_depth_first(db_ref, 
                                             db_ref->master_entry)) < 0) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("Failed to send topo pkt: %s\n"),
                        bcm_errmsg(rv)));
         }
@@ -385,7 +385,7 @@ topo_pkt_send(cpudb_ref_t db_ref, cpudb_entry_t *entry)
                 NULL,
                 NULL);
     if (rv < 0) {
-        LOG_WARN(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_WARN(BSL_LS_TKS_TOPOLOGY,
                  (BSL_META("topo send %d:  %s. Failed to tx pkt to "
                            CPUDB_KEY_FMT_EOLN),
                   rv, bcm_errmsg(rv),
@@ -408,7 +408,7 @@ topo_pkt_send_depth_first(cpudb_ref_t db_ref, cpudb_entry_t *entry)
     int i, rv;
 
     if (CPUDB_TOPO_VISITED(entry)) {
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META("TOPO ERROR: recursing infinitely")));
         return -1;
     }
@@ -535,11 +535,11 @@ _topo_pkt_process_thread(void *cookie)
                             NULL);
 
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO PKT ERROR: parse failure: %s\n"),
                        bcm_errmsg(rv)));
         } else if ((rv = topo_board_program(topo_current_db, &topo_cpu)) < 0) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO PKT ERROR: appl fail: %s\n"),
                        bcm_errmsg(rv)));
         }
@@ -557,7 +557,7 @@ _topo_pkt_process_thread(void *cookie)
             }
             
             if ((topo_current_db->num_cpus > 1) && (delay > 0)) {
-                LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+                LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                             (BSL_META("TOPO: Sleeping for %d us\n"),
                              delay));
                 sal_usleep(delay);
@@ -608,7 +608,7 @@ topo_pkt_handler(cpudb_key_t src_key,
         ST_TOPO_UNLOCK;
         return BCM_RX_HANDLED;
     }
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("ST TOPO: pkt len %d in from "
                           CPUDB_KEY_FMT_EOLN),
                  payload_len, CPUDB_KEY_DISP(src_key)));
@@ -631,7 +631,7 @@ topo_pkt_handler(cpudb_key_t src_key,
     if (_cnt + 1 > _len) return -1; else (_buf)[(_cnt)++] = _data
 #else /* Debug version of the function */
 #define CHECK_PACK(_buf, _len, _cnt, _data)  do { \
-    LOG_INFO(BSL_LS_TKS_TOPOLOGY, \
+    LOG_BSL_INFO(BSL_LS_TKS_TOPOLOGY, \
              (BSL_META(\ \
                        (BSL_META"Packing mod %d\n")),
               _data)); \ \
@@ -670,13 +670,13 @@ tp_chassis_lm_pack_mods(
 
     slot_id = entry->base.slot_id;
     if ((cfm_slot = cpudb_sp_idx_to_slot(db_ref, entry, sp_idx, NULL)) < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: LM %d no cxn on %d\n"),
                      slot_id, sp_idx));
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Packing LM slot %d, sp idx %d to slot %d, %s; %d cfms\n"),
                  slot_id, sp_idx, cfm_slot, tx ? "tx" : "rx", cfm_count));
 
@@ -720,13 +720,13 @@ tp_chassis_cfm_pack_mods(
 
     slot_id = entry->base.slot_id;
     if ((lm_slot = cpudb_sp_idx_to_slot(db_ref, entry, sp_idx, NULL)) < 0) {
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: CFM %d no cxn on %d\n"),
                      slot_id, sp_idx));
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+    LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                 (BSL_META("Packing CFM slot %d sp idx %d to slot %d, %s; %d cfms\n"),
                  slot_id, sp_idx, lm_slot, tx ? "tx" : "rx", cfm_count));
 
@@ -1007,7 +1007,7 @@ topo_pkt_parse(
     l_base = &entry->base;
 
     if (len < TOPO_HEADER_BYTES(db_ref->num_cpus) + 5) {
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META("TOPO PARSE ERROR: Packet too short (%d<%d)[#%d]\n"),
                    len,
                    (int)TOPO_HEADER_BYTES(db_ref->num_cpus) + 5,
@@ -1048,7 +1048,7 @@ topo_pkt_parse(
         /* Get TX modid count and check database limit */
         num_modids = topo_data[cur_ofs++];
         if (num_modids > TOPO_MODIDS_MAX) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO PARSE ERROR: TX mod id count %d exceeds DB limit "
                        "%d\n"), num_modids, TOPO_MODIDS_MAX));
             return BCM_E_FAIL;
@@ -1056,7 +1056,7 @@ topo_pkt_parse(
         tp_sp->tx_mod_num = num_modids;
         for (i = 0; i < tp_sp->tx_mod_num; i++) {
             tp_sp->tx_mods[i] = topo_data[cur_ofs++];
-            LOG_INFO(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_INFO(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("ST TOPO: Map TX mod %d to stk idx %d\n"),
                       tp_sp->tx_mods[i], sp_idx));
         }
@@ -1064,7 +1064,7 @@ topo_pkt_parse(
         /* Get RX modid count and check database limit */
         num_modids = topo_data[cur_ofs++];
         if (num_modids > TOPO_MODIDS_MAX) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO PARSE ERROR: RX mod id count %d exceeds DB limit "
                        "%d\n"), num_modids, TOPO_MODIDS_MAX));
             return BCM_E_FAIL;
@@ -1072,13 +1072,13 @@ topo_pkt_parse(
         tp_sp->rx_mod_num = num_modids;
         for (i = 0; i < tp_sp->rx_mod_num; i++) {
             tp_sp->rx_mods[i] = topo_data[cur_ofs++];
-            LOG_INFO(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_INFO(BSL_LS_TKS_TOPOLOGY,
                      (BSL_META("ST TOPO: Map RX mod %d to stk idx %d\n"),
                       tp_sp->rx_mods[i], sp_idx));
         }
         
         if (cur_ofs + 2 > len) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO PARSE ERROR: Packet too short at %d\n"),
                        cur_ofs));
             return BCM_E_FAIL;
@@ -1091,7 +1091,7 @@ topo_pkt_parse(
     /* The base mod ids per CPU follow stack port info */
     cpu_count = topo_data[cur_ofs++];
     if (cur_ofs + cpu_count * (CPUDB_KEY_BYTES + 1) > len) {
-        LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                   (BSL_META("TOPO PARSE ERROR: Packet too short at %d\n"),
                    cur_ofs));
         return BCM_E_FAIL;
@@ -1101,7 +1101,7 @@ topo_pkt_parse(
         cur_ofs += CPUDB_KEY_BYTES;
         CPUDB_KEY_SEARCH(db_ref, db_key, db_ent);
         if (db_ent == NULL) {
-            LOG_ERROR(BSL_LS_TKS_TOPOLOGY,
+            LOG_BSL_ERROR(BSL_LS_TKS_TOPOLOGY,
                       (BSL_META("TOPO PARSE ERROR: Could not find DB key "
                                 CPUDB_KEY_FMT_EOLN),
                        CPUDB_KEY_DISP(db_key)));
@@ -1110,7 +1110,7 @@ topo_pkt_parse(
         db_ent->dest_mod = topo_data[cur_ofs++];
         db_ent->dest_port = topo_data[cur_ofs++];
         db_ent->flags |= CPUDB_F_DEST_KNOWN;
-        LOG_VERBOSE(BSL_LS_TKS_TOPOLOGY,
+        LOG_BSL_VERBOSE(BSL_LS_TKS_TOPOLOGY,
                     (BSL_META("TOPO: Mapped " CPUDB_KEY_FMT " to (%d, %d)\n"),
                      CPUDB_KEY_DISP(db_key), db_ent->dest_mod,
                      db_ent->dest_port));

@@ -6503,7 +6503,7 @@ _field_td2_entry_move(int unit, _field_entry_t *f_ent, int parts_count,
         /* Index sanity check. */
         if ((tcam_idx_old[idx] < tcam_idx_min) || (tcam_idx_old[idx] > tcam_idx_max) ||
             (tcam_idx_new[idx] < tcam_idx_min) || (tcam_idx_new[idx] > tcam_idx_max)) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) vverb: Invalid index range for _field_td2_entry_move\n"
                                   "from %d to %d"), unit, tcam_idx_old[idx], tcam_idx_new[idx]));
@@ -7011,7 +7011,7 @@ _bcm_field_td2_qualify_VlanTranslationHit(int               unit,
 	*mask = 0x4;
         break;
     default:
-        LOG_ERROR(BSL_LS_BCM_FP,
+        LOG_BSL_ERROR(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) Error: PacketRes *data=%#x undefined\n"),
                    unit, 
@@ -7951,7 +7951,7 @@ _field_td2_ingress_qual_tcam_key_mask_set(int            unit,
                         );
 
     if (f_ent->flags & _FP_ENTRY_SECONDARY) {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "Overlay in use\n")));
 
@@ -8550,13 +8550,13 @@ _bcm_field_td2_qualify_ip_type(int unit, _field_entry_t *f_ent,
           mask = 0x1f;
           break;
       default:
-          LOG_DEBUG(BSL_LS_BCM_FP,
+          LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,
                                "FP(unit %d) vverb: entry=%d qualifying on Invalid Iptype=%#x\n))"),
                     unit, f_ent->eid, type));
           return (BCM_E_UNAVAIL);
     }
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: entry=%d qualifying on Iptype, "
                           "data=%#x, mask=%#x\n))"),
@@ -9144,7 +9144,7 @@ _bcm_field_td2_scache_sync(int              unit,
             return BCM_E_PARAM;
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _bcm_field_td2_scache_sync() - Synching scache"
                            " for FP stage %d...\n"), unit, stage_fc->stage_id));
@@ -9177,7 +9177,7 @@ _bcm_field_td2_scache_sync(int              unit,
 
         /* Sync Hints information */
         if (soc_feature(unit, soc_feature_field_ingress_two_slice_types)) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,"Syncing hints @pos= %d\r\n"),
                                                      fc->scache_pos));
             BCM_IF_ERROR_RETURN (_bcm_field_hints_scache_sync(unit,
@@ -9216,7 +9216,7 @@ _bcm_field_td2_scache_sync(int              unit,
     }
 
     for (slice_idx = 0; slice_idx < stage_fc->tcam_slices; slice_idx++) {
-        LOG_DEBUG(BSL_LS_BCM_FP,
+        LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                   (BSL_META_U(unit,
                               "FP(unit %d) vverb: _bcm_field_td2_scache_sync() - "
                                "Checking slice %d...\n"), unit, slice_idx));
@@ -9301,7 +9301,7 @@ _bcm_field_td2_scache_sync(int              unit,
         fs = stage_fc->slices[_FP_DEF_INST] + slice_idx;
         /* Skip empty slices */
         if (fs->entry_count == fs->free_count) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                       (BSL_META_U(unit,
                                   "FP(unit %d) vverb: _bcm_field_td2_scache_sync() -"
                                    " Slice is empty.\n"), unit));
@@ -9391,7 +9391,7 @@ _bcm_field_td2_scache_sync(int              unit,
 
     if (soc_feature(unit, soc_feature_field_ingress_two_slice_types)) {
         if (stage_fc->stage_id == _BCM_FIELD_STAGE_INGRESS) {
-            LOG_DEBUG(BSL_LS_BCM_FP,
+            LOG_BSL_DEBUG(BSL_LS_BCM_FP,
                     (BSL_META_U(unit,"FP(unit %d) vverb:"
                                 "_bcm_field_td2_scache_sync() -section "
                                 "Writing  HintIds information @ byte %d.\n"),
@@ -9401,7 +9401,7 @@ _bcm_field_td2_scache_sync(int              unit,
         }
     }
 
-    LOG_DEBUG(BSL_LS_BCM_FP,
+    LOG_BSL_DEBUG(BSL_LS_BCM_FP,
               (BSL_META_U(unit,
                           "FP(unit %d) vverb: _bcm_field_td2_scache_sync() -"
                            " Writing end of section @ byte %d.\n"), unit, fc->scache_pos));

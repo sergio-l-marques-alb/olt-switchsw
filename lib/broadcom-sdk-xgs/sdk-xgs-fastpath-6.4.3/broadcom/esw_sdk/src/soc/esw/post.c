@@ -203,12 +203,12 @@ _soc_raptor_port_probe(int unit, soc_port_t p, mac_driver_t **macdp)
 
     *macdp = NULL;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Init port %d PHY...\n"), p));
 
     if ((rv = soc_phyctrl_probe(unit, p)) < 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Port %s: Failed to probe PHY: %s\n"),
                      SOC_PORT_NAME(unit, p), soc_errmsg(rv)));
@@ -216,19 +216,19 @@ _soc_raptor_port_probe(int unit, soc_port_t p, mac_driver_t **macdp)
     }
 
     if ((rv = soc_phyctrl_init(unit, p)) < 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Port %s: Failed to initialize PHY: %s\n"),
                      SOC_PORT_NAME(unit, p), soc_errmsg(rv)));
         return rv;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Init port %d MAC...\n"), p));
 
     if ((rv = soc_mac_probe(unit, p, &macd)) < 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Port %s: Failed to probe MAC: %s\n"),
                      SOC_PORT_NAME(unit, p), soc_errmsg(rv)));
@@ -237,7 +237,7 @@ _soc_raptor_port_probe(int unit, soc_port_t p, mac_driver_t **macdp)
 
     *macdp = macd;
     if ((rv = MAC_INIT(macd, unit, p)) < 0) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Port %s: Failed to initialize MAC: %s\n"),
                      SOC_PORT_NAME(unit, p), soc_errmsg(rv)));
@@ -513,7 +513,7 @@ _soc_raptor_post_run(int unit, uint32 *tx_pkt)
     if (SOC_PBMP_IS_NULL(fe_pbmp)) {
         return SOC_E_NONE;
     }
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Running post on unit %d \n"), unit));
 
@@ -544,7 +544,7 @@ _soc_raptor_post_run(int unit, uint32 *tx_pkt)
              */
             if (SOC_IS_RCPU_UNIT(unit)) {
                 if ((rv = _soc_raptor_post_init_switch(unit, fe_pbmp)) < 0) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Failed to init switch unit %d \n"), unit));
                     return rv;
@@ -573,7 +573,7 @@ _soc_raptor_post_run(int unit, uint32 *tx_pkt)
          * Test Run
          */
         PBMP_ITER(fe_pbmp, p) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Port %s: Packet Send \n"),
                          SOC_PORT_NAME(unit, p)));
@@ -599,7 +599,7 @@ _soc_raptor_post_run(int unit, uint32 *tx_pkt)
             SOC_IF_ERROR_RETURN(soc_misc_init(unit));
             SOC_IF_ERROR_RETURN(soc_firebolt_internal_mmu_init(unit));
         } else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Post completed in %d Iterations\n"), count + 1));
             break; /* All clear */

@@ -87,7 +87,7 @@ bcm_robo_eav_init(int unit)
         DRV_EAV_CONTROL_TIME_STAMP_TO_IMP, 1);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_robo_eav_init()\n")));
         return rv;
@@ -127,7 +127,7 @@ bcm_robo_eav_port_enable_get(int unit, bcm_port_t port, int *enable)
     rv = DRV_EAV_ENABLE_GET(unit, port, &temp);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_robo_eav_port_enable_get()\n")));
         return rv;
@@ -182,7 +182,7 @@ bcm_robo_eav_port_enable_set(int unit, bcm_port_t port, int enable)
     rv = DRV_EAV_ENABLE_SET(unit, port, temp);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_robo_eav_port_enable_set()\n")));
         return rv;
@@ -223,7 +223,7 @@ bcm_robo_eav_link_status_get(int unit, bcm_port_t port, int *link)
     rv = DRV_EAV_LINK_STATUS_GET(unit, port, &temp);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_robo_eav_link_status_get()\n")));
         return rv;
@@ -277,7 +277,7 @@ bcm_robo_eav_link_status_set(int unit, bcm_port_t port, int link)
     rv = DRV_EAV_LINK_STATUS_SET(unit, port, temp);
 
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_robo_eav_link_status_set()\n")));
         return rv;
@@ -353,7 +353,7 @@ bcm_robo_eav_control_get(int unit, bcm_eav_control_t type,
             return BCM_E_PARAM;
     }
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_eav_control_get()\n")));
         return rv;
@@ -429,7 +429,7 @@ bcm_robo_eav_control_set(int unit, bcm_eav_control_t type,
             return BCM_E_PARAM;
     }
     if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_eav_control_set()\n")));
         return rv;
@@ -469,7 +469,7 @@ bcm_robo_eav_timestamp_get(int unit, bcm_port_t port, uint32 *timestamp)
         (unit, port, timestamp);
 
      if (BCM_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "EAV Error: failure in bcm_eav_timestamp_get()\n")));
         return rv;

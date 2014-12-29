@@ -71,7 +71,7 @@ _drv_tbx_arl_hw_to_sw_entry (int unit, uint32 *key,
     
     rv = DRV_MEM_READ(unit, DRV_MEM_ARL_HW, *key, 1, (uint32 *)hw_arl);
     if (rv < 0){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               " %s, SOC driver problem on reading hw_arl!\n"), 
                    FUNCTION_NAME()));
@@ -80,7 +80,7 @@ _drv_tbx_arl_hw_to_sw_entry (int unit, uint32 *key,
     
     rv = DRV_MEM_READ(unit, DRV_MEM_ARL, *key, 1, (uint32 *)sw_arl);
     if (rv < 0){
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               " %s, SOC driver problem on reading sw_arl!\n"), 
                    FUNCTION_NAME()));
@@ -414,7 +414,7 @@ drv_robo_arlsync_cmp_info_build(int unit)
     drv_arlsync_cmp_info[unit].init = TRUE;
 
     /* varified! no error! */
-    LOG_VERBOSE(BSL_LS_SOC_ARL,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_ARL,
                 (BSL_META_U(unit,
                             "%s, SW_ARLSYNC_COMPARE_INFO....init=%d\n"
                             "  reversed=%d,va_mask=0x%08x,va_bp=%d,va_bound=%d,"
@@ -465,7 +465,7 @@ _drv_arlsync_compare(int unit,
     assert(old_sw_arl && new_sw_arl);   /* NULL check */
 
     if (drv_arlsync_cmp_info[unit].init != TRUE){
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Unexpected condition during ARL thread started!\n"),
                   FUNCTION_NAME()));
@@ -503,7 +503,7 @@ _drv_arlsync_compare(int unit,
                     old_pending = TRUE;
                 } else if (temp_valid != _TB_ARL_STATUS_VALID){
                     /* unexpected value */
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s, Unexpected value on valid field!\n"),
                               FUNCTION_NAME()));
@@ -531,7 +531,7 @@ _drv_arlsync_compare(int unit,
                     new_pending = TRUE;
                 } else if (temp_valid != _TB_ARL_STATUS_VALID){
                     /* unexpected value */
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "%s, Unexpected value on valid field!\n"),
                               FUNCTION_NAME()));
@@ -575,7 +575,7 @@ _drv_arlsync_compare(int unit,
     } else {
         /* valid_cross_boundary : ROBO chips has no such condition so far */
         *result_flags = DRV_ARLCMP_NODIFF;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Unexpected process for uint32 boundary issue!\n"),
                   FUNCTION_NAME()));
@@ -625,7 +625,7 @@ _drv_arlsync_compare(int unit,
     } else {
         /* age_cross_boundary : ROBO chips has no such condition so far */
         *result_flags = DRV_ARLCMP_UNEXPECT;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "%s, Unexpected process for uint32 boundary issue!\n"),
                   FUNCTION_NAME()));
@@ -735,7 +735,7 @@ _drv_arl_add_sanity_process(int unit, uint32 *key, void *new_arl)
         /* 2bin */
         bin_cnt = 2;
     } else {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "_drv_arl_del_reduncant_l2ent(), chip is not handled!\n")));
         return SOC_E_INTERNAL;
@@ -803,7 +803,7 @@ _drv_arl_add_sanity_process(int unit, uint32 *key, void *new_arl)
 
                 /* remove this redundant l2 entry from sw arl */
                 sal_memset(sw_l2_entry, 0, sizeof(l2_arl_sw_entry_t));
-                LOG_INFO(BSL_LS_SOC_ARLMON,
+                LOG_BSL_INFO(BSL_LS_SOC_ARLMON,
                          (BSL_META_U(unit,
                                      "L2 entry is removed(id=%d) before L2 ADD(id=%d)\n"), 
                           *key, l2_idx));
@@ -870,7 +870,7 @@ drv_arl_sync(int unit, uint32 *key, void *old_arl, void *new_arl)
             (uint32 *)old_arl, (uint32 *)new_arl,  &result_flags);
     if (rv != SOC_E_NONE){
         ARL_SW_TABLE_UNLOCK(soc);
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "soc_arl_sync: unexpect error! (rv=%d)\n"), rv));
         return SOC_E_INTERNAL;
@@ -887,7 +887,7 @@ drv_arl_sync(int unit, uint32 *key, void *old_arl, void *new_arl)
             } else if (result_flags == DRV_ARLCMP_VALID_PENDING){
                 cb_level = _DRV_SWARL_MODIFY_CB;
             } else {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, unexpected compare result(flags=0x%x)\n"),
                           FUNCTION_NAME(), result_flags));
@@ -904,7 +904,7 @@ drv_arl_sync(int unit, uint32 *key, void *old_arl, void *new_arl)
                 cb_level = _DRV_SWARL_NO_CB;
             } else if (result_flags & DRV_ARLCMP_UNEXPECT){
                 /* possible condition is DRV_ARLCMP_UNEXPECT */ 
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "%s, unexpected compare result(flags=0x%x)\n"),
                           FUNCTION_NAME(), result_flags));
@@ -923,7 +923,7 @@ drv_arl_sync(int unit, uint32 *key, void *old_arl, void *new_arl)
             temp_key = *key;
             rv = _drv_arl_add_sanity_process(unit, &temp_key, new_arl);
             if (rv == SOC_E_EXISTS){
-                LOG_INFO(BSL_LS_SOC_ARLMON,
+                LOG_BSL_INFO(BSL_LS_SOC_ARLMON,
                          (BSL_META_U(unit,
                                      "SW arl at id=%d is removed to prevent duplicat ADD\n"),
                           temp_key));
@@ -956,7 +956,7 @@ drv_arl_sync(int unit, uint32 *key, void *old_arl, void *new_arl)
     
     /* Use debug source ARLMON to avoid any debug messge for ARL */
     if (cb_level != _DRV_SWARL_NO_CB){
-        LOG_INFO(BSL_LS_SOC_ARLMON,
+        LOG_BSL_INFO(BSL_LS_SOC_ARLMON,
                  (BSL_META_U(unit,
                              "soc_arl_sync: done in %d usec (cb=%d)\n"),
                   SAL_USECS_SUB(etime, stime), cb_level));

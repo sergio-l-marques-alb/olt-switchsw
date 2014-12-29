@@ -142,7 +142,7 @@ _phy_xgxs16g1l_pll_lock_wait(int unit, soc_port_t port)
         }
     }
     if ((data16 & XGXSBLK0_XGXSSTATUS_TXPLL_LOCK_MASK) == 0) {
-        LOG_WARN(BSL_LS_SOC_PHY,
+        LOG_BSL_WARN(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "XGXS_16G : TXPLL did not lock: u=%d p=%d\n"),
                   unit, port));
@@ -187,7 +187,7 @@ _phy_xgxs16g1l_lane_swap(int unit, soc_port_t port)
                        XGXSBLK8_RXLNSWAP1_RX2_LNSWAP_SEL_MASK |
                        XGXSBLK8_RXLNSWAP1_RX3_LNSWAP_SEL_MASK));
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "unit %d port %s: Invalid RX lane map 0x%04x.\n"),
                       unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -216,7 +216,7 @@ _phy_xgxs16g1l_lane_swap(int unit, soc_port_t port)
                     XGXSBLK8_TXLNSWAP1_TX1_LNSWAP_SEL_MASK |
                     XGXSBLK8_TXLNSWAP1_TX0_LNSWAP_SEL_MASK));
         } else {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "unit %d port %s: Invalid TX lane map 0x%04x.\n"),
                       unit, SOC_PORT_NAME(unit, port), lane_map));
@@ -241,7 +241,7 @@ _phy_xgxs16g1l_polarity_flip(int unit, soc_port_t port)
         /* Flip TX polarity */
         mask16 = TX0_TX_ACONTROL0_TXPOL_FLIP_MASK;
         data16 = phy_xaui_polarity_flip? mask16:0;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "unit %d port %s: TX Polarity swap 0x%04x.\n"),
                   unit, SOC_PORT_NAME(unit, port), data16));
@@ -267,7 +267,7 @@ _phy_xgxs16g1l_polarity_flip(int unit, soc_port_t port)
         /*XXX hardcoded for now */
         mask16 = 0xc;
         data16 = phy_xaui_polarity_flip? mask16 :0;
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "unit %d port %s: RX Polarity swap 0x%04x.\n"),
                   unit, SOC_PORT_NAME(unit, port), data16));
@@ -348,7 +348,7 @@ phy_xgxs16g1l_init(int unit, soc_port_t port)
         pDesc->name[len] = 0;  /* string terminator */
 
         if (len > XGXS16G_LANE_NAME_LEN) {
-            LOG_ERROR(BSL_LS_SOC_PHY,
+            LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                       (BSL_META_U(unit,
                                   "XGXS13G info string length %d exceeds max length 0x%x: u=%d p=%d\n"),
                        len,XGXS16G_LANE_NAME_LEN,unit, port));
@@ -1061,7 +1061,7 @@ phy_xgxs16g1l_an_set(int unit, soc_port_t port, int an)
 
     pc = INT_PHY_SW_STATE(unit, port);
                                                                                 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs16g1l_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -1227,7 +1227,7 @@ _phy_xgxs16g1l_c73_adv_local_set(int unit, soc_port_t port,
                                      (CL73_AN_ADV_PAUSE |
                                       CL73_AN_ADV_ASYM_PAUSE)));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_xgxs16g1l_c73_adv_local_set: u=%d p=%d pause=%08x speeds=%04x,adv=0x%x\n"),
               unit, port, pause, an_adv,ability->speed_full_duplex));
@@ -1270,7 +1270,7 @@ _phy_xgxs16g1l_c73_adv_local_get(int unit, soc_port_t port,
     }
     ability->pause = pause;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_xgxs16g1l_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
               unit, port, pause, speeds));
@@ -1366,7 +1366,7 @@ phy_xgxs16g1l_ability_advert_set(int unit, soc_port_t port,
             (_phy_xgxs16g1l_c73_adv_local_set(unit, port, ability));
     }
                                                                                 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs16g1l_ability_advert_set: u=%d p=%d pause=%08x OVER1G_UP1 %04x\n"),
               unit, port, ability->pause, an_adv));
@@ -1428,7 +1428,7 @@ phy_xgxs16g1l_ability_advert_get(int unit, soc_port_t port,
             (_phy_xgxs16g1l_c73_adv_local_get(unit, port, ability));
     }
                                                                              
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs16g1l_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -1493,7 +1493,7 @@ phy_xgxs16g1l_ability_remote_get(int unit, soc_port_t port,
             (_phy_xgxs16g1l_c73_adv_remote_get(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs16g1l_ability_remote_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -2344,7 +2344,7 @@ phy_xgxs16g1l_probe(int unit, phy_ctrl_t *pc)
     SOC_IF_ERROR_RETURN
         (READ_XGXS16G_SERDESID_SERDESID2r(unit, pc, &serdes_id2));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_xgxs16g_probe u=%d p=%d: id0 = 0x%x, id1 = 0x%x\n"),
               unit, pc->port, serdes_id0,serdes_id2));
@@ -2352,7 +2352,7 @@ phy_xgxs16g1l_probe(int unit, phy_ctrl_t *pc)
     if (((serdes_id0 & SERDESID_SERDESID0_MODEL_NUMBER_MASK) ==
         SERDES_ID0_MODEL_NUMBER_XGXS_16G) && 
            (serdes_id2 & SERDESID_SERDESID2_DR_16G_4L_MASK)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "_phy_xgxs16g_probe u=%d p=%d: xgxs16g\n"),
                   unit, pc->port));
@@ -2364,7 +2364,7 @@ phy_xgxs16g1l_probe(int unit, phy_ctrl_t *pc)
     if (((serdes_id0 & SERDESID_SERDESID0_MODEL_NUMBER_MASK) == 
         SERDES_ID0_MODEL_NUMBER_XGXS_16G) && 
         (serdes_id2 & SERDESID_SERDESID2_DR_13G_4L_MASK)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "_phy_xgxs16g_probe u=%d p=%d: xgxs13g\n"),
                   unit, pc->port));
@@ -2374,7 +2374,7 @@ phy_xgxs16g1l_probe(int unit, phy_ctrl_t *pc)
         if (SOC_IS_TRIUMPH3(unit)) {
             pc->lane_num = pc->lane_num % 4;
         } else if (pc->lane_num >= 4) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_xgxs16g_probe u=%d p=%d: wrong lane# 0x%x, set to 0\n"),
                       unit, pc->port, pc->lane_num));
@@ -2389,7 +2389,7 @@ phy_xgxs16g1l_probe(int unit, phy_ctrl_t *pc)
 
     if (((serdes_id0 & SERDESID_SERDESID0_MODEL_NUMBER_MASK) == 0xf) && 
         (serdes_id2 & SERDESID_SERDESID2_DR_2P5G_SL_MASK)) {
-        LOG_INFO(BSL_LS_SOC_PHY,
+        LOG_BSL_INFO(BSL_LS_SOC_PHY,
                  (BSL_META_U(unit,
                              "_phy_xgxs16g_probe u=%d p=%d: qs40\n"),
                   unit, pc->port));
@@ -2403,7 +2403,7 @@ phy_xgxs16g1l_probe(int unit, phy_ctrl_t *pc)
         if (SOC_IS_TRIUMPH3(unit)) {
             pc->lane_num = pc->lane_num % 4;
         } else if (pc->lane_num >= 4) {
-            LOG_WARN(BSL_LS_SOC_PHY,
+            LOG_BSL_WARN(BSL_LS_SOC_PHY,
                      (BSL_META_U(unit,
                                  "_phy_xgxs16g_probe u=%d p=%d: wrong lane# 0x%x, set to 0\n"),
                       unit, pc->port, pc->lane_num));
@@ -2620,7 +2620,7 @@ _phy_xgxs16g1l_notify_duplex(int unit, soc_port_t port, uint32 duplex)
     int                 fiber;
                                                                                
     fiber = PHY_FIBER_MODE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_xgxs16g1l_notify_duplex: "
                          "u=%d p=%d duplex=%d fiber=%d\n"),
@@ -2724,7 +2724,7 @@ _phy_xgxs16g1l_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_xgxs16g1l_stop: u=%d p=%d copper=%d stop=%d flg=0x%x\n"),
               unit, port, copper, stop,

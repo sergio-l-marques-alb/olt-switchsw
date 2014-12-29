@@ -236,7 +236,7 @@ pci_test(int u, args_t *a, void *pa)
 	/* If write - do write first */
 
 	if (p->pca_flags & WR) {
-	    LOG_VERBOSE(BSL_LS_APPL_TESTS,
+	    LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                         (BSL_META_U(u,
                                     "Writing PCI Config 0x%x <--- 0x%x\n"),
                          p->pca_addr, p->pca_write));
@@ -248,7 +248,7 @@ pci_test(int u, args_t *a, void *pa)
 	}
 	read_val = bde->pci_conf_read(u, p->pca_addr);
 	read_val &= p->pca_read_mask;
-	LOG_VERBOSE(BSL_LS_APPL_TESTS,
+	LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                     (BSL_META_U(u,
                                 "Reading PCI Config (Masked) 0x%x --> 0x%x\n"), 
                      p->pca_addr, read_val));

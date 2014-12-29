@@ -172,8 +172,8 @@
 #define DISABLE_CLK125          0       /* Disable if unused to reduce */
                                         /*  EMI emissions */
 
-#define DPRINTF(_s)             LOG_INFO(BSL_LS_SOC_PHY, _s)
-#define DPRINTF_VERBOSE(_s)     LOG_VERBOSE(BSL_LS_SOC_PHY, _s)
+#define DPRINTF(_s)             LOG_BSL_INFO(BSL_LS_SOC_PHY, _s)
+#define DPRINTF_VERBOSE(_s)     LOG_BSL_VERBOSE(BSL_LS_SOC_PHY, _s)
 
 #ifndef PHY_5464_CABLE_DIAG_HW
 #define PHY_5464_CABLE_DIAG_HW  0

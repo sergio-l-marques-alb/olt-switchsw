@@ -193,7 +193,7 @@ drv_harrier_trunk_set(int unit, int tid, soc_pbmp_t bmp,
     uint32  enable, temp, trunk_prop;
     uint64  reg_value64;
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_trunk_set: \
                          unit = %d, trunk id = %d, bmp = 0x%x 0x%x, flag = 0x%x, hash_op = 0x%x\n"),
@@ -308,7 +308,7 @@ drv_harrier_trunk_get(int unit, int tid, soc_pbmp_t *bmp,
             return SOC_E_INTERNAL;
         }
 
-        LOG_INFO(BSL_LS_SOC_PORT, \
+        LOG_BSL_INFO(BSL_LS_SOC_PORT, \
                  (BSL_META_U(unit, \
                              "drv_harrier_trunk_get: \
                              unit = %d, trunk id = %d, flag = 0x%x, *hash_op = 0x%x\n"),
@@ -345,7 +345,7 @@ drv_harrier_trunk_get(int unit, int tid, soc_pbmp_t *bmp,
         SOC_PBMP_WORD_SET(*bmp, 0, temp);
     }
 
-    LOG_INFO(BSL_LS_SOC_PORT, \
+    LOG_BSL_INFO(BSL_LS_SOC_PORT, \
              (BSL_META_U(unit, \
                          "drv_harrier_trunk_get: \
                          unit = %d, trunk id = %d, flag = 0x%x, *bmp = 0x%x 0x%x\n"),
@@ -374,14 +374,14 @@ drv_harrier_trunk_hash_field_add(int unit, uint32 field_type)
 {
     uint32  reg_value, temp;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_harrier_trunk_hash_field_add: unit = %d, field type = 0x%x\n"),
               unit, field_type));
 
     /* check the valid trunk hash field types */
     if (field_type & ~HARRIER_TRUNK_HASH_FIELD_VALID_VALUE) {
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                  (BSL_META_U(unit,
                              "drv_harrier_trunk_hash_field_add: hash type = 0x%x, is invalid!\n"),
                   field_type));
@@ -437,7 +437,7 @@ drv_harrier_trunk_hash_field_remove(int unit, uint32 field_type)
 {
     uint32  reg_value, temp;
 
-    LOG_INFO(BSL_LS_SOC_PORT,
+    LOG_BSL_INFO(BSL_LS_SOC_PORT,
              (BSL_META_U(unit,
                          "drv_harrier_trunk_hash_field_remove: unit = %d, field type = 0x%x\n"),
               unit, field_type));

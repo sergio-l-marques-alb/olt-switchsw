@@ -161,7 +161,7 @@
          if((_ptr_) != NULL) {                        \
               sal_memset((_ptr_), 0, (_size_));        \
          }  else {                                    \
-             LOG_ERROR(BSL_LS_BCM_POLICER,                              \
+             LOG_BSL_ERROR(BSL_LS_BCM_POLICER,                              \
                        (BSL_META("Error:Alloc failure %s\n"), (_descr_))); \
          }                                                              \
     } while (0)

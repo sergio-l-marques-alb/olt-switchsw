@@ -483,7 +483,7 @@ _fb_ipmc_vlan_ptr(int unit,int ipmc_id,
             soc_mem_unlock(unit, mem);
             return rv;
         }
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "set IPMC_GROUPm(port=%d,group=%d,ptr=%d)\n"),
                      port, ipmc_id, *vptr));

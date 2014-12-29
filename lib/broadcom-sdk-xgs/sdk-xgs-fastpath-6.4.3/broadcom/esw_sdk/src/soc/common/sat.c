@@ -580,7 +580,7 @@ _soc_sat_gtf_rate_to_internal_rate_convert(
     /* 1. caculate cycle per sec */
     rv = soc_reg_above_64_field64_read(unit, OAMP_TIMER_CONFIGr, REG_PORT_ANY, 0, NUM_CLOCKS_SECf, &field64);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -590,7 +590,7 @@ _soc_sat_gtf_rate_to_internal_rate_convert(
 
     rv = soc_reg_above_64_field64_read(unit, OAMP_SAT_GEN_CONFIGr, REG_PORT_ANY, 0, RATE_NUM_CLKS_CYCLEf, &field64);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -613,7 +613,7 @@ _soc_sat_gtf_rate_to_internal_rate_convert(
           rate_exp_val
         );
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -645,7 +645,7 @@ _soc_sat_gtf_rate_from_internal_rate_convert(
     /* 1. caculate cycle per sec */
     rv = soc_reg_above_64_field64_read(unit, OAMP_TIMER_CONFIGr, REG_PORT_ANY, 0, NUM_CLOCKS_SECf, &field64);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -655,7 +655,7 @@ _soc_sat_gtf_rate_from_internal_rate_convert(
 
     rv = soc_reg_above_64_field64_read(unit, OAMP_SAT_GEN_CONFIGr, REG_PORT_ANY, 0, RATE_NUM_CLKS_CYCLEf, &field64);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -693,7 +693,7 @@ soc_error_t soc_sat_general_cfg_init (
 
     rv = READ_OAMP_SAT_GEN_CONFIGr(unit, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -707,7 +707,7 @@ soc_error_t soc_sat_general_cfg_init (
 
     rv = WRITE_OAMP_SAT_GEN_CONFIGr(unit, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -715,7 +715,7 @@ soc_error_t soc_sat_general_cfg_init (
 
     rv = READ_OAMP_TIMER_CONFIGr(unit, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -726,7 +726,7 @@ soc_error_t soc_sat_general_cfg_init (
 
     rv = WRITE_OAMP_TIMER_CONFIGr(unit, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -746,7 +746,7 @@ soc_error_t soc_sat_config_set  (
     COMPILER_64_ZERO(reg_val);
     rv = READ_OAMP_SAT_GEN_CONFIGr(unit, &reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -763,7 +763,7 @@ soc_error_t soc_sat_config_set  (
     soc_reg64_field32_set(unit, OAMP_SAT_GEN_CONFIGr, &reg_val, SAT_PRBS_USE_NXORf, field);
     rv = WRITE_OAMP_SAT_GEN_CONFIGr(unit, reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -783,7 +783,7 @@ soc_error_t soc_sat_config_get  (
     COMPILER_64_ZERO(reg_val);
     rv = READ_OAMP_SAT_GEN_CONFIGr(unit, &reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -833,7 +833,7 @@ soc_error_t soc_sat_gtf_packet_gen_set (
 
         rv = READ_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -845,7 +845,7 @@ soc_error_t soc_sat_gtf_packet_gen_set (
         soc_reg_above_64_field32_set(unit, OAMP_SAT_GEN_RATE_CONTROLr, data, PKT_GEN_EN__Nf, enable);    
         rv = WRITE_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -875,7 +875,7 @@ soc_error_t soc_sat_gtf_packet_gen_get (
     /* get packet gen from cir */
     rv = READ_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -924,7 +924,7 @@ soc_error_t soc_sat_gtf_packet_config (
     sal_memset(&pkt_hdr_tbl_info, 0, sizeof(pkt_hdr_tbl_info));
     rv = _soc_sat_gtf_construct_packet_header(unit, &(config->header_info), &pkt_hdr_tbl_info);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -943,7 +943,7 @@ soc_error_t soc_sat_gtf_packet_config (
         payload_type = 2;
     }
     else  {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return SOC_E_PARAM;
@@ -953,7 +953,7 @@ soc_error_t soc_sat_gtf_packet_config (
         sal_memset(&(stamp_field_info[priority]), 0, sizeof(stamp_field_info[priority]));
         rv = _soc_sat_gtf_construct_stamp_field(unit, &(config->packet_edit[priority]), &(stamp_field_info[priority]));
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -982,7 +982,7 @@ soc_error_t soc_sat_gtf_packet_config (
 	/* Per evc parameters, two memory entries are needed: odd entries */
     rv = READ_OAMP_SAT_TX_EVC_PARAMS_ENTRY_1m(unit, MEM_BLOCK_ANY, SAT_TX_EVC_PARAMS_ENTRY_1_TBL_INDX(gtf_id), tx_evc_params_entry_1_data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -991,7 +991,7 @@ soc_error_t soc_sat_gtf_packet_config (
     soc_mem_field_set(unit, OAMP_SAT_TX_EVC_PARAMS_ENTRY_1m, tx_evc_params_entry_1_data, PKT_HEADER_LSBf, pkt_hdr_tbl_info.pkt_hdr_lsb);
     rv = WRITE_OAMP_SAT_TX_EVC_PARAMS_ENTRY_1m(unit, MEM_BLOCK_ANY, SAT_TX_EVC_PARAMS_ENTRY_1_TBL_INDX(gtf_id), tx_evc_params_entry_1_data); 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1000,7 +1000,7 @@ soc_error_t soc_sat_gtf_packet_config (
     /* Per evc parameters, two memory entries are needed: odd entries */
     rv = READ_OAMP_SAT_TX_EVC_PARAMS_ENTRY_2m(unit, MEM_BLOCK_ANY, SAT_TX_EVC_PARAMS_ENTRY_2_TBL_INDX(gtf_id), tx_evc_params_entry_2_data); 
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1013,7 +1013,7 @@ soc_error_t soc_sat_gtf_packet_config (
 
     rv = WRITE_OAMP_SAT_TX_EVC_PARAMS_ENTRY_2m(unit, MEM_BLOCK_ANY, SAT_TX_EVC_PARAMS_ENTRY_2_TBL_INDX(gtf_id), tx_evc_params_entry_2_data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1023,7 +1023,7 @@ soc_error_t soc_sat_gtf_packet_config (
     for (priority = 0; priority < SOC_SAT_GTF_NUM_OF_PRIORITIES; priority++) {
         rv = READ_OAMP_SAT_TX_GEN_PARAMSm(unit, MEM_BLOCK_ANY, SAT_TX_GEN_PARAMS_TBL_INDX(gtf_id, priority), tx_gen_params_data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1081,7 +1081,7 @@ soc_error_t soc_sat_gtf_packet_config (
 
         rv = WRITE_OAMP_SAT_TX_GEN_PARAMSm(unit, MEM_BLOCK_ANY, SAT_TX_GEN_PARAMS_TBL_INDX(gtf_id, priority), tx_gen_params_data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1092,7 +1092,7 @@ soc_error_t soc_sat_gtf_packet_config (
     if (SOC_IS_JERICHO(unit)) {   
         rv = soc_reg_above_64_get(unit, OAMP_SAT_EVC_RATE_CONTROLr, REG_PORT_ANY, SAT_TX_PER_EVC_INDX(gtf_id), evc_rate_control_data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1100,7 +1100,7 @@ soc_error_t soc_sat_gtf_packet_config (
         soc_reg_above_64_field32_set(unit, OAMP_SAT_EVC_RATE_CONTROLr, evc_rate_control_data, PIPE_ID_EVC__Nf, config->packet_context_id);
         rv = soc_reg_above_64_set(unit, OAMP_SAT_EVC_RATE_CONTROLr, REG_PORT_ANY, SAT_TX_PER_EVC_INDX(gtf_id), evc_rate_control_data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1137,7 +1137,7 @@ soc_error_t soc_sat_gtf_bandwidth_set (
         &rate_mnt_val,
         &rate_exp_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1156,7 +1156,7 @@ soc_error_t soc_sat_gtf_bandwidth_set (
           &burst_exp_val
         );
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1169,7 +1169,7 @@ soc_error_t soc_sat_gtf_bandwidth_set (
 
         rv = READ_OAMP_SAT_EVC_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1182,7 +1182,7 @@ soc_error_t soc_sat_gtf_bandwidth_set (
 
         rv = WRITE_OAMP_SAT_EVC_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1195,7 +1195,7 @@ soc_error_t soc_sat_gtf_bandwidth_set (
 
         rv = READ_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1212,7 +1212,7 @@ soc_error_t soc_sat_gtf_bandwidth_set (
 
         rv = WRITE_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1245,7 +1245,7 @@ soc_error_t soc_sat_gtf_bandwidth_get (
 
         rv = READ_OAMP_SAT_EVC_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1263,7 +1263,7 @@ soc_error_t soc_sat_gtf_bandwidth_get (
 
         rv = READ_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1280,7 +1280,7 @@ soc_error_t soc_sat_gtf_bandwidth_get (
 
     rv = _soc_sat_gtf_rate_from_internal_rate_convert(unit, rate_mnt_val, rate_exp_val, &(bw->rate));
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1317,7 +1317,7 @@ soc_error_t soc_sat_gtf_rate_pattern_set (
         &high_mnt_val, 
         &high_exp_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1330,7 +1330,7 @@ soc_error_t soc_sat_gtf_rate_pattern_set (
         &low_mnt_val, 
         &low_exp_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1342,7 +1342,7 @@ soc_error_t soc_sat_gtf_rate_pattern_set (
 
     rv = READ_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1370,7 +1370,7 @@ soc_error_t soc_sat_gtf_rate_pattern_set (
 
     rv = WRITE_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1400,7 +1400,7 @@ soc_error_t soc_sat_gtf_rate_pattern_get (
 
     rv = READ_OAMP_SAT_GEN_RATE_CONTROLr(unit, index, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1430,7 +1430,7 @@ soc_error_t soc_sat_gtf_rate_pattern_get (
 
     rv = _soc_sat_gtf_rate_from_internal_rate_convert(unit, high_mnt_val, high_exp_val, &(config->high_threshold));
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1438,7 +1438,7 @@ soc_error_t soc_sat_gtf_rate_pattern_get (
 
     rv = _soc_sat_gtf_rate_from_internal_rate_convert(unit, low_mnt_val, low_exp_val, &(config->low_threshold));
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1466,7 +1466,7 @@ soc_error_t soc_sat_gtf_stat_get (
 
         rv = soc_reg_above_64_get(unit, OAMP_SAT_GEN_RATE_CONTROLr, REG_PORT_ANY, index, data);
         if (SOC_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return rv;
@@ -1502,7 +1502,7 @@ soc_error_t soc_sat_ctf_packet_config (
     SOC_REG_ABOVE_64_CLEAR(reg_above64_val);
     rv = READ_OAMP_SAT_RX_FLOW_PARAMSm(unit, MEM_BLOCK_ANY, ctf_id, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1558,7 +1558,7 @@ soc_error_t soc_sat_ctf_packet_config (
     }
     rv = WRITE_OAMP_SAT_RX_FLOW_PARAMSm(unit, MEM_BLOCK_ALL, ctf_id, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1584,7 +1584,7 @@ soc_error_t soc_sat_ctf_identifier_map (
 
     rv = READ_OAMP_SAT_RX_FLOW_IDm(unit, MEM_BLOCK_ANY, index, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1598,7 +1598,7 @@ soc_error_t soc_sat_ctf_identifier_map (
 
     rv = WRITE_OAMP_SAT_RX_FLOW_IDm(unit, MEM_BLOCK_ALL, index, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1622,7 +1622,7 @@ soc_error_t soc_sat_ctf_identifier_unmap (
 
     rv = READ_OAMP_SAT_RX_FLOW_IDm(unit, MEM_BLOCK_ANY, index, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1633,7 +1633,7 @@ soc_error_t soc_sat_ctf_identifier_unmap (
 
     rv = WRITE_OAMP_SAT_RX_FLOW_IDm(unit, MEM_BLOCK_ALL, index, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1654,7 +1654,7 @@ soc_error_t soc_sat_ctf_trap_set (
     SOC_REG_ABOVE_64_CLEAR(reg_above64_val);
     SOC_REG_ABOVE_64_CLEAR(fld_above64_val);
     if (trap_id_cnt != SOC_SAT_CTF_TRAP_ID_MAX_NUM) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return SOC_E_PARAM;
@@ -1662,7 +1662,7 @@ soc_error_t soc_sat_ctf_trap_set (
 
     rv = READ_OAMP_SAT_RX_CONFIGr(unit, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1675,7 +1675,7 @@ soc_error_t soc_sat_ctf_trap_set (
     soc_reg_above_64_field_set(unit, OAMP_SAT_RX_CONFIGr, reg_above64_val, RX_TRAP_CODE_2f, fld_above64_val);
     rv = WRITE_OAMP_SAT_RX_CONFIGr(unit, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1699,7 +1699,7 @@ soc_error_t soc_sat_ctf_bin_limit_set (
 
     rv = READ_OAMP_SAT_RX_CONFIGr(unit, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1735,7 +1735,7 @@ soc_error_t soc_sat_ctf_bin_limit_set (
             soc_reg_above_64_field_set(unit, OAMP_SAT_RX_CONFIGr, reg_above64_val, RX_FLV_BIN_LIMIT_8f, fld_above64_val);
             break;    
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return SOC_E_PARAM;
@@ -1743,7 +1743,7 @@ soc_error_t soc_sat_ctf_bin_limit_set (
     }
     rv = WRITE_OAMP_SAT_RX_CONFIGr(unit, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1769,7 +1769,7 @@ soc_error_t soc_sat_ctf_bin_limit_get (
 
     rv = READ_OAMP_SAT_RX_CONFIGr(unit, reg_above64_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1804,7 +1804,7 @@ soc_error_t soc_sat_ctf_bin_limit_get (
             soc_reg_above_64_field_get(unit, OAMP_SAT_RX_CONFIGr, reg_above64_val, RX_FLV_BIN_LIMIT_8f, fld_above64_val);
             break;    
         default:
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "%s\n"), soc_errmsg(rv)));
             return SOC_E_PARAM;
@@ -1835,7 +1835,7 @@ soc_error_t soc_sat_ctf_stat_config_set (
     sal_memset(data, 0, sizeof(data));
     rv = READ_OAMP_SAT_RX_FLOW_PARAMSm(unit, MEM_BLOCK_ANY, ctf_id, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1845,14 +1845,14 @@ soc_error_t soc_sat_ctf_stat_config_set (
     soc_mem_field32_set(unit, OAMP_SAT_RX_FLOW_PARAMSm, &data, FDV_BIN_STEPf, stat->bin_step);
     rv = WRITE_OAMP_SAT_RX_FLOW_PARAMSm(unit, MEM_BLOCK_ALL, ctf_id, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
     }
     rv = READ_OAMP_SAT_RX_STATr(unit, &reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1861,7 +1861,7 @@ soc_error_t soc_sat_ctf_stat_config_set (
     soc_reg64_field32_set(unit, OAMP_SAT_RX_STATr, &reg_val, RX_STATS_UPDT_CNTR_ALWSf, stat->update_counters_in_unvavail_state);
     rv = WRITE_OAMP_SAT_RX_STATr(unit, reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -1893,7 +1893,7 @@ soc_error_t soc_sat_ctf_stat_get (
     SOC_REG_ABOVE_64_CLEAR(reg_above64_val_4);
     rv = READ_OAMP_SAT_RX_STATr(unit, &reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1902,7 +1902,7 @@ soc_error_t soc_sat_ctf_stat_get (
     soc_reg64_field32_set(unit, OAMP_SAT_RX_STATr, &reg_val, RX_STATS_CLR_ON_RDf, field);
     rv = WRITE_OAMP_SAT_RX_STATr(unit, reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -1910,14 +1910,14 @@ soc_error_t soc_sat_ctf_stat_get (
 
     rv = READ_OAMP_RX_STATS_DATA_3r(unit, reg_above64_val_3);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
     }
     rv = READ_OAMP_RX_STATS_DATA_4r(unit, reg_above64_val_4);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -2090,7 +2090,7 @@ soc_error_t soc_sat_ctf_availability_config_set (
     COMPILER_64_ZERO(reg_val);
     rv = READ_OAMP_SAT_RX_STATr(unit, &reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -2100,7 +2100,7 @@ soc_error_t soc_sat_ctf_availability_config_set (
     soc_reg64_field32_set(unit, OAMP_SAT_RX_STATr, &reg_val, RX_STATS_NEW_THRSHf , config->switch_state_threshold_per_slot);
     rv = WRITE_OAMP_SAT_RX_STATr(unit, reg_val);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -2121,7 +2121,7 @@ soc_error_t soc_sat_ctf_trap_data_to_session_map (
 
     rv = READ_OAMP_RX_OAM_ID_TCAMm(unit, MEM_BLOCK_ANY, entry_idx, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -2134,7 +2134,7 @@ soc_error_t soc_sat_ctf_trap_data_to_session_map (
 
     rv = WRITE_OAMP_RX_OAM_ID_TCAMm(unit, MEM_BLOCK_ALL, entry_idx, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -2152,7 +2152,7 @@ soc_error_t soc_sat_ctf_trap_data_to_session_unmap (
 
     rv = READ_OAMP_RX_OAM_ID_TCAMm(unit, MEM_BLOCK_ANY, entry_idx, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -2165,7 +2165,7 @@ soc_error_t soc_sat_ctf_trap_data_to_session_unmap (
 
     rv = WRITE_OAMP_RX_OAM_ID_TCAMm(unit, MEM_BLOCK_ALL, entry_idx, &data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }
@@ -2187,7 +2187,7 @@ soc_error_t soc_sat_ctf_reports_config_set (
     sal_memset(data, 0, sizeof(data));
     rv = READ_OAMP_SAT_RX_FLOW_PARAMSm(unit, MEM_BLOCK_ANY, ctf_id, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
         return rv;
@@ -2221,7 +2221,7 @@ soc_error_t soc_sat_ctf_reports_config_set (
 
     rv = WRITE_OAMP_SAT_RX_FLOW_PARAMSm(unit, MEM_BLOCK_ALL, ctf_id, data);
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "%s\n"), soc_errmsg(rv)));
     }

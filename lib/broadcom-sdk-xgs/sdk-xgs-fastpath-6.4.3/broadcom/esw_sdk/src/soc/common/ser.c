@@ -288,7 +288,7 @@ int soc_ser_reg_load_scrub(int unit, int scrub_load)
             if (scrub_load) {
                 soc_ser_reg_cache_set(unit, reg, 0, 0, rval64);
             }
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Reg: %s port:%d index:%d\n"), SOC_REG_NAME(unit, reg), 0, 0));
         } else if (SOC_REG_INFO(unit, reg).regtype == soc_cosreg) {
@@ -301,7 +301,7 @@ int soc_ser_reg_load_scrub(int unit, int scrub_load)
                     if (scrub_load) {
                         soc_ser_reg_cache_set(unit, reg, port, i, rval64);
                     }
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Reg: %s port:%d index:%d\n"), SOC_REG_NAME(unit, reg), port, i));
                 }
@@ -389,7 +389,7 @@ int soc_ser_reg_load_scrub(int unit, int scrub_load)
                     if (scrub_load) {
                         soc_ser_reg_cache_set(unit, reg, port, i, rval64);
                     }
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "Reg: %s port:%d index:%d\n"), SOC_REG_NAME(unit, reg), port, i));
                 }
@@ -473,7 +473,7 @@ soc_ser_reg_cache_set(int unit, soc_reg_t reg, int port, int index, uint64 data)
             if (index < 0) {
                 index = 0;
             }
-            LOG_VERBOSE(BSL_LS_SOC_REG,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                         (BSL_META_U(unit,
                                     "Set cache: reg:%d port:%d index:%d "
                                     "data:0x%x%x\n"), reg, port, index,
@@ -528,7 +528,7 @@ soc_ser_reg_cache_get(int unit, soc_reg_t reg, int port, int index, uint64 *data
                 index = 0;
             }
             *data = _soc_ser_reg_cache[unit]->reg_cache[i].data[port][index];
-            LOG_VERBOSE(BSL_LS_SOC_REG,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_REG,
                         (BSL_META_U(unit,
                                     "Get cache: reg:%d port:%d index:%d "
                                     "data:0x%x%x\n"), reg, port, index,
@@ -625,7 +625,7 @@ soc_process_ser_parity_error(int unit,
     SOC_IF_ERROR_RETURN(READ_CMIC_SER_FAIL_CNTr(unit, &fail_count));
 
     if (!fail_count) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "SER parity failure without valid count\n")));
     } else {
@@ -662,7 +662,7 @@ soc_process_ser_parity_error(int unit,
             if ((addr >= start_addr) && (addr <= end_addr)) {
                 /* Addr in memory range */
                 mem_index = (addr - start_addr) + index_min;
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "%s entry %d TCAM parity error\n"),
                            SOC_MEM_NAME(unit, cur_spi->mem),
@@ -776,7 +776,7 @@ soc_process_cmicm_ser_parity_error(int unit,
             end_addr =
                 soc_mem_addr_get(unit, cur_spi->mem, 0, copyno,
                                  phys_index_max, &at);
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "Mem: %s addr: %x start: %x end: %x\n"),
                          SOC_MEM_NAME(unit, cur_spi->mem), addr,
@@ -805,7 +805,7 @@ soc_process_cmicm_ser_parity_error(int unit,
                     }
 #endif /* BCM_KATANA2_SUPPORT */
                 }
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ser0 %s entry %d TCAM parity error\n"),
                            SOC_MEM_NAME(unit, cur_spi->mem),
@@ -868,7 +868,7 @@ soc_process_cmicm_ser_parity_error(int unit,
             if ((addr >= start_addr) && (addr <= end_addr)) {
                 /* Addr in memory range */
                 mem_index = (addr - start_addr) + index_min;
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ser1 %s entry %d TCAM parity error\n"),
                            SOC_MEM_NAME(unit, cur_spi->mem),
@@ -906,7 +906,7 @@ soc_process_cmicm_ser_parity_error(int unit,
         SOC_IF_ERROR_RETURN(WRITE_CMIC_SER1_FAIL_CNTr(unit, 0));
     }
     if (!fail) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "SER parity failure without valid count\n")));
     }
@@ -1047,7 +1047,7 @@ soc_ser_mem_clear(int unit, _soc_ser_parity_info_t *_ser_parity_info,
         SOC_IF_ERROR_RETURN
             (WRITE_CMIC_SER_PROTECT_ADDR_RANGE_VALIDr(unit, addr_valid));
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\t%s: SER[%d-%d]\n"),
                      SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1109,7 +1109,7 @@ soc_cmicm_ser_mem_clear(int unit, _soc_ser_parity_info_t *_ser_parity_info,
         SOC_IF_ERROR_RETURN
             (WRITE_CMIC_SER0_PROTECT_ADDR_RANGE_VALIDr(unit, addr_valid));
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\t%s: SER0[%d-%d]\n"),
                      SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1161,7 +1161,7 @@ check_ser1:
         SOC_IF_ERROR_RETURN
             (WRITE_CMIC_SER1_PROTECT_ADDR_RANGE_VALIDr(unit, addr_valid));
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\t%s: SER0[%d-%d]\n"),
                      SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1186,7 +1186,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
 #endif /* BCM_CMICM_SUPPORT */
     _soc_ser_parity_info_t *cur_spi, *multi_pipe_spi;
 
-    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                 (BSL_META_U(unit,
                             "Unit %d: SER parity initialization:\n"), unit));
 
@@ -1198,14 +1198,14 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
 
         if (cur_spi->ser_flags & _SOC_SER_FLAG_SW_COMPARE) {
             if (SOC_MEM_INFO(unit, cur_spi->mem).flags & SOC_MEM_FLAG_BE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "\tSW SER init of Big Endian TCAMs is not supported: %s\n"),
                            SOC_MEM_NAME(unit, cur_spi->mem)));
                 return SOC_E_INTERNAL;
             }
 
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tSkipping HW SER init of manual scan mem: %s\n"),
                          SOC_MEM_NAME(unit, cur_spi->mem)));
@@ -1232,7 +1232,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
 #endif /* BCM_TRIUMPH3_SUPPORT || BCM_KATANA2_SUPPORT */
         ser_mem_count = index_max - index_min + 1;
         if (!ser_mem_count) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tSkipping empty mem: %s\n"),
                          SOC_MEM_NAME(unit, cur_spi->mem)));
@@ -1247,7 +1247,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
         ser_mem_count = 32 * ((ser_mem_count + 31) / 32);
         if ((ser_mem_count + ser_mem_total) > max_mem) {
             /* Can't fit requested parity bits in SER memory */
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER mem full: Skipping further config.\n")));
             break;
@@ -1351,7 +1351,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
                         (acc_type & _SOC_MEM_ADDR_ACC_TYPE_MASK) <<
                         _SOC_MEM_ADDR_ACC_TYPE_SHIFT;
                 } else {
-                    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                                 (BSL_META_U(unit,
                                             "SER mem muliple pipeline mismatch %s vs. %s.\n"),
                                  SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1409,7 +1409,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
 
 #ifdef BCM_CMICM_SUPPORT
         if (soc_feature(unit, soc_feature_cmicm) && !SOC_IS_KATANA(unit)) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\t%s(%d-%d): Sbus range (0x%08x-0x%08x) SER[%d][%d](0x%03x)\n"),
                          SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1420,7 +1420,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
         } else
 #endif /* BCM_CMICM_SUPPORT */
         {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\t%s(%d-%d): Sbus range (0x%08x-0x%08x) SER[%d](0x%03x)\n"),
                          SOC_MEM_NAME(unit, cur_spi->mem),
@@ -1428,7 +1428,7 @@ soc_ser_init(int unit, _soc_ser_parity_info_t *_ser_parity_info, int max_mem)
                          o_info_ix, ser_mem_addr));
         }
         if (cur_spi->bit_offset != -1) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tBits protected per entry: %d\n"),
                          cur_spi->bit_offset));
@@ -1537,7 +1537,7 @@ soc_generic_ser_process_error(int unit, _soc_generic_ser_info_t *ser_info,
 
     if (!soc_reg_field_get(unit, SER_ERROR_0r, ser_err[0], ERROR_0_VALf) &&
         !soc_reg_field_get(unit, SER_ERROR_1r, ser_err[1], ERROR_1_VALf)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "SER parity failure without valid error !!\n")));
         return SOC_E_NONE;
@@ -1579,7 +1579,7 @@ soc_generic_ser_process_error(int unit, _soc_generic_ser_info_t *ser_info,
             info_ix++;
         }
         if (ser_info[info_ix].mem == INVALIDm) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER parity failure with invalid mem range !!\n")));
             return SOC_E_NONE;
@@ -1630,7 +1630,7 @@ soc_generic_ser_process_error(int unit, _soc_generic_ser_info_t *ser_info,
         }
         ser_mem_count = phys_index_max - phys_index_min + 1;
         if (!ser_mem_count) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER parity failure with unavailable mem range !!\n")));
             return SOC_E_NONE;
@@ -1699,7 +1699,7 @@ soc_generic_ser_process_error(int unit, _soc_generic_ser_info_t *ser_info,
             corrupt = SOC_MEM_STATE(unit, cur_mem).corrupt[copyno];
             if ((corrupt == NULL) || (TCAM_CORRUPT_MAP_TST(corrupt, mem_index))) {
 #endif
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Unit %d: %s entry %d TCAM parity error\n"),
                            unit, SOC_MEM_NAME(unit, cur_mem),
@@ -1772,7 +1772,7 @@ soc_generic_ser_process_error(int unit, _soc_generic_ser_info_t *ser_info,
                 if (corrupt != NULL) {
                     TCAM_CORRUPT_MAP_CLR(corrupt, mem_index);
                 }
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "Unit %d: %s entry %d TCAM parity error indicating bit is cleared.\n"),
                              unit, SOC_MEM_NAME(unit, cur_mem),
@@ -1787,7 +1787,7 @@ soc_generic_ser_process_error(int unit, _soc_generic_ser_info_t *ser_info,
              soc_reg_field_get(unit, SER_ERROR_1r, ser_err[1], ERROR_1_VALf));
     SOC_IF_ERROR_RETURN(READ_SER_MISSED_EVENTr(unit, &count));
     if (count) {
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "Overflow events: %d.\n"), count));
     }
@@ -1994,7 +1994,7 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
         SER_RANGE_30_DISABLEr, SER_RANGE_31_DISABLEr
     };
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "SER engine init:\n")));
 
@@ -2030,14 +2030,14 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
         if (cur_ser_info->ser_flags & _SOC_SER_FLAG_SW_COMPARE) {
             if (SOC_MEM_INFO(unit, cur_ser_info->mem).flags &
                 SOC_MEM_FLAG_BE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "\tSW SER init of Big Endian TCAMs is not supported: %s\n"),
                            SOC_MEM_NAME(unit, cur_ser_info->mem)));
                 return SOC_E_INTERNAL;
             }
 
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tSkipping HW SER init of manual scan mem: %s\n"),
                          SOC_MEM_NAME(unit, cur_ser_info->mem)));
@@ -2065,7 +2065,7 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
 
         ser_mem_count = index_max - index_min + 1;
         if (!ser_mem_count) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tSkipping empty mem: %s\n"),
                          SOC_MEM_NAME(unit, cur_ser_info->mem)));
@@ -2085,7 +2085,7 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
             /* See if the aliased memory has already been configured */
             for (i = 0; i < info_ix; i++) {
                 if (ser_info[i].mem == cur_ser_info->alias_mem) {
-                    LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                                 (BSL_META_U(unit,
                                             "\tSER alias mem.\n")));
                     alias = TRUE;
@@ -2109,7 +2109,7 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
                  * must be different to capture the different SBUS ranges
                  * of the read accesses.
                  */
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "\tSER multiple pipeline mem.\n")));
                 /* Get the non-default pipeline access type */
@@ -2154,7 +2154,7 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
         if (!alias && ((ser_mem_count + ser_mem_total) >
                        soc_mem_index_count(unit, SER_MEMORYm))) {
             /* Can't fit requested parity bits in SER memory */
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "SER mem full: Skipping further config.\n")));
             break;
@@ -2173,14 +2173,14 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
         ser_mem_addr = alias ? ser_info[i].ser_section_start :
                                ser_mem_total; /* Previous total */
         if (alias) {
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tReuse SER_MEM (%d) from index: %d - %d\n"),
                          ser_mem_count, ser_info[i].ser_section_start,
                          ser_info[i].ser_section_end));
         } else {
             ser_mem_total += ser_mem_count; /* New total */
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit,
                                     "\tClear SER_MEM (%d) from index: %d - %d\n"),
                          ser_mem_count, ser_mem_addr, ser_mem_total-1));
@@ -2261,7 +2261,7 @@ soc_generic_ser_init(int unit, _soc_generic_ser_info_t *ser_info)
         SOC_IF_ERROR_RETURN
             (soc_reg32_set(unit, range_cfg[hw_ser_ix], REG_PORT_ANY, 0, rval));
 
-        LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                     (BSL_META_U(unit,
                                 "\tRange[%2d](0x%04x, %08d): %s(%d-%d): "
                                 "Sbus range (0x%08x-0x%08x), info_ix=%d\n"),
@@ -2371,7 +2371,7 @@ soc_generic_ser_mem_update(int unit, soc_mem_t mem, int mode)
         ser_info = soc_mem_scan_ser_info_get(unit);
         if (ser_info == NULL) {
             rv = SOC_E_INIT;
-            LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                         (BSL_META_U(unit, "mem_update FAILED for mem = %s as "
                          "ser_info is NULL\n"), SOC_MEM_NAME(unit,mem)));
             goto _error;
@@ -2409,7 +2409,7 @@ soc_generic_ser_mem_update(int unit, soc_mem_t mem, int mode)
                  *
                  */ 
                 hw_ser_ix = ser_info[info_ix].ser_hw_index;
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit, "mem_update for mem = %s, "
                              "range_enable = 0x%x,  hw_ser_ix = %0d\n"),
                              SOC_MEM_NAME(unit,mem), range_enable, hw_ser_ix));
@@ -2434,7 +2434,7 @@ soc_generic_ser_mem_update(int unit, soc_mem_t mem, int mode)
                     }
                 }
                 rv = WRITE_SER_RANGE_ENABLEr(unit, range_enable);
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit, "mem_update for mem = %s, "
                              "range_enable = 0x%x,  hw_ser_ix = %0d\n"),
                              SOC_MEM_NAME(unit,mem), range_enable, hw_ser_ix));
@@ -2456,7 +2456,7 @@ STATIC int
 _soc_ser_sync_mac_limits(int unit, soc_mem_t mem)
 {
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered _soc_ser_sync_mac_limits "
                             "routine\n")));
@@ -2501,7 +2501,7 @@ _soc_ser_check_hard_fault(int unit, soc_mem_t mem, int at, int copyno,
     uint8 hf = FALSE;
     uint32 entry[SOC_MAX_MEM_WORDS];
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered _soc_ser_check_hard_fault "
                             "routine\n")));
@@ -2520,7 +2520,7 @@ _soc_ser_check_hard_fault(int unit, soc_mem_t mem, int at, int copyno,
     if (SOC_FAILURE(rv)) {
         /* Obvious hard fault */
         hf = TRUE;
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Hard fault detected (read) at: %s.%s[%d] !!\n"),
                    SOC_MEM_NAME(unit, mem),
@@ -2542,7 +2542,7 @@ _soc_ser_check_hard_fault(int unit, soc_mem_t mem, int at, int copyno,
                 _SOC_ENTRY_FIELD_CHK_CLR(unit, mem, entry, HIT_3f);
                 if (sal_memcmp(entry, cptr, bytes) != 0) {
                     hf = TRUE;
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Hard fault detected (pipe compare) "
                                           "at: %s.%s[%d] !!\n"),
@@ -2579,7 +2579,7 @@ _soc_ser_recovery_hw_cache(int unit, int pipe, soc_mem_t mem, int copyno,
 #endif /* BCM_TOMAHAWK_SUPPORT */
 
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered _soc_ser_recovery_hw_cache "
                             "routine\n")));
@@ -2622,7 +2622,7 @@ _soc_ser_recovery_hw_cache(int unit, int pipe, soc_mem_t mem, int copyno,
                 restore_pipe = pipe ? 0 : 1;
                 acc_type = _SOC_TH_ACC_TYPE_FOR_PIPE(pipe);
                 cache_acc_type = _SOC_TH_ACC_TYPE_FOR_PIPE(restore_pipe);
-                /* LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                /* LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                  *             (BSL_META_U(unit,
                  *                         "th_dbg: pipe=%0d, restore_pipe=%0d, acc_type=%0d, cache_acc_type=%0d\n"),
                  *              unit, pipe, restore_pipe, acc_type,
@@ -2647,7 +2647,7 @@ _soc_ser_recovery_hw_cache(int unit, int pipe, soc_mem_t mem, int copyno,
                 null_entry = soc_mem_entry_null(unit, mem);
                 sal_memcpy(entry, null_entry, soc_mem_entry_words(unit, mem) *
                                               sizeof(uint32));
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Un-expected error in %s[%d] blk: %s at same "
                                       "index[%d] in multiple pipes.\n"),
@@ -2674,7 +2674,7 @@ _soc_ser_recovery_hw_cache(int unit, int pipe, soc_mem_t mem, int copyno,
                                    SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem,
                                    index);
             }
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "RESTORE[from %c pipe]: %s[%d] blk: %s index: %d\n"),
                        pipe ? 'X':'Y', SOC_MEM_NAME(unit, mem), mem,
@@ -2682,7 +2682,7 @@ _soc_ser_recovery_hw_cache(int unit, int pipe, soc_mem_t mem, int copyno,
             stat->ser_err_restor++;
 #if defined(BCM_TOMAHAWK_SUPPORT)
             if (SOC_IS_TOMAHAWK(unit)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "RESTORE[from pipe %0d]: %s[%d] "
                                       "blk: %s index: %d\n"),
@@ -2691,7 +2691,7 @@ _soc_ser_recovery_hw_cache(int unit, int pipe, soc_mem_t mem, int copyno,
             } else
 #endif /* BCM_TOMAHAWK_SUPPORT */
             {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "RESTORE[from %c pipe]: %s[%d] "
                                       "blk: %s index: %d\n"),
@@ -2736,7 +2736,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
     int reported_mem_is_fpem_lp = 0; /* reported_mem in ser_fifo */
 
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered "
                             "_soc_ser_overlay_mem_correction routine\n")));
@@ -2756,7 +2756,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
             break;
         } else {
 #ifdef SER_TR_TEST_SUPPORT
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "th_dbg: returning SOC_E_UNAVAIL "
                                     "for MODPORT_MAP_SW\n")));
@@ -2936,7 +2936,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
 #if defined(BCM_TRIDENT2_SUPPORT)
             if (SOC_IS_TD2_TT2(unit)) {
 #ifdef SER_TR_TEST_SUPPORT
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "th_dbg: "
                                         "phys_index = %0d for mem = %0d\n"),
@@ -2948,7 +2948,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
                 index = soc_trident2_l3_defip_mem_index_get(unit, index,
                                                             &mem_list[0]);
 #ifdef SER_TR_TEST_SUPPORT
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "th_dbg: "
                                         "logical_index = %0d  for mem = %0d\n"),
@@ -2960,7 +2960,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
                 if (mem_list[0] == L3_DEFIPm) {
                     mem_list[0] = L3_DEFIP_DATA_ONLYm;
 #ifdef SER_TR_TEST_SUPPORT
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "th_dbg: mem_for_restore=%0d:"
                                             "L3_DEFIP_DATA_ONLYm\n"), mem_list[0]));
@@ -2968,7 +2968,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
                 } else if (mem_list[0] == L3_DEFIP_PAIR_128m) {
                     mem_list[0] = L3_DEFIP_PAIR_128_DATA_ONLYm;
 #ifdef SER_TR_TEST_SUPPORT
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "th_dbg: mem_for_restore=%0d:"
                                             "L3_DEFIP_PAIR_128_DATA_ONLYm\n"),
@@ -3107,7 +3107,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
                 rv = soc_mem_write(unit, mem_for_write, copyno,
                                    index_for_write, entry);
                 if (rv < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "CACHE_RESTORE %s.%s[%d] failed: %s\n"),
                                SOC_MEM_NAME(unit, mem_for_write),
@@ -3123,7 +3123,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
                 soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                    SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem,
                                    vindex);
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "CACHE_RESTORE: %s[%d] blk: %s index: %d : [%d][%x]\n"),
                            SOC_MEM_NAME(unit, mem_for_write),
@@ -3131,7 +3131,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
                            index_for_write, sblk, addr));
                 stat->ser_err_restor++;
 #ifdef SER_TR_TEST_SUPPORT
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "th_dbg: this CACHE_RESTORE was "
                                         "from overlay_mem_correction\n")));
@@ -3184,7 +3184,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
     }
     if (fix == 0) {
 #ifdef SER_TR_TEST_SUPPORT
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "th_dbg: overlay_mem_correction falling "
                                 "back to CLEAR_RESTORE\n")));
@@ -3281,7 +3281,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
 #endif
         null_entry = soc_mem_entry_null(unit, mem);
         if ((rv = soc_mem_write(unit, mem, copyno, vindex, null_entry)) < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "CLEAR_RESTORE %s.%s[%d] failed: %s\n"),
                        SOC_MEM_NAME(unit, mem),
@@ -3292,14 +3292,14 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
         soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                            SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem,
                            vindex);
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "CLEAR_RESTORE: %s[%d] blk: %s index: %d : [%d][%x]\n"),
                    SOC_MEM_NAME(unit, mem), mem,
                    SOC_BLOCK_NAME(unit, copyno),
                    vindex, sblk, addr));
 #ifdef SER_TR_TEST_SUPPORT
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "th_dbg: overlay_mem_correction did "
                                 "CLEAR_RESTORE !!\n")));
@@ -3307,7 +3307,7 @@ _soc_ser_overlay_mem_correction(int unit, int hw_cpu, int pipe, int sblk, int ad
         if (_SOC_DRV_MEM_CHK_L2_MEM(mem) &&
             soc_feature(unit, soc_feature_mac_learn_limit)) {
             if ((rv =_soc_ser_sync_mac_limits(unit, mem)) != SOC_E_NONE) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "L2 mac limit sync failed !!\n")));
                 return rv;
@@ -3324,7 +3324,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
 {
 #define _SOC_SER_SRAM_CHK_RETURN(str) \
         if (rv != SOC_E_NONE) {\
-            LOG_ERROR(BSL_LS_SOC_COMMON, \
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON, \
                       (BSL_META_U(unit, \
                                   "SER SRAM correction encoutered error(%d) in %s\n"), \
                        rv, str));\
@@ -3353,7 +3353,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
     int use_overlay_mem_correction = 0;
     int use_recovery_hw_cache = 0;
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered _soc_ser_sram_correction "
                             "routine\n")));
@@ -3491,7 +3491,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
                              */
 
                     _SOC_SER_SRAM_CHK_RETURN("mem write");
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "CLEAR_RESTORE: %s[%d] start_index: %d\n"),
                                SOC_MEM_NAME(unit, FPEM_LPm), FPEM_LPm,
@@ -3508,7 +3508,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
             }
             if (!(rv == SOC_E_NONE || rv == SOC_E_UNAVAIL)) {
                     
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "SER SRAM correction encoutered error(%d) "
                                       "in overlay mem correction\n"),
@@ -3530,7 +3530,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
                                                 copyno, sram_info.mem_indexes[i][j]);
                 if (!(rv == SOC_E_NONE || rv == SOC_E_UNAVAIL)) {
                     
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "SER SRAM correction encoutered error(%d) "
                                           "in recovery from hw cache\n"),
@@ -3552,7 +3552,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
                 sal_memcpy(entry, cache + start_index * entry_dw, entry_dw * 4);
                 rv = soc_mem_write(unit, mem_to_restore, copyno, start_index, entry);
                 _SOC_SER_SRAM_CHK_RETURN("mem write");
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "CACHE_RESTORE: %s[%d] start_index: %d\n"),
                            SOC_MEM_NAME(unit, mem_to_restore),
@@ -3562,7 +3562,7 @@ _soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
                 null_entry = soc_mem_entry_null(unit, mem_to_restore);
                 rv = soc_mem_write(unit, mem_to_restore, copyno, start_index, null_entry);
                 _SOC_SER_SRAM_CHK_RETURN("mem write");
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "CLEAR_RESTORE: %s[%d] start_index: %d\n"),
                            SOC_MEM_NAME(unit, mem_to_restore),
@@ -3625,7 +3625,7 @@ soc_ser_sram_correction(int unit, int pipe, int sblk, int addr, soc_mem_t mem,
 {
     int rv;
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered soc_ser_sram_correction "
                             "routine\n")));
@@ -3699,7 +3699,7 @@ _soc_ser_lp_mem_correction(int unit, soc_mem_t mem, int index)
     soc_mem_t hash_mem;
     uint32 entry[SOC_MAX_MEM_WORDS];
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered soc_ser_lp_mem_correction "
                             "routine\n")));
@@ -3717,7 +3717,7 @@ _soc_ser_lp_mem_correction(int unit, soc_mem_t mem, int index)
     if (hash_mem == L2Xm) {
         rv1 = soc_l2x_freeze(unit);
         if (SOC_FAILURE(rv1)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "L2 freeze failed in LP mem correction\n")));
         }
@@ -3730,7 +3730,7 @@ _soc_ser_lp_mem_correction(int unit, soc_mem_t mem, int index)
         if (hash_mem == L2Xm) {
             rv1 = soc_l2x_thaw(unit);
             if (SOC_FAILURE(rv1)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "L2 thaw failed in LP mem correction\n")));
             }
@@ -3744,7 +3744,7 @@ _soc_ser_lp_mem_correction(int unit, soc_mem_t mem, int index)
         if (hash_mem == L2Xm) {
             rv1 = soc_l2x_thaw(unit);
             if (SOC_FAILURE(rv1)) {
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                          (BSL_META_U(unit,
                                      "L2 thaw failed in LP mem correction\n")));
             }
@@ -3756,7 +3756,7 @@ _soc_ser_lp_mem_correction(int unit, soc_mem_t mem, int index)
     if (hash_mem == L2Xm) {
         rv1 = soc_l2x_thaw(unit);
         if (SOC_FAILURE(rv1)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "L2 thaw failed in LP mem correction\n")));
         }
@@ -3782,7 +3782,7 @@ _soc_ser_ism_correction(int unit)
         EGR_VLAN_XLATEm
     };
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered soc_ser_ism_mem_correction "
                             "routine\n")));
@@ -3792,7 +3792,7 @@ _soc_ser_ism_correction(int unit)
     buf_size = 4 * SOC_MAX_MEM_WORDS * chunksize;
     tbl_chnk = soc_cm_salloc(unit, buf_size, "ism ser correction");
     if (NULL == tbl_chnk) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "Memory allocation failure in ser ism "
                               "correction !!\n")));
@@ -3813,7 +3813,7 @@ _soc_ser_ism_correction(int unit)
             rv = soc_mem_read_range(unit, ism_mems[m], MEM_BLOCK_ANY, chnk_idx,
                                     chnk_idx_max, tbl_chnk);
             if (SOC_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "DMA failure in ser ism "
                                       "correction for %s mem !!\n"),
@@ -3857,7 +3857,7 @@ int
 _soc_oam_ser_correction(int unit, soc_mem_t mem, int index)
 {
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered _soc_oam_ser_correction "
                             "routine\n")));
@@ -3883,7 +3883,7 @@ _soc_oam_ser_correction(int unit, soc_mem_t mem, int index)
     }
 #endif /* BCM_KATANA2_SUPPORT */
 
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "SER Handling routine not avaialable\n")));
     return SOC_E_UNAVAIL;
@@ -3898,7 +3898,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
     int rv;
 
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "th_dbg: entered _soc_ser_ipfix_correction "
                             "routine\n")));
@@ -3914,7 +3914,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
     if (ingress_stage) {
         rv = WRITE_ING_IPFIX_EXPORT_FIFO_COUNTERr(unit, 0);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ING_IPFIX_EXPORT_FIFO_COUNTERr clear failed: %s\n"),
                        soc_errmsg(rv)));
@@ -3923,7 +3923,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
     } else {
         rv = WRITE_EGR_IPFIX_EXPORT_FIFO_COUNTERr(unit, 0);
         if (rv < 0) {
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "EGR_IPFIX_EXPORT_FIFO_COUNTERr clear failed: %s\n"),
                        soc_errmsg(rv)));
@@ -3936,7 +3936,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
 
             rv = WRITE_ING_IPFIX_PORT_RECORD_COUNTr(unit, port, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ING_IPFIX_PORT_RECORD_COUNTr clear for "
                                       "port(%d) failed: %s\n"),
@@ -3946,7 +3946,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
 
             rv = WRITE_ING_IPFIX_PORT_SAMPLING_COUNTERr(unit, port, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ING_IPFIX_PORT_SAMPLING_COUNTERr clear for "
                                       "port(%d) failed: %s\n"),
@@ -3957,7 +3957,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
 
             rv = WRITE_EGR_IPFIX_PORT_RECORD_COUNTr(unit, port, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "EGR_IPFIX_PORT_RECORD_COUNTr clear for "
                                       "port(%d) failed: %s\n"),
@@ -3967,7 +3967,7 @@ _soc_ser_ipfix_correction(int unit, soc_mem_t mem)
 
             rv = WRITE_EGR_IPFIX_PORT_SAMPLING_COUNTERr(unit, port, 0);
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "EGR_IPFIX_PORT_SAMPLING_COUNTERr clear for "
                                       "port(%d) failed: %s\n"),
@@ -4024,14 +4024,14 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
     }
 
 #ifdef SER_TR_TEST_SUPPORT
-    LOG_ERROR(BSL_LS_SOC_COMMON,
+    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
               (BSL_META_U(unit,
                           "SER_CORRECTION: reg/mem:%d btype:%d sblk:%d at:%d "
                           "stage:%d addr:0x%08x port: %d index: %d\n"),
                (si->flags & SOC_SER_SRC_MEM) ? si->mem : si->reg, si->blk_type,
                si->sblk, si->acc_type, si->stage, si->addr, si->port, si->index));
 #endif /* SER_TR_TEST_SUPPORT */
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "SER_CORRECTION: reg/mem:%d btype:%d sblk:%d at:%d "
                             "stage:%d addr:0x%08x port: %d index: %d\n"),
@@ -4056,13 +4056,13 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 }
                 if (soc_feature(unit, soc_feature_two_ingress_pipes) &&
                     soc_feature(unit, soc_feature_sbusdma)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "memory not decoded [%d %d 0x%8x].\n"),
                                  si->sblk, si->acc_type, si->addr));
                     return SOC_E_NOT_FOUND;
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "memory not decoded [%d %d 0x%8x].\n"),
                                si->sblk, si->acc_type, si->addr));
@@ -4102,7 +4102,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             copyno = SOC_MEM_BLOCK_ANY(unit, mem);
         }
         stat->ser_err_mem++;
-        LOG_WARN(BSL_LS_SOC_COMMON,
+        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "mem: %d=%s blkoffset:%d\n"), mem,
                    SOC_MEM_NAME(unit, mem), copyno));
@@ -4134,7 +4134,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                             sizeof(soc_ser_log_tlv_generic_t), &log_generic);
                     }
                     /* No error case. Print and return */
-                    LOG_WARN(BSL_LS_SOC_COMMON,
+                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                              (BSL_META_U(unit,
                                          "NO PARITY ERROR: reg/mem:%d btype:%d sblk:%d at:%d "
                                          "stage:%d addr:0x%08x index: %d\n"),
@@ -4143,7 +4143,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                               si->stage, si->addr, si->index));
 
                     for (i=0;i<entry_dw;i++) {
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "NO PARITY ERROR: Entry[%d]:%08X\n"), i, entry[i]));
                     }
@@ -4176,7 +4176,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
         switch (SOC_MEM_SER_CORRECTION_TYPE(unit, mem)) {
         case SOC_MEM_FLAG_SER_ENTRY_CLEAR:
 #ifdef SER_TR_TEST_SUPPORT
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "th_dbg: SER_CORRECTION_TYPE = "
                                     "ENTRY_CLEAR for mem = %0d\n"), mem));
@@ -4190,7 +4190,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
 #endif
             null_entry = soc_mem_entry_null(unit, mem);
             if ((rv = soc_mem_write(unit, mem, copyno, index, null_entry)) < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "ENTRY_CLEAR %s.%s[%d] failed: %s\n"),
                            SOC_MEM_NAME(unit, mem),
@@ -4212,7 +4212,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
 #endif
             soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem, index);
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "ENTRY_CLEAR: %s[%d] blk: %s index: %d : [%d][%x]\n"),
                        SOC_MEM_NAME(unit, mem), mem,
@@ -4240,7 +4240,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             return SOC_E_NONE;
         case SOC_MEM_FLAG_SER_ECC_CORRECTABLE:
 #ifdef SER_TR_TEST_SUPPORT
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "th_dbg: SER_CORRECTION_TYPE = "
                                     "ECC_CORRECTABLE for mem = %0d\n"), mem));
@@ -4250,7 +4250,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             /* coverity[fallthrough: FALSE] */
         case SOC_MEM_FLAG_SER_CACHE_RESTORE:
 #ifdef SER_TR_TEST_SUPPORT
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "th_dbg: SER_CORRECTION_TYPE = "
                                     "CACHE_RESTORE for mem = %0d\n"), mem));
@@ -4259,7 +4259,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             /* coverity[fallthrough: FALSE] */
         case SOC_MEM_FLAG_SER_WRITE_CACHE_RESTORE:
 #ifdef SER_TR_TEST_SUPPORT
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "th_dbg: SER_CORRECTION_TYPE = "
                                     "WRITE_CACHE_RESTORE for mem = %0d\n"), mem));
@@ -4305,7 +4305,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             if (cache != NULL && CACHE_VMAP_TST(vmap, index)) {
                 sal_memcpy(entry, cache + index * entry_dw, entry_dw * 4);
                 if ((rv = soc_mem_write(unit, mem, copyno, index, entry)) < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "CACHE_RESTORE %s.%s[%d] failed: %s\n"),
                                SOC_MEM_NAME(unit, mem),
@@ -4334,7 +4334,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                    SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem,
                                    index);
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "CACHE_RESTORE: %s[%d] blk: %s index: %d : [%d][%x]\n"),
                            SOC_MEM_NAME(unit, mem), mem,
@@ -4348,14 +4348,14 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
 #endif
             } else { /* Fall back to clear */
 #ifdef SER_TR_TEST_SUPPORT
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "th_dbg: "
                                         "main routine falling back to clear\n")));
 #endif /* SER_TR_TEST_SUPPORT */
                 null_entry = soc_mem_entry_null(unit, mem);
                 if ((rv = soc_mem_write(unit, mem, copyno, index, null_entry)) < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "CLEAR_RESTORE %s.%s[%d] failed: %s\n"),
                                SOC_MEM_NAME(unit, mem),
@@ -4385,7 +4385,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                                    SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED, mem,
                                    index);
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "CLEAR_RESTORE: %s[%d] blk: %s index: %d : [%d][%x]\n"),
                            SOC_MEM_NAME(unit, mem), mem,
@@ -4394,7 +4394,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 if (_SOC_DRV_MEM_CHK_L2_MEM(mem) &&
                     soc_feature(unit, soc_feature_mac_learn_limit)) {
                     if ((rv =_soc_ser_sync_mac_limits(unit, mem)) != SOC_E_NONE) {
-                        LOG_ERROR(BSL_LS_SOC_COMMON,
+                        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                   (BSL_META_U(unit,
                                               "L2 mac limit sync failed !!\n")));
                         return rv;
@@ -4416,7 +4416,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             return SOC_E_NONE;
         case SOC_MEM_FLAG_SER_SPECIAL:
 #ifdef SER_TR_TEST_SUPPORT
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "th_dbg: SER_CORRECTION_TYPE = "
                                     "SPECIAL for mem = %0d\n"), mem));
@@ -4428,7 +4428,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             case L3_ENTRY_LPm:
             case VLAN_XLATE_LPm:
             case EGR_VLAN_XLATE_LPm:
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "SER_SPECIAL: %s[%d] blk: %s index: %d : [%d][%x]\n"),
                            SOC_MEM_NAME(unit, mem), mem,
@@ -4454,7 +4454,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
             case RMEPm:
                 rv = _soc_oam_ser_correction(unit, mem, index);
                 if (rv != SOC_E_NONE) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "Error in SER Handling rv=%d\n"),
                                rv));
@@ -4466,7 +4466,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 }
                 return rv;
             default:
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "Unknown ser correction !!\n")));
                 stat->ser_err_sw++;
@@ -4516,13 +4516,13 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 }
                 if (soc_feature(unit, soc_feature_two_ingress_pipes) &&
                     soc_feature(unit, soc_feature_sbusdma)) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "register not decoded [%d %d 0x%8x].\n"),
                                  si->sblk, si->acc_type, si->addr));
                     return SOC_E_NOT_FOUND;
                 } else {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "register not decoded [%d %d 0x%8x].\n"),
                                si->sblk, si->acc_type, si->addr));
@@ -4531,7 +4531,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 }
              }
              index = ainfo.idx >= 0 ? ainfo.idx : 0;
-             LOG_ERROR(BSL_LS_SOC_COMMON,
+             LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                        (BSL_META_U(unit,
                                    "reg: %d=%s port: %d index: %d\n"),
                         reg, SOC_REG_NAME(unit, reg), ainfo.port, index));
@@ -4568,7 +4568,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                 }
 
                 SOC_IF_ERROR_RETURN(rv);
-                LOG_WARN(BSL_LS_SOC_COMMON,
+                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "COUNTER_CLEAR: %s[%d] blk: %s index: %d : port[%d]\n"),
                            SOC_REG_NAME(unit, reg), reg,
@@ -4589,7 +4589,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
 
                 SOC_IF_ERROR_RETURN(rv);
                 SOC_IF_ERROR_RETURN(soc_counter_set(unit, port, reg, index, rval64));
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "COUNTER_RESTORE: %s[%d] blk: %s index: %d : port[%d]\n"),
                            SOC_REG_NAME(unit, reg), reg,
@@ -4614,7 +4614,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                                    SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED,
                                    reg | SOC_SER_ERROR_DATA_REG_ID_OFFSET_SET,
                                    port << SOC_SER_ERROR_PIPE_BP | index);
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "REG_CLEAR: %s[%d] blk: %s index: %d : port[%d]\n"),
                            SOC_REG_NAME(unit, reg), reg,
@@ -4636,7 +4636,7 @@ soc_ser_correction(int unit, _soc_ser_correct_info_t *si)
                                    SOC_SWITCH_EVENT_DATA_ERROR_CORRECTED,
                                    reg | SOC_SER_ERROR_DATA_REG_ID_OFFSET_SET,
                                    port << SOC_SER_ERROR_PIPE_BP | index);
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "REG_RESTORE: %s[%d] blk: %s index: %d : port[%d]\n"),
                            SOC_REG_NAME(unit, reg), reg,

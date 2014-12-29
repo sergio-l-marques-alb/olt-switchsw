@@ -111,7 +111,7 @@ bcm_shadow_port_untagged_priority_set(int unit, bcm_port_t port, int priority)
 
     soc_mem_unlock(unit, PORT_TABm);
 
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_shadow_port_untagged_priority_set: u=%d p=%d pri=%d rv=%d\n"),
               unit, port, priority, rv));
@@ -149,7 +149,7 @@ bcm_shadow_port_untagged_priority_get(int unit, bcm_port_t port, int *priority)
         soc_mem_unlock(unit, PORT_TABm);
 
         *priority = soc_mem_field32_get(unit, PORT_TABm, &ptab_entry, PORT_INT_PRIf);
-        LOG_INFO(BSL_LS_BCM_PORT,
+        LOG_BSL_INFO(BSL_LS_BCM_PORT,
                  (BSL_META_U(unit,
                              "bcm_shadow_port_untagged_priority_get: u=%d p=%d pri=%d\n"),
                   unit, port, *priority));
@@ -479,7 +479,7 @@ bcm_shadow_port_vlan_priority_map_get(int unit, bcm_port_t port, int pkt_pri,
      * port[4:0] incoming priority[2:0] incoming CFI[0]
      */
     index = (port << 4) | (pkt_pri << 1) | cfi;
-    LOG_INFO(BSL_LS_BCM_PORT,
+    LOG_BSL_INFO(BSL_LS_BCM_PORT,
              (BSL_META_U(unit,
                          "bcm_shadow_port_vlan_priority_map_get: u=%d p=%d index=%d\n"),
               unit, port, index));

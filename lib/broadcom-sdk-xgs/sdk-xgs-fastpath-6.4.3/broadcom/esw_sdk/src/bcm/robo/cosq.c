@@ -188,7 +188,7 @@ bcm_robo_cosq_detach(int unit)
     bcm_port_t port = 0;
 #endif /* BCM_POLAR_SUPPORT || BCM_NORTHSTAR_SUPPORT */
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_detach()..\n")));
 
@@ -244,7 +244,7 @@ bcm_robo_cosq_init(int unit)
 #endif
     pbmp_t      t_pbm;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_init()..\n")));
     /* 
@@ -407,7 +407,7 @@ bcm_robo_cosq_config_set(int unit, bcm_cos_queue_t numq)
 {   
     uint8   drv_value;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_config_set()..\n")));
 
@@ -440,7 +440,7 @@ bcm_robo_cosq_config_get(int unit, bcm_cos_queue_t *numq)
 
     uint8   drv_value;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_config_get()..\n")));
     BCM_IF_ERROR_RETURN(DRV_QUEUE_COUNT_GET
@@ -467,7 +467,7 @@ bcm_robo_cosq_config_get(int unit, bcm_cos_queue_t *numq)
 int
 bcm_robo_cosq_mapping_set(int unit, bcm_cos_t priority, bcm_cos_queue_t cosq)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_mapping_set()..\n")));
     if (!BCM_COSQ_QUEUE_VALID(unit, cosq)) {
@@ -502,7 +502,7 @@ bcm_robo_cosq_mapping_get(int unit, bcm_cos_t priority, bcm_cos_queue_t *cosq)
 {
     uint8       t_cosq = 0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_mapping_get()..\n")));
 
@@ -523,7 +523,7 @@ bcm_robo_cosq_port_mapping_set(int unit, bcm_port_t port,
 {
     bcm_port_t  loc_port;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_port_mapping_set()..\n")));
 
@@ -564,7 +564,7 @@ bcm_robo_cosq_port_mapping_get(int unit, bcm_port_t port,
     uint8       t_cosq = 0;
     bcm_port_t  loc_port;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_port_mapping_get()..\n")));
 
@@ -639,7 +639,7 @@ bcm_robo_cosq_port_bandwidth_get(int unit, bcm_port_t port,
     uint32 kbits_sec_burst;    /* Dummy variable */
     uint32 rate_flags = 0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_port_bandwidth_get()\n")));
 
@@ -804,7 +804,7 @@ bcm_robo_cosq_port_bandwidth_set(int unit, bcm_port_t port,
     bcm_port_t loc_port;
     int i;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_port_bandwidth_set()\n")));
 
@@ -892,7 +892,7 @@ bcm_robo_cosq_port_bandwidth_set(int unit, bcm_port_t port,
                     (unit, loc_port, DRV_EAV_QUEUE_Q4_BANDWIDTH_MAX_VALUE, &temp));
 
                 if (kbits_sec_min > temp) {
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META_U(unit,
                                           "bcm_robo_cosq_port_bandwidth_set : BW value unsupported. \n")));
                     return  SOC_E_PARAM;
@@ -928,7 +928,7 @@ bcm_robo_cosq_port_bandwidth_set(int unit, bcm_port_t port,
                     (unit, loc_port, DRV_EAV_QUEUE_Q5_BANDWIDTH_MAX_VALUE, &temp));
 
                 if (kbits_sec_min > temp) {
-                    LOG_ERROR(BSL_LS_BCM_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                               (BSL_META_U(unit,
                                           "bcm_robo_cosq_port_bandwidth_set : BW value unsupported. \n")));
                     return  SOC_E_PARAM;
@@ -974,7 +974,7 @@ bcm_robo_cosq_sched_weight_max_get(int unit, int mode,
 {
     uint32 prop_val = 0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_sched_weight_max_get()..\n")));
     switch (mode) {
@@ -1005,7 +1005,7 @@ bcm_robo_cosq_port_sched_set(int unit, bcm_pbmp_t pbm,
     uint8  numq;
     uint32 flag = 0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_port_sched_set()..\n")));
 
@@ -1177,7 +1177,7 @@ bcm_robo_cosq_port_sched_set(int unit, bcm_pbmp_t pbm,
 int
 bcm_robo_cosq_sched_set(int unit, int mode, const int weights[], int delay)
 {
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_sched_set()..\n")));
     /* no CPU port been assigned in this API */
@@ -1197,7 +1197,7 @@ bcm_robo_cosq_port_sched_get(int unit, bcm_pbmp_t pbm,
     uint8       numq;
     uint32 flag = 0;
     
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_port_sched_get()..\n")));
 
@@ -1284,7 +1284,7 @@ bcm_robo_cosq_port_sched_get(int unit, bcm_pbmp_t pbm,
 int
 bcm_robo_cosq_sched_get(int unit, int *mode, int weights[], int *delay)
 {   
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_sched_get()..\n")));
     /* no CPU port been assigned in this API */
@@ -3057,7 +3057,7 @@ bcm_robo_cosq_control_set(int unit, bcm_gport_t port, bcm_cos_queue_t cosq,
     uint32  temp = 0, reg_val = 0;
     bcm_port_t  loc_port;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_control_set()..\n")));
 
@@ -3350,7 +3350,7 @@ bcm_robo_cosq_control_get(int unit, bcm_gport_t port, bcm_cos_queue_t cosq,
     uint32  temp = 0, reg_val = 0;
     bcm_port_t  loc_port;
 
-    LOG_VERBOSE(BSL_LS_BCM_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                 (BSL_META_U(unit,
                             "BCM API : bcm_robo_cosq_control_get()..\n")));
 

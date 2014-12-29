@@ -118,7 +118,7 @@ rx_cb_handler(int unit, bcm_pkt_t *info, void *cookie)
 
     count = ++rx_cb_count;
 
-    LOG_INFO(BSL_LS_APPL_RX,
+    LOG_BSL_INFO(BSL_LS_APPL_RX,
              (BSL_META_U(unit,
                          "RX packet %d: unit=%d len=%d rx_port=%d reason=%d cos=%d\n"),
               count, unit, info->tot_len, info->rx_port, info->rx_reason,
@@ -126,26 +126,26 @@ rx_cb_handler(int unit, bcm_pkt_t *info, void *cookie)
 
 #ifdef	BCM_XGS_SUPPORT
     if (SOC_IS_XGS12_FABRIC(unit)) {
-        if (LOG_CHECK(BSL_LS_APPL_RX | BSL_INFO)) {
+        if (LOG_BSL_CHECK(BSL_LS_APPL_RX | BSL_INFO)) {
             soc_higig_dump(unit, "HG HEADER: ",
                            (soc_higig_hdr_t *)BCM_PKT_HG_HDR(info));
         }
     }
 #endif	/* BCM_XGS_SUPPORT */
 
-    LOG_INFO(BSL_LS_APPL_RX,
+    LOG_BSL_INFO(BSL_LS_APPL_RX,
              (BSL_META_U(unit,
                          "Parsed packet info:\n")));
-    LOG_INFO(BSL_LS_APPL_RX,
+    LOG_BSL_INFO(BSL_LS_APPL_RX,
              (BSL_META_U(unit,
                          "    src mod=%d. src port=%d. op=%d.\n"),
               info->src_mod, info->src_port, info->opcode));
-    LOG_INFO(BSL_LS_APPL_RX,
+    LOG_BSL_INFO(BSL_LS_APPL_RX,
              (BSL_META_U(unit,
                          "    dest mod=%d. dest port=%d. chan=%d.\n"),
               info->dest_mod, info->dest_port, info->dma_channel));
 
-    if (LOG_CHECK(BSL_LS_APPL_RX | BSL_INFO)) {
+    if (LOG_BSL_CHECK(BSL_LS_APPL_RX | BSL_INFO)) {
         soc_dma_dump_pkt(unit, "Data: ", BCM_PKT_DMAC(info),
 			 info->tot_len, TRUE);
     }

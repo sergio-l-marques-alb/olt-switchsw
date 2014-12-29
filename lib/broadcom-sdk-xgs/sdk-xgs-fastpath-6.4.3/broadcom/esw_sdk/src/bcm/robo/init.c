@@ -111,7 +111,7 @@
         int rv;                                                         \
         rv = (_rtn)(unit);                                              \
         if (rv < 0 && rv != BCM_E_UNAVAIL) {                            \
-            LOG_ERROR(BSL_LS_BCM_COMMON, \
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON, \
                       (BSL_META("bcm_clear %d: %s failed %d. %s\n"),    \
                        unit, _name, rv, bcm_errmsg(rv)));              \
             return rv;                                                  \
@@ -157,13 +157,13 @@ _bcm_robo_lock_deinit(int unit)
 }
 
 #define _ROBO_DEINIT_INFO_VERB(_mod) \
-    LOG_VERBOSE(BSL_LS_BCM_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON, \
                 (BSL_META("bcm_detach: Deinitializing %s...\n"), \
                  _mod));
 
 #define _ROBO_DEINIT_CHECK_ERR(_rv, _mod) \
     if (_rv != BCM_E_NONE && _rv != BCM_E_UNAVAIL) { \
-        LOG_WARN(BSL_LS_BCM_COMMON, \
+        LOG_BSL_WARN(BSL_LS_BCM_COMMON, \
                  (BSL_META("Warning: Deinitializing %s returned %d\n"), \
                   _mod, _rv)); \
     }

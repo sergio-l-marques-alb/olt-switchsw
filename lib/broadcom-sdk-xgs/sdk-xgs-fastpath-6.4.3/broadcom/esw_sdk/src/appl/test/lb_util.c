@@ -953,7 +953,7 @@ lbu_connect_ports(int unit, lb2s_port_connect_t *pc_info,
     }
 
     if (connect) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Port connection:\n"
                              "  RX(mod,port)=%d,%d, TX(mod,port)=%d,%d, VLAN=0x%03x,\n"
@@ -987,7 +987,7 @@ lbu_connect_ports(int unit, lb2s_port_connect_t *pc_info,
                 } else {
                     /* Uhhh, now what? Two HG ports */
                     /* Not supported for FB/ER */
-                    LOG_INFO(BSL_LS_APPL_TESTS,
+                    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                              (BSL_META_U(unit,
                                          "lbu_connect_ports: Two HG ports rv = %d\n"),
                               BCM_E_UNAVAIL));
@@ -998,7 +998,7 @@ lbu_connect_ports(int unit, lb2s_port_connect_t *pc_info,
             } 
         }
     }
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "lbu_connect_ports: rv = %d\n"), rv));
     return rv;
@@ -1323,7 +1323,7 @@ lbu_setup_port(int unit, bcm_port_t port, int req_speed, int autoneg)
         bcm_port_medium_get(unit, port, &medium));
     if ((medium == BCM_PORT_MEDIUM_FIBER) && 
         (duplex != SOC_PORT_DUPLEX_FULL)) {
-        LOG_ERROR(BSL_LS_APPL_TESTS,
+        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                   (BSL_META_U(unit,
                               "unit %d Port %s is in Fiber mode. "
                               "Forcing FullDuplex\n"),
@@ -1342,16 +1342,16 @@ lbu_setup_port(int unit, bcm_port_t port, int req_speed, int autoneg)
        
         if (medium == BCM_PORT_MEDIUM_FIBER) {
             if (speed != 1000) {
-                LOG_VERBOSE(BSL_LS_APPL_TESTS,
+                LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                             (BSL_META_U(unit,
                                         "Driver:%s \n"),PHY_NAME(unit, port)));
                 if ((sal_strncmp(PHY_NAME(unit, port), "WC-A",4) == 0) || 
                     (sal_strncmp(PHY_NAME(unit, port), "WC-B",4) == 0)) {
-                    LOG_VERBOSE(BSL_LS_APPL_TESTS,
+                    LOG_BSL_VERBOSE(BSL_LS_APPL_TESTS,
                                 (BSL_META_U(unit,
                                             "Not Forcing 1G speed\n")));
                 } else {
-                    LOG_ERROR(BSL_LS_APPL_TESTS,
+                    LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                           (BSL_META_U(unit,
                                       "unit %d Port %s is in Fiber mode. "
                                       "Forcing 1000Mbps\n"),
@@ -1381,14 +1381,14 @@ lbu_port_init(loopback2_test_t *lw, loopback2_testdata_t *lp)
 
     /* Save all the current port states */
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Saving ports\n")));
     if (lbu_save_port(lw, lp) < 0) {
         return (-1);
     }
     
     /* Port setup */
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META("Port setup, bitmap %s\n"),
               SOC_PBMP_FMT(lp->pbm, pfmt)));
     if (lp->loopback == LB2_MODE_EXT) {
@@ -1405,7 +1405,7 @@ lbu_port_init(loopback2_test_t *lw, loopback2_testdata_t *lp)
     }
 
     if (lp->loopback == LB2_MODE_MAC) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("MAC loopback at speed %s\n"), 
                   lb2_parse_speed[lp->speed]));
 
@@ -1477,7 +1477,7 @@ lbu_port_init(loopback2_test_t *lw, loopback2_testdata_t *lp)
             }
         }
     } else if (lp->loopback == LB2_MODE_PHY) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META("PHY loopback at speed %s\n"), 
                   lb2_parse_speed[lp->speed]));
 
@@ -1722,7 +1722,7 @@ lbu_init(loopback2_test_t *lw, loopback2_testdata_t *lp)
 
     /* Now that all mems are safely created, fire off the handler */
     if (!lp->inject) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Port monitor init\n")));
         /* Let rx handler ignore packets until testing */
@@ -1790,7 +1790,7 @@ lbu_snake_init(loopback2_test_t *lw, loopback2_testdata_t *lp)
     if (SOC_IS_XGS3_SWITCH(unit)) {
 #ifdef BCM_XGS3_SWITCH_SUPPORT
         uint32  hc;
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Hash select reset to CRC32 low\n")));
         rv = READ_HASH_CONTROLr(unit, &hc);
@@ -1806,7 +1806,7 @@ lbu_snake_init(loopback2_test_t *lw, loopback2_testdata_t *lp)
         }
 #endif /* BCM_XGS3_SWITCH_SUPPORT */
     } else if (SOC_IS_XGS_SWITCH(unit)) {
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Hash select reset to CRC32 low\n")));
         if ((rv = WRITE_HASH_CONTROLr(unit, XGS_HASH_CRC32_LOWER)) < 0) {
@@ -2720,7 +2720,7 @@ lbu_snake_diag(loopback2_test_t *lw, lb2_port_stat_t *stats,
         toPort = connect_info[ix].to_port;
 
         COMPILER_64_TO_32_LO(tempStat, stats[thisPort].tpkt);
-        LOG_INFO(BSL_LS_APPL_TESTS,
+        LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                  (BSL_META_U(unit,
                              "Port %s Tx Count = 0x%x\n"), 
                   SOC_PORT_NAME(unit, thisPort), tempStat));
@@ -2735,7 +2735,7 @@ lbu_snake_diag(loopback2_test_t *lw, lb2_port_stat_t *stats,
         if (((IS_FE_PORT(unit, thisPort) || IS_GE_PORT(unit, thisPort)) &&
               (lp->loopback == LB2_MODE_MAC))) {
             COMPILER_64_TO_32_LO(tempStat, stats[thisPort].rpkt);
-            LOG_INFO(BSL_LS_APPL_TESTS,
+            LOG_BSL_INFO(BSL_LS_APPL_TESTS,
                      (BSL_META_U(unit,
                                  "Port %s Rx Count = 0x%x\n"), 
                       SOC_PORT_NAME(unit, thisPort), tempStat));
@@ -3285,7 +3285,7 @@ lbu_serial_txrx(loopback2_test_t *lw)
         goto error;
     }
 
-    LOG_INFO(BSL_LS_APPL_TESTS,
+    LOG_BSL_INFO(BSL_LS_APPL_TESTS,
              (BSL_META_U(unit,
                          "Testing Port %s --> %s cnt(%d) pkt/trial(%d,%d += %d) "
                          "l(%d,%d += %d) cos(%d,%d)\n"),

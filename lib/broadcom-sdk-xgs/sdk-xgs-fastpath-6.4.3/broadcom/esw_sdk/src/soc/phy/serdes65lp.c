@@ -308,7 +308,7 @@ _phy_serdes65lp_init_no_reset(int unit, soc_port_t port)
     SOC_IF_ERROR_RETURN
         (_phy_serdes65lp_tx_control_set(unit, pc, port));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_init: u=%d p=%d %s\n"),
               unit, port, 
@@ -341,7 +341,7 @@ STATIC int
 phy_serdes65lp_init(int unit, soc_port_t port)
 {
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_init: u=%d p=%d\n"),
               unit, port));
@@ -386,7 +386,7 @@ STATIC int
 phy_serdes65lp_enable_set(int unit, soc_port_t port, int enable)
 {
     phy_ctrl_t  *pc = INT_PHY_SW_STATE(unit, port); /* PHY software state */
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_enable_set: u=%d p=%d en=%d\n"),
               unit, port, enable));
@@ -500,7 +500,7 @@ phy_serdes65lp_speed_set(int unit, soc_port_t port, int speed)
         pc->fiber.force_speed = speed;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_speed_set: u=%d p=%d speed=%d rv=%d\n"),
               unit, port, speed, rv));
@@ -640,7 +640,7 @@ phy_serdes65lp_an_set(int unit, soc_port_t port, int an)
 
     pc = INT_PHY_SW_STATE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_an_set: u=%d p=%d an=%d\n"),
               unit, port, an));
@@ -1414,7 +1414,7 @@ _phy_serdes65lp_notify_duplex(int unit, soc_port_t port, uint32 duplex)
 
     fiber = PHY_FIBER_MODE(unit, port);
     pc    = INT_PHY_SW_STATE(unit, port);
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_notify_duplex: "
                          "u=%d p=%d duplex=%d fiber=%d\n"),
@@ -1487,7 +1487,7 @@ _phy_serdes65lp_notify_speed(int unit, soc_port_t port, uint32 speed)
     pc    = INT_PHY_SW_STATE(unit, port);
     fiber = PHY_FIBER_MODE(unit, port);
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_serdes65lp_notify_speed: "
                          "u=%d p=%d speed=%d fiber=%d\n"),
@@ -1555,7 +1555,7 @@ _phy_serdes65lp_stop(int unit, soc_port_t port)
                PHY_STOP_DUPLEX_CHG |
                PHY_STOP_SPEED_CHG)) != 0));
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_serdes65lp_stop: u=%d p=%d copper=%d"
                          " stop=%d flg=0x%x\n"),

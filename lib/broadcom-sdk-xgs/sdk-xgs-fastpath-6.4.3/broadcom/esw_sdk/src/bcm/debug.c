@@ -75,28 +75,28 @@ _bcm_debug_api(char *api,
 
     switch (ninargs) {
     case 0:
-	LOG_VERBOSE(BSL_LS_BCM_API,
+	LOG_BSL_VERBOSE(BSL_LS_BCM_API,
                     (BSL_META("API: %s(%s) -> %d %s\n"),
                      api,
                      nargs > 0 ? "..." : "",
                      rv, rvstr));
 	break;
     case 1:
-	LOG_VERBOSE(BSL_LS_BCM_API,
+	LOG_BSL_VERBOSE(BSL_LS_BCM_API,
                     (BSL_META("API: %s(%d%s) -> %d %s\n"),
                      api, arg1,
                      nargs > 1 ? ",..." : "",
                      rv, rvstr));
 	break;
     case 2:
-	LOG_VERBOSE(BSL_LS_BCM_API,
+	LOG_BSL_VERBOSE(BSL_LS_BCM_API,
                     (BSL_META("API: %s(%d,%d%s) -> %d %s\n"),
                      api, arg1, arg2,
                      nargs > 2 ? ",..." : "",
                      rv, rvstr));
 	break;
     default:
-	LOG_VERBOSE(BSL_LS_BCM_API,
+	LOG_BSL_VERBOSE(BSL_LS_BCM_API,
                     (BSL_META("API: %s(%d,%d,%d%s) -> %d %s\n"),
                      api, arg1, arg2, arg3,
                      nargs > 3 ? ",..." : "",

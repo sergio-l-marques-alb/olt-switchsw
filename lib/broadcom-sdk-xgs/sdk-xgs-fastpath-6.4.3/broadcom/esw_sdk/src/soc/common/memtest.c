@@ -265,7 +265,7 @@ memtest_fill(int unit, soc_mem_test_t *parm, unsigned array_index, int copyno,
 
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
     if (parm->array_index_start != 0 || parm->array_index_end != parm->array_index_start) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "  FILL %s[%u-%u].%s[%d-%d]\n"),
                      SOC_MEM_UFNAME(unit, mem),
@@ -277,7 +277,7 @@ memtest_fill(int unit, soc_mem_test_t *parm, unsigned array_index, int copyno,
     {
 #ifdef BCM_POLAR_SUPPORT
         if (SOC_IS_POLAR(unit)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  FILL %s[%d-%d]\n"),
                          SOC_ROBO_MEM_UFNAME(unit, mem),
@@ -286,7 +286,7 @@ memtest_fill(int unit, soc_mem_test_t *parm, unsigned array_index, int copyno,
 #endif /* BCM_POLAR_SUPPORT */
         {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  FILL %s.%s[%d-%d]\n"),
                          SOC_MEM_UFNAME(unit, mem),
@@ -432,7 +432,7 @@ memtest_verify(int unit, soc_mem_test_t *parm, unsigned array_index, int copyno,
 
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
     if (parm->array_index_start != 0 || parm->array_index_end != parm->array_index_start) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "  VERIFY %s[%u-%u].%s[%d-%d] Reading %d times\n"),
                      SOC_MEM_UFNAME(unit, mem),
@@ -445,7 +445,7 @@ memtest_verify(int unit, soc_mem_test_t *parm, unsigned array_index, int copyno,
     {
 #ifdef BCM_POLAR_SUPPORT
         if (SOC_IS_POLAR(unit)) {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  VERIFY %s[%d-%d] Reading %d times\n"),
                          SOC_ROBO_MEM_UFNAME(unit, mem),
@@ -455,7 +455,7 @@ memtest_verify(int unit, soc_mem_test_t *parm, unsigned array_index, int copyno,
 #endif /* BCM_POLAR_SUPPORT */
         {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "  VERIFY %s.%s[%d-%d] Reading %d times\n"),
                          SOC_MEM_UFNAME(unit, mem),
@@ -590,7 +590,7 @@ memtest_test_by_entry_pattern(int unit, soc_mem_test_t *parm, uint32 seed0,
                 }
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
                 if (parm->array_index_start != 0 || parm->array_index_end != parm->array_index_start) {
-                    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                 (BSL_META_U(unit,
                                             "  WRITE/READ %s[%u-%u].%s[%d]\n"),
                                  SOC_MEM_UFNAME(unit, mem),
@@ -602,7 +602,7 @@ memtest_test_by_entry_pattern(int unit, soc_mem_test_t *parm, uint32 seed0,
                 {
 #ifdef BCM_POLAR_SUPPORT
                     if (SOC_IS_POLAR(unit)) {
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "  WRITE/READ %s[%d]\n"),
                                      SOC_ROBO_MEM_UFNAME(unit, mem),
@@ -611,7 +611,7 @@ memtest_test_by_entry_pattern(int unit, soc_mem_test_t *parm, uint32 seed0,
 #endif /* BCM_POLAR_SUPPORT */
                     {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-                        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                                     (BSL_META_U(unit,
                                                 "  WRITE/READ %s.%s[%d]\n"),
                                      SOC_MEM_UFNAME(unit, mem),
@@ -2501,7 +2501,7 @@ int
 soc_mem_parity_control(int unit, soc_mem_t mem, int copyno, int enable)
 {
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_mem_parity_control: unit %d memory %s.%s %sable\n"),
                  unit,  SOC_MEM_UFNAME(unit, mem),
@@ -2837,7 +2837,7 @@ ser_test_mem_write(int unit, ser_test_data_t *test_data)
                       test_data->index, test_data->entry_buf);
     }
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d %s entry %d mem write error\n"),
                    unit, test_data->mem_name, test_data->index));
@@ -2894,7 +2894,7 @@ ser_test_mem_read(int unit, ser_test_data_t *test_data)
     SOC_MEM_CACHE_COHERENCY_CHECK_SET(unit, coherency_check);
 #endif
     if (SOC_FAILURE(rv)) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "unit %d NACK received for %s entry %d:\n\t"),
                    unit, test_data->mem_name, test_data->index));
@@ -3277,7 +3277,7 @@ ser_test_mem(int unit, ser_test_data_t *test_data,
         if (SOC_FAILURE(rv)) {
             (*error_count)++;
 #ifdef _SOC_SER_ENABLE_CLI_DBG
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER failed. Received NACK on 2nd Read "
                                   "for mem %s index %d\n"),
@@ -3290,21 +3290,21 @@ ser_test_mem(int unit, ser_test_data_t *test_data,
             SOC_MEM_FLAG_SER_ENTRY_CLEAR) {
             if (0 != test_data->field_buf[0]) {
                 (*error_count)++;
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "SER failed to clear mem %s index %d\n"),
                            test_data->mem_name, test_data->index));
             }
         }else if (test_data->badData == test_data->field_buf[0]) {
             (*error_count)++;
-            LOG_ERROR(BSL_LS_SOC_COMMON,
+            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "SER failed to correct mem %s index %d field %s\n"),
                        test_data->mem_name, test_data->index,
                        SOC_FIELD_NAME(unit, test_data->test_field)));
         }
         else {
-            LOG_VERBOSE(BSL_LS_SOC_COMMON,
+            LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                         (BSL_META_U(unit,
                                     "SER corrected mem %s index %d\n"),
                          test_data->mem_name, test_data->index));
@@ -3564,7 +3564,7 @@ soc_ser_test_functions_register(int unit, soc_ser_test_functions_t *fun)
         ser_test_functions[unit] = fun;
     }
     else {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "Invalid unit parameter %d: passed to soc_ser_test_functions_t"),
                      unit));

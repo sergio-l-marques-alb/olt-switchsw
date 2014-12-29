@@ -89,7 +89,7 @@ soc_internal_vlan_xlate_hash(pcid_info_t * pcid_info,
     int             index, bits;
     soc_block_t     blk; 
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("VLAN_XLATE hash\n")));
 
     soc_internal_extended_read_reg(pcid_info, blk, at,
@@ -104,7 +104,7 @@ soc_internal_vlan_xlate_hash(pcid_info_t * pcid_info,
                                      tmp_hs[0], HASH_SELECT_Af);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
 #ifdef BCM_TRIDENT2_SUPPORT
@@ -122,7 +122,7 @@ soc_internal_vlan_xlate_hash(pcid_info_t * pcid_info,
                                        key);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -173,7 +173,7 @@ soc_internal_vlan_xlate_entry_read(pcid_info_t * pcid_info, uint32 addr,
     address = soc_mem_addr_get(pcid_info->unit, VLAN_XLATEm, 0, 
                                blk, index, &at);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("vlan_xlate read addr=0x%x\n"), addr));
 
     soc_internal_extended_read_mem(pcid_info, sblk, 0, address, 
@@ -197,7 +197,7 @@ soc_internal_vlan_xlate_entry_write(pcid_info_t * pcid_info, uint32 addr,
     address = soc_mem_addr_get(pcid_info->unit, VLAN_XLATEm, 0, 
                                blk, index, &at);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("vlan_xlate write addr=0x%x\n"), addr));
 
     soc_internal_extended_write_mem(pcid_info, sblk, 0, address, 
@@ -221,13 +221,13 @@ soc_internal_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "VLAN_XLAEGT Insert\n")));
 
     bucket = soc_internal_vlan_xlate_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -249,7 +249,7 @@ soc_internal_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, VLAN_XLATEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, VLAN_XLATEm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -288,7 +288,7 @@ soc_internal_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         index = free_index;
         addr = soc_mem_addr_get(unit, VLAN_XLATEm, 0, blk, index, &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -312,7 +312,7 @@ soc_internal_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -343,13 +343,13 @@ soc_internal_vlan_xlate_entry_del(pcid_info_t * pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "VLAN_XLATE Delete\n")));
 
     bucket = soc_internal_vlan_xlate_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -370,7 +370,7 @@ soc_internal_vlan_xlate_entry_del(pcid_info_t * pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, VLAN_XLATEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, VLAN_XLATEm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -401,7 +401,7 @@ soc_internal_vlan_xlate_entry_del(pcid_info_t * pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_vlan_xlate_entry_del: Not found\n")));
 
@@ -431,13 +431,13 @@ soc_internal_vlan_xlate_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "VLAN_XLATE Lookup\n")));
 
     bucket = soc_internal_vlan_xlate_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -458,7 +458,7 @@ soc_internal_vlan_xlate_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, VLAN_XLATEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, VLAN_XLATEm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -483,7 +483,7 @@ soc_internal_vlan_xlate_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_vlan_xlate_entry_lkup: Not found\n")));
 
@@ -508,7 +508,7 @@ soc_internal_egr_vlan_xlate_hash(pcid_info_t * pcid_info,
     int             index, bits;
     soc_block_t     blk;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("EGR_VLAN_XLATE hash\n")));
 
     soc_internal_extended_read_reg(pcid_info, blk, at,
@@ -523,7 +523,7 @@ soc_internal_egr_vlan_xlate_hash(pcid_info_t * pcid_info,
                                      tmp_hs[0], HASH_SELECT_Af);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
 #ifdef BCM_TRIDENT2_SUPPORT
@@ -541,7 +541,7 @@ soc_internal_egr_vlan_xlate_hash(pcid_info_t * pcid_info,
                                            entry, key);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -592,13 +592,13 @@ soc_internal_egr_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EGR_VLAN_XLATE Insert\n")));
 
     bucket = soc_internal_egr_vlan_xlate_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -621,7 +621,7 @@ soc_internal_egr_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, EGR_VLAN_XLATEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, EGR_VLAN_XLATEm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -661,7 +661,7 @@ soc_internal_egr_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         addr = soc_mem_addr_get(unit, EGR_VLAN_XLATEm, 0, blk, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -685,7 +685,7 @@ soc_internal_egr_vlan_xlate_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -717,13 +717,13 @@ soc_internal_egr_vlan_xlate_entry_del(pcid_info_t * pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EGR_VLAN_XLATE Delete\n")));
 
     bucket = soc_internal_egr_vlan_xlate_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -745,7 +745,7 @@ soc_internal_egr_vlan_xlate_entry_del(pcid_info_t * pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, EGR_VLAN_XLATEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, EGR_VLAN_XLATEm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -776,7 +776,7 @@ soc_internal_egr_vlan_xlate_entry_del(pcid_info_t * pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_egr_vlan_xlate_entry_del: Not found\n")));
 
@@ -807,13 +807,13 @@ soc_internal_egr_vlan_xlate_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EGR_VLAN_XLATE Lookup\n")));
 
     bucket = soc_internal_egr_vlan_xlate_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -836,7 +836,7 @@ soc_internal_egr_vlan_xlate_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, EGR_VLAN_XLATEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, EGR_VLAN_XLATEm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -862,7 +862,7 @@ soc_internal_egr_vlan_xlate_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_egr_vlan_xlate_entry_lkup: Not found\n")));
 
@@ -892,7 +892,7 @@ soc_internal_ing_vp_vlan_member_hash(pcid_info_t *pcid_info, void *entry,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("ING_VP_VLAN_MEMBERSHIP hash\n")));
 
     reg = ING_VP_VLAN_MEMBERSHIP_HASH_CONTROLr;
@@ -903,7 +903,7 @@ soc_internal_ing_vp_vlan_member_hash(pcid_info_t *pcid_info, void *entry,
     soc_internal_extended_read_reg(pcid_info, blk, acc_type, addr, tmp);
     hash_sel = soc_reg_field_get(pcid_info->unit, reg, tmp[0], field);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
     bits = soc_td2_ing_vp_vlan_member_base_entry_to_key(pcid_info->unit, entry,
@@ -911,7 +911,7 @@ soc_internal_ing_vp_vlan_member_hash(pcid_info_t *pcid_info, void *entry,
     index = soc_td2_ing_vp_vlan_member_hash(pcid_info->unit, hash_sel, bits,
                                             entry, key);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -961,13 +961,13 @@ soc_internal_ing_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ING_VP_VLAN_MEMBERSHIP Insert\n")));
 
     bucket = soc_internal_ing_vp_vlan_member_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -992,7 +992,7 @@ soc_internal_ing_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ING_VP_VLAN_MEMBERSHIPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ING_VP_VLAN_MEMBERSHIPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1026,7 +1026,7 @@ soc_internal_ing_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
         addr = soc_mem_addr_get(unit, ING_VP_VLAN_MEMBERSHIPm, 0, blk, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -1044,7 +1044,7 @@ soc_internal_ing_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -1069,13 +1069,13 @@ soc_internal_ing_vp_vlan_member_del(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ING_VP_VLAN_MEMBERSHIP Delete\n")));
 
     bucket = soc_internal_ing_vp_vlan_member_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1099,7 +1099,7 @@ soc_internal_ing_vp_vlan_member_del(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ING_VP_VLAN_MEMBERSHIPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ING_VP_VLAN_MEMBERSHIPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1125,7 +1125,7 @@ soc_internal_ing_vp_vlan_member_del(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_ing_vp_vlan_member_del: "
                             "Not found\n")));
@@ -1150,13 +1150,13 @@ soc_internal_ing_vp_vlan_member_lkup(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ING_VP_VLAN_MEMBERSHIP Lookup\n")));
 
     bucket = soc_internal_ing_vp_vlan_member_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1180,7 +1180,7 @@ soc_internal_ing_vp_vlan_member_lkup(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ING_VP_VLAN_MEMBERSHIPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ING_VP_VLAN_MEMBERSHIPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1200,7 +1200,7 @@ soc_internal_ing_vp_vlan_member_lkup(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_ing_vp_vlan_member_lkup: Not found\n")));
 
@@ -1224,7 +1224,7 @@ soc_internal_egr_vp_vlan_member_hash(pcid_info_t *pcid_info, void *entry,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("EGR_VP_VLAN_MEMBERSHIP hash\n")));
 
     reg = EGR_VP_VLAN_MEMBERSHIP_HASH_CONTROLr;
@@ -1235,7 +1235,7 @@ soc_internal_egr_vp_vlan_member_hash(pcid_info_t *pcid_info, void *entry,
     soc_internal_extended_read_reg(pcid_info, blk, acc_type, addr, tmp);
     hash_sel = soc_reg_field_get(pcid_info->unit, reg, tmp[0], field);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
     bits = soc_td2_egr_vp_vlan_member_base_entry_to_key(pcid_info->unit, entry,
@@ -1243,7 +1243,7 @@ soc_internal_egr_vp_vlan_member_hash(pcid_info_t *pcid_info, void *entry,
     index = soc_td2_egr_vp_vlan_member_hash(pcid_info->unit, hash_sel, bits,
                                             entry, key);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -1293,13 +1293,13 @@ soc_internal_egr_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EGR_VP_VLAN_MEMBERSHIP Insert\n")));
 
     bucket = soc_internal_egr_vp_vlan_member_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1324,7 +1324,7 @@ soc_internal_egr_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, EGR_VP_VLAN_MEMBERSHIPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, EGR_VP_VLAN_MEMBERSHIPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1358,7 +1358,7 @@ soc_internal_egr_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
         addr = soc_mem_addr_get(unit, EGR_VP_VLAN_MEMBERSHIPm, 0, blk, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -1376,7 +1376,7 @@ soc_internal_egr_vp_vlan_member_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -1401,13 +1401,13 @@ soc_internal_egr_vp_vlan_member_del(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EGR_VP_VLAN_MEMBERSHIP Delete\n")));
 
     bucket = soc_internal_egr_vp_vlan_member_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1431,7 +1431,7 @@ soc_internal_egr_vp_vlan_member_del(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, EGR_VP_VLAN_MEMBERSHIPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, EGR_VP_VLAN_MEMBERSHIPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1457,7 +1457,7 @@ soc_internal_egr_vp_vlan_member_del(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_egr_vp_vlan_member_del: "
                             "Not found\n")));
@@ -1482,13 +1482,13 @@ soc_internal_egr_vp_vlan_member_lkup(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "EGR_VP_VLAN_MEMBERSHIP Lookup\n")));
 
     bucket = soc_internal_egr_vp_vlan_member_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1512,7 +1512,7 @@ soc_internal_egr_vp_vlan_member_lkup(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, EGR_VP_VLAN_MEMBERSHIPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, EGR_VP_VLAN_MEMBERSHIPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1532,7 +1532,7 @@ soc_internal_egr_vp_vlan_member_lkup(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_egr_vp_vlan_member_lkup: Not found\n")));
 
@@ -1556,7 +1556,7 @@ soc_internal_ing_dnat_address_type_hash(pcid_info_t *pcid_info, void *entry,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("ING_DNAT_ADDRESS_TYPE hash\n")));
 
     reg = ING_DNAT_ADDRESS_TYPE_HASH_CONTROLr;
@@ -1567,7 +1567,7 @@ soc_internal_ing_dnat_address_type_hash(pcid_info_t *pcid_info, void *entry,
     soc_internal_extended_read_reg(pcid_info, blk, acc_type, addr, tmp);
     hash_sel = soc_reg_field_get(pcid_info->unit, reg, tmp[0], field);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
     bits = soc_td2_ing_dnat_address_type_base_entry_to_key(pcid_info->unit,
@@ -1575,7 +1575,7 @@ soc_internal_ing_dnat_address_type_hash(pcid_info_t *pcid_info, void *entry,
     index = soc_td2_ing_dnat_address_type_hash(pcid_info->unit, hash_sel, bits,
                                                entry, key);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -1625,13 +1625,13 @@ soc_internal_ing_dnat_address_type_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ING_DNAT_ADDRESS_TYPE Insert\n")));
 
     bucket = soc_internal_ing_dnat_address_type_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1656,7 +1656,7 @@ soc_internal_ing_dnat_address_type_ins(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ING_DNAT_ADDRESS_TYPEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ING_DNAT_ADDRESS_TYPEm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1690,7 +1690,7 @@ soc_internal_ing_dnat_address_type_ins(pcid_info_t *pcid_info, uint8 banks,
         addr = soc_mem_addr_get(unit, ING_DNAT_ADDRESS_TYPEm, 0, blk, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -1708,7 +1708,7 @@ soc_internal_ing_dnat_address_type_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -1733,13 +1733,13 @@ soc_internal_ing_dnat_address_type_del(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ING_DNAT_ADDRESS_TYPE Delete\n")));
 
     bucket = soc_internal_ing_dnat_address_type_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1763,7 +1763,7 @@ soc_internal_ing_dnat_address_type_del(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ING_DNAT_ADDRESS_TYPEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ING_DNAT_ADDRESS_TYPEm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1789,7 +1789,7 @@ soc_internal_ing_dnat_address_type_del(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_ing_dnat_address_type_del: "
                             "Not found\n")));
@@ -1814,13 +1814,13 @@ soc_internal_ing_dnat_address_type_lkup(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ING_DNAT_ADDRESS_TYPE Lookup\n")));
 
     bucket = soc_internal_ing_dnat_address_type_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1844,7 +1844,7 @@ soc_internal_ing_dnat_address_type_lkup(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ING_DNAT_ADDRESS_TYPEm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ING_DNAT_ADDRESS_TYPEm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -1864,7 +1864,7 @@ soc_internal_ing_dnat_address_type_lkup(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_ing_dnat_address_type_lkup: Not found\n")));
 
@@ -1888,7 +1888,7 @@ soc_internal_l2_endpoint_id_hash(pcid_info_t *pcid_info, void *entry,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("L2_ENDPOINT_ID hash\n")));
 
     reg = L2_ENDPOINT_ID_HASH_CONTROLr;
@@ -1899,7 +1899,7 @@ soc_internal_l2_endpoint_id_hash(pcid_info_t *pcid_info, void *entry,
     soc_internal_extended_read_reg(pcid_info, blk, acc_type, addr, tmp);
     hash_sel = soc_reg_field_get(pcid_info->unit, reg, tmp[0], field);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
     bits = soc_td2_l2_endpoint_id_base_entry_to_key(pcid_info->unit, entry,
@@ -1907,7 +1907,7 @@ soc_internal_l2_endpoint_id_hash(pcid_info_t *pcid_info, void *entry,
     index = soc_td2_l2_endpoint_id_hash(pcid_info->unit, hash_sel, bits, entry,
                                         key);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -1956,13 +1956,13 @@ soc_internal_l2_endpoint_id_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "L2_ENDPOINT_ID Insert\n")));
 
     bucket = soc_internal_l2_endpoint_id_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -1985,7 +1985,7 @@ soc_internal_l2_endpoint_id_ins(pcid_info_t *pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, L2_ENDPOINT_IDm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, L2_ENDPOINT_IDm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -2019,7 +2019,7 @@ soc_internal_l2_endpoint_id_ins(pcid_info_t *pcid_info, uint8 banks,
         addr = soc_mem_addr_get(unit, L2_ENDPOINT_IDm, 0, blk, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -2037,7 +2037,7 @@ soc_internal_l2_endpoint_id_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -2062,13 +2062,13 @@ soc_internal_l2_endpoint_id_del(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "L2_ENDPOINT_ID Delete\n")));
 
     bucket = soc_internal_l2_endpoint_id_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -2090,7 +2090,7 @@ soc_internal_l2_endpoint_id_del(pcid_info_t *pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, L2_ENDPOINT_IDm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, L2_ENDPOINT_IDm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -2115,7 +2115,7 @@ soc_internal_l2_endpoint_id_del(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_l2_endpoint_id_del: "
                             "Not found\n")));
@@ -2140,13 +2140,13 @@ soc_internal_l2_endpoint_id_lkup(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "L2_ENDPOINT_ID Lookup\n")));
 
     bucket = soc_internal_l2_endpoint_id_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -2169,7 +2169,7 @@ soc_internal_l2_endpoint_id_lkup(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, L2_ENDPOINT_IDm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, L2_ENDPOINT_IDm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -2189,7 +2189,7 @@ soc_internal_l2_endpoint_id_lkup(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_l2_endpoint_id_lkup: Not found\n")));
 
@@ -2213,7 +2213,7 @@ soc_internal_endpoint_queue_map_hash(pcid_info_t *pcid_info, void *entry,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("ENDPOINT_QUEUE_MAP hash\n")));
 
     reg = ENDPOINT_QUEUE_MAP_HASH_CONTROLr;
@@ -2224,7 +2224,7 @@ soc_internal_endpoint_queue_map_hash(pcid_info_t *pcid_info, void *entry,
     soc_internal_extended_read_reg(pcid_info, blk, acc_type, addr, tmp);
     hash_sel = soc_reg_field_get(pcid_info->unit, reg, tmp[0], field);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
     bits = soc_td2_endpoint_queue_map_base_entry_to_key(pcid_info->unit, entry,
@@ -2232,7 +2232,7 @@ soc_internal_endpoint_queue_map_hash(pcid_info_t *pcid_info, void *entry,
     index = soc_td2_endpoint_queue_map_hash(pcid_info->unit, hash_sel, bits,
                                             entry, key);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -2282,13 +2282,13 @@ soc_internal_endpoint_queue_map_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ENDPOINT_QUEUE_MAP Insert\n")));
 
     bucket = soc_internal_endpoint_queue_map_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -2313,7 +2313,7 @@ soc_internal_endpoint_queue_map_ins(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ENDPOINT_QUEUE_MAPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ENDPOINT_QUEUE_MAPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -2347,7 +2347,7 @@ soc_internal_endpoint_queue_map_ins(pcid_info_t *pcid_info, uint8 banks,
         addr = soc_mem_addr_get(unit, ENDPOINT_QUEUE_MAPm, 0, blk, index,
                                 &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -2365,7 +2365,7 @@ soc_internal_endpoint_queue_map_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -2390,13 +2390,13 @@ soc_internal_endpoint_queue_map_del(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ENDPOINT_QUEUE_MAP Delete\n")));
 
     bucket = soc_internal_endpoint_queue_map_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -2420,7 +2420,7 @@ soc_internal_endpoint_queue_map_del(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ENDPOINT_QUEUE_MAPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ENDPOINT_QUEUE_MAPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -2445,7 +2445,7 @@ soc_internal_endpoint_queue_map_del(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_endpoint_queue_map_del: "
                             "Not found\n")));
@@ -2470,13 +2470,13 @@ soc_internal_endpoint_queue_map_lkup(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "ENDPOINT_QUEUE_MAP Lookup\n")));
 
     bucket = soc_internal_endpoint_queue_map_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -2500,7 +2500,7 @@ soc_internal_endpoint_queue_map_lkup(pcid_info_t *pcid_info, uint8 banks,
         if (soc_mem_field32_get(unit, ENDPOINT_QUEUE_MAPm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, ENDPOINT_QUEUE_MAPm, entry, tmp)
                 == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -2520,7 +2520,7 @@ soc_internal_endpoint_queue_map_lkup(pcid_info_t *pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_endpoint_queue_map_lkup: Not found\n")));
 

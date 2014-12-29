@@ -82,7 +82,7 @@ soc_internal_mpls_hash(pcid_info_t * pcid_info,
     int             index, bits;
     soc_block_t     blk;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("MPLS_ENTRY hash\n")));
 
     soc_internal_extended_read_reg(pcid_info, blk, at,
@@ -97,7 +97,7 @@ soc_internal_mpls_hash(pcid_info_t * pcid_info,
                                      tmp_hs[0], HASH_SELECT_Af);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("hash_sel%s %d\n"), dual ? "(b)" : "(a)", hash_sel));
 
 #ifdef BCM_TRIDENT2_SUPPORT
@@ -113,7 +113,7 @@ soc_internal_mpls_hash(pcid_info_t * pcid_info,
                                  (uint32 *)entry, key);
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("index %d\n"), index));
 
     return index;
@@ -163,7 +163,7 @@ soc_internal_mpls_entry_read(pcid_info_t * pcid_info, uint32 addr,
     address = soc_mem_addr_get(pcid_info->unit, MPLS_ENTRYm, 0,
                                blk, index, &at);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("mpls_entry read addr=0x%x\n"), addr));
 
     soc_internal_extended_read_mem(pcid_info, sblk, 0, address, (uint32 *) entry);
@@ -186,7 +186,7 @@ soc_internal_mpls_entry_write(pcid_info_t * pcid_info, uint32 addr,
     address = soc_mem_addr_get(pcid_info->unit, MPLS_ENTRYm, 0, 
                                blk, index, &at);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META("mpls_entry write addr=0x%x\n"), addr));
 
     soc_internal_extended_write_mem(pcid_info, sblk, 0, address, (uint32 *) entry);
@@ -209,13 +209,13 @@ soc_internal_mpls_entry_ins(pcid_info_t *pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MPLS_ENTRY Insert\n")));
 
     bucket = soc_internal_mpls_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -237,7 +237,7 @@ soc_internal_mpls_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, MPLS_ENTRYm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, MPLS_ENTRYm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "write sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -276,7 +276,7 @@ soc_internal_mpls_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         index = free_index;
         addr = soc_mem_addr_get(unit, MPLS_ENTRYm, 0, blk, index, &acc_type);
 
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "write sblk %d acc_type %d bucket %d, slot %d, "
                                 "index %d\n"),
@@ -300,7 +300,7 @@ soc_internal_mpls_entry_ins(pcid_info_t *pcid_info, uint8 banks,
         return 0;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "Bucket full\n")));
 
@@ -331,13 +331,13 @@ soc_internal_mpls_entry_del(pcid_info_t * pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MPLS_ENTRY Delete\n")));
 
     bucket = soc_internal_mpls_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -358,7 +358,7 @@ soc_internal_mpls_entry_del(pcid_info_t * pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, MPLS_ENTRYm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, MPLS_ENTRYm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -389,7 +389,7 @@ soc_internal_mpls_entry_del(pcid_info_t * pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_mpls_entry_del: Not found\n")));
 
@@ -420,13 +420,13 @@ soc_internal_mpls_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
     uint8           acc_type;
     uint32          addr;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "MPLS_ENTRY Lookup\n")));
 
     bucket = soc_internal_mpls_hash(pcid_info, entry, FALSE);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "bucket %d\n"), bucket));
 
@@ -447,7 +447,7 @@ soc_internal_mpls_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         soc_internal_extended_read_mem(pcid_info, sblk, acc_type, addr, tmp);
         if (soc_mem_field32_get(unit, MPLS_ENTRYm, tmp, VALIDf)) {
             if (soc_mem_compare_key(unit, MPLS_ENTRYm, entry, tmp) == 0) {
-                LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                             (BSL_META_U(unit,
                                         "found sblk %d acc_type %d bucket %d, "
                                         "slot %d, index %d\n"),
@@ -473,7 +473,7 @@ soc_internal_mpls_entry_lkup(pcid_info_t * pcid_info, uint8 banks,
         }
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                 (BSL_META_U(unit,
                             "soc_internal_mpls_entry_lkup: Not found\n")));
 

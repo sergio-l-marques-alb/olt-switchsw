@@ -314,7 +314,7 @@ nh_tx_src_mod_port_set(int unit, int port, int src_mod, int src_port)
         if (nh_stk_ports[i].unit == unit &&
             nh_stk_ports[i].port == port) {
             
-            LOG_INFO(BSL_LS_TKS_NH,
+            LOG_BSL_INFO(BSL_LS_TKS_NH,
                      (BSL_META_U(unit,
                                  "NH: Set unit %d, port %d, src-mod %d, src-port %d\n"),
                       unit, port, src_mod, src_port));
@@ -329,7 +329,7 @@ nh_tx_src_mod_port_set(int unit, int port, int src_mod, int src_port)
     if (rv == BCM_E_NOT_FOUND) {
         if (num_stk_ports < STK_PORTS_MAX) {
             
-            LOG_INFO(BSL_LS_TKS_NH,
+            LOG_BSL_INFO(BSL_LS_TKS_NH,
                      (BSL_META_U(unit,
                                  "NH: Add unit %d, port %d, src-mod %d, src-port %d\n"),
                       unit, port, src_mod, src_port));
@@ -516,7 +516,7 @@ nh_tx_dest_install(int install, int vid)
         if (install) {
             rv = bcm_l2_addr_add(unit, &nh_l2_addr);
             if ((rv != BCM_E_UNAVAIL) && (rv != BCM_E_NONE)) {
-                LOG_ERROR(BSL_LS_TKS_NH,
+                LOG_BSL_ERROR(BSL_LS_TKS_NH,
                           (BSL_META("NH TX ERROR adding L2 addr to "
                                     "unit %d: %s\n"),
                            unit, bcm_errmsg(rv)));
@@ -725,7 +725,7 @@ nh_tx(int unit,
         return BCM_E_INIT;
     }
 
-    LOG_DEBUG(BSL_LS_TKS_NH,
+    LOG_BSL_DEBUG(BSL_LS_TKS_NH,
               (BSL_META_U(unit,
                           "NHTX: (%d, %d). %p, len %d, type %d. flags %x "
                           "cb %p, cookie %p\n"),
@@ -938,28 +938,28 @@ nh_tx_pkt_recognize(uint8 *pkt_buf, uint16 *pkt_type)
     uint16 val16;
 
     if (sal_memcmp(pkt_buf, nh_dest_mac, sizeof(bcm_mac_t))) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NHTX: dest_mac not recognized\n")));
         return FALSE;
     }
 
     if (sal_memcmp(&pkt_buf[CPUTRANS_SNAP_OFS], nh_snap_mac,
                    sizeof(bcm_mac_t))) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NHTX: snap_mac not recognized\n")));
         return FALSE;
     }
 
     UNPACK_SHORT(&pkt_buf[CPUTRANS_SNAP_TYPE_OFS], val16);
     if (val16 != nh_snap_type) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NHTX: snap_type not recognized\n")));
         return FALSE;
     }
 
     UNPACK_SHORT(&pkt_buf[CPUTRANS_TR_TYPE_OFS], val16);
     if (val16 != nh_local_type) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NHTX: Local NH type %d mismatch %d\n"),
                    nh_local_type, val16));
         return FALSE;
@@ -999,7 +999,7 @@ nh_tx_reset(int reset_to_defaults)
     if (pending_count) {
         sal_usleep(100000);
         if (pending_count) {
-            LOG_INFO(BSL_LS_TKS_NH,
+            LOG_BSL_INFO(BSL_LS_TKS_NH,
                      (BSL_META("NHTX: %d Packets still pending on reset\n"),
                       pending_count));
             NH_UNLOCK;

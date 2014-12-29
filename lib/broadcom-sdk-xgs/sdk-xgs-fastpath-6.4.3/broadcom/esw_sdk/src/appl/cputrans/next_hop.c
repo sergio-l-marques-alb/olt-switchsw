@@ -641,7 +641,7 @@ next_hop_stop(void)
             sal_usleep(10000);
         }
         if (nh_thread_id != SAL_THREAD_ERROR) {
-            LOG_INFO(BSL_LS_TKS_NH,
+            LOG_BSL_INFO(BSL_LS_TKS_NH,
                      (BSL_META("Warning:  NEXT_HOP thread did not exit\n")));
         }
     }
@@ -694,7 +694,7 @@ next_hop_register(next_hop_rx_callback_f callback, void *cookie,
         }
     }
 
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("Registering %p\n"),
               callback));
 
@@ -1126,7 +1126,7 @@ next_hop_port_add(int unit, int port, int duplex)
     if (BCM_FAILURE(rv) && reg) {
         next_hop_port_remove(unit, port);
     } else {
-        LOG_INFO(BSL_LS_TKS_NH,
+        LOG_BSL_INFO(BSL_LS_TKS_NH,
                  (BSL_META_U(unit,
                              "Added port (%d,%d)=%d\n"),
                   unit, port, rv));
@@ -1190,7 +1190,7 @@ next_hop_port_remove(int unit, int port)
                                     next_hop_rx_priority);
     }
     NEXT_HOP_UNIT_UNLOCK;
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META_U(unit,
                          "Removed port (%d,%d)\n"),
               unit,port));
@@ -1756,7 +1756,7 @@ handle_rx_queue(void)
             is_directed = !(is_bcast || is_neighbor);
             is_directed_local = !CPUDB_KEY_COMPARE(key, next_hop_local_key);
 
-            LOG_DEBUG(BSL_LS_TKS_NH,
+            LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                       (BSL_META("nh pkt " CPUDB_KEY_FMT
                                 ". bcast %d dir %d local %d neighbor %d\n"),
                        CPUDB_KEY_DISP(key), is_bcast, is_directed,
@@ -1831,12 +1831,12 @@ _rx_packet_enqueue(bcm_pkt_t *pkt)
 {
     bcm_pkt_t *new_pkt;
 
-    LOG_DEBUG(BSL_LS_TKS_NH,
+    LOG_BSL_DEBUG(BSL_LS_TKS_NH,
               (BSL_META("next hop rx enqueue\n")));
 
     new_pkt = _rx_packet_alloc(pkt);
     if (new_pkt == NULL) {
-        LOG_INFO(BSL_LS_TKS_NH,
+        LOG_BSL_INFO(BSL_LS_TKS_NH,
                  (BSL_META("NH: no queue, resource\n")));
         return BCM_E_RESOURCE;
     }
@@ -1875,7 +1875,7 @@ _tx_packet_enqueue(bcm_pkt_t *pkt,
 {
     tx_queue_t *entry;
 
-    LOG_DEBUG(BSL_LS_TKS_NH,
+    LOG_BSL_DEBUG(BSL_LS_TKS_NH,
               (BSL_META("next hop tx enqueue\n")));
 
     NEXT_HOP_LOCK;
@@ -1960,7 +1960,7 @@ _packet_send(bcm_pkt_t *pkt,
 
         tmp_rv = nh_pkt_tx(pkt, NULL, NULL);
         if (tmp_rv < 0) {
-            LOG_INFO(BSL_LS_TKS_NH,
+            LOG_BSL_INFO(BSL_LS_TKS_NH,
                      (BSL_META("NEXT_HOP: Failed to send to unit %d, port %d\n"),
                       nh_stk_ports[i].unit, nh_stk_ports[i].port));
             rv = tmp_rv;
@@ -2068,12 +2068,12 @@ next_hop_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
     uint16 seq_num;          /* next hop sequence for detecting "seen" pkts */
     int seen;
 
-    LOG_DEBUG(BSL_LS_TKS_NH,
+    LOG_BSL_DEBUG(BSL_LS_TKS_NH,
               (BSL_META("NEXT_HOP pkt in\n")));
 
     if (next_hop_lock == NULL || !setup_done ||
                               nh_thread_id == SAL_THREAD_ERROR) {
-        LOG_INFO(BSL_LS_TKS_NH,
+        LOG_BSL_INFO(BSL_LS_TKS_NH,
                  (BSL_META_U(unit,
                              "exit: %p, %d, %p\n"),
                   next_hop_lock, setup_done, nh_thread_id));
@@ -2082,12 +2082,12 @@ next_hop_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
 
     /* Is this a next hop packet? */
     if (!nh_tx_pkt_recognize(pkt->pkt_data[0].data, &pkt_type)) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NEXT_HOP pkt not recognized\n")));
         return BCM_RX_NOT_HANDLED;
     }
     if (pkt_type != NEXT_HOP_PKT_TYPE) {    /* Is this an NEXT_HOP packet */
-        LOG_INFO(BSL_LS_TKS_NH,
+        LOG_BSL_INFO(BSL_LS_TKS_NH,
                  (BSL_META_U(unit,
                              "NEXT_HOP pkt not proper type\n")));
         return BCM_RX_NOT_HANDLED;
@@ -2097,14 +2097,14 @@ next_hop_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
     NEXT_HOP_SRC_KEY_GET(pkt->pkt_data[0].data, key);
     /* Is local CPU the source of the packet? */
     if (!CPUDB_KEY_COMPARE(key, next_hop_local_key)) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NEXT_HOP source is local\n")));
         return BCM_RX_HANDLED;
     }
 
     /* Check for a seq num we've seen before. */
     NEXT_HOP_SEQ_NUM_GET(pkt->pkt_data[0].data, seq_num);
-    LOG_DEBUG(BSL_LS_TKS_NH,
+    LOG_BSL_DEBUG(BSL_LS_TKS_NH,
               (BSL_META("From KEY " CPUDB_KEY_FMT "; seq %d\n"),
                CPUDB_KEY_DISP(key), seq_num));
     NEXT_HOP_LOCK;
@@ -2116,7 +2116,7 @@ next_hop_rx_callback(int unit, bcm_pkt_t *pkt, void *cookie)
 
     /* Try to enqueue the packet for later retrx and passing up stack */
     if (_rx_packet_enqueue(pkt) < 0) {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NH: Dropped RX pkt %d\n"), seq_num));
         ++rx_pkt_drop_count;
         return BCM_RX_HANDLED;
@@ -2143,15 +2143,15 @@ _rx_key_seq_seen(cpudb_key_t key, uint16 seq_num)
     if (local_idx < 0) {   /* New CPU key; hence new packet */
         local_idx = _nh_key_add(key);
         if (local_idx < 0) {
-            LOG_INFO(BSL_LS_TKS_NH,
+            LOG_BSL_INFO(BSL_LS_TKS_NH,
                      (BSL_META("NEXT_HOP key rsrc err\n")));
             return BCM_E_RESOURCE;
         }
     } else {
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("Local idx %d\n"), local_idx));
         if (_seq_num_seen(local_idx, seq_num)) {  /* Seen it */
-        LOG_DEBUG(BSL_LS_TKS_NH,
+        LOG_BSL_DEBUG(BSL_LS_TKS_NH,
                   (BSL_META("NEXT_HOP pkt previously seen\n")));
             return TRUE;
         }
@@ -2337,44 +2337,44 @@ next_hop_dump(void)
         int_prio = cos;
     }
 
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("Next Hop\n")));
 
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  %s.  %s.\n"),
               (next_hop_lock != NULL) ? "Initialized":"Not initialized",
              setup_done ? "Running":"Not running"));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  thread_priority   = %d\n"),
               next_hop_thread_priority));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  rx_priority       = %d\n"),
               next_hop_rx_priority));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  rx_queue_size     = %d\n"),
               next_hop_rx_queue_size));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  tx_queue_size     = %d\n"),
               next_hop_tx_queue_size));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  mtu               = %d\n"),
               next_hop_mtu));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  vlan              = %d\n"),
               nh_vlan));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  cos               = %d\n"),
               cos));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  int_prio          = %d\n"),
               int_prio));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  local_key         = " CPUDB_KEY_FMT "\n"),
               CPUDB_KEY_DISP(next_hop_local_key)));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  rx_pkt_drop_count = %d\n"),
               rx_pkt_drop_count));
-    LOG_INFO(BSL_LS_TKS_NH,
+    LOG_BSL_INFO(BSL_LS_TKS_NH,
              (BSL_META("  tx_error_count    = %d\n"),
               tx_error_count));
 

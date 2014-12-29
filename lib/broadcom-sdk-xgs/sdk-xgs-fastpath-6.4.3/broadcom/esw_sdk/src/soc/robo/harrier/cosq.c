@@ -73,7 +73,7 @@ drv_harrier_queue_mode_set(int unit, soc_pbmp_t bmp, uint32 flag,
     uint32  temp;
     uint64  reg_value64;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_mode_set: \
                             unit %d, bmp = 0x%x, flag = 0x%x, queue mode = %d\n"), 
@@ -165,7 +165,7 @@ drv_harrier_queue_mode_get(int unit, uint32 port, uint32 flag,
             return SOC_E_INTERNAL;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_mode_get: \
                             unit %d, port = %d, flag = 0x%x, queue mode = %d\n"),
@@ -199,7 +199,7 @@ drv_harrier_queue_count_set(int unit, uint32 port_type, uint8 count)
     uint64  reg_value64;
     int     cos, prio, ratio, remain;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_count_set: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, count));
@@ -275,7 +275,7 @@ drv_harrier_queue_count_get(int unit, uint32 port_type, uint8 *count)
         (unit, (uint32 *)&reg_value64, QOS_ENf, &num_q));
     *count = (num_q + 1);
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_count_get: \
                             unit %d, port type = %d, queue count = %d\n"), unit, port_type, *count));
@@ -312,7 +312,7 @@ drv_harrier_queue_WRR_weight_set(int unit, uint32 port_type,
     uint32  max_weight = 0;
     int     reg_len;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_WRR_weight_set: \
                             unit %d, port type = %d, bmp = 0x%x, queue = %d, weight = %d\n"),
@@ -417,7 +417,7 @@ drv_harrier_queue_WRR_weight_get(int unit, uint32 port_type,
         (unit, reg_index, &reg_value, fld_index, &temp));
     *weight = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_WRR_weight_get: \
                             unit %d, port type = %d, port = %d, queue = %d, weight = %d\n"),
@@ -450,7 +450,7 @@ drv_harrier_queue_prio_set(int unit, uint32 port, uint8 prio,
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_prio_set: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -577,7 +577,7 @@ drv_harrier_queue_prio_get(int unit, uint32 port, uint8 prio,
 
     *queue_n = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_prio_get: \
                             unit %d, port = %d, priority = %d, queue = %d\n"), 
@@ -608,7 +608,7 @@ drv_harrier_queue_dfsv_set(int unit, uint8 code_point, uint8 queue_n)
     uint32  temp, t_code_point;
     uint64  reg_value;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_dfsv_set: \
                             unit %d, dscp value = %d, queue = %d\n"), unit, code_point, queue_n));
@@ -937,7 +937,7 @@ drv_harrier_queue_dfsv_get(int unit, uint8 code_point, uint8 *queue_n)
 
     *queue_n = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_dfsv_get: \
                             unit %d, dscp value = %d, queue = %d\n"), unit, code_point, *queue_n));
@@ -970,7 +970,7 @@ drv_harrier_queue_mapping_type_set(int unit, soc_pbmp_t bmp,
     uint32  temp = 0, val_32;
     uint64  reg_value64, pbmp_value, temp64;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_mapping_type_set: \
                             unit %d, bmp = 0x%x 0x%x, type = %d, %sable\n"),
@@ -1250,7 +1250,7 @@ drv_harrier_queue_mapping_type_get(int unit, uint32 port,
             return SOC_E_PARAM;
     }
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_mapping_type_get: \
                             unit %d, port = %d, type = %d, %sable\n"),
@@ -1280,7 +1280,7 @@ drv_harrier_queue_rx_reason_set(int unit, uint8 reason, uint32 queue)
 {
     uint32  reg_value, temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_rx_reason_set: \
                             unit %d, reason = %d, queue = %d\n"), unit, reason, queue));
@@ -1377,7 +1377,7 @@ drv_harrier_queue_rx_reason_get(int unit, uint8 reason, uint32 *queue)
     }
     *queue = temp;
 
-    LOG_VERBOSE(BSL_LS_SOC_COMMON, \
+    LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON, \
                 (BSL_META_U(unit, \
                             "drv_harrier_queue_rx_reason_get: \
                             unit %d, reason = %d, *queue = %d\n"), unit, reason, *queue));

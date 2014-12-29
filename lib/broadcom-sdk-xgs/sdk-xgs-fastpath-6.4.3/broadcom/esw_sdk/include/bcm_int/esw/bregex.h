@@ -182,7 +182,7 @@ typedef struct _regex_policy_s _regex_policy_t;
 
 #define RegexPolicyCheck(_unit_, _mem_, _field_, _value_)               \
     if ((uint32)(_value_) > (uint32)RegexPolicyMax((_unit_), (_mem_), (_field_))) { \
-        LOG_ERROR(BSL_LS_BCM_REGEX,                                     \
+        LOG_BSL_ERROR(BSL_LS_BCM_REGEX,                                     \
                   (BSL_META_U(unit,                                     \
                               "FT(unit %d) Error: Policy _value_ %d > %d (max) mem (%d) policy (%d).\n"), \
                    _unit_, (_value_),                                   \

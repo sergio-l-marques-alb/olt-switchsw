@@ -169,28 +169,28 @@ soc_mmu_error_done(int unit)
 
     PBMP_ALL_ITER(unit, port) {
         if  (mmu_errors[port].xq_parity) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU:  %d XQ Parity Errors\n"),
                        unit, port, mmu_errors[port].xq_parity));
         }
 
         if  (mmu_errors[port].lla_parity) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU:  %d LLA Parity Errors\n"),
                        unit, port, mmu_errors[port].lla_parity));
         }
 
          if  (mmu_errors[port].upk_parity) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU:  %d UPK Parity Errors\n"),
                        unit, port, mmu_errors[port].upk_parity));
         }
 
         if  (mmu_errors[port].ing_parity) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU:  %d ING Parity Errors\n"),
                        unit, port, mmu_errors[port].ing_parity));
@@ -198,7 +198,7 @@ soc_mmu_error_done(int unit)
 
 #ifdef BCM_HERCULES15_SUPPORT
         if  (SOC_IS_HERCULES15(unit) && (mmu_errors[port].egr_parity)) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU:  %d EGR Parity Errors\n"),
                        unit, port, mmu_errors[port].egr_parity));
@@ -207,7 +207,7 @@ soc_mmu_error_done(int unit)
 
         if  (mmu_errors[port].pp_sbe_blocks ||
              mmu_errors[port].pp_sbe_cells ) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU SBE:  %d blocks, %d cells\n"),
                        unit, port, mmu_errors[port].pp_sbe_blocks,
@@ -216,7 +216,7 @@ soc_mmu_error_done(int unit)
 
         if  (mmu_errors[port].pp_dbe_blocks ||
              mmu_errors[port].pp_dbe_cells ) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %d MMU DBE:  %d blocks, %d cells\n"),
                        unit, port, mmu_errors[port].pp_dbe_blocks,
@@ -255,7 +255,7 @@ soc_mmu_error_port(int unit, int port)
 
     SOC_IF_ERROR_RETURN(READ_MMU_INTSTATr(unit, port, &regval));
 
-    LOG_ERROR(BSL_LS_SOC_MMU,
+    LOG_BSL_ERROR(BSL_LS_SOC_MMU,
               (BSL_META_U(unit,
                           "soc_mmu_error_port: u=%d p =%d MMU_INTSTAT %08x\n"),
                           unit, port, regval));
@@ -267,7 +267,7 @@ soc_mmu_error_port(int unit, int port)
         mmu_errors[port].xq_parity++;
   
         SOC_IF_ERROR_RETURN(READ_MMU_XQ_PARADr(unit, port, &regval));
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "UNIT %d Port %s MMU XQ Parity Error at address 0x%08x\n"),
                    unit, SOC_PORT_NAME(unit, port), regval));
@@ -287,7 +287,7 @@ soc_mmu_error_port(int unit, int port)
                                    CELLCOUNTf);
 
         if (((blocks - last_blocks) > 1) || ((cells - last_cells) > 1)) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %s MMU SBE Errors missed:\n\t"
                                   "%d blocks, %d cells\n"),
@@ -305,7 +305,7 @@ soc_mmu_error_port(int unit, int port)
         bit = bitpos & 0xff;
         word = bitpos >> 8;
 
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "UNIT %d Port %s MMU Packet Pool SBE Error\n\t"
                               "Entry %d, Word %d,  Bit position %d\n"),
@@ -326,7 +326,7 @@ soc_mmu_error_port(int unit, int port)
                                    CELLCOUNTf);
 
         if (((blocks - last_blocks) > 1) || ((cells - last_cells) > 1)) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %s MMU DBE Errors missed:\n\t"
                                   "%d blocks, %d cells\n"),
@@ -342,7 +342,7 @@ soc_mmu_error_port(int unit, int port)
 
         addr = soc_reg_field_get(unit, MMU_PP_DBE_LOGr, regval, ADDRf);
         
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "UNIT %d Port %s MMU Packet Pool DBE Error\n\t"
                               "Entry %d\n"),
@@ -353,7 +353,7 @@ soc_mmu_error_port(int unit, int port)
         mmu_errors[port].lla_parity++;
  
         SOC_IF_ERROR_RETURN(READ_MMU_LLA_PARADr(unit, port, &regval));
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "UNIT %d Port %s MMU LLA Parity Error at address 0x%08x\n"),
                    unit, SOC_PORT_NAME(unit, port), regval));
@@ -370,14 +370,14 @@ soc_mmu_error_port(int unit, int port)
         count = soc_reg_field_get(unit, MMU_UPK_ERRLOGr, regval, COUNTf);
 
         if (count > mmu_errors[port].upk_parity) {
-            LOG_ERROR(BSL_LS_SOC_MMU,
+            LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                       (BSL_META_U(unit,
                                   "UNIT %d Port %s MMU UPK Parity Errors missed: %d\n"),
                        unit, SOC_PORT_NAME(unit, port),
                        count - mmu_errors[port].upk_parity));
         }
 
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "UNIT %d Port %s MMU UPK Parity Error at address 0x%08x\n"),
                    unit, SOC_PORT_NAME(unit, port), addr));
@@ -400,14 +400,14 @@ soc_mmu_error_port(int unit, int port)
         mmu_errors[port].ing_parity++;
 
         SOC_IF_ERROR_RETURN(READ_MMU_ING_PARADr(unit, port, &regval));
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "soc_mmu_error_port: u=%d p =%d MMU_ING_PARAD %08x\n"),
                    unit, port, regval));
         ingmem = (regval >> SOC_MMU_ERR_ING_SHIFT) & SOC_MMU_ERR_ING_MASK;
 
         memory_string = mstr[ingmem];
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "UNIT %d Port %s MMU ING Parity Error in %s\n"),
                    unit, SOC_PORT_NAME(unit, port), memory_string));
@@ -418,7 +418,7 @@ soc_mmu_error_port(int unit, int port)
         mmu_errors[port].egr_parity++;
  
         SOC_IF_ERROR_RETURN(READ_MMU_EGR_PARADr(unit, port, &regval));
-        LOG_ERROR(BSL_LS_SOC_MMU,
+        LOG_BSL_ERROR(BSL_LS_SOC_MMU,
                   (BSL_META_U(unit,
                               "soc_mmu_error_port: u=%d p =%d MMU_EGR_PARAD %08x\n"),
                    unit, port, regval));

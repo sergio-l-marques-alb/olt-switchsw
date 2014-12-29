@@ -2761,7 +2761,7 @@ bcm_tr3_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
     int id;
     _bcm_tr3_cosq_list_t *list;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_tr3_cosq_gport_add: unit=%d port=0x%x numq=%d flags=0x%x\n"),
               unit, port, numq, flags));
@@ -3004,7 +3004,7 @@ bcm_tr3_cosq_gport_add(int unit, bcm_gport_t port, int numq, uint32 flags,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       gport=0x%x\n"),
               *gport));
@@ -3200,7 +3200,7 @@ bcm_tr3_cosq_gport_detach(int unit, bcm_gport_t sched_gport,
             }
         }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                         hw_cosq=%d\n"),
               sched_node->attached_to_input));
@@ -3228,7 +3228,7 @@ bcm_tr3_cosq_gport_delete(int unit, bcm_gport_t gport)
     _bcm_tr3_mmu_info_t *mmu_info;
     int phy_port, mmu_port, ii;
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_tr3_cosq_gport_delete: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -3319,7 +3319,7 @@ bcm_tr3_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         return BCM_E_PARAM;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "bcm_tr3_cosq_gport_get: unit=%d gport=0x%x\n"),
               unit, gport));
@@ -3356,7 +3356,7 @@ bcm_tr3_cosq_gport_get(int unit, bcm_gport_t gport, bcm_gport_t *port,
         *flags = 0;
     }
 
-    LOG_INFO(BSL_LS_BCM_COSQ,
+    LOG_BSL_INFO(BSL_LS_BCM_COSQ,
              (BSL_META_U(unit,
                          "                       port=0x%x numq=%d flags=0x%x\n"),
               *port, *numq, *flags));
@@ -3578,7 +3578,7 @@ bcm_tr3_cosq_gport_attach(int unit, bcm_gport_t gport,
                 _bcm_tr3_cosq_gport_node_disable(unit, node, 0);                       
             }
 
-            LOG_INFO(BSL_LS_BCM_COSQ,
+            LOG_BSL_INFO(BSL_LS_BCM_COSQ,
                      (BSL_META_U(unit,
                                  "                         hw_cosq=%d\n"),
                       node->attached_to_input));
@@ -4631,7 +4631,7 @@ _bcm_tr3_cosq_dyn_move_queue(int unit, bcm_port_t local_port,
     do {
         empty_count = 0;
         if (soc_timeout_check(&timeout)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "ERROR: timeout on L2 child c_on_active_list not zero (read count=%d)\n"),
                        rcnt));

@@ -131,7 +131,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
     SOC_IF_ERROR_RETURN(READ_SYS_MAC_LIMIT_CONTROLr(unit, &rval));
     if (!soc_reg_field_get(unit, SYS_MAC_LIMIT_CONTROLr, 
         rval, ENABLEf)) {
-        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_SOC_COMMON,
                     (BSL_META_U(unit,
                                 "\nMAC limits not enabled.\n"))); 
         return SOC_E_NONE;
@@ -169,7 +169,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
 
     if (ptm_buf == NULL) {
         SOC_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_gh_l2_entry_limit_count_update: "
                               "Memory allocation failed for port mac count\n")));
@@ -192,7 +192,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
 
     if (vvm_buf == NULL) {
         SOC_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_gh_l2_entry_limit_count_update: "
                               "Memory allocation failed for vlan mac count\n")));
@@ -212,7 +212,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
 
     if (buf == NULL) {
         SOC_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "soc_gh_l2_entry_limit_count_update: "
                               "Memory allocation failed for %s\n"), 
@@ -232,7 +232,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
                                   chnk_idx_max, buf);
          if (rv < 0) {
              SOC_L2X_MEM_UNLOCK(unit);
-             LOG_ERROR(BSL_LS_SOC_L2,
+             LOG_BSL_ERROR(BSL_LS_SOC_L2,
                        (BSL_META_U(unit,
                                    "DMA failed: %s, mac limts not synced!\n"),
                                    soc_errmsg(rv)));
@@ -342,7 +342,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
 
     if (rv < 0) {
         SOC_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "PORT_OR_TRUNK_MAC_COUNT write failed: "
                               "%s, mac limts not synced!\n"),
@@ -355,7 +355,7 @@ soc_gh_l2_entry_limit_count_update(int unit)
 
     if (rv < 0) {
         SOC_L2X_MEM_UNLOCK(unit);
-        LOG_ERROR(BSL_LS_SOC_L2,
+        LOG_BSL_ERROR(BSL_LS_SOC_L2,
                   (BSL_META_U(unit,
                               "VLAN_OR_VFI_MAC_COUNT write failed: "
                               "%s, mac limts not synced!\n"),

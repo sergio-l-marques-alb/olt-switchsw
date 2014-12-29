@@ -170,7 +170,7 @@ _bcm_common_ptp_configure_serial_tod(
             sal_memcpy(curs, l2_header, l2_header_length);
         }
     } else {
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "Invalid L2 length (must be <= 18)")));
         return BCM_E_PARAM;
@@ -482,7 +482,7 @@ bcm_common_ptp_input_channels_set(
     if (PTP_CONDITIONAL_IS_TRIUMPH3(unit)) {
         for (i = 0; i < num_channels; ++i) {
             if (channels[i].source == (PTP_GPIO_OUTPUT_SIGNALS - 1)) {
-                LOG_ERROR(BSL_LS_BCM_COMMON,
+                LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                           (BSL_META_U(unit,
                                       "PTP input channel error\n")));
                 return BCM_E_PARAM;
@@ -764,7 +764,7 @@ bcm_common_ptp_tod_output_set(
     }
 
     if (output_info->source == bcmPTPTODSourceNone) {
-        LOG_INFO(BSL_LS_BCM_PTP,
+        LOG_BSL_INFO(BSL_LS_BCM_PTP,
                  (BSL_META_U(unit,
                              "Unexpected bcmPTPTODSourceNone as TOD output type\n")));
         return BCM_E_PARAM;
@@ -1080,7 +1080,7 @@ bcm_common_ptp_signal_output_set(
          * Disallow set up of pin as output signal if index exceeds maximum pin number.
          * Disallow set up of sixth GPIO as output signal on Tr3.
          */
-        LOG_ERROR(BSL_LS_BCM_COMMON,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                   (BSL_META_U(unit,
                               "PTP signal index error\n")));
         return BCM_E_PARAM;

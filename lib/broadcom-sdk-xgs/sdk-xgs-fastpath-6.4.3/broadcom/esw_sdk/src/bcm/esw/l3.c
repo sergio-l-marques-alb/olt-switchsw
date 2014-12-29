@@ -5724,7 +5724,7 @@ _bcm_esw_l3_ecmp_create(int unit, bcm_l3_egress_ecmp_t *ecmp,
         }
 
         if (BCM_FAILURE(rv2)) {
-            LOG_ERROR(BSL_LS_BCM_COMMON,
+            LOG_BSL_ERROR(BSL_LS_BCM_COMMON,
                       (BSL_META_U(unit,
                                   "multipath destroy failed : %d \n"), rv2));
         }
@@ -9004,7 +9004,7 @@ _tr3_l3_source_bind_add(int unit, bcm_l3_source_bind_t *info)
 
     if (info->flags & BCM_L3_SOURCE_BIND_USE_MASK) {
         /* Not supported */
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
              "%s: failed with error : %s \n"), FUNCTION_NAME(),
              bcm_errmsg(BCM_E_PARAM)));
         return BCM_E_PARAM;
@@ -9110,7 +9110,7 @@ _tr2_l3_source_bind_add(int unit, bcm_l3_source_bind_t *info)
 
     if (info->flags & BCM_L3_SOURCE_BIND_USE_MASK) {
         /* Not supported */
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
              "%s: failed with error : %s \n"), FUNCTION_NAME(),
              bcm_errmsg(BCM_E_PARAM)));
         return BCM_E_PARAM;
@@ -9242,7 +9242,7 @@ _tr3_l3_source_bind_delete(int unit, bcm_l3_source_bind_t *info)
 
     if (info->flags & BCM_L3_SOURCE_BIND_USE_MASK) {
         /* Not supported */
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
              "%s: failed with error : %s \n"), FUNCTION_NAME(),
              bcm_errmsg(BCM_E_PARAM)));
         return BCM_E_PARAM;
@@ -9287,7 +9287,7 @@ _tr2_l3_source_bind_delete(int unit, bcm_l3_source_bind_t *info)
 
     if (info->flags & BCM_L3_SOURCE_BIND_USE_MASK) {
         /* Not supported */
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
              "%s: failed with error : %s \n"), FUNCTION_NAME(),
              bcm_errmsg(BCM_E_PARAM)));
         return BCM_E_PARAM;
@@ -9600,7 +9600,7 @@ _tr3_l3_source_bind_get(int unit, bcm_l3_source_bind_t *info)
 
     if (info->flags & BCM_L3_SOURCE_BIND_USE_MASK) {
         /* Not supported */
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
              "%s: failed with error : %s \n"), FUNCTION_NAME(),
              bcm_errmsg(BCM_E_PARAM)));
         return BCM_E_PARAM;
@@ -9648,7 +9648,7 @@ _tr2_l3_source_bind_get(int unit, bcm_l3_source_bind_t *info)
 
     if (info->flags & BCM_L3_SOURCE_BIND_USE_MASK) {
         /* Not supported */
-        LOG_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
+        LOG_BSL_ERROR(BSL_LS_BCM_COMMON, (BSL_META_U(unit,
              "%s: failed with error : %s \n"), FUNCTION_NAME(),
              bcm_errmsg(BCM_E_PARAM)));
         return BCM_E_PARAM;

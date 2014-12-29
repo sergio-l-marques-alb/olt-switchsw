@@ -517,7 +517,7 @@ tpacket_setup(int unit, p_t *p)
                 
                 fill_addr = (uint8 *)enet_hdr;
                 if (dpp_tx_load_packet_tr(unit,p->xd_file, p->xd_filelen, fill_addr) != 0) {
-                        LOG_ERROR(BSL_LS_APPL_TESTS,
+                        LOG_BSL_ERROR(BSL_LS_APPL_TESTS,
                                   (BSL_META_U(unit,
                                               "Unable to load packet from file %s\n"),
                                    p->xd_file));

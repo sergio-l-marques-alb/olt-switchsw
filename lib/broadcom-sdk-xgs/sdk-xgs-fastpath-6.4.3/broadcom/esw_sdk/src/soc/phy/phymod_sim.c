@@ -124,7 +124,7 @@ soc_physim_add(int unit, uint32 phy_id, phymod_sim_drv_t *pms_drv)
 
     /* Any free simulators? */
     if (soc_phy_sims_used >= PHY_NUM_SIMS) {
-        LOG_ERROR(BSL_LS_SOC_PHY,
+        LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
                               "soc_physim_add: Out of resources for"
                               " unit=%d phy_id=0x%x\n"), unit, phy_id));
@@ -168,7 +168,7 @@ soc_physim_wrmask(int unit, uint32 phy_id,
     SOC_IF_ERROR_RETURN(
         phymod_sim_write(&psim->pms, phy_reg_addr, data32));
 
-    LOG_INFO(BSL_LS_SOC_PHYSIM,
+    LOG_BSL_INFO(BSL_LS_SOC_PHYSIM,
              (BSL_META_U(unit,
                          "soc_physim_wrmask 0x%03x:0x%04x = 0x%04x/0x%04x\n"),
               phy_id, phy_reg_addr, phy_wr_data, wr_mask));
@@ -195,7 +195,7 @@ soc_physim_read(int unit, uint32 phy_id,
 
     *phy_rd_data = data32;
 
-    LOG_INFO(BSL_LS_SOC_PHYSIM,
+    LOG_BSL_INFO(BSL_LS_SOC_PHYSIM,
              (BSL_META_U(unit,
                          "soc_physim_read 0x%03x:0x%04x = 0x%04x\n"),
               phy_id, phy_reg_addr, *phy_rd_data));
@@ -289,7 +289,7 @@ soc_physim_check_sim(int unit, phymod_dispatch_type_t type, phymod_access_t* acc
                 break;
 #endif
             default:
-                LOG_ERROR(BSL_LS_SOC_PHYSIM,
+                LOG_BSL_ERROR(BSL_LS_SOC_PHYSIM,
                          (BSL_META_U(unit,
                                      "Invalid simulator %d\n"), type));
                 return SOC_E_NOT_FOUND;

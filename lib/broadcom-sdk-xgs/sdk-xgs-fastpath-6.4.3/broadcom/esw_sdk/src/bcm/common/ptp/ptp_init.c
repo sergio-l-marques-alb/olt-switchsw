@@ -475,7 +475,7 @@ done:
         }
     } else {
         rv = BCM_E_UNAVAIL;
-        LOG_VERBOSE(BSL_LS_BCM_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BCM_COMMON,
                     (BSL_META_U(unit,
                                 "PTP not supported on this unit\n")));
     }

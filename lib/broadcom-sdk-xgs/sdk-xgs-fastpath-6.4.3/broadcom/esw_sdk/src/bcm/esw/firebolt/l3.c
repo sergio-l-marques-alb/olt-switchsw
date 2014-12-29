@@ -3609,7 +3609,7 @@ _bcm_fb_lpm128_update_match(int unit, _bcm_l3_trvrs_data_t *trv_data)
             /* Parse  the entry. */
             _bcm_fb_lpm_ent_parse(unit, &lpm_cfg, &nh_ecmp_idx, lpm_entry, &b128);
             if (ipv6 && b128 != 1) {
-                LOG_ERROR(BSL_LS_BCM_L3,
+                LOG_BSL_ERROR(BSL_LS_BCM_L3,
                           (BSL_META_U(unit,
                                       "b128 traverse: entry is not b128\n")));
                 return SOC_E_INTERNAL;
@@ -4037,7 +4037,7 @@ _bcm_xgs3_l3_free_resource(int unit)
     if (SOC_IS_FBX(unit)) {
         rv = bcm_xgs3_l3_fbx_defip_deinit(unit);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_L3,
+            LOG_BSL_ERROR(BSL_LS_BCM_L3,
                       (BSL_META_U(unit,
                                   "Route table free error %d\n"),
                        rv));
@@ -4053,7 +4053,7 @@ _bcm_xgs3_l3_free_resource(int unit)
         /* Tunnels terminator table  deinit. */
         rv = soc_tunnel_term_deinit(unit);
         if (BCM_FAILURE(rv)) {
-            LOG_ERROR(BSL_LS_BCM_L3,
+            LOG_BSL_ERROR(BSL_LS_BCM_L3,
                       (BSL_META_U(unit,
                                   "Tunnel terminator table free %d\n"),
                        rv));
@@ -4153,7 +4153,7 @@ _bcm_xgs3_l3_free_resource(int unit)
         if(BCM_TR3_ESM_HOST_TBL_PRESENT(unit)) {
             rv = _bcm_tr3_esm_host_tbl_deinit(unit);
             if (BCM_FAILURE(rv)) {
-                LOG_ERROR(BSL_LS_BCM_L3,
+                LOG_BSL_ERROR(BSL_LS_BCM_L3,
                           (BSL_META_U(unit,
                                       "Error in freeing ESM host tbl state %d\n"),
                            rv));
@@ -4166,7 +4166,7 @@ _bcm_xgs3_l3_free_resource(int unit)
     if (soc_feature(unit, soc_feature_l3_ip4_options_profile)) {
        rv = _bcm_td2_l3_ip4_options_free_resources(unit);
        if (BCM_FAILURE(rv)) {
-           LOG_ERROR(BSL_LS_BCM_L3,
+           LOG_BSL_ERROR(BSL_LS_BCM_L3,
                      (BSL_META_U(unit,
                                  "Error in freeing IP4 options profile %d\n"),
                       rv));
@@ -5250,7 +5250,7 @@ _bcm_xgs3_l3_intf_create(int unit, _bcm_l3_intf_cfg_t *intf_info)
     /* Add interface layer 2 address if required. */
     if (intf_info->l3i_flags & BCM_L3_ADD_TO_ARL) {
         if (BCM_L3_BK_FLAG_GET(unit, BCM_L3_BK_DISABLE_ADD_TO_ARL)) {
-            LOG_ERROR(BSL_LS_BCM_L3,
+            LOG_BSL_ERROR(BSL_LS_BCM_L3,
                       (BSL_META_U(unit,
                                   "Use of BCM_L3_ADD_TO_ARL flag is not allowed in l3 intf create \n")));
             return BCM_E_CONFIG;
@@ -12994,7 +12994,7 @@ bcm_xgs3_l3_info(int unit, bcm_l3_info_t *l3info)
     }
 
 #ifdef BCM_KATANA_SUPPORT
-    if (SOC_IS_KATANA(unit) && LOG_CHECK(BSL_LS_BCM_L3 | BSL_INFO)) {
+    if (SOC_IS_KATANA(unit) && LOG_BSL_CHECK(BSL_LS_BCM_L3 | BSL_INFO)) {
         _bcm_kt_l3_info_dump(unit);
     }
 #endif
@@ -13316,7 +13316,7 @@ bcm_xgs3_max_ecmp_set(int unit, int max_paths)
     }
 
     if (BCM_XGS3_L3_ECMP_IN_USE(unit)) {
-        LOG_ERROR(BSL_LS_BCM_L3,
+        LOG_BSL_ERROR(BSL_LS_BCM_L3,
 		  (BSL_META_U(unit,
 			      "ECMP already in use, max path can't be reset\n")));
         return (BCM_E_BUSY);
@@ -13527,7 +13527,7 @@ _bcm_xgs3_defip_ecmp_add(int unit, _bcm_defip_cfg_t *lpm_cfg,
         /* Enforce max number of multipaths. */
         if (ecmp_count == ecmp_max_count) {
             sal_free(ecmp_grp);
-            LOG_ERROR(BSL_LS_BCM_L3,
+            LOG_BSL_ERROR(BSL_LS_BCM_L3,
                       (BSL_META_U(unit,
                                   "Maximum number of ECMP paths reached\n")));
             return (BCM_E_RESOURCE);

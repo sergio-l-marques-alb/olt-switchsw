@@ -429,19 +429,19 @@ board_i2c_device_show_f(int unit,
     int *first = (int *)user_data;
 
     if (!*first) {
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META_U(unit,
                     "Unit %d i2c devices:\n"),
                      unit));
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META_U(unit,
                     "idx id  name     description\n")));
-        LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+        LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                     (BSL_META_U(unit,
                                 "--- --- -------- ---------------------------------\n")));
         *first = !*first;
     }
-    LOG_VERBOSE(BSL_LS_BOARD_COMMON,
+    LOG_BSL_VERBOSE(BSL_LS_BOARD_COMMON,
                 (BSL_META_U(unit,
                 "%3d %3d %8s %s\n"),
                  idx, id, name, desc));

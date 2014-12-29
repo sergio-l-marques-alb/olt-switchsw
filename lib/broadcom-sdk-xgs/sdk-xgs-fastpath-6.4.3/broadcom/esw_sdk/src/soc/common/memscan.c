@@ -384,7 +384,7 @@ _soc_mem_scan_info_init(int unit)
             break;
         }
         if (!SOC_MEM_IS_VALID(unit, mem)) {
-            LOG_WARN(BSL_LS_SOC_COMMON,
+            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                      (BSL_META_U(unit,
                                  "SER Scan mem invalid at index %d\n"),
                       ser_idx));
@@ -739,7 +739,7 @@ soc_mem_scan_start(int unit, int rate, sal_usecs_t interval)
 					      INT_TO_PTR(unit));
 
 	if (soc->mem_scan_pid == SAL_THREAD_ERROR) {
-	    LOG_ERROR(BSL_LS_SOC_COMMON,
+	    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                       (BSL_META_U(unit,
                                   "soc_mem_scan_start: Could not start mem_scan thread\n")));
 	    return SOC_E_MEMORY;
@@ -790,7 +790,7 @@ soc_mem_scan_stop(int unit)
 
 	while (soc->mem_scan_pid != SAL_THREAD_ERROR) {
 	    if (soc_timeout_check(&to)) {
-		LOG_ERROR(BSL_LS_SOC_COMMON,
+		LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "soc_mem_scan_stop: thread will not exit\n")));
 		rv = SOC_E_INTERNAL;
@@ -976,7 +976,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
 
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || \
         defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "Scan: unit=%d %s%s.%s[%d-%d]\n"), unit, 
                              SOC_MEM_NAME(unit, mem), 
@@ -997,7 +997,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
                 }
 
                 if (rv < 0) {
-                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "soc_mem_scan_thread: TCAM read failed: %s\n"),
                                soc_errmsg(rv)));
@@ -1048,7 +1048,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
                     if (dw < entry_dw) {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || \
         defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "Memory error detected on unit %d "
                                              "in %s%s.%s[%d]\n"), unit, 
@@ -1067,7 +1067,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
                                         " %08x", 
                                         cmp_entry[dw]);
                         }
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "    WAS:%s\n"), errstr));
 
@@ -1077,7 +1077,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
                                         " %08x", 
                                         hw_entry[dw]);
                         }
-                        LOG_WARN(BSL_LS_SOC_COMMON,
+                        LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                  (BSL_META_U(unit,
                                              "    BAD:%s\n"), errstr));
 
@@ -1102,7 +1102,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
                             spci.pipe_num = 1;
                         }
                         if ((rv = soc_ser_correction(unit, &spci)) < 0) {
-                            LOG_WARN(BSL_LS_SOC_COMMON,
+                            LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                      (BSL_META_U(unit,
                                                  "    CORRECTION FAILED: %s\n"), 
                                       soc_errmsg(rv)));
@@ -1131,7 +1131,7 @@ _soc_mem_scan_ser_read_ranges(int unit, int chunk_size, uint32 *read_buf)
             }
         }
     } 
-    LOG_INFO(BSL_LS_SOC_TESTS,
+    LOG_BSL_INFO(BSL_LS_SOC_TESTS,
              (BSL_META_U(unit,
                          "Done: %d mem scan iterations\n"), ++scan_iter));
 
@@ -1263,7 +1263,7 @@ _soc_mem_scan_thread(void *unit_vp)
                              "mem_scan_new");
 
     if (read_buf == NULL) {
-        LOG_ERROR(BSL_LS_SOC_COMMON,
+        LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                   (BSL_META_U(unit,
                               "soc_mem_scan_thread: not enough memory, exiting\n")));
         soc_event_generate(unit, SOC_SWITCH_EVENT_THREAD_ERROR, 
@@ -1288,7 +1288,7 @@ _soc_mem_scan_thread(void *unit_vp)
             rv = _soc_mem_scan_ser_read_ranges(unit, chunk_size, read_buf);
             
             if (rv < 0) {
-                LOG_ERROR(BSL_LS_SOC_COMMON,
+                LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                           (BSL_META_U(unit,
                                       "AbnormalThreadExit:%s, TCAM scan failed: %s\n"),
                            thread_name,
@@ -1325,7 +1325,7 @@ _soc_mem_scan_thread(void *unit_vp)
             }
             if (SOC_IS_ROBO(unit)) {
 #ifdef BCM_ROBO_SUPPORT
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "Scan mem: %s\n"),
                              SOC_ROBO_MEM_NAME(unit, mem)));
@@ -1333,7 +1333,7 @@ _soc_mem_scan_thread(void *unit_vp)
             } else {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || \
         defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-                LOG_VERBOSE(BSL_LS_SOC_SOCMEM,
+                LOG_BSL_VERBOSE(BSL_LS_SOC_SOCMEM,
                             (BSL_META_U(unit,
                                         "Scan mem: %s\n"),
                              SOC_MEM_NAME(unit, mem)));
@@ -1406,7 +1406,7 @@ _soc_mem_scan_thread(void *unit_vp)
                         rv = soc_mem_ser_read_range(unit, mem, blk, idx, idx + idx_count - 1,  
                                                     ser_flags[pipe], read_buf);
                         if (rv < 0) {
-                            LOG_ERROR(BSL_LS_SOC_COMMON,
+                            LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                       (BSL_META_U(unit,
                                                   "AbnormalThreadExit:%s, read failed: %s\n"),
                                        thread_name,
@@ -1420,7 +1420,7 @@ _soc_mem_scan_thread(void *unit_vp)
                         }
                         if (SOC_IS_ROBO(unit)) {
 #ifdef BCM_ROBO_SUPPORT                        
-                            LOG_INFO(BSL_LS_SOC_TESTS,
+                            LOG_BSL_INFO(BSL_LS_SOC_TESTS,
                                      (BSL_META_U(unit,
                                                  "Scan: unit=%d %s.%s[%d-%d]\n"), unit, 
                                       SOC_ROBO_MEM_NAME(unit, mem), 
@@ -1430,7 +1430,7 @@ _soc_mem_scan_thread(void *unit_vp)
                         } else {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || \
     defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)
-                            LOG_INFO(BSL_LS_SOC_TESTS,
+                            LOG_BSL_INFO(BSL_LS_SOC_TESTS,
                                      (BSL_META_U(unit,
                                                  "Scan: unit=%d %s.%s[%d-%d]\n"), unit, 
                                       SOC_MEM_NAME(unit, mem), 
@@ -1454,7 +1454,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                 char errstr[80 + SOC_MAX_MEM_WORDS * 9];
                                 if (SOC_IS_ROBO(unit)) {
 #ifdef BCM_ROBO_SUPPORT
-                                    LOG_WARN(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                              (BSL_META_U(unit,
                                                          "Memory error detected on unit %d "
                                                          "in %s.%s[%d]\n"), unit, 
@@ -1464,7 +1464,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                 } else {
 #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || \
         defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT)                            
-                                    LOG_WARN(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                              (BSL_META_U(unit,
                                                          "Memory error detected on unit %d "
                                                          "in %s.%s[%d]\n"), unit, 
@@ -1480,7 +1480,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                                 cache[(idx + i) *
                                                       entry_dw + dw]);
                                 }
-                                LOG_WARN(BSL_LS_SOC_COMMON,
+                                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                          (BSL_META_U(unit,
                                                      "    WAS:%s\n"), errstr));
 
@@ -1490,7 +1490,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                                 " %08x", 
                                                 read_buf[i * entry_dw + dw]);
                                 }
-                                LOG_WARN(BSL_LS_SOC_COMMON,
+                                LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                          (BSL_META_U(unit,
                                                      "    BAD:%s\n"), errstr));
 #ifdef BCM_ESW_SUPPORT
@@ -1513,7 +1513,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                 }
 
                                 if (rv < 0) {
-                                    LOG_WARN(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                             (BSL_META_U(unit,
                                                         "    CORRECTION FAILED: %s\n"), 
                                                         soc_errmsg(rv)));
@@ -1524,7 +1524,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                     MEM_UNLOCK(unit, mem);
                                     goto cleanup_exit;
                                 } else {
-                                    LOG_WARN(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_WARN(BSL_LS_SOC_COMMON,
                                              (BSL_META_U(unit,
                                                          "    Corrected by writing back cached data\n")));
                                 }
@@ -1546,7 +1546,7 @@ _soc_mem_scan_thread(void *unit_vp)
                                 rv = _soc_mem_scan_ser_read_ranges(unit, chunk_size, 
                                                                    read_buf);
                                 if (rv < 0) {
-                                    LOG_ERROR(BSL_LS_SOC_COMMON,
+                                    LOG_BSL_ERROR(BSL_LS_SOC_COMMON,
                                               (BSL_META_U(unit,
                                                "AbnormalThreadExit:%s, TCAM scan failed: %s\n"),
                                                thread_name,
@@ -1570,7 +1570,7 @@ _soc_mem_scan_thread(void *unit_vp)
             }
         }
 
-        LOG_INFO(BSL_LS_SOC_TESTS,
+        LOG_BSL_INFO(BSL_LS_SOC_TESTS,
                  (BSL_META_U(unit,
                              "Done: %d mem entries checked\n"), entries_pass));
         if (soc->mem_scan_interval != 0) {
