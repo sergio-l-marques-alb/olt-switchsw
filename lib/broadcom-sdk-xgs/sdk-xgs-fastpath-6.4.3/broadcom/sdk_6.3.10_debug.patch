@@ -1,0 +1,223 @@
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/include/appl/cpudb/mdebug.h esw_sdk_6.3.10/include/appl/cpudb/mdebug.h
+--- sdk-xgs-robo-6.3.10/include/appl/cpudb/mdebug.h	2014-11-04 02:57:17.000000000 +0000
++++ esw_sdk_6.3.10/include/appl/cpudb/mdebug.h	2014-12-26 16:07:33.781497664 +0000
+@@ -114,15 +114,31 @@ extern int (*tks_mdebug_print)(const cha
+ 
+ #if defined(BROADCOM_DEBUG)
+ 
+ #define TKS_DEBUG_CHECK(enc_) \
+     soc_cm_mdebug_check(&tks_mdebug_config, enc_)
+ 
++#ifndef LVL7_FIXUP
+ #define TKS_DEBUG(enc_, stuff_) \
+     if (TKS_DEBUG_CHECK(enc_) && tks_mdebug_print != 0) \
+ 	(*tks_mdebug_print) stuff_
++#else
++extern int (*tks_mdebug_error)(const char *format, ...);
++extern int (*tks_mdebug_warn)(const char *format, ...);
++extern int (*tks_mdebug_debug)(const char *format, ...);
++
++#define TKS_DEBUG(flags, stuff) \
++    do { \
++    if (TKS_DEBUG_CHECK(flags) && tks_mdebug_print != 0) \
++      { \
++        if ((flags) & TKS_DBG_ERR) (*tks_mdebug_error) stuff ; \
++        else if ((flags) & TKS_DBG_WARN)(*tks_mdebug_warn) stuff ; \
++        else (*tks_mdebug_debug) stuff ; \
++      } \
++    } while(0) 
++#endif
+ 
+ /*
+  * Option-specific debug print macros.
+  * Source file must define TKS_DEBUG_OPTION to the desired debug
+  * option before using these macros, e.g.:
+  *
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/include/bcm_int/mdebug.h esw_sdk_6.3.10/include/bcm_int/mdebug.h
+--- sdk-xgs-robo-6.3.10/include/bcm_int/mdebug.h	2014-11-04 02:57:18.000000000 +0000
++++ esw_sdk_6.3.10/include/bcm_int/mdebug.h	2014-12-26 16:07:37.181558051 +0000
+@@ -162,15 +162,30 @@ extern int (*bcm_mdebug_print)(const cha
+ 
+ #if defined(BROADCOM_DEBUG)
+ 
+ #define BCM_DEBUG_CHECK(enc_) \
+     soc_cm_mdebug_check(&bcm_mdebug_config, enc_)
+ 
++#ifndef LVL7_FIXUP
+ #define BCM_DEBUG(enc_, stuff_) \
+     if (BCM_DEBUG_CHECK(enc_) && bcm_mdebug_print != 0) \
+ 	(*bcm_mdebug_print) stuff_
++#else
++extern int (*bcm_mdebug_error)(const char *format, ... );
++extern int (*bcm_mdebug_warn)(const char *format, ... );
++extern int (*bcm_mdebug_debug)(const char *format, ... );
++#define BCM_DEBUG(flags, stuff)  \
++    do { \
++      if (BCM_DEBUG_CHECK(flags) && bcm_mdebug_print != 0) \
++      { \
++        if (BCM_DBG_ERR & (flags)) (*bcm_mdebug_error) stuff; \
++        else if (BCM_DBG_WARN & (flags)) (*bcm_mdebug_warn) stuff; \
++        else (*bcm_mdebug_debug) stuff ; \
++      } \
++    }while (0)
++#endif
+ 
+ /*
+  * Option-specific debug print macros.
+  * Source file must define BCM_DEBUG_OPTION to the desired debug
+  * option before using these macros, e.g.:
+  *
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/include/bcmx_int/mdebug.h esw_sdk_6.3.10/include/bcmx_int/mdebug.h
+--- sdk-xgs-robo-6.3.10/include/bcmx_int/mdebug.h	2014-11-04 02:57:19.000000000 +0000
++++ esw_sdk_6.3.10/include/bcmx_int/mdebug.h	2014-12-26 16:07:34.013491523 +0000
+@@ -100,15 +100,30 @@ extern int (*bcmx_mdebug_print)(const ch
+ 
+ #if defined(BROADCOM_DEBUG)
+ 
+ #define BCMX_DEBUG_CHECK(enc_) \
+     soc_cm_mdebug_check(&bcmx_mdebug_config, enc_)
+ 
++#ifndef LVL7_FIXUP
+ #define BCMX_DEBUG(enc_, stuff_) \
+     if (BCMX_DEBUG_CHECK(enc_) && bcmx_mdebug_print != 0) \
+ 	(*bcmx_mdebug_print) stuff_
++#else
++extern int (*bcmx_mdebug_error)(const char *format, ...);
++extern int (*bcmx_mdebug_warn)(const char *format, ...);
++extern int (*bcmx_mdebug_debug)(const char *format, ...);
++#define BCMX_DEBUG(flags, stuff) \
++  do { \
++    if (BCMX_DEBUG_CHECK(flags) && bcmx_mdebug_print != 0) \
++    { \
++      if ((flags) & BCMX_DBG_ERR) (*bcmx_mdebug_error) stuff ; \
++      else if ((flags) & BCMX_DBG_WARN) (*bcmx_mdebug_warn) stuff ; \
++      else (*bcmx_mdebug_debug) stuff ; \
++    } \
++  } while(0)
++#endif
+ 
+ /*
+  * Option-specific debug print macros.
+  * Source file must define BCMX_DEBUG_OPTION to the desired debug
+  * option before using these macros, e.g.:
+  *
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/include/soc/cmmdebug.h esw_sdk_6.3.10/include/soc/cmmdebug.h
+--- sdk-xgs-robo-6.3.10/include/soc/cmmdebug.h	2014-11-04 02:57:20.000000000 +0000
++++ esw_sdk_6.3.10/include/soc/cmmdebug.h	2014-12-26 16:07:36.745489597 +0000
+@@ -125,12 +125,21 @@ typedef struct soc_cm_mdebug_config_s {
+ typedef int (*soc_cm_mdebug_cb_t)(soc_cm_mdebug_config_t *dbg_cfg,
+                                   const char *opt, int enable, void *context);
+ 
+ /* Debug levels for sharing across all debug modules */
+ extern const char *soc_cm_mdebug_level_names[];
+ 
++#ifdef LVL7_FIXUP
++extern int      soc_cm_mdebug_error(const char *format, ...)
++                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
++extern int      soc_cm_mdebug_warn(const char *format, ...)
++                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
++extern int      soc_cm_mdebug_debug(const char *format, ...)
++                             COMPILER_ATTRIBUTE ((format (printf, 1, 2)));
++#endif
++
+ extern int
+ soc_cm_mdebug_deinit(void);
+ 
+ extern int
+ soc_cm_mdebug_init(void);
+ 
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/include/soc/mdebug.h esw_sdk_6.3.10/include/soc/mdebug.h
+--- sdk-xgs-robo-6.3.10/include/soc/mdebug.h	2014-11-04 02:57:21.000000000 +0000
++++ esw_sdk_6.3.10/include/soc/mdebug.h	2014-12-26 16:07:35.345497940 +0000
+@@ -132,15 +132,26 @@ extern int (*soc_mdebug_print)(const cha
+ 
+ #if defined(BROADCOM_DEBUG)
+ 
+ #define SOC_DEBUG_CHECK(enc_) \
+     soc_cm_mdebug_check(&soc_mdebug_config, enc_)
+ 
++#ifndef LVL7_FIXUP
+ #define SOC_DEBUG(enc_, stuff_) \
+     if (SOC_DEBUG_CHECK(enc_) && soc_mdebug_print != 0) \
+ 	(*soc_mdebug_print) stuff_
++#else
++#define SOC_DEBUG(flags, stuff) \
++  do { \
++    if (SOC_DEBUG_CHECK(flags)) { \
++    if (SOC_DBG_ERR & (flags)) soc_cm_mdebug_error stuff ; \
++    else if (SOC_DBG_WARN & (flags)) soc_cm_mdebug_warn stuff ; \
++    else soc_cm_mdebug_debug stuff; \
++    } \
++  }while(0)
++#endif
+ 
+ /*
+  * Option-specific debug print macros.
+  * Source file must define SOC_DEBUG_OPTION to the desired debug
+  * option before using these macros, e.g.:
+  *
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/appl/cpudb/mdebug.c esw_sdk_6.3.10/src/appl/cpudb/mdebug.c
+--- sdk-xgs-robo-6.3.10/src/appl/cpudb/mdebug.c	2014-11-04 02:57:26.000000000 +0000
++++ esw_sdk_6.3.10/src/appl/cpudb/mdebug.c	2014-12-26 16:07:45.053012004 +0000
+@@ -61,12 +61,18 @@ soc_cm_mdebug_config_t tks_mdebug_config
+     soc_cm_mdebug_level_names,
+     SOC_CM_DBG_LEVEL_COUNT,
+ };
+ 
+ int (*tks_mdebug_print)(const char *format, ...) = soc_cm_print;
+ 
++#ifdef LVL7_FIXUP
++int (*tks_mdebug_error)(const char *format, ...) = soc_cm_mdebug_error;
++int (*tks_mdebug_warn)(const char *format, ...) = soc_cm_mdebug_warn;
++int (*tks_mdebug_debug)(const char *format, ...) = soc_cm_mdebug_debug;
++#endif
++
+ int
+ tks_mdebug_init(void)
+ {
+     soc_cm_mdebug_add(&tks_mdebug_config);
+ 
+ #ifndef NO_DEBUG_OUTPUT_DEFAULT
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcm/mdebug.c esw_sdk_6.3.10/src/bcm/mdebug.c
+--- sdk-xgs-robo-6.3.10/src/bcm/mdebug.c	2014-11-04 02:57:28.000000000 +0000
++++ esw_sdk_6.3.10/src/bcm/mdebug.c	2014-12-26 16:07:51.936998871 +0000
+@@ -61,12 +61,18 @@ soc_cm_mdebug_config_t bcm_mdebug_config
+     soc_cm_mdebug_level_names,
+     SOC_CM_DBG_LEVEL_COUNT,
+ };
+ 
+ int (*bcm_mdebug_print)(const char *format, ...) = soc_cm_print;
+ 
++#ifdef LVL7_FIXUP
++int		(*bcm_mdebug_error)(const char *format, ...) = soc_cm_mdebug_error;
++int		(*bcm_mdebug_warn)(const char *format, ...) = soc_cm_mdebug_warn;
++int		(*bcm_mdebug_debug)(const char *format, ...) = soc_cm_mdebug_debug;
++#endif
++
+ int
+ bcm_mdebug_init(void)
+ {
+     soc_cm_mdebug_add(&bcm_mdebug_config);
+ 
+ #ifndef NO_DEBUG_OUTPUT_DEFAULT
+diff -rpN --unified=6 sdk-xgs-robo-6.3.10/src/bcmx/mdebug.c esw_sdk_6.3.10/src/bcmx/mdebug.c
+--- sdk-xgs-robo-6.3.10/src/bcmx/mdebug.c	2014-11-04 02:57:31.000000000 +0000
++++ esw_sdk_6.3.10/src/bcmx/mdebug.c	2014-12-26 16:07:52.432998185 +0000
+@@ -60,12 +60,17 @@ soc_cm_mdebug_config_t bcmx_mdebug_confi
+     BCMX_DBG_COUNT,
+     soc_cm_mdebug_level_names,
+     SOC_CM_DBG_LEVEL_COUNT,
+ };
+ 
+ int (*bcmx_mdebug_print)(const char *format, ...) = soc_cm_print;
++#ifdef LVL7_FIXUP
++int		(*bcmx_mdebug_error)(const char *format, ...) = soc_cm_mdebug_error;
++int		(*bcmx_mdebug_warn)(const char *format, ...) = soc_cm_mdebug_warn;
++int		(*bcmx_mdebug_debug)(const char *format, ...) = soc_cm_mdebug_debug;
++#endif
+ 
+ int
+ bcmx_mdebug_init(void)
+ {
+     soc_cm_mdebug_add(&bcmx_mdebug_config);
+ 
