@@ -1,0 +1,5612 @@
+/*
+ * $Id: phy82381.c,v 1.1.2.25 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        phy82381.c
+ * Purpose:     Support for Furia external PHY 
+ * 
+ */
+
+/*
+ *   This module implements an NTSW SDK Phy driver for the phy82381 External PHY.
+ *  
+ *   LAYERING.
+ *
+ *   This driver is built on top of the PHYMOD library, which is a PHY
+ *   driver library that can operate on a family of PHYs, including
+ *   phy82381 and Sesto and etc..,  PHYMOD can be built in a standalone enviroment and be
+ *   provided independently from the SDK.  PHYMOD APIs consist of
+ *   "core" APIs and "phy" APIs.
+ *
+ *
+ *   KEY IDEAS AND MAIN FUNCTIONS
+ *
+ *   Some key ideas in this architecture are:
+ *
+ *   o A PHMOD "phy" consists of one more more lanes, all residing in a single
+ *     core.  An SDK "phy" is a logical port, which can consist of one or
+ *     more lanes in a single core, OR, can consist of multiples lanes in
+ *     more than one core.
+ *   o PHYMOD code is "stateless" in the sense that all calls to PHYMOD
+ *     APIs are fully parameterized and no per-phy state is held by a PHYMOD
+ *     driver.
+ *   o PHYMOD APIs do not map 1-1 with SDK .pd_control_set or .pd_control_get
+ *     APIs (nor ".pd_xx" calls, nor to .phy82381_per_lane_control_set and
+ *     .phy82381_per_lane_control_get APIs.
+ *
+ *   The purpose of this code, then, is to provide the necessary translations
+ *   between the SDK interfaces and the PHYMOD interfaces.  This includes:
+ * 
+ *   o Looping over the cores in a logical PHY in order to operate on the
+ *     supporting PHMOD PHYs
+ *   o Determining the configuration data for the phy, based on programmed
+ *     defaults and SOC properties.
+ *   o Managing the allocation and freeing of phy data structures required for
+ *     working storage.  Locating these structures on procedure invocation.
+ *   o Mapping SDK API concepts to PHYMOD APIs.  In some cases, local state is
+ *     required in this module in order to present the legacy API.
+ *
+ * 
+ *   MAIN DATA STRUCTURES
+ * 
+ *   phy_ctrl_t
+ *   The PHY control structure defines the SDK notion of a PHY
+ *   (existing) structure owned by SDK phy driver modules.  In order
+ *   to support PHYMOD PHYs, one addition was made to this structure
+ *   (soc_phymod_ctrl_t phymod_ctrl;)
+ *
+ *   furia_config_t
+ *   Driver specific data.  This structure is used by furia to hold
+ *   logical port specific working storage.
+ *
+ *   soc_phymod_ctrl_t
+ *   PHYMOD drivers.  Resides in phy_ctrl_t specifies how many cores
+ *   are in this phy and contains an array of pointers to
+ *   soc_phymod_phy_t structures, which define a PHYMOD PHY.
+ *
+ *   soc_phymod_phy_t
+ *   This structure contains a pointer to phymod_phy_access_t and a
+ *   pointer to the associated soc_phymod_core_t.  Instances if this
+ *   structure are created during device probe/init and are maintained
+ *   by the SOC.
+ *
+ *   soc_phymod_core_t
+ *   This structure contains per-core information.  Multiple PHYMOD
+ *   PHYS can point to a single core.
+ *
+ *   phymod_phy_access_t
+ *   This structure contains information about how to read/write PHY
+ *   registers.  A required parameter for PHYMOD PHY APIs
+ * 
+ *   phymod_core_access_t
+ *   This structure contains information about how to read/write PHY
+ *   registers.  A required parameter for PHYMOD core APIs.
+ *
+ */
+
+#include <shared/bsl.h>
+
+#include <sal/types.h>
+#include <sal/types.h>
+#include <sal/core/spl.h>
+#include <shared/bsl.h>
+#include <soc/drv.h>
+#include <soc/debug.h>
+#include <soc/error.h>
+#include <soc/phyreg.h>
+#include <soc/port_ability.h>
+#include <soc/phy.h>
+#include <soc/phy/phyctrl.h>
+#include <soc/phy/drv.h>
+#include <soc/phy/phymod_ids.h>
+
+#include "phydefs.h"      /* Must include before other phy related includes */ 
+
+#include "phyconfig.h"     /* Must include before other phy related includes */
+#include "phyident.h"
+#include "phyreg.h"
+#include "phynull.h"
+#include "xgxs.h"
+
+
+#define PHYMOD_FURIA_SUPPORT
+
+
+#if defined(INCLUDE_PHY_82381)
+
+#include <phymod/phymod.h>
+#include <phymod/phymod_debug.h>
+#include <phymod/phymod_diagnostics.h>
+#include <phymod/chip/furia.h>
+
+
+#define NUM_LANES             4    /* num of lanes per core */
+#define MAX_NUM_LANES         4    /* max num of lanes per port */
+#define PHY82381_NO_CFG_VALUE     (-1)
+
+
+#define INTERFACE_SIDE_SHIFT 31
+
+typedef struct phy82381_device_aux_mode {
+    int core_id;
+} phy82381_device_aux_mode_t;
+
+typedef struct phy82381_speed_config_s {
+    uint32  port_refclk_int;
+    int     speed;
+    int     port_num_lanes;
+    int     port_is_higig;
+    int     rxaui_mode;
+    int     scrambler_en;
+    uint32  line_interface;
+    int     pcs_bypass;
+    int     fiber_pref;
+    int     phy_supports_dual_rate;
+    int     port_is_triple_core ;
+    int     triple_core_mode ;
+    int     pll_divider_req  ;
+    phy82381_device_aux_mode_t        *core_device_aux_modes ;
+} phy82381_speed_config_t;
+
+typedef struct phy82381_dev_info {
+    char   name[25];
+} phy82381_dev_info_t;
+
+typedef enum PHY82381_INTF_SIDE {
+    PHY82381_LINE_SIDE,
+    PHY82381_SYS_SIDE 
+}PHY84793_INTF_SIDE;
+
+/*
+   Config - per logical port
+*/
+typedef struct {
+    phymod_polarity_t               phy_polarity_config;
+    phymod_phy_reset_t              phy_reset_config;
+    phy82381_speed_config_t             speed_config;
+    int fiber_pref;                 /* spn_SERDES_FIBER_PREF */
+    int cl73an;                     /* spn_PHY_AN_C73 */
+    int cx4_10g;                    /* spn_10G_IS_CX4 */
+    int pdetect1000x;
+    int cl37an;                     /* spn_PHY_AN_C37 */
+    int an_cl72;                    /* spn_PHY_AN_C72 */
+    int forced_init_cl72;           /* spn_FORCED_INIT_CL72 */
+    int hg_mode;                    /* higig port */
+    int an_fec;                     /*enable FEC for AN mode */
+    int sgmii_mstr;                 /* sgmii master mode */
+    phy82381_dev_info_t info;           /*serdes id info */
+    phymod_tx_t tx_drive;
+    int pcs_table_override ;
+    phy82381_device_aux_mode_t        *core_device_aux_modes ;
+} phy82381_config_t;
+
+int is_eye_scan_enabled;
+#define PHY82381_DBG_REGACC    0x2
+#define PHY82381_DBG_MEM       0x3
+STATIC int
+phy_82381_ability_advert_set(int unit, soc_port_t port,
+                          soc_port_ability_t *ability);
+
+STATIC int
+phy_82381_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *ability);
+STATIC int
+_phy_82381_find_soc_phy_lane(soc_phymod_ctrl_t *pmc, uint32_t lane, 
+                        soc_phymod_phy_t **p_phy, uint32 *lane_map);
+
+STATIC int
+phy_82381_power_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value);
+STATIC int
+phy_82381_power_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value);
+/*
+ * Function:
+ *      _phy82381_reg_read
+ * Doc:
+ *      register read operations
+ * Parameters:
+ *      unit            - (IN)  unit number
+ *      core_addr       - (IN)  core address
+ *      reg_addr        - (IN)  address to read
+ *      val             - (OUT) read value
+ */
+STATIC int 
+_phy82381_reg_read(void* user_acc, uint32_t core_addr, uint32_t reg_addr, uint32_t *val)
+{
+    uint16 data16;
+    int rv;
+    soc_phymod_core_t *core = (soc_phymod_core_t *)user_acc;
+
+    rv = core->read(core->unit, core_addr, reg_addr, &data16);
+    *val = data16;
+    PHYMOD_VDBG(PHY82381_DBG_REGACC, NULL,("-22%s: core_addr: 0x%08x reg_addr: 0x%08x, data: 0x%04x\n", __func__, core_addr, reg_addr, *val ));
+
+    return rv;
+}
+
+/*
+ * Function:
+ *      _phy82381_reg_write
+ * Doc:
+ *      register write operations
+ * Parameters:
+ *      unit            - (IN)  unit number
+ *      core_addr       - (IN)  core address
+ *      reg_addr        - (IN)  address to write
+ *      val             - (IN)  write value
+ */
+STATIC int 
+_phy82381_reg_write(void* user_acc, uint32_t core_addr, uint32_t reg_addr, uint32_t val)
+{
+    soc_phymod_core_t *core = (soc_phymod_core_t *)user_acc;
+    uint16 data16 = (uint16)val;
+    uint16 mask = (uint16)(val >> 16);
+
+    if (mask) {
+        if (core->wrmask) {
+            return core->wrmask(core->unit, core_addr, reg_addr, data16, mask);
+        }
+        (void)core->read(core->unit, core_addr, reg_addr, &data16);
+        data16 &= ~mask;
+        data16 |= (val & mask);
+    }
+    PHYMOD_VDBG(PHY82381_DBG_REGACC, NULL,("-22%s: core_addr: 0x%08x reg_addr: 0x%08x, data: 0x%04x\n", __func__, core_addr, reg_addr, val ));
+    return core->write(core->unit, core_addr, reg_addr, data16);
+}
+
+/*
+ * Function:
+ *      phy82381_speed_to_interface_config_get
+ * Purpose:     
+ *      Convert speed to interface_config struct
+ * Parameters:
+ *      unit                - BCM unit number.
+ *      port                - Port number.
+ *      speed               - speed to convert
+ *      interface_config    - output interface config struct
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int 
+phy82381_speed_to_interface_config_get(phy82381_speed_config_t* speed_config, phymod_phy_inf_config_t* interface_config)
+{
+    SOC_IF_ERROR_RETURN(phymod_phy_inf_config_t_init(interface_config));
+
+    interface_config->interface_modes = 0;
+    interface_config->data_rate       = speed_config->speed;
+    interface_config->pll_divider_req = speed_config->pll_divider_req ;
+    interface_config->device_aux_modes= speed_config->core_device_aux_modes ;
+
+    switch (speed_config->speed) {
+        case 10000:
+            switch(speed_config->line_interface) {
+                case SOC_PORT_IF_KR:
+                    interface_config->interface_type = phymodInterfaceKR;
+                break;
+                case SOC_PORT_IF_LR:
+                    interface_config->interface_type = phymodInterfaceLR;
+                break;
+                case SOC_PORT_IF_SR:
+                    interface_config->interface_type = phymodInterfaceSR;
+                break;
+                default:
+                    return SOC_E_PARAM;
+                    
+            }    
+        break;
+        case 20000:
+            switch(speed_config->line_interface) {
+                case SOC_PORT_IF_KR:
+                    interface_config->interface_type = phymodInterfaceKR;
+                break;
+                case SOC_PORT_IF_KR2:
+                    interface_config->interface_type = phymodInterfaceKR2;
+                break;
+                case SOC_PORT_IF_LR:
+                    interface_config->interface_type = phymodInterfaceLR;
+                break;
+                default:
+                    return SOC_E_PARAM;
+                    
+            }    
+        break ;
+        case 25000:
+            switch(speed_config->line_interface) {
+                case SOC_PORT_IF_KR:
+                    interface_config->interface_type = phymodInterfaceKR;
+                break;
+                case SOC_PORT_IF_LR:
+                    interface_config->interface_type = phymodInterfaceLR;
+                break;
+                default:
+                    return SOC_E_PARAM;
+                    
+            }    
+        break;
+        case 40000:
+            switch(speed_config->line_interface) {
+                case SOC_PORT_IF_KR2:
+                    interface_config->interface_type = phymodInterfaceKR2;
+                break;
+                case SOC_PORT_IF_KR4:
+                    interface_config->interface_type = phymodInterfaceKR4;
+                break;
+                case SOC_PORT_IF_LR4:
+                    interface_config->interface_type = phymodInterfaceLR4;
+                break;
+                case SOC_PORT_IF_SR4:
+                    interface_config->interface_type = phymodInterfaceSR4;
+                break;
+                case SOC_PORT_IF_CR4:
+                    interface_config->interface_type = phymodInterfaceCR4;
+                break;
+                default:
+                    return SOC_E_PARAM;
+                    
+            }    
+        break;
+        case 50000:
+            switch(speed_config->line_interface) {
+                case SOC_PORT_IF_KR2:
+                    interface_config->interface_type = phymodInterfaceKR2;
+                break;
+                default:
+                    return SOC_E_PARAM;
+                    
+            }    
+        break;
+        case 100000:
+            switch(speed_config->line_interface) {
+                case SOC_PORT_IF_KR4:
+                    interface_config->interface_type = phymodInterfaceKR4;
+                break;
+                case SOC_PORT_IF_LR4:
+                    interface_config->interface_type = phymodInterfaceLR4;
+                break;
+                case SOC_PORT_IF_CR4:
+                    interface_config->interface_type = phymodInterfaceCR4;
+                break;
+                default:
+                    return SOC_E_PARAM;
+                    
+            }    
+        break; 
+        default:
+            return SOC_E_PARAM;
+    }
+
+    switch (speed_config->port_refclk_int) {
+        case 106:
+            interface_config->ref_clock = phymodRefClk106Mhz;
+        break;
+        case 156:
+            interface_config->ref_clock = phymodRefClk156Mhz;
+        break;
+        case 125:
+            interface_config->ref_clock = phymodRefClk125Mhz;
+        break;
+        case 161:
+            interface_config->ref_clock = phymodRefClk161Mhz;
+        break;
+        case 174:
+            interface_config->ref_clock = phymodRefClk174Mhz;
+        break;
+        default:
+            return SOC_E_PARAM;
+    }
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      phy82381_speed_set
+ * Purpose:
+ *      Set PHY speed
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      speed - link speed in Mbps
+ * Returns:     
+ *      SOC_E_NONE
+ */
+
+STATIC int
+phy82381_speed_set(int unit, soc_port_t port, int speed)
+{
+    phy_ctrl_t                *pc;
+    phy82381_config_t             *pCfg;
+    soc_phymod_ctrl_t         *pmc;
+    soc_phymod_phy_t          *phy;
+    int                       idx;
+    phy82381_speed_config_t       speed_config;
+    phymod_phy_inf_config_t   interface_config;
+
+    /* locate phy control */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    if (speed == 0) {
+        return SOC_E_NONE; 
+    }
+
+    pmc = &pc->phymod_ctrl;
+    pCfg = (phy82381_config_t *) pc->driver_data;
+
+    /* take a copy of core and phy configuration values, and set the desired speed */
+    sal_memcpy(&speed_config, &pCfg->speed_config, sizeof(speed_config));
+    speed_config.speed = speed;
+
+    /* determine the interface configuration */
+    SOC_IF_ERROR_RETURN
+        (phy82381_speed_to_interface_config_get(&speed_config, &interface_config));
+
+    /* now loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        phy = pmc->phy[idx];
+        if (phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_interface_config_set(&phy->pm_phy,
+                                             0 /* flags */, &interface_config));
+    }
+
+    /* record success */
+    pCfg->speed_config.speed = speed;
+    return (SOC_E_NONE);
+}
+
+/*
+ * Function:
+ *      phy82381_speed_get
+ * Purpose:
+ *      Get PHY speed
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      speed - current link speed in Mbps
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy82381_speed_get(int unit, soc_port_t port, int *speed)
+{
+    phy_ctrl_t                *pc;
+    soc_phymod_ctrl_t         *pmc;
+    soc_phymod_phy_t          *phy;
+    phymod_phy_inf_config_t   interface_config;
+    phymod_ref_clk_t ref_clock;
+    int flag = 0;
+    ref_clock = 0;
+    /* locate phy control */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pmc = &pc->phymod_ctrl;
+
+    /* initialize the data structure */
+    interface_config.data_rate = 0;
+
+    /* now loop through all cores */
+    phy = pmc->phy[pmc->main_phy];
+    if (phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    /* note that the flags have an option to indicate whether it's ok to reprogram the PLL */
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_interface_config_get(&phy->pm_phy, flag,
+                                         ref_clock, 
+                                         &interface_config));
+    *speed = interface_config.data_rate;
+    return (SOC_E_NONE);
+}
+
+
+STATIC int
+phy82381_interface_set(int unit, soc_port_t port, soc_port_if_t pif)
+{
+    phy_ctrl_t      *pc;
+    phy82381_config_t *pCfg;
+    phy82381_speed_config_t       speed_config;
+    phymod_phy_inf_config_t   interface_config;
+    soc_phymod_ctrl_t         *pmc;
+    soc_phymod_phy_t          *phy;
+    int                       idx;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pCfg = (phy82381_config_t *) pc->driver_data;
+    pmc = &pc->phymod_ctrl;
+
+    if (pif >= SOC_PORT_IF_COUNT) {
+        return SOC_E_PARAM;
+    }
+    if (pif == SOC_PORT_IF_MII || pif == SOC_PORT_IF_XGMII || pif == SOC_PORT_IF_GMII) {
+		return phy_null_interface_set(unit, port, pif);
+	}
+
+
+    /* take a copy of core and phy configuration values, and set the desired speed */
+    sal_memcpy(&speed_config, &pCfg->speed_config, sizeof(speed_config));
+
+    speed_config.line_interface = pif;
+
+    SOC_IF_ERROR_RETURN
+        (phy82381_speed_to_interface_config_get(&speed_config, &interface_config));
+
+
+    /* now loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        phy = pmc->phy[idx];
+        if (phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_interface_config_set(&phy->pm_phy,
+                                             0 /* flags */, &interface_config));
+    }
+
+    pCfg->speed_config.line_interface = pif;
+    return SOC_E_NONE;
+}
+
+STATIC int
+phy82381_interface_get(int unit, soc_port_t port, soc_port_if_t *pif)
+{
+    phy_ctrl_t                *pc;
+    soc_phymod_ctrl_t         *pmc;
+    soc_phymod_phy_t          *phy;
+    phymod_phy_inf_config_t   interface_config;
+    phymod_ref_clk_t ref_clock;
+    int flag = 0;
+    ref_clock = 0;
+
+
+    /* locate phy control */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pmc = &pc->phymod_ctrl;
+
+    /* initialize the data structure */
+    PHYMOD_MEMSET(&interface_config, 0x0, sizeof(phymod_phy_inf_config_t));
+
+    /* now loop through all cores */
+    phy = pmc->phy[pmc->main_phy];
+    if (phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    /* note that the flags have an option to indicate whether it's ok to reprogram the PLL */
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_interface_config_get(&phy->pm_phy, ref_clock,
+                                         flag, &interface_config));
+    switch (interface_config.interface_type) {
+        case phymodInterfaceKX:
+            *pif = SOC_PORT_IF_KX;
+        break;
+        case phymodInterfaceKR:
+            *pif = SOC_PORT_IF_KR; 
+        break;
+        case phymodInterfaceKR2:
+            *pif = SOC_PORT_IF_KR2;
+        break;    
+        case phymodInterfaceKR4:
+            *pif = SOC_PORT_IF_KR4;
+        break;
+        case phymodInterfaceCR4:
+            *pif = SOC_PORT_IF_CR4;
+        break;
+        case phymodInterfaceSR:
+            *pif = SOC_PORT_IF_SR;
+        break;
+        case phymodInterfaceLR:
+            *pif = SOC_PORT_IF_LR; 
+        break;
+        case phymodInterfaceSR4:
+            *pif = SOC_PORT_IF_SR4;
+        break;
+        case phymodInterfaceLR4:
+            *pif = SOC_PORT_IF_LR4;
+        break;
+        default:
+        break;
+    }
+    return (SOC_E_NONE);
+
+}
+
+
+/*
+ * Function:
+ *      phy82381_reg_read
+ * Purpose:
+ *      Routine to read PHY register
+ * Parameters:
+ *      unit         - BCM unit number
+ *      port         - Port number
+ *      flags        - Flags which specify the register type
+ *      phy_reg_addr - Encoded register address
+ *      phy_data     - (OUT) Value read from PHY register
+ * Note:
+ *      This register read function is not thread safe. Higher level
+ * function that calls this function must obtain a per port lock
+ * to avoid overriding register page mapping between threads.
+ */
+STATIC int
+phy82381_reg_read(int unit, soc_port_t port, uint32 flags,
+                  uint32 phy_reg_addr, uint32 *phy_reg_data)
+{
+    phy_ctrl_t *pc;
+    soc_phymod_ctrl_t *pmc;
+    phymod_phy_access_t *pm_phy;
+    int idx;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pmc = &pc->phymod_ctrl;
+    idx = pmc->main_phy ;
+    pm_phy = &pmc->phy[idx]->pm_phy;
+
+    return phymod_phy_reg_read(pm_phy, phy_reg_addr, phy_reg_data);
+}
+
+/*
+ * Function:
+ *      phy82381_reg_write
+ * Purpose:
+ *      Routine to write PHY register
+ * Parameters:
+ *      uint         - BCM unit number
+ *      pc           - PHY state
+ *      flags        - Flags which specify the register type
+ *      phy_reg_addr - Encoded register address
+ *      phy_data     - Value write to PHY register
+ * Note:
+ *      This register read function is not thread safe. Higher level
+ * function that calls this function must obtain a per port lock
+ * to avoid overriding register page mapping between threads.
+ */
+STATIC int
+phy82381_reg_write(int unit, soc_port_t port, uint32 flags,
+                   uint32 phy_reg_addr, uint32 phy_reg_data)
+{
+    phy_ctrl_t *pc;
+    soc_phymod_ctrl_t *pmc;
+    phymod_phy_access_t *pm_phy;
+    int idx;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pmc = &pc->phymod_ctrl;
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_reg_write(pm_phy, phy_reg_addr, phy_reg_data));
+    }
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      phy82381_reg_modify
+ * Purpose:
+ *      Routine to write PHY register
+ * Parameters:
+ *      uint         - BCM unit number
+ *      pc           - PHY state
+ *      flags        - Flags which specify the register type
+ *      phy_reg_addr - Encoded register address
+ *      phy_mo_data  - New value for the bits specified in phy_mo_mask
+ *      phy_mo_mask  - Bit mask to modify
+ * Note:
+ *      This function is not thread safe. Higher level
+ * function that calls this function must obtain a per port lock
+ * to avoid overriding register page mapping between threads.
+ */
+STATIC int
+phy82381_reg_modify(int unit, soc_port_t port, uint32 flags,
+                    uint32 phy_reg_addr, uint32 phy_data,
+                    uint32 phy_data_mask)
+{
+    phy_ctrl_t *pc;
+    soc_phymod_ctrl_t *pmc;
+    phymod_phy_access_t *pm_phy;
+    uint32 data32, tmp;
+    int idx;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pmc = &pc->phymod_ctrl;
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_reg_read(pm_phy, phy_reg_addr, &data32));
+        tmp = data32;
+        data32 &= ~(phy_data_mask);
+        data32 |= (phy_data & phy_data_mask);
+        if (data32 != tmp) {
+            SOC_IF_ERROR_RETURN
+                (phymod_phy_reg_write(pm_phy, phy_reg_addr, data32));
+        }
+    }
+    return SOC_E_NONE;
+}
+
+STATIC void
+phy82381_core_init(phy_ctrl_t *pc, soc_phymod_core_t *core,
+                   phymod_bus_t *core_bus, uint32 core_addr)
+{
+    phymod_core_access_t *pm_core;
+    phymod_access_t *pm_acc;
+
+    core->unit = pc->unit;
+    core->port = pc->port;
+    core->read = pc->read;
+    core->write = pc->write;
+    core->wrmask = pc->wrmask;
+
+    pm_core = &core->pm_core;
+    phymod_core_access_t_init(pm_core);
+    pm_acc = &pm_core->access;
+    phymod_access_t_init(pm_acc);
+    PHYMOD_ACC_USER_ACC(pm_acc) = core;
+    PHYMOD_ACC_BUS(pm_acc) = core_bus;
+    PHYMOD_ACC_ADDR(pm_acc) = core_addr;
+
+    if (soc_property_port_get(pc->unit, pc->port, "phy82381", 0) == 45) {
+        PHYMOD_ACC_F_CLAUSE45_SET(pm_acc);
+    }
+
+    return;
+}
+
+STATIC int
+_phy82381_device_create_attach(soc_phymod_core_t *core, uint32_t core_id) 
+{
+    phy82381_device_aux_mode_t *new_device ;
+    new_device = sal_alloc(sizeof(phy82381_device_aux_mode_t), "phy82381_device_aux_mode");
+    if (new_device == NULL) {
+        return SOC_E_MEMORY;
+    }
+    sal_memset(new_device, 0 ,sizeof(phy82381_device_aux_mode_t));
+
+    new_device->core_id = core_id ;
+    core->device_aux_modes = (void *)new_device ;
+    return SOC_E_NONE;
+}
+
+STATIC int
+_phy82381_device_destroy(phy82381_device_aux_mode_t *device)
+{
+    if (device == NULL) {
+        return SOC_E_PARAM;
+    }
+    sal_free(device);
+
+    return SOC_E_NONE;    
+}
+
+STATIC void
+phy82381_cleanup(soc_phymod_ctrl_t *pmc)
+{
+    int idx;
+    soc_phymod_phy_t *phy;
+    soc_phymod_core_t *core;
+    phy82381_device_aux_mode_t *device ;
+
+    for (idx = 0; idx < pmc->num_phys ; idx++) {
+        phy = pmc->phy[idx];
+        if (phy == NULL) {
+            LOG_WARN(BSL_LS_SOC_PHY,
+                     (BSL_META_U(pmc->unit,
+                                 "phy object is empty")));
+            continue;
+        }
+
+        core = phy->core;
+        device = (phy82381_device_aux_mode_t *)core->device_aux_modes ;
+        /* Destroy core object if not used anymore */
+        if (core && core->ref_cnt) {
+            if (--core->ref_cnt == 0) {
+                PHYMOD_VDBG(PHY82381_DBG_MEM, NULL,("clean_up device=%p core_p=%p\n", (void *)device, (void *)core)) ;
+                _phy82381_device_destroy(device) ;
+                soc_phymod_core_destroy(pmc->unit, core);
+            }
+        }
+
+        /* Destroy phy object */
+        if (phy) {
+            PHYMOD_VDBG(PHY82381_DBG_MEM, NULL,("clean_up phy=%p\n", (void *)phy)) ;
+            soc_phymod_phy_destroy(pmc->unit, phy);
+        }
+    }
+    pmc->num_phys = 0;
+}
+
+/*
+ * Function:
+ *      phy82381_probe
+ * Purpose:
+ *      xx
+ * Parameters:
+ *      pc->phy_id   (IN)
+ *      pc->unit     (IN)
+ *      pc->port     (IN)
+ *      pc->size     (OUT) - memory required by phy port
+ *      pc->dev_name (OUT) - set to port device name
+ *  
+ * Note:
+ */
+STATIC int
+phy82381_probe(int unit, phy_ctrl_t *pc)
+{
+    int rv, idx;
+    uint32 lane_map, num_phys, core_id, phy_id, found;
+    phymod_bus_t core_bus;
+    phymod_dispatch_type_t phy_type;
+    phymod_core_access_t *pm_core;
+    phymod_phy_access_t *pm_phy;
+    phymod_access_t *pm_acc;
+    soc_phymod_ctrl_t *pmc;
+    soc_phymod_phy_t *phy;
+    soc_phymod_core_t *core;
+    soc_phymod_core_t core_probe;
+    soc_info_t *si;
+    phyident_core_info_t core_info[8];  
+    int array_max = 8;
+    int array_size = 0;
+    int port;
+    int phy_port;  /* physical port number */
+
+    /* Initialize PHY bus */
+    SOC_IF_ERROR_RETURN(phymod_bus_t_init(&core_bus));
+    core_bus.bus_name = "phy82381"; 
+    core_bus.read = _phy82381_reg_read; 
+    core_bus.write = _phy82381_reg_write;
+
+    /* Configure PHY bus properties */
+    if (pc->wrmask) {
+        PHYMOD_BUS_CAP_WR_MODIFY_SET(&core_bus);
+        PHYMOD_BUS_CAP_LANE_CTRL_SET(&core_bus);
+    }
+
+    port = pc->port;
+    pmc = &pc->phymod_ctrl;
+    si = &SOC_INFO(unit);
+    if (soc_feature(unit, soc_feature_logical_port_num)) {
+        phy_port = si->port_l2p_mapping[port];
+    } else {
+        phy_port = port;
+    }
+
+    /* Install clean up function */
+    pmc->unit = pc->unit;
+    pmc->cleanup = phy82381_cleanup;
+    /*pmc->symbols = &bcmi_tscf_xgxs_symbols;*/ 
+
+    
+    pc->lane_num = SOC_PORT_BINDEX(unit, phy_port);
+    pc->chip_num = SOC_BLOCK_NUMBER(unit, SOC_PORT_BLOCK(unit, phy_port));
+
+    /* request memory for the configuration structure */
+    pc->size = sizeof(phy82381_config_t);
+
+    /* Bit N corresponds to lane N in lane_map */
+    lane_map = 0xf;
+    num_phys = 1;
+    switch (si->port_num_lanes[port]) {
+        case 10:
+            num_phys = 3;
+            pc->phy_mode = PHYCTRL_MULTI_CORE_PORT; 
+            break;
+        case 4:
+            pc->phy_mode = PHYCTRL_QUAD_LANE_PORT; 
+            break;
+        case 2:
+            lane_map = 0x3;
+            pc->phy_mode = PHYCTRL_DUAL_LANE_PORT;
+            break;
+        case 1:
+        case 0:
+            lane_map = 0x1;
+            pc->phy_mode = PHYCTRL_ONE_LANE_PORT;
+            break;
+        default:
+            return SOC_E_CONFIG;
+    }
+    lane_map <<= pc->lane_num;
+
+    /* we need to get the other core id if more than 1 core per port */
+    if (num_phys > 1) {
+        /* get the other core address */
+        SOC_IF_ERROR_RETURN
+            (soc_phy_addr_multi_get(unit, port, array_max, &array_size, &core_info[0]));
+    } else {
+        core_info[0].mdio_addr = pc->phy_id;
+    }
+
+    phy_type = phymodDispatchTypeFuria;
+
+    /* Probe cores */
+    for (idx = 0; idx < num_phys ; idx++) {
+        phy82381_core_init(pc, &core_probe, &core_bus,
+                           core_info[idx].mdio_addr);
+        /* Check that core is indeed an furia core */
+        pm_core = &core_probe.pm_core;
+        pm_core->type = phy_type;
+        rv = phymod_core_identify(pm_core, 0, &found);
+        if (SOC_FAILURE(rv)) {
+            LOG_WARN(BSL_LS_SOC_PHY,
+                 (BSL_META_U(unit,
+                             "port %d: ERROR!!!\n"),
+                  pc->port));
+
+            return rv;
+        }
+        if (!found) {
+            LOG_WARN(BSL_LS_SOC_PHY,
+                 (BSL_META_U(unit,
+                             "port %d: NOT FOUND!!\n"),
+                  pc->port));
+
+            return SOC_E_NOT_FOUND;
+        }
+    }
+
+    rv = SOC_E_NONE;
+    for (idx = 0; idx < num_phys ; idx++) {
+        /* Set core and phy IDs based on PHY address */
+        core_id = pc->phy_id + idx;
+        phy_id = (lane_map << 16) | core_id;
+
+        /* Create PHY object */
+        rv = soc_phymod_phy_create(unit, phy_id, &pmc->phy[idx]);
+        if (SOC_FAILURE(rv)) {
+            break;
+        }
+        pmc->num_phys++;
+
+        /* Initialize phy object */
+        phy = pmc->phy[idx];
+        pm_phy = &phy->pm_phy;
+        phymod_phy_access_t_init(pm_phy);
+
+        /* Find or create associated core object */
+        rv = soc_phymod_core_find_by_id(unit, core_id, &phy->core);
+        if (rv == SOC_E_NOT_FOUND) {
+            rv = soc_phymod_core_create(unit, core_id, &phy->core);
+            rv |= _phy82381_device_create_attach(phy->core, core_id) ;
+        }
+        if (SOC_FAILURE(rv)) {
+            break;
+        }        
+    }
+    if (SOC_FAILURE(rv)) {
+        phy82381_cleanup(pmc);
+        return rv;
+    }
+
+    for (idx = 0; idx < pmc->num_phys ; idx++) {
+        phy = pmc->phy[idx];
+        core = phy->core;
+        pm_core = &core->pm_core;
+
+        /* Initialize core object if newly created */
+        if (core->ref_cnt == 0) {
+            sal_memcpy(&core->pm_bus, &core_bus, sizeof(core->pm_bus));
+            phy82381_core_init(pc, core, &core->pm_bus,
+                               core_info[idx].mdio_addr);
+            /* Set dispatch type */
+            pm_core->type = phy_type;
+        }
+        core->ref_cnt++;        
+
+        /* Initialize phy access based on associated core */
+        pm_acc = &phy->pm_phy.access;
+        sal_memcpy(pm_acc, &pm_core->access, sizeof(*pm_acc));
+        phy->pm_phy.type = phy_type;
+        PHYMOD_ACC_LANE_MASK(pm_acc) = lane_map;
+    }
+
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      phy82381_config_init
+ * Purpose:     
+ *      Determine phy configuration data for purposes of PHYMOD initialization.
+ * 
+ *      A side effect of this procedure is to save some per-logical port
+ *      information in (phy82381_cfg_t *) &pc->driver_data;
+ *
+ * Parameters:
+ *      unit                  - BCM unit number.
+ *      port                  - Port number.
+ *      logical_lane_offset   - starting logical lane number
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy82381_config_init(int unit, soc_port_t port, int logical_lane_offset,
+                 phymod_core_init_config_t *core_init_config, 
+                 phymod_phy_init_config_t  *pm_phy_init_config)
+{
+    phy_ctrl_t *pc;
+    phy82381_speed_config_t *speed_config;
+    phy82381_config_t *pCfg;
+    phymod_firmware_load_method_t fw_ld_method;
+    int port_num_lanes;
+    int core_num;
+    int phy_num_lanes;
+    int phy_supports_dual_rate;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pCfg = (phy82381_config_t *) pc->driver_data;
+
+    port_num_lanes = SOC_INFO(unit).port_num_lanes[port];
+    phy_supports_dual_rate = PHY_IS_SUPPORT_DUAL_RATE(unit, port);
+
+    /* figure out how many lanes are in this phy */
+    core_num = (logical_lane_offset / 4);
+    phy_num_lanes = (port_num_lanes - logical_lane_offset);
+    if (phy_num_lanes > MAX_NUM_LANES) {
+       phy_num_lanes = MAX_NUM_LANES;
+    }
+    
+    /*CORE configuration*/
+    phymod_core_init_config_t_init(core_init_config);
+    fw_ld_method = phymodFirmwareLoadMethodInternal;
+    if (soc_property_port_get(pc->unit, pc->port, "82381_glue", 0)) {
+        fw_ld_method = phymodFirmwareLoadMethodNone;
+    }
+
+    core_init_config->firmware_load_method  = soc_property_port_get(unit, port, 
+                                              spn_LOAD_FIRMWARE, fw_ld_method);
+    core_init_config->firmware_load_method &= 0xff; /* clear checksum bits */
+    core_init_config->lane_map.num_of_lanes = NUM_LANES;
+    
+    speed_config = &(pCfg->speed_config);
+    speed_config->port_refclk_int  = 156;
+    speed_config->port_num_lanes   = phy_num_lanes;
+    speed_config->phy_supports_dual_rate = phy_supports_dual_rate;
+    
+
+    if (port_num_lanes == 1) {
+        if (pc->speed_max == 25000) {
+            speed_config->speed = 25000;
+            speed_config->line_interface =  SOC_PORT_IF_LR;
+        } else {
+            speed_config->line_interface =  SOC_PORT_IF_SR;
+            speed_config->speed = 10000;
+        }
+    } else if (port_num_lanes == 4) {
+        if (pc->speed_max == 40000) {
+           speed_config->speed = 40000;
+           speed_config->line_interface =  SOC_PORT_IF_SR4;
+        } else {
+           speed_config->speed = 100000;
+           speed_config->line_interface =  SOC_PORT_IF_LR4;
+        }
+    } else if (port_num_lanes == 2) {
+        if (pc->speed_max == 50000) {
+            speed_config->speed = 50000;
+            speed_config->line_interface =  SOC_PORT_IF_KR2;
+        } else {
+            speed_config->speed = 20000;
+            speed_config->line_interface =  SOC_PORT_IF_LR;
+        }
+    } else {
+        LOG_CLI((BSL_META_U(unit,"Invalid number of lanes:%d\n "), port_num_lanes));
+        return SOC_E_CONFIG;
+    }
+
+    LOG_CLI((BSL_META_U(unit,"INit speed:%d num lanes:%d If:%d\n "), speed_config->speed, port_num_lanes, speed_config->line_interface));
+    /* PHY configuration */
+    phymod_phy_init_config_t_init(pm_phy_init_config);
+    pm_phy_init_config->polarity.rx_polarity 
+                                 = soc_property_port_get(unit, port,
+                                   spn_PHY_XAUI_RX_POLARITY_FLIP,
+                                   pm_phy_init_config->polarity.rx_polarity);
+    pm_phy_init_config->polarity.tx_polarity 
+                                 = soc_property_port_get(unit, port,
+                                   spn_PHY_XAUI_TX_POLARITY_FLIP,
+                                   pm_phy_init_config->polarity.tx_polarity);
+
+        
+    /* phy_ctrl_t configuration (LOGICAL PORT BASED)
+     * Only do this once, for the first core of the logical port*/
+    if (core_num == 0) {
+        /* phy_mode, PHYCTRL_MDIO_ADDR_SHARE, PHY_FLAGS_INDEPENDENT_LANE */
+        if (port_num_lanes == 4) {
+            pc->phy_mode = PHYCTRL_QUAD_LANE_PORT;
+            PHY_FLAGS_CLR(unit, port, PHY_FLAGS_INDEPENDENT_LANE);
+        } else if (port_num_lanes == 2) {
+            pc->phy_mode = PHYCTRL_DUAL_LANE_PORT;
+            pc->flags |= PHYCTRL_MDIO_ADDR_SHARE;
+            PHY_FLAGS_SET(unit, port, PHY_FLAGS_INDEPENDENT_LANE);
+        } else if (port_num_lanes == 1) {
+            pc->phy_mode = PHYCTRL_ONE_LANE_PORT;
+            pc->flags |= PHYCTRL_MDIO_ADDR_SHARE;
+            PHY_FLAGS_SET(unit, port, PHY_FLAGS_INDEPENDENT_LANE);
+        }
+
+    }
+        
+    return SOC_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      phy82381_init
+ *  
+ *      An SDK "phy" is a logical port, which can consist of from 1-10 lanes,
+ *          (A phy with more than 4 lanes requires more than one core).
+ *      Per-logical port information is saved in &pc->driver_data.
+ *      An SDK phy is implemented as one or more PHYMOD "phy"s.
+ *  
+ *      A PHYMOD "phy" resides completely within a single core, which can be
+ *      from 1 to 4 lanes.
+ *      Per-phymod phy information is kept in (soc_phymod_ctrl_t) *pc->phymod_ctrl
+ *      A phymod phy points to its core.  Up to 4 phymod phys can be on a single core
+ *  
+ * Purpose:     
+ *      Initialize a phy82381
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy82381_init(int unit, soc_port_t port)
+{
+    phy_ctrl_t *pc; 
+    soc_phymod_ctrl_t *pmc;
+    soc_phymod_phy_t *phy = NULL;
+    soc_phymod_core_t *core;
+    phy82381_config_t *pCfg;
+    phy82381_speed_config_t *speed_config;
+    phy82381_dev_info_t *pInfo;
+    soc_phy_info_t *pi;
+    phymod_phy_inf_config_t interface_config;
+    phymod_core_status_t core_status;
+    phymod_core_info_t core_info;
+    int idx;
+    int logical_lane_offset;
+    soc_port_ability_t ability;
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pc->driver_data = (void*)(pc+1);
+    pmc = &pc->phymod_ctrl;
+    pCfg = (phy82381_config_t *) pc->driver_data;
+    pInfo = &pCfg->info; 
+    
+    sal_memset(pCfg, 0, sizeof(*pCfg));
+    speed_config = &(pCfg->speed_config);
+
+    sal_memset(&ability, 0, sizeof(ability));
+
+    /* Loop through all phymod phys that support this SDK phy */
+    logical_lane_offset = 0;
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        phy = pmc->phy[idx];
+        core = phy->core;
+        pCfg->core_device_aux_modes = (phy82381_device_aux_mode_t *)(core->device_aux_modes) ;
+        
+        /* determine configuration data structure to default values, based on SOC properties */
+        SOC_IF_ERROR_RETURN
+            (phy82381_config_init(unit, port,
+                              logical_lane_offset,
+                              &core->init_config, &phy->init_config));
+        /* set the port to its max or init_speed */
+        SOC_IF_ERROR_RETURN
+             (phy82381_speed_to_interface_config_get(speed_config, &interface_config));
+        sal_memcpy(&core->init_config.interface, &interface_config, sizeof(interface_config));
+        if (!core->init) {
+           core_status.pmd_active = 0;
+           SOC_IF_ERROR_RETURN
+               (phymod_core_init(&core->pm_core, &core->init_config, &core_status));
+           core->init = TRUE;
+        }
+
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_init(&phy->pm_phy, &phy->init_config));
+
+        /*read serdes id info */
+        SOC_IF_ERROR_RETURN
+            (phymod_core_info_get(&core->pm_core, &core_info)); 
+
+
+        /* for multicore phys, need to ratchet up to the next batch of lanes */
+        logical_lane_offset += core->init_config.lane_map.num_of_lanes;
+    }
+
+    /* retrieve chip level information for serdes driver info */
+    pi = &SOC_PHY_INFO(unit, port);
+
+    if (!PHY_EXTERNAL_MODE(unit, port)) {
+        pi->phy_name = pInfo->name;
+    }
+
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_interface_config_set(&phy->pm_phy,
+                                         0 /* flags */, &interface_config));
+    /*next check if cl72 needs to be enabled */
+    if (pCfg->forced_init_cl72) {
+        
+    }
+
+    /* setup the port's an cap */
+    SOC_IF_ERROR_RETURN
+        (phy_82381_ability_local_get(unit, port, &ability));
+
+    LOG_INFO(BSL_LS_SOC_PHY,
+             (BSL_META_U(pc->unit,
+                         "phy82381_init: u=%d p=%d\n"), unit, port));
+
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      phy_82381_ability_local_get
+ * Purpose:
+ *      xx
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      ability - xx
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy_82381_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *ability)
+{
+    phy_ctrl_t          *pc; 
+    uint32_t pa_speed = 0;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+
+    if (NULL == ability) {
+        return SOC_E_PARAM;
+    }
+
+    sal_memset(ability, 0, sizeof(*ability));
+    if (pc->speed_max == 100000) {
+        pa_speed = SOC_PA_SPEED_100GB | SOC_PA_SPEED_40GB | SOC_PA_SPEED_20GB
+            | SOC_PA_SPEED_25GB | SOC_PA_SPEED_50GB | SOC_PA_SPEED_10GB;
+    } else if (pc->speed_max == 40000) {
+        pa_speed = SOC_PA_SPEED_40GB | SOC_PA_SPEED_20GB
+            | SOC_PA_SPEED_25GB | SOC_PA_SPEED_10GB;
+    } else if (pc->speed_max == 25000) {
+        pa_speed = SOC_PA_SPEED_20GB
+            | SOC_PA_SPEED_25GB | SOC_PA_SPEED_10GB;
+    } else if (pc->speed_max == 20000) {
+        pa_speed = SOC_PA_SPEED_20GB | SOC_PA_SPEED_10GB;
+    } else if (pc->speed_max == 10000) {
+        pa_speed = SOC_PA_SPEED_10GB;
+    } else {
+        pa_speed = SOC_PA_SPEED_100GB | SOC_PA_SPEED_40GB | SOC_PA_SPEED_20GB
+            | SOC_PA_SPEED_25GB | SOC_PA_SPEED_50GB | SOC_PA_SPEED_10GB;
+    }
+
+    ability->loopback  = SOC_PA_LB_PHY;
+    ability->medium    = SOC_PA_MEDIUM_COPPER;
+    ability->pause     = 0;
+    ability->flags     = SOC_PA_AUTONEG;
+    ability->speed_full_duplex = pa_speed;
+
+
+    LOG_INFO(BSL_LS_SOC_PHY,
+             (BSL_META_U(pc->unit,
+                         "phy82381_ability_local_get:unit=%d p=%d sp=%08x\n"),
+              unit, port, ability->speed_full_duplex));
+
+    return (SOC_E_NONE);
+}
+
+STATIC int
+phy_82381_link_get(int unit, soc_port_t port, int *link)
+{
+    phy_ctrl_t                *pc;
+    soc_phymod_ctrl_t         *pmc;
+    phymod_phy_access_t       *pm_phy;
+    phy_ctrl_t *int_pc;
+    int32 int_phy_link = 0;
+    *link = 0;
+    int_pc = INT_PHY_SW_STATE(unit, port);
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pmc = &pc->phymod_ctrl;
+    pm_phy = &pmc->phy[pmc->main_phy]->pm_phy;
+    if (is_eye_scan_enabled) {
+        /* Return Success if eyescan is in progress*/
+        return SOC_E_NONE;
+    }
+
+    if (int_pc != NULL) {
+		SOC_IF_ERROR_RETURN(PHY_LINK_GET(int_pc->pd, unit, port, &int_phy_link));
+    } 
+    
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_link_status_get(pm_phy, (uint32_t *) link));
+
+    /* When PMD lock of 82381 is not Set, Leave the port link as
+     * PMD status of 82381. When PMD lock of 82381 is set use
+     * PCS status of internal serdes as port link status.
+     * When internal serdes is not there use 82381 PMS as link status*/
+    if (*link && int_pc) {
+        *link = int_phy_link;
+    }
+    return SOC_E_NONE;
+}
+STATIC int
+phy_82381_enable_set(int unit, soc_port_t port, int enable)
+{
+    phy_ctrl_t                *pc;
+    soc_phymod_ctrl_t         *pmc;
+    int32 intf;
+    phy_ctrl_t                *int_pc;
+
+    /* locate phy control */
+    int_pc = INT_PHY_SW_STATE(unit, port);
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    if (is_eye_scan_enabled) {
+        /* Return Success if eyescan is in progress*/
+        return SOC_E_NONE;
+    }
+    intf = (pc->flags & PHYCTRL_SYS_SIDE_CTRL) ? PHY82381_SYS_SIDE : PHY82381_LINE_SIDE; 
+
+    pmc = &pc->phymod_ctrl;
+
+    SOC_IF_ERROR_RETURN(PHY_ENABLE_SET(int_pc->pd, unit, port, enable));
+    SOC_IF_ERROR_RETURN
+        (phy_82381_power_set(pmc, intf, enable));
+    return SOC_E_NONE;
+}
+STATIC int
+phy_82381_enable_get(int unit, soc_port_t port, int *enable)
+{
+    phy_ctrl_t                *pc;
+    soc_phymod_ctrl_t         *pmc;
+    int32 intf;
+    uint32_t ena_dis;
+    *enable = 0;
+
+    /* locate phy control */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pmc = &pc->phymod_ctrl;
+    if (is_eye_scan_enabled) {
+        /* Return Success if eyescan is in progress*/
+        return SOC_E_NONE;
+    }
+
+    intf = (pc->flags & PHYCTRL_SYS_SIDE_CTRL) ? PHY82381_SYS_SIDE : PHY82381_LINE_SIDE; 
+    SOC_IF_ERROR_RETURN
+        (phy_82381_power_get(pmc, intf, &ena_dis));
+    *enable = ena_dis;
+    return SOC_E_NONE;
+}
+
+STATIC int
+phy_82381_lb_set(int unit, soc_port_t port, int enable)
+{
+    phy_ctrl_t* pc; 
+    soc_phymod_ctrl_t *pmc;
+    phymod_phy_access_t *pm_phy;
+    int idx;
+
+    pc = EXT_PHY_SW_STATE(unit, port);
+    pmc = &pc->phymod_ctrl;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+    pm_phy = &pmc->phy[idx]->pm_phy;
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_loopback_set(pm_phy, phymodLoopbackGlobal, enable)); 
+    }
+    return SOC_E_NONE;
+}
+STATIC int
+phy_82381_firmware_set(int unit, int port, int offset, uint8 *array,int datalen)
+{
+    return SOC_E_NONE;
+   
+}
+/* 
+ * phy_82381_per_lane_loopback_internal_pmd_get (this is the PMD global loopback)
+ */
+STATIC int 
+phy_82381_per_lane_loopback_internal_pmd_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    uint32_t               enable;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+
+    SOC_IF_ERROR_RETURN(phymod_phy_loopback_get(&pm_phy_copy, phymodLoopbackGlobalPMD, &enable));
+    *value = enable;
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_loopback_internal_pmd_get (this is the PMD global loopback)
+ */
+STATIC int 
+phy_82381_loopback_internal_pmd_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    uint32_t               enable;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    SOC_IF_ERROR_RETURN(phymod_phy_loopback_get(&pm_phy_copy, phymodLoopbackGlobalPMD, &enable));
+    *value = enable;
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_loopback_remote_get
+ */
+STATIC int 
+phy_82381_per_lane_loopback_remote_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    uint32_t               enable;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_loopback_get(&pm_phy_copy, phymodLoopbackRemotePMD, &enable));
+    *value = enable;
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_loopback_remote_get
+ */
+STATIC int 
+phy_82381_loopback_remote_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    uint32_t               enable;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    SOC_IF_ERROR_RETURN(phymod_phy_loopback_get(&pm_phy_copy, phymodLoopbackRemotePMD, &enable));
+    *value = enable;
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_tx_poly_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_tx_poly_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+
+
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+
+    *value = (int) prbs.poly;
+
+    /* convert from PHYMOD enum to SDK enum */
+    switch(prbs.poly){
+    case phymodPrbsPoly7:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X7_X6_1;
+        break;
+    case phymodPrbsPoly9:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X9_X5_1;
+        break;
+    case phymodPrbsPoly15:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X15_X14_1;
+        break;
+    case phymodPrbsPoly23:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X23_X18_1;
+        break;
+    case phymodPrbsPoly31:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X31_X28_1;
+        break;
+    case phymodPrbsPoly11:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X11_X9_1;
+        break;
+    case phymodPrbsPoly58:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X58_X31_1; 
+        break;
+    default:
+        return SOC_E_INTERNAL;
+    }
+    return SOC_E_NONE;
+}
+/* 
+ * phy_82381_prbs_tx_poly_get
+ */
+STATIC int
+phy_82381_prbs_tx_poly_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+
+    *value = (int) prbs.poly;
+
+    /* convert from PHYMOD enum to SDK enum */
+    switch(prbs.poly){
+    case phymodPrbsPoly7:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X7_X6_1;
+        break;
+    case phymodPrbsPoly9:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X9_X5_1;
+        break;
+    case phymodPrbsPoly15:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X15_X14_1;
+        break;
+    case phymodPrbsPoly23:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X23_X18_1;
+        break;
+    case phymodPrbsPoly31:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X31_X28_1;
+        break;
+    case phymodPrbsPoly11:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X11_X9_1;
+        break;
+    case phymodPrbsPoly58:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X58_X31_1; 
+        break;
+    default:
+        return SOC_E_INTERNAL;
+    }
+    return SOC_E_NONE;
+}
+/* 
+ * phy_82381_per_lane_prbs_rx_poly_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_poly_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+
+
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+
+    *value = (int) prbs.poly;
+
+    /* convert from PHYMOD enum to SDK enum */
+    switch(prbs.poly){
+    case phymodPrbsPoly7:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X7_X6_1;
+        break;
+    case phymodPrbsPoly9:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X9_X5_1;
+        break;
+    case phymodPrbsPoly15:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X15_X14_1;
+        break;
+    case phymodPrbsPoly23:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X23_X18_1;
+        break;
+    case phymodPrbsPoly31:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X31_X28_1;
+        break;
+    case phymodPrbsPoly11:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X11_X9_1;
+        break;
+    case phymodPrbsPoly58:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X58_X31_1;
+        break;
+    default:
+        return SOC_E_INTERNAL;
+    }
+    return SOC_E_NONE;
+}
+/* 
+ * phy_82381_prbs_rx_poly_get
+ */
+STATIC int
+phy_82381_prbs_rx_poly_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    phymod_phy_access_t pm_phy_copy;
+    uint32_t flags = 0;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+
+    *value = (int) prbs.poly;
+
+    /* convert from PHYMOD enum to SDK enum */
+    switch(prbs.poly){
+    case phymodPrbsPoly7:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X7_X6_1;
+        break;
+    case phymodPrbsPoly9:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X9_X5_1;
+        break;
+    case phymodPrbsPoly15:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X15_X14_1;
+        break;
+    case phymodPrbsPoly23:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X23_X18_1;
+        break;
+    case phymodPrbsPoly31:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X31_X28_1;
+        break;
+    case phymodPrbsPoly11:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X11_X9_1;
+        break;
+    case phymodPrbsPoly58:
+        *value = SOC_PHY_PRBS_POLYNOMIAL_X58_X31_1;
+        break;
+    default:
+        return SOC_E_INTERNAL;
+    }
+    return SOC_E_NONE;
+}
+
+/* 
+ * phy_82381_per_lane_prbs_tx_invert_data_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_tx_invert_data_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+    *value = prbs.invert;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_tx_invert_data_get
+ */
+STATIC int
+phy_82381_prbs_tx_invert_data_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+    *value = prbs.invert;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_rx_invert_data_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_invert_data_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+    *value = prbs.invert;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_rx_invert_data_get
+ */
+STATIC int
+phy_82381_prbs_rx_invert_data_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+    *value = prbs.invert;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_tx_enable_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_tx_enable_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_get(&pm_phy_copy, flags, value));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_prbs_tx_enable_get
+ */
+STATIC int
+phy_82381_prbs_tx_enable_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_get(&pm_phy_copy, flags, value));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_rx_enable_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_enable_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_get(&pm_phy_copy, flags, value));
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_rx_enable_get
+ */
+STATIC int
+phy_82381_prbs_rx_enable_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_get(&pm_phy_copy, flags, value));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_rx_status_get
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_status_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    phymod_prbs_status_t   prbs_tmp;
+    int prbs_lock, lock_loss, error_count ;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    prbs_lock   = 1 ; 
+    lock_loss   = 0 ;
+    error_count = 0 ;
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    /* $$$ Need to add diagnostic API */
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_prbs_status_get(&pm_phy_copy, 0, &prbs_tmp));
+
+    if(prbs_tmp.prbs_lock==0) {
+        prbs_lock = 0 ;
+    } else {
+        if(prbs_tmp.prbs_lock_loss) {
+            lock_loss = 1 ;
+        } else {
+            error_count += prbs_tmp.error_count;
+        }
+    }
+    
+    if (prbs_lock == 0) {
+        *value = -1;
+    } else if ((lock_loss == 1) && (prbs_lock == 1)) {
+        *value = -2;
+    } else {
+        *value = error_count;
+    }
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_rx_status_get
+ */
+STATIC int
+phy_82381_prbs_rx_status_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    phymod_prbs_status_t   prbs_tmp;
+    int idx, prbs_lock, lock_loss, error_count ;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    prbs_lock   = 1 ; 
+    lock_loss   = 0 ;
+    error_count = 0 ;
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        /* $$$ Need to add diagnostic API */
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_prbs_status_get(&pm_phy_copy, 0, &prbs_tmp));
+
+        if(prbs_tmp.prbs_lock==0) {
+            prbs_lock = 0 ;
+        } else {
+            if(prbs_tmp.prbs_lock_loss) {
+                lock_loss = 1 ;
+            } else {
+                error_count += prbs_tmp.error_count;
+            }
+        }
+    }
+    
+    if (prbs_lock == 0) {
+        *value = -1;
+    } else if ((lock_loss == 1) && (prbs_lock == 1)) {
+        *value = -2;
+    } else {
+        *value = error_count;
+    }
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_per_lane_rx_peak_filter_get
+ */
+STATIC int
+phy_82381_per_lane_rx_peak_filter_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t         phymod_rx;
+
+    *value = 0;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+        *value = phymod_rx.peaking_filter.value;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_vga_get
+ */
+STATIC int
+phy_82381_per_lane_rx_vga_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t         phymod_rx;
+
+    *value = 0;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+        *value = phymod_rx.vga.value;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_dfe_tap_control_get
+ */
+STATIC int
+phy_82381_per_lane_rx_dfe_tap_control_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, int tap, uint32 *value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t          phymod_rx;
+
+    *value = 0;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    if (tap < 0 || tap >= COUNTOF(phymod_rx.dfe)) {
+        /* this can only happen with a coding error */
+        return SOC_E_INTERNAL;
+    }
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    *value = phymod_rx.dfe[tap].value;
+
+    return(SOC_E_NONE);
+}
+
+
+/* 
+ * phy_82381_per_lane_rx_low_freq_filter_get
+ */
+STATIC int
+phy_82381_per_lane_rx_low_freq_filter_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t          phymod_rx;
+
+    *value = 0;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    *value = phymod_rx.low_freq_peaking_filter.value;
+   return(SOC_E_UNAVAIL);
+}
+
+/* 
+ * phy_82381_rx_peak_filter_get
+ */
+STATIC int 
+phy_82381_rx_peak_filter_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_rx_t          phymod_rx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    *value = phymod_rx.peaking_filter.value;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_vga_set
+ */
+STATIC int 
+phy_82381_rx_vga_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_rx_t          phymod_rx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    *value = phymod_rx.vga.value;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_tap_get
+ */
+STATIC int 
+phy_82381_rx_tap_get(soc_phymod_ctrl_t *pmc, int32 intf, int tap, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_rx_t          phymod_rx;
+    phymod_phy_access_t pm_phy_copy;
+
+    if (tap < 0 || tap >= COUNTOF(phymod_rx.dfe)) {
+        /* this can only happen with a coding error */
+        return SOC_E_INTERNAL;
+    }
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    *value = phymod_rx.dfe[tap].value;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_pi_control_get
+ */
+STATIC int 
+phy_82381_pi_control_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_tx_override_t tx_override;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_override_get(&pm_phy_copy, &tx_override));
+    *value = tx_override.phase_interpolator.value;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_rx_seq_done_get
+ */
+STATIC int
+phy_82381_rx_seq_done_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+         return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_pmd_locked_get(&pm_phy_copy, value));
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_fec_get
+ */
+STATIC int 
+phy_82381_fec_enable_get(soc_phymod_ctrl_t *pmc, uint32 *value)
+{
+    phymod_phy_access_t    *pm_phy;
+    uint32_t               enable;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    SOC_IF_ERROR_RETURN(phymod_phy_fec_enable_get(pm_phy,  &enable));
+    *value = enable;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_tx_fir_pre_get
+ */
+STATIC int
+phy_82381_tx_fir_pre_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    phymod_phy_access_t pm_phy_copy;
+
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    *value = phymod_tx.pre;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_tx_fir_main_get
+ */
+STATIC int
+phy_82381_tx_fir_main_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    phymod_phy_access_t pm_phy_copy;
+
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    *value = phymod_tx.main;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_post_get
+ */
+STATIC int
+phy_82381_tx_fir_post_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    phymod_phy_access_t pm_phy_copy;
+
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    *value = phymod_tx.post;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_post2_get
+ */
+STATIC int
+phy_82381_tx_fir_post2_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    phymod_phy_access_t pm_phy_copy;
+
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(pm_phy, &phymod_tx));
+    *value = phymod_tx.post2;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_post3_get
+ */
+STATIC int
+phy_82381_tx_fir_post3_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    phymod_phy_access_t pm_phy_copy;
+
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    *value = phymod_tx.post3;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_per_lane_driver_current_get
+ */
+STATIC int
+phy_82381_per_lane_driver_current_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_tx_t         phymod_tx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    *value = phymod_tx.amp;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_rx_signal_detect_get
+ */
+STATIC int
+phy_82381_rx_signal_detect_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+   /* $$$ Need to add diagnostic API */
+   return(SOC_E_UNAVAIL);
+}
+/* 
+ * phy_82381_rx_ppm_get
+ */
+STATIC int
+phy_82381_rx_ppm_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    /* $$$ Need to add diagnostic API */
+    return(SOC_E_UNAVAIL);
+}
+/* 
+ * phy_82381_per_lane_preemphasis_get
+ */
+STATIC int
+phy_82381_per_lane_preemphasis_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_tx_t         phymod_tx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    *value = phymod_tx.pre;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_low_freq_filter_set
+ */
+STATIC int
+phy_82381_per_lane_rx_low_freq_filter_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t          phymod_rx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    phymod_rx.low_freq_peaking_filter.value = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+   return(SOC_E_UNAVAIL);
+}
+/* 
+ * phy_82381_per_lane_power_get
+ */
+STATIC int
+phy_82381_per_lane_power_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t     *pm_phy;
+    phymod_phy_power_t      power;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    phymod_phy_power_t_init(&power);
+
+    SOC_IF_ERROR_RETURN(phymod_phy_power_get(&pm_phy_copy, &power));
+
+    if(power.tx == phymodPowerOn && power.rx == phymodPowerOn) {
+        *value = 1;
+    } else {
+        *value = 0;
+    } 
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_power_get
+ */
+STATIC int
+phy_82381_power_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t     *pm_phy;
+    phymod_phy_power_t      power;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    phymod_phy_power_t_init(&power);
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_power_get(&pm_phy_copy, &power));
+
+    if(power.tx == phymodPowerOn && power.rx == phymodPowerOn) {
+        *value = 1;
+    } else {
+        *value = 0;
+    } 
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_per_lane_tx_polarity_get
+ */
+STATIC int 
+phy_82381_per_lane_tx_polarity_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    phymod_polarity_t_init(&polarity);
+    SOC_IF_ERROR_RETURN(phymod_phy_polarity_get(&pm_phy_copy, &polarity));
+
+    *value = polarity.tx_polarity;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_tx_polarity_get
+ */
+STATIC int 
+phy_82381_tx_polarity_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    phymod_polarity_t_init(&polarity);
+    SOC_IF_ERROR_RETURN(phymod_phy_polarity_get(&pm_phy_copy, &polarity));
+
+    *value = polarity.tx_polarity;
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_polarity_get
+ */
+STATIC int 
+phy_82381_per_lane_rx_polarity_get(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    phymod_polarity_t_init(&polarity);
+    SOC_IF_ERROR_RETURN(phymod_phy_polarity_get(&pm_phy_copy, &polarity));
+
+    *value = polarity.rx_polarity;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_rx_polarity_get
+ */
+STATIC int 
+phy_82381_rx_polarity_get(soc_phymod_ctrl_t *pmc, int32 intf, uint32 *value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* just take the value from the first phy */
+    if (pmc->phy[0] == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pm_phy = &pmc->phy[0]->pm_phy;
+
+    if (pm_phy == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    phymod_polarity_t_init(&polarity);
+    SOC_IF_ERROR_RETURN(phymod_phy_polarity_get(&pm_phy_copy, &polarity));
+
+    *value = polarity.rx_polarity;
+
+    return(SOC_E_NONE);
+}
+
+/*
+ * Function:
+ *      phy82381_control_get
+ * Purpose:
+ *      Get current control settings of the PHY. 
+ * Parameters:
+ *      unit  - BCM unit number.
+ *      port  - Port number. 
+ *      type  - Control to update 
+ *      value - (OUT) Current setting for the control 
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy_82381_control_get(int unit, soc_port_t port, soc_phy_control_t type, uint32 *value)
+{
+    int                 rv;
+    phy_ctrl_t          *pc;
+    soc_phymod_ctrl_t   *pmc;
+    int32 intf;
+
+    if ((type < 0) || (type >= SOC_PHY_CONTROL_COUNT)) {
+        return (SOC_E_PARAM);
+    }
+
+    /* locate phy control */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+
+    pmc = &pc->phymod_ctrl;
+
+    intf = (pc->flags & PHYCTRL_SYS_SIDE_CTRL) ? PHY82381_SYS_SIDE : PHY82381_LINE_SIDE; 
+
+    switch(type) {
+    /* PRBS */
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_TX_POLYNOMIAL:
+      rv = phy_82381_prbs_tx_poly_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_TX_INVERT_DATA:
+      rv = phy_82381_prbs_tx_invert_data_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_TX_ENABLE:
+      rv = phy_82381_prbs_tx_enable_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_RX_POLYNOMIAL:
+      rv = phy_82381_prbs_rx_poly_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_RX_INVERT_DATA:
+      rv = phy_82381_prbs_rx_invert_data_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_RX_ENABLE:
+      rv = phy_82381_prbs_rx_enable_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_POLYNOMIAL:
+      rv = phy_82381_prbs_tx_poly_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_TX_INVERT_DATA:
+      rv = phy_82381_prbs_tx_invert_data_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_TX_ENABLE:
+      rv = phy_82381_prbs_tx_enable_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_RX_ENABLE:
+      rv = phy_82381_prbs_rx_enable_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_PRBS_RX_STATUS:
+      rv = phy_82381_prbs_rx_status_get(pmc, intf, value);
+      break;
+    /* LOOPBACK */
+    case SOC_PHY_CONTROL_LOOPBACK_REMOTE:
+       rv = phy_82381_loopback_remote_get(pmc, intf, value);
+       break;
+    case SOC_PHY_CONTROL_LOOPBACK_PMD:
+       rv = phy_82381_loopback_internal_pmd_get(pmc, intf, value);
+       break;
+    /* PREEMPHASIS */
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE0:
+        rv = phy_82381_per_lane_preemphasis_get(pmc, intf, 0, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE1:
+        rv = phy_82381_per_lane_preemphasis_get(pmc, intf, 1, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE2:
+        rv = phy_82381_per_lane_preemphasis_get(pmc, intf, 2, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE3:
+        rv = phy_82381_per_lane_preemphasis_get(pmc, intf, 3, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_PRE:
+        /* assume they are all the same as lane 0 */
+        rv = phy_82381_tx_fir_pre_get(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_MAIN:
+        /* assume they are all the same as lane 0 */
+        rv = phy_82381_tx_fir_main_get(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_POST:
+        /* assume they are all the same as lane 0 */
+        rv = phy_82381_tx_fir_post_get(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_POST2:
+        /* assume they are all the same as lane 0 */
+        rv = phy_82381_tx_fir_post2_get(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_POST3:
+        /* assume they are all the same as lane 0 */
+        rv = phy_82381_tx_fir_post3_get(pmc, intf, value);
+        break;
+
+    /* DRIVER CURRENT */
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE0:
+        rv = phy_82381_per_lane_driver_current_get(pmc, intf, 0, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE1:
+        rv = phy_82381_per_lane_driver_current_get(pmc, intf, 1, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE2:
+        rv = phy_82381_per_lane_driver_current_get(pmc, intf, 2, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE3:
+        rv = phy_82381_per_lane_driver_current_get(pmc, intf, 3, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT:
+        rv = phy_82381_per_lane_driver_current_get(pmc, intf, 0, value);
+        break;
+
+    /* RX PEAK FILTER */
+    case SOC_PHY_CONTROL_RX_PEAK_FILTER:
+        rv = phy_82381_rx_peak_filter_get(pmc, intf, value);
+        break;
+
+    /* RX VGA */
+    case SOC_PHY_CONTROL_RX_VGA:
+        rv = phy_82381_rx_vga_get(pmc, intf, value);
+        break;
+
+    /* RX TAP */
+    case SOC_PHY_CONTROL_RX_TAP1:
+        rv = phy_82381_rx_tap_get(pmc, intf, 0, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP2:
+        rv = phy_82381_rx_tap_get(pmc, intf, 1, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP3:
+        rv = phy_82381_rx_tap_get(pmc, intf, 2, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP4:
+        rv = phy_82381_rx_tap_get(pmc, intf, 3, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP5:
+        rv = phy_82381_rx_tap_get(pmc, intf, 4, value);
+        break;
+
+    /* PHASE INTERPOLATOR */
+    case SOC_PHY_CONTROL_PHASE_INTERP:
+        rv = phy_82381_pi_control_get(pmc, intf, value);
+        break;
+
+    /* RX SIGNAL DETECT */
+    case SOC_PHY_CONTROL_RX_SIGNAL_DETECT:
+      rv = phy_82381_rx_signal_detect_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_RX_SEQ_DONE:
+      rv = phy_82381_rx_seq_done_get(pmc, intf, value);
+      break;
+    case SOC_PHY_CONTROL_RX_PPM:
+      rv = phy_82381_rx_ppm_get(pmc, intf, value);
+      break;
+    /* FEC */
+    case SOC_PHY_CONTROL_FORWARD_ERROR_CORRECTION:
+      rv = phy_82381_fec_enable_get(pmc, value);
+      break;
+    case SOC_PHY_CONTROL_RX_POLARITY:
+        rv = phy_82381_rx_polarity_get(pmc, intf, value);;
+        break;
+    case SOC_PHY_CONTROL_TX_POLARITY:
+        rv = phy_82381_tx_polarity_get(pmc, intf, value);
+        break;
+    /* POWER */
+    case SOC_PHY_CONTROL_POWER:
+       rv = phy_82381_power_get(pmc, intf, value);
+       break;
+
+    default:
+       rv = SOC_E_UNAVAIL;
+       break;
+    }
+    return rv;
+}
+
+/*
+ * Function:
+ *      phy_82381_per_lane_control_get
+ * Purpose:
+ *      Configure PHY device specific control fucntion. 
+ * Parameters:
+ *      unit  - StrataSwitch unit #.
+ *      port  - StrataSwitch port #. 
+ *      lane  - lane number
+ *      type  - Control to update 
+ *      value - New setting for the control 
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy_82381_per_lane_control_get(int unit, soc_port_t port, int lane,
+                     soc_phy_control_t type, uint32 *value)
+{
+    int                 rv;
+    phy_ctrl_t          *pc;
+    soc_phymod_ctrl_t   *pmc;
+    int32 intf;
+
+    /* locate phy control, phymod control, and the configuration data */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pmc = &pc->phymod_ctrl;
+
+    if ((type < 0) || (type >= SOC_PHY_CONTROL_COUNT)) {
+        return SOC_E_PARAM;
+    }
+
+    intf = (pc->flags & PHYCTRL_SYS_SIDE_CTRL) ? PHY82381_SYS_SIDE : PHY82381_LINE_SIDE; 
+
+    switch(type) {
+
+    case SOC_PHY_CONTROL_PREEMPHASIS:
+        rv = phy_82381_per_lane_preemphasis_get(pmc, intf, lane, value);
+        break; 
+    case SOC_PHY_CONTROL_DRIVER_CURRENT:
+        rv = phy_82381_per_lane_driver_current_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRE_DRIVER_CURRENT:
+        rv = SOC_E_UNAVAIL;
+        break;
+    case SOC_PHY_CONTROL_DRIVER_POST2_CURRENT:
+        rv = SOC_E_UNAVAIL;
+        break;
+    case SOC_PHY_CONTROL_PRBS_POLYNOMIAL:
+        rv = phy_82381_per_lane_prbs_tx_poly_get(pmc, intf, lane, value);
+        rv = phy_82381_per_lane_prbs_rx_poly_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_TX_INVERT_DATA:
+        rv = phy_82381_per_lane_prbs_tx_invert_data_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_RX_INVERT_DATA:
+        rv = phy_82381_per_lane_prbs_rx_invert_data_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_TX_ENABLE:
+        rv = phy_82381_per_lane_prbs_tx_enable_get(pmc, intf, lane, value);
+        rv = phy_82381_per_lane_prbs_rx_enable_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_RX_ENABLE:
+        rv = phy_82381_per_lane_prbs_rx_enable_get(pmc, intf, lane, value);
+        rv = phy_82381_per_lane_prbs_tx_enable_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_RX_STATUS:
+        rv = phy_82381_per_lane_prbs_rx_status_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_RX_PEAK_FILTER:
+        rv = phy_82381_per_lane_rx_peak_filter_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_RX_VGA:
+        rv = phy_82381_per_lane_rx_vga_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP1:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_get(pmc, intf, lane, 0, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP2:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_get(pmc, intf, lane, 1, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP3:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_get(pmc, intf, lane, 2, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP4:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_get(pmc, intf, lane, 3, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP5:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_get(pmc, intf, lane, 4, value);
+        break;
+    case SOC_PHY_CONTROL_RX_LOW_FREQ_PEAK_FILTER:
+        rv = phy_82381_per_lane_rx_low_freq_filter_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_RX_PLUS1_SLICER:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    case SOC_PHY_CONTROL_RX_MINUS1_SLICER:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    case SOC_PHY_CONTROL_RX_D_SLICER:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    /* LOOPBACK */
+    case SOC_PHY_CONTROL_LOOPBACK_REMOTE:
+       rv = phy_82381_per_lane_loopback_remote_get(pmc, intf, lane, value);
+       break;
+    case SOC_PHY_CONTROL_LOOPBACK_PMD:
+       rv = phy_82381_per_lane_loopback_internal_pmd_get(pmc, intf, lane, value);
+       break;
+    case SOC_PHY_CONTROL_RX_POLARITY:
+        rv = phy_82381_per_lane_rx_polarity_get(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_TX_POLARITY:
+        rv = phy_82381_per_lane_tx_polarity_get(pmc, intf, lane, value);
+        break;
+    /* POWER */
+    case SOC_PHY_CONTROL_POWER:
+       rv = phy_82381_per_lane_power_get(pmc, intf, lane, value);
+       break;
+    default:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    }
+    return rv;
+}
+
+/*
+ * Function:
+ *      phy82381_duplex_get
+ * Purpose:
+ *      Get PHY duplex mode
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      duplex - current duplex mode
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy82381_duplex_get(int unit, soc_port_t port, int *duplex)
+{
+    *duplex = TRUE;
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:    
+ *      phy_82381_an_set
+ * Purpose:     
+ *      Enable or disable auto-negotiation on the specified port.
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      an   - Boolean, if true, auto-negotiation is enabled 
+ *              (and/or restarted). If false, autonegotiation is disabled.
+ * Returns:     
+ *      SOC_E_XXX  _soc_triumph_tx
+ */
+STATIC int
+phy_82381_an_set(int unit, soc_port_t port, int enable)
+{
+    return (SOC_E_NONE);
+}
+/*
+ * Function:    
+ *      phy_82381_an_get
+ * Purpose:     
+ *      Get the current auto-negotiation status (enabled/busy)
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      an   - (OUT) if true, auto-negotiation is enabled.
+ *      an_done - (OUT) if true, auto-negotiation is complete. This
+ *              value is undefined if an == false.
+ * Returns:     
+ *      SOC_E_XXX
+ */
+
+STATIC int
+phy_82381_an_get(int unit, soc_port_t port, int *an, int *an_done)
+{
+    *an = 0;
+    *an_done = 0;
+    return SOC_E_NONE;
+}
+/*
+ * Function:
+ *      phy_82381_ability_advert_set
+ * Purpose:
+ *      Set the current advertisement for auto-negotiation.
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number.
+ *      ability - Port mode mask indicating supported options/speeds.
+ * Returns:
+ *      SOC_E_XXX
+ * Notes:
+ *      The advertisement is set only for the ACTIVE medium.
+ *      No synchronization performed at this level.
+ */
+
+STATIC int
+phy_82381_ability_advert_set(int unit, soc_port_t port,
+                          soc_port_ability_t *ability)
+{
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      phy_82381_ability_advert_get
+ * Purpose:
+ *      Get the current advertisement for auto-negotiation.
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number.
+ *      ability - (OUT) Port mode mask indicating supported options/speeds.
+ * Returns:
+ *      SOC_E_XXX
+ * Notes:
+ *      The advertisement is retrieved for the ACTIVE medium.
+ *      No synchronization performed at this level.
+ */
+
+STATIC int
+phy_82381_ability_advert_get(int unit, soc_port_t port,
+                              soc_port_ability_t *ability)
+{
+    return SOC_E_NONE;
+}
+/*
+ * Function:
+ *      phy82381_lb_get
+ * Purpose:
+ *      Get current PHY loopback mode
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+ *      enable - address of location to store binary value for on/off (1/0)
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy82381_lb_get(int unit, soc_port_t port, int *enable)
+{
+    *enable = 0;
+    return SOC_E_NONE;
+}
+
+/* 
+ * phy_82381_per_lane_loopback_internal_pmd_set
+ */
+STATIC int 
+phy_82381_per_lane_loopback_internal_pmd_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_loopback_set(&pm_phy_copy, phymodLoopbackGlobalPMD, value));
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_loopback_internal_pmd_set
+ */
+STATIC int 
+phy_82381_loopback_internal_pmd_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_loopback_set(&pm_phy_copy, phymodLoopbackGlobalPMD, value));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_loopback_remote_set
+ */
+STATIC int 
+phy_82381_per_lane_loopback_remote_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN
+        (phymod_phy_loopback_set(&pm_phy_copy, phymodLoopbackRemotePMD, value));
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_loopback_remote_set
+ */
+STATIC int 
+phy_82381_loopback_remote_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_loopback_set(&pm_phy_copy, phymodLoopbackRemotePMD, value));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_fec_enable_set
+ */
+STATIC int 
+phy_82381_fec_enable_set(soc_phymod_ctrl_t *pmc, uint32 value)
+{
+    phymod_phy_access_t    *pm_phy;
+    int                     idx;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        SOC_IF_ERROR_RETURN(phymod_phy_fec_enable_set(pm_phy,  value));
+    }
+    return(SOC_E_NONE);
+}
+
+STATIC int
+phy_82381_sdk_poly_to_phymod_poly(uint32 sdk_poly, uint32 *phymod_poly){
+    switch(sdk_poly){
+    case SOC_PHY_PRBS_POLYNOMIAL_X7_X6_1:
+        *phymod_poly = phymodPrbsPoly7;
+        break;
+    case SOC_PHY_PRBS_POLYNOMIAL_X15_X14_1:
+        *phymod_poly = phymodPrbsPoly15;
+        break;
+    case SOC_PHY_PRBS_POLYNOMIAL_X23_X18_1:
+        *phymod_poly = phymodPrbsPoly23;
+        break;
+    case SOC_PHY_PRBS_POLYNOMIAL_X31_X28_1:
+        *phymod_poly = phymodPrbsPoly31;
+        break;
+    case SOC_PHY_PRBS_POLYNOMIAL_X9_X5_1:
+        *phymod_poly = phymodPrbsPoly9;
+        break;
+    case SOC_PHY_PRBS_POLYNOMIAL_X11_X9_1:
+        *phymod_poly = phymodPrbsPoly11;
+        break;
+    case SOC_PHY_PRBS_POLYNOMIAL_X58_X31_1:
+        *phymod_poly = phymodPrbsPoly58;
+        break;
+    default:
+        return SOC_E_INTERNAL;
+    }
+    return SOC_E_NONE;
+}
+/* 
+ * phy_82381_per_lane_prbs_tx_poly_set
+ */
+STATIC int
+phy_82381_per_lane_prbs_tx_poly_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy,  flags, &prbs));
+    SOC_IF_ERROR_RETURN(phy_82381_sdk_poly_to_phymod_poly(value, &prbs.poly));
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags, &prbs));
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_tx_poly_set
+ */
+STATIC int
+phy_82381_prbs_tx_poly_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+    
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy,  flags, &prbs));
+        SOC_IF_ERROR_RETURN(phy_82381_sdk_poly_to_phymod_poly(value, &prbs.poly));
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags, &prbs));
+    }
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_per_lane_prbs_rx_poly_set
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_poly_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+    SOC_IF_ERROR_RETURN(phy_82381_sdk_poly_to_phymod_poly(value, &prbs.poly));
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags, &prbs));
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_prbs_rx_poly_set
+ */
+STATIC int
+phy_82381_prbs_rx_poly_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+        SOC_IF_ERROR_RETURN(phy_82381_sdk_poly_to_phymod_poly(value, &prbs.poly));
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags, &prbs));
+    }
+    return(SOC_E_NONE);
+}
+
+
+/* 
+ * phy_82381_per_lane_prbs_tx_invert_data_set
+ */
+STATIC int
+phy_82381_per_lane_prbs_tx_invert_data_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+    prbs.invert = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags,  &prbs));
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_prbs_tx_invert_data_set
+ */
+STATIC int
+phy_82381_prbs_tx_invert_data_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+    
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags, &prbs));
+        prbs.invert = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags,  &prbs));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_rx_invert_data_set
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_invert_data_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags,  &prbs));
+    prbs.invert = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags, &prbs));
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_rx_invert_data_set
+ */
+STATIC int
+phy_82381_prbs_rx_invert_data_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_prbs_t        prbs;
+    uint32_t flags = 0;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_get(&pm_phy_copy, flags,  &prbs));
+        prbs.invert = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_config_set(&pm_phy_copy, flags, &prbs));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_tx_enable_set
+ */
+STATIC int
+phy_82381_per_lane_prbs_tx_enable_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_set(&pm_phy_copy, flags, value));
+    return(SOC_E_UNAVAIL);
+}
+/* 
+ * phy_82381_prbs_tx_enable_set
+ */
+STATIC int
+phy_82381_prbs_tx_enable_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        PHYMOD_PRBS_DIRECTION_TX_SET(flags);
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_set(&pm_phy_copy, flags, value));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_prbs_rx_enable_set
+ */
+STATIC int
+phy_82381_per_lane_prbs_rx_enable_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+    PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+    SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_set(&pm_phy_copy, flags,  value));
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_prbs_rx_enable_set
+ */
+STATIC int
+phy_82381_prbs_rx_enable_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    uint32_t flags = 0;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        PHYMOD_PRBS_DIRECTION_RX_SET(flags);
+        SOC_IF_ERROR_RETURN(phymod_phy_prbs_enable_set(&pm_phy_copy, flags,  value));
+    }
+    return(SOC_E_NONE);
+}
+
+
+/* 
+ * given a pc (phymod_ctrl_t) and logical lane number, 
+ *    find the correct soc_phymod_phy_t object and lane
+ */
+STATIC int
+_phy_82381_find_soc_phy_lane(soc_phymod_ctrl_t *pmc, uint32_t lane, 
+                        soc_phymod_phy_t **p_phy, uint32 *lane_map)
+{
+    phymod_phy_access_t *pm_phy;
+    int idx, lnx, ln_cnt, found;
+    uint32 lane_map_copy;
+
+    /* Traverse lanes belonging to this port */
+    found = 0;
+    ln_cnt = 0;
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        lane_map_copy = pm_phy->access.lane_mask;
+        for (lnx = 0; lnx < 4; lnx++) {
+            if ((1 << lnx) & lane_map_copy) {
+                if (ln_cnt == lane) {
+                    found = 1;
+                    break;
+                }
+                ln_cnt++;
+            }
+        }
+        if (found) {
+            *p_phy = pmc->phy[idx];
+            *lane_map = (1 << lnx);
+            break;
+        }
+    } 
+
+    if (!found) {
+        /* No such lane */
+        return SOC_E_PARAM;
+    }
+    return (SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_preemphasis_set
+ */
+STATIC int
+phy_82381_per_lane_preemphasis_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_tx_t         phymod_tx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    phymod_tx.pre = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_preemphasis_set
+ */
+STATIC int
+phy_82381_preemphasis_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.pre = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_pre_set
+ */
+STATIC int
+phy_82381_tx_fir_pre_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.pre = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_main_set
+ */
+STATIC int
+phy_82381_tx_fir_main_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.main = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_post_set
+ */
+STATIC int
+phy_82381_tx_fir_post_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.post = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_post2_set
+ */
+STATIC int
+phy_82381_tx_fir_post2_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.post2 = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_fir_post3_set
+ */
+STATIC int
+phy_82381_tx_fir_post3_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.post3 = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+
+/* 
+ * phy_82381_per_lane_driver_current_set
+ */
+STATIC int
+phy_82381_per_lane_driver_current_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_tx_t         phymod_tx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+    phymod_tx.amp = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_driver_current_set
+ */
+STATIC int
+phy_82381_driver_current_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_tx_t         phymod_tx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_get(&pm_phy_copy, &phymod_tx));
+        phymod_tx.amp = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_set(&pm_phy_copy, &phymod_tx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_dfe_tap_control_set
+ */
+STATIC int
+phy_82381_per_lane_rx_dfe_tap_control_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, int tap, int enable, uint32 value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t          phymod_rx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+    if (tap < 0 || tap >= COUNTOF(phymod_rx.dfe)) {
+        /* this can only happen with a coding error */
+        return SOC_E_INTERNAL;
+    }
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    phymod_rx.dfe[tap].enable = enable;
+    phymod_rx.dfe[tap].value = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+
+    return(SOC_E_NONE);
+}
+/*
+ * phy_82381_per_lane_tx_lane_squelch
+ */
+STATIC int
+phy_82381_per_lane_tx_lane_squelch(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_phy_tx_lane_control_t  tx_control;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.lane_mask = lane_map;
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        if (value == 1) {
+            tx_control = phymodTxSquelchOn;
+        } else {
+            tx_control = phymodTxSquelchOff;
+        }
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_tx_lane_control_set(&pm_phy_copy, tx_control));
+    }
+    return(SOC_E_NONE);
+} 
+
+/* 
+ * phy_82381_tx_lane_squelch
+ */
+STATIC int
+phy_82381_tx_lane_squelch(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_phy_tx_lane_control_t  tx_control;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        if (value == 1) {
+            tx_control = phymodTxSquelchOn;
+        } else {
+            tx_control = phymodTxSquelchOff;
+        }
+        SOC_IF_ERROR_RETURN
+            (phymod_phy_tx_lane_control_set(&pm_phy_copy, tx_control));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_peak_filter_set
+ */
+STATIC int
+phy_82381_per_lane_rx_peak_filter_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, int enable, uint32 value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t         phymod_rx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    phymod_rx.peaking_filter.enable = TRUE;
+    phymod_rx.peaking_filter.value = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_peak_filter_set
+ */
+STATIC int 
+phy_82381_rx_peak_filter_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_rx_t         phymod_rx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+        phymod_rx.peaking_filter.enable = TRUE;
+        phymod_rx.peaking_filter.value = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_per_lane_rx_vga_set
+ */
+STATIC int
+phy_82381_per_lane_rx_vga_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, int enable, uint32 value)
+{
+    soc_phymod_phy_t    *p_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy, *pm_phy;
+    phymod_rx_t         phymod_rx;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+    phymod_rx.vga.enable = TRUE;
+    phymod_rx.vga.value = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_vga_set
+ */
+STATIC int 
+phy_82381_rx_vga_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_rx_t         phymod_rx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+        phymod_rx.vga.enable = TRUE;
+        phymod_rx.vga.value = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+STATIC int
+phy_82381_rx_tap_release(soc_phymod_ctrl_t *pmc, int32 intf, int tap)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_rx_t         phymod_rx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* bounds check "tap" */
+    if (tap < 0 || tap >= COUNTOF(phymod_rx.dfe)) {
+        return SOC_E_INTERNAL;
+    }
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+        phymod_rx.dfe[tap].enable = FALSE;
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+    }
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_tap_set
+ */
+STATIC int 
+phy_82381_rx_tap_set(soc_phymod_ctrl_t *pmc, int32 intf, int tap, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_rx_t         phymod_rx;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* bounds check "tap" */
+    if (tap < 0 || tap >= COUNTOF(phymod_rx.dfe)) {
+        return SOC_E_INTERNAL;
+    }
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+        phymod_rx.dfe[tap].enable = TRUE;
+        phymod_rx.dfe[tap].value = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_pi_control_set
+ */
+STATIC int 
+phy_82381_pi_control_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_tx_override_t tx_override;
+    int                  idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        phymod_tx_override_t_init(&tx_override);
+        tx_override.phase_interpolator.enable = (value == 0) ? 0 : 1;
+        tx_override.phase_interpolator.value = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_tx_override_set(&pm_phy_copy, &tx_override));
+    }
+
+    return(SOC_E_NONE);
+}
+
+STATIC int 
+phy_82381_per_lane_tx_polarity_set(soc_phymod_ctrl_t *pmc, phymod_polarity_t *cfg_polarity, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+
+    sal_memcpy(&polarity, cfg_polarity, sizeof(polarity));
+    polarity.tx_polarity = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_polarity_set(&pm_phy_copy, &polarity));
+
+    /* after successfully setting the parity, update the configured value */
+    cfg_polarity->tx_polarity = value;
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_tx_polarity_set
+ */
+STATIC int 
+phy_82381_tx_polarity_set(soc_phymod_ctrl_t *pmc, phymod_polarity_t *cfg_polarity, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    int                  idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        sal_memcpy(&polarity, cfg_polarity, sizeof(polarity));
+        polarity.tx_polarity = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_polarity_set(&pm_phy_copy, &polarity));
+
+        /* after successfully setting the parity, update the configured value */
+        cfg_polarity->tx_polarity = value;
+    }
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_per_lane_rx_polarity_set
+ */
+STATIC int 
+phy_82381_per_lane_rx_polarity_set(soc_phymod_ctrl_t *pmc, phymod_polarity_t *cfg_polarity, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    sal_memcpy(&polarity, cfg_polarity, sizeof(polarity));
+    polarity.rx_polarity = value;
+    SOC_IF_ERROR_RETURN(phymod_phy_polarity_set(&pm_phy_copy, &polarity));
+
+    /* after successfully setting the parity, update the configured value */
+    cfg_polarity->rx_polarity = value;
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_polarity_set
+ */
+
+STATIC int 
+phy_82381_rx_polarity_set(soc_phymod_ctrl_t *pmc, phymod_polarity_t *cfg_polarity, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_polarity_t    polarity;
+    int                  idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        sal_memcpy(&polarity, cfg_polarity, sizeof(polarity));
+        polarity.rx_polarity = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_polarity_set(&pm_phy_copy, &polarity));
+
+        /* after successfully setting the parity, update the configured value */
+        cfg_polarity->rx_polarity = value;
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_rx_reset
+ */
+STATIC int
+phy_82381_rx_reset(soc_phymod_ctrl_t *pmc, phymod_phy_reset_t *cfg_reset, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_phy_reset_t  reset;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        sal_memcpy(&reset, cfg_reset, sizeof(reset));
+        reset.rx = (phymod_reset_direction_t) value;
+        SOC_IF_ERROR_RETURN(phymod_phy_reset_set(&pm_phy_copy, &reset));
+
+        /* after successfully setting the parity, update the configured value */
+        cfg_reset->rx = (phymod_reset_direction_t) value;
+    }
+
+    return(SOC_E_NONE);
+}
+
+/* 
+ * phy_82381_tx_reset
+ */
+STATIC int
+phy_82381_tx_reset(soc_phymod_ctrl_t *pmc, phymod_phy_reset_t *cfg_reset, int32 intf, uint32 value)
+{
+    phymod_phy_access_t *pm_phy;
+    phymod_phy_reset_t  reset;
+    int                 idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+
+        sal_memcpy(&reset, cfg_reset, sizeof(reset));
+        reset.tx = (phymod_reset_direction_t) value;
+        SOC_IF_ERROR_RETURN(phymod_phy_reset_set(&pm_phy_copy, &reset));
+
+        /* after successfully setting the parity, update the configured value */
+        cfg_reset->tx = (phymod_reset_direction_t) value;
+    }
+
+    return(SOC_E_NONE);
+}
+
+
+/* 
+ * phy_82381_per_lane_power_set
+ */
+STATIC int
+phy_82381_per_lane_power_set(soc_phymod_ctrl_t *pmc, int32 intf, int lane, uint32 value)
+{
+    phymod_phy_access_t     *pm_phy;
+    phymod_phy_power_t      power;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    phymod_phy_power_t_init(&power);
+    if (value) {
+        power.tx = phymodPowerOn;
+        power.rx = phymodPowerOn;
+    } 
+    else {
+        power.tx = phymodPowerOff;
+        power.rx = phymodPowerOff;
+    }
+
+    SOC_IF_ERROR_RETURN(phymod_phy_power_set(&pm_phy_copy, &power));
+
+    return(SOC_E_NONE);
+}
+/* 
+ * phy_82381_power_set
+ */
+STATIC int
+phy_82381_power_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t     *pm_phy;
+    phymod_phy_power_t      power;
+    int                     idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        }
+ 
+        phymod_phy_power_t_init(&power);
+        if (value) {
+            power.tx = phymodPowerOn;
+            power.rx = phymodPowerOn;
+        } 
+        else {
+            power.tx = phymodPowerOff;
+            power.rx = phymodPowerOff;
+        }
+
+        SOC_IF_ERROR_RETURN(phymod_phy_power_set(&pm_phy_copy, &power));
+    }
+
+    return(SOC_E_NONE);
+}
+
+
+/* 
+ * phy_82381_rx_low_freq_filter_set
+ */
+STATIC int
+phy_82381_rx_low_freq_filter_set(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_phy_access_t  *pm_phy;
+    phymod_rx_t          phymod_rx;
+    int                  idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        }
+ 
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_get(&pm_phy_copy, &phymod_rx));
+
+        phymod_rx.low_freq_peaking_filter.enable = TRUE;
+        phymod_rx.low_freq_peaking_filter.value = value;
+        SOC_IF_ERROR_RETURN(phymod_phy_rx_set(&pm_phy_copy, &phymod_rx));
+    }
+
+    return(SOC_E_NONE);
+}
+
+STATIC int 
+phy_82381_rx_seq_restart(soc_phymod_ctrl_t *pmc, int32 intf, uint32 value)
+{
+    phymod_sequencer_operation_t seq_operation;
+    int                  idx;
+    soc_phymod_core_t *pmc_core;
+    phymod_core_access_t *pm_core;
+    phymod_core_access_t pm_core_copy;
+    uint32_t flags = 0;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pmc_core = pmc->phy[idx]->core;
+        pm_core = &pmc_core->pm_core;
+        if (pm_core == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_core_copy, pm_core, sizeof(pm_core_copy));
+        pm_core_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_core_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        seq_operation = phymodSeqOpRestart; 
+        SOC_IF_ERROR_RETURN(phymod_core_pll_sequencer_restart(pm_core, flags, seq_operation));
+    }
+    return(SOC_E_NONE);
+}
+
+STATIC int
+phy_82381_phy_dump(soc_phymod_ctrl_t *pmc, int32 intf)
+{
+    phymod_phy_access_t     *pm_phy;
+    int                     idx;
+    phymod_phy_access_t pm_phy_copy;
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pm_phy = &pmc->phy[idx]->pm_phy;
+
+        if (pm_phy == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY82381_SYS_SIDE) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        }
+        SOC_IF_ERROR_RETURN(phymod_phy_status_dump(&pm_phy_copy));
+    }
+    return(SOC_E_NONE);
+}
+STATIC int
+phy_82381_per_lane_phy_dump(soc_phymod_ctrl_t *pmc, int32 intf, int lane)
+{
+    phymod_phy_access_t     *pm_phy;
+    uint32              lane_map;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+
+    /* locate the desired phy and lane */
+    SOC_IF_ERROR_RETURN(_phy_82381_find_soc_phy_lane(pmc, lane, &p_phy, &lane_map));
+
+    /* Make a copy of the phy access and overwrite the desired lane */
+    pm_phy = &p_phy->pm_phy;
+    sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+    pm_phy_copy.access.lane_mask = lane_map;
+    pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+    if(intf == PHY82381_SYS_SIDE) {
+        pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+    } 
+
+    SOC_IF_ERROR_RETURN(phymod_phy_status_dump(&pm_phy_copy));
+    return(SOC_E_NONE);
+}
+/*
+ * Function:
+ *      phy_82381_control_set
+ * Purpose:
+ *      Configure PHY device specific control fucntion. 
+ * Parameters:
+ *      unit  - BCM unit number.
+ *      port  - Port number. 
+ *      type  - Control to update 
+ *      value - New setting for the control 
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy_82381_control_set(int unit, soc_port_t port, soc_phy_control_t type, uint32 value)
+{
+    int                 rv;
+    phy_ctrl_t          *pc;
+    soc_phymod_ctrl_t   *pmc;
+    phy82381_config_t       *pCfg;
+    int32 intf;
+
+    rv = SOC_E_UNAVAIL;
+
+    if ((type < 0) || (type >= SOC_PHY_CONTROL_COUNT)) {
+        return (SOC_E_PARAM);
+    }
+
+    /* locate phy control, phymod control, and the configuration data */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pmc = &pc->phymod_ctrl;
+    pCfg = (phy82381_config_t *) pc->driver_data;
+
+
+    intf = (pc->flags & PHYCTRL_SYS_SIDE_CTRL) ? PHY82381_SYS_SIDE : PHY82381_LINE_SIDE; 
+
+    switch(type) {
+    /* decoupled PRBS */
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_TX_POLYNOMIAL:
+        rv = phy_82381_prbs_tx_poly_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_TX_INVERT_DATA:
+        rv = phy_82381_prbs_tx_invert_data_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_TX_ENABLE:
+        rv = phy_82381_prbs_tx_enable_set(pmc, intf, value);
+        break; 
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_RX_POLYNOMIAL:
+        rv = phy_82381_prbs_rx_poly_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_RX_INVERT_DATA:
+        rv = phy_82381_prbs_rx_invert_data_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_DECOUPLED_RX_ENABLE:
+        rv = phy_82381_prbs_rx_enable_set(pmc, intf, value);
+        break;
+    /* for legacy prbs usage mainly set both tx/rx the same */
+    case SOC_PHY_CONTROL_PRBS_POLYNOMIAL:
+        rv = phy_82381_prbs_tx_poly_set(pmc, intf, value);
+        rv = phy_82381_prbs_rx_poly_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_TX_INVERT_DATA:
+        rv = phy_82381_prbs_tx_invert_data_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_TX_ENABLE:
+        rv = phy_82381_prbs_tx_enable_set(pmc, intf, value);
+        rv = phy_82381_prbs_rx_enable_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_RX_ENABLE:
+        rv = phy_82381_prbs_tx_enable_set(pmc, intf, value);
+        rv = phy_82381_prbs_rx_enable_set(pmc, intf, value);
+        break;
+    /* LOOPBACK */
+    case SOC_PHY_CONTROL_LOOPBACK_PMD:
+        rv = phy_82381_loopback_internal_pmd_set(pmc, intf, value);
+       break;
+    case SOC_PHY_CONTROL_LOOPBACK_REMOTE:
+        rv = phy_82381_loopback_remote_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_PRE:
+        rv = phy_82381_tx_fir_pre_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_MAIN:
+        rv = phy_82381_tx_fir_main_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_POST:
+        rv = phy_82381_tx_fir_post_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_POST2:
+        rv = phy_82381_tx_fir_post2_set(pmc, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_FIR_POST3:
+        rv = phy_82381_tx_fir_post3_set(pmc, intf, value);
+        break;
+    /* PREEMPHASIS */
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE0:
+        rv = phy_82381_per_lane_preemphasis_set(pmc, intf, 0, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE1:
+        rv = phy_82381_per_lane_preemphasis_set(pmc, intf, 1, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE2:
+        rv = phy_82381_per_lane_preemphasis_set(pmc, intf, 2, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS_LANE3:
+        rv = phy_82381_per_lane_preemphasis_set(pmc, intf, 3, value);
+        break;
+    case SOC_PHY_CONTROL_PREEMPHASIS:
+        rv = phy_82381_preemphasis_set(pmc, intf, value);
+        break;
+
+    /* DRIVER CURRENT */
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE0:
+        rv = phy_82381_per_lane_driver_current_set(pmc, intf, 0, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE1:
+        rv = phy_82381_per_lane_driver_current_set(pmc, intf, 1, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE2:
+        rv = phy_82381_per_lane_driver_current_set(pmc, intf, 2, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT_LANE3:
+        rv = phy_82381_per_lane_driver_current_set(pmc, intf, 3, value);
+        break;
+    case SOC_PHY_CONTROL_DRIVER_CURRENT:
+        rv = phy_82381_driver_current_set(pmc, intf, value);
+        break;
+    /* TX LANE SQUELCH */
+    case SOC_PHY_CONTROL_TX_LANE_SQUELCH:
+        rv = phy_82381_tx_lane_squelch(pmc, intf, value);
+        break;
+    /* RX PEAK FILTER */
+    case SOC_PHY_CONTROL_RX_PEAK_FILTER:
+        rv = phy_82381_rx_peak_filter_set(pmc, intf, value);
+        break;
+
+    /* RX VGA */
+    case SOC_PHY_CONTROL_RX_VGA:
+        rv = phy_82381_rx_vga_set(pmc, intf, value);
+        break;
+    /* RX TAP */
+    case SOC_PHY_CONTROL_RX_TAP1:
+        rv = phy_82381_rx_tap_set(pmc, intf, 0, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP2:
+        rv = phy_82381_rx_tap_set(pmc, intf, 1, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP3:
+        rv = phy_82381_rx_tap_set(pmc, intf, 2, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP4:
+        rv = phy_82381_rx_tap_set(pmc, intf, 3, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP5:
+        rv = phy_82381_rx_tap_set(pmc, intf, 4, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP1_RELEASE:       /* $$$ tbd $$$ */
+       rv = phy_82381_rx_tap_release(pmc, intf, 0);
+       break;
+    case SOC_PHY_CONTROL_RX_TAP2_RELEASE:       /* $$$ tbd $$$ */
+       rv = phy_82381_rx_tap_release(pmc, intf, 1);
+       break;
+    case SOC_PHY_CONTROL_RX_TAP3_RELEASE:       /* $$$ tbd $$$ */
+       rv = phy_82381_rx_tap_release(pmc, intf, 2);
+       break;
+    case SOC_PHY_CONTROL_RX_TAP4_RELEASE:       /* $$$ tbd $$$ */
+       rv = phy_82381_rx_tap_release(pmc, intf, 3);
+       break;
+    case SOC_PHY_CONTROL_RX_TAP5_RELEASE:       /* $$$ tbd $$$ */
+       rv = phy_82381_rx_tap_release(pmc, intf, 4);
+       break;
+    /* PHASE INTERPOLATOR */
+    case SOC_PHY_CONTROL_PHASE_INTERP:
+        rv = phy_82381_pi_control_set(pmc, intf, value);
+        break;
+    /* POLARITY */
+    case SOC_PHY_CONTROL_RX_POLARITY:
+        rv = phy_82381_rx_polarity_set(pmc, &pCfg->phy_polarity_config, intf, value);;
+        break;
+    case SOC_PHY_CONTROL_TX_POLARITY:
+        rv = phy_82381_tx_polarity_set(pmc, &pCfg->phy_polarity_config, intf, value);
+        break;
+    /* RESET */
+    case SOC_PHY_CONTROL_RX_RESET:
+        rv = phy_82381_rx_reset(pmc, &pCfg->phy_reset_config, intf, value);
+        break;
+    case SOC_PHY_CONTROL_TX_RESET:
+        rv = phy_82381_tx_reset(pmc, &pCfg->phy_reset_config, intf, value);
+        break;
+    /* POWER */
+    case SOC_PHY_CONTROL_POWER:
+       {
+           phy_ctrl_t                *int_pc;
+           int_pc = INT_PHY_SW_STATE(unit, port);
+           SOC_IF_ERROR_RETURN(PHY_ENABLE_SET(int_pc->pd, unit, port, value));
+           rv = phy_82381_power_set(pmc, intf, value);
+       }
+       break;
+    case SOC_PHY_CONTROL_RX_LOW_FREQ_PEAK_FILTER:
+        rv = phy_82381_rx_low_freq_filter_set(pmc, intf, value); 
+    break;
+    case SOC_PHY_CONTROL_FORWARD_ERROR_CORRECTION:
+       rv = phy_82381_fec_enable_set(pmc, value);
+       break;
+    case SOC_PHY_CONTROL_RX_SEQ_TOGGLE:
+        rv = phy_82381_rx_seq_restart(pmc, intf, value);
+    break;
+    case SOC_PHY_CONTROL_DUMP:
+        rv = phy_82381_phy_dump(pmc, intf);
+    break;
+    default:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    }
+    return rv;
+}
+/*
+ * Function:
+ *      phy_82381_per_lane_control_set
+ * Purpose:
+ *      Configure PHY device specific control fucntion. 
+ * Parameters:
+ *      unit  - StrataSwitch unit #.
+ *      port  - StrataSwitch port #. 
+ *      lane  - lane number
+ *      type  - Control to update 
+ *      value - New setting for the control 
+ * Returns:     
+ *      SOC_E_NONE
+ */
+STATIC int
+phy_82381_per_lane_control_set(int unit, soc_port_t port, int lane, soc_phy_control_t type, uint32 value)
+{
+    int                 rv = -1;
+    phy_ctrl_t          *pc;
+    soc_phymod_ctrl_t   *pmc;
+    phy82381_config_t       *pCfg;
+    int32 intf;
+
+    /* locate phy control, phymod control, and the configuration data */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pmc = &pc->phymod_ctrl;
+    pCfg = (phy82381_config_t *) pc->driver_data;
+
+    if ((type < 0) || (type >= SOC_PHY_CONTROL_COUNT)) {
+        return SOC_E_PARAM;
+    }
+
+    intf = (pc->flags & PHYCTRL_SYS_SIDE_CTRL) ? PHY82381_SYS_SIDE : PHY82381_LINE_SIDE; 
+
+    switch(type) {
+    case SOC_PHY_CONTROL_PREEMPHASIS:
+        rv = phy_82381_per_lane_preemphasis_set(pmc, intf, lane, value);
+        break; 
+    case SOC_PHY_CONTROL_DRIVER_CURRENT:
+        rv = phy_82381_per_lane_driver_current_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRE_DRIVER_CURRENT:
+        rv = SOC_E_UNAVAIL;
+        break;
+    case SOC_PHY_CONTROL_DRIVER_POST2_CURRENT:
+        rv = SOC_E_UNAVAIL;
+        break;
+    case SOC_PHY_CONTROL_RX_TAP1:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 0 /* tap */, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP1_RELEASE:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 0 /* tap */, 0 /* release */, 0x8000);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP2:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 1 /* tap */, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP2_RELEASE:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 1 /* tap */, 0 /* release */, 0x8000);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP3:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 2 /* tap */, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP3_RELEASE:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 2 /* tap */, 0 /* release */, 0x8000);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP4:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 3 /* tap */, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP4_RELEASE:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 3 /* tap */, 0 /* release */, 0x8000);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP5:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 4 /* tap */, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_TAP5_RELEASE:
+        rv = phy_82381_per_lane_rx_dfe_tap_control_set (pmc, intf, lane, 4 /* tap */, 0 /* release */, 0x8000);
+        break;
+
+    case SOC_PHY_CONTROL_PRBS_POLYNOMIAL:
+        rv = phy_82381_per_lane_prbs_tx_poly_set(pmc, intf, lane, value);
+        rv = phy_82381_per_lane_prbs_rx_poly_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_TX_INVERT_DATA:
+        rv = phy_82381_per_lane_prbs_tx_invert_data_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_RX_INVERT_DATA:
+        rv = phy_82381_per_lane_prbs_rx_invert_data_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_PRBS_TX_ENABLE:
+        /* TX_ENABLE does both tx and rx */
+        rv = phy_82381_per_lane_prbs_tx_enable_set(pmc, intf, lane, value);
+        rv = phy_82381_per_lane_prbs_rx_enable_set(pmc, intf, lane, value);
+        break; 
+    case SOC_PHY_CONTROL_PRBS_RX_ENABLE:
+        rv = phy_82381_per_lane_prbs_tx_enable_set(pmc, intf, lane, value);
+        rv = phy_82381_per_lane_prbs_rx_enable_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_RX_PEAK_FILTER:
+        rv = phy_82381_per_lane_rx_peak_filter_set(pmc, intf, lane, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_LOW_FREQ_PEAK_FILTER:
+        rv = phy_82381_per_lane_rx_low_freq_filter_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_RX_VGA:
+        rv = phy_82381_per_lane_rx_vga_set(pmc, intf, lane, 1 /* enable */, value);
+        break;
+    case SOC_PHY_CONTROL_RX_VGA_RELEASE:
+        rv = phy_82381_per_lane_rx_vga_set(pmc, intf, lane, 0 /* release */, 0x8000);
+        break;
+    case SOC_PHY_CONTROL_RX_PLUS1_SLICER:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    case SOC_PHY_CONTROL_RX_MINUS1_SLICER:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    case SOC_PHY_CONTROL_RX_D_SLICER:
+        rv = SOC_E_UNAVAIL;
+        break;
+    /* TX LANE SQUELCH */
+    case SOC_PHY_CONTROL_TX_LANE_SQUELCH:
+        rv = phy_82381_per_lane_tx_lane_squelch(pmc, intf, lane, value);
+        break;
+    /* POWER */
+    case SOC_PHY_CONTROL_POWER:
+       rv = phy_82381_per_lane_power_set(pmc, intf, lane, value);
+       break;
+    /* POLARITY */
+    case SOC_PHY_CONTROL_RX_POLARITY:
+        rv = phy_82381_per_lane_rx_polarity_set(pmc, &pCfg->phy_polarity_config, intf, lane, value);;
+        break;
+    case SOC_PHY_CONTROL_TX_POLARITY:
+        rv = phy_82381_per_lane_tx_polarity_set(pmc, &pCfg->phy_polarity_config,
+ intf, lane, value);
+        break;
+    /* LOOPBACK */
+    case SOC_PHY_CONTROL_LOOPBACK_PMD:
+        rv = phy_82381_per_lane_loopback_internal_pmd_set(pmc, intf, lane, value);
+       break;
+    case SOC_PHY_CONTROL_LOOPBACK_REMOTE:
+        rv = phy_82381_per_lane_loopback_remote_set(pmc, intf, lane, value);
+        break;
+    case SOC_PHY_CONTROL_DUMP:
+        rv = phy_82381_per_lane_phy_dump(pmc, intf, lane);
+    break;
+    default:
+        rv = SOC_E_UNAVAIL;
+        break; 
+    }
+
+    return rv;
+}
+
+STATIC int phy_82381_diag_eyescan(soc_port_t port, soc_phymod_ctrl_t *pmc, int32 intf)
+{
+    phymod_phy_access_t     *pm_phy;
+    int                     idx = 0, rv = 0;
+    phymod_phy_access_t     pm_phy_copy;
+    soc_phymod_phy_t        *p_phy;
+
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        p_phy = pmc->phy[idx];
+        /* Make a copy of the phy access and overwrite the desired lane */
+        pm_phy = &p_phy->pm_phy;
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY_DIAG_INTF_SYS) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        is_eye_scan_enabled = 1;
+        rv = phymod_phy_eyescan_run(&pm_phy_copy, 0, 0, NULL);
+        if (rv != SOC_E_NONE) {
+            is_eye_scan_enabled = 0;
+            return rv;
+        }
+    }
+    is_eye_scan_enabled = 0;
+    return SOC_E_NONE;
+}
+STATIC int 
+phy_82381_diag_dsc(soc_phymod_ctrl_t *pmc, int32 intf, int lane)
+{
+    phymod_phy_access_t  *pm_phy;
+    int                    idx;
+    phymod_phy_access_t pm_phy_copy;
+    soc_phymod_phy_t    *p_phy;
+    phymod_phy_diagnostics_t phy_diag;
+
+
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        if (pmc->phy[idx] == NULL) {
+            return SOC_E_INTERNAL;
+        }
+        p_phy = pmc->phy[idx];
+        /* Make a copy of the phy access and overwrite the desired lane */
+        pm_phy = &p_phy->pm_phy;
+        sal_memcpy(&pm_phy_copy, pm_phy, sizeof(pm_phy_copy));
+        pm_phy_copy.access.flags &= ~(1 << INTERFACE_SIDE_SHIFT); 
+        if(intf == PHY_DIAG_INTF_SYS) {
+            pm_phy_copy.access.flags |= (1 << INTERFACE_SIDE_SHIFT); 
+        } 
+        SOC_IF_ERROR_RETURN(phymod_phy_diagnostics_get(&pm_phy_copy, &phy_diag));
+        /* display */
+        LOG_CLI((BSL_META_U(pmc->unit,
+                        "\nDSC parameters for port %d\n"), p_phy->core->port));
+        LOG_CLI((BSL_META_U(pmc->unit,
+                            "LaneN SIGDET VGABIASREDUCED POSTCMET OSR PMDMODE "
+                            "RXLOCK RXPPM TXPPM CLK90OFFSET CLKP1OFFSET P1LVL1 "
+                            "M1LVL1 DFE1_DCD DFE2_DCD SLICERTARGET PE ZE ME "
+                            "PO ZO MO HLFT HRGT VUPPR VLOWR SMSTS LNKTM "
+                            "MAIN HIZ BST LOW PF2CTRL VGA DCOFFT P1LVLCTRL "
+                            "DFE1 DFE2 DFE3 DFE4 DFE5 DFE6 PRE MAIN POST1 "
+                            "POST2 POST3 TXAMPCTRL BRPDEN "    
+                            " \n")));
+        LOG_CLI((BSL_META_U(pmc->unit,
+                            "%03d %03d %06d %07d %05d %05d %05d %05d %06d %05d %08d "
+                            "%03d %09d %04d %04d %04d %04d %04d %03d %03d %03d %03d"
+                            "%03d %09d %04d %04d %04d %04d %04d %03d %03d %03d %03d"
+                            "%03d %09d %04d %04d %04d %04d %04d %03d %03d %03d %03d"
+                            "%03d %03d %04d %03d %04d \n"), 
+                 lane, phy_diag.signal_detect, phy_diag.vga_bias_reduced,
+                 phy_diag.postc_metric, phy_diag.osr_mode, phy_diag.pmd_mode,
+                 phy_diag.rx_lock, phy_diag.rx_ppm, phy_diag.tx_ppm,
+                 phy_diag.clk90_offset, phy_diag.clkp1_offset,
+                 phy_diag.p1_lvl, phy_diag.m1_lvl, phy_diag.m1_lvl,
+                 phy_diag.dfe2_dcd, phy_diag.slicer_target, 
+                 phy_diag.slicer_offset.offset_pe, phy_diag.slicer_offset.offset_ze,
+                 phy_diag.slicer_offset.offset_me, phy_diag.slicer_offset.offset_po,
+                 phy_diag.slicer_offset.offset_zo,  phy_diag.slicer_offset.offset_mo,
+                 phy_diag.eyescan.heye_left, phy_diag.eyescan.heye_right,
+                 phy_diag.eyescan.veye_upper, phy_diag.eyescan.veye_lower,
+                 phy_diag.state_machine_status, phy_diag.link_time,
+                 phy_diag.pf_main, phy_diag.pf_main,
+                 phy_diag.pf_bst, phy_diag.pf_low,
+                 phy_diag.pf2_ctrl, phy_diag.vga,
+                 phy_diag.dc_offset, phy_diag.p1_lvl_ctrl,
+                 phy_diag.dfe1, phy_diag.dfe2,
+                 phy_diag.dfe3, phy_diag.dfe4,
+                 phy_diag.dfe5, phy_diag.dfe6,
+                 phy_diag.txfir_pre, phy_diag.txfir_main,
+                 phy_diag.txfir_post1, phy_diag.txfir_post2,
+                 phy_diag.txfir_post3, phy_diag.tx_amp_ctrl,
+                 phy_diag.br_pd_en));
+    }
+    return SOC_E_NONE;
+}
+/*
+ * Function:
+ *      phy_82381_diag_ctrl
+ * Purpose:
+ *      xx
+ * Parameters:
+ *      unit - BCM unit number.
+ *      port - Port number. 
+
+ * Returns:     
+ *      SOC_E_NONE
+ */
+
+STATIC int
+phy_82381_diag_ctrl(
+    int unit,        /* unit */
+    soc_port_t port, /* port */
+    uint32 inst,     /* the specific device block the control action directs to */
+    int op_type,     /* operation types: read,write or command sequence */
+    int op_cmd,      /* command code */
+    void *arg)       /* command argument based on op_type/op_cmd */
+{
+    int rv = -1;
+    int32 lane;
+    int32 intf;
+    soc_phymod_ctrl_t   *pmc;
+    phy_ctrl_t          *pc;
+    /* locate phy control, phymod control, and the configuration data */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    pmc = &pc->phymod_ctrl;
+
+    lane = PHY_DIAG_INST_LN(inst);
+    intf = PHY_DIAG_INST_INTF(inst);
+    if (intf == PHY_DIAG_INTF_DFLT) {
+        intf = PHY_DIAG_INTF_LINE;
+    }
+    if (intf == PHY_DIAG_INTF_SYS) {
+        pc->flags |= PHYCTRL_SYS_SIDE_CTRL;
+    }
+
+    switch(op_cmd) {
+        case PHY_DIAG_CTRL_DSC:
+            rv = phy_82381_diag_dsc(pmc, intf, lane);
+            break;
+        case PHY_DIAG_CTRL_START_FAST_EYESCAN:
+            rv =  phy_82381_diag_eyescan(port, pmc, intf);
+        break;
+        default:
+            if (op_type == PHY_DIAG_CTRL_SET) {
+                    rv = phy_82381_control_set(unit,port,op_cmd,PTR_TO_INT(arg));
+            } else if (op_type == PHY_DIAG_CTRL_GET) {
+                    rv = phy_82381_control_get(unit,port,op_cmd,(uint32 *)arg);
+            }
+            break ;
+        }
+    return rv;
+}
+int32 phy_82381_core_reset(int32 unit, soc_port_t port, void *not_used)
+{
+    phy_ctrl_t                *pc;
+    soc_phymod_core_t *pmc_core;
+    int                  idx;
+    phymod_core_access_t *pm_core;
+    soc_phymod_ctrl_t *pmc;
+    phymod_reset_direction_t reset_direction;
+    /* locate phy control */
+    pc = EXT_PHY_SW_STATE(unit, port);
+    if (pc == NULL) {
+        return SOC_E_INTERNAL;
+    }
+    reset_direction = phymodResetDirectionIn;
+    pmc = &pc->phymod_ctrl; 
+
+    /* loop through all cores */
+    for (idx = 0; idx < pmc->num_phys; idx++) {
+        pmc_core = pmc->phy[idx]->core;
+        pm_core = &pmc_core->pm_core;
+        if (pm_core == NULL) {
+            return SOC_E_INTERNAL;
+        }
+
+        SOC_IF_ERROR_RETURN(phymod_core_reset_set(pm_core, phymodResetModeSoft, reset_direction));
+    }
+    return(SOC_E_NONE);
+}
+/*
+ * Variable:
+ *      phy82381_drv
+ * Purpose:
+ *      Phy Driver for phy82381 
+ */
+phy_driver_t phy82381_drv = {
+    /* .drv_name                      = */ "PHY82381 PHYMOD PHY Driver",
+    /* .pd_init                       = */ phy82381_init,
+    /* .pd_reset                      = */ phy_82381_core_reset,
+    /* .pd_link_get                   = */ phy_82381_link_get,
+    /* .pd_enable_set                 = */ phy_82381_enable_set,
+    /* .pd_enable_get                 = */ phy_82381_enable_get,
+    /* .pd_duplex_set                 = */ phy_null_set,
+    /* .pd_duplex_get                 = */ phy82381_duplex_get,
+    /* .pd_speed_set                  = */ phy82381_speed_set,
+    /* .pd_speed_get                  = */ phy82381_speed_get,
+    /* .pd_master_set                 = */ phy_null_set,
+    /* .pd_master_get                 = */ phy_null_zero_get,
+    /* .pd_an_set                     = */ phy_82381_an_set,
+    /* .pd_an_get                     = */ phy_82381_an_get,
+    /* .pd_adv_local_set              = */ NULL, /* Deprecated */
+    /* .pd_adv_local_get              = */ NULL, /* Deprecated */
+    /* .pd_adv_remote_get             = */ NULL, /* Deprecated */ 
+    /* .pd_lb_set                     = */ phy_82381_lb_set,
+    /* .pd_lb_get                     = */ phy82381_lb_get,
+    /* .pd_interface_set              = */ phy82381_interface_set,
+    /* .pd_interface_get              = */ phy82381_interface_get,
+    /* .pd_ability                    = */ NULL, /* Deprecated */ 
+    /* .pd_linkup_evt                 = */ NULL,
+    /* .pd_linkdn_evt                 = */ NULL,
+    /* .pd_mdix_set                   = */ phy_null_mdix_set,
+    /* .pd_mdix_get                   = */ phy_null_mdix_get,
+    /* .pd_mdix_status_get            = */ phy_null_mdix_status_get,
+    /* .pd_medium_config_set          = */ NULL,
+    /* .pd_medium_config_get          = */ NULL,
+    /* .pd_medium_get                 = */ phy_null_medium_get,
+    /* .pd_cable_diag                 = */ NULL,
+    /* .pd_link_change                = */ NULL,
+    /* .pd_control_set                = */ phy_82381_control_set,
+    /* .pd_control_get                = */ phy_82381_control_get,
+    /* .pd_reg_read                   = */ phy82381_reg_read,
+    /* .pd_reg_write                  = */ phy82381_reg_write,
+    /* .pd_reg_modify                 = */ phy82381_reg_modify,
+    /* .pd_notify                     = */ NULL,
+    /* .pd_probe                      = */ phy82381_probe,
+    /* .pd_ability_advert_set         = */ phy_82381_ability_advert_set, 
+    /* .pd_ability_advert_get         = */ phy_82381_ability_advert_get,
+    /* .pd_ability_remote_get         = */ NULL,
+    /* .pd_ability_local_get          = */ phy_82381_ability_local_get,
+    /* .pd_firmware_set               = */ phy_82381_firmware_set,
+    /* .pd_timesync_config_set        = */ NULL,
+    /* .pd_timesync_config_get        = */ NULL,
+    /* .pd_timesync_control_set       = */ NULL,
+    /* .pd_timesync_control_set       = */ NULL,
+    /* .pd_diag_ctrl                  = */ phy_82381_diag_ctrl,
+    /* .pd_lane_control_set           = */ phy_82381_per_lane_control_set,    
+    /* .pd_lane_control_get           = */ phy_82381_per_lane_control_get 
+};
+
+#else
+int _phy82381_not_empty;
+#endif /*  INCLUDE_PHY_82381 */
+
