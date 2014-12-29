@@ -533,6 +533,14 @@ _topo_board_default_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu)
 #endif
 
     /* Set up the board based on device detection. */
+    #ifdef LVL7_FIXUP
+    extern int lvl7_topo_board_program(cpudb_ref_t db_ref, topo_cpu_t *topo_cpu,int *rv);
+
+    if (lvl7_topo_board_program(db_ref,topo_cpu,&rv)){
+      /* nothing to do but skip the rest of the board detections */
+    }
+    else
+    #endif
     if (soc_ndev == 1 &&
                SOC_IS_HERCULES15(0)) {
         rv = bcm_board_topo_cfm_xgs2(topo_cpu, db_ref);

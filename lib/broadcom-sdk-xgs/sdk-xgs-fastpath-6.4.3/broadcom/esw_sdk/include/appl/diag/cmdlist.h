@@ -55,7 +55,7 @@
 
 #if defined(MOUSSE) || defined(BMW) || defined(IDTRP334) || defined(GTO) || \
     defined(MBZ) || defined(IDT438) || defined(NSX) || defined(ROBO_4704) || \
-    defined(METROCORE) || defined(KEYSTONE)
+    defined(METROCORE) || defined(KEYSTONE) || defined(LVL7_FIXUP)
 #ifdef VXWORKS
 #include <config.h>      /* For INCLUDE_XXX */
 #endif
@@ -258,7 +258,7 @@ DCL_CMD(cmd_robo_dump,  cmd_robo_dump_usage)
 /* txrx.c */
 
 DCL_CMD(cmd_esw_tx,     cmd_esw_tx_usage)
-DCL_CMD(cmd_esw_tx_start,   cmd_esw_tx_start_usage)
+DCL_CMD(cmd_esw_tx_start,   cmd_esw_tx_usage)
 DCL_CMD(cmd_esw_tx_stop,    cmd_esw_tx_stop_usage)
 DCL_CMD(cmd_esw_tx_count,   cmd_esw_tx_count_usage)
 DCL_CMD(cmd_esw_rx_cfg, cmd_esw_rx_cfg_usage)
@@ -266,7 +266,7 @@ DCL_CMD(cmd_esw_rx_init,    cmd_esw_rx_init_usage)
 DCL_CMD(cmd_esw_rx_mon, cmd_esw_rx_mon_usage)
 
 DCL_CMD(cmd_robo_tx,        cmd_robo_tx_usage)
-DCL_CMD(cmd_robo_tx_start,  cmd_robo_tx_start_usage)
+DCL_CMD(cmd_robo_tx_start,  cmd_robo_tx_usage)
 DCL_CMD(cmd_robo_tx_stop,   cmd_robo_tx_stop_usage)
 DCL_CMD(cmd_robo_tx_count,  cmd_robo_tx_count_usage)
 DCL_CMD(cmd_robo_rx_cfg,    cmd_robo_rx_cfg_usage)

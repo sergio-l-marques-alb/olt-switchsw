@@ -1857,7 +1857,9 @@ _bcmx_dest_to_bcm(_bcmx_dest_bcmx_t *from_bcmx, _bcmx_dest_bcm_t *to_bcm,
         /* Check TRUNK flag next */
         flags_out |= BCMX_DEST_TRUNK;
         to_bcm->trunk = from_bcmx->trunk;
-
+#ifdef LVL7_FIXUP
+        to_bcm->module_id = 0;
+#endif
     } else {
         
         if (BCM_GPORT_IS_SET(from_bcmx->port)) {

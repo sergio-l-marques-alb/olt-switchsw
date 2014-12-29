@@ -3883,6 +3883,20 @@ tx_done_handle(_atp_client_t *client, int cpu, _atp_tx_trans_t *trans)
 {
 
     if (trans->flags & _ATP_TX_F_TIMEOUT) {
+#ifdef LVL7_FIXUP
+        /* Print the mac-address of the unit */
+        LOG_BSL_ERROR(BSL_LS_TKS_ATP,
+                      (BSL_META("ATP: TX timeout, seq %d. cli %d. to %d(mac %x:%x:%x:%x:%x:%x) tx cnt %d.\n"),
+                      trans->_atp_hdr.seq_num, trans->client->client_id,
+                      trans->dest_cpu, 
+                      _atp_cpu_info[trans->dest_cpu].key.key[0],
+                      _atp_cpu_info[trans->dest_cpu].key.key[1],
+                       _atp_cpu_info[trans->dest_cpu].key.key[2],
+                       _atp_cpu_info[trans->dest_cpu].key.key[3],
+                       _atp_cpu_info[trans->dest_cpu].key.key[4],
+                       _atp_cpu_info[trans->dest_cpu].key.key[5],
+                       trans->tx_count));
+#else
         LOG_BSL_ERROR(BSL_LS_TKS_ATP,
                   (BSL_META("ATP: TX timeout, seq %d. " CPUDB_KEY_FMT 
                    " cli %d. to %d tx cnt %d.\n"),
@@ -3891,6 +3905,7 @@ tx_done_handle(_atp_client_t *client, int cpu, _atp_tx_trans_t *trans)
                    trans->client->client_id,
                    trans->dest_cpu,
                    trans->tx_count));
+#endif
         if (atp_timeout_cb != NULL) {
             (*atp_timeout_cb)(CPU_KEY(trans->dest_cpu));
         }

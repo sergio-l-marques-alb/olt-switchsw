@@ -61,6 +61,15 @@
 
 #include "phyreg.h"
 
+#ifdef LVL7_FIXUP
+#include "sysapi_hpc.h"
+#include "hpc_phy.h"
+
+#undef SOC_IF_ERROR_RETURN
+#define SOC_IF_ERROR_RETURN(op) \
+    do { int __rv__; if ((__rv__ = (op)) < 0) {HPC_PHY_SHADOW_REG_UNLOCK(unit); return(__rv__);} } while(0)
+#endif
+
 #define _SOC_PHY_REG_DIRECT \
         ((SOC_PHY_REG_1000X << 1) | (SOC_PHY_REG_1000X >> 1))
 
@@ -110,6 +119,10 @@ phy_reg_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
         return SOC_E_NONE;
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     reg_data = reg_data & reg_mask;
 
     SOC_IF_ERROR_RETURN
@@ -122,6 +135,10 @@ phy_reg_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
         SOC_IF_ERROR_RETURN
             (WRITE_PHY_REG(unit, pc, reg_addr, tmp));
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 int 
@@ -130,6 +147,10 @@ phy_reg_fe_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
 {
     uint16 test_reg;
   
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     if (reg_bank) {
         SOC_IF_ERROR_RETURN
             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
@@ -144,6 +165,10 @@ phy_reg_fe_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
         SOC_IF_ERROR_RETURN
             (READ_PHY_REG(unit, pc, reg_addr, data));
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 
@@ -157,6 +182,10 @@ phy_reg_fe_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
         return SOC_E_NONE;
     }
  
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     if (reg_bank) {
         SOC_IF_ERROR_RETURN
             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
@@ -171,6 +200,10 @@ phy_reg_fe_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
         SOC_IF_ERROR_RETURN
             (WRITE_PHY_REG(unit, pc, reg_addr, data));
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 
@@ -184,6 +217,10 @@ phy_reg_fe_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank,
         return SOC_E_NONE;
     }
   
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     if (reg_bank) {
         SOC_IF_ERROR_RETURN
             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
@@ -199,6 +236,10 @@ phy_reg_fe_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank,
             (MODIFY_PHY_REG(unit, pc, reg_addr, data, mask));
     }
  
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 
@@ -209,6 +250,10 @@ phy_reg_ge_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     int     rv;
 
     rv       = SOC_E_NONE;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     if (flags & SOC_PHY_REG_1000X) {
         if (reg_addr <= 0x000f) {
@@ -279,6 +324,10 @@ phy_reg_ge_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
             rv = READ_PHY_REG(unit, pc, reg_addr, data);
         }
     } 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     if (SOC_FAILURE(rv)) {
         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
@@ -300,6 +349,10 @@ phy_reg_ge_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     }
 
     rv       = SOC_E_NONE;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     if (flags & SOC_PHY_REG_1000X) {
         if (reg_addr <= 0x000f) {
@@ -378,6 +431,10 @@ phy_reg_ge_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         }
     } 
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     if (SOC_FAILURE(rv)) {
         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
@@ -400,6 +457,10 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     }
 
     rv       = SOC_E_NONE;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     if (flags & SOC_PHY_REG_1000X) {
         if (reg_addr <= 0x000f) {
@@ -483,6 +544,10 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
             BCM54640E_SHAD_EXPD_POST(unit, pc, rv);
         }
     } 
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
 
     if (SOC_FAILURE(rv)) {
         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
@@ -584,6 +649,10 @@ phy_reg_xge_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         return rv;
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     {
         switch(reg_addr) {
         /* Map shadow registers */
@@ -629,6 +698,10 @@ phy_reg_xge_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         }
     } 
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     if (SOC_FAILURE(rv)) {
         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
@@ -647,6 +720,10 @@ phy_reg_xge_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     int     rv;
 
     rv       = SOC_E_NONE;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     {
         switch(reg_addr) {
@@ -702,6 +779,10 @@ phy_reg_xge_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         }
     } 
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     if (SOC_FAILURE(rv)) {
         LOG_BSL_ERROR(BSL_LS_SOC_PHY,
                   (BSL_META_U(unit,
@@ -720,6 +801,10 @@ phy_reg_serdes_read(int unit, phy_ctrl_t *pc,  uint16 reg_bank,
  
     rv     = SOC_E_NONE; 
  
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
 #ifdef INCLUDE_PHY_XGXS6
     if (soc_feature(unit, soc_feature_xgxs_v6)) { 
         if ((reg_bank != 0) || (reg_addr >= 0x0010)) { 
@@ -734,6 +819,10 @@ phy_reg_serdes_read(int unit, phy_ctrl_t *pc,  uint16 reg_bank,
         rv = READ_PHY_REG(unit, pc, reg_addr, phy_rd_data);  
     } 
  
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv; 
 }
 
@@ -749,6 +838,10 @@ phy_reg_serdes_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
 
     rv     = SOC_E_NONE;
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
 #ifdef INCLUDE_PHY_XGXS6
     if (soc_feature(unit, soc_feature_xgxs_v6)) {
         if ((reg_bank != 0) || (reg_addr >= 0x0010)) {
@@ -762,6 +855,10 @@ phy_reg_serdes_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
     if (SOC_SUCCESS(rv)) {
         rv = WRITE_PHY_REG(unit, pc, reg_addr, phy_wr_data);
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
 
     return rv;
 }
@@ -779,6 +876,10 @@ phy_reg_serdes_modify(int unit, phy_ctrl_t *pc,
 
     rv     = SOC_E_NONE;
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
 #ifdef INCLUDE_PHY_XGXS6
     if (soc_feature(unit, soc_feature_xgxs_v6)) {
         if ((reg_bank != 0) || (reg_addr >= 0x0010)) {
@@ -793,6 +894,10 @@ phy_reg_serdes_modify(int unit, phy_ctrl_t *pc,
         rv = MODIFY_PHY_REG(unit, pc, reg_addr, phy_mo_data, phy_mo_mask);
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 }
 
@@ -803,11 +908,19 @@ phy_reg_xgxs_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
 {
     int    rv;
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
 
     if (SOC_SUCCESS(rv)) {
         rv = READ_PHY_REG(unit, pc, reg_addr, data);
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
 
     return rv;
 }
@@ -822,11 +935,19 @@ phy_reg_xgxs_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
         return SOC_E_NONE;
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
 
     if (SOC_SUCCESS(rv)) {
         rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
 
     return rv;
 }
@@ -841,11 +962,19 @@ phy_reg_xgxs_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank,
         return SOC_E_NONE;
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
+
     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
 
     if (SOC_SUCCESS(rv)) {
         rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
 
     return rv;
 }
@@ -859,6 +988,10 @@ phy_reg_xgxs6_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     int    rv;
 
     rv     = SOC_E_NONE;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     if (reg_addr < 0x10) {
         /* Select between SerDes and XAUI mapping */
@@ -878,6 +1011,10 @@ phy_reg_xgxs6_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         rv = READ_PHY_REG(unit, pc, reg_addr, data);
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 }
 
@@ -890,6 +1027,10 @@ phy_reg_xgxs6_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
         return SOC_E_NONE;
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     rv     = SOC_E_NONE;
 
@@ -911,6 +1052,10 @@ phy_reg_xgxs6_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 }
 
@@ -923,6 +1068,10 @@ phy_reg_xgxs6_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
         return SOC_E_NONE;
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     rv     = SOC_E_NONE;
 
@@ -944,6 +1093,10 @@ phy_reg_xgxs6_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
         rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
     }
 
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 }
 #endif /* INCLUDE_PHY_XGXS6 */
@@ -954,6 +1107,10 @@ _phy_reg_aer_cl45_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
 {
     uint16 phy_reg_addr;
     int    cl45_devid;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
     cl45_devid   = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
@@ -976,6 +1133,11 @@ _phy_reg_aer_cl45_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
                 0));
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 
@@ -989,6 +1151,10 @@ _phy_reg_aer_cl45_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
         return SOC_E_NONE;
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
     cl45_devid = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
@@ -1011,6 +1177,11 @@ _phy_reg_aer_cl45_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
                 0));
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 
@@ -1024,6 +1195,10 @@ _phy_reg_aer_cl45_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
         return SOC_E_NONE;
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
     cl45_devid = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
@@ -1046,6 +1221,11 @@ _phy_reg_aer_cl45_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
                 0));
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return SOC_E_NONE;
 }
 
@@ -1059,6 +1239,10 @@ _phy_reg_aer_cl22_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
     int    rv;
 
     rv     = SOC_E_UNAVAIL;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
@@ -1097,6 +1281,10 @@ _phy_reg_aer_cl22_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
             rv = WRITE_PHY_REG(unit, pc, 0x1f, 0x0);
         }
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 }
 
@@ -1112,6 +1300,10 @@ _phy_reg_aer_cl22_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
         return SOC_E_NONE;
     }
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     rv     = SOC_E_UNAVAIL;
 
@@ -1149,6 +1341,10 @@ _phy_reg_aer_cl22_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
             rv = WRITE_PHY_REG(unit, pc, 0x1e, 0);
         }
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 }
 
@@ -1166,6 +1362,10 @@ _phy_reg_aer_cl22_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
     }
 
     rv     = SOC_E_UNAVAIL;
+
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_LOCK(unit);
+#endif
 
     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
@@ -1202,6 +1402,10 @@ _phy_reg_aer_cl22_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
         }
 
     }
+#ifdef LVL7_FIXUP
+    HPC_PHY_SHADOW_REG_UNLOCK(unit);
+#endif
+
     return rv;
 
 }
