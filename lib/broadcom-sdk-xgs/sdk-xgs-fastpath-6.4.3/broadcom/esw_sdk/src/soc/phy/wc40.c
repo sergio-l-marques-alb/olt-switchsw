@@ -5443,10 +5443,11 @@ _phy_wc40_interlaken_speed_get(int unit, soc_port_t port, int *speed)
             *speed = 0;
             break;
     }
-    LOG_BSL_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(unit,
-                         "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
-              unit, port,data16, *speed));
+    /* PTin modified: logs */
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(unit,
+                              "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
+                   unit, port,data16, *speed));
     return SOC_E_NONE;
 }
 
@@ -7592,10 +7593,11 @@ phy_wc40_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_BSL_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(unit,
-                         "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, port, ability->speed_full_duplex));
+    /* PTin modified: logs */
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(unit,
+                              "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
+                   unit, port, ability->speed_full_duplex));
 
     return (SOC_E_NONE);
 }

@@ -6950,10 +6950,11 @@ phy_wcmod_xgxs16g1l_ability_local_get(int unit, soc_port_t port,
     ability->flags     = 0 ; /*SOC_PA_AUTONEG */
  }
 
-    LOG_BSL_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(pc->unit,
-                         "phy_wc_xgxs16g11_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, pc->port, ability->speed_full_duplex));
+    /* PTin modified: logs */
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(pc->unit,
+                              "phy_wc_xgxs16g11_ability_local_get:unit=%d p=%d sp=%08x\n"),
+                   unit, pc->port, ability->speed_full_duplex));
 
     return (SOC_E_NONE);
 }
@@ -8623,10 +8624,11 @@ phy_wcmod_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abili
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_BSL_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(pc->unit,
-                         "phy_wcmod_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, port, ability->speed_full_duplex));
+    /* PTin modified: logs */
+    LOG_BSL_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(pc->unit,
+                              "phy_wcmod_ability_local_get:unit=%d p=%d sp=%08x\n"),
+                   unit, port, ability->speed_full_duplex));
 
     return (SOC_E_NONE);
 }
