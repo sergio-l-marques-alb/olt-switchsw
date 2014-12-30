@@ -1,3 +1,4 @@
+sdk_platforms.txt
 helix-io.c
 helix-io_compile.sh
 pq2pro-2_6.make

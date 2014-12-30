@@ -63,7 +63,7 @@ export KFLAG_INCLD = $(TOOLCHAIN_BASE_DIR)/lib/gcc/$(TARGET_ARCHITECTURE)/4.8.2/
 
 export CROSS_COMPILE := $(COMPILER)
 export KERNEL_SRC    := $(KERNEL_PATH)
-
+export KERNDIR       := $(KERNEL_PATH)
 
 export SDKBUILD=build
 

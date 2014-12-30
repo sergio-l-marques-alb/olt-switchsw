@@ -56,6 +56,7 @@ export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linu
 
 export CROSS_COMPILE := $(COMPILER)
 export KERNEL_SRC    := $(KERNEL_PATH)
+export KERNDIR       := $(KERNEL_PATH)
 
 export SDKBUILD=build
 
