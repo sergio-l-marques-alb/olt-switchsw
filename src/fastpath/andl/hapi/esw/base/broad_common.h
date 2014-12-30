@@ -1353,6 +1353,13 @@ extern void hapiBroadDebugBcmPrint(int val);
 *
 *********************************************************************/
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+extern void hapiBroadCmReset(void);
+extern void hapiBroadCmDefaults(void);
+extern void hapiBroadCmLayerSet(int layer, int enable);
+extern void hapiBroadCmSourceSet(int source, int enable);
+extern void hapiBroadCmSeveritySet(int severity);
+
+extern int hapiBroadCmCheck(bsl_packed_meta_t meta_pack);
 extern int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args);
 #else
 extern int hapiBroadCmPrint(uint32 flags, const char *format, va_list args);

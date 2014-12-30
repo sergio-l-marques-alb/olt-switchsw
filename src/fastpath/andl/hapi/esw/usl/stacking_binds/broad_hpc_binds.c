@@ -201,7 +201,9 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 
   /* override the default output */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+  hapiBroadCmDefaults();
   init_data.out_hook = (void *)hapiBroadCmPrint;
+  init_data.check_hook = (void *) hapiBroadCmCheck;
 #else
   init_data.debug_out = (void *)hapiBroadCmPrint;
 #endif
@@ -215,7 +217,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   #endif
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
-  if (bsl_init(&init_data) != SOC_E_NONE)
+  if (bsl_init(&init_data) != SOC_E_NONE || soc_cm_init() != SOC_E_NONE)
 #else
   if (soc_cm_init(&init_data) != SOC_E_NONE)
 #endif

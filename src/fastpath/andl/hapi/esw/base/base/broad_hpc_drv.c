@@ -3418,6 +3418,171 @@ void hapiBroadCmPrint_enable(int enable)
 
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
 
+uint32 bsl_layer_bmp = 0;
+uint32 bsl_source_bmp[(bslSourceCount/32)+1];
+uint8  bsl_severity_min = bslSeverityOff;
+
+/**
+ * Reset CM LOGGINGs allowed
+ * 
+ * @author mruas (12/30/2014)
+ */
+void hapiBroadCmReset(void)
+{
+  bsl_layer_bmp = 0;
+  memset(bsl_source_bmp, 0, sizeof(bsl_source_bmp));
+  bsl_severity_min = bslSeverityOff;
+}
+
+/**
+ * Configure default CM loggings
+ * 
+ * @author mruas (12/30/2014)
+ */
+void hapiBroadCmDefaults(void)
+{
+  hapiBroadCmReset();
+
+  hapiBroadCmLayerSet(bslLayerBcm,  L7_TRUE);
+  hapiBroadCmLayerSet(bslLayerBcmx, L7_TRUE);
+  hapiBroadCmLayerSet(bslLayerSoc,  L7_TRUE);
+  hapiBroadCmLayerSet(bslLayerSys,  L7_TRUE);
+
+  hapiBroadCmSourceSet(bslSourceMii,    L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceMiim,   L7_TRUE);
+  hapiBroadCmSourceSet(bslSourceMim,    L7_TRUE);
+  hapiBroadCmSourceSet(bslSourcePhy,    L7_TRUE);
+  hapiBroadCmSourceSet(bslSourcePhymod, L7_TRUE);
+
+  hapiBroadCmSeveritySet(bslSeverityInfo);
+}
+
+/**
+ * Configure Layers to be logged
+ * 
+ * @author mruas (12/30/2014)
+ * 
+ * @param layer 
+ * @param enable 
+ */
+void hapiBroadCmLayerSet(int layer, int enable)
+{
+  if (layer >= bslLayerCount)
+  {
+    return;
+  }
+
+  if (enable)
+  {
+    bsl_layer_bmp |= (1UL << layer);
+  }
+  else
+  {
+    bsl_layer_bmp &= ~(1UL << layer);
+  }
+}
+
+/**
+ * Configure sources to be logged
+ * 
+ * @author mruas (12/30/2014)
+ * 
+ * @param source 
+ * @param enable 
+ */
+void hapiBroadCmSourceSet(int source, int enable)
+{
+  int div, mod;
+
+  if (source >= bslSourceCount)
+  {
+    return;
+  }
+
+  div = source / (sizeof(uint32)*8);
+  mod = source % (sizeof(uint32)*8);
+
+  if (enable)
+  {
+    bsl_source_bmp[div] |= (1UL << mod);
+  }
+  else
+  {
+    bsl_source_bmp[div] &= ~(1UL << mod);
+  }
+}
+
+/**
+ * Define minimum severity to be logged
+ * 
+ * @author mruas (12/30/2014)
+ * 
+ * @param severity 
+ */
+void hapiBroadCmSeveritySet(int severity)
+{
+  if (severity >= bslSeverityCount)
+  {
+    return;
+  }
+
+  bsl_severity_min = severity;
+}
+
+/**
+ * Callback for checking if logs should be printed
+ * 
+ * @author mruas (12/30/2014)
+ * 
+ * @param meta_pack 
+ * 
+ * @return int 
+ */
+int hapiBroadCmCheck(bsl_packed_meta_t meta_pack)
+{
+    int div, mod;
+    int severity = BSL_SEVERITY_GET(meta_pack);
+    int layer    = BSL_LAYER_GET(meta_pack);
+    int source   = BSL_SOURCE_GET(meta_pack);
+
+    /* Always TRUE */
+    if (severity <= bslSeverityWarn || layer == bslLayerAppl) {
+        return 1;
+    }
+
+    /* Check configurable conditions */
+    /* Layer */
+    if ( !(bsl_layer_bmp & (1UL << layer)) )
+    {
+      return 0;
+    }
+    /* Source */
+    div = source/(sizeof(uint32)*8);
+    mod = source%(sizeof(uint32)*8);
+    if ( !(bsl_source_bmp[div] & (1UL << mod)) )
+    {
+      return 0;
+    }
+    /* Severity */
+    if (severity > bsl_severity_min)
+    {
+      return 0;
+    }
+
+    return 1;
+}
+
+/**
+ * Callback for LOGs printing
+ * 
+ * @author mruas (12/30/2014)
+ * 
+ * @param meta_data 
+ * @param format 
+ * @param args 
+ * 
+ * @return int 
+ */
 int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
 {
   L7_LOG_SEVERITY_t sev = L7_LOG_SEVERITY_DEBUG;
@@ -3428,6 +3593,13 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
   if( (meta_data == L7_NULLPTR) )
   {
     /* Always treat no meta data as an immediate print to the console */
+    logit = L7_FALSE;
+    printit = L7_TRUE;
+  }
+  else if (meta_data->layer == bslLayerAppl)
+  {
+    /* Always print APPL layer to stdout */
+    logit = L7_FALSE;
     printit = L7_TRUE;
   }
   else if (meta_data->severity <= bslSeverityFatal)
@@ -3451,13 +3623,18 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
     sev = L7_LOG_SEVERITY_WARNING;
     ptin_log_sev = LOG_SEV_WARNING;
   }
-  else
+  else if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
   {
-    if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
-    {
-      logit = L7_TRUE;
-      printit = printingOverride_g;
+    logit = L7_TRUE;
+    printit = printingOverride_g;
 
+    if (meta_data->severity <= bslSeverityInfo)
+    {
+      sev = L7_LOG_SEVERITY_INFO;
+      ptin_log_sev = LOG_SEV_INFO;
+    }
+    else
+    {
       sev = L7_LOG_SEVERITY_DEBUG;
       ptin_log_sev = LOG_SEV_DEBUG;
     }
@@ -3500,8 +3677,7 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
       }
       else
       {
-        log_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "(0x%08x) %s",
-                  meta_data->options, buf);
+        log_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "%s", buf);
       }
     }
   }
