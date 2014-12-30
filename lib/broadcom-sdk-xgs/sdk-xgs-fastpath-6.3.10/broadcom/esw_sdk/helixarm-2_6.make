@@ -54,7 +54,7 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
-export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5
+export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
 #/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
 export KERNDIR = $(KERNEL_PATH)
 
@@ -63,7 +63,7 @@ export KFLAG_INCLD = $(TOOLCHAIN_BASE_DIR)/lib/gcc/$(TARGET_ARCHITECTURE)/4.7.2/
 
 export CROSS_COMPILE := $(COMPILER)
 export KERNEL_SRC    := $(KERNEL_PATH)
-
+export KERNDIR       := $(KERNEL_PATH)
 
 export SDKBUILD=build
 

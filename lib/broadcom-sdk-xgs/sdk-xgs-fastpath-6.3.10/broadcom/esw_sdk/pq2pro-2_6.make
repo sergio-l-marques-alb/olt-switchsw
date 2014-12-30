@@ -41,25 +41,18 @@
 # WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
 # ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
 
-PLATFORM=helixarmeb
+PLATFORM=pq2pro
 KERNEL_VER=2_6
 
 SDK = $(CURDIR)
 export SDK
 
-export TOOLCHAIN_BASE_DIR = /home/devtools/dev-bcm-ldk/3.4.9-RC5/buildroot-2013.11-gcc48-opt-broadcom/host/usr
-#/home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
-#/home/devtools/dev-bcm-ldk/3.4.9-RC5/buildroot-2013.11-gcc48-opt-broadcom/host/usr
+export TOOLCHAIN_BASE_DIR = /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 
-export COMPILER           = $(TOOLCHAIN_BIN_DIR)/armeb-linux-
-export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.9-RC5/iproc/kernel/linux-3.6.5
-#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
-export KERNDIR = $(KERNEL_PATH)
-
-export TARGET_ARCHITECTURE = armeb-buildroot-linux-gnueabi
-export KFLAG_INCLD = $(TOOLCHAIN_BASE_DIR)/lib/gcc/$(TARGET_ARCHITECTURE)/4.8.2/include
+export COMPILER           = $(TOOLCHAIN_BIN_DIR)/powerpc-e300c3-linux-
+export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-2.6.38.8-denx
 
 export CROSS_COMPILE := $(COMPILER)
 export KERNEL_SRC    := $(KERNEL_PATH)
@@ -75,7 +68,6 @@ PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
 .PHONY: all clean
 
 all:
-	echo $(KFLAG_INCLD)
 	gmake -C $(SRC_PATH)/$(PLATFORM_NAME)
 	mkdir -p $(SDK)/$(SDKBUILD)
 	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
