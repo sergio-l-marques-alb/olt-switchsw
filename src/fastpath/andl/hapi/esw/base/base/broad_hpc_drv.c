@@ -75,7 +75,7 @@
 #include "bcmx/l3.h"
 #include "bcm/vlan.h"
 
-#include "soc/debug.h"
+//#include "soc/debug.h"
 #include "soc/drv.h"
 
 #include "appl/cputrans/next_hop.h"
@@ -1478,14 +1478,14 @@ void hpcHardwareDefaultConfigApply(void)
     rv = bcm_vlan_create(i,HPC_STACKING_VLAN_ID);
     if ((rv < 0) && (rv != BCM_E_EXISTS))
     {
-      printk("bcm_vlan_create failed unit %d\n", i);
+      LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_create failed unit %d\n", i);
       LOG_ERROR (rv);
     }
 
     rv = bcm_vlan_port_add(i,HPC_STACKING_VLAN_ID,PBMP_CMIC(i),ubmp);
     if (rv < 0)
     {
-      printk("bcm_vlan_port_add failed unit %d\n", i);
+      LOG_ERR(LOG_CTX_STARTUP,"bcm_vlan_port_add failed unit %d\n", i);
       LOG_ERROR (rv);
     }
 
@@ -2792,14 +2792,14 @@ L7_RC_t hpcBroadInit()
   /*  normally done as part of hpcBroadStackInit */
   if (hapiBroadMapDbCreate() == L7_FAILURE)
   {
-    printk("Could not create port mapping database\n");
+    LOG_ERR(LOG_CTX_STARTUP,"Could not create port mapping database\n");
     return(L7_FAILURE);
   }
 
   /* normally done as part of hpcBroadStackInit */
   if (bcmx_uport_create_callback_set(lvl7_uport_create_callback) != BCM_E_NONE)
   {
-    printk("Could not register bcmx_uport_create_callback\n");
+    LOG_ERR(LOG_CTX_STARTUP,"Could not register bcmx_uport_create_callback\n");
     return(L7_FAILURE);
   }
 #endif
@@ -3370,7 +3370,7 @@ extern int soc_robo_mmu_init(int );
 
 done:
   if (msg != NULL) {
-  soc_cm_debug(DK_ERR,
+  LOG_ERR(LOG_CTX_STARTUP,
            "system_init: %s failed: %s\n",
            msg, soc_errmsg(rv));
   }
@@ -3415,6 +3415,101 @@ void hapiBroadCmPrint_enable(int enable)
   hapiBroadCmPrint_debug = enable;
 }
 #endif
+
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+
+int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
+{
+  L7_LOG_SEVERITY_t sev = L7_LOG_SEVERITY_DEBUG;
+  L7_BOOL   logit = L7_FALSE, printit = L7_FALSE;
+  L7_uchar8 buf[LOG_MSG_MAX_MSG_SIZE];
+  log_severity_t ptin_log_sev = LOG_SEV_PRINT;
+
+  if( (meta_data == L7_NULLPTR) )
+  {
+    /* Always treat no meta data as an immediate print to the console */
+    printit = L7_TRUE;
+  }
+  else if (meta_data->severity <= bslSeverityFatal)
+  {
+    logit = L7_TRUE;
+    printit = printingOverride_g;
+    sev = L7_LOG_SEVERITY_EMERGENCY; 
+    ptin_log_sev = LOG_SEV_FATAL;
+  }
+  else if (meta_data->severity <= bslSeverityError)
+  {
+    logit = L7_TRUE;
+    printit = printingOverride_g;
+    sev = L7_LOG_SEVERITY_ERROR; 
+    ptin_log_sev = LOG_SEV_ERROR;
+  }
+  else if (meta_data->severity <= bslSeverityWarn)
+  {
+    logit = L7_TRUE;
+    printit = printingOverride_g;
+    sev = L7_LOG_SEVERITY_WARNING;
+    ptin_log_sev = LOG_SEV_WARNING;
+  }
+  else
+  {
+    if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
+    {
+      logit = L7_TRUE;
+      printit = printingOverride_g;
+
+      sev = L7_LOG_SEVERITY_DEBUG;
+      ptin_log_sev = LOG_SEV_DEBUG;
+    }
+  }
+
+  if (printit)
+  {
+    vprintf(format,args);
+  }
+  else if (logit && hapiBroadCmPrint_debug)   /* PTin modified: Logs */
+  {
+    /* 
+     * only allow the write to happen to either syslog or dapiTrace 
+     * in order to reduce time.
+     */
+    int rc = 0;
+
+    rc = osapiVsnprintf(buf, sizeof (buf), format, args);
+  
+    if (rc <= 0)
+    {
+      return 0;  
+    }
+    else
+    {  
+      if ( rc >= sizeof(buf)) 
+      {
+        rc = sizeof(buf) - 1;
+        /* make sure that the string is terminated */
+        buf[rc] =  '\0';
+      }
+
+      /* get rid of new lines */
+      if (buf[rc-1] == '\n') buf[rc-1] = '\0';
+
+      if (dapiTraceOverride_g)
+      {
+        /* This will log it to the dapiTraceBuffer instead */
+        dapiTraceGeneric(buf);
+      }
+      else
+      {
+        log_print(LOG_CTX_SDK, ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "(0x%08x) %s",
+                  meta_data->options, buf);
+      }
+    }
+  }
+
+  return 0;
+}
+
+#else
 
 int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
 {
@@ -3509,3 +3604,6 @@ int hapiBroadCmPrint(uint32 flags, const char *format, va_list args)
 
   return 0;
 }
+
+#endif
+

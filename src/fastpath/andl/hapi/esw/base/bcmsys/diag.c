@@ -51,16 +51,16 @@ tks_st_thread(void *cookie)
 
   rv = topo_pkt_handle_init(TOPO_ATP_FLAGS);
   if (rv < 0) {
-        printk("WARNING: topo pkt handle init returned %s\n", bcm_errmsg(rv));
+        LOG_ERR(LOG_CTX_STARTUP,"WARNING: topo pkt handle init returned %s\n", bcm_errmsg(rv));
         LOG_ERROR (rv);
   }
 
   if ((rv=bcm_stack_attach_init()) != BCM_E_NONE) {
-    printk("WARNING: bcm_stack_attach_init returned %s\n", bcm_errmsg(rv));
+    LOG_ERR(LOG_CTX_STARTUP,"WARNING: bcm_stack_attach_init returned %s\n", bcm_errmsg(rv));
   }
 
   rv = bcm_st_start(cfg, TRUE);
-  printk("st thread exitted with value %d\n", rv);
+  LOG_INFO(LOG_CTX_STARTUP,"st thread exitted with value %d\n", rv);
   st_tid = SAL_THREAD_ERROR;
   sal_thread_exit(rv);
 }
@@ -83,11 +83,11 @@ db_entry_show(const cpudb_entry_t *entry)
     const cpudb_unit_port_t *sp_base;
 
     cpudb_key_format(entry->base.key, keybuf, sizeof(keybuf));
-    printk("    Key: %s   MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+    printf("    Key: %s   MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
 	   keybuf,
            entry->base.mac[0], entry->base.mac[1], entry->base.mac[2],
            entry->base.mac[3], entry->base.mac[4], entry->base.mac[5]);
-    printk("    Flags 0x%x:%s%s%s%s%s%s%s%s%s%s\n",
+    printf("    Flags 0x%x:%s%s%s%s%s%s%s%s%s%s\n",
            entry->flags,
            entry->flags & CPUDB_F_IS_MASTER ? " master" : "",
            entry->flags & CPUDB_F_IS_LOCAL ? " local" : "",
@@ -99,7 +99,7 @@ db_entry_show(const cpudb_entry_t *entry)
            entry->flags & CPUDB_F_INACTIVE_MARKED ? " inact" : "",
            entry->flags & CPUDB_F_CONFIG_IN ? " cfg in" : "",
            entry->flags & CPUDB_F_LOCAL_COMPLETE ? " lcomp" : "");
-    printk("    units %d. dest unit %d. base dest port %d. "
+    printf("    units %d. dest unit %d. base dest port %d. "
            "dest mod %d dest port %d.\n",
            entry->base.num_units,
            entry->base.dest_unit,
@@ -107,27 +107,27 @@ db_entry_show(const cpudb_entry_t *entry)
            entry->dest_mod,
            entry->dest_port);
     for (i = 0; i < entry->base.num_units; i++) {
-        printk("        unit %d: mod id req %d; mod id pref %d\n",
+        printf("        unit %d: mod id req %d; mod id pref %d\n",
                i, entry->base.mod_ids_req[i], entry->base.pref_mod_id[i]);
     }
-    printk("    master prio %d. slot id %d. discovery seq %d.\n",
+    printf("    master prio %d. slot id %d. discovery seq %d.\n",
            entry->base.master_pri,
            entry->base.slot_id,
            entry->base.dseq_num);
-    printk("    dest mod,port %d,%d. tx unit,port %d,%d. num stk %d\n",
+    printf("    dest mod,port %d,%d. tx unit,port %d,%d. num stk %d\n",
            entry->dest_mod,
            entry->dest_port,
            entry->tx_unit,
            entry->tx_port,
            entry->base.num_stk_ports);
-    printk("    trans pointers %p.\n", (void *)entry->trans_ptr);
+    printf("    trans pointers %p.\n", (void *)entry->trans_ptr);
     for (i = 0; i < entry->base.num_units; i++) {
-        printk("        unit %d: base mod id %d\n", i, entry->mod_ids[i]);
+        printf("        unit %d: base mod id %d\n", i, entry->mod_ids[i]);
     }
     for (i = 0; i < entry->base.num_stk_ports; i++) {
         sp_p = &entry->sp_info[i];
         sp_base = &entry->base.stk_ports[i];
-        printk("        StkPort %d:  Unit %d. Port %d. "
+        printf("        StkPort %d:  Unit %d. Port %d. "
                "Flags 0x%x:%s%s%s%s%s%s; \n",
                i, sp_base->unit, sp_base->port,
                sp_p->flags,
@@ -137,7 +137,7 @@ db_entry_show(const cpudb_entry_t *entry)
 	       sp_p->flags & CPUDB_SPF_CUT_PORT ? " cut_port" : "",
 	       sp_p->flags & CPUDB_SPF_TX_RESOLVED ? " txok" : "",
 	       sp_p->flags & CPUDB_SPF_RX_RESOLVED ? " rxok" : "");
-        printk("            Weight %u. Base Flags 0x%x:%s.\n",
+        printf("            Weight %u. Base Flags 0x%x:%s.\n",
 	       sp_base->weight,
 	       sp_base->bflags,
 	       sp_base->bflags & CPUDB_UPF_DISABLE_IF_CUT ? " dis_cut" : "");
@@ -145,30 +145,32 @@ db_entry_show(const cpudb_entry_t *entry)
 	if (CPUDB_KEY_COMPARE(sp_p->tx_cpu_key, sp_p->rx_cpu_key) == 0 &&
 	    sp_p->tx_stk_idx == sp_p->rx_stk_idx) {
 	    if (sp_p->tx_stk_idx != 0) {
-		printk("            TX/RX Key: %s (stkport %d)\n",
+		printf("            TX/RX Key: %s (stkport %d)\n",
 		       keybuf, sp_p->tx_stk_idx);
 	    } else {
-		printk("            TX/RX Key: %s\n",
+		printf("            TX/RX Key: %s\n",
 		       keybuf);
 	    }
 	} else {
 	    if (sp_p->tx_stk_idx != 0) {
-		printk("            TX Key: %s (stkport %d)\n",
+		printf("            TX Key: %s (stkport %d)\n",
 		       keybuf, sp_p->tx_stk_idx);
 	    } else {
-		printk("            TX Key: %s\n",
+		printf("            TX Key: %s\n",
 		       keybuf);
 	    }
 	    cpudb_key_format(sp_p->rx_cpu_key, keybuf, sizeof(keybuf));
 	    if (sp_p->rx_stk_idx != 0) {
-		printk("            RX Key: %s (stkport %d)\n",
+		printf("            RX Key: %s (stkport %d)\n",
 		       keybuf, sp_p->rx_stk_idx);
 	    } else {
-		printk("            RX Key: %s\n",
+		printf("            RX Key: %s\n",
 		       keybuf);
 	    }
 	}
     }
+
+    fflush(stdout);
 }
 
 
@@ -187,36 +189,38 @@ db_dump(cpudb_ref_t db_ref)
   if (cpudb_valid(db_ref))
   {
     count = cpudb_entry_count_get(db_ref);
-    printk("  DB is valid and contains %d entries\n", count);
+    printf("  DB is valid and contains %d entries\n", count);
     if (db_ref->local_entry != NULL)
     {
       cpudb_key_format(db_ref->local_entry->base.key,
                        keybuf, sizeof(keybuf));
-      printk("    Local Key: %s\n", keybuf);
+      printf("    Local Key: %s\n", keybuf);
     }
     if (db_ref->master_entry != NULL)
     {
       cpudb_key_format(db_ref->master_entry->base.key,
                        keybuf, sizeof(keybuf));
-      printk("    Master Key: %s\n", keybuf);
+      printf("    Master Key: %s\n", keybuf);
     }
     i = 0;
     CPUDB_FOREACH_ENTRY(db_ref, entry) {
       i += 1;
-      printk("    Entry %d/%d: ", i, count);
+      printf("    Entry %d/%d: ", i, count);
       db_entry_show(entry);
-      printk("\n");
+      printf("\n");
     }
     if (i != count)
     {
-      printk("WARNING: entry count is %d but %d entries actually found\n",
+      printf("WARNING: entry count is %d but %d entries actually found\n",
              count, i);
     }
   }
   else
   {
-    printk("DB is not valid\n");
+    printf("DB is not valid\n");
   }
+
+  fflush(stdout);
 }
 
 /* Patch for the XGS3 opcode 0 Issue - original code is in tksdiag.c */

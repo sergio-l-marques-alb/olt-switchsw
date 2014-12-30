@@ -57,7 +57,9 @@
 #include "appl/diag/diag.h"
 #include "appl/diag/system.h"
 #include "appl/diag/cmdlist.h"
-#if (SDK_VERSION_IS >= SDK_VERSION(6,3,2,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+#include "shared/bsl.h"
+#elif (SDK_VERSION_IS >= SDK_VERSION(6,3,2,0))
 #include "bcm_int/mdebug.h"
 #else
 #include "bcm/debug.h"
@@ -271,6 +273,8 @@ L7_RC_t hapiBroadDebugShell(void *data)
   printf("L7_BCM_SHELL_SUPPORT - is not available in this build.\n");
 #endif
 
+  fflush(stdout);
+
   return result;
 
 }
@@ -329,7 +333,8 @@ void hapiBroadDebugInit(DAPI_t *dapi_g)
   }
 
 #ifdef DEBUG_STARTUP
-  debugk_select(DEBUG_STARTUP);
+  LOG_WARNING(LOG_CTX_STARTUP,"debugk_select not being applied!");
+  //debugk_select(DEBUG_STARTUP);
 #endif
 
 #ifdef L7_QOS_PACKAGE
@@ -379,6 +384,8 @@ void hapiBroadDebugHelp()
   printf ("hapiBroadDebugMemoryDumpAll(unit,mmuDump) - Dump all memories for unit\n");
   printf ("hapiBroadDebugBcmPrint(enable) - Enables printing of the bcm logging to screen\n");
   printf ("hapiBroadDebugBcmTrace(enable) - Enables tracing of bcm logging to dapiTrace\n");
+
+  fflush(stdout);
 }
 
 void hapiBroadDebugSpecial(L7_ushort16 unit)
@@ -419,15 +426,19 @@ void hapiBroadDebugSpecial(L7_ushort16 unit)
       }
 
   }
+
+  fflush(stdout);
 }
+
 L7_RC_t hapiBroadDebugFrameMaxGet(L7_ushort16 unit, int port)
 {
   int rc;
   int size;
 
-    rc = bcm_port_frame_max_get (unit, port, &size);
+  rc = bcm_port_frame_max_get (unit, port, &size);
 
-    printf("rc = %d, size = %d\n", rc, size);
+  printf("rc = %d, size = %d\n", rc, size);
+  fflush(stdout);
 
   return L7_SUCCESS;
 
@@ -665,7 +676,8 @@ L7_RC_t hapiBroadDebugSocRegRead(L7_uint32 reg, L7_uint32 unit, soc_port_t port,
 
   if (r < 0)
   {
-    printk("ERROR: read from register failed: %s\n", soc_errmsg(r));
+    printf("ERROR: read from register failed: %s\n", soc_errmsg(r));
+    fflush(stdout);
     return L7_FAILURE;
   }
 #endif
@@ -679,7 +691,8 @@ L7_RC_t hapiBroadDebugSocRegReadDebug(L7_uint32 reg, L7_uint32 unit, soc_port_t 
 
   hapiBroadDebugSocRegRead(reg, unit, port, &val);
 
-  printk("\n val %d\n", val);
+  printf("\n val %d\n", val);
+  fflush(stdout);
 
   return L7_SUCCESS;
 }
@@ -723,7 +736,7 @@ L7_RC_t hapiBroadDebugSocRegDump(L7_uint32 reg, L7_uint32 unit, L7_uint32 pbmp)
 
   reginfo = &SOC_REG_INFO(unit, reg);
 
-  printk("\nInfo for %s\n",SOC_REG_NAME(unit, reg));
+  printf("\nInfo for %s\n",SOC_REG_NAME(unit, reg));
 
   block = reginfo->block[0];  // PTin added: compilation fix for SDK 5.10.4
   alist.count = 0;
@@ -791,7 +804,8 @@ L7_RC_t hapiBroadDebugSocRegDump(L7_uint32 reg, L7_uint32 unit, L7_uint32 pbmp)
     ainfo[0].reg = reg;
     ainfo[0].addr = soc_reg_addr(unit, reg, 0, 0);
     (void)soc_anyreg_read(unit, &ainfo[0], &data64);
-    printk("%x %x\n",COMPILER_64_HI(data64), COMPILER_64_LO(data64));
+    printf("%x %x\n",COMPILER_64_HI(data64), COMPILER_64_LO(data64));
+    fflush(stdout);
     return L7_SUCCESS;
   default:
     assert(0);
@@ -804,23 +818,24 @@ L7_RC_t hapiBroadDebugSocRegDump(L7_uint32 reg, L7_uint32 unit, L7_uint32 pbmp)
 
     if (reginfo->regtype == soc_portreg)
     {
-      printk("Port=%d ",alist.ainfo[j].port);
+      printf("Port=%d ",alist.ainfo[j].port);
     }
     else if (reginfo->regtype == soc_cosreg)
     {
-      printk("COS=%d ",alist.ainfo[j].port);
+      printf("COS=%d ",alist.ainfo[j].cos);
     }
 
     if (r < 0)
     {
       soc_reg_sprint_addr(unit, buf, &alist.ainfo[j]);
-      printk("ERROR: read from register %s failed: %s\n", buf, soc_errmsg(r));
+      printf("ERROR: read from register %s failed: %s\n", buf, soc_errmsg(r));
+      fflush(stdout);
       return L7_FAILURE;
     }
     else
     {
       soc_reg_sprint_addr(unit,  buf, &alist.ainfo[j]);
-      printk(" <");
+      printf(" <");
 
       for (f = reginfo->nFields - 1; f >= 0; f--)
       {
@@ -828,19 +843,21 @@ L7_RC_t hapiBroadDebugSocRegDump(L7_uint32 reg, L7_uint32 unit, L7_uint32 pbmp)
         fval = soc_reg_field_get(unit, alist.ainfo[j].reg, val, fld->field);
         fmt = (fval < 10) ? "%s=%d%s" : "%s=0x%x%s";
 #if !defined(SOC_NO_NAMES)
-        printk(fmt, soc_fieldnames[fld->field], fval, f > 0 ? "," : "");
+        printf(fmt, soc_fieldnames[fld->field], fval, f > 0 ? "," : "");
 #else
-        printk(fmt, "-", fval, f > 0 ? "," : "");
+        printf(fmt, "-", fval, f > 0 ? "," : "");
 #endif
       }
 
-      printk(">\n");
+      printf(">\n");
     }
 
   }
 #endif
-  return L7_SUCCESS;
 
+  fflush(stdout);
+
+  return L7_SUCCESS;
 }
 
 static int hapiBroadDebugFindHerc(void)
@@ -864,6 +881,7 @@ void hapiBroadDebugHercCtrsDump(void)
   if (herc_mod < 0)
   {
     printf("Herc not found.\n");
+    fflush(stdout);
     return;
   }
 
@@ -886,6 +904,7 @@ int hapiBroadDebugHercCpuQueuesDump(void)
   if (herc_mod < 0)
   {
     printf("Herc not found.\n");
+    fflush(stdout);
     return -1;
   }
 
@@ -903,6 +922,7 @@ int hapiBroadDebugHercCpuQueuesDump(void)
     }
   }
 
+  fflush(stdout);
   return 0;
 }
 #endif
@@ -916,7 +936,6 @@ L7_int32 hapiBroadDebugPhyRegDump(L7_int32 u, L7_uint32 pbmp)
   L7_int32       rv = 0;
   pbmp_t         new_pbmp;
   L7_char8       drvName[64];
-
 
   memset((void *)&new_pbmp, 0, sizeof(pbmp_t));
 
@@ -957,6 +976,7 @@ L7_int32 hapiBroadDebugPhyRegDump(L7_int32 u, L7_uint32 pbmp)
   }
 
   done:
+  fflush(stdout);
   return rv;
 }
 
@@ -984,6 +1004,7 @@ L7_int32 hapiBroadDebugPhyRegWrite(L7_int32 u, L7_uint32 port, L7_ushort16 phy_r
   }
 
   done:
+  fflush(stdout);
   return rv;
 }
 
@@ -996,6 +1017,7 @@ void hapiBroadDebugPcimDump(L7_int32 unit, L7_uint32 off_start, L7_uint32 count,
   if ((off_start & 3) != 0)
   {
     printf("dump_pcim ERROR: offset must be a multiple of 4\n");
+    fflush(stdout);
     return;
   }
 
@@ -1007,6 +1029,8 @@ void hapiBroadDebugPcimDump(L7_int32 unit, L7_uint32 off_start, L7_uint32 count,
 
     printf("0x%04x %s: 0x%x\n", off, soc_pci_off2name(unit, off), val);
   }
+
+  fflush(stdout);
 }
 #endif
 
@@ -1078,7 +1102,8 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
 
   if (!SOC_MEM_IS_VALID(unit, mem))
   {
-    printk("Invalid memtype specified\n");
+    printf("Invalid memtype specified\n");
+    fflush(stdout);
     return L7_FAILURE;
   }
 
@@ -1132,8 +1157,9 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
     i = soc_mem_read(unit, mem, copyno, k, entry);
     if (i < 0)
     {
-      printk("Read ERROR: table[%s.%d] index[0x%x]: %s\n",
+      printf("Read ERROR: table[%s.%d] index[0x%x]: %s\n",
              SOC_MEM_UFNAME(unit, mem), copyno, k, soc_errmsg(i));
+      fflush(stdout);
       return L7_FAILURE;
     }
 
@@ -1178,23 +1204,25 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
     if (flags & 0x01)
     {
       for (i = 0; i < entry_dw; i++)
-        printk("%08x\n", entry[i]);
+        printf("%08x\n", entry[i]);
     }
     else
     {
-      printk("%s.%d[0x%x]: ", SOC_MEM_UFNAME(unit, mem), copyno, k);
+      printf("%s.%d[0x%x]: ", SOC_MEM_UFNAME(unit, mem), copyno, k);
 
       if (flags & 0x02)
       {
         for (i = 0; i < entry_dw; i++)
-          printk("0x%08x ", entry[i]);
+          printf("0x%08x ", entry[i]);
       }
       else
         soc_mem_entry_dump(unit, mem, entry);
 
-      printk("\n");
+      printf("\n");
     }
   }
+
+  fflush(stdout);
 
 #ifdef L7_MCAST_PACKAGE
   if (((SOC_IS_FIREBOLT(unit) || SOC_IS_HELIX(unit))) &&
@@ -1262,6 +1290,8 @@ int hapiBroadDebugFindL2(L7_uint32 unit, L7_uint32 vidMacHi, L7_uint32 macLo)
     printf("Entry not found\n");
   }
 
+  fflush(stdout);
+
   return 0;
 }
 
@@ -1283,6 +1313,7 @@ int hapiBroadDebugFindL3(L7_uint32 unit, L7_uint32 ipAddr)
   {
     printf("Entry not found\n");
   }
+  fflush(stdout);
   #endif
   return 0;
 }
@@ -1305,8 +1336,10 @@ L7_RC_t hapiBroadDebugStpList()
   for (stg_index = 0; stg_index < HAPI_MAX_MULTIPLE_STP_INSTANCES; stg_index++)
   {
     hapiBroadDebugDot1sIndexMapGet(stg_index,&instNumber,&stg);
-    printk ("Spanning Tree Instance [%d] : instNumber: %4d, stg: %4d\n", stg_index, instNumber, stg);
+    printf ("Spanning Tree Instance [%d] : instNumber: %4d, stg: %4d\n", stg_index, instNumber, stg);
   }
+
+  fflush(stdout);
   return L7_SUCCESS;
 }
 
@@ -1353,14 +1386,15 @@ L7_RC_t hapiBroadDebugStpVlanList(L7_uint32 instNumber)
 
 
   /* Loop thru and print the instances */
-  printk ("For Spanning Tree : %d\n", instNumber);
+  printf ("For Spanning Tree : %d\n", instNumber);
   for (vlanIndex = 0; vlanIndex < numVlans; vlanIndex++)
   {
-    printk ("Vlan [%d] : %d\n", vlanIndex, vlanList [vlanIndex]);
+    printf ("Vlan [%d] : %d\n", vlanIndex, vlanList [vlanIndex]);
   }
 
-  return L7_SUCCESS;
+  fflush(stdout);
 
+  return L7_SUCCESS;
 }
 
 
@@ -1423,29 +1457,29 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
 
 
           /* Print the state informatino for the port */
-          printk ("Unit : %d Port : %d \t\t State :", usp.unit, (usp.port + 1));
+          printf ("Unit : %d Port : %d \t\t State :", usp.unit, (usp.port + 1));
           switch (stgState)
           {
           case BCM_STG_STP_DISABLE:
-            printk ("Disabled\n");
+            printf ("Disabled\n");
             break;
           case BCM_STG_STP_BLOCK:
-            printk ("Discarding\n");
+            printf ("Discarding\n");
             break;
           case BCM_STG_STP_LISTEN:
-            printk ("Listening\n");
+            printf ("Listening\n");
             break;
           case BCM_STG_STP_LEARN :
-            printk ("Learning\n");
+            printf ("Learning\n");
             break;
           case BCM_STG_STP_FORWARD:
-            printk ("Forwarding\n");
+            printf ("Forwarding\n");
             break;
           case BCM_STG_STP_COUNT:
-            printk ("Count\n");
+            printf ("Count\n");
             break;
           default:
-            printk ("Unknown ??\n");
+            printf ("Unknown ??\n");
             break;
           }
 
@@ -1454,8 +1488,9 @@ L7_RC_t hapiBroadDebugStpPortList(L7_uint32 instNumber)
     }
   }
 
-  return L7_SUCCESS;
+  fflush(stdout);
 
+  return L7_SUCCESS;
 }
 
 #ifdef BCM_ESW_SUPPORT
@@ -1502,7 +1537,8 @@ dreg(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
   if (dd->dreg_select == DREG_ADDR)
   {
-    printk("0x%08x %s\n", ainfo->addr, name);
+    printf("0x%08x %s\n", ainfo->addr, name);
+    fflush(stdout);
     return 0;
   }
 
@@ -1511,13 +1547,15 @@ dreg(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
   if (dd->dreg_select == DREG_RVAL)
   {
-    printk("0x%08x %s = 0x%s\n", ainfo->addr, name, rval_str);
+    printf("0x%08x %s = 0x%s\n", ainfo->addr, name, rval_str);
+    fflush(stdout);
     return 0;
   }
 
   if (SOC_REG_INFO(unit, ainfo->reg).flags & SOC_REG_FLAG_WO)
   {
-    printk("0x%08x %s = Write Only\n", ainfo->addr, name);
+    printf("0x%08x %s = Write Only\n", ainfo->addr, name);
+    fflush(stdout);
     return 0;
   }
 
@@ -1536,7 +1574,8 @@ dreg(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
   if (rv < 0)
   {
-    printk("0x%08x %s = ERROR\n", ainfo->addr, name);
+    printf("0x%08x %s = ERROR\n", ainfo->addr, name);
+    fflush(stdout);
     return 0;
   }
 
@@ -1547,15 +1586,16 @@ dreg(int unit, soc_regaddrinfo_t *ainfo, void *data)
 
   if (is64)
   {
-    printk("0x%08x %s = 0x%08x%08x\n",
+    printf("0x%08x %s = 0x%08x%08x\n",
            ainfo->addr, name,
            COMPILER_64_HI(val64), COMPILER_64_LO(val64));
   }
   else
   {
-    printk("0x%08x %s = 0x%08x\n", ainfo->addr, name, value);
+    printf("0x%08x %s = 0x%08x\n", ainfo->addr, name, value);
   }
 
+  fflush(stdout);
   return 0;
 }
 
@@ -1651,9 +1691,10 @@ L7_RC_t hapiBroadDebugVlanTable(L7_uint32 unit)
   {
     if ((i = soc_mem_read(unit, mem, copyno, k, entry)) < 0)
     {
-      printk("Read ERROR: table %s.%s[%d]: %s\n",
+      printf("Read ERROR: table %s.%s[%d]: %s\n",
              SOC_MEM_UFNAME(unit, mem),
              SOC_BLOCK_NAME(unit, copyno), k, soc_errmsg(i));
+      fflush(stdout);
       return L7_FAILURE;
     }
 
@@ -1664,22 +1705,23 @@ L7_RC_t hapiBroadDebugVlanTable(L7_uint32 unit)
       continue;
     }
 
-    printk("%s.%s[%d]: ",
+    printf("%s.%s[%d]: ",
            SOC_MEM_UFNAME(unit, mem),
            SOC_BLOCK_NAME(unit, copyno),
            k);
 
     for (i = 0; i < entry_dw; i++)
     {
-      printk("0x%08x ", entry[i]);
+      printf("0x%08x ", entry[i]);
     }
-    printk("\n");
+    printf("\n");
 
     soc_mem_entry_dump(unit, mem, entry);
 
-    printk("\n");
+    printf("\n");
   }
 
+  fflush(stdout);
   return L7_SUCCESS;
 }
 
@@ -1705,7 +1747,8 @@ L7_RC_t hapiBroadDebugPortStat(int unit)
   BCM_PBMP_AND(pbm, PBMP_PORT_ALL(unit));
   if (BCM_PBMP_IS_NULL(pbm))
   {
-    printk("No ports specified.\n");
+    printf("No ports specified.\n");
+    fflush(stdout);
     return L7_FAILURE;
   }
 
@@ -1724,8 +1767,9 @@ L7_RC_t hapiBroadDebugPortStat(int unit)
       info_all[p].action_mask = mask;
       if ((r = bcm_port_selective_get(unit, p, &info_all[p])) < 0)
       {
-        printk("Error: Could not get port %s information: %d\n",
+        printf("Error: Could not get port %s information: %d\n",
                SOC_PORT_NAME(unit, p), r);
+        fflush(stdout);
         return L7_FAILURE;
       }
     }
@@ -1737,7 +1781,11 @@ L7_RC_t hapiBroadDebugPortStat(int unit)
   PBMP_ITER(pbm, p)
   {
     if (p < SOC_MAX_NUM_PORTS) {
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+       brief_port_info(unit, SOC_PORT_NAME(unit, p), &info_all[p], mask);
+      #else
        brief_port_info(SOC_PORT_NAME(unit, p), &info_all[p], mask);
+      #endif
     }
   } /* for each port */
 #endif
@@ -1774,8 +1822,10 @@ L7_RC_t hapiBroadDebugARLTableDump(int unit)
   }
   else
   {
-    printk("No software ARL shadow table\n");
+    printf("No software ARL shadow table\n");
   }
+
+  fflush(stdout);
   return L7_SUCCESS;
 }
 
@@ -1797,6 +1847,7 @@ void hapiBroadDebugStatsDump(int unit, int port)
     printf("stat[%d] == 0x%x\n",i,val);
   }
 
+  fflush(stdout);
   return;
 }
 
@@ -1939,6 +1990,7 @@ void printMaxTxTime(int reset)
   {
       maxTxTime = 0;
   }
+  fflush(stdout);
 }
 void hapiBroadDebugPktSendTask(L7_uint32 numArgs, DAPI_t *dapi_g)
 {
@@ -2033,6 +2085,8 @@ void hapiBroadDebugPktSendTask(L7_uint32 numArgs, DAPI_t *dapi_g)
       }
       printf("\r\n\r\n=======================END===================================\r\n");
 
+      fflush(stdout);
+
       /* reset the counters */
       hapiBroadDebugSendCounter = hapiBroadDebugReceiveCounter = 0;
     }
@@ -2076,6 +2130,7 @@ void hapiBroadDebugPktSend(int unit,
   if (pkt.pkt_data->data == NULL)
   {
     printf("\nSending packet failed due to the failure of dma alloc\n");
+    fflush(stdout);
     return;
   }
 
@@ -2092,6 +2147,7 @@ void hapiBroadDebugPktSend(int unit,
     osapiSleep(2);
   }
   printf("\nPacket sending process to %d.%d.%d of size %d is OVER \n",unit,slot,port,pkt_size);
+  fflush(stdout);
 }
 
 int hapiBroadDebugPktSendStart(int unit, int slot, int port, int vlan_id, int pkt_count)
@@ -2292,6 +2348,7 @@ int hapiBroadDebugSemTest (int time_ms)
     osapiSemaDelete (sem);
   }
 
+  fflush(stdout);
   return 0;
 }
 
@@ -2311,6 +2368,7 @@ int hapiBroadDebugQueueTest (int time_ms)
     osapiMsgQueueDelete (queue);
   }
 
+  fflush(stdout);
   return 0;
 }
 
@@ -2333,6 +2391,8 @@ void hapiBroadDebugMemoryDumpAll(int unit, int mmuDump)
       }
     }
   }
+
+  fflush(stdout);
   return;
 }
 
@@ -2368,6 +2428,8 @@ void hapiBroadDebugDumpAll(int mmuDump)
 
     printf("********  END BCM_UNIT %d ***********\n",unit);
   }
+
+  fflush(stdout);
 }
 
 /* Dump function for BCAST, MCAST, DLF storm control registers */
@@ -2390,6 +2452,8 @@ void hapiBroadDebugStormCtrlRegDump(int bcm_unit, int bcm_port)
   enable = (flags & BCM_RATE_DLF) ? 1 : 0;
   printf("\nDLFCAST CTRL \t %d \t\t %d",enable,pps);
   printf("\n-------------------------------------------------------------");
+
+  fflush(stdout);
   return ;
 }
 
@@ -2557,6 +2621,7 @@ void hapiBroadDebugModifyBpduTrap(int enable)
     if (hapiSystem->sysId2 == inValid)
     {
        printf("\nTrap BPDU to CPU: Disabled Successfully\n");
+       fflush(stdout);
        return;
     }
     result = hapiBroadPolicyDelete(hapiSystem->sysId2);
@@ -2565,11 +2630,13 @@ void hapiBroadDebugModifyBpduTrap(int enable)
     {
        hapiSystem->sysId2 = inValid;
        printf("\nTrap BPDU to CPU: Disabled Successfully\n");
+       fflush(stdout);
        return;
     }
     else
     {
       printf("\nTrap BPDU to CPU: Disabled Failed\n");
+      fflush(stdout);
       return;
     }
   }
@@ -2577,6 +2644,7 @@ void hapiBroadDebugModifyBpduTrap(int enable)
   if (hapiSystem->sysId2 != inValid)
   {
      printf("\nTrap BPDU to CPU: Enabled Successfully\n");
+     fflush(stdout);
      return;
   }
 
@@ -2613,6 +2681,7 @@ void hapiBroadDebugModifyBpduTrap(int enable)
   {
     hapiSystem->sysId2 = sysId2;
     printf("\nTrap BPDU to CPU: Enabled Successfully\n");
+    fflush(stdout);
   }
   return;
 }
@@ -2789,9 +2858,12 @@ L7_int32 hapiBroadDebugSinglePhyRegDump(L7_int32 u, L7_uint32 p, L7_short16 phy_
 	{
 		printf("\nError: Port %d: soc_miim_read failed: %s\n",
 		       p , soc_errmsg(rv));
+        fflush(stdout);
 		return rv;
 	}
 	printf("0x%02x: 0x%04x", phy_reg, phy_data);
+
+    fflush(stdout);
 
 	return rv;
 }

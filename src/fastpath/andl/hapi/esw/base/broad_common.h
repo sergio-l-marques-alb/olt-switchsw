@@ -45,7 +45,9 @@
 
 #include <bcm/error.h>
 /* PTIn modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+#include <shared/bsl.h>
+#elif (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */
 #else
 #include <bcm/filter.h>
@@ -1350,8 +1352,11 @@ extern void hapiBroadDebugBcmPrint(int val);
 * @end
 *
 *********************************************************************/
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+extern int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args);
+#else
 extern int hapiBroadCmPrint(uint32 flags, const char *format, va_list args);
-
+#endif
 
 
 /*********************************************************************

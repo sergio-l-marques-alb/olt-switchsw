@@ -121,7 +121,7 @@ L7_RC_t ptin_hapi_l3_host_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data)
 
     rv = bcm_l3_egress_create(unit, flags, &egress_object, &object_id);
     if (BCM_FAILURE(rv)) {
-        printk("Error creating egress object entry: %s\n", bcm_errmsg(rv));
+        LOG_ERR(LOG_CTX_PTIN_HAPI,"Error creating egress object entry: %s\n", bcm_errmsg(rv));
         return L7_FAILURE;
     }
 

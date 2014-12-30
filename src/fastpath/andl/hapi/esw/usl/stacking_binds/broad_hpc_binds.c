@@ -44,6 +44,10 @@
 #include "appl/stktask/topo_pkt.h"
 #include "bcmx/bcmx_int.h"
 
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+#include <shared/bslext.h>
+#endif
+
 /* PTin added: logger */
 #include "logger.h"
 
@@ -172,7 +176,11 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   int rv;
   cpudb_key_t                  cpu_key;
   const bcm_sys_board_t       *board_info;
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+  bsl_config_t                 init_data;
+#else
   soc_cm_init_t                init_data;
+#endif
 
   sal_assert_set((sal_assert_func_t)hapiBroadAssert);
 
@@ -182,13 +190,21 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   sal_core_init();
   sal_appl_init();
 
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+  bsl_vectors_get(&init_data);
+#else
   sysconf_debug_vectors_get(&init_data);
+#endif
 
   hapiBroadDebugBcmTrace(0);
   hapiBroadDebugBcmPrint(0);
 
   /* override the default output */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+  init_data.out_hook = (void *)hapiBroadCmPrint;
+#else
   init_data.debug_out = (void *)hapiBroadCmPrint;
+#endif
 
   /* PTin added: new switch 56340 (Helix4) */
   #if (PTIN_BOARD==PTIN_BOARD_OLT1T0)
@@ -198,7 +214,11 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   LOG_TRACE(LOG_CTX_STARTUP,"b340 id imposed for Helix4 switch");
   #endif
 
+#if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+  if (bsl_init(&init_data) != SOC_E_NONE)
+#else
   if (soc_cm_init(&init_data) != SOC_E_NONE)
+#endif
   {
     LOG_ERROR (0);
   }
@@ -289,7 +309,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
     rv = bcm_rx_init(i);
     if (rv < 0)
     {
-      printk("RX init failed, unit %d\n", i);
+      LOG_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d\n", i);
       break;
     }
 
@@ -298,7 +318,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
       rv = bcm_rx_start(i, NULL);
       if (rv < 0)
       {
-        printk("RX start failed unit %d\n", i);
+        LOG_ERR(LOG_CTX_STARTUP,"RX start failed unit %d\n", i);
         break;
       }
     }
