@@ -60,7 +60,7 @@
 
 
 /* Max the FDB size for STDL packages only. Performance issues with Stacking */
-#if ( PTIN_BOARD == PTIN_BOARD_CXO640G )          /* PTin added */
+#if ( PTIN_BOARD_IS_MATRIX )          /* PTin added */
  #define PLAT_MAX_FDB_MAC_ENTRIES                  131072
 #else
 #ifdef L7_STACKING_PACKAGE
