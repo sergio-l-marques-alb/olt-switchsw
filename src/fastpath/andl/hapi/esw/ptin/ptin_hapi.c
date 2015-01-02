@@ -2177,6 +2177,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       rx->etherStatsCollisions = 0;                                                   /* Collisions */               
       soc_counter_get(unit, port, IRUNDr , 0, &rx->etherStatsUndersizePkts);          /* Undersize */                
       soc_counter_get(unit, port, IROVRr , 0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */ 
+      rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
       soc_counter_get(unit, port, IRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
       soc_counter_get(unit, port, IRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */                  
       soc_counter_get(unit, port, IR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */              
@@ -2251,6 +2252,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       //soc_counter_get(unit, port, GRMGVr,  0, &tmp2);
       //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
       soc_counter_get(unit, port, GROVRr,  0, &rx->etherStatsOversizePkts);           /* Oversize: 1523-MTU bytes */
+      rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
       soc_counter_get(unit, port, GRFRGr , 0, &rx->etherStatsFragments);              /* Fragments */
       soc_counter_get(unit, port, GRJBRr , 0, &rx->etherStatsJabbers);                /* Jabbers */
       soc_counter_get(unit, port, GR64r  , 0, &rx->etherStatsPkts64Octets);           /* 64B packets */
@@ -2313,7 +2315,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
     soc_counter_get(unit, port, RDROPr           , 0, &tmp1);
     soc_counter_get(unit, port, DROP_PKT_CNT_INGr, 0, &tmp2);
-    rx->etherStatsDropEvents = tmp1 + tmp2;// + mtuePkts;                              /* Drop Events */
+    rx->etherStatsDropEvents = tmp1 + tmp2;                                         /* Drop Events */
     soc_counter_get(unit, port, RBYTr , 0, &rx->etherStatsOctets);
     //soc_counter_get(unit, port, RBYTr , 0, &tmp1);
     //soc_counter_get(unit, port, RBYTr , 0, &tmp2);
@@ -2328,6 +2330,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     //soc_counter_get(unit, port, RMGVr,  0, &tmp2);
     //rx->etherStatsOversizePkts = tmp1 + tmp2;                                       /* Oversize: 1519-MTU bytes */
     soc_counter_get(unit, port, ROVRr,  0, &rx->etherStatsOversizePkts);            /* Oversize: 1523-MTU bytes */
+    rx->etherStatsOversizePkts += mtuePkts;                                         /* Oversize: >MTU bytes */
     soc_counter_get(unit, port, RFRGr , 0, &rx->etherStatsFragments);               /* Fragments */
     soc_counter_get(unit, port, RJBRr , 0, &rx->etherStatsJabbers);                 /* Jabbers */
     soc_counter_get(unit, port, R64r  , 0, &rx->etherStatsPkts64Octets);            /* 64B packets */

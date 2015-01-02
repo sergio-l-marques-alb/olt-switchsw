@@ -300,7 +300,10 @@ int usl_bcm_port_frame_max_set(int unit,
     rv = bcm_port_frame_max_set(unit, port, *max_frame_size);
 
     if (rv == BCM_E_NONE)
-    {   
+    {
+      /* PTin added: Update threshold for ovsersized packets */
+      //bcm_port_control_set(unit, port, bcmPortControlStatOversize, *max_frame_size - 4);
+
       rv = hapiBroadMmuPortMtuSet(unit,port,*max_frame_size);
     }
   }
