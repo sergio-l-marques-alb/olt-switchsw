@@ -2383,7 +2383,7 @@ static struct bde_spi_device_id _spi_id_table[] = {
 #ifdef SAL_BDE_DMA_MEM_DEFAULT
 #define DMA_MEM_DEFAULT (SAL_BDE_DMA_MEM_DEFAULT * ONE_MB)
 #else
-#define DMA_MEM_DEFAULT (8 * ONE_MB)
+#define DMA_MEM_DEFAULT (16 * ONE_MB)
 #endif
 #define DMA_MEM_DEFAULT_ROBO (4 * ONE_MB)
 
@@ -2787,7 +2787,8 @@ _alloc_mpool(size_t size)
         {
             dma_addr_t dma_handle;
             if (!(_dma_vbase = dma_alloc_coherent(0, alloc_size, &dma_handle, GFP_KERNEL)) || !dma_handle) {
-                gprintk("_alloc_mpool: Kernel failed to allocate the memory pool of size 0x%lx\n", (unsigned long)alloc_size);
+                gprintk("_alloc_mpool: Kernel failed to allocate the memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_handle=0x%08lx)\n",
+                        (unsigned long)alloc_size, (unsigned long) _dma_vbase, (unsigned long) dma_handle);
                 return;
             }
             pbase = dma_handle;

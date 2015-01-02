@@ -2076,7 +2076,7 @@ soc_dma_done_chain(int unit, uint32 chan)
 
       /* Wait 1 millisecond, if process not completed */
       if (dv_chain->dv_dcnt != dv_chain->dv_vcnt)
-        usleep(1000);
+        usleep(10000);
     } while ((dv_chain->dv_dcnt != dv_chain->dv_vcnt) && ((++i) < 100));
 
     /* PTin added: print assert info */
