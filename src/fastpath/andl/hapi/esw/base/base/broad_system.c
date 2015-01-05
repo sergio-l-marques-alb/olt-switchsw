@@ -3062,6 +3062,7 @@ L7_RC_t hapiBroadConfigIgmpFilter(L7_BOOL enable, L7_uint16 vlanId, L7_BOOL swit
 #if 1
 typedef struct
 {
+  L7_BOOL             in_use;
   BROAD_POLICY_t      policyId;
   L7_uint16           vlan;
   L7_uint16           vlan_mask;
@@ -3090,7 +3091,8 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
   if (ptin_trap_policy_first_time)
   {
     memset(ptin_trap_policy_global_enable, 0x00, sizeof(ptin_trap_policy_global_enable));
-    memset(ptin_trap_policy, 0xff, sizeof(ptin_trap_policy));
+    memset(ptin_trap_policy, 0x00, sizeof(ptin_trap_policy)); 
+
     ptin_trap_policy_first_time = L7_FALSE;
   }
 
@@ -3122,13 +3124,14 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
 
       /* Search for first empty cell */
       if (search_index_free >= PTIN_TRAP_POLICY_MAX_VLANS &&
-          ptin_trap_policy[search_index].policyId == BROAD_POLICY_INVALID)
+          !ptin_trap_policy[search_index].in_use)
       {
         search_index_free = search_index;
       }
 
       /* Found? */
-      if (snoopConfig->vlanId == ptin_trap_policy[search_index].vlan)
+      if (ptin_trap_policy[search_index].in_use &&
+          snoopConfig->vlanId == ptin_trap_policy[search_index].vlan)
         break;
     }
 
@@ -3149,6 +3152,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
           return L7_TABLE_IS_FULL;
         }
         search_index = search_index_free;
+        ptin_trap_policy[search_index].in_use     = L7_TRUE;
         ptin_trap_policy[search_index].policyId   = BROAD_POLICY_INVALID;
         ptin_trap_policy[search_index].vlan       = snoopConfig->vlanId;     /* New vlan to be added */
         ptin_trap_policy[search_index].vlan_mask  = snoopConfig->vlan_mask;
@@ -3198,7 +3202,8 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
       continue;
 
     /* Only process these type of packets */
-    if (ptin_trap_policy[index].packet_type != snoopConfig->packet_type || ptin_trap_policy[index].ip_version != snoopConfig->family)
+    if (ptin_trap_policy[index].packet_type != snoopConfig->packet_type ||
+        ptin_trap_policy[index].ip_version  != snoopConfig->family)
       continue;
 
     /* If policy exists, delete it */
@@ -3214,7 +3219,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     {
       /* Only for unique entry configurations, clear entry */
       if (snoopConfig->vlanId != L7_NULL)
-        memset(&ptin_trap_policy[index], 0xff, sizeof(ptin_trap_policy[index]));
+        memset(&ptin_trap_policy[index], 0x00, sizeof(ptin_trap_policy[index]));
 
       /* Do not proceed */
       continue;
@@ -3226,8 +3231,9 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
       continue;
     }
 
-    /* We must have a valid vlan at this point */
-    if (ptin_trap_policy[index].vlan < PTIN_VLAN_MIN || ptin_trap_policy[index].vlan > PTIN_VLAN_MAX)
+    /* We must have a valid entry at this point */
+    if (!ptin_trap_policy[index].in_use ||
+        (ptin_trap_policy[index].vlan < PTIN_VLAN_MIN || ptin_trap_policy[index].vlan > PTIN_VLAN_MAX))
       continue;
 
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Processing cell #%u", index);
@@ -3287,7 +3293,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     /* If error, clear entry */
     if (result != L7_SUCCESS || ptin_trap_policy[index].policyId == BROAD_POLICY_INVALID)
     {
-      memset(&ptin_trap_policy[index], 0xff, sizeof(ptin_trap_policy[index]));
+      memset(&ptin_trap_policy[index], 0x00, sizeof(ptin_trap_policy[index]));
     }
   }
 
@@ -4379,24 +4385,45 @@ void ptin_traprules_dump(void)
   BROAD_ENTRY_t entry_id;
   int policer_id, counter_id;
   BROAD_POLICY_STATS_t stat;
+  L7_RC_t rc;
 
   /* Run all indexes */
   for (index = 0; index < PTIN_TRAP_POLICY_MAX_VLANS; index++)
   {
-    /* Skip non used entries */
-    if (ptin_trap_policy[index].policyId == 0 || ptin_trap_policy[index].policyId == BROAD_POLICY_INVALID)
+    /* Entry is used? */
+    if (!ptin_trap_policy[index].in_use)
     {
       continue;
     }
 
-    rule = 0;
-    while (l7_bcm_policy_hwInfo_get(0, ptin_trap_policy[index].policyId, rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+    group_id   = entry_id   = -1; 
+    policer_id = counter_id = -1;
+
+    /* Get hardware settings of first entry */
+    if (ptin_trap_policy[index].policyId > 0 && ptin_trap_policy[index].policyId < BROAD_POLICY_INVALID)
     {
-      if (rule == 0)
+      rc = l7_bcm_policy_hwInfo_get(0, ptin_trap_policy[index].policyId, 0, &group_id, &entry_id, &policer_id, &counter_id);
+    }
+    else
+    {
+      rc = L7_NOT_EXIST;
+    }
+
+    /* Run all related entries */
+    rule  = 0;
+    do
+    {
+      /* Show an asterisk if configured in hardware */
+      if (rc == L7_SUCCESS && rule == 0)
         printf("*");
       else
         printf(" ");
-      printf("<%3u/%u> ", index, rule); 
+
+      /* Show policy and rule indexes */
+      if (rc == L7_SUCCESS)
+        printf("<%3u/%u> ", index, rule);
+      else
+        printf("<%3u/x> ", index);
 
       /* Packet type */
       switch (ptin_trap_policy[index].packet_type)
@@ -4429,27 +4456,38 @@ void ptin_traprules_dump(void)
       /* VLAN */
       if (ptin_trap_policy[index].vlan > 0 && ptin_trap_policy[index].vlan < 4096)
       {
-        printf("VLAN %4u/%-4u: ", ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask);
+        printf("VLAN %4u/0x%03x: ", ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask);
       }
       
-      /* Also print hw group id and entry id*/
-      printf("policyId=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId=%-4d)",
-             ptin_trap_policy[index].policyId, rule, group_id, entry_id, policer_id, counter_id);
-
-      /* Check counter */
-      if (counter_id > 0)
+      /* If hardware is configured... */      
+      if (rc == L7_SUCCESS)
       {
-        printf(": Packets=");
-        /* Get stat data */
-        if (hapiBroadPolicyStatsGet(ptin_trap_policy[index].policyId, rule, &stat) != L7_SUCCESS)
-          printf("Error");
-        else
-          printf("%llu", stat.statMode.counter.count);
+        /* Also print hw group id and entry id*/
+        printf("policyId=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId=%-4d)",
+               ptin_trap_policy[index].policyId, rule, group_id, entry_id, policer_id, counter_id);
+
+        /* Check counter */
+        if (counter_id > 0)
+        {
+          printf(": Packets=");
+          /* Get stat data */
+          if (hapiBroadPolicyStatsGet(ptin_trap_policy[index].policyId, rule, &stat) != L7_SUCCESS)
+            printf("Error");
+          else
+            printf("%llu", stat.statMode.counter.count);
+        }
+      }
+      else
+      {
+        printf("Not active!");
       }
       printf("\r\n");
 
+      /* Next rule */
       rule++;
-    }
+
+    } while ((ptin_trap_policy[index].policyId > 0 && ptin_trap_policy[index].policyId < BROAD_POLICY_INVALID) &&
+             ((rc=l7_bcm_policy_hwInfo_get(0, ptin_trap_policy[index].policyId, rule, &group_id, &entry_id, &policer_id, &counter_id))==L7_SUCCESS));
   }
 
   printf("Global admin:\r\n");
