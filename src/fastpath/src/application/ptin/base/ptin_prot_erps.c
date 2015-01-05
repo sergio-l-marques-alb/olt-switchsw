@@ -1706,6 +1706,18 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
 
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
+
+    if (apsReqStatusRx != tbl_erps[erps_idx].apsReqStatusRx[apsRxPort])
+    {
+      LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Received R-APS Request(0x%x) = %s(0x%x), apsRxPort %d, Node Id %.2x%.2x%.2x%.2x%.2x%.2x", erps_idx, apsReqRx,
+              remReqToString[apsReqRx], APS_GET_STATUS(apsStatusRx), apsRxPort,
+              apsNodeIdRx[0],
+              apsNodeIdRx[1],
+              apsNodeIdRx[2],
+              apsNodeIdRx[3],
+              apsNodeIdRx[4],
+              apsNodeIdRx[5]);
+    }
 #else
     apsReqRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] >> 12) & 0xF;
     apsStatusRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] & 0x00FF);
