@@ -1522,6 +1522,202 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
 }
 
 /**
+ * Configure maximum valid frame size
+ * 
+ * @param usp 
+ * @param frame_size 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI_t *dapi_g)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  L7_int        i;
+  bcm_error_t   rv;
+
+  /* Validate dapiPort */
+  if (usp->unit<0 || usp->slot<0 || usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  dapiPortPtr = DAPI_PORT_GET( usp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
+
+  /* Validate pointers */
+  if (dapiPortPtr ==L7_NULLPTR || hapiPortPtr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Accept only physical interfaces */
+  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+  {
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g );
+      if (hapiPortPtr_member==L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+        return L7_FAILURE;
+      }
+
+      /* Set oversize packets limite */
+      rv = bcm_port_control_set(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port, bcmPortControlStatOversize, frame_size);
+
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                rv);
+        return L7_FAILURE;
+      }
+    }
+  }
+  else if ( IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    /* Set oversize packets limite */
+    rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlStatOversize, frame_size);
+
+    if (rv != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+              usp->unit, usp->slot, usp->port, rv);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port type (usp={%d,%d,%d}) is not valid!", usp->unit, usp->slot, usp->port);
+    return L7_NOT_SUPPORTED;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read maximum valid frame size
+ * 
+ * @param usp 
+ * @param frame_size (output)
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_frame_oversize_get(DAPI_USP_t *usp, L7_uint32 *frame_size, DAPI_t *dapi_g)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr, *hapiPortPtr_member;
+  L7_int        fsize_res = L7_MAX_FRAME_SIZE, fsize;
+  L7_int        i;
+  bcm_error_t   rv;
+
+  /* Validate dapiPort */
+  if (usp->unit<0 || usp->slot<0 || usp->port<0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Get port pointers */
+  dapiPortPtr = DAPI_PORT_GET( usp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( usp, dapi_g );
+
+  /* Validate pointers */
+  if (dapiPortPtr ==L7_NULLPTR || hapiPortPtr == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid interface");
+    return L7_FAILURE;
+  }
+
+  /* Accept only physical interfaces */
+  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+  {
+    fsize_res = L7_MAX_FRAME_SIZE;
+
+    /* Apply to all member ports */
+    for (i=0; i<L7_MAX_MEMBERS_PER_LAG; i++)
+    {
+      if (!dapiPortPtr->modeparm.lag.memberSet[i].inUse)  continue;
+
+      hapiPortPtr_member = HAPI_PORT_GET( &dapiPortPtr->modeparm.lag.memberSet[i].usp, dapi_g );
+      if (hapiPortPtr_member==L7_NULLPTR)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting HAPI_PORT_GET for usp={%d,%d,%d}",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port);
+        return L7_FAILURE;
+      }
+
+      /* Set oversize packets limite */
+      rv = bcm_port_control_get(hapiPortPtr_member->bcm_unit, hapiPortPtr_member->bcm_port, bcmPortControlStatOversize, &fsize);
+
+      if (rv != BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.unit,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.slot,
+                dapiPortPtr->modeparm.lag.memberSet[i].usp.port,
+                rv);
+        return L7_FAILURE;
+      }
+      else if (fsize < fsize_res)
+      {
+        /* Update frame size (select minimum) */
+        fsize_res = fsize;
+      }
+    }
+  }
+  else if ( IS_PORT_TYPE_PHYSICAL(dapiPortPtr) )
+  {
+    /* Set oversize packets limite */
+    rv = bcm_port_control_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlStatOversize, &fsize);
+
+    if (rv != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting oversize frame limite at port {%d,%d,%d} (rv=%d)",
+              usp->unit, usp->slot, usp->port, rv);
+      return L7_FAILURE;
+    }
+    else
+    {
+      fsize_res = fsize;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Port type (usp={%d,%d,%d}) is not valid!", usp->unit, usp->slot, usp->port);
+    return L7_NOT_SUPPORTED;
+  }
+
+  /* Return value */
+  if (frame_size != L7_NULLPTR)
+  {
+    *frame_size = fsize_res;
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Returning Oversize frame limite for port {%d,%d,%d} as %u",
+              usp->unit, usp->slot, usp->port, *frame_size);
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Get Egress port type definition
  * 
  * @param dapiPort  : Physical interface

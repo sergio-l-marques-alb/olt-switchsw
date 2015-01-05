@@ -87,7 +87,7 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
   L7_RC_t rc = L7_SUCCESS;
   L7_uint8 enable, link;
 
-  LOG_INFO(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: procedure=%u, param1=%d, param2=%d", hwproc->procedure, hwproc->param1, hwproc->param2);
+  LOG_TRACE(LOG_CTX_PTIN_HAPI, "PTin HAPI Configuration: procedure=%u, param1=%d, param2=%d", hwproc->procedure, hwproc->param1, hwproc->param2);
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}",usp->unit, usp->slot, usp->port);
 
   /* Validate interface */
@@ -103,13 +103,6 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     return L7_SUCCESS;
   }
 
-  /* Validate operation */
-  if (hwproc->operation != DAPI_CMD_SET && hwproc->operation != DAPI_CMD_CLEAR)
-  {
-    LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
-    return L7_SUCCESS;
-  }
-
   switch (hwproc->procedure)
   {
   case PTIN_HWPROC_LINKSCAN:
@@ -117,7 +110,7 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_linkscan_get(usp, dapi_g, &enable); 
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_get");
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_get: rc=%d", rc);
       hwproc->param1 = (L7_int32) enable;
     }
     else if (hwproc->operation == DAPI_CMD_SET)
@@ -125,7 +118,12 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
       enable = (L7_uint8) hwproc->param1;
       rc = ptin_hapi_linkscan_set(usp, dapi_g, enable);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set (%u)", hwproc->param1);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_linkscan_set (%u): rc=%d", hwproc->param1, rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      rc = L7_FAILURE;
     }
     break;
 
@@ -135,13 +133,18 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_link_force(usp, dapi_g, link, L7_ENABLE);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=1)", hwproc->param1);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=1): rc=%d", hwproc->param1, rc);
     }
     else if (hwproc->operation == DAPI_CMD_CLEAR)
     {
       rc = ptin_hapi_link_force(usp, dapi_g, link, L7_DISABLE);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=0)", hwproc->param1);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_force_link (link=%u, enable=0): rc=%d", hwproc->param1, rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      rc = L7_FAILURE;
     }
     break; 
 
@@ -155,7 +158,12 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
 
       rc = ptin_hapi_clock_recovery_set(main_port, bckp_port, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_clock_recovery_set (main_port=%d, backup_port=%d)", main_port, bckp_port);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_clock_recovery_set (main_port=%d, backup_port=%d): rc=%d", main_port, bckp_port, rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      rc = L7_FAILURE;
     }
     break;
 
@@ -164,15 +172,43 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_vcap_defvid(usp, hwproc->param1, hwproc->param2, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=%u, innerVlan=%u)", hwproc->param1, hwproc->param2);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=%u, innerVlan=%u): rc=%d", hwproc->param1, hwproc->param2, rc);
     }
     else if (hwproc->operation == DAPI_CMD_CLEAR)
     {
       rc = ptin_hapi_vcap_defvid(usp, 0, 0, dapi_g);
       if (rc != L7_SUCCESS)
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=0, innerVlan=0)");
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_vcap_defvid (outerVlan=0, innerVlan=0): rc=%d", rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      rc = L7_FAILURE;
     }
     break; 
+
+  case PTIN_HWPROC_FRAME_OVERSIZE:
+    if (hwproc->operation == DAPI_CMD_GET)
+    {
+      rc = ptin_hapi_frame_oversize_get(usp, &hwproc->param1, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_frame_oversize_get: rc=%d", rc);
+      else
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Oversize frame limite for port {%d,%d,%d} is %u bytes",
+                  usp->unit, usp->slot, usp->port, hwproc->param1);
+    }
+    else if (hwproc->operation == DAPI_CMD_SET)
+    {
+      rc = ptin_hapi_frame_oversize_set(usp, hwproc->param1, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_frame_oversize_set (frame_size=%u): rc=%d", hwproc->param1, rc);
+    }
+    else
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Operation not recognized: %u", hwproc->operation);
+      rc = L7_FAILURE;
+    }
+    break;
 
   default:
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid procedure: %u", hwproc->procedure);

@@ -209,6 +209,28 @@ extern L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 li
 extern L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t *dapi_g);
 
 /**
+ * Configure maximum valid frame size
+ * 
+ * @param usp 
+ * @param frame_size 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_frame_oversize_set(DAPI_USP_t *usp, L7_uint32 frame_size, DAPI_t *dapi_g);
+
+/**
+ * Read maximum valid frame size
+ * 
+ * @param usp 
+ * @param frame_size (output)
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_frame_oversize_get(DAPI_USP_t *usp, L7_uint32 *frame_size, DAPI_t *dapi_g);
+
+/**
  * Get Egress port type definition
  * 
  * @param dapiPort  : Physical interface

@@ -570,6 +570,26 @@ extern L7_RC_t ptin_intf_vcap_defvid(L7_uint32 intIfNum, L7_uint16 outerVlan, L7
 extern L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp);
 
 /**
+ * Configure Maximum frame size
+ * 
+ * @param intIfNum 
+ * @param frame_size 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
+ */
+extern L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size);
+
+/**
+ * Read Maximum frame size
+ * 
+ * @param intIfNum 
+ * @param frame_size (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
+ */
+extern L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size);
+
+/**
  * Enable or disable linkscan control for a particular port
  * 
  * @param port 

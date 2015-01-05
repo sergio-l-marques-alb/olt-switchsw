@@ -234,6 +234,16 @@ L7_RC_t ptin_intf_init(void)
       return L7_FAILURE;
     }
 
+    #if 0
+    /* Configure Oversized frame size */
+    rc = ptin_intf_oversize_frame_set(map_port2intIfNum[i], 1518);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set ovsersized frame size on port# %u", i);
+      return L7_FAILURE;
+    }
+    #endif
+
     /* QoS initialization */
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
@@ -774,6 +784,7 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   }
   
   /* MaxFrame */
+  #if 1
   if ((phyConf->Mask & PTIN_PHYCONF_MASK_MAXFRAME) &&
       (usmDbIfConfigMaxFrameSizeGet(intIfNum, &value) == L7_SUCCESS) &&
       (value != phyConf->MaxFrame))
@@ -787,6 +798,21 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
     phyConf_data[port].MaxFrame = phyConf->MaxFrame; /* update buffered conf data */
     LOG_TRACE(LOG_CTX_PTIN_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
   }
+  #else
+  if ((phyConf->Mask & PTIN_PHYCONF_MASK_MAXFRAME) &&
+      (ptin_intf_frame_oversize_get(intIfNum, &value) == L7_SUCCESS) &&
+      (value != phyConf->MaxFrame))
+  {
+    if (ptin_intf_frame_oversize_set(intIfNum, phyConf->MaxFrame) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to set max frame on port# %u", port);
+      return L7_FAILURE;
+    }
+
+    phyConf_data[port].MaxFrame = phyConf->MaxFrame; /* update buffered conf data */
+    LOG_TRACE(LOG_CTX_PTIN_INTF, " MaxFrame:    %u", phyConf->MaxFrame);
+  }
+  #endif
 
   /* Loopback */
   if ((phyConf->Mask & PTIN_PHYCONF_MASK_LOOPBACK) &&
@@ -5739,6 +5765,183 @@ L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_port_bckp
   return rc;
 }
 
+/**
+ * Configure Maximum frame size
+ * 
+ * @param intIfNum 
+ * @param frame_size 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
+ */
+L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size)
+{
+  L7_uint         i;
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32       intIfNum_list_size;
+  L7_uint32       intIfNum_list[PTIN_SYSTEM_N_PORTS];
+  ptin_hwproc_t hw_proc;
+  L7_RC_t         rc_global = L7_SUCCESS, rc;
+
+  /* Validate ports */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Interface type */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Unable to get intfType from intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* List of ports to be configured */
+  if (intf_type == L7_PHYSICAL_INTF)
+  {
+    intIfNum_list_size = 1;
+    intIfNum_list[0] = intIfNum;
+  }
+  else if (intf_type == L7_LAG_INTF)
+  {
+    intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
+    if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Unable to get LAG members from intIfNum %d", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc, 0x00, sizeof(hw_proc)); 
+
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_FRAME_OVERSIZE;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = frame_size;
+
+  for (i = 0; i < intIfNum_list_size; i++)
+  {
+    /* Apply procedure */
+    rc = dtlPtinHwProc(intIfNum_list[i], &hw_proc);
+
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Error configuring frame_size %u for intIfNum %u", frame_size, intIfNum_list[i]);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"Max Frame size (%u) configured for intIfNum %u configured", frame_size, intIfNum_list[i]);
+    }
+  }
+
+  return rc_global;
+}
+
+/**
+ * Read Maximum frame size
+ * 
+ * @param intIfNum 
+ * @param frame_size (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_NOT_SUPPORTED
+ */
+L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
+{
+  L7_uint         i;
+  L7_uint         fsize = L7_MAX_FRAME_SIZE;
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32       intIfNum_list_size;
+  L7_uint32       intIfNum_list[PTIN_SYSTEM_N_PORTS];
+  ptin_hwproc_t   hw_proc;
+  L7_RC_t         rc_global = L7_SUCCESS, rc;
+
+  /* Validate ports */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Interface type */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Unable to get intfType from intIfNum %d", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* List of ports to be configured */
+  if (intf_type == L7_PHYSICAL_INTF)
+  {
+    intIfNum_list_size = 1;
+    intIfNum_list[0] = intIfNum;
+  }
+  else if (intf_type == L7_LAG_INTF)
+  {
+    intIfNum_list_size = PTIN_SYSTEM_N_PORTS;
+    if (usmDbDot3adMemberListGet(1, intIfNum, &intIfNum_list_size, intIfNum_list) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Unable to get LAG members from intIfNum %d", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Not supported type (%u) for intIfNum %d", intf_type, intIfNum);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc, 0x00, sizeof(hw_proc)); 
+
+  hw_proc.operation = DAPI_CMD_GET;
+  hw_proc.procedure = PTIN_HWPROC_FRAME_OVERSIZE;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = 0;
+
+  for (i = 0; i < intIfNum_list_size; i++)
+  {
+    /* Apply procedure */
+    rc = dtlPtinHwProc(intIfNum_list[i], &hw_proc);
+
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_API,"Error reading frame_size for intIfNum %u", intIfNum_list[i]);
+      rc_global = rc;
+    }
+    else 
+    {
+      LOG_TRACE(LOG_CTX_PTIN_API,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], hw_proc.param1);
+
+      /* Select minimum frame size */
+      if (hw_proc.param1 < fsize)
+        fsize = hw_proc.param1;
+    }
+  }
+
+  /* Validate calculated frame size */
+  if (rc_global == L7_SUCCESS && fsize > L7_MAX_FRAME_SIZE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API,"Invalid frame_size (%u) for intIfNum %u", fsize, intIfNum_list[i]);
+    rc_global = L7_FAILURE;
+  }
+
+  /* Return result */
+  if (rc_global == L7_SUCCESS)
+  {
+    if (frame_size != L7_NULLPTR)
+    {
+      *frame_size = fsize;
+      LOG_TRACE(LOG_CTX_PTIN_API,"Oversize frame_size for intIfNum %u is %u bytes", intIfNum_list[i], *frame_size);
+    }
+  }
+
+  return rc_global;
+}
 
 
 int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
