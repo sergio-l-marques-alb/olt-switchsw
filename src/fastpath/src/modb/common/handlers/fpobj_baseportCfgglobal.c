@@ -185,7 +185,7 @@ xLibRC_t fpObjSet_baseportCfgglobal_GlobalFrameSize (void *wap, void *bufp)
 
   if( usmDbSocIs53115Check(L7_UNIT_CURRENT))
   {
-     if(  ( objGlobalFrameSizeValue !=  L7_MIN_FRAME_SIZE) && ( objGlobalFrameSizeValue != PLAT_MAX_FRAME_SIZE ))
+     if(  ( objGlobalFrameSizeValue !=  L7_MIN_FRAME_SIZE) && ( objGlobalFrameSizeValue != L7_MAX_FRAME_SIZE ))
      {
        owa.rc = XLIBRC_INVALID_VALUE_GENERIC;
        FPOBJ_TRACE_EXIT (bufp, owa);

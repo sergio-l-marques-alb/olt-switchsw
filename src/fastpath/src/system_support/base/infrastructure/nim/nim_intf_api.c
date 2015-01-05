@@ -1985,7 +1985,7 @@ L7_RC_t nimSetIntfConfigMaxFrameSize(L7_uint32 intIfNum, L7_uint32 maxFrameSize)
       if (rc != L7_SUCCESS)
         break;  /* goto while 0 due to interface not existing or wrong type */
 
-      if (maxFrameSize < L7_MIN_FRAME_SIZE || maxFrameSize > PLAT_MAX_FRAME_SIZE)
+      if (maxFrameSize < L7_MIN_FRAME_SIZE || maxFrameSize > L7_MAX_FRAME_SIZE)
       {
         rc = L7_FAILURE;
         break; /* goto while 0 */

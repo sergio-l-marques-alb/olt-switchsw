@@ -1637,7 +1637,7 @@ void buildTreeInterfaceMaxFrameSize(EwsCliCommandP depth1)
 
   if(cnfgrBaseTechnologySubtypeGet() == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115)
   {
-    sprintf(buf,"%d ", PLAT_MAX_FRAME_SIZE);
+    sprintf(buf,"%d ", L7_MAX_FRAME_SIZE);
   }
   else
   {

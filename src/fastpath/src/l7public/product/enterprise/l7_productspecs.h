@@ -67,7 +67,7 @@
 #define PROD_MAX_MEMBERS_PER_LAG                          8
 #define PROD_MAX_FDB_MAC_ENTRIES                          131072  /* PTin modified: 32768 => 131072 */
 #define PROD_MIN_FRAME_SIZE                               1518
-#define PROD_MAX_FRAME_SIZE                               9216
+#define PROD_MAX_FRAME_SIZE                               12288   /* PTin modified: 9216 => 12K */
 #define PROD_DOT1P_NUM_TRAFFIC_CLASSES                    8
 #define PROD_DOT1X_MAX_USERS_CONST                        4         /*Note : this value should be between 1 and L7_DOT1X_PORT_MAX_MAC_USERS*/
 #define PROD_DOT1S_ASYNC_STATE_SET                        L7_TRUE
