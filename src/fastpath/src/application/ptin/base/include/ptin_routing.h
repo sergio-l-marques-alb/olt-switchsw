@@ -269,6 +269,28 @@ L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx);
  */
 L7_RC_t ptin_routing_traceroutesession_freeall();
 
+/**
+ * Configure the option L3UcastTtl1ToCpu. 
+ * This option allows packets received with TTL=1 to be 
+ * processed which is mandatory for traceroute responses.
+ *  
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_routing_L3UcastTtl1ToCpu_set(L7_BOOL enable);
+
+/**
+ * Configure the option ICMPRedirects. 
+ * This option allows all ICMP packets to be always sent to CPU 
+ * no matter their Dst IP Addr 
+ *  
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_routing_ICMPRedirects_set(ptin_intf_t* routingIntf, L7_BOOL enable);
+
 
 /*********************************************************** 
  * Debug methods

@@ -22,6 +22,7 @@
 #include "ping_exports.h"
 #include "traceroute_exports.h"
 #include "usmdb_rlim_api.h"
+#include "dtl_ptin.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -58,6 +59,7 @@ typedef struct ptin_routing_intf_s
   L7_uint16 routingVlanId;    
   L7_uint16 internalVlanId;   
   L7_uint16 physicalIntfNum;  
+  L7_uint32 routingIntfNum;
 } ptin_routing_intf_t;
 
 typedef struct ptin_routing_loopback_s
@@ -362,6 +364,8 @@ static L7_RC_t __traceroute_sessions_init(void);
  */
 static void __traceroutehops_snapshot_refresh(L7_uint32 sessionIdx);
 
+L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enable);
+
 
 /*********************************************************** 
  * Functions
@@ -554,20 +558,17 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
 #endif /* PTIN_BOARD_IS_MATRIX */
 
   /* Disable ICMP Redirects on this routing interface. This fixes defect OLTTS-10058/OLTTS-10605 */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Disabling sending of ICMP Redirects on intfIfNum %u.", routingIntfNum);
-  if(usmDbIpMapIfICMPRedirectsModeSet(PTIN_ROUTING_USMDB_UNITINDEX, routingIntfNum, L7_DISABLE) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Error while disabling sending of ICMP Redirects on intfIfNum %u.", routingIntfNum);
-    return L7_FAILURE;
-  }
+  __ptin_routing_ICMPRedirects_set(routingIntfNum, L7_DISABLE);
+  
+  __routing_interfaces[routingIntf->intf_id].type           = intfType;
+  __routing_interfaces[routingIntf->intf_id].routingVlanId  = routingVlanId;
+  __routing_interfaces[routingIntf->intf_id].internalVlanId = internalVlanId;
+  __routing_interfaces[routingIntf->intf_id].routingIntfNum = routingIntfNum;
 
   /* 
      For physical routing interfaces, set the MAC address to match the MAC address of the physical interface.
      For vlan routing interfaces, set the MAC address to match the MAC address of the dtl0 interface.
   */
-  __routing_interfaces[routingIntf->intf_id].type           = intfType;
-  __routing_interfaces[routingIntf->intf_id].routingVlanId  = routingVlanId;
-  __routing_interfaces[routingIntf->intf_id].internalVlanId = internalVlanId;
   if(intfType == PTIN_ROUTING_INTF_TYPE_PHYSICAL)
   {
     L7_enetMacAddr_t macAddr;
@@ -1561,6 +1562,99 @@ L7_RC_t ptin_routing_traceroutesession_freeall()
   return L7_SUCCESS;
 }
 
+/**
+ * Configure the option L3UcastTtl1ToCpu. 
+ * This option allows packets received with TTL=1 to be 
+ * processed which is mandatory for traceroute responses.
+ *  
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_routing_L3UcastTtl1ToCpu_set(L7_BOOL enable)
+{
+  ptin_hwproc_t hw_proc;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = enable? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  hw_proc.procedure = PTIN_HWPROC_UC_TTL1_CPU;
+  hw_proc.mask = 0;
+  hw_proc.param1 = 0;
+  hw_proc.param2 = 0;
+
+  /* Apply procedure */
+  rc = dtlPtinHwProc(L7_ALL_INTERFACES, &hw_proc);
+
+  if (rc != L7_SUCCESS)
+    LOG_ERR(LOG_CTX_PTIN_API,"Error applying HW L3UcastTtl1ToCpu");
+
+  return rc;
+}
+
+/**
+ * Configure the option ICMPRedirects. 
+ * This option allows all ICMP packets to be always sent to CPU 
+ * no matter their Dst IP Addr 
+ *  
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enable)
+{
+  /* Enable/Disable ICMP Redirects on this routing interface. This fixes defect OLTTS-10058/OLTTS-10605 */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
+  if(usmDbIpMapIfICMPRedirectsModeSet(PTIN_ROUTING_USMDB_UNITINDEX, routingIntfNum, enable) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Error while setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Configure the option ICMPRedirects. 
+ * This option allows all ICMP packets to be always sent to CPU 
+ * no matter their Dst IP Addr 
+ *  
+ * @param enable : enable
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_routing_ICMPRedirects_set(ptin_intf_t* routingIntf, L7_BOOL enable)
+{
+  L7_uint32 routingIntfNum;
+
+  if( (routingIntf == L7_NULLPTR) )
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Abnormal context [routingIntf:%p]", routingIntf);
+    return L7_ERROR;
+  }
+
+  if(routingIntf->intf_id >= __routing_interfaces_max)
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Requested routing interface ID exceeds the allowed range [id:%u max:%u]", routingIntf->intf_id, __routing_interfaces_max);
+    return L7_FAILURE;
+  }
+
+  if(L7_SUCCESS != ptin_intf_ptintf2intIfNum(routingIntf, &routingIntfNum))
+  {
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to to convert routingIntf %u/%u to intfNum", routingIntf->intf_type, routingIntf->intf_id);
+    return L7_FAILURE;
+  }
+
+  if(__ptin_routing_ICMPRedirects_set(routingIntfNum, enable) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+
 
 /*********************************************************** 
  * Static methods
@@ -2239,6 +2333,7 @@ void ptin_routing_intf_dump(void)
       printf("  routingVlanId:   %u\n", __routing_interfaces[i].routingVlanId);
       printf("  internalVlanId:  %u\n", __routing_interfaces[i].internalVlanId);
       printf("  physicalIntfNum: %u\n", __routing_interfaces[i].physicalIntfNum);
+      printf("  routingIntfNum:  %u\n", __routing_interfaces[i].routingIntfNum);
     }
   }
 }

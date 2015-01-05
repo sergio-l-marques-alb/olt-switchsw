@@ -34,6 +34,7 @@
 #include "l7utils_api.h"
 #include "l7_ip_api.h"
 #include "rlim_api.h"
+#include "ptin_globaldefs.h"
 
 /*************************************
 * Mbuf Queue declarations
@@ -1127,7 +1128,7 @@ L7_RC_t sysapiConfigSwitchIp (L7_uint32 ipAddr, L7_uint32 ipNetMask)
       }
     }
 
-  sprintf(buf,"%s%d", L7_DTL_PORT_IF, 0);
+  sprintf(buf,"%s%d.%d", L7_DTL_PORT_IF, 0, PTIN_VLAN_INBAND);
   osapiArpFlush ((L7_uchar8 *)buf);
 
   /* PTin removed: inband */
@@ -1138,24 +1139,24 @@ L7_RC_t sysapiConfigSwitchIp (L7_uint32 ipAddr, L7_uint32 ipNetMask)
   #endif
 
   if (ipAddr == L7_NULL)
+  {
+    if (netPortRoutingProtRoute->gateway != 0)
     {
-      if (netPortRoutingProtRoute->gateway != 0)
-      {
-      /* Restore RTO route previously masked by network port address */
-      (void)osapiAddMRoute(netPortRoutingProtRoute->ipAddr, netPortRoutingProtRoute->netMask,
-                           netPortRoutingProtRoute->gateway,L7_INVALID_INTF,0);
-      memset((L7_char8 *) netPortRoutingProtRoute, 0, sizeof (simRouteStorage_t));
-      }
+    /* Restore RTO route previously masked by network port address */
+    (void)osapiAddMRoute(netPortRoutingProtRoute->ipAddr, netPortRoutingProtRoute->netMask,
+                         netPortRoutingProtRoute->gateway,L7_INVALID_INTF,0);
+    memset((L7_char8 *) netPortRoutingProtRoute, 0, sizeof (simRouteStorage_t));
     }
-    else
+  }
+  else
+  {
+    if ((oldIpAddr != 0) && (((oldIpAddr & oldNetMask) != (ipAddr & ipNetMask)) ||
+        (ipNetMask != oldNetMask)))
     {
-      if ((oldIpAddr != 0) && (((oldIpAddr & oldNetMask) != (ipAddr & ipNetMask)) ||
-          (ipNetMask != oldNetMask)))
-      {
-      /* Restore RTO route masked by previous network port address */
-      (void)osapiAddMRoute(oldIpAddr, oldNetMask, oldGateway,L7_INVALID_INTF,0);
-      }
+    /* Restore RTO route masked by previous network port address */
+    (void)osapiAddMRoute(oldIpAddr, oldNetMask, oldGateway,L7_INVALID_INTF,0);
     }
+  }
 
   return rc;
 }

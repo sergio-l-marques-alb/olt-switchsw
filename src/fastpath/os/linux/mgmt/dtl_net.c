@@ -41,6 +41,9 @@
   #include <dtl_net.h>
 #ifdef DTL_USE_TAP
   #include <dtl_tap_monitor.h>
+  #include <sys/ioctl.h>
+  #include <linux/if_vlan.h>
+  #include <linux/sockios.h>
 #endif
   #include "errno.h"
 
@@ -63,14 +66,12 @@
 #if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_OLT1T0) )
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #define __SUPPORT_FP_ROUTING__                1
-#define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
 #else
-#define __ENABLE_DTL0INBANDVID_REMOVAL__      1
-//#define __SUPPORT_FP_ROUTING__                1
-//#define __SUPPORT_TEST_TELEFONICA_ROUTING__   0
+#define __ENABLE_DTL0INBANDVID_REMOVAL__      0
+#define __SUPPORT_FP_ROUTING__                0
 #endif
 
-#define DTL0INBANDVID 2047
+#define DTL0INBANDVID PTIN_VLAN_INBAND
 extern L7_uint16 ptin_cfg_inband_vlan_get(void);
 extern L7_uint16 ptin_ipdtl0_getdtl0Vid(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_getInternalVid(L7_uint16 dtl0Vid);
@@ -325,14 +326,6 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
       int op;
       L7_uint32 headerOffset;
 
-      #if __SUPPORT_TEST_TELEFONICA_ROUTING__	/* L3 using only dtl interfaces */
-      L7_uint32 ip_address;
-      L7_ushort16 vlan_id;
-      L7_int l3_intf;
-      L7_char8 mac[6];
-      L7_uint32 intIfNum;
-      #endif
-
       headerOffset = sysNetDataOffsetGet(data);
       arp_header = (L7_ether_arp_t *)(data + headerOffset);
       op = osapiNtohs (arp_header->ea_hdr.ar_op);
@@ -392,43 +385,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
           }
           break;
         }
-      }
-
-      #if __SUPPORT_TEST_TELEFONICA_ROUTING__	/* L3 using only dtl interfaces */
-
-      /* Update the L3 Table for a MAC addr in the network. This is equivalent to the OS ARP Table */
-      if ( dtlFind ( data+6, &intIfNum ) == L7_FAILURE )
-      {
-        /* IP.Interface VID will be used as L3Intf Identifier */
-        memcpy(&vlan_id, &data[14], sizeof(vlan_id));
-        vlan_id = osapiNtohs(vlan_id);
-        vlan_id &= L7_VLAN_TAG_VLAN_ID_MASK;
-        l3_intf = vlan_id;
-
-        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): l3_intf=%d \n\r", __LINE__, l3_intf);
-
-        bcopy (arp_header->arp_spa, (char *) &ip_address, 4);
-        ip_address = osapiNtohl(ip_address);
-
-        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): ip_address=%d \n\r", __LINE__, ip_address);
-
-        bcopy (arp_header->arp_sha, (char *) mac, 6);
-
-        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): mac[]=0x%.2x%.2x%.2x%.2x%.2x%.2x \n\r", __LINE__, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-
-        dtlPtinL3HostAdd(pduInfo->intIfNum, l3_intf, ip_address, mac);
-      }
-      else if (intIfNum  != pduInfo->intIfNum)
-      {
-        bcopy (arp_header->arp_sha, (char *) mac, 6);
-
-        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "dtlIPProtoRecvAny (%d): MAC 0x%.2x%.2x%.2x%.2x%.2x%.2x changed from intIfNum %d -> %d \n\r", __LINE__, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], pduInfo->intIfNum, intIfNum);
-      }
-      #endif
+      }      
     }
 
     /* Always update the physical interface for a MAC addr in the network port fdb. */
@@ -807,6 +764,53 @@ L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
   return(rc);
 }
 
+/**
+ * Add a vlan on to the dtl0 interface. 
+ *  
+ * @param vlanId : Vlan ID to which the routing interface will be associated
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note This creates a routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
+ */
+L7_int ioctl_vlanintf_add(L7_uint16 vlanId)
+{
+  L7_uint32 ioctl_socket_fd = 0;
+  struct    vlan_ioctl_args request; 
+  L7_int    res = 0;
+
+  /* Create a new socket for ioctl interaction */
+  if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Creating new socket to interact with ioctl");
+
+  ioctl_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (ioctl_socket_fd < 0)
+  {
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to create new socket to interact with ioctl");
+    return L7_FAILURE;
+  }
+
+  memset(&request, 0x00, sizeof(request));
+  
+  request.cmd = ADD_VLAN_CMD;
+  strncpy(&request.device1[0], "dtl0", 24);
+  request.u.VID = vlanId;
+
+  if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL1)
+  {
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "ioctl request -> SIOCGIFVLAN");
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "  cmd     = %u", request.cmd);
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "  device1 = %s", request.device1);
+    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "  u.VID   = %u", request.u.VID);
+  }
+
+  if((res = ioctl(ioctl_socket_fd, SIOCGIFVLAN, &request)) < 0)
+  {
+    return res;
+  }
+
+  return res;
+}
 
 /**************************************************************************
 * @purpose  Initialize DTL interface.
@@ -890,6 +894,12 @@ void dtlNetInit(void)
    printf("Unable to create corresponding dtl net ifc\n");
  }
 #endif
+
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  /* This will create the interface dtl0.INBANDVID used to configure the system IP Address */
+  ioctl_vlanintf_add(DTL0INBANDVID);
+  #endif
+
 #endif
 
   if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
@@ -1421,12 +1431,14 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                L7_uchar8             keyToFind[L7_FDB_KEY_SIZE];
                dot1dTpFdbData_t      fdbEntry;
                L7_enetMacAddr_t      mac;
+               L7_uint16             tmp;
 
                memcpy(mac.addr, data, 6);
 
 
                /* Vlan+MAC to search for */
-               memcpy(&keyToFind[0], &vid, sizeof(L7_uint16));
+               tmp = osapiHtons(vid);
+               memcpy(&keyToFind[0], &tmp, sizeof(L7_uint16));
                memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
             
                /* Search for this key: if not found, return success */
@@ -1435,6 +1447,8 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                  SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
                                keyToFind[0], keyToFind[1],
                                keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
+
+                 fdbEntry.dot1dTpFdbPort = 0;
                }
 
                if (dtlNetPtinDebug & DTLNET_PTINDEBUG_LEVEL3)
@@ -1506,11 +1520,13 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                L7_uchar8             keyToFind[L7_FDB_KEY_SIZE];
                dot1dTpFdbData_t      fdbEntry;
                L7_enetMacAddr_t      mac;
+               L7_uint16             tmp;
 
                memcpy(mac.addr, &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
 
                /* Vlan+MAC to search for */
-               memcpy(&keyToFind[0], &vid, sizeof(L7_uint16));
+               tmp = osapiHtons(vid);
+               memcpy(&keyToFind[0], &tmp, sizeof(L7_uint16));
                memcpy(&keyToFind[L7_FDB_IVL_ID_LEN], &data[0], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN);
             
                /* Search for this key: if not found, return success */
@@ -1521,6 +1537,8 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
                    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Entry of Vlan=0x%02x%02x and MAC=%02x:%02x:%02x:%02x:%02x:%02x not found\n\r",
                                  keyToFind[0], keyToFind[1],
                                  keyToFind[2], keyToFind[3], keyToFind[4], keyToFind[5], keyToFind[6], keyToFind[7]);
+
+                   fdbEntry.dot1dTpFdbPort = 0;
                  }
                }
             
