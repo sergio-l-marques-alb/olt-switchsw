@@ -78,6 +78,8 @@ typedef struct
       L7_BOOL                   strictEthTypes;
       BROAD_POLICY_STAGE_t      policyStage;
       int                       ruleCount;
+      int                       policer_id;       /* PTin added: policers */
+      int                       counter_id;       /* PTin added: counters */
     } policy;
     struct
     {

@@ -2,6 +2,7 @@
 #include "fdb_api.h"
 #include "ptin_intf.h"
 #include "ptin_evc.h"
+#include "ptin_fieldproc.h"
 #include "nimapi.h"
 #include "logger.h"
 #include "usmdb_mib_bridge_api.h"
@@ -23,11 +24,10 @@ static ptin_switch_mac_entry  mac_table[PLAT_MAX_FDB_MAC_ENTRIES];
 L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 virtual_port,
                             L7_uint32 vlanId, L7_uchar8 msgsType)
 {
-  L7_uint32         ext_evc_id;
-  L7_uint32         pon_port;
   L7_INTF_TYPES_t   intf_type;
   intf_vp_entry_t   vp_entry;
   ptin_bw_profile_t profile;
+  ptin_bw_meter_t   meter;
   L7_RC_t           rc = L7_SUCCESS;
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Learning event received: %u", msgsType);
@@ -37,15 +37,19 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   {
     return L7_SUCCESS;
   }
-
-  /* Get EVC id from VLAN */
-  if (ptin_evc_get_evcIdfromIntVlan(vlanId, &ext_evc_id) != L7_SUCCESS)
+  /* Broadcast packets are not considered */
+  if (macAddr[0]==0xff && macAddr[1]==0xff && macAddr[2]==0xff && macAddr[3]==0xff && macAddr[4]==0xff && macAddr[5]==0xff)
   {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Unknown internal VLAN: %u", vlanId);
-    return L7_FAILURE;
+    return L7_SUCCESS;
+  }
+  /* Multicast packets are not considered */
+  if (macAddr[0] & 0x01)
+  {
+    return L7_SUCCESS;
   }
 
-  /* Get intf type */
+  LOG_TRACE(LOG_CTX_PTIN_L2, "intIfNum %u, vport 0x%x", intIfNum, virtual_port);
+
   if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_L2, "Unknown intIfNum type: %u", intIfNum);
@@ -55,8 +59,13 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   /* This routine only applies to virtual ports */
   if (intf_type != L7_VLAN_PORT_INTF)
   {
+    LOG_TRACE(LOG_CTX_PTIN_L2, "Not a virtual port: intIfNum %u, vport 0x%x", intIfNum, virtual_port);
     return L7_SUCCESS;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_L2, "Processing vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x, intIfNum %u, vport 0x%x",
+            vlanId, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5],
+            intIfNum, virtual_port);
 
   /* Search for this entry */
   memset(&vp_entry, 0x00, sizeof(vp_entry));
@@ -74,17 +83,12 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     return L7_SUCCESS;
   }
 
-  /* Get USP of PON port */
-  if (ptin_intf_ptintf2port(&vp_entry.pon, &pon_port) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain ptin_port from port %u/%u", vp_entry.pon.intf_type, vp_entry.pon.intf_id);
-    return L7_FAILURE;
-  }
-
   /* Fill structure for policer */
   memset(&profile, 0x00, sizeof(profile));
-  profile.ptin_port      = pon_port;
-  profile.outer_vlan_out = vp_entry.gem_id;
+  memset(&meter, 0x00, sizeof(meter));
+  profile.ptin_port           = -1;
+  profile.outer_vlan_internal = vlanId;
+  profile.cos                 = (L7_uint8) -1;
   memcpy(profile.macAddr, macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
   if (msgsType == FDB_ADD)
@@ -93,10 +97,10 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
               macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
 
     /* Add policer */
-    profile.meter.cir = vp_entry.policer.meter.cir;
-    profile.meter.eir = vp_entry.policer.meter.eir;
-    profile.meter.cbs = vp_entry.policer.meter.cbs;
-    profile.meter.ebs = vp_entry.policer.meter.ebs;
+    meter.cir = vp_entry.policer.meter.cir;
+    meter.eir = vp_entry.policer.meter.eir;
+    meter.cbs = vp_entry.policer.meter.cbs;
+    meter.ebs = vp_entry.policer.meter.ebs;
   }
   else if (msgsType == FDB_DEL)
   {
@@ -104,10 +108,10 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
               macAddr[0],macAddr[1],macAddr[2],macAddr[3],macAddr[4],macAddr[5], vlanId, intIfNum, virtual_port);
 
     /* Remove policer */
-    profile.meter.cir = (L7_uint32) -1;
-    profile.meter.eir = (L7_uint32) -1;
-    profile.meter.cbs = (L7_uint32) -1;
-    profile.meter.ebs = (L7_uint32) -1;
+    meter.cir = (L7_uint32) -1;
+    meter.eir = (L7_uint32) -1;
+    meter.cbs = (L7_uint32) -1;
+    meter.ebs = (L7_uint32) -1;
   }
   else
   {
@@ -115,10 +119,12 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     rc = L7_FAILURE;
   }
 
-  /* Apply policer*/
-  if (ptin_evc_bwProfile_set(ext_evc_id, &profile) != L7_SUCCESS)
+  LOG_TRACE(LOG_CTX_PTIN_L2, "Going to configure policer");
+
+  /* Apply policer */
+  if (ptin_bwPolicer_set(&profile, &meter, vp_entry.policer.policer_id) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Error applying profile to eEVC %u", ext_evc_id);
+    LOG_ERR(LOG_CTX_PTIN_L2, "Error applying profile");
     rc = L7_FAILURE;
   }
 
@@ -128,7 +134,9 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     return rc;
   }
 
-  return L7_FAILURE;
+  LOG_TRACE(LOG_CTX_PTIN_L2, "Policer configured successfully");
+
+  return L7_SUCCESS;
 }
 
 /**

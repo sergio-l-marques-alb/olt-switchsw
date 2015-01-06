@@ -1144,25 +1144,49 @@ L7_RC_t hapiBroadPtinBwPolicer(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   ptin_bwPolicer_t *bwPolicer = (ptin_bwPolicer_t *) data;
   L7_RC_t status=L7_SUCCESS;
 
+  if (usp != L7_NULLPTR)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}", usp->unit, usp->slot, usp->port); 
+  }
+
+  /* Adapt usp data */
+  if (usp != L7_NULLPTR && !IS_SLOT_TYPE_PHYSICAL(usp, dapi_g) && !IS_SLOT_TYPE_LOGICAL_LAG(usp, dapi_g))
+  {
+    usp->unit = usp->slot = usp->port = -1;
+  }
+
+  if (usp != L7_NULLPTR)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d}", usp->unit, usp->slot, usp->port); 
+  }
+
   switch (bwPolicer->operation)  {
     case DAPI_CMD_GET:
-      status=hapi_ptin_bwPolicer_get(usp, &bwPolicer->profile, dapi_g);
+      status=hapi_ptin_bwPolicer_get(usp, bwPolicer, dapi_g);
       break;
 
     case DAPI_CMD_SET:
-      status=hapi_ptin_bwPolicer_set(usp, &bwPolicer->profile, dapi_g);
+      status=hapi_ptin_bwPolicer_set(usp, bwPolicer, dapi_g);
       break;
 
     case DAPI_CMD_CLEAR:
-      status=hapi_ptin_bwPolicer_delete(usp, &bwPolicer->profile, dapi_g);
+      status=hapi_ptin_bwPolicer_delete(usp, bwPolicer, dapi_g);
       break;
             
   case DAPI_CMD_CLEAR_ALL:
-    status=hapi_ptin_bwPolicer_deleteAll(usp, &bwPolicer->profile, dapi_g);
+    status=hapi_ptin_bwPolicer_deleteAll(usp, bwPolicer, dapi_g);
     break;
 
-    default:
-      status = L7_FAILURE;
+  case PTIN_CMD_CREATE:
+    status=hapi_ptin_bwPolicer_create(usp, bwPolicer, dapi_g);
+    break;
+
+  case PTIN_CMD_DESTROY:
+    status=hapi_ptin_bwPolicer_destroy(usp, bwPolicer, dapi_g);
+    break;
+
+  default:
+    status = L7_FAILURE;
   }
 
   return status;

@@ -1005,6 +1005,40 @@ L7_RC_t hapi_ptin_bcmPort_get(L7_int port, L7_int *bcm_port)
 }
 
 /**
+ * Get pbmp value for a bitmap of ptin_ports
+ * 
+ * @param port_bmp 
+ * @param bcm_pbm 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapi_ptin_bcmPbmPort_get(L7_uint64 port_bmp, pbmp_t *bcm_pbm)
+{
+  L7_int      port;
+  bcm_port_t  bcm_port;
+
+  if (bcm_pbm == L7_NULLPTR)
+    return L7_SUCCESS;
+
+  /* Clear port bitmap */
+  BCM_PBMP_CLEAR(*bcm_pbm);
+
+  /* Add all uplink ports */
+  for (port=0; port<ptin_sys_number_of_ports; port++)
+  {
+    if (!((1ULL << port) & port_bmp))
+      continue;
+
+    if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
+    {
+      BCM_PBMP_PORT_ADD(*bcm_pbm, bcm_port);
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Get port if, from the sdk port reference
  * 
  * @param bcm_port: SDK port number 
@@ -1730,10 +1764,10 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     if (egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY)
       continue;
 
-  #if (PTIN_BOARD_IS_LINECARD)
+  #if (PTIN_BOARD_IS_MATRIX)
+    if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)   /* For matrix, only process PROMISCUOUS ports */
+  #elif (PTIN_BOARD_IS_LINECARD)
     if (egress_type != PTIN_PORT_EGRESS_TYPE_ISOLATED)      /* For matrix, only process ISOLATED ports */
-  //#elif (PTIN_BOARD_IS_MATRIX)
-  //  if (egress_type != PTIN_PORT_EGRESS_TYPE_PROMISCUOUS)   /* For matrix, only process PROMISCUOUS ports */
   #else
     if (0)                                                  /* For others, process all ports */
   #endif
@@ -4022,6 +4056,12 @@ void ptin_stormcontrol_dump(void)
   {
     for (index = 0; index < STORM_CONTROL_TRAFFIC_MAX; index++) 
     {
+      /* Skip not used entries */
+      if (policyId_storm[egress_type][index] == 0 || policyId_storm[egress_type][index] == BROAD_POLICY_INVALID)
+      {
+        continue;
+      }
+
       if (index == 0)
       {
         printf("Egress Ports type: ");
@@ -4040,12 +4080,6 @@ void ptin_stormcontrol_dump(void)
           printf("??? (%u type)\r\n", index);
           break;
         }
-      }
-
-      /* Skip not used entries */
-      if (policyId_storm[egress_type][index] == 0 || policyId_storm[egress_type][index] == BROAD_POLICY_INVALID)
-      {
-        continue;
       }
 
       rule = 0;

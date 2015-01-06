@@ -118,6 +118,11 @@ L7_RC_t l7_rpc_server_policy_handler(L7_uint32 tid,
     rpc_policy_data->cmdData.policyInfo.strictEthTypes = data->rpcData.policy.strictEthTypes;
     rpc_policy_data->cmdData.policyInfo.policyType = data->rpcData.policy.policyType;
     rpc_policy_data->cmdData.policyInfo.policyStage = data->rpcData.policy.policyStage;
+    /* PTin added: policers and counters */
+    #if 1
+    rpc_policy_data->cmdData.policyInfo.general_policer_id = data->rpcData.policy.policer_id;
+    rpc_policy_data->cmdData.policyInfo.general_counter_id = data->rpcData.policy.counter_id;
+    #endif
     /* set the policy Rule  and status information to rpc_policy_data only if policy cmd type is 
        BROAD_CUSTOM_POLICY_RULE_STATUS_SET
     */
@@ -386,6 +391,11 @@ int l7_rpc_client_policy_create(BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *pol
   rpcPtr->rpcData.policy.policyType = policyInfo->policyType;
   rpcPtr->rpcData.policy.policyStage = policyInfo->policyStage;
   rpcPtr->rpcData.policy.ruleCount = policyInfo->ruleCount;
+  /* PTin added: policers and counters */
+  #if 1
+  rpcPtr->rpcData.policy.policer_id = policyInfo->general_policer_id;
+  rpcPtr->rpcData.policy.counter_id = policyInfo->general_counter_id;
+  #endif
 
   rpc_data.buf = (L7_uchar8 *)rpcPtr;
   rpc_data.buf_size = rpc_data.data_len = sizeof(BROAD_POLICY_RPC_DATA_t);

@@ -253,7 +253,8 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
 #endif
 
     fdbLearnEntryCallBack(dei->cmdData.unsolAgedAddress.macAddr.addr,
-                          0, 0 /* Not used */, dei->cmdData.unsolAgedAddress.vlanID,
+                          intIfNum, dei->virtual_port /* PTin added: virtual ports */,
+                          dei->cmdData.unsolAgedAddress.vlanID,
                           FDB_DEL);
   }
   else if (event == DAPI_EVENT_ADDR_LOCK_UNKNOWN_ADDRESS)

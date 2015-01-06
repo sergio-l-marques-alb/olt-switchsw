@@ -118,6 +118,7 @@ typedef struct
     #if 1
     int                           *policer_id;
     int                           *counter_id;
+    int                            general_policer_id;
     #endif
     bcm_pbmp_t                     pbm;
     unsigned char                  flags;

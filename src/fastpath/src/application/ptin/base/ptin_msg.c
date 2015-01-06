@@ -65,7 +65,7 @@ static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *c
 static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPortStats,
                                        ptin_HWEthRFC2819_PortStatistics_t *ptinPortStats);
 
-static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile);
+static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter);
 static L7_RC_t ptin_msg_evcStatsStruct_fill(msg_evcStats_t *msg_evcStats, ptin_evcStats_profile_t *evcStats_profile);
 
 L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr);
@@ -3180,6 +3180,7 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
 {
   L7_uint32 evcId;
   ptin_bw_profile_t profile;
+  ptin_bw_meter_t   meter;
   L7_RC_t   rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
@@ -3202,14 +3203,14 @@ L7_RC_t ptin_msg_bwProfile_get(msg_HwEthBwProfile_t *msgBwProfile)
   evcId = msgBwProfile->evcId;
 
   /* Copy data */
-  if (ptin_msg_bwProfileStruct_fill(msgBwProfile,&profile)!=L7_SUCCESS)
+  if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_msg_bwProfileStruct_fill");
     return L7_FAILURE;
   }
 
   /* Add bandwidth profile */
-  if ((rc=ptin_evc_bwProfile_get(evcId,&profile))!=L7_SUCCESS)
+  if ((rc=ptin_evc_bwProfile_get(evcId, &profile, &meter))!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading profile!");
     return rc;
@@ -3230,6 +3231,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
 {
   L7_uint32 evcId;
   ptin_bw_profile_t profile;
+  ptin_bw_meter_t   meter;
   L7_RC_t   rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
@@ -3254,7 +3256,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   evcId = msgBwProfile->evcId;
 
   /* Copy data */
-  if (ptin_msg_bwProfileStruct_fill(msgBwProfile,&profile)!=L7_SUCCESS)
+  if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_msg_bwProfileStruct_fill");
     return L7_FAILURE;
@@ -3264,7 +3266,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   switch (msgId) {
   case CCMSG_ETH_BW_PROFILE_SET:
       profile.cos=-1;   //Set to ignore
-      if ((rc=ptin_evc_bwProfile_set(evcId,&profile))!=L7_SUCCESS)
+      if ((rc=ptin_evc_bwProfile_set(evcId, &profile, &meter)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
         return rc;
@@ -3284,7 +3286,7 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
        //for (i=0; i<8; i++) {
            //profile.cos=i;
            p=profile;
-           if ((rc=ptin_evc_bwProfile_set(evcId,&p))!=L7_SUCCESS)
+           if ((rc=ptin_evc_bwProfile_set(evcId, &p, &meter)) != L7_SUCCESS)
            {
              LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying profile!");
              return rc;
@@ -3309,6 +3311,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
 {
   L7_uint32 evcId;
   ptin_bw_profile_t profile;
+  ptin_bw_meter_t   meter;
   L7_RC_t   rc;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
@@ -3331,7 +3334,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
   evcId = msgBwProfile->evcId;
 
   /* Copy data */
-  if (ptin_msg_bwProfileStruct_fill(msgBwProfile,&profile)!=L7_SUCCESS)
+  if (ptin_msg_bwProfileStruct_fill(msgBwProfile, &profile, &meter) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error with ptin_msg_bwProfileStruct_fill");
     return L7_FAILURE;
@@ -3340,7 +3343,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
   switch (msgId) {
   case CCMSG_ETH_BW_PROFILE_DELETE:
       profile.cos=-1;   //Set to ignore
-      if ((rc=ptin_evc_bwProfile_delete(evcId,&profile))!=L7_SUCCESS)
+      if ((rc=ptin_evc_bwProfile_delete(evcId, &profile)) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
         return rc;
@@ -3360,7 +3363,7 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
        //for (i=0; i<8; i++) {
            //profile.cos=i;
            p=profile;
-           if ((rc=ptin_evc_bwProfile_delete(evcId,&p))!=L7_SUCCESS)
+           if ((rc=ptin_evc_bwProfile_delete(evcId, &p)) != L7_SUCCESS)
            {
              LOG_ERR(LOG_CTX_PTIN_MSG,"Error removing profile!");
              return rc;
@@ -7508,12 +7511,12 @@ static void ptin_msg_PortStats_convert(msg_HWEthRFC2819_PortStatistics_t  *msgPo
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile)
+static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
 {
   L7_int    ptin_port;
 
   /* Validate arguments */
-  if (msgBwProfile==L7_NULLPTR || profile==L7_NULLPTR)
+  if (msgBwProfile==L7_NULLPTR || profile==L7_NULLPTR || meter==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Null arguments");
     return L7_FAILURE;
@@ -7597,18 +7600,18 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
 
   if (msgBwProfile->mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
   {
-    profile->meter.cir = (L7_uint32) (msgBwProfile->profile.cir/1000);   /* in kbps */
-    profile->meter.cbs = (L7_uint32) msgBwProfile->profile.cbs;          /* in bytes */
-    profile->meter.eir = (L7_uint32) (msgBwProfile->profile.eir/1000);   /* in kbps */
-    profile->meter.ebs = (L7_uint32) msgBwProfile->profile.ebs;          /* in bytes */
+    meter->cir = (L7_uint32) (msgBwProfile->profile.cir/1000);   /* in kbps */
+    meter->cbs = (L7_uint32) msgBwProfile->profile.cbs;          /* in bytes */
+    meter->eir = (L7_uint32) (msgBwProfile->profile.eir/1000);   /* in kbps */
+    meter->ebs = (L7_uint32) msgBwProfile->profile.ebs;          /* in bytes */
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Profile data extracted!");
   }
   else
   {
-    profile->meter.cir = (L7_uint32) -1;
-    profile->meter.cbs = (L7_uint32) -1;
-    profile->meter.eir = (L7_uint32) -1;
-    profile->meter.ebs = (L7_uint32) -1;
+    meter->cir = (L7_uint32) -1;
+    meter->cbs = (L7_uint32) -1;
+    meter->eir = (L7_uint32) -1;
+    meter->ebs = (L7_uint32) -1;
   }
 
   return L7_SUCCESS;

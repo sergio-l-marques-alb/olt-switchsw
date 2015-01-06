@@ -20,22 +20,44 @@
  */
 
 /**
- * Get BW policer
- * 
- * @param profile : BW policer profile
+ * Create a new BW policer
+ *  
+ * @param profile : BW profile 
+ * @param policer_id : Policer ID (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile);
+L7_RC_t ptin_bwPolicer_create(ptin_bw_meter_t *meter, L7_int *policer_id);
+
+/**
+ * Destroy a BW policer
+ *  
+ * @param policer_id : Policer ID
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_bwPolicer_destroy(L7_int policer_id);
+
+/**
+ * Get BW policer
+ * 
+ * @param profile : BW policer profile 
+ * @param meter   : Policer meter 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter);
 
 /**
  * Add a new BW policer
  * 
- * @param profile : BW policer profile
+ * @param profile : BW policer profile 
+ * @param meter   : Policer meter 
+ * @param policer_id : Policer id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile);
+L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L7_int policer_id);
 
 /**
  * Remove an existent BW policer

@@ -19,38 +19,118 @@
  */
 
 /**
- * Get BW policer
- * 
- * @param profile : BE policer profile
+ * Create a new BW policer
+ *  
+ * @param profile : BW profile
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile)
+L7_RC_t ptin_bwPolicer_create(ptin_bw_meter_t *meter, L7_int *policer_id)
+{
+  ptin_bwPolicer_t bwPolicer;
+  L7_RC_t rc;
+
+  /* Policer must be a valid pointer */
+  if (meter==L7_NULLPTR || policer_id==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
+
+  bwPolicer.operation  = PTIN_CMD_CREATE;
+  bwPolicer.meter      = *meter;
+  bwPolicer.policer_id = *policer_id;
+
+  rc = dtlPtinBWPolicer(L7_ALL_INTERFACES, &bwPolicer);
+
+  /* Return result */
+  if (rc == L7_SUCCESS)
+  {
+    *policer_id = bwPolicer.policer_id;
+  }
+
+  return rc;
+}
+
+/**
+ * Destroy a BW policer
+ *  
+ * @param profile : BW profile
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_bwPolicer_destroy(L7_int policer_id)
+{
+  ptin_bwPolicer_t bwPolicer;
+  L7_RC_t rc;
+
+  /* Policer must be a valid pointer */
+  if (policer_id <= 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (policer_id=%d)", policer_id);
+    return L7_FAILURE;
+  }
+
+  memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
+
+  bwPolicer.operation  = PTIN_CMD_DESTROY;
+  bwPolicer.policer_id = policer_id;
+
+  rc = dtlPtinBWPolicer(L7_ALL_INTERFACES, &bwPolicer);
+
+  return rc;
+}
+
+/**
+ * Get BW policer
+ * 
+ * @param profile : BE policer profile 
+ * @param meter   : Policer meter
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
 {
   L7_uint32 intIfNum;
   ptin_bwPolicer_t bwPolicer;
   L7_RC_t rc;
 
   /* Validate profile */
-  if (profile == L7_NULLPTR)
+  if (profile == L7_NULLPTR || meter == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
-  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  if (profile->ptin_port >= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
-    return L7_FAILURE;
+    if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    intIfNum = L7_ALL_INTERFACES;
   }
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
 
   bwPolicer.operation  = DAPI_CMD_GET;
   bwPolicer.profile    = *profile;
+  bwPolicer.policer_id = -1;
   bwPolicer.policy_ptr = L7_NULLPTR;
 
   rc = dtlPtinBWPolicer(intIfNum, &bwPolicer);
+
+  /* Copy meter data */
+  if (rc == L7_SUCCESS)
+  {
+    memcpy(meter, &bwPolicer.meter, sizeof(ptin_bw_meter_t));
+  }
 
   return rc;
 }
@@ -58,33 +138,44 @@ L7_RC_t ptin_bwPolicer_get(ptin_bw_profile_t *profile)
 /**
  * Add a new BW policer
  *  
- * @param profile : BW profile
+ * @param profile : BW profile 
+ * @param meter   : Policer meter 
+ * @param policer_id : Policer id
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile)
+L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L7_int policer_id)
 {
   L7_uint32 intIfNum;
   ptin_bwPolicer_t bwPolicer;
   L7_RC_t rc;
 
   /* Policer must be a valid pointer */
-  if (profile==L7_NULLPTR)
+  if (profile==L7_NULLPTR || meter==L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid profile");
     return L7_FAILURE;
   }
   /* Get intIfNum */
-  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  if (profile->ptin_port >= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
-    return L7_FAILURE;
+    if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    intIfNum = L7_ALL_INTERFACES;
   }
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
 
   bwPolicer.operation  = DAPI_CMD_SET;
   bwPolicer.profile    = *profile;
+  bwPolicer.meter      = *meter;
+  bwPolicer.policer_id = policer_id;
   bwPolicer.policy_ptr = L7_NULLPTR;
 
   rc = dtlPtinBWPolicer(intIfNum, &bwPolicer);
@@ -95,7 +186,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile)
 /**
  * Remove an existent BW policer
  *  
- * @param profile : BW profile
+ * @param profile : BW profile 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
@@ -112,16 +203,24 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
     return L7_FAILURE;
   }
   /* Get intIfNum */
-  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+  if (profile->ptin_port >= 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
-    return L7_FAILURE;
+    if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port %u not valid", profile->ptin_port);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    intIfNum = L7_ALL_INTERFACES;
   }
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
 
   bwPolicer.operation  = DAPI_CMD_CLEAR;
   bwPolicer.profile    = *profile;
+  bwPolicer.policer_id = -1;
   bwPolicer.policy_ptr = L7_NULLPTR;
 
   rc = dtlPtinBWPolicer(intIfNum, &bwPolicer);

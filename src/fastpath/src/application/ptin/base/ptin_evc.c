@@ -3738,8 +3738,11 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 #define INVALID_INTF_VP(pentry)     ((pentry)->vport_id == (unsigned long) -1)
 #define EMPTY_INTF_VP               INVALID_INTF_VP
-#define INVALIDATE_INTF_VP(pentry)  {(pentry)->vport_id = (unsigned long) -1;}
-
+#define INVALIDATE_INTF_VP(pentry)  \
+  { \
+    memset((pentry), 0x00, sizeof(intf_vp_entry_t));  \
+    (pentry)->vport_id = (unsigned long) -1;          \
+  }
 
 #define vportId__2__i(vp, M) ( ((vp)^(vp)<<24) % M)
 //static unsigned char invnibble[16]={0, 8, 4, 0xc, 2, 0xa, 6, 0xe, 1, 9, 5, 0xd, 3, 0xb, 7, 0xf};
@@ -3748,6 +3751,9 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 static intf_vp_entry_t  intf_vp_table[INTF_VP_MAX];
 static unsigned long    intf_vp_n = 0;
 static unsigned long    intf_vp_modu = INTF_VP_MAX;
+
+static int              intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter);
+static intf_vp_entry_t *intf_vp_get(L7_uint32 vport_id);
 
 int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
 {
@@ -3785,13 +3791,21 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
          if (_1st_empty>=INTF_VP_MAX) return 3; //if (!EMPTY_IfN_VP(&intf_vp_table[i])) return 3; //if (INTF_VP_MAX==intf_vp_n) return 3;       //no empty entries
          intf_vp_n++;
          intf_vp_table[_1st_empty]=*entry;
+         memset(&intf_vp_table[_1st_empty].policer, 0x00, sizeof(intf_vp_entry_policer_t));   /* No policer for new entries */
      }
      else {                                             //did find it
          if (3==_0init_1insert_2remove_3find) {*entry=intf_vp_table[i]; return 0;}
-         if (2==_0init_1insert_2remove_3find) {INVALIDATE_INTF_VP(&intf_vp_table[i]); intf_vp_n--; return 0;}
+         if (2==_0init_1insert_2remove_3find)
+         {
+           intf_vp_policer(&intf_vp_table[i], L7_NULLPTR);  /* Remove policer */
+           INVALIDATE_INTF_VP(&intf_vp_table[i]);           /* Empty entry */
+           intf_vp_n--;
+           return 0;
+         }
 
          //1==_0init_1insert_2remove_3find
-         intf_vp_table[i]=*entry; //overwrite
+         entry->policer = intf_vp_table[i].policer;   /* Copy policer data to this entry */
+         intf_vp_table[i]=*entry;                     //overwrite
      }
      break;
   case 4:
@@ -3810,14 +3824,87 @@ int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry)
 }//IfN_vp_DB
 
 /**
+ * Set bandwidth policer for one virtual port
+ * 
+ * @param intf_vp
+ * @param meter 
+ * 
+ * @return int : 0>Success, -1>Failed
+ */
+L7_RC_t ptin_evc_vp_policer(L7_uint32 vport_id, ptin_bw_meter_t *meter)
+{
+  intf_vp_entry_t *intf_vp;
+
+  intf_vp = intf_vp_get(vport_id);
+
+  if (intf_vp == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Error getting pointer tp vp entry (vp 0x%x)", vport_id);
+    return L7_FAILURE;
+  }
+
+  /* Process policer */
+  return intf_vp_policer(intf_vp, meter);
+}
+
+/**
+ * Determine vport from pon port and gem id
+ * 
+ * @param pon_port
+ * @param gem_id 
+ * 
+ * @return vport_id (output) 
+ */
+L7_uint32 intf_vp_calc(L7_uint16 pon_port, L7_uint16 gem_id)
+{
+  /* Search for this virtual port */
+  L7_uint32         i;
+  ptin_intf_t       ptin_intf;
+
+  /* Validate arguments */
+  if (pon_port >= PTIN_SYSTEM_N_PORTS || gem_id == 0 || gem_id >= 4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Invalid parameters: pon_port=%u gem_id=%u", pon_port, gem_id);
+    return (L7_uint32) -1;
+  }
+
+  /* Get USP of PON port */
+  if (ptin_intf_port2ptintf(pon_port, &ptin_intf) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot ptin_intf from ptin_port %u", pon_port);
+    return (L7_uint32) -1;
+  }
+
+  /* Search for given port and gem_id */
+  for (i = 0; i < INTF_VP_MAX; i++)
+  {
+    /* Skip non used entries */
+    if (INVALID_INTF_VP(&intf_vp_table[i]))
+      continue;
+
+    /* find pon port and vlan */
+    if (intf_vp_table[i].pon.intf_type == ptin_intf.intf_type && intf_vp_table[i].pon.intf_id == ptin_intf.intf_id &&
+        intf_vp_table[i].gem_id == gem_id)
+      break;
+  }
+  if (i >= INTF_VP_MAX)
+  {
+    LOG_WARNING(LOG_CTX_PTIN_L2, "Matched entry not found: pon_port=%u gem_id=%u", pon_port, gem_id);
+    return (L7_uint32) -1;
+  }
+
+  /* Return result */
+  return intf_vp_table[i].vport_id;
+}
+
+/**
  * Find a particular entry inside virtual port list
  * 
  * @param vport_id 
- * @param entry 
  * 
- * @return int : 0 -> Found, -1 -> Not found
+ * @return entry pointer
  */
-int intf_vp_find(L7_uint32 vport_id, intf_vp_entry_t **entry)
+static intf_vp_entry_t *intf_vp_get(L7_uint32 vport_id)
 {
   unsigned long i, j, k;
 
@@ -3833,84 +3920,104 @@ int intf_vp_find(L7_uint32 vport_id, intf_vp_entry_t **entry)
   /* Not found? */
   if (j>=INTF_VP_MAX)
   {
-    return -1;
+    return L7_NULLPTR;
   }
 
-  /* Pointer to profile */
-  if (entry != L7_NULLPTR)
-  {
-    *entry = &intf_vp_table[i]; 
-  }
-
-  return 0;
+  return &intf_vp_table[i];
 }
 
 /**
  * Set bandwidth policer for one virtual port
  * 
- * @param vport_id 
+ * @param intf_vp
  * @param meter 
  * 
  * @return int : 0>Success, -1>Failed
  */
-int intf_vp_policer(unsigned long vport_id, ptin_bw_meter_t *meter)
+static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
 {
   /* Search for this virtual port */
   L7_uint32         i;
   L7_uint16         vlanId;
-  L7_uint32         ext_evc_id;
-  L7_uint32         pon_port;
-  L7_INTF_TYPES_t   intfType;
   ptin_bw_profile_t profile;
-  intf_vp_entry_t   *intf_vp;
+  ptin_bw_meter_t   meter_info;
+  L7_int            policer_id = -1;
   L7_uchar8         keyNext[L7_FDB_KEY_SIZE];
+  L7_INTF_TYPES_t   intfType;
   dot1dTpFdbData_t  fdbEntry;
   L7_RC_t           rc = L7_SUCCESS;
 
-  /* Search for this virtual port */
-  if (intf_vp_find(vport_id, &intf_vp) != 0)
+  /* Validate arguments */
+  if (intf_vp == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain vp entry for vport_id %u", vport_id);
-    return -1;
-  }
-
-  /* Get USP of PON port */
-  if (ptin_intf_ptintf2port(&intf_vp->pon, &pon_port) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Cannot obtain ptin_port from port %u/%u", intf_vp->pon.intf_type, intf_vp->pon.intf_id);
+    LOG_ERR(LOG_CTX_PTIN_L2, "Invalid arguments");
     return L7_FAILURE;
   }
 
   /* Fill structure for policer */
   memset(&profile, 0x00, sizeof(profile));
-  profile.ptin_port      = pon_port;
-  profile.outer_vlan_out = intf_vp->gem_id;
+  memset(&meter_info, 0x00, sizeof(meter_info));
 
   /* Set meter profile */
-  if (meter == L7_NULLPTR || (meter->cir == (L7_uint32)-1 && meter->eir == (L7_uint32)-1))
+  if (meter != L7_NULLPTR && meter->cir != (L7_uint32)-1)
   {
-    /* Remove policer */
-    intf_vp->policer.in_use = L7_FALSE;
-    memset(&intf_vp->policer.meter, 0x00, sizeof(ptin_bw_meter_t));
+    policer_id = (intf_vp->policer.in_use) ? intf_vp->policer.policer_id : -1;
 
-    /* Remove this policer to all MAC entries */
-    profile.meter.cir = (L7_uint32) -1;
-    profile.meter.eir = (L7_uint32) -1;
-    profile.meter.cbs = (L7_uint32) -1;
-    profile.meter.ebs = (L7_uint32) -1;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Creating policer (%d)", policer_id);
+
+    /* Add this policer to all MAC entries */
+    meter_info.cir = meter->cir;
+    meter_info.eir = meter->eir;
+    meter_info.cbs = meter->cbs;
+    meter_info.ebs = meter->ebs;
+
+    /* Create/modify policer */
+    if (ptin_bwPolicer_create(&meter_info, &policer_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_L2, "Error creating new policer id");
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Policer %d created", policer_id);
+
+    /* Save meter data */
+    intf_vp->policer.meter      = *meter;
+    intf_vp->policer.policer_id = policer_id;
+
+    #if 0
+    /* If policer already exists, nothing more needs to be done */
+    if (intf_vp->policer.in_use)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_L2, "vport 0x%x already have policer", intf_vp->vport_id);
+      return L7_SUCCESS;
+    }
+    #endif
+
+    /* New policer */
+    intf_vp->policer.in_use     = L7_TRUE;
   }
   else
   {
-    /* Add policer */
-    intf_vp->policer.in_use = L7_TRUE;
-    intf_vp->policer.meter = *meter;
+    /* Check if policer exists */
+    if (!intf_vp->policer.in_use)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_L2, "vport 0x%x already does not have policer", intf_vp->vport_id);
+      return L7_SUCCESS;
+    }
 
-    /* Add this policer to all MAC entries */
-    profile.meter.cir = intf_vp->policer.meter.cir;
-    profile.meter.eir = intf_vp->policer.meter.eir;
-    profile.meter.cbs = intf_vp->policer.meter.cbs;
-    profile.meter.ebs = intf_vp->policer.meter.ebs;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Going to remove policer");
+
+    /* Remove this policer to all MAC entries */
+    meter_info.cir = (L7_uint32) -1;
+    meter_info.eir = (L7_uint32) -1;
+    meter_info.cbs = (L7_uint32) -1;
+    meter_info.ebs = (L7_uint32) -1;
+
+    /* Policer id in use */
+    policer_id = intf_vp->policer.policer_id;
   }
+
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Running L2 table");
 
   memset( keyNext, 0x00, sizeof(L7_uchar8)*L7_FDB_KEY_SIZE );
 
@@ -3926,51 +4033,82 @@ int intf_vp_policer(unsigned long vport_id, ptin_bw_meter_t *meter)
       rc = L7_FAILURE;
       continue;
     }
-
+    /* Skip non virtual port entries */
     if (intfType != L7_VLAN_PORT_INTF)
     {
       continue;
     }
 
     /* Check for virtual port id */
-    if (vport_id != fdbEntry.dot1dTpFdbVirtualPort)
+    if (intf_vp->vport_id != fdbEntry.dot1dTpFdbVirtualPort)
     {
       continue;
     }
 
     vlanId = ((L7_uint16) fdbEntry.dot1dTpFdbAddress[0]<<8) | ((L7_uint16) fdbEntry.dot1dTpFdbAddress[1]);
 
-    /* Get EVC id from VLAN */
-    if (ptin_evc_get_evcIdfromIntVlan(vlanId, &ext_evc_id) != L7_SUCCESS)
-    {
-      LOG_TRACE(LOG_CTX_PTIN_L2, "Unknown internal VLAN: %u", vlanId);
-      rc = L7_FAILURE;
-      continue;
-    }
-
     /* Apply policer to current MAC address */
+    profile.ptin_port           = -1;
+    profile.outer_vlan_internal = vlanId;
+    profile.cos                 = (L7_uint8) -1;
     memcpy(profile.macAddr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
+    LOG_TRACE(LOG_CTX_PTIN_L2, "Processing vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+              vlanId, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5]);
+
     /* Apply policer*/
-    if (ptin_evc_bwProfile_set(ext_evc_id, &profile) != L7_SUCCESS)
+    if (ptin_bwPolicer_set(&profile, &meter_info, policer_id) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_L2, "Error applying profile to eEVC %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
-              ext_evc_id, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5]);
+      LOG_ERR(LOG_CTX_PTIN_L2, "Error applying profile to vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+              vlanId, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5]);
       rc = L7_FAILURE;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_L2, "Success applying profile to vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x (policer_id=%d)",
+                vlanId, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5], policer_id);
     }
   }
 
+  /* If success... */
   if (rc == L7_SUCCESS)
   {
-    LOG_INFO(LOG_CTX_PTIN_L2, "Success updating policer to virtual port 0x%08x",vport_id);
+    LOG_INFO(LOG_CTX_PTIN_L2, "Success updating policer to virtual port 0x%08x",intf_vp->vport_id);
+
+    /* Remove policer, if it was that intention */
+    if (meter == L7_NULLPTR || meter->cir == (L7_uint32)-1)
+    {
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Policer %d", intf_vp->policer.policer_id);
+
+      if (intf_vp->policer.policer_id > 0)
+      {
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Going to destroy policer %d", intf_vp->policer.policer_id);
+
+        /* Destroy policer */
+        if (ptin_bwPolicer_destroy(intf_vp->policer.policer_id) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_L2, "Error destroying policer id %d", intf_vp->policer.policer_id);
+          return L7_FAILURE;
+        }
+
+        LOG_TRACE(LOG_CTX_PTIN_EVC,"Policer %d removed", intf_vp->policer.policer_id);
+      }
+
+      /* Clean data */
+      memset(&intf_vp->policer, 0x00, sizeof(intf_vp_entry_policer_t));
+      intf_vp->policer.in_use = L7_FALSE;
+    }
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_L2, "Error updating policer to virtual port 0x%08x",vport_id);
+    LOG_ERR(LOG_CTX_PTIN_L2, "Error updating policer to virtual port 0x%08x",intf_vp->vport_id);
   }
 
-  return 0;
+  LOG_TRACE(LOG_CTX_PTIN_EVC,"Finished");
+
+  return L7_SUCCESS;
 }
+
 
 //#undef INTF_VP_MAX
 
@@ -5101,11 +5239,12 @@ L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl)
  * Read data of a bandwidth profile
  * 
  * @param evc_ext_id : EVC extended index
- * @param profile     : bw profile (input and output)
+ * @param profile    : bw profile
+ * @param meter      : Policer meter (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
 {
   L7_uint32 evc_id;
   L7_RC_t rc = L7_SUCCESS;
@@ -5132,7 +5271,7 @@ L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
   }
 
   /* Read policer information */
-  if ((rc = ptin_bwPolicer_get(profile))!=L7_SUCCESS)
+  if ((rc = ptin_bwPolicer_get(profile, meter))!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Error reading policer profile");
     return rc;
@@ -5146,11 +5285,12 @@ L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
  * specific client 
  * 
  * @param evc_ext_id : EVC extended index
- * @param profile     : bw profile
+ * @param profile    : bw profile 
+ * @param meter      : Policer meter 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter)
 {
   L7_uint32 evc_id;
   L7_RC_t rc = L7_SUCCESS;
@@ -5169,6 +5309,30 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
     return L7_NOT_EXIST;
   }
 
+  /* For QUATTRO services, apply special profiles */
+  if (IS_EVC_QUATTRO(evc_id))
+  {
+    L7_uint32 vport_id;
+
+    /* Calculate vport */
+    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_in);
+
+    if (vport_id == 0 || vport_id == (L7_uint32)-1)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid vport_id 0x%x", vport_id);
+      return L7_FAILURE;
+    }
+
+    /* Apply policer */
+    if (ptin_evc_vp_policer(vport_id, meter) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error applying policer to vport_id 0x%x", vport_id);
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
+  }
+
   /* Verify and update profile data */
   if (ptin_evc_bwProfile_verify(evc_id, profile) != L7_SUCCESS)
   {
@@ -5177,7 +5341,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
   }
 
   /* Apply policer */
-  if ((rc = ptin_bwPolicer_set(profile)) != L7_SUCCESS)
+  if ((rc = ptin_bwPolicer_set(profile, meter, -1)) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Error applying policer");
   }
@@ -5191,7 +5355,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile)
  * Remove a bandwidth profile to an EVC 
  * 
  * @param evc_ext_id : EVC extended index
- * @param profile     : bw profile
+ * @param profile    : bw profile 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
@@ -5212,6 +5376,35 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
   {
     LOG_WARNING(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_NOT_EXIST;
+  }
+
+  /* For QUATTRO services, apply special profiles */
+  if (IS_EVC_QUATTRO(evc_id))
+  {
+    L7_uint32 vport_id;
+
+    /* Calculate vport */
+    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_in);
+
+    if (vport_id == 0 || vport_id == (L7_uint32)-1)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid vport_id 0x%x", vport_id);
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"pon_port=%u, gem_id=%u: vport_id=0x%x", profile->ptin_port, profile->outer_vlan_in, vport_id);
+
+    /* Apply policer */
+    if (ptin_evc_vp_policer(vport_id, L7_NULLPTR) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error removing policer from vport_id 0x%x", vport_id);
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Success applying meter for pon_port=%u, gem_id=%u (vport_id=0x%x)",
+              profile->ptin_port, profile->outer_vlan_in, vport_id);
+
+    return L7_SUCCESS;
   }
 
   /* Verify and update profile data */
@@ -9960,8 +10153,6 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_EVC," MAC         = %02x:%02x:%02x:%02x:%02x:%02x",profile->macAddr[0],profile->macAddr[1],profile->macAddr[2],profile->macAddr[3],profile->macAddr[4],profile->macAddr[5]);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," {CIR,CBS}   = {%lu,%lu}",profile->meter.cir,profile->meter.cbs);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_id >= PTIN_SYSTEM_N_EVCS)
@@ -10004,22 +10195,6 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
       LOG_TRACE(LOG_CTX_PTIN_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_in);
     }
 
-    /* Default outer and inner vlan at egress:
-       - the outer vlan is the defined for each interface
-       - the inner vlan is the same as the internal inner vlan
-       If interface is leaf and EVC is stacked, the outer and inner vlans at egress should not be considered */
-    #if 0
-    #if ( !PTIN_BOARD_IS_MATRIX )
-    profile->outer_vlan_out = 0;
-    profile->inner_vlan_out = 0;
-    if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
-    #endif
-    {
-      profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
-      profile->inner_vlan_out = profile->inner_vlan_in;
-    }
-    #endif
-
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* For MAC-Bridge flows */
     if (IS_EVC_QUATTRO(evc_id) && IS_EVC_INTF_LEAF(evc_id, ptin_port) &&
@@ -10036,6 +10211,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
         LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
         return L7_NOT_EXIST;
       }
+      /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
       /* For QUATTRO services: these VLANs should be initialized */
       profile->outer_vlan_out = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
       profile->inner_vlan_out = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
@@ -10081,11 +10257,13 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
         //profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
       }
 
+      /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
       profile->outer_vlan_out = 0;
       profile->inner_vlan_out = 0;
     }
     else
     {
+      /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
       profile->outer_vlan_out = 0;
       profile->inner_vlan_out = 0;
     }
@@ -10224,8 +10402,6 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
   LOG_TRACE(LOG_CTX_PTIN_EVC," COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_EVC," MAC         = %02x:%02x:%02x:%02x:%02x:%02x",profile->macAddr[0],profile->macAddr[1],profile->macAddr[2],profile->macAddr[3],profile->macAddr[4],profile->macAddr[5]);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," {CIR,CBS}   = {%lu,%lu}",profile->meter.cir,profile->meter.cbs);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," {EIR,EBS}   = {%lu,%lu}",profile->meter.eir,profile->meter.ebs);
 
   return L7_SUCCESS;
 }

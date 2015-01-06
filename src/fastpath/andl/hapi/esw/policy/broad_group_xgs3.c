@@ -4435,21 +4435,44 @@ int policy_group_add_rule(int                        unit,
       /* add meters or counters, if any, but not both */
       if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
       {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("- adding a meter\n");
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            sysapiPrintf("- adding a meter\n");
   
-          /* PTin modified: SDK 6.3.0 */
-          #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
-          rv = _policy_group_add_policer(unit, policyStage, eid, gid, rulePtr);
-          #else
-          rv = _policy_group_add_meter(unit, policyStage, eid, rulePtr);
-          #endif
-          if (BCM_E_NONE != rv)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
-            return rv;
-          }
+        /* PTin modified: SDK 6.3.0 */
+        #if (SDK_VERSION_IS >= SDK_VERSION(5,6,0,0))
+        rv = _policy_group_add_policer(unit, policyStage, eid, gid, rulePtr);
+        #else
+        rv = _policy_group_add_meter(unit, policyStage, eid, rulePtr);
+        #endif
+        if (BCM_E_NONE != rv)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+          return rv;
+        }
+
+        /* Ptin added: SDK 6.3.0 */
+        #if 1
+        if (policer_id != L7_NULLPTR)   *policer_id = rulePtr->policer.policer_id;
+        #endif
+      }
+      /* PTin added: global policer */
+      else if (*policer_id > 0)
+      {
+        /* (Only) Attach policer to rule */
+        rv = bcm_field_entry_policer_attach(unit, eid, 0, *policer_id);
+
+        if (BCM_E_NONE != rv)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("%s(%d) Error attaching policer_id %d to eid %d: rv=%d\r\n", __FUNCTION__, __LINE__, *policer_id, eid, rv);
+          return rv;
+        }
+        else
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+            sysapiPrintf("%s(%d) Attached global policer_id %d to eid %d\r\n", __FUNCTION__, __LINE__, *policer_id, eid);
+        }
       }
       /* PTin modified: Stats */
       #if (SDK_VERSION_IS < SDK_VERSION(5,6,0,0))
@@ -4472,13 +4495,12 @@ int policy_group_add_rule(int                        unit,
             sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
           return rv;
         }
-      }
 
-      /* Ptin added: SDK 6.3.0 */
-      #if 1
-      if (policer_id!=L7_NULLPTR)   *policer_id = rulePtr->policer.policer_id;
-      if (counter_id!=L7_NULLPTR)   *counter_id = rulePtr->counter.counter_id;
-      #endif
+        /* Ptin added: SDK 6.3.0 */
+        #if 1
+        if (counter_id != L7_NULLPTR)   *counter_id = rulePtr->counter.counter_id;
+        #endif
+      }
     }
 
     /* Only install to HW if we expect any ports to match this rule. This is mostly because
@@ -4928,6 +4950,11 @@ int policy_group_delete_rule(int                  unit,
               sysapiPrintf("%s(%d) ERROR: Cannot destroy policer\r\n",__FUNCTION__,__LINE__);
         }
       }
+    }
+    /* Try to detach a global policer */
+    else
+    {
+      (void) bcm_field_entry_policer_detach(unit, eid, 0);
     }
 
     if (counter_id>0)
