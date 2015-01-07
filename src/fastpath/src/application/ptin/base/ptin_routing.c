@@ -1604,6 +1604,16 @@ L7_RC_t ptin_routing_L3UcastTtl1ToCpu_set(L7_BOOL enable)
  */
 L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enable)
 {
+
+  /* broad_l3.c says:
+  *  
+  * Some devices, like Triumph, support per VLAN control for ICMP redirect,
+  * instead of global control knob in CPU_CONTROL register. Currently,
+  * FastPath support global knob for ICMP redirect, and not per VLAN/intf.
+  * In future, this may change, in which case consider the input USP
+  * and apply the ICMP redirect config only on that routed VLAN.
+  */
+
   /* Enable/Disable ICMP Redirects on this routing interface. This fixes defect OLTTS-10058/OLTTS-10605 */
   LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
   if(usmDbIpMapIfICMPRedirectsModeSet(PTIN_ROUTING_USMDB_UNITINDEX, routingIntfNum, enable) != L7_SUCCESS)
@@ -1611,6 +1621,10 @@ L7_RC_t __ptin_routing_ICMPRedirects_set(L7_uint32 routingIntfNum, L7_BOOL enabl
     LOG_ERR(LOG_CTX_PTIN_ROUTING, "Error while setting ICMP Redirects on intfIfNum %u to value %d", routingIntfNum, enable);
     return L7_FAILURE;
   }
+
+  /* Enable/Disable ICMP Redirects on this Router */
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Setting ICMP Redirects on Router to value %d", routingIntfNum, enable);
+  usmDbIpMapRtrICMPRedirectsModeSet(enable);
 
   return L7_SUCCESS;
 }
