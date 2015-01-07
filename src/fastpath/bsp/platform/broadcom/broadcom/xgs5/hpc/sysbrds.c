@@ -338,24 +338,6 @@ L7_RC_t hpcConfigBoardSet()
           return(L7_FAILURE);
         LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA disabled!");
         #else
-        if (sal_config_set(spn_POLLED_IRQ_MODE, "0") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_TDMA_INTR_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_TSLAM_INTR_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_SCHAN_INTR_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_MIIM_INTR_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_MEMCMD_INTR_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_L2MOD_DMA_INTR_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_TSLAM_DMA_ENABLE, "1") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_TABLE_DMA_ENABLE, "1") != 0)
-          return(L7_FAILURE);
         LOG_NOTICE(LOG_CTX_MISC,"Interrupts and DMA are enabled!");
         #endif
 
