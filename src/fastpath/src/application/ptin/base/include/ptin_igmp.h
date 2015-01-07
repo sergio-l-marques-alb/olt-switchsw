@@ -171,9 +171,12 @@ typedef enum  {
 /*IGMPv2 & MLDv1 only*/
   SNOOP_STAT_FIELD_JOINS_SENT,
   SNOOP_STAT_FIELD_JOINS_RECEIVED_SUCCESS,
-  SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED,
+  SNOOP_STAT_FIELD_JOINS_RECEIVED_INVALID,
+  SNOOP_STAT_FIELD_JOINS_RECEIVED_DROPPED,  
   SNOOP_STAT_FIELD_LEAVES_SENT,
   SNOOP_STAT_FIELD_LEAVES_RECEIVED,
+  SNOOP_STAT_FIELD_LEAVES_RECEIVED_INVALID,
+  SNOOP_STAT_FIELD_LEAVES_RECEIVED_DROPPED,  
 /*IGMPv3 & MLDv2 only*/
   SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TX,
   SNOOP_STAT_FIELD_MEMBERSHIP_REPORT_TOTAL_RX,  
@@ -391,9 +394,12 @@ typedef struct
 /*IGMPv2 only*/
   L7_uint32 joins_sent;
   L7_uint32 joins_received_success;
-  L7_uint32 joins_received_failed;
+  L7_uint32 joins_received_invalid;
+  L7_uint32 joins_received_dropped;
   L7_uint32 leaves_sent;
-  L7_uint32 leaves_received;
+  L7_uint32 leaves_received;  
+  L7_uint32 leaves_received_invalid;
+  L7_uint32 leaves_received_dropped;
 /*IGMPv3 only*/
   L7_uint32 membership_report_v3;
 

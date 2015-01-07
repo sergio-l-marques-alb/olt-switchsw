@@ -5734,40 +5734,41 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.igmp_total_rx                                                    = stats.igmpTotalRx;  
   
   igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = stats.v2.joinTx;               
-  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinValidRx;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinRx;   
   igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = stats.v2.joinInvalidRx;    
   igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = stats.v2.leaveTx;              
-  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveValidRx;    
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveRx +    
+                                                                                       stats.v2.leaveInvalidRx;
   
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = stats.v3.membershipReportTx; 
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportValidRx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportRx;
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = stats.v3.membershipReportInvalidRx;          
   
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = stats.v3.groupRecords.allowTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = stats.v3.groupRecords.allowInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = stats.v3.groupRecords.blockTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = stats.v3.groupRecords.blockInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = stats.v3.groupRecords.isIncludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = stats.v3.groupRecords.isIncludeInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = stats.v3.groupRecords.isExcludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = stats.v3.groupRecords.isExcludeInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = stats.v3.groupRecords.toIncludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = stats.v3.groupRecords.toIncludeInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = stats.v3.groupRecords.toExcludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = stats.v3.groupRecords.toExcludeInvalidRx;                                  
          
   igmp_stats->stats.HWQueryStatistics.general_query_tx                               = stats.query.generalQueryTx;     
-  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryValidRx;
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryRx;
   igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = stats.query.groupQueryTx;       
-  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryValidRx;  
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryRx;  
   igmp_stats->stats.HWQueryStatistics.source_query_tx                                = stats.query.sourceQueryTx;      
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryValidRx; 
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryRx; 
 
   return L7_SUCCESS;
 }
@@ -5922,40 +5923,41 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   igmp_stats->stats.igmp_total_rx                                                    = stats.igmpTotalRx;  
   
   igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = stats.v2.joinTx;               
-  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinValidRx;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinRx;   
   igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = stats.v2.joinInvalidRx;    
   igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = stats.v2.leaveTx;              
-  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveValidRx;    
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveRx +    
+                                                                                       stats.v2.leaveInvalidRx;
   
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = stats.v3.membershipReportTx; 
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportValidRx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportRx;      
   igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = stats.v3.membershipReportInvalidRx;          
   
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = stats.v3.groupRecords.allowTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = stats.v3.groupRecords.allowInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = stats.v3.groupRecords.blockTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = stats.v3.groupRecords.blockInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = stats.v3.groupRecords.isIncludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = stats.v3.groupRecords.isIncludeInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = stats.v3.groupRecords.isExcludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = stats.v3.groupRecords.isExcludeInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = stats.v3.groupRecords.toIncludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = stats.v3.groupRecords.toIncludeInvalidRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = stats.v3.groupRecords.toExcludeTx;
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeValidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeRx;
   igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = stats.v3.groupRecords.toExcludeInvalidRx;                                  
          
   igmp_stats->stats.HWQueryStatistics.general_query_tx                               = stats.query.generalQueryTx;     
-  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryValidRx;
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryRx;
   igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = stats.query.groupQueryTx;       
-  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryValidRx;  
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryRx;  
   igmp_stats->stats.HWQueryStatistics.source_query_tx                                = stats.query.sourceQueryTx;      
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryValidRx; 
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryRx; 
 
   return L7_SUCCESS;
 }
