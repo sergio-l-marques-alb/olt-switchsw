@@ -12,7 +12,7 @@ fi
 
 echo "Using LOADADDR: $LDADDR.";
 
-echo "./host/usr/bin/mkimage -A arm -O linux -T kernel -n "Broadcom Linux" -a $LDADDR -C none -d ./output/build/linux-3.6.5/arch/arm/boot/Image uImage.img"
+echo "./mkimage -A arm -O linux -T kernel -n Image -a $LDADDR -C none -d ./arch/arm/boot/Image ./uImage_flash.img"
 
 ./mkimage -A arm -O linux -T kernel -n Image -a $LDADDR -C none -d ./arch/arm/boot/Image ./uImage_flash.img
 
