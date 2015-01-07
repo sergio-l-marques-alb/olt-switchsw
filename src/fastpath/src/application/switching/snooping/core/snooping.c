@@ -503,113 +503,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   /* PTin added: IGMP snooping */
 #if 1
-  L7_uint16 mcastRootVlan;
-
-  /* Internal vlan will be converted to MC root vlan */
-
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_inet_addr_t srcAddr, grpAddr;
-
-  memset(&srcAddr, 0x00, sizeof(srcAddr));
-  memset(&srcAddr, 0x00, sizeof(grpAddr));
-
-  /* Default is IPv4 */
-  srcAddr.family = L7_AF_INET;
-  grpAddr.family = L7_AF_INET;
-
-  /* IGMP */
-  if (pSnoopCB->family == L7_AF_INET)
-  {
-    /* Validate minimum size of packet */
-    if (dataLength < L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + L7_IP_HDR_LEN + SNOOP_IGMPv1v2_HEADER_LENGTH)
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received pkt is too small %d",dataLength);
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
-      return L7_FAILURE;
-    }
-
-    /* Extract source and group address from packet */
-
-    /* Point to the start of ethernet payload */
-    buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
-
-#if 0 /*The Source Address of the client is not used.*/
-    /* Source address */
-    srcAddr.family = L7_AF_INET;
-    srcAddr.addr.ipv4.s_addr = *((L7_uint32 *) &buffPtr[12]);
-
-    //Convert to Little Endian
-    srcAddr.addr.ipv4.s_addr = osapiNtohl(srcAddr.addr.ipv4.s_addr);
-#else
-    inetAddressZeroSet(L7_AF_INET, &srcAddr);
-#endif
-
-    ipHdrLen = (buffPtr[0] & 0x0f)*4;
-    if ( ipHdrLen < L7_IP_HDR_LEN)
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IP Header Len is invalid %d",ipHdrLen);
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
-      return L7_FAILURE;
-    }
-    if ((L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + ipHdrLen + SNOOP_IGMPv1v2_HEADER_LENGTH) > dataLength)
-    {
-      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IP Header Len is too big (%d) for the packet length (%u)", ipHdrLen, dataLength);
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
-      return L7_FAILURE;
-    }
-
-    /* Starting of IGMP header */
-    igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
-
-    /* Default group address */
-    grpAddr.family = L7_AF_INET;
-    grpAddr.addr.ipv4.s_addr = 0;
-
-    /* Group address */
-    /* For V1/V2 and query messages, the group address is always located at the same place */
-    if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY ||
-        igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT ||
-        igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT ||
-        igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
-    {
-      grpAddr.family = L7_AF_INET;
-      grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[4]);
-      
-      //Convert to Little Endian
-      grpAddr.addr.ipv4.s_addr = osapiNtohl(grpAddr.addr.ipv4.s_addr);
-    }
-    else if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
-    {
-      if (osapiNtohs(*((L7_uint16 *) &igmpPtr[6])) > 0)
-      {
-        grpAddr.family = L7_AF_INET;
-        grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[12]);
-
-        //Convert to Little Endian
-        grpAddr.addr.ipv4.s_addr = osapiNtohl(grpAddr.addr.ipv4.s_addr);
-      }
-    }
-
-     
-    /*RFC5771 - Local Network Control Block (224.0.0.0 - 224.0.0.255 (224.0.0/24)) 
-    The range of addresses between 224.0.0.0 and 224.0.0.255, inclusive, is reserved for the use of routing protocols and other low-level topology discovery or maintenance protocols, such as gateway discovery
-    and group membership reporting.  Multicast routers should not forward any multicast datagram with destination addresses in this range, regardless of its TTL.*/
-    
-    if(grpAddr.addr.ipv4.s_addr >= L7_IP_MCAST_BASE_ADDR && grpAddr.addr.ipv4.s_addr <= L7_IP_MAX_LOCAL_MULTICAST)    
-    {
-      if(ptin_debug_igmp_snooping)
-        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u grpAddr=%s srcAddr=%s]: Packet Silently ignored...",
-                pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));  
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID);    
-      return L7_SUCCESS;
-    }
-  }
-  else
-  {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "IPv6 not supported yet!");
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
-    return L7_FAILURE;
-  }
 
   /* Search for client index */
   /* Validate client information */
@@ -657,6 +550,144 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 #endif
 
+#ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
+  /* For leaf interfaces */
+  if (ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId)==L7_SUCCESS)
+  {
+#if (PTIN_BOARD_IS_MATRIX)
+    /* If the client does not exist, it will be created in dynamic mode */
+    if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                     L7_NULL, L7_NULL,
+                                     L7_NULL,
+                                     &client_idx) != L7_SUCCESS)
+#else
+    /* For Linecard only: If client was not recognized, add it as dynamic */
+    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS &&
+        ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                     pduInfo->vlanId, pduInfo->innerVlanId,
+                                     &data[L7_MAC_ADDR_LEN],
+                                     &client_idx) != L7_SUCCESS)
+#endif
+    {
+      client_idx = (L7_uint) -1;
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
+    }
+  }
+#endif
+
+  /* Internal vlan will be converted to MC root vlan */
+  L7_uint16 mcastRootVlan;
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_inet_addr_t srcAddr, grpAddr;
+
+  memset(&srcAddr, 0x00, sizeof(srcAddr));
+  memset(&srcAddr, 0x00, sizeof(grpAddr));
+
+  /* Default is IPv4 */
+  srcAddr.family = L7_AF_INET;
+  grpAddr.family = L7_AF_INET;
+
+  /* IGMP */
+  if (pSnoopCB->family == L7_AF_INET)
+  {
+    /* Validate minimum size of packet */
+    if (dataLength < L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + L7_IP_HDR_LEN + SNOOP_IGMPv1v2_HEADER_LENGTH)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Received pkt is too small %d",dataLength);
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+      return L7_FAILURE;
+    }
+
+    /* Extract source and group address from packet */
+
+    /* Point to the start of ethernet payload */
+    buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
+
+#if 0 /*The Source Address of the client is not used.*/
+    /* Source address */
+    srcAddr.family = L7_AF_INET;
+    srcAddr.addr.ipv4.s_addr = *((L7_uint32 *) &buffPtr[12]);
+
+    //Convert to Little Endian
+    srcAddr.addr.ipv4.s_addr = osapiNtohl(srcAddr.addr.ipv4.s_addr);
+#else
+    inetAddressZeroSet(L7_AF_INET, &srcAddr);
+#endif
+
+    ipHdrLen = (buffPtr[0] & 0x0f)*4;
+    if ( ipHdrLen < L7_IP_HDR_LEN)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IP Header Len is invalid %d",ipHdrLen);
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+      return L7_FAILURE;
+    }
+    if ((L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + ipHdrLen + SNOOP_IGMPv1v2_HEADER_LENGTH) > dataLength)
+    {
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IP Header Len is too big (%d) for the packet length (%u)", ipHdrLen, dataLength);
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+      return L7_FAILURE;
+    }
+
+    /* Starting of IGMP header */
+    igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
+
+    /* Default group address */
+    grpAddr.family = L7_AF_INET;
+    grpAddr.addr.ipv4.s_addr = 0;
+
+    /* Group address */
+    /* For V1/V2 and query messages, the group address is always located at the same place */
+    if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY ||
+        igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT ||
+        igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT ||
+        igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
+    {
+      grpAddr.family = L7_AF_INET;
+      grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[4]);
+      
+      //Convert to Little Endian
+      grpAddr.addr.ipv4.s_addr = osapiNtohl(grpAddr.addr.ipv4.s_addr);
+    }
+    else if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
+    {
+      if (osapiNtohs(*((L7_uint16 *) &igmpPtr[6])) > 0)
+      {
+        grpAddr.family = L7_AF_INET;
+        grpAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[12]);
+
+        //Convert to Little Endian
+        grpAddr.addr.ipv4.s_addr = osapiNtohl(grpAddr.addr.ipv4.s_addr);
+      }
+    }
+
+     
+    /*RFC5771 - Local Network Control Block (224.0.0.0 - 224.0.0.255 (224.0.0/24)) 
+    The range of addresses between 224.0.0.0 and 224.0.0.255, inclusive, is reserved for the use of routing protocols and other low-level topology discovery or maintenance protocols, such as gateway discovery
+    and group membership reporting.  Multicast routers should not forward any multicast datagram with destination addresses in this range, regardless of its TTL.*/
+    
+    if(grpAddr.addr.ipv4.s_addr >= L7_IP_MCAST_BASE_ADDR && grpAddr.addr.ipv4.s_addr <= L7_IP_MAX_LOCAL_MULTICAST)    
+    {
+      if(ptin_debug_igmp_snooping)
+        LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Multicast Group Address is Reserved for Protocol use [vlan=%u grpAddr=%s srcAddr=%s]: Packet Silently ignored...",
+                pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));  
+      if(igmpPtr!=L7_NULLPTR)
+        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_VALID_RX));
+      else
+      {      
+        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_VALID);    
+      }      
+      return L7_SUCCESS;
+    }
+
+  }
+  else
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "IPv6 not supported yet!");
+    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
+    return L7_FAILURE;
+  }
+
   /* Get multicast root vlan */
   if (ptin_igmp_McastRootVlan_get(&grpAddr, &srcAddr, pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
@@ -666,13 +697,13 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   else
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s srcAddr=%s): Packet Silently ignored...",
-              pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));
+              pduInfo->vlanId, inetAddrPrint(&grpAddr,debug_buf1) , inetAddrPrint(&srcAddr,debug_buf2));    
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     else
     {      
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    }
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+    }        
     return L7_FAILURE;
   }
 #else
@@ -680,6 +711,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,mcastRootVlan);
+
+   
   }
   else
   {
@@ -687,9 +720,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
     else
-    {
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    }
+    {      
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+    }          
     return L7_FAILURE;
   }
 #endif
@@ -699,43 +732,16 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
-    {
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
-    }
     else
-    {
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, mcastRootVlan, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-    }
+    {      
+      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+    }        
     return L7_FAILURE;
   }
 
-  #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-  /* For leaf interfaces */
-  if (ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId)==L7_SUCCESS)
-  {
-    #if (PTIN_BOARD_IS_MATRIX)
-    /* If the client does not exist, it will be created in dynamic mode */
-    if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
-                                     L7_NULL, L7_NULL,
-                                     L7_NULL,
-                                     &client_idx) != L7_SUCCESS)
-    #else
-    /* For Linecard only: If client was not recognized, add it as dynamic */
-    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS &&
-        ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
-                                     pduInfo->vlanId, pduInfo->innerVlanId,
-                                     &data[L7_MAC_ADDR_LEN],
-                                     &client_idx) != L7_SUCCESS)
-    #endif
-    {
-      client_idx = (L7_uint) -1;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
-    }
-  }
-  #endif
-
-  /* Update Vlan ID of the root MC service vlan */
-  pduInfo->vlanId = mcastRootVlan;
+   /* Update Vlan ID of the root MC service vlan */
+   pduInfo->vlanId = mcastRootVlan;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
             pduInfo->intIfNum, mcastRootVlan, pduInfo->innerVlanId);
@@ -3336,7 +3342,7 @@ L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
   if (inetIsLinkLocalMulticastAddress(&mgmdMsg.mgmdGroupAddr))
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipReportProcess: Packet is in the 224.0.0.x range... don't process it!");
-    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED);
+    ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, SNOOP_STAT_FIELD_JOINS_RECEIVED_INVALID);
     return L7_SUCCESS;
   }
 

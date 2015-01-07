@@ -197,9 +197,7 @@ typedef struct ptinIgmpClientGroupInfoData_s
   L7_uint8                    ptin_port;              /* Port */
   L7_uint32                   client_bmp_list[PTIN_IGMP_CLIENTIDX_MAX/(sizeof(L7_uint32)*8)+1];  /* Clients (children) bitmap (only for one interface) */
   dl_queue_t                  queue_clientDevices;
-#if !PTIN_SNOOP_USE_MGMD 
   ptin_IGMP_Statistics_t      stats_client;
-#endif
   L7_uint8                    onuId;
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   ptinIgmpAdmissionControl_t  admissionControl;   
@@ -386,10 +384,8 @@ typedef struct {
   L7_uint32 McastEvcId;
   L7_uint32 UcastEvcId;
   L7_uint16 nni_ovid;         /* NNI outer vlan used for EVC aggregation in one instance */
-  L7_uint16 n_evcs;
-  #if !PTIN_SNOOP_USE_MGMD  
-  ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */
-  #endif
+  L7_uint16 n_evcs;  
+  ptin_IGMP_Statistics_t stats_intf[PTIN_SYSTEM_N_INTERF];  /* IGMP statistics at interface level */  
 } st_IgmpInstCfg_t;
 
 /* IGMP instances array
@@ -546,9 +542,7 @@ L7_int32 igmp_timer_dataCmp(void *p, void *q, L7_uint32 key);
 void *igmp_sem = NULL;
 
 /* Semaphore to access IGMP stats */
-#if !PTIN_SNOOP_USE_MGMD  
 void *ptin_igmp_stats_sem = L7_NULLPTR;
-#endif
 void *ptin_igmp_clients_sem = L7_NULLPTR;
 void *ptin_igmp_clients_snapshot_sem = L7_NULLPTR;
 
@@ -810,15 +804,13 @@ L7_RC_t ptin_igmp_proxy_init(void)
                    sizeof(ptinIgmpPairDataKey_t));
 #endif
 
- #if !PTIN_SNOOP_USE_MGMD  
   ptin_igmp_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_igmp_stats_sem == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_igmp_stats_sem semaphore!");
     return L7_FAILURE;
   }
-  #endif
-
+  
   ptin_igmp_clients_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_igmp_clients_sem == L7_NULLPTR)
   {
@@ -889,11 +881,9 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
   /* Reset structure of unified list of clients */
   memset(&igmpClientGroups, 0x00, sizeof(igmpClientGroups));
 
-  #if !PTIN_SNOOP_USE_MGMD  
   osapiSemaDelete(ptin_igmp_stats_sem);
   ptin_igmp_stats_sem = L7_NULLPTR;
-  #endif
-
+  
   osapiSemaDelete(ptin_igmp_clients_sem);
   ptin_igmp_clients_sem = L7_NULLPTR;
 
@@ -3605,12 +3595,11 @@ L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, 
     /* Initialize client devices queue */
     dl_queue_init(&avl_infoData->queue_clientDevices);
 
-    #if !PTIN_SNOOP_USE_MGMD      
     /* Clear igmp statistics */
     osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
     memset(&avl_infoData->stats_client,0x00,sizeof(ptin_IGMP_Statistics_t));
     osapiSemaGive(ptin_igmp_stats_sem);
-    #endif
+    
     /* Update global data (one more group of clients) */
     igmpClientGroups.number_of_clients++;
 
@@ -8081,12 +8070,15 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_BOOL isDynamic, L7_BOOL only_wo_chann
     if (isDynamic != avl_infoData->isDynamic)
       continue;
 
-    #if !PTIN_SNOOP_USE_MGMD      
     /* Check only_wo_channels parameter */
     if (only_wo_channels &&
-        (avl_infoData->pClientGroup==L7_NULLPTR || avl_infoData->pClientGroup->stats_client.active_groups>0))
+        (avl_infoData->pClientGroup==L7_NULLPTR 
+        #if !PTIN_SNOOP_USE_MGMD      
+         || avl_infoData->pClientGroup->stats_client.active_groups>0
+         #endif
+         ))
       continue;    
-    #endif
+    
 
     /* Save client index */
     ptin_port  = avl_infoData->ptin_port;
@@ -9470,13 +9462,72 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
     return L7_FAILURE;
   }
 
+  memset(statistics, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
+
+  /*Added to Include the Stats from FP*/
+  {
+    ptin_IGMP_Statistics_t *stat_port_g = L7_NULLPTR;
+    L7_uint32 ptin_port;
+
+    if ( ptin_intf_ptintf2port(ptin_intf,&ptin_port) != SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to ptin_port",ptin_intf->intf_type,ptin_intf->intf_id);
+      return L7_FAILURE;
+    }
+    
+    /* Global interface statistics at interface level */
+    stat_port_g = &global_stats_intf[ptin_port];
+    
+    statistics->v2.joinRx                          = stat_port_g->joins_received_success +
+                                                     stat_port_g->joins_received_dropped;
+                                                     
+    statistics->v2.joinInvalidRx                   = stat_port_g->joins_received_invalid; 
+                                                     
+    statistics->v2.leaveRx                         = stat_port_g->leaves_received +
+                                                     stat_port_g->leaves_received_dropped;
+                                                     
+    statistics->v2.leaveInvalidRx                  = stat_port_g->leaves_received_invalid;  
+                                                     
+    statistics->v3.membershipReportRx              = stat_port_g->igmpv3.membership_report_valid_rx +
+                                                     stat_port_g->igmpv3.membership_report_dropped_rx;
+                                                     
+    statistics->v3.membershipReportInvalidRx       = stat_port_g->igmpv3.membership_report_invalid_rx;      
+
+    statistics->query.generalQueryRx               = stat_port_g->igmpquery.general_query_valid_rx +
+                                                     stat_port_g->igmpquery.general_query_dropped_rx +
+                                                     stat_port_g->igmpquery.generic_query_invalid_rx;
+                                                     
+    statistics->igmpInvalidRx                      = stat_port_g->igmpquery.generic_query_invalid_rx + 
+                                                     stat_port_g->joins_received_invalid + 
+                                                     stat_port_g->leaves_received_invalid +                                                       
+                                                     stat_port_g->igmpv3.membership_report_invalid_rx + 
+                                                     stat_port_g->igmpquery.generic_query_invalid_rx +
+                                                     stat_port_g->igmp_received_invalid;                                                    
+                                                     
+    statistics->igmpDroppedRx                      = stat_port_g->joins_received_dropped + 
+                                                     stat_port_g->leaves_received_dropped + 
+                                                     stat_port_g->igmpv3.membership_report_dropped_rx + 
+                                                     stat_port_g->igmpquery.general_query_dropped_rx +
+                                                     stat_port_g->igmp_dropped;
+                                                     
+    statistics->igmpValidRx                        = stat_port_g->joins_received_success +
+                                                     stat_port_g->leaves_received +                                                        
+                                                     stat_port_g->igmpv3.membership_report_valid_rx +
+                                                     stat_port_g->igmpquery.general_query_valid_rx +
+                                                     stat_port_g->igmp_received_valid;                                                
+
+    statistics->igmpTotalRx                        = statistics->igmpInvalidRx + 
+                                                     statistics->igmpDroppedRx + 
+                                                     statistics->igmpValidRx;      
+  } 
+
   /* Validate interface */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting port %u/%u to intIfNum",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-
+  
   /* Request port statistics to MGMD */
   mgmdStatsReqMsg.portId = intIfNum;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_INTF_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
@@ -9490,6 +9541,7 @@ L7_RC_t ptin_igmp_stat_intf_get(ptin_intf_t *ptin_intf, PTIN_MGMD_CTRL_STATS_RES
   if(SUCCESS == ctrlResMsg.res)
   {
     memcpy(statistics, ctrlResMsg.data, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
+
     return L7_SUCCESS;
   }
   else
@@ -9566,8 +9618,8 @@ L7_RC_t ptin_igmp_stat_instanceIntf_get(L7_uint32 evc_idx, ptin_intf_t *ptin_int
  */
 L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *client_id, PTIN_MGMD_CTRL_STATS_RESPONSE_t *statistics)
 {
-  ptin_client_id_t client;
-  ptinIgmpClientGroupInfoData_t   *clientInfo;
+  ptin_client_id_t                client;
+  ptinIgmpClientGroupInfoData_t  *clientGroup;
   PTIN_MGMD_EVENT_t               reqMsg          = {0};
   PTIN_MGMD_EVENT_t               resMsg          = {0};
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
@@ -9588,7 +9640,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   }
 
   /* Get client */
-  if (ptin_igmp_clientGroup_find(&client, &clientInfo) != L7_SUCCESS)
+  if (ptin_igmp_clientGroup_find(&client, &clientGroup) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,
             "Error searching for client {mask=0x%02x,"
@@ -9617,23 +9669,67 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
     osapiSemaGive(ptin_igmp_clients_sem);
     return L7_FAILURE;
   }
+  
+  /*Added to Include the Stats from FP*/
+  {
+    statistics->v2.joinRx                          = clientGroup->stats_client.joins_received_success +
+                                                     clientGroup->stats_client.joins_received_dropped;
+                                                     
+    statistics->v2.joinInvalidRx                   = clientGroup->stats_client.joins_received_invalid; 
+                                                     
+    statistics->v2.leaveRx                         = clientGroup->stats_client.leaves_received +
+                                                     clientGroup->stats_client.leaves_received_dropped;
+                                                     
+    statistics->v2.leaveInvalidRx                  = clientGroup->stats_client.leaves_received_invalid;  
+                                                     
+    statistics->v3.membershipReportRx              = clientGroup->stats_client.igmpv3.membership_report_valid_rx +
+                                                     clientGroup->stats_client.igmpv3.membership_report_dropped_rx;
+                                                     
+    statistics->v3.membershipReportInvalidRx       = clientGroup->stats_client.igmpv3.membership_report_invalid_rx;      
+                                                     
+    statistics->query.generalQueryRx               = clientGroup->stats_client.igmpquery.general_query_valid_rx +
+                                                     clientGroup->stats_client.igmpquery.general_query_dropped_rx +
+                                                     clientGroup->stats_client.igmpquery.generic_query_invalid_rx;
+                                                     
+    statistics->igmpInvalidRx                      = clientGroup->stats_client.igmpquery.generic_query_invalid_rx + 
+                                                     clientGroup->stats_client.joins_received_invalid + 
+                                                     clientGroup->stats_client.leaves_received_invalid +                                                       
+                                                     clientGroup->stats_client.igmpv3.membership_report_invalid_rx + 
+                                                     clientGroup->stats_client.igmpquery.generic_query_invalid_rx +
+                                                     clientGroup->stats_client.igmp_received_invalid;                                                    
+                                                     
+    statistics->igmpDroppedRx                      = clientGroup->stats_client.joins_received_dropped + 
+                                                     clientGroup->stats_client.leaves_received_dropped + 
+                                                     clientGroup->stats_client.igmpv3.membership_report_dropped_rx + 
+                                                     clientGroup->stats_client.igmpquery.general_query_dropped_rx +
+                                                     clientGroup->stats_client.igmp_dropped;
+                                                     
+    statistics->igmpValidRx                        = clientGroup->stats_client.joins_received_success +
+                                                     clientGroup->stats_client.leaves_received +                                                      
+                                                     clientGroup->stats_client.igmpv3.membership_report_valid_rx +
+                                                     clientGroup->stats_client.igmpquery.general_query_valid_rx +
+                                                     clientGroup->stats_client.igmp_received_valid;              
+    
+    statistics->igmpTotalRx                        = statistics->igmpInvalidRx + 
+                                                     statistics->igmpDroppedRx + 
+                                                     statistics->igmpValidRx;             
+  }                                              
 
-
-  L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientInfo);
+  L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
   if(noOfClients>0)
   {
     L7_uint16 noOfClientsFound=0;
     for (clientId = 0; clientId < PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
     {
       /*Check if this position on the Client Array is Empty*/
-      if(clientInfo->client_bmp_list[clientId/(sizeof(L7_uint32)*8)] == 0)
+      if(clientGroup->client_bmp_list[clientId/(sizeof(L7_uint32)*8)] == 0)
       {
         //Next Position on the Array of Clients. -1 since the for adds 1 unit.
         clientId += (sizeof(L7_uint32)*8) - 1;
         continue;
       }
 
-      if(IS_BITMAP_BIT_SET(clientInfo->client_bmp_list, clientId, sizeof(L7_uint32)))
+      if(IS_BITMAP_BIT_SET(clientGroup->client_bmp_list, clientId, sizeof(L7_uint32)))
       {
         /* Request client statistics to MGMD */
         mgmdStatsReqMsg.portId   = intIfNum;
@@ -9667,39 +9763,40 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
         statistics->igmpTotalRx                        += mgmdStatsResMsg.igmpTotalRx;  
                                                            
         statistics->v2.joinTx                          += mgmdStatsResMsg.v2.joinTx;               
-        statistics->v2.joinValidRx                     += mgmdStatsResMsg.v2.joinValidRx;   
+        statistics->v2.joinRx                          += mgmdStatsResMsg.v2.joinRx;   
         statistics->v2.joinInvalidRx                   += mgmdStatsResMsg.v2.joinInvalidRx;    
         statistics->v2.leaveTx                         += mgmdStatsResMsg.v2.leaveTx;              
-        statistics->v2.leaveValidRx                    += mgmdStatsResMsg.v2.leaveValidRx;    
+        statistics->v2.leaveRx                         += mgmdStatsResMsg.v2.leaveRx;    
+        statistics->v2.leaveInvalidRx                  += mgmdStatsResMsg.v2.leaveInvalidRx;    
                                                            
         statistics->v3.membershipReportTx              += mgmdStatsResMsg.v3.membershipReportTx; 
-        statistics->v3.membershipReportValidRx         += mgmdStatsResMsg.v3.membershipReportValidRx;      
+        statistics->v3.membershipReportRx              += mgmdStatsResMsg.v3.membershipReportRx;
         statistics->v3.membershipReportInvalidRx       += mgmdStatsResMsg.v3.membershipReportInvalidRx;          
         statistics->v3.groupRecords.allowTx            += mgmdStatsResMsg.v3.groupRecords.allowTx;
-        statistics->v3.groupRecords.allowValidRx       += mgmdStatsResMsg.v3.groupRecords.allowValidRx;
+        statistics->v3.groupRecords.allowRx       += mgmdStatsResMsg.v3.groupRecords.allowRx;
         statistics->v3.groupRecords.allowInvalidRx     += mgmdStatsResMsg.v3.groupRecords.allowInvalidRx;
         statistics->v3.groupRecords.blockTx            += mgmdStatsResMsg.v3.groupRecords.blockTx;
-        statistics->v3.groupRecords.blockValidRx       += mgmdStatsResMsg.v3.groupRecords.blockValidRx;
+        statistics->v3.groupRecords.blockRx       += mgmdStatsResMsg.v3.groupRecords.blockRx;
         statistics->v3.groupRecords.blockInvalidRx     += mgmdStatsResMsg.v3.groupRecords.blockInvalidRx;
         statistics->v3.groupRecords.isIncludeTx        += mgmdStatsResMsg.v3.groupRecords.isIncludeTx;
-        statistics->v3.groupRecords.isIncludeValidRx   += mgmdStatsResMsg.v3.groupRecords.isIncludeValidRx;
+        statistics->v3.groupRecords.isIncludeRx   += mgmdStatsResMsg.v3.groupRecords.isIncludeRx;
         statistics->v3.groupRecords.isIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isIncludeInvalidRx;
         statistics->v3.groupRecords.isExcludeTx        += mgmdStatsResMsg.v3.groupRecords.isExcludeTx;
-        statistics->v3.groupRecords.isExcludeValidRx   += mgmdStatsResMsg.v3.groupRecords.isExcludeValidRx;
+        statistics->v3.groupRecords.isExcludeRx   += mgmdStatsResMsg.v3.groupRecords.isExcludeRx;
         statistics->v3.groupRecords.isExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isExcludeInvalidRx;
         statistics->v3.groupRecords.toIncludeTx        += mgmdStatsResMsg.v3.groupRecords.toIncludeTx;
-        statistics->v3.groupRecords.toIncludeValidRx   += mgmdStatsResMsg.v3.groupRecords.toIncludeValidRx;
+        statistics->v3.groupRecords.toIncludeRx   += mgmdStatsResMsg.v3.groupRecords.toIncludeRx;
         statistics->v3.groupRecords.toIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toIncludeInvalidRx;
         statistics->v3.groupRecords.toExcludeTx        += mgmdStatsResMsg.v3.groupRecords.toExcludeTx;
-        statistics->v3.groupRecords.toExcludeValidRx   += mgmdStatsResMsg.v3.groupRecords.toExcludeValidRx;
+        statistics->v3.groupRecords.toExcludeRx   += mgmdStatsResMsg.v3.groupRecords.toExcludeRx;
         statistics->v3.groupRecords.toExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toExcludeInvalidRx;                                  
                                                            
         statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;     
-        statistics->query.generalQueryValidRx          += mgmdStatsResMsg.query.generalQueryValidRx;
+        statistics->query.generalQueryRx          += mgmdStatsResMsg.query.generalQueryRx;
         statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx;       
-        statistics->query.groupQueryValidRx            += mgmdStatsResMsg.query.groupQueryValidRx;  
+        statistics->query.groupQueryRx            += mgmdStatsResMsg.query.groupQueryRx;  
         statistics->query.sourceQueryTx                += mgmdStatsResMsg.query.sourceQueryTx;      
-        statistics->query.sourceQueryValidRx           += mgmdStatsResMsg.query.sourceQueryValidRx; 
+        statistics->query.sourceQueryRx           += mgmdStatsResMsg.query.sourceQueryRx; 
 
         if(noOfClientsFound++>=noOfClients)
           break;
@@ -9767,8 +9864,7 @@ L7_RC_t ptin_igmp_stat_intf_clear(ptin_intf_t *ptin_intf)
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf)
-{
-  #if !PTIN_SNOOP_USE_MGMD  
+{  
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
   {
@@ -9810,8 +9906,7 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
   osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
   memset(&igmpInstances[igmp_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_IGMP_Statistics_t));
   osapiSemaGive(ptin_igmp_stats_sem);
-  #endif
-  #endif
+  #endif 
   return L7_SUCCESS;
 }
 
@@ -9824,8 +9919,6 @@ L7_RC_t ptin_igmp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
  */
 L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx)
 {
-  #if !PTIN_SNOOP_USE_MGMD  
-
   #if PTIN_IGMP_STATS_IN_EVCS
   L7_RC_t rc;
 
@@ -9854,8 +9947,7 @@ L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx)
   memset(igmpInstances[igmp_idx].stats_intf, 0x00, sizeof(igmpInstances[igmp_idx].stats_intf));
   osapiSemaGive(ptin_igmp_stats_sem);
   #endif
-  #endif
-
+  
   return L7_SUCCESS;
 }
 
@@ -9866,15 +9958,13 @@ L7_RC_t ptin_igmp_stat_instance_clear(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_igmp_stat_clearAll(void)
 {
- #if !PTIN_SNOOP_USE_MGMD  
   osapiSemaTake(ptin_igmp_stats_sem, L7_WAIT_FOREVER);
 
   /* Clear global statistics */
   memset(global_stats_intf,0x00,sizeof(global_stats_intf));
 
   osapiSemaGive(ptin_igmp_stats_sem);
-  #endif
-
+ 
   return L7_SUCCESS;
 }
 
@@ -9981,7 +10071,6 @@ L7_RC_t ptin_igmp_stat_client_clear(L7_uint32 evc_idx, const ptin_client_id_t *c
  */
 L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  #if !PTIN_SNOOP_USE_MGMD  
   L7_uint32 ptin_port;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -10032,13 +10121,12 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
   if (client_idx < PTIN_IGMP_CLIENTIDX_MAX && ptin_port < PTIN_SYSTEM_N_INTERF)
   {
     client = igmpClients_unified.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client;
-    #if !PTIN_SNOOP_USE_MGMD  
+    
     if (client != L7_NULLPTR && client->pClientGroup != L7_NULLPTR)
     {
       /* Statistics at client level: point to clientGroup data */
       stat_client = &client->pClientGroup->stats_client;
-    }
-    #endif
+    }    
   }
 
   switch (field) {
@@ -10194,10 +10282,16 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
     if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_success;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
-    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_failed;
-    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_failed;
-    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_failed;
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_invalid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_invalid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_invalid;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->joins_received_dropped;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->joins_received_dropped;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->joins_received_dropped;
     break;
 
   case SNOOP_STAT_FIELD_LEAVES_SENT:
@@ -10210,6 +10304,18 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
     if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_received;
     if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_received;
     if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_received;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_received_invalid;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_received_invalid;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_received_invalid;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  statPortG=stat_port_g->leaves_received_dropped;
+    if (stat_port  !=L7_NULLPTR)  statPort=stat_port->leaves_received_dropped;
+    if (stat_client!=L7_NULLPTR)  statClient=stat_client->leaves_received_dropped;
     break;
 /*End IGMPv2 Counters*/
   
@@ -10449,7 +10555,7 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
   LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPortG:%u",statPortG);
   LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statPort:%u",statPort);
   LOG_NOTICE(LOG_CTX_PTIN_IGMP,"statClient:%u",statClient);
-  #endif
+  
   return L7_SUCCESS;
 }
 
@@ -10465,8 +10571,6 @@ L7_RC_t ptin_igmp_stat_get_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 c
  */
 L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  #if !PTIN_SNOOP_USE_MGMD   
- 
   L7_uint32 ptin_port;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -10683,10 +10787,16 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
     if (stat_client!=L7_NULLPTR)  stat_client->joins_received_success = 0;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_received_failed = 0;
-    if (stat_port  !=L7_NULLPTR)  stat_port->joins_received_failed = 0;
-    if (stat_client!=L7_NULLPTR)  stat_client->joins_received_failed = 0;
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_received_invalid = 0;
+    if (stat_port  !=L7_NULLPTR)  stat_port->joins_received_invalid = 0;
+    if (stat_client!=L7_NULLPTR)  stat_client->joins_received_invalid = 0;
+    break;
+
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_received_dropped = 0;
+    if (stat_port  !=L7_NULLPTR)  stat_port->joins_received_dropped = 0;
+    if (stat_client!=L7_NULLPTR)  stat_client->joins_received_dropped = 0;
     break;
 
   case SNOOP_STAT_FIELD_LEAVES_SENT:
@@ -10699,6 +10809,18 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_received = 0;
     if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received = 0;
     if (stat_client!=L7_NULLPTR)  stat_client->leaves_received = 0;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_received_invalid = 0;
+    if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received_invalid = 0;
+    if (stat_client!=L7_NULLPTR)  stat_client->leaves_received_invalid = 0;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_received_dropped = 0;
+    if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received_dropped = 0;
+    if (stat_client!=L7_NULLPTR)  stat_client->leaves_received_dropped = 0;
     break;
 /*End IGMPv2 Counters*/
   
@@ -10932,8 +11054,7 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
  
   default:
     break;
-  }
-  #endif
+  } 
   return L7_SUCCESS;
   
 }
@@ -10950,8 +11071,6 @@ L7_RC_t ptin_igmp_stat_reset_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32
  */
 L7_RC_t ptin_igmp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  #if !PTIN_SNOOP_USE_MGMD  
-
   L7_uint32 ptin_port = (L7_uint32)-1;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -11191,12 +11310,18 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
     if (stat_client!=L7_NULLPTR)  stat_client->joins_received_success++;
     break;
 
-  case SNOOP_STAT_FIELD_JOINS_RECEIVED_FAILED:
-    if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_received_failed++;
-    if (stat_port  !=L7_NULLPTR)  stat_port->joins_received_failed++;
-    if (stat_client!=L7_NULLPTR)  stat_client->joins_received_failed++;
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_received_invalid++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->joins_received_invalid++;
+    if (stat_client!=L7_NULLPTR)  stat_client->joins_received_invalid++;
     break;
 
+  case SNOOP_STAT_FIELD_JOINS_RECEIVED_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->joins_received_dropped++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->joins_received_dropped++;
+    if (stat_client!=L7_NULLPTR)  stat_client->joins_received_dropped++;
+    break;
+    
   case SNOOP_STAT_FIELD_LEAVES_SENT:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_sent++;
     if (stat_port  !=L7_NULLPTR)  stat_port->leaves_sent++;
@@ -11207,6 +11332,18 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
     if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_received++;
     if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received++;
     if (stat_client!=L7_NULLPTR)  stat_client->leaves_received++;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED_INVALID:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_received_invalid++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received_invalid++;
+    if (stat_client!=L7_NULLPTR)  stat_client->leaves_received_invalid++;
+    break;
+
+  case SNOOP_STAT_FIELD_LEAVES_RECEIVED_DROPPED:
+    if (stat_port_g!=L7_NULLPTR)  stat_port_g->leaves_received_dropped++;
+    if (stat_port  !=L7_NULLPTR)  stat_port->leaves_received_dropped++;
+    if (stat_client!=L7_NULLPTR)  stat_client->leaves_received_dropped++;
     break;
 /*End IGMPv2 Counters*/
   
@@ -11445,7 +11582,7 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
   }
 
   osapiSemaGive(ptin_igmp_stats_sem);
-  #endif
+  
   return L7_SUCCESS;
 }
 
@@ -11461,8 +11598,6 @@ case SNOOP_STAT_FIELD_GENERAL_QUERY_TX:
  */
 L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_uint32 client_idx, ptin_snoop_stat_enum_t field)
 {
-  #if !PTIN_SNOOP_USE_MGMD  
-
   L7_uint32 ptin_port;
   ptinIgmpClientInfoData_t *client;
   #if (!PTIN_IGMP_STATS_IN_EVCS)
@@ -11554,7 +11689,6 @@ L7_RC_t ptin_igmp_stat_decrement_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
 
   osapiSemaGive(ptin_igmp_stats_sem);
 
-  #endif
   return L7_SUCCESS;
 }
 
