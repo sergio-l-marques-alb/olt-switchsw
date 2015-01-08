@@ -574,12 +574,12 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
       rc = L7_FAILURE;
     }
 
-    /* Enable ports */
+    /* Disable ports */
     for (i=0; i<4; i++)
     {
-      if (bcm_port_enable_set(0, bcm_port+i, L7_ENABLE) != BCM_E_NONE)
+      if (bcm_port_enable_set(0, bcm_port+i, L7_DISABLE) != BCM_E_NONE)
       {
-        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error enabling bcm_port %u", bcm_port+i);
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error disabling bcm_port %u", bcm_port+i);
         rc = L7_FAILURE;
       }
     }

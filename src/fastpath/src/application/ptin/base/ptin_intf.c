@@ -211,6 +211,17 @@ L7_RC_t ptin_intf_init(void)
     phyExt_data[i].outer_tpid = PTIN_TPID_OUTER_DEFAULT;
 //    phyExt_data[i].inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
+    /* Disable front ports */
+    if ((PTIN_SYSTEM_ETH_PORTS_MASK >> i) & 1)
+    {
+      rc = usmDbIfAdminStateSet(1, map_port2intIfNum[i], L7_DISABLE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_INTF, "Failed to disable port# %u", i);
+        return L7_FAILURE;
+      }
+    }
+
     rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
     if (rc != L7_SUCCESS)
     {
