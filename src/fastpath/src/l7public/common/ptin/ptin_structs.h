@@ -59,7 +59,8 @@ typedef struct
 #define PTIN_HWPROC_FORCE_LINK      2
 #define PTIN_HWPROC_CLK_RECVR       3
 #define PTIN_HWPROC_VCAP_DEFVID     4
-#define PTIN_HWPROC_FRAME_OVERSIZE  5
+#define PTIN_HWPROC_UC_TTL1_CPU     5
+#define PTIN_HWPROC_FRAME_OVERSIZE  6
 typedef struct
 {
   DAPI_CMD_GET_SET_t  operation;

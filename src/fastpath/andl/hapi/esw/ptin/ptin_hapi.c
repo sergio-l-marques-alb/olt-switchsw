@@ -5198,6 +5198,27 @@ void ptin_vcap_defvid_dump(void)
   fflush(stdout);
 }
 
+/**
+ * Configure the global option L3UcastTtl1ToCpu on switchcontrol
+ * 
+ * @param usp 
+ * @param enable 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_L3UcastTtl1ToCpu_set(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g)
+{
+  /* Configure L3UcastTtl1ToCpu */
+  if (bcm_switch_control_set(0, bcmSwitchL3UcastTtl1ToCpu, enable) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting L3UcastTtl1ToCpu");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
 BROAD_POLICY_t policyId_trap = BROAD_POLICY_INVALID;
 L7_int    trap_port = -1;
 L7_uint16 trap_ovlan=0, trap_ivlan=0;

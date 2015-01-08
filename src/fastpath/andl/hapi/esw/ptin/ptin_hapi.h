@@ -366,6 +366,17 @@ extern L7_RC_t hapi_ptin_stormControl_port_remove(ptin_dapi_port_t *dapiPort, PO
 extern L7_RC_t ptin_hapi_vcap_defvid(DAPI_USP_t *usp, L7_uint16 outerVlan, L7_uint16 innerVlan, DAPI_t *dapi_g);
 
 /**
+ * Configure the global option L3UcastTtl1ToCpu on switchcontrol
+ * 
+ * @param usp 
+ * @param enable 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_L3UcastTtl1ToCpu_set(DAPI_USP_t *usp, L7_BOOL enable, DAPI_t *dapi_g);
+
+/**
  * System Default rules applied for PTIn 
  * 
  * @author mruas (9/21/2014)

@@ -187,6 +187,21 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     }
     break; 
 
+  case PTIN_HWPROC_UC_TTL1_CPU:
+    if (hwproc->operation == DAPI_CMD_SET)
+    {
+      rc = ptin_hapi_L3UcastTtl1ToCpu_set(usp, 1, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_L3UcastTtl1ToCpu_set");
+    }
+    else if (hwproc->operation == DAPI_CMD_CLEAR)
+    {
+      rc = ptin_hapi_L3UcastTtl1ToCpu_set(usp, 0, dapi_g);
+      if (rc != L7_SUCCESS)
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with ptin_hapi_L3UcastTtl1ToCpu_set");
+    }
+    break; 
+
   case PTIN_HWPROC_FRAME_OVERSIZE:
     if (hwproc->operation == DAPI_CMD_GET)
     {
