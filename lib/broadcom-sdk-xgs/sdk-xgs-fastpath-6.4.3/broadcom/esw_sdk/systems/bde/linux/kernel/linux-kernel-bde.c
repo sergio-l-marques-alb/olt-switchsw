@@ -2799,6 +2799,8 @@ _alloc_mpool(size_t size)
         }
         size = _dma_mem_size = alloc_size;
 
+        gprintk("_alloc_mpool: _SIMPLE_MEMORY_ALLOCATION_ successfull\n");
+
 #else /* _SIMPLE_MEMORY_ALLOCATION_ */
         _dma_vbase = _pgalloc(size);
         pbase = virt_to_bus(_dma_vbase);

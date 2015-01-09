@@ -6362,6 +6362,11 @@ phy_wcmod_xgxs16g1l_an_set(int unit, soc_port_t port, int an)
                                                                                 
     pc->fiber.autoneg_enable = an;
                                                                                 
+    LOG_BSL_INFO(BSL_LS_SOC_PHY,
+             (BSL_META_U(pc->unit,
+                         "phy_wcmod_xgxs16g1l_an_set: Successfully set u=%d p=%d an=%d\n"),
+              unit, port, an));
+
     return SOC_E_NONE;
 }
 
