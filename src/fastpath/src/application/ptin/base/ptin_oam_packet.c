@@ -706,6 +706,11 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
     return L7_FAILURE;
   }
 
+  if (ptin_aps_packetRx_queue[queueidx] == L7_NULLPTR) {
+    LOG_ERR(LOG_CTX_OAM, "queueidx (%d) is a NULL Pointer", queueidx);
+    return L7_FAILURE;
+  }
+
   status = (L7_uint32) osapiMessageReceive(ptin_aps_packetRx_queue[queueidx],
                                            (void*) &msg,
                                            PTIN_APS_PDU_MSG_SIZE,
