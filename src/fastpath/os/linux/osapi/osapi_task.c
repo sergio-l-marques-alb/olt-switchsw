@@ -630,6 +630,9 @@ L7_int32  osapiTaskCreate( L7_char8 *task_name,
     return(L7_ERROR);
   }
 
+  LOG_NOTICE(LOG_CTX_STARTUP, "New pthread created: \"%s\" -> pthread_id=%u (task_id=%u)",
+             namePtr, newTask->thread, (unsigned int)task_id);
+
   return(task_id);
 
 }

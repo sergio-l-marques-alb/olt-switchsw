@@ -3596,7 +3596,7 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
     logit = L7_FALSE;
     printit = L7_TRUE;
   }
-  else if (meta_data->layer == bslLayerAppl)
+  else if (meta_data->layer == bslLayerAppl && meta_data->source == bslSourceShell)
   {
     /* Always print APPL layer to stdout */
     logit = L7_FALSE;
