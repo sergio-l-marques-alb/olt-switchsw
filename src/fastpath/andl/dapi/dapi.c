@@ -820,6 +820,8 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
     /* PTin end */
       else if (isValidSlot(&dapiUsp,dapi_g) != L7_TRUE)
       {
+        LOG_TRACE(LOG_CTX_MISC, "Slot not valid: dapiUsp={%d,%d,%d}", dapiUsp.unit, dapiUsp.slot, dapiUsp.port);
+
         if (cmd == DAPI_CMD_FRAME_SEND) {
           sysapiNetMbufFree(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
         }
@@ -829,6 +831,8 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
       else if (dapi_g->unit[dapiUsp.unit]->slot[dapiUsp.slot]->cardPresent == L7_FALSE)
       {
         static L7_uint32 bad_usp_count = 0;
+
+        LOG_TRACE(LOG_CTX_MISC, "Card not present: dapiUsp={%d,%d,%d}", dapiUsp.unit, dapiUsp.slot, dapiUsp.port);
 
         if (cmd == DAPI_CMD_FRAME_SEND) {
           sysapiNetMbufFree(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
@@ -844,6 +848,8 @@ L7_RC_t dapiCtl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data)
       }
       else if (isValidUsp(&dapiUsp,dapi_g) == L7_FALSE)
       {
+        LOG_TRACE(LOG_CTX_MISC, "USP {%d,%d,%d} not valid", dapiUsp.unit, dapiUsp.slot, dapiUsp.port);
+
         if (cmd == DAPI_CMD_FRAME_SEND) {
           sysapiNetMbufFree(((DAPI_FRAME_CMD_t*)data)->cmdData.send.frameHdl);
         }
@@ -1278,6 +1284,22 @@ L7_RC_t dapiCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data)
     }
 
   }
+  /* PTin added: virtual port */
+  #if 1
+  else if ((dapi_g->unit[usp.unit]->slot[usp.slot]->cardType == SYSAPI_CARD_TYPE_VLAN_PORT))
+  {
+    L7_RC_t rc;
+    rc = dapiLogicalCardInsert(SYSAPI_CARD_TYPE_VLAN_PORT, &usp, cmd, data);
+    if (rc == L7_FAILURE)
+    {
+      result = L7_FAILURE;
+      SYSAPI_PRINTF( SYSAPI_LOGGING_DAPI_ERROR,
+                     "%s %d: In %s call to 'dapiLogicalCardInsert' (VLAN_PORT)\n",
+                     __FILE__, __LINE__, routine_name);
+      return result;
+    }
+  }
+  #endif
   else
   {
     dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot = sysapiHpcCardInfoPtr->numOfNiPorts;
@@ -1753,6 +1775,13 @@ L7_RC_t dapiLogicalCardInsert(SYSAPI_CARD_TYPE_t cardType, DAPI_USP_t *dapiUsp,
       expectedCardId = L7_LOGICAL_CARD_CAPWAP_TUNNEL_INTF_ID;
       portsInSlot = L7_MAX_NUM_CAPWAP_TUNNEL_INTF;
       ianaType = L7_IANA_CAPWAP_TUNNEL;
+      break;
+
+    /* PTin added: virtual port */
+    case SYSAPI_CARD_TYPE_VLAN_PORT:
+      expectedCardId = L7_LOGICAL_CARD_VLAN_PORT_INTF_ID;
+      portsInSlot = L7_MAX_NUM_VLAN_PORT_INTF;
+      ianaType = L7_IANA_VLAN_PORT;
       break;
 
     default:

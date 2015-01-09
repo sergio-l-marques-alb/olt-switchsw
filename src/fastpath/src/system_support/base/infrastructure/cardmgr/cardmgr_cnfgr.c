@@ -363,6 +363,7 @@ L7_RC_t cmgrCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
         (cardTypeDb->type == SYSAPI_CARD_TYPE_LOOPBACK) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_TUNNEL) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_CAPWAP_TUNNEL) ||
+        (cardTypeDb->type == SYSAPI_CARD_TYPE_VLAN_PORT) ||     /* PTin added: virtual ports */
         (cardTypeDb->type == SYSAPI_CARD_TYPE_LAG)) &&
           (slot != L7_LOGICAL_UNIT))
       {

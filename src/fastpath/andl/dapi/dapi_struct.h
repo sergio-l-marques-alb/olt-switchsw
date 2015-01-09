@@ -388,7 +388,8 @@
 #define IS_SLOT_TYPE_PHYSICAL(_usp,_dapi_g)          ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_LINE)
 #define IS_SLOT_TYPE_LOGICAL_LAG(_usp,_dapi_g)       ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_LAG)
 #define IS_SLOT_TYPE_LOGICAL_VLAN(_usp,_dapi_g)      ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_VLAN_ROUTER)
-#define IS_SLOT_TYPE_CAPWAP_TUNNEL(_usp,_dapi_g)      ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_CAPWAP_TUNNEL)
+#define IS_SLOT_TYPE_CAPWAP_TUNNEL(_usp,_dapi_g)     ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_CAPWAP_TUNNEL)
+#define IS_SLOT_TYPE_VLAN_PORT(_usp,_dapi_g)         ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_VLAN_PORT)  /* PTin added: virtual ports */
 #define IS_SLOT_TYPE_CPU(_usp,_dapi_g)               ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType == SYSAPI_CARD_TYPE_CPU)
 #define SLOT_TYPE_GET(_usp, _dapi_g)                 ((_dapi_g)->unit[(_usp)->unit]->slot[(_usp)->slot]->cardType)
 

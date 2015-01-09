@@ -412,6 +412,11 @@ L7_RC_t edbPhysicalNameGet(L7_uint32 physicalIndex, L7_char8 *name)
             (void)strcpy(name, "CAPWAP Tunnel Card");
             rc = L7_SUCCESS;
             break;
+          /* PTin added: virtual port */
+          case SYSAPI_CARD_TYPE_VLAN_PORT:
+            (void)strcpy(name, "VLAN_PORT Card");
+            rc = L7_SUCCESS;
+            break;
           default:
             /* unknown card type */
             (void)strcpy(name, "");

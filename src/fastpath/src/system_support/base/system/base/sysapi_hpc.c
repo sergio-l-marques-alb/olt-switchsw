@@ -2397,6 +2397,10 @@ L7_RC_t sysapiHpcSlotMapMPModuleInfoGet(L7_int32 physicalSlot,
     case(L7_CAPWAP_TUNNEL_SLOT_NUM):
       *moduleType = SYSAPI_CARD_TYPE_CAPWAP_TUNNEL;
       break;
+    /* PTin added: virtual port */
+    case(L7_VLAN_PORT_SLOT_NUM):
+      *moduleType = SYSAPI_CARD_TYPE_VLAN_PORT;
+      break;
     default:
       *moduleType = SYSAPI_CARD_TYPE_LINE;
       break;

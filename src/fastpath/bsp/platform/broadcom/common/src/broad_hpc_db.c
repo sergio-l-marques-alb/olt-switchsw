@@ -144,6 +144,14 @@ DAPI_CARD_ENTRY_t dapiBroadL2TunnelCardEntry = {
 };
 #endif
 
+/* PTin added: virtual ports */
+#if 1
+DAPI_CARD_ENTRY_t dapiBroadVlanPortCardEntry = {
+
+hapiBroadVlanPortCardInsert, hapiBroadCardRemove, NULL, 0, NULL, 0, 0, NULL, 0
+};
+#endif
+
 SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_CPU[]=
 {
 { L7_IANA_OTHER_CPU,    /* type */
@@ -243,7 +251,24 @@ HPC_CARD_DESCRIPTOR_t hpc_card_descriptor_db[] =
   }
 }
 #endif
-
+/* PTin added: virtual ports */
+#if 1
+,
+{
+  /* VLAN_PORT Intf Card */
+  {
+    L7_LOGICAL_CARD_VLAN_PORT_INTF_ID, /* cardtypeID */
+    "VLAN_PORT Interface Card",
+    "VLAN_PORT Interface Card",
+    SYSAPI_CARD_TYPE_VLAN_PORT,        /* type       */
+    0,                              /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,            /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,          /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                     /* portInfo, refers to table declared above for each card type*/
+    &dapiBroadVlanPortCardEntry     /* dapiCardInfo */
+  }
+}
+#endif
 };
 
 /**************************************************************************

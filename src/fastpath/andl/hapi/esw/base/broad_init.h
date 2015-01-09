@@ -213,6 +213,24 @@ L7_RC_t hapiBroadCpuCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd, void *data, 
 L7_RC_t hapiBroadGenericCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd,
                                    void *data, void *handle);
 
+/* PTin added: virtual ports */
+#if 1
+/**
+ * Card insert function for VLAN_PORT card
+ * 
+ * @author mruas (1/9/2015)
+ * 
+ * @param dapiUsp 
+ * @param cmd 
+ * @param data 
+ * @param handle 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadVlanPortCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd,
+                                   void *data, void *handle);
+#endif
+
 /*********************************************************************
 *
 * @purpose Uninitializes ALL card types physical, cpu, lag, router

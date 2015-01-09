@@ -2856,6 +2856,59 @@ L7_RC_t hapiBroadGenericCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd,
   return rc;
 }
 
+/* PTin added: virtual ports */
+#if 1
+/**
+ * Card insert function for VLAN_PORT card
+ * 
+ * @author mruas (1/9/2015)
+ * 
+ * @param dapiUsp 
+ * @param cmd 
+ * @param data 
+ * @param handle 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadVlanPortCardInsert(DAPI_USP_t *dapiUsp, DAPI_CMD_t cmd,
+                                   void *data, void *handle)
+{
+  DAPI_USP_t            usp;
+  BROAD_PORT_t         *hapiPortPtr;
+  DAPI_PORT_t          *dapiPortPtr;
+  DAPI_t               *dapi_g = (DAPI_t*)handle;
+  L7_RC_t               rc;
+
+  rc = dapiGenericCardInsert(dapiUsp, cmd, data, handle);
+  if (rc != L7_SUCCESS)
+  {
+    return rc;
+  }
+
+  usp.unit = dapiUsp->unit;
+  usp.slot = dapiUsp->slot;
+
+  for (usp.port = 0;
+       usp.port < dapi_g->unit[usp.unit]->slot[usp.slot]->numOfPortsInSlot;
+       usp.port++)
+  {
+    hapiPortPtr = (BROAD_PORT_t*)osapiMalloc(L7_DRIVER_COMPONENT_ID,
+                                             sizeof(BROAD_PORT_t));
+    dapiPortPtr = DAPI_PORT_GET(&usp, dapi_g);
+
+    dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort = (void *)hapiPortPtr;
+    bzero((L7_char8*)hapiPortPtr, sizeof(BROAD_PORT_t));
+
+    /*
+     * Override hardware-supported operations
+     */
+    hapiBroadL2StdPortInit(dapiPortPtr);
+  }
+
+  return rc;
+}
+#endif
+
 /*********************************************************************
 *
 * @purpose Uninitializes ALL card types physical, cpu, lag, router

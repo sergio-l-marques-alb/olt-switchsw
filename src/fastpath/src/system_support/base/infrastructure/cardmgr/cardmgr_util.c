@@ -70,6 +70,7 @@ L7_char8 cardTypeStr[(SYSAPI_CARD_TYPE_LAST+1)][30] =
   "CARD_TYPE_LOOPBACK",
   "CARD_TYPE_TUNNEL",
   "CARD_TYPE_CAPWAP_TUNNEL",
+  "CARD_TYPE_VLAN_PORT",
   "CARD_TYPE_LAST"
 };
 
@@ -988,9 +989,13 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
 
   maxSlots = CMGR_MAX_SLOTS_f;
 
+  LOG_TRACE(LOG_CTX_STARTUP, "Initializing slots: maxSlots=%u", maxSlots);
+
   /* Insert only logical cards and local cards to the driver */
   for (slot = 0 ; slot <= maxSlots; slot++ )
   {
+    LOG_TRACE(LOG_CTX_STARTUP, "Initializing slots: slot=%u", slot);
+
     /* Retreive info about the logical card from the local unit.
      */
     card_id = cmgrCMDBInsertedCardIdGet (L7_LOGICAL_UNIT, slot);
@@ -999,19 +1004,25 @@ void cmgrTaskLocalUnitIsManager(L7_LAST_STARTUP_REASON_t systemStartupReason,
       continue;
     }
 
+    LOG_TRACE(LOG_CTX_STARTUP, "slot=%u", slot);
+
     cardTypeDb = sysapiHpcCardDbEntryGet(card_id);
     if (cardTypeDb == L7_NULL)
     {
       LOG_ERROR (card_id);
     }
 
+    LOG_TRACE(LOG_CTX_STARTUP, "slot=%u", slot);
+
     if ((cardTypeDb->type == SYSAPI_CARD_TYPE_LOGICAL_CPU) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_VLAN_ROUTER) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_LOOPBACK) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_TUNNEL) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_CAPWAP_TUNNEL) ||
+        (cardTypeDb->type == SYSAPI_CARD_TYPE_VLAN_PORT) ||     /* PTin added: virtual ports */
         (cardTypeDb->type == SYSAPI_CARD_TYPE_LAG))
     {
+      LOG_TRACE(LOG_CTX_STARTUP, "Inserting card of slot=%u", slot);
       CMGR_PROFILE_EVENT(CMGR_PROFILE_EVENT_CARD_INSERT, L7_TRUE, L7_LOGICAL_UNIT, slot);
       rc = dtlCardCmd(L7_LOGICAL_UNIT, slot, DTL_CARD_INSERT, card_id);
       if (rc != L7_SUCCESS)
@@ -1244,6 +1255,7 @@ void cmgrTaskLocalUnitIsNotManager(void)
         (cardTypeDb->type == SYSAPI_CARD_TYPE_LOOPBACK) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_TUNNEL) ||
         (cardTypeDb->type == SYSAPI_CARD_TYPE_CAPWAP_TUNNEL) ||
+        (cardTypeDb->type == SYSAPI_CARD_TYPE_VLAN_PORT) ||     /* PTin added: virtual ports */
         (cardTypeDb->type == SYSAPI_CARD_TYPE_LAG))
     {
       (void)dtlCardCmd(L7_LOGICAL_UNIT, slot, DTL_CARD_REMOVE, card_id);
@@ -2251,8 +2263,12 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
     return L7_FAILURE;
   }
 
+  LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: init");
+
   for (slot = 0; slot <= cmgrCMDBUnitMaxSlotsGet(unit); slot++)
   {
+    LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: slot=%d", slot);
+
     slotDb = &unitDb->cmSlot[slot];
     if (slotDb == NULL)
     {
@@ -2275,10 +2291,14 @@ L7_RC_t cmgrInitSlotsOnUnit(L7_uint32 unit)
       continue;
     }
 
+    LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: pluggable=%d", unit_entry.physSlot[sx].pluggable);
+
     if (unit_entry.physSlot[sx].pluggable != L7_TRUE)
     {
       for (i = 0; i < unit_entry.physSlot[sx].num_supported_card_types; i++)
       {
+        LOG_TRACE(LOG_CTX_STARTUP, "cmgrInitSlotsOnUnit: supported_card[%d] = %d", i, unit_entry.physSlot[sx].supported_cards[i]);
+
         if (unit_entry.physSlot[sx].supported_cards[i] != L7_CMGR_CARD_ID_NONE)
         {
           supported_card = unit_entry.physSlot[sx].supported_cards[i];
@@ -4334,11 +4354,18 @@ L7_RC_t cmgrUnitEntryAndSlotIndexGet(L7_uint32 unit, L7_uint32 slot, L7_uint32 *
     u_entry = sysapiHpcUnitDbEntryGet(unit_id);
   }
 
+  LOG_TRACE(LOG_CTX_STARTUP, "cmgrUnitEntryAndSlotIndexGet: unit=%d slot=%d", unit, slot);
+
   if (L7_NULLPTR == u_entry)
     return L7_FAILURE;
 
+  LOG_TRACE(LOG_CTX_STARTUP, "cmgrUnitEntryAndSlotIndexGet: unit=%d slot=%d", unit, slot);
+
   for (slot_index = 0; slot_index < L7_MAX_PHYSICAL_SLOTS_PER_UNIT; slot_index++)
   {
+    LOG_TRACE(LOG_CTX_STARTUP, "cmgrUnitEntryAndSlotIndexGet: slot_index=%d, u_entry->physSlot[slot_index].slot_number=%d",
+              slot_index, u_entry->physSlot[slot_index].slot_number);
+
     if (u_entry->physSlot[slot_index].slot_number == slot)
     {
       *sx = slot_index;

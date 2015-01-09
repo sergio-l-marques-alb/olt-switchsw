@@ -323,12 +323,12 @@
      1,                                             /* number of physical slots */
 /* do not specify the Logical Routing card as a non-removable card in switching builds */
 #if L7_SWITCHING_PACKAGE == 1
-     2,                                             /* number of static card-slot mapping table entries */
+     3,                                             /* number of static card-slot mapping table entries */  /* PTin modified: virtual ports */
 #elif L7_ROUTING_PACKAGE == 1
 #if L7_RLIM_PACKAGE == 1
-     5,                                             /* number of static card-slot mapping table entries */
+     6,                                             /* number of static card-slot mapping table entries */  /* PTin modified: virtual ports */
 #else
-    4,
+    5,                                                                                                      /* PTin modified: virtual ports */
 #endif
 #else
 #error __FILE__, __LINE__: Neither L7_SWITCHING_PACKAGE nor L7_ROUTING_PACKAGE defined.
@@ -346,6 +346,8 @@
        {L7_TUNNEL_SLOT_NUM, L7_LOGICAL_CARD_TUNNEL_INTF_ID}
 #endif
 #endif
+       ,
+       {L7_VLAN_PORT_SLOT_NUM, L7_LOGICAL_CARD_VLAN_PORT_INTF_ID}  /* PTin added: virtual ports */
      },
      {
       {
@@ -587,12 +589,12 @@
      1,                                             /* number of physical slots */
 /* do not specify the Logical Routing card as a non-removable card in switching builds */
 #if L7_SWITCHING_PACKAGE == 1
-     2,                                             /* number of static card-slot mapping table entries */
+     3,                                             /* number of static card-slot mapping table entries */  /* PTin modified: virtual ports */
 #elif L7_ROUTING_PACKAGE == 1
 #if L7_RLIM_PACKAGE == 1
-     5,                                             /* number of static card-slot mapping table entries */
+     6,                                             /* number of static card-slot mapping table entries */  /* PTin modified: virtual ports */
 #else
-    4,
+    5,                                                                                                      /* PTin modified: virtual ports */
 #endif
 #else
 #error __FILE__, __LINE__: Neither L7_SWITCHING_PACKAGE nor L7_ROUTING_PACKAGE defined.
@@ -610,6 +612,8 @@
        {L7_TUNNEL_SLOT_NUM, L7_LOGICAL_CARD_TUNNEL_INTF_ID}
 #endif
 #endif
+       ,
+       {L7_VLAN_PORT_SLOT_NUM, L7_LOGICAL_CARD_VLAN_PORT_INTF_ID}  /* PTin added: virtual ports */
      },
      {
       {
