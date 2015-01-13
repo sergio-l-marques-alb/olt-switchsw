@@ -4746,15 +4746,19 @@ L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhc
     {
       if (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv4 == 1)
       {
-        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET) != L7_SUCCESS)
+        /* Do not disable rule for QUATTRO-stacked services */
+        if (!IS_EVC_QUATTRO(evc_id) || !IS_EVC_STACKED(evc_id))
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing DHCPv4 trap rule", evc_id);
-          return L7_FAILURE;
-        }
-        else
-        {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for DHCPv4", evc_id);
-          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+          if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET) != L7_SUCCESS) 
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing DHCPv4 trap rule", evc_id);
+            return L7_FAILURE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for DHCPv4", evc_id);
+            evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+          }
         }
       }
 
@@ -4774,15 +4778,19 @@ L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhc
     {
       if (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv6 == 1)
       {
-        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET6) != L7_SUCCESS)
+        /* Do not disable rule for QUATTRO-stacked services */
+        if (!IS_EVC_QUATTRO(evc_id) || !IS_EVC_STACKED(evc_id))
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing DHCPv6 trap rule", evc_id);
-          return L7_FAILURE;
-        }
-        else
-        {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for DHCPv6", evc_id);
-          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+          if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET6) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error removing DHCPv6 trap rule", evc_id);
+            return L7_FAILURE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed trap rules for DHCPv6", evc_id);
+            evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+          }
         }
       }
 
@@ -4846,15 +4854,19 @@ L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhc
       }
       else if (!dhcpv4_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv4 == 1))
       {
-        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET) != L7_SUCCESS)
+        /* Do not disable rule for QUATTRO-stacked services */
+        if (!IS_EVC_QUATTRO(evc_id) || !IS_EVC_STACKED(evc_id))
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv4 trap rule", evc_id);
-          return L7_FAILURE;
-        }
-        else
-        {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed DHCPv4 trap rule", evc_id);
-          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+          if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv4 trap rule", evc_id);
+            return L7_FAILURE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed DHCPv4 trap rule", evc_id);
+            evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV4_PROTOCOL);
+          }
         }
       }
 
@@ -4899,15 +4911,19 @@ L7_RC_t ptin_evc_update_dhcp(L7_uint16 evc_id, L7_uint32 *flags_ref, L7_BOOL dhc
       }
       else if (!dhcpv6_enabled && (!look_to_counters || evcs[evc_id].n_clientflows_dhcpv6 == 1))
       {
-        if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET6) != L7_SUCCESS)
+        /* Do not disable rule for QUATTRO-stacked services */
+        if (!IS_EVC_QUATTRO(evc_id) || !IS_EVC_STACKED(evc_id))
         {
-          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv6 trap rule", evc_id);
-          return L7_FAILURE;
-        }
-        else
-        {
-          LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed DHCPv6 trap rule", evc_id);
-          evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+          if (ptin_dhcp_evc_trap_configure(evc_ext_id, L7_DISABLE, L7_AF_INET6) != L7_SUCCESS)
+          {
+            LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error configuring DHCPv6 trap rule", evc_id);
+            return L7_FAILURE;
+          }
+          else
+          {
+            LOG_TRACE(LOG_CTX_PTIN_EVC, "EVC# %u: Removed DHCPv6 trap rule", evc_id);
+            evcs[evc_id].flags &= ~((L7_uint32) PTIN_EVC_MASK_DHCPV6_PROTOCOL);
+          }
         }
       }
 
