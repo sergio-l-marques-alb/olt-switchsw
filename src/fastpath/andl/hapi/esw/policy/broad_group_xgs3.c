@@ -209,7 +209,7 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
     },
     /* COPY_TO_CPU */
     {
-        { bcmFieldActionCopyToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
+        { bcmFieldActionGpCopyToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -3352,7 +3352,7 @@ static int _policy_group_add_actions(int                   unit,
         if (PROFILE_ACTION_INVALID == bcm_action)
         {
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-            sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+            sysapiPrintf("%s(%d) bcm_action=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, rv);
           return BCM_E_CONFIG;
         }
         else if (bcmFieldActionGpDropPrecedence == bcm_action)
@@ -3362,7 +3362,7 @@ static int _policy_group_add_actions(int                   unit,
           if (BCM_E_NONE != rv)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+              sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param0], rv);
           }
         }
         else if (bcmFieldActionYpDropPrecedence == bcm_action)
@@ -3372,7 +3372,7 @@ static int _policy_group_add_actions(int                   unit,
           if (BCM_E_NONE != rv)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+              sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param1], rv);
           }
         }
         else if (bcmFieldActionRpDropPrecedence == bcm_action)
@@ -3382,7 +3382,7 @@ static int _policy_group_add_actions(int                   unit,
           if (BCM_E_NONE != rv)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+              sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param2], rv);
           }
         }
         else if (PROFILE_ACTION_NONE != bcm_action)
@@ -3392,11 +3392,14 @@ static int _policy_group_add_actions(int                   unit,
           if (BCM_E_NONE != rv)
           {
             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+              sysapiPrintf("%s(%d) bcm_action=%d param0=%d param1=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
 
             return rv;
           }
         }
+
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) Added bcm_action=%d (param0=%d param1=%d): rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
 
         /* For a redirect action, add an implicit lookup status qualifier to 
          * forward based on STP status - allow only if the state is set to "forwarding" */

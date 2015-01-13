@@ -1754,6 +1754,27 @@ L7_RC_t ptin_xlate_PVID_get(L7_uint32 intIfNum, L7_uint16 *vlanId)
   return L7_SUCCESS;
 }
 
+/**
+ * Dump PVID and Portgroup information
+ * 
+ * @author mruas (1/13/2015)
+ */
+void ptin_pvid_dump(void)
+{
+  L7_uint port;
+
+  printf("PortGroup and PVID information:\r\n");
+
+  for (port = 0; port < PTIN_SYSTEM_N_INTERF; port++)
+  {
+    printf("Port %-2u:   PGroup=", port);
+
+    (port < PTIN_SYSTEM_N_PORTS) ? printf("%-3u", xlate_table_portgroup[port]) : printf("---");
+
+    printf("   PVID=%u\r\n", xlate_table_pvid[port]);
+  }
+}
+
 /***************************************************************** 
  * STATIC FUNCTIONS IMPLEMENTATION
  *****************************************************************/

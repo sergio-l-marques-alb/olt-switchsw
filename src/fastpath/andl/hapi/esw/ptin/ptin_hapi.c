@@ -5435,15 +5435,16 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   #endif
 
   /* Trap to cpu action */
-  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+  rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
   if (rc != L7_SUCCESS)
   {
-    printf("Error adding trap_to_cpu action\r\n");
+    printf("Error adding copy_to_cpu action\r\n");
     hapiBroadPolicyCreateCancel();
     return L7_FAILURE;
   }
-  printf("trap_to_cpu action added\r\n");
+  printf("copy_to_cpu action added\r\n");
 
+  /* Do not cause drops (to not interfere with switching). CopyToCpu action, will only copy green packets */
   #if 0
   /* Drop all packets */
   rc = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
@@ -5456,7 +5457,7 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
   printf("hard_drop action added\r\n");
   #endif
 
-  /* Define meter action, to rate limit packets */
+  /* Define meter action, to classify packets */
   rc = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
   if (rc != L7_SUCCESS)
   {
