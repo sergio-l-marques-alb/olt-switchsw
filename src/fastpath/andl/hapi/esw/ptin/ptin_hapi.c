@@ -4785,8 +4785,8 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  lacp_dmac  , exact_match);
     if (rc != L7_SUCCESS)  break;
-    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &vlanId, exact_match);
-    if (rc != L7_SUCCESS)  break;
+    //rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &vlanId, exact_match);
+    //if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &lacp_etherType, exact_match);
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
