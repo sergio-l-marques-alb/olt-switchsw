@@ -161,6 +161,7 @@ void ptin_debug(void)
   printf("  ptin_debug_oam_set <enable>                               - Show more debugging logs for the OAM module\r\n");
   printf("  ptin_debug_lacp_set <enable>                              - Show more debugging logs for the LACP module\r\n");
   printf("  ptin_debug_dtl_set <enable>                               - Show more debugging logs for the DTL module\r\n");
+  printf("  dtlNetPtinDebugEnable 0xf                                 - Print all packets transmited from processor\r\n");
   printf("  ptin_timers_clear                                         - Inializes all processing timers\r\n");
   printf("  ptin_timers_show                                          - Show all processing timers contents\r\n");
   printf("  ptin_msg_runtime_init <msg_id>                            - Initialize runtime measurements for msg_id (-1 for all)\r\n");
@@ -169,13 +170,15 @@ void ptin_debug(void)
   printf("  cpu_intercept_debug_enable <enable>                       - Print all packets intercepted by the processor\r\n");
   printf("  pdu_receive_debug_enable <enable>                         - Print all PDUs received and validated for further processing\r\n");
   printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
+  printf("  cpu_tx_debug_enable <enable>                              - Print all packets transmited from processor\r\n");
+  printf("  ptin_debug_trap_packets_dump <enable>                     - Print received packets content\r\n");
+  printf("  ptin_debug_tx_packets_dump <enable>                       - Print transmited packets content (from CPU)\r\n");
   printf("\r\n");
   printf("  ptin_debug_trap_packets <port> <OVid> <IVid> <only_drops> - Redirect packets from <port>, with <ovid> and <ivid>, to CPU\r\n");
   printf("  ptin_debug_trap_packets_egress <port> <OVid> <IVid> <drp> - Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");
   printf("  ptin_debug_trap_packets_mirror <dst> <port> <OVid> <IVid> - Redirect packets egressing from <port>, with <ovid> and <ivid>, to <dst> port\r\n");
   printf("  ptin_debug_trap_packets_cancel                            - Cancel redirection packets rule to CPU\r\n");
   printf("  ptin_debug_trap_packets_state                             - Show if some redirection packet rule to CPU is defined\r\n");
-  printf("  ptin_debug_trap_packets_dump <enable>                     - Print packets content\r\n");
   printf("\r\n");
   printf("  ptin_traprules_dump                                       - Dump configured trap (to CPU) rules\r\n");
   printf("  ptin_stormcontrol_dump                                    - Dump storm control configurations\r\n");

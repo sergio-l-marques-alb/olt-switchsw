@@ -161,6 +161,7 @@ static L7_uint32          hapiLportToUportConvertErrors = 0;
 
 // PTin added: intercept
 int cpu_intercept_debug = 0;
+int cpu_transmit_debug  = 0;
 
 typedef enum
 {
@@ -172,18 +173,24 @@ typedef enum
 void cpu_intercept_debug_enable(int enable)
 {
   cpu_intercept_debug = enable;
-
-  return;
+}
+void cpu_tx_debug_enable(int enable)
+{
+  cpu_transmit_debug = enable;
 }
 
 int cpu_intercepted_packets_dump = 0;
+int cpu_transmited_packets_dump = 0;
 
 void ptin_debug_trap_packets_dump(int enable)
 {
   cpu_intercepted_packets_dump = enable;
-
-  return;
 }
+void ptin_debug_tx_packets_dump(int enable)
+{
+  cpu_transmited_packets_dump = enable;
+}
+
 // PTin end
 
 #if defined(FEAT_METRO_CPE_V1_0)
@@ -1323,6 +1330,11 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
       return(L7_SUCCESS);
   }
 
+  if (cpu_transmit_debug)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Packet going to be transmited on usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  }
+
   /* Get the Driver Ports */
   hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
   dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -1633,6 +1645,14 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
 
   dapiTraceFrame(&destUsp,bcm_pkt.pkt_data->data,DAPI_TRACE_FRAME_SEND,frameType);
+
+  /* PTin added: transmission */
+  /* Dump first 64 bytes */
+  if (cpu_transmit_debug)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI,"Packet to be transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x)",
+              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags);
+  }
 
   /* determine how the packet is to be sent */
   switch (frameType)
@@ -2131,6 +2151,31 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
                              usp,dapi_g,L7_FALSE,L7_FALSE);
 #endif
 
+  /* PTin added: transmission */
+  /* Dump first 64 bytes */
+  if (cpu_transmit_debug)
+  {
+    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x) bcmTxRv=%d\r\n",
+           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv);
+
+    if (cpu_transmited_packets_dump)
+    {
+      int i;
+      for (i=0; i<bcm_pkt.pkt_data->len && i<64; i++)
+      {
+        if (i%16==0)
+        {
+          if (i!=0)
+            printf("\r\n");
+          printf(" 0x%02x:",i);
+        }
+        printf(" %02x",bcm_pkt.pkt_data->data[i]);
+      }
+      printf("\r\n");
+    }
+    fflush(stdout);
+  }
+
   /* Free the frame from the buffer */
   sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);
   sal_dma_free(bcm_pkt.pkt_data->data);
@@ -2140,10 +2185,10 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
     osapiTaskYield();
   }
 
-  if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
+  if (cpu_transmit_debug)
   {
-    SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\n %s: Sending to usp %d.%d.%d, wlanvp %d with frameType %d pktflags %x \n", 
-                  __FUNCTION__, destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, frameType, bcm_pkt.flags);
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "Sending to usp %d.%d.%d, wlanvp %d with frameType %d pktflags %x",
+              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, frameType, bcm_pkt.flags);
   }
 
   return result;
@@ -2252,7 +2297,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     int i;
 
     printf("Packet received on rxport %u, srcport %u:\r\n",bcm_pkt->rx_port,bcm_pkt->src_port);
-    for (i=0; i<64; i++)
+    for (i=0; i<bcm_pkt->pkt_data->len && i<64; i++)
     {
       if (i%16==0)
       {

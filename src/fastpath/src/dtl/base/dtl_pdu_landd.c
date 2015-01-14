@@ -286,10 +286,6 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   }
 #endif
 
-  // Added temporary debug (To be removed)
-  if (ptin_debug_dtl)
-    LOG_NOTICE(LOG_CTX_MISC,"TX PDU");
-
   //Ignore if the port has link down (only consider valid interfaces)
   if ( (nimCheckIfNumber(dtlCmdInfo->intfNum) == L7_SUCCESS) &&
        ((nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE)) )
@@ -298,6 +294,14 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
       LOG_NOTICE(LOG_CTX_PTIN_DTL,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",dtlCmdInfo->intfNum);    
     SYSAPI_NET_MBUF_FREE(bufHandle);
     return L7_SUCCESS;
+  }
+
+  // Added temporary debug (To be removed)
+  if (ptin_debug_dtl)
+  {
+    LOG_DEBUG(LOG_CTX_MISC,"TX PDU: dtlCmd=%u intIfNum=%u prio=%u typeToSend=%u L2.domainId=%u L2.vlanId=%u L2.flags=0x%08x",
+              dtlCmd, dtlCmdInfo->intfNum, dtlCmdInfo->priority, dtlCmdInfo->typeToSend,
+              dtlCmdInfo->cmdType.L2.domainId, dtlCmdInfo->cmdType.L2.vlanId, dtlCmdInfo->cmdType.L2.flags);
   }
 
   switch (dtlCmd)
