@@ -882,8 +882,8 @@ L7_RC_t ipsgBindingHwAdd(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr,
       inetAddrPrint(ipAddr, ipAddrStr);
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
-              "Failed to add IPSG binding for %s for interface %s in hardware.",
-              ipAddrStr, ifName);
+              "Failed to add IPSG binding for %s for interface %s in hardware (rc:%u).",
+              ipAddrStr, ifName, rc);
     }
     return rc;
   }
@@ -950,8 +950,8 @@ L7_RC_t ipsgBindingHwRemove(L7_uint32 intIfNum, L7_inet_addr_t* ipAddr)
       inetAddrPrint(ipAddr, ipAddrStr);
       nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
-              "Failed to remove IPSG binding for %s on interface %s from hardware.",
-              ipAddrStr, ifName);
+              "Failed to remove IPSG binding for %s on interface %s from hardware (rc:%u).",
+              ipAddrStr, ifName, rc);
     }
     return L7_FAILURE;
   }
