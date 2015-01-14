@@ -398,14 +398,19 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
   }
   else
   {
+    #if 0    
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Port is Unknown");
+    *portType = PTIN_MGMD_PORT_TYPE_LEAF;
+    #else
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Unknown port type");
     return FAILURE;
+    #endif
   }
 
   return SUCCESS;
 }
 
-unsigned int snooping_channel_serviceid_get(unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
+unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [groupAddr:%08X sourceAddr:%08X serviceId:%p]", groupAddr, sourceAddr, serviceId);
 
@@ -426,6 +431,12 @@ unsigned int snooping_channel_serviceid_get(unsigned int groupAddr, unsigned int
   inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
   if (ptin_igmp_McastRootVlan_get(&groupInetAddr, &sourceInetAddr, (L7_uint16)-1, &mcastRootVlan)==L7_SUCCESS)
   {
+    if(SUCCESS != ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"This is not a leaf Port (portId=%u, mcastRootVlan=%u)", portId, mcastRootVlan);    
+      return L7_FAILURE;
+    }
+
     if (ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, serviceId)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_IGMP, "No EVC associated to mcastRootVlan %u", mcastRootVlan);
@@ -435,7 +446,7 @@ unsigned int snooping_channel_serviceid_get(unsigned int groupAddr, unsigned int
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Unable to determine serviceID associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", groupAddr, sourceAddr);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Unable to determine serviceID associated to the pair {groupAddr,sourceAddr}={%08X,%08X}", groupAddr, sourceAddr);
     return L7_FAILURE;
   }
 }
