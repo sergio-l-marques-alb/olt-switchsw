@@ -167,10 +167,10 @@ void ptin_debug(void)
   printf("  ptin_msg_runtime_init <msg_id>                            - Initialize runtime measurements for msg_id (-1 for all)\r\n");
   printf("  ptin_msg_runtime_show                                     - Show runtime measurements for all messages\r\n");
   printf("\r\n");
-  printf("  cpu_intercept_debug_enable <enable>                       - Print all packets intercepted by the processor\r\n");
+  printf("  cpu_intercept_debug_enable <debug_level>                  - Print all packets intercepted by the processor (1:stdout, 0xX0:LOGs)\r\n");
   printf("  pdu_receive_debug_enable <enable>                         - Print all PDUs received and validated for further processing\r\n");
   printf("  pdu_process_debug_enable <enable>                         - Print all PDUs ready for final processing\r\n");
-  printf("  cpu_tx_debug_enable <enable>                              - Print all packets transmited from processor\r\n");
+  printf("  cpu_tx_debug_enable <debug_level>                         - Print all packets transmited from processor (1:stdout, 0xX0:LOGs)\r\n");
   printf("  ptin_debug_trap_packets_dump <enable>                     - Print received packets content\r\n");
   printf("  ptin_debug_tx_packets_dump <enable>                       - Print transmited packets content (from CPU)\r\n");
   printf("\r\n");

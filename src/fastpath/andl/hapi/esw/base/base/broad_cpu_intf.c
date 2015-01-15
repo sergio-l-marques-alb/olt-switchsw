@@ -166,10 +166,10 @@ int cpu_transmit_debug  = 0;
 typedef enum
 {
    CPU_INTERCEPT_DEBUG_STDOUT = 0x01,
-   CPU_INTERCEPT_DEBUG_LEVEL1 = 0x02,
-   CPU_INTERCEPT_DEBUG_LEVEL2 = 0x04,
-   CPU_INTERCEPT_DEBUG_LEVEL3 = 0x08,
-   CPU_INTERCEPT_DEBUG_LEVEL4 = 0x10
+   CPU_INTERCEPT_DEBUG_LEVEL1 = 0x10,
+   CPU_INTERCEPT_DEBUG_LEVEL2 = 0x20,
+   CPU_INTERCEPT_DEBUG_LEVEL3 = 0x40,
+   CPU_INTERCEPT_DEBUG_LEVEL4 = 0x80
 } CPU_INTERCEPT_DEBUG_LEVELS;
 
 void cpu_intercept_debug_enable(int enable)
@@ -2185,8 +2185,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   /* Dump first 64 bytes */
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_STDOUT)
   {
-    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%08x) bcmTxRv=%d\r\n",
-           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv);
+    printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
+           destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv, result);
 
     if (cpu_transmited_packets_dump)
     {
@@ -2217,8 +2217,8 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
   if (cpu_transmit_debug & CPU_INTERCEPT_DEBUG_LEVEL1)
   {
-    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "Sending to usp %d.%d.%d, wlanvp %d with frameType %d pktflags %x (bcmTxRv=%d result=%d)",
-              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, frameType, bcm_pkt.flags, bcmTxRv, result);
+    LOG_DEBUG(LOG_CTX_PTIN_HAPI, "Sending to usp %d.%d.%d (bcmx_lport 0x%08x), with sendVLAN %u (frameType %u, pktflags 0x%x): bcmTxRv=%d result=%d",
+              destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv, result);
   }
 
   return result;
