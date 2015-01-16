@@ -733,37 +733,6 @@ L7_RC_t dtlARPProtoRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
 } /* dtlARPProtoRecv */
 
-/**************************************************************************
-* @purpose  Changes the system network mac address between Burned-In or
-*           Locally Administered Mac Address
-*
-* @param    newMac  L7_uchar8 pointer to a mac address
-*
-* @returns  L7_SUCCESS or L7_FAILURE
-*
-* @comments    none.
-*
-* @end
-*************************************************************************/
-L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
-{
-  L7_uint32 vlanId;
-  L7_RC_t   rc;
-
-  rc = osapiMacAddrChange(newMac, L7_DTL_PORT_IF, 0);
-  if (rc == L7_SUCCESS)
-  {
-    /*
-    Add the address to the search machines
-    */
-
-    vlanId = simMgmtVlanIdGet();
-    fdbSysMacAddEntry(newMac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
-  }
-  
-  return(rc);
-}
-
 /**
  * Add a vlan on to the dtl0 interface. 
  *  
@@ -773,7 +742,7 @@ L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
  *  
  * @note This creates a routing interface named dtl0.VLANID, where VLANID is the value passed through 'vlanId' 
  */
-L7_int ioctl_vlanintf_add(L7_uint16 vlanId)
+L7_int dtlVlanIfAdd(L7_uint16 vlanId)
 {
   L7_uint32 ioctl_socket_fd = 0;
   struct    vlan_ioctl_args request; 
@@ -813,6 +782,106 @@ L7_int ioctl_vlanintf_add(L7_uint16 vlanId)
 }
 
 /**************************************************************************
+* @purpose  Update the MAC address for a given interface
+*
+* @param    newMac   L7_uchar8 pointer to a mac address
+* @param    ifName   interface name
+* @param    vlanId   VLAN ID
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @comments    none.
+*
+* @end
+*************************************************************************/
+L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
+{
+  int    sock;
+  struct ifreq ifr;
+  L7_short16 flags;
+
+  if((sock = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
+  {
+    return L7_FAILURE;
+  }
+
+  memset(&ifr, 0x00, sizeof (ifr));
+  sprintf (ifr.ifr_name, "%s.%d", ifName, vlanId);
+
+  /* Get the current flags */
+  if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
+  {
+    LOG_ERROR(errno);
+  }
+
+  flags = ifr.ifr_flags;
+
+  /* If the interface is not already down, then bring it down */
+  if ((ifr.ifr_flags & IFF_UP) != 0)
+  {
+    ifr.ifr_flags &= ~IFF_UP;
+
+    if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
+    {
+      LOG_ERROR(errno);
+    }
+  }
+
+  /* Set the system network MAC address */
+  ifr.ifr_hwaddr.sa_family = ARPHRD_ETHER;
+  memcpy(&ifr.ifr_hwaddr.sa_data, newMac, L7_MAC_ADDR_LEN);
+
+  if (ioctl(sock, SIOCSIFHWADDR, &ifr) == -1)
+  {
+    LOG_ERROR(errno);
+  }
+
+  /* Set the old flags back */
+  ifr.ifr_flags = flags;
+
+  if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
+  {
+      LOG_ERROR(errno);
+  }
+  close(sock);
+
+  return(L7_SUCCESS);
+}
+
+/**************************************************************************
+* @purpose  Changes the system network mac address between Burned-In or
+*           Locally Administered Mac Address
+*
+* @param    newMac  L7_uchar8 pointer to a mac address
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @comments    none.
+*
+* @end
+*************************************************************************/
+L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
+{
+  L7_uint32 vlanId;
+  L7_RC_t   rc;
+
+  rc = osapiMacAddrChange(newMac, L7_DTL_PORT_IF, 0);
+  if (rc == L7_SUCCESS)
+  {
+    /*
+    Add the address to the search machines
+    */
+
+    vlanId = simMgmtVlanIdGet();
+    fdbSysMacAddEntry(newMac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
+
+    dtlMacAddrChange(newMac, "dtl0", DTL0INBANDVID);
+  }
+  
+  return(rc);
+}
+
+/**************************************************************************
 * @purpose  Initialize DTL interface.
 *
 * @param    none
@@ -848,7 +917,6 @@ void dtlNetInit(void)
   dtl_net_fd = open(TAP_DRV_NAME,O_RDWR);
   if(dtl_net_fd < 0)
   {
-     /*SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "Unable to open %s\n",TAP_DRV_NAME);*/
      dtl_net_fd = open(TUN_DRV_NAME,O_RDWR);
      if(dtl_net_fd < 0)
      {
@@ -895,24 +963,15 @@ void dtlNetInit(void)
  }
 #endif
 
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  /* This will create the interface dtl0.INBANDVID used to configure the system IP Address */
-  ioctl_vlanintf_add(DTL0INBANDVID);
-  #endif
-
 #endif
 
   if (simGetSystemIPMacType() == L7_SYSMAC_BIA)
   {
-
     simGetSystemIPBurnedInMac(mac);
-
   }
   else
   {
-
     simGetSystemIPLocalAdminMac(mac);
-
   }
 
 #ifdef DTL_USE_TAP
@@ -949,8 +1008,12 @@ void dtlNetInit(void)
   {
     vlanId = simMgmtVlanIdGet();
     fdbSysMacAddEntry(mac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
-
   }
+
+  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  /* This will create the interface dtl0.INBANDVID used to configure the system IP Address */
+  dtlVlanIfAdd(DTL0INBANDVID);  
+  #endif
 
   dtlNetInitDone = L7_TRUE;
 }
