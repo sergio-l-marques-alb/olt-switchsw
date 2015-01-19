@@ -55,6 +55,9 @@
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
+#ifndef PTIN_IS_MASKBITSET
+#define PTIN_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint32)*8)] >> ((idx)%(sizeof(L7_uint32)*8))) & 1)
+#endif
 /******************************************************** 
  * STATIC FUNCTIONS PROTOTYPES
  ********************************************************/
