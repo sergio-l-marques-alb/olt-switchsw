@@ -875,7 +875,9 @@ L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
     vlanId = simMgmtVlanIdGet();
     fdbSysMacAddEntry(newMac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
 
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     dtlMacAddrChange(newMac, "dtl0", DTL0INBANDVID);
+#endif
   }
   
   return(rc);
