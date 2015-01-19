@@ -436,6 +436,9 @@ typedef enum
   PTIN_DIR_BOTH,
 } ptin_dir_t;
 
+/* Configuration structures */
+extern ptin_IgmpProxyCfg_t igmpProxyCfg;
+
 /**If IGMP Admission Control Feature is Enabled **/ 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
@@ -1557,6 +1560,13 @@ extern RC_t ptin_igmp_port_resources_allocate(L7_uint32 ptin_port, L7_uint32 cha
  *  
  */
 extern RC_t ptin_igmp_port_resources_release(L7_uint32 ptin_port, L7_uint32 channelBandwidth);
+
+extern inline L7_uint8 ptin_igmp_proxy_admission_control_get(void){return (igmpProxyCfg.bandwidthControl | igmpProxyCfg.channelsControl);};
+
+extern inline  L7_uint8 ptin_igmp_proxy_bandwidth_control_get(void){return igmpProxyCfg.bandwidthControl;};
+
+extern inline  L7_uint8 ptin_igmp_proxy_channels_control_get(void){return igmpProxyCfg.channelsControl;};
+
 
 #endif
 

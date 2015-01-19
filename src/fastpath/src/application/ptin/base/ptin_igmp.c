@@ -1332,13 +1332,6 @@ void ptin_igmp_proxy_bandwidth_control_set(L7_uint8 bandwidthControl){igmpProxyC
 
 void ptin_igmp_proxy_channels_control_set(L7_uint8 channelsControl){igmpProxyCfg.channelsControl = (channelsControl & L7_TRUE);};
 
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-static L7_uint8 ptin_igmp_proxy_admission_control_get(void){return (igmpProxyCfg.bandwidthControl | igmpProxyCfg.channelsControl);};
-
-static L7_uint8 ptin_igmp_proxy_bandwidth_control_get(void){return igmpProxyCfg.bandwidthControl;};
-
-static L7_uint8 ptin_igmp_proxy_channels_control_get(void){return igmpProxyCfg.channelsControl;};
-#endif
 /**
  * Gets IGMP Proxy configuration
  * 
@@ -12172,12 +12165,12 @@ void ptin_igmp_groupclients_dump(void)
            #if (MC_CLIENT_IPADDR_SUPPORTED)
            "IP=%03u.%03u.%03u.%03u "
            #endif
-           #if (MC_CLIENT_MACADDR_SUPPORTED)
+           #if 0//(MC_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif           
            "uni_vid=%4u+%-4u "
            #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-           "mask=0x%02x maxAllowedChannels=%hu  maxAllowedBandwidth=%u allocatedChannels=%hu  allocatedBandwidth=%u"
+           "mask=0x%02x maxChannels=%hu  maxBandwidth=%u channels=%hu  bandwidth=%u"
            #endif
            "\r\n",          
            #if (MC_CLIENT_INTERF_SUPPORTED)
@@ -12196,7 +12189,7 @@ void ptin_igmp_groupclients_dump(void)
              (clientGroup->igmpClientDataKey.ipv4_addr>>8) & 0xff,
               clientGroup->igmpClientDataKey.ipv4_addr & 0xff,
            #endif
-           #if (MC_CLIENT_MACADDR_SUPPORTED)
+           #if 0 //(MC_CLIENT_MACADDR_SUPPORTED)
            clientGroup->igmpClientDataKey.macAddr[0],
             clientGroup->igmpClientDataKey.macAddr[1],
              clientGroup->igmpClientDataKey.macAddr[2],
@@ -12715,7 +12708,7 @@ void ptin_igmp_admission_control_port_dump_active(void)
   for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
   {
     if (igmpPortAdmissionControl[ptin_port].admissionControl.mask != 0x00)
-      printf("ptin_port:%u mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+      printf("ptin_port:%u mask:0x%02x maxChannels:%hu maxBandwidth:%u (kbps) channels:%u bandwidth:%u (kbps)\n",
            ptin_port,
            igmpPortAdmissionControl[ptin_port].admissionControl.mask,
            igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels,
@@ -12740,7 +12733,7 @@ void ptin_igmp_admission_control_port_dump(void)
 
   for (ptin_port = 0; ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS; ptin_port++)
   {   
-    printf("ptin_port:%u mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+    printf("ptin_port:%u mask:0x%02x maxChannels:%hu maxBandwidth:%u (kbps) channels:%u bandwidth:%u (kbps)\n",
            ptin_port,
            igmpPortAdmissionControl[ptin_port].admissionControl.mask,
            igmpPortAdmissionControl[ptin_port].admissionControl.maxAllowedChannels,
@@ -13105,7 +13098,7 @@ void ptin_igmp_admission_control_multicast_service_dump_active(void)
       {
         if ( ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1 && igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask != 0x00)
         {
-          printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+          printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxChannels:%hu maxBandwidth:%u (kbps) channels:%u bandwidth:%u (kbps)\n",
                  ptin_port, onuId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId], internalServiceId,
                  igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask,
                  igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedChannels,
@@ -13142,7 +13135,7 @@ void ptin_igmp_admission_control_multicast_service_dump(void)
       {
         if ( ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] != (L7_uint32) -1 )
         {
-          printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+          printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxChannels:%hu maxBandwidth:%u (kbps) channels:%u bandwidth:%u (kbps)\n",
                  ptin_port, onuId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId], internalServiceId,
                  igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask,
                  igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedChannels,
@@ -13177,7 +13170,7 @@ void ptin_igmp_admission_control_multicast_service_dump_all(void)
     {
       for (internalServiceId = 0; internalServiceId < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID; internalServiceId++)
       {
-        printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxAllowedChannels:%hu maxAllowedBandwidth:%u (kbps) allocatedChannels:%u allocatedBandwidth:%u (kbps)\n",
+        printf("ptin_port:%u onuId:%u serviceId:%u (internalServiceId:%u) mask:0x%02x maxChannels:%hu maxdBandwidth:%u (kbps) channels:%u bandwidth:%u (kbps)\n",
                ptin_port, onuId, ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId], internalServiceId,
                igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.mask,
                igmpMulticastAdmissionControl[ptin_port][onuId][internalServiceId].admissionControl.maxAllowedChannels,

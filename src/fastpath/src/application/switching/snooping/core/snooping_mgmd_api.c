@@ -482,14 +482,18 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 
 unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {
-  L7_inet_addr_t inetGroupAddr;
-  L7_inet_addr_t inetSourceAddr;
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-  
+ 
+  if (L7_FALSE == ptin_igmp_proxy_admission_control_get())
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Admission Control Feature is Disabled!");
+    return TRUE;
+  }
+
   if (portId == 0)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -502,23 +506,33 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
     return L7_FALSE;
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
-
-  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-  if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
   {
-    ptin_timer_stop(60);
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-    return L7_FALSE;
-  }
-  ptin_timer_stop(60);
+    L7_inet_addr_t inetGroupAddr;
+    L7_inet_addr_t inetSourceAddr;
 
-  if (ptin_debug_igmp_snooping)
-  {   
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+    inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
+
+    ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    {
+      ptin_timer_stop(60);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+      return L7_FALSE;
+    }
+    ptin_timer_stop(60);
+
+    if (ptin_debug_igmp_snooping)
+    {   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    }
   }
-  
+  else
+  {
+    channelBandwidth = 0;
+  }
+
   ptin_timer_start(61,"ptin_igmp_port_resources_available");
   rc = ptin_igmp_port_resources_available(ptin_port, channelBandwidth);
   ptin_timer_stop(61);
@@ -527,14 +541,18 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
 }
 
 unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
-{
-  L7_inet_addr_t inetGroupAddr;
-  L7_inet_addr_t inetSourceAddr;
+{  
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
-  
+    
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, groupAddr, sourceAddr);
+
+  if (L7_FALSE == ptin_igmp_proxy_admission_control_get())
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Admission Control Feature is Disabled!");
+    return SUCCESS;
+  }
 
   if (portId == 0)
   {
@@ -548,21 +566,31 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
     return L7_FAILURE;
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
-
-  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-  if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
   {
-    ptin_timer_stop(60);
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-    return L7_FAILURE;
-  }
-  ptin_timer_stop(60);
+    L7_inet_addr_t inetGroupAddr;
+    L7_inet_addr_t inetSourceAddr;
 
-  if (ptin_debug_igmp_snooping)
-  {   
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+    inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
+
+    ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    {
+      ptin_timer_stop(60);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+      return L7_FALSE;
+    }
+    ptin_timer_stop(60);
+
+    if (ptin_debug_igmp_snooping)
+    {   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    }
+  }
+  else
+  {
+    channelBandwidth = 0;
   }
 
   ptin_timer_start(62,"ptin_igmp_port_resources_allocate");
@@ -573,14 +601,18 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
 }
 
 unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
-{
-  L7_inet_addr_t inetGroupAddr;
-  L7_inet_addr_t inetSourceAddr;
+{  
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x ]", serviceId, portId, groupAddr, sourceAddr);
+
+  if (L7_FALSE == ptin_igmp_proxy_admission_control_get())
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Admission Control Feature is Disabled!");
+    return SUCCESS;
+  }
 
   if (portId == 0)
   {
@@ -594,20 +626,31 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
     return L7_FAILURE;
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
-  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-  if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
   {
-    ptin_timer_stop(60);
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-    return L7_FAILURE;
-  }
-  ptin_timer_stop(60);
+    L7_inet_addr_t inetGroupAddr;
+    L7_inet_addr_t inetSourceAddr;
 
-  if (ptin_debug_igmp_snooping)
-  {   
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+    inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
+
+    ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    {
+      ptin_timer_stop(60);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+      return L7_FALSE;
+    }
+    ptin_timer_stop(60);
+
+    if (ptin_debug_igmp_snooping)
+    {   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    }
+  }
+  else
+  {
+    channelBandwidth = 0;
   }
 
   ptin_timer_start(63,"ptin_igmp_port_resources_release");
@@ -618,15 +661,19 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
 }
 
 unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
-{
-  L7_inet_addr_t inetGroupAddr;
-  L7_uint32      channelBandwidth;
-  L7_inet_addr_t inetSourceAddr;
+{ 
+  L7_uint32      channelBandwidth; 
   L7_uint32      ptin_port;
   L7_RC_t        rc;
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
   
+  if (L7_FALSE == ptin_igmp_proxy_admission_control_get())
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Admission Control Feature is Disabled!");
+    return TRUE;
+  }
+
   if (portId == 0 || clientId == (L7_uint32) -1)
   {
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Ignoring Request [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -650,22 +697,33 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
      ptin_timer_stop(70);
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
-  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-  if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
   {
-    ptin_timer_stop(60);
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-    return L7_FALSE;
-  }
-  ptin_timer_stop(60);
+    L7_inet_addr_t inetGroupAddr;
+    L7_inet_addr_t inetSourceAddr;
 
-  if (ptin_debug_igmp_snooping)
-  {   
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+    inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
+
+    ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    {
+      ptin_timer_stop(60);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+      return L7_FALSE;
+    }
+    ptin_timer_stop(60);
+
+    if (ptin_debug_igmp_snooping)
+    {   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    }
   }
-  
+  else
+  {
+    channelBandwidth = 0;
+  }
+
   ptin_timer_start(64,"ptin_igmp_client_resources_available");
   rc = ptin_igmp_client_resources_available(ptin_port, clientId, channelBandwidth);
   ptin_timer_stop(64);
@@ -696,14 +754,18 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
 }
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
-{
-  L7_inet_addr_t inetGroupAddr;
-  L7_inet_addr_t inetSourceAddr;
+{ 
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
+
+  if (L7_FALSE == ptin_igmp_proxy_admission_control_get())
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Admission Control Feature is Disabled!");
+    return SUCCESS;
+  }
 
   if (portId == 0 || clientId == (L7_uint32) -1)
   {
@@ -728,20 +790,31 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
      ptin_timer_stop(70);
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
-  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-  if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
   {
-    ptin_timer_stop(60);
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-    return L7_FAILURE;
-  }
-  ptin_timer_stop(60);
+    L7_inet_addr_t inetGroupAddr;
+    L7_inet_addr_t inetSourceAddr;
 
-  if (ptin_debug_igmp_snooping)
-  {   
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+    inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
+
+    ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    {
+      ptin_timer_stop(60);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+      return L7_FALSE;
+    }
+    ptin_timer_stop(60);
+
+    if (ptin_debug_igmp_snooping)
+    {   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    }
+  }
+  else
+  {
+    channelBandwidth = 0;
   }
   
   ptin_timer_start(65,"ptin_igmp_client_resources_allocate");
@@ -774,14 +847,18 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
 }
 
 unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
-{
-  L7_inet_addr_t inetGroupAddr;
-  L7_inet_addr_t inetSourceAddr;
+{  
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
   
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [serviceId:%u portId:%u clientId:%u groupAddr:0x%08x sourceAddr:0x%08x noOfClients:%u]", serviceId, portId, clientId, groupAddr, sourceAddr, noOfClients);
+
+  if (L7_FALSE == ptin_igmp_proxy_admission_control_get())
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Admission Control Feature is Disabled!");
+    return SUCCESS;
+  }
 
   if (portId == 0 || clientId == (L7_uint32) -1)
   {
@@ -806,20 +883,31 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
     ptin_timer_stop(70);
   }
 
-  inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
-  inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
-  ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-  if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+  if (L7_TRUE == ptin_igmp_proxy_bandwidth_control_get())
   {
-    ptin_timer_stop(60);
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
-    return L7_FAILURE;
-  }
-  ptin_timer_stop(60);
+    L7_inet_addr_t inetGroupAddr;
+    L7_inet_addr_t inetSourceAddr;
 
-  if (ptin_debug_igmp_snooping)
-  {   
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    inetAddressSet(L7_AF_INET, &groupAddr , &inetGroupAddr);
+    inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
+
+    ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    {
+      ptin_timer_stop(60);
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
+      return L7_FALSE;
+    }
+    ptin_timer_stop(60);
+
+    if (ptin_debug_igmp_snooping)
+    {   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Channel Bandwidth:%u kbps", channelBandwidth); 
+    }
+  }
+  else
+  {
+    channelBandwidth = 0;
   }
 
   ptin_timer_start(66,"ptin_igmp_client_resources_release");
