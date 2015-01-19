@@ -4297,11 +4297,11 @@ void ptin_stormcontrol_dump(void)
   /* LACP packets */
   if (lacp_policyId != 0 && lacp_policyId != BROAD_POLICY_INVALID)
   {
-    printf("LACPDU packets: ");
-    if (l7_bcm_policy_hwInfo_get(0, lacp_policyId, 0, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
+    rule = 0;
+    while (l7_bcm_policy_hwInfo_get(0, lacp_policyId, rule, &group_id, &entry_id, &policer_id, &counter_id) == L7_SUCCESS)
     {
       /* Also print hw group id and entry id*/
-      printf("policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
+      printf("LACPDU packets: policy=%-4u rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId %-4d)",
              lacp_policyId, 0, group_id, entry_id, policer_id, counter_id);
 
       /* Check counter */
@@ -4315,10 +4315,12 @@ void ptin_stormcontrol_dump(void)
           printf("%llu", stat.statMode.counter.count);
       }
       printf("\r\n");
+
+      rule++;
     }
-    else
+    if (rule == 0)
     {
-      printf("Not configured\r\n");
+      printf("LACPDU packets: Not configured\r\n");
     }
   }
 
@@ -4752,7 +4754,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
 {
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
-  L7_ushort16         vlanId;
+  L7_ushort16         vlanId, vlanMask;
   BROAD_METER_ENTRY_t meterInfo;
   L7_RC_t             rc = L7_SUCCESS;
 
@@ -4762,8 +4764,6 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   bcm_mac_t   lacp_dmac      = { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
   L7_uchar8   exact_match[]  = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                 FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
-
-  vlanId = 1;
 
   meterInfo.cir       = RATE_LIMIT_LACP;
   meterInfo.cbs       = 128;
@@ -4778,15 +4778,19 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
     return L7_FAILURE;
   }
+
   /* Define qualifiers and actions */
   do
   {
+    vlanId = 1;
+    vlanMask = PTIN_SYSTEM_EVC_CPU_VLAN_MASK;
+
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA,   (L7_uchar8 *)  lacp_dmac  , exact_match);
     if (rc != L7_SUCCESS)  break;
-    //rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &vlanId, exact_match);
-    //if (rc != L7_SUCCESS)  break;
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,    (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
+    if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &lacp_etherType, exact_match);
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_BPDU_COS, 0, 0);
@@ -4799,6 +4803,17 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     if (rc != L7_SUCCESS)  break;
     rc = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
     if (rc != L7_SUCCESS)  break;
+
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    vlanId = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN;
+    vlanMask = PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK;
+
+    rc = hapiBroadPolicyRuleCopy(ruleId, &ruleId);
+    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlanId, (L7_uchar8 *) &vlanMask);
+    if (rc != L7_SUCCESS)  break;
+  #endif
   }
   while (0);
   /* Commit rule */
