@@ -750,7 +750,7 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
     if (snoopEntry->ll_timerList.sllStart == L7_NULL)
     {
       /* PTin added: IGMP snooping */
-#if !PTIN_SNOOP_USE_MGMD
+#if 1
       /* Entry deletion is only possible, when group is not static */
       if (!snoopEntry->staticGroup)
 #endif
@@ -1058,10 +1058,8 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     /* If this channel does not have any client, remove it */
     if (snoopEntry->channel_list[channel_index].number_of_clients==0)
     {
-#if !PTIN_SNOOP_USE_MGMD
       /* Deactivate channel (only for dynamic entries) */
       if (!snoopEntry->staticGroup)
-#endif
       {
 #if !PTIN_SNOOP_USE_MGMD
         L7_inet_addr_t ip_addr;
@@ -1087,11 +1085,6 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
       }
     }
 
-    /* At the end no channels should exist for this interface */
-    snoopEntry->port_list[intIfNum].number_of_clients  = 0;
-    snoopEntry->port_list[intIfNum].number_of_channels = 0;
-    snoopEntry->port_list[intIfNum].active = L7_FALSE;
-
     /* One less port globally */
     PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_ports,1);
 
@@ -1100,6 +1093,11 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     ptin_dump_snoop_entry(snoopEntry);
 #endif
   }
+
+  /* At the end no channels should exist for this interface */
+  snoopEntry->port_list[intIfNum].number_of_clients  = 0;
+  snoopEntry->port_list[intIfNum].number_of_channels = 0;
+  snoopEntry->port_list[intIfNum].active = L7_FALSE;
 
   /* Validate arguments */
   return L7_SUCCESS;
@@ -1338,9 +1336,7 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
   /* If this IP does not exist, create it (only for dynamic groups) */
   if (!snoopEntry->channel_list[channel_index].active)
   {
-#if !PTIN_SNOOP_USE_MGMD
     if (!snoopEntry->staticGroup)
-#endif
     {
       /* Fill IP info */
       snoopEntry->channel_list[channel_index].ipAddr = IPchannel->addr.ipv4.s_addr;
@@ -1358,14 +1354,12 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
       /* One new channel */
       PTIN_INCREMENT_COUNTER(snoopEntry->global.number_of_channels,1);
     }
-#if !PTIN_SNOOP_USE_MGMD
     else
     {
       if (ptin_debug_igmp_snooping)
         LOG_ERR(LOG_CTX_PTIN_IGMP,"Static channel does not exist!");
       return L7_FAILURE;
     }
-#endif
   }
 
   /* Activate interface using it */
@@ -1534,10 +1528,8 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
     }
   }
 
-#if  !PTIN_SNOOP_USE_MGMD
   /* Only remove the channel, if group is dynamic */
   if (!snoopEntry->staticGroup)
-#endif
   {
     /* If there is no interfaces within this channel, remove channel */
     PTIN_NONZEROMASK(snoopEntry->channel_list[channel_index].intIfNum_mask,exist_interfaces);
