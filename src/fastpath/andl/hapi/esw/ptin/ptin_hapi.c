@@ -689,6 +689,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  L7_uint       port_index;
   bcm_port_t    bcm_port;
   L7_uint32     rval;
 
@@ -738,7 +739,6 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
     L7_uint16 vlanId_value = PTIN_VLAN_BL2CPU_EXT;
     L7_uint16 vlanId_mask  = 0xFFF;
 
-    L7_uint       port_index;
     bcmx_lport_t  lport;
 
     /* Create cancellation rule for VLANS 4092-4095 */
@@ -776,6 +776,33 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
        return rc;
     LOG_TRACE(LOG_CTX_STARTUP, "Cancellation rule applied to GE48 port", port_index);
 #endif
+
+  #if 0
+  /* SFI mode for 10G ports */
+  for (port_index = PTIN_SYSTEM_N_PONS; port_index < PTIN_SYSTEM_N_PORTS-1; port_index++)
+  {
+    /* Get bcm_port */
+    if (hapi_ptin_bcmPort_get(port_index, &bcm_port) != L7_SUCCESS)
+      return L7_FAILURE;
+
+    if ((1ULL << port_index) & PTIN_SYSTEM_10G_PORTS_MASK)
+    {
+      rc = bcm_port_speed_set(0, bcm_port, 10000);
+      if (L7_BCMX_OK(rc) != L7_TRUE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting bcm_port %u at 10G speed", bcm_port);
+        return L7_FAILURE;
+      }
+      rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
+      if (L7_BCMX_OK(rc) != L7_TRUE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting bcm_port %u at SFI mode", bcm_port);
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_STARTUP, "Port %u set to SFI mode", port_index);
+    }
+  }
+  #endif
 
 #else
   rc = L7_NOT_SUPPORTED;

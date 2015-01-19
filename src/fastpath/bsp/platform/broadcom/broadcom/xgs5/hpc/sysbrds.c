@@ -171,8 +171,8 @@ bcm_sys_sa_init_56820(const bcm_sys_board_t* brd, int base)
 L7_RC_t hpcConfigBoardSet()
 {
   L7_int  idx;
-  HPC_UNIT_DESCRIPTOR_t *lclUnitDesc;
   char param_name[51], param_value[21];
+  HPC_UNIT_DESCRIPTOR_t       *lclUnitDesc;
 
   if ((lclUnitDesc = hpcLocalUnitDescriptorGet()) != L7_NULLPTR)
   {
@@ -406,6 +406,45 @@ L7_RC_t hpcConfigBoardSet()
        */
       if (sal_config_set(spn_PBMP_XPORT_XE, "0x3c000000000000") != 0)
         return(L7_FAILURE);
+
+       /* 1G ports */
+      for (idx = 33; idx <= 45; idx+=4)
+      {
+        /* Configurations for 1000 BASE-X mode */
+        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+        sprintf(param_value, "%u", 0);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+
+        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+        sprintf(param_value, "%u", 1);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+      }
+      /* 10G ports */
+      for (idx = 50; idx <= 53; idx++)
+      {
+        /* Configurations for 10G SFI mode */
+        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+        sprintf(param_value, "%u", 0);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+
+        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+        sprintf(param_value, "%u", 1);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+
+        sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
+        sprintf(param_value, "%u", SOC_PORT_IF_SFI);
+        LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+        if (sal_config_set(param_name, param_value) != 0)
+          return(L7_FAILURE);
+      }
 
       /* Configuring GS port (ge48/49) */
       /* Disable signal auto-detection between SGMII and fiber
