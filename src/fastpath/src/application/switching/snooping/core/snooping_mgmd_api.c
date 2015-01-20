@@ -1470,16 +1470,17 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
     {
       //Only Sync Active Channels
       if (!snoopInfoData->channel_list[channel].active)  continue;
-
+#if 0 //All Entries Added by Mgmd are Static!
       //Only Sync Dynamic Channels
       if (snoopInfoData->staticGroup == L7_FALSE) continue;
+#endif
 
       snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
       snoopSyncReply[numberOfSnoopEntries].groupAddr           = snoopInfoData->channel_list[channel].ipAddr;
       snoopSyncReply[numberOfSnoopEntries].isStatic            = snoopInfoData->staticGroup;
-      snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopInfoData->global.number_of_ports;
+      snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopInfoData->channel_list[channel].number_of_ports;      
      
-      memcpy(&snoopSyncReply[numberOfSnoopEntries].snoopGrpMemberList, &snoopInfoData->snoopGrpMemberList, sizeof(snoopInfoData->snoopGrpMemberList)); 
+      memcpy(&snoopSyncReply[numberOfSnoopEntries].intIfNum_mask, &snoopInfoData->channel_list[channel].intIfNum_mask, sizeof(snoopSyncReply[numberOfSnoopEntries].intIfNum_mask)); 
 
       if (ptin_debug_igmp_snooping)
       {

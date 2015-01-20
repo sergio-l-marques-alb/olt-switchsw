@@ -746,11 +746,13 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
 
   if (rc == L7_SUCCESS)
   {
+    L7_BOOL flag;
+    L7_INTF_NONZEROMASK(snoopEntry->snoopGrpMemberList, flag);    
     /* Search for any non-multicast router interfaces in this entry */
-    if (snoopEntry->ll_timerList.sllStart == L7_NULL)
+    if ( flag == FALSE )
     {
       /* PTin added: IGMP snooping */
-#if 1
+#if  !PTIN_SNOOP_USE_MGMD
       /* Entry deletion is only possible, when group is not static */
       if (!snoopEntry->staticGroup)
 #endif
@@ -1058,8 +1060,10 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
     /* If this channel does not have any client, remove it */
     if (snoopEntry->channel_list[channel_index].number_of_clients==0)
     {
+      #if  !PTIN_SNOOP_USE_MGMD
       /* Deactivate channel (only for dynamic entries) */
       if (!snoopEntry->staticGroup)
+      #endif
       {
 #if !PTIN_SNOOP_USE_MGMD
         L7_inet_addr_t ip_addr;
@@ -1488,6 +1492,11 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
 
         /* One less interface for this channel */
         PTIN_DECREMENT_COUNTER(snoopEntry->port_list[i].number_of_channels,1);
+
+        if (snoopEntry->port_list[i].number_of_channels == 0)
+        {
+          PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_ports, 1);            
+        }
       }
     }
     else
@@ -1504,7 +1513,7 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
           }
           else
           {            
-            LOG_ERR(LOG_CTX_PTIN_IGMP,"Protection Entry Remove (Ignore): IP channel 0x%8X intIfNum %u",IPchannel->addr.ipv4.s_addr, intIfNum);
+            LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Protection Entry Remove (Ignore): IP channel 0x%8X intIfNum %u",IPchannel->addr.ipv4.s_addr, intIfNum);
             return L7_SUCCESS;
           }
         }
@@ -1519,6 +1528,11 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
 
           /* One less interface for this channel */
           PTIN_DECREMENT_COUNTER(snoopEntry->port_list[intIfNum].number_of_channels,1);
+
+          if (snoopEntry->port_list[intIfNum].number_of_channels == 0)
+          {
+            PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_ports, 1);            
+          }
         }
         else
         {
@@ -1527,9 +1541,10 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
       }
     }
   }
-
+#if  !PTIN_SNOOP_USE_MGMD
   /* Only remove the channel, if group is dynamic */
   if (!snoopEntry->staticGroup)
+#endif
   {
     /* If there is no interfaces within this channel, remove channel */
     PTIN_NONZEROMASK(snoopEntry->channel_list[channel_index].intIfNum_mask,exist_interfaces);
@@ -1538,7 +1553,7 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
       /* Clear all information, and set active flag to FALSE */
       memset(&snoopEntry->channel_list[channel_index],0x00,sizeof(ptinSnoopChannelInfo_t));
 
-      /* One less channel */
+      /* One less channel globally*/
       PTIN_DECREMENT_COUNTER(snoopEntry->global.number_of_channels,1);
     }
   }
@@ -2532,7 +2547,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7
     return L7_FAILURE;
   }
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Interface removed for this interface");
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Interface removed from this channel");
 
   /* If there is no channels for this interface, remove interface from group */
   if (snoopChannelsIntfNone(snoopEntry,intIfNum))
@@ -2546,7 +2561,7 @@ L7_RC_t snoopGroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, L7
       return L7_FAILURE;
     }
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from group");
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"interface was removed from snoop entry");
   }
 
   return L7_SUCCESS;

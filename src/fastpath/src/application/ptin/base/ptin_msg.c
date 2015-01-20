@@ -55,6 +55,9 @@
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
 
+#ifndef PTIN_IS_MASKBITSET
+#define PTIN_IS_MASKBITSET(array,idx)   ((array[(idx)/(sizeof(L7_uint32)*8)] >> ((idx)%(sizeof(L7_uint32)*8))) & 1)
+#endif
 /******************************************************** 
  * STATIC FUNCTIONS PROTOTYPES
  ********************************************************/
@@ -6767,7 +6770,7 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
       {
         for (intIfNum=1;intIfNum<L7_MAX_INTERFACE_COUNT;intIfNum++)
         {   
-          if (L7_INTF_ISMASKBITSET(snoopSyncReply[iterator].snoopGrpMemberList,intIfNum))
+          if (PTIN_IS_MASKBITSET(snoopSyncReply[iterator].intIfNum_mask,intIfNum))
           {
             LOG_DEBUG(LOG_CTX_PTIN_PROTB, "Snoop Port Open :%u", intIfNum);
             if(snooping_port_open(snoopSyncReply[iterator].serviceId, intIfNum, snoopSyncReply[iterator].groupAddr, sourceAddr, snoopSyncReply[iterator].isStatic)!=L7_SUCCESS)

@@ -1509,7 +1509,7 @@ typedef struct
   L7_uint8       portId;
 #endif  
 #if PTIN_BOARD_IS_MATRIX
-  L7_INTF_MASK_t snoopGrpMemberList;  //Physical and Logical Forwarding Port Bitmap  
+  L7_uint32      intIfNum_mask[PTIN_SYSTEM_MAXINTERFACES_PER_GROUP/(sizeof(L7_uint32)*8)+1];  /* List of ports, this IP is being used */   
 #endif
 } __attribute__((packed)) msg_SnoopSyncReply_t;
 
