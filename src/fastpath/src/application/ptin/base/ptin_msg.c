@@ -6639,16 +6639,21 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
   return rc_global;
 }
 
+static ptin_igmpChannelInfo_t clist[IPCLIB_MAX_MSGSIZE/sizeof(msg_MCActiveChannelsReply_t)]; 
 /**
  * Consult list of multicast channels
  * 
  * @param channel_list : list of multicast channels
  * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @note   TODO: This function is invoqued several times by the
+ *         Manager if the buffer with the upper layers (e.g. WebTi,CLI, Agora-NG) is excedeed. In order to
+ *         optimise this behaviour a new parameter should be
+ *         added: maxChannels
  */
 L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, msg_MCActiveChannelsReply_t *outputPtr, L7_uint16 *numberOfChannels)
-{
-  ptin_igmpChannelInfo_t clist[*numberOfChannels];
+{  
   L7_uint16              i, number_of_channels, total_channels;
   ptin_client_id_t       client;
   L7_RC_t                rc;
@@ -6716,15 +6721,15 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
   {
      /* Copy channels to message */
     for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
-    {
-      LOG_TRACE(LOG_CTX_PTIN_MSG,"Client[%u] -> Group:[%08X] Source[%08X]", i, clist[i].groupAddr.addr.ipv4.s_addr, clist[i].sourceAddr.addr.ipv4.s_addr);
-      outputPtr[i].entryId = i + inputPtr->entryId;
+    {      
+      outputPtr[i].entryId = i + inputPtr->entryId;      
       outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
       outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
       outputPtr[i].chType  = clist[i].static_type;
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"EntryId[%u] -> Group:[%08X] Source[%08X] isStatic[%s]", outputPtr[i].entryId, outputPtr[i].chIP, outputPtr[i].srcIP, outputPtr[i].chType?"Yes":"No");
     }
      *numberOfChannels = i;
-     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Read %u channels and retrieving %u channels.",number_of_channels,*numberOfChannels);
+     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Read %u channels and retrieving %u channels.",number_of_channels, *numberOfChannels);
   }
   else if (rc==L7_NOT_EXIST)
   {
