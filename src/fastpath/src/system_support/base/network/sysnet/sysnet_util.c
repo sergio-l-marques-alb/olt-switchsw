@@ -1515,8 +1515,46 @@ L7_RC_t sysNetPduAFMapNextAvailGet(L7_uint32 *sysnetAFIndex)
   return L7_FAILURE;
 }
 
+/* PTin added: callbacks */
+#if 1
+/**
+ * Show Notify callbacks List
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t sysNetNotifyListDebugShow()
+{
+  L7_uint32 i;
 
+  for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
+  {
+    /* Skip empty entries */
+    if (!sysnetNotifyList.sysnetNotifyEntries[i].inUse || 
+        sysnetNotifyList.sysnetNotifyEntries[i].type == SYSNET_INVALID_ENTRY)
+      continue;
 
+    printf("Entry %u:\r\n", i);
+    printf("  Type=%u   funcName=%s\r\n", sysnetNotifyList.sysnetNotifyEntries[i].type, sysnetNotifyList.sysnetNotifyEntries[i].funcName);
+    printf("  macAddr=%02x:%02x:%02x:%02x:%02x:%02x protocol_type=0x%04x subType=0x%02x dsap=0x%02x rxReason=0x%08x\r\n",
+           sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[0],
+           sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[1],
+           sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[2],
+           sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[3],
+           sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[4],
+           sysnetNotifyList.sysnetNotifyEntries[i].u.macAddr[5],
+           sysnetNotifyList.sysnetNotifyEntries[i].u.protocol_type,
+           sysnetNotifyList.sysnetNotifyEntries[i].u.subType,
+           sysnetNotifyList.sysnetNotifyEntries[i].u.dsap,
+           sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
+    printf("notify_pdu_receive callback = 0x%08x", (L7_uint32) sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
+  }
+
+  printf("ipMapArpRecvIP = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);
+  printf("ipMapRecvIP    = 0x%08x\r\n", (L7_uint32) ipMapRecvIP);
+
+  return L7_SUCCESS;
+}
+#endif
 
 /**********
 ** Debug **

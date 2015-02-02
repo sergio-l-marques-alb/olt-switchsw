@@ -606,6 +606,51 @@ L7_RC_t ipMapCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return ipMapRC;
 }
 
+/* PTin added: callbacks */
+#if 1
+/**
+ * Register callback again
+ * 
+ * @author mruas (2/2/2015)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ipMapCnfgrRegisterCallbacks(L7_int which)
+{
+  sysnetNotifyEntry_t snEntry;
+
+  /* Register with SYSNET to receive ARP packets */
+  if (which == 1)
+  {
+    memset((void *)&snEntry, 0, sizeof(sysnetNotifyEntry_t)); 
+    strcpy(snEntry.funcName, "ipMapArpRecvIP");
+    snEntry.notify_pdu_receive = ipMapArpRecvIP;
+    snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+    snEntry.u.protocol_type = L7_ETYPE_ARP;
+    if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
+    {
+      return L7_FAILURE;
+    }
+  }
+
+  /* Register with sysNET to receive IP packets */
+  if (which == 2)
+  {
+    memset((void *)&snEntry, 0, sizeof(sysnetNotifyEntry_t));
+    strcpy(snEntry.funcName, "ipMapRecvIP");
+    snEntry.notify_pdu_receive = ipMapRecvIP;
+    snEntry.type = SYSNET_ETHERTYPE_ENTRY;
+    snEntry.u.protocol_type = L7_ETYPE_IP;
+    if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS)
+    {
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+
 /*********************************************************************
 * @purpose  This function process the configurator control commands/request
 *           pair Init Phase 3.
