@@ -1546,7 +1546,7 @@ L7_RC_t sysNetNotifyListDebugShow()
            sysnetNotifyList.sysnetNotifyEntries[i].u.subType,
            sysnetNotifyList.sysnetNotifyEntries[i].u.dsap,
            sysnetNotifyList.sysnetNotifyEntries[i].u.rxReason);
-    printf("notify_pdu_receive callback = 0x%08x", (L7_uint32) sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
+    printf("  notify_pdu_receive callback = 0x%08x\r\n", (L7_uint32) sysnetNotifyList.sysnetNotifyEntries[i].notify_pdu_receive);
   }
 
   printf("ipMapArpRecvIP = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);

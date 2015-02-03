@@ -2187,24 +2187,25 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   {
     printf("Packet transmited on usp={%d,%d,%d} (lport=0x%08x) with sendVLAN=%u (frameType=%u, flags=0x%x): bcmTxRv=%d result=%d\r\n",
            destUsp.unit, destUsp.slot, destUsp.port, hapiPortPtr->bcmx_lport, cmdInfo->cmdData.send.vlanID, frameType, bcm_pkt.flags, bcmTxRv, result);
-
-    if (cpu_transmited_packets_dump)
-    {
-      int i;
-      for (i=0; i<bcm_pkt.pkt_data->len && i<64; i++)
-      {
-        if (i%16==0)
-        {
-          if (i!=0)
-            printf("\r\n");
-          printf(" 0x%02x:",i);
-        }
-        printf(" %02x",bcm_pkt.pkt_data->data[i]);
-      }
-      printf("\r\n");
-    }
     fflush(stdout);
   }
+
+  if (cpu_transmited_packets_dump)
+  {
+    int i;
+    for (i=0; i<bcm_pkt.pkt_data->len && i<64; i++)
+    {
+      if (i%16==0)
+      {
+        if (i!=0)
+          printf("\r\n");
+        printf(" 0x%02x:",i);
+      }
+      printf(" %02x",bcm_pkt.pkt_data->data[i]);
+    }
+    printf("\r\n");
+  }
+  fflush(stdout);
 
   /* Free the frame from the buffer */
   sysapiNetMbufFree(cmdInfo->cmdData.send.frameHdl);

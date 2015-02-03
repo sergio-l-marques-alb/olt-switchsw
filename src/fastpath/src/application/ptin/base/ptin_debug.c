@@ -173,6 +173,8 @@ void ptin_debug(void)
   printf("  cpu_tx_debug_enable <debug_level>                         - Print all packets transmited from processor (1:stdout, 0xX0:LOGs)\r\n");
   printf("  ptin_debug_trap_packets_dump <enable>                     - Print received packets content\r\n");
   printf("  ptin_debug_tx_packets_dump <enable>                       - Print transmited packets content (from CPU)\r\n");
+  printf("  sysNetInterceptDebugShow                                  - Show list of packet processing callbacks related to sysnetPduHooks\r\n");
+  printf("  sysNetNotifyListDebugShow                                 - Show list of packet processing callbacks related to sysnetNotifyList\r\n");
   printf("\r\n");
   printf("  ptin_debug_trap_packets <port> <OVid> <IVid> <only_drops> - Redirect packets from <port>, with <ovid> and <ivid>, to CPU\r\n");
   printf("  ptin_debug_trap_packets_egress <port> <OVid> <IVid> <drp> - Redirect packets egressing from <port>, with <ovid> and <ivid>, to CPU\r\n");
@@ -188,7 +190,7 @@ void ptin_debug(void)
   printf("  ptin_fpcounters_flush_debug                               - Flush configured EVC/client counters (at request)\r\n");
   printf("  ptin_vcap_defvid_dump                                     - Flush configured VCAP rules associated to defVID\r\n");
   printf("  hapiBroadDebugPolicyEnable <level>                        - Enable policy management debug messages (minimum level should be 3)\r\n");
-  printf("\r\n");                                                    
+  printf("\r\n");
   printf("  log_help                                                  - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity>                       - use log_help for more info\r\n");
   printf("  log_color_set <ctx_mask> <color>                          - use log_help for more info\r\n");
