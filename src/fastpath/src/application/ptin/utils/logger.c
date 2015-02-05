@@ -76,14 +76,14 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
 static int log_sev_color[LOG_SEV_LAST] = {
     LOG_COLOR_DEFAULT,  /* (off) */
     LOG_COLOR_DEFAULT,  /* Always print */
-    LOG_BRIGHT_RED,
-    LOG_BRIGHT_RED,
-    LOG_BRIGHT_RED,
-    LOG_BRIGHT_YELLOW,
-    LOG_COLOR_YELLOW,
-    LOG_BRIGHT_MAGENTA,
-    LOG_COLOR_DEFAULT,
-    LOG_COLOR_DEFAULT,
+    LOG_BRIGHT_RED,     /* LOG_SEV_FATAL    */
+    LOG_BRIGHT_RED,     /* LOG_SEV_CRITICAL */
+    LOG_BRIGHT_RED,     /* LOG_SEV_ERROR    */
+    LOG_BRIGHT_YELLOW,  /* LOG_SEV_WARNING  */
+    LOG_COLOR_YELLOW,   /* LOG_SEV_NOTICE   */
+    LOG_BRIGHT_WHITE,   /* LOG_SEV_INFO     */
+    LOG_COLOR_DEFAULT,  /* LOG_SEV_DEBUG    */
+    LOG_COLOR_DEFAULT,  /* LOG_SEV_TRACE    */
 };
 
 /* Colors escape string */
@@ -104,7 +104,7 @@ static char *log_colors[LOG_COLOR_LAST] = {
     "\x1B[01;34m",  /* Bright Blue */
     "\x1B[01;35m",  /* Bright Magenta */
     "\x1B[01;36m",  /* Bright Cyan */
-    "\x1B[01;37m"   /* Bright White */
+    "\x1B[01;37m",  /* Bright White */
     "\x1B[02;30m",  /* Dark Black */
     "\x1B[02;31m",  /* Dark Red */
     "\x1B[02;32m",  /* Dark Green */
