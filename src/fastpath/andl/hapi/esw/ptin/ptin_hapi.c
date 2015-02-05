@@ -4908,6 +4908,9 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   LOG_NOTICE(LOG_CTX_STARTUP,"BL2CPU rule added");
 
 #elif (PTIN_BOARD == PTIN_BOARD_TG16G)
+  /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
+     At egressing is important to guarantee PBIT value of inner vlan is the same as the outer tag: a copy operation will be done */
+
   L7_int    port;
   L7_uint8  prio, prio_mask = 0x7;
   L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;

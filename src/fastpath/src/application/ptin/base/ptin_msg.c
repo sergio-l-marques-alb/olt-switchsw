@@ -7214,6 +7214,8 @@ L7_RC_t ptin_msg_pcs_prbs_status(msg_ptin_pcs_prbs *msg, L7_int n_msg)
 
     LOG_TRACE(LOG_CTX_PTIN_MSG,"Success getting PRBS errors from port %u/%u",ptin_intf.intf_type,ptin_intf.intf_id);
 
+    memset(&msg[i].rxStatus, 0x00, sizeof(msg[i].rxStatus));
+
     if (rxStatus<=0xffff)
     {
       msg[i].rxStatus.lock = L7_TRUE;
