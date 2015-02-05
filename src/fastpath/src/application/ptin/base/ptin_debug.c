@@ -138,7 +138,10 @@ void ptin_debug(void)
   printf("  ssm_debug_write <slot> <intf> <ssm_rx> <ssm_tx> <link>    - modifies shared memory contents about SSM\r\n");
   printf("  ptin_reclk_dump                                           - prints info about sync-E recovery clocks\r\n");
   printf("  ptin_reclk_write <primary_port> <backup_port>             - modifies shared memory contents about sync-E recovery clocks\r\n");
-  printf("  ptin_dhcp_dump                                            - prints info about DHCP instances\r\n");
+  printf("  ptin_dhcp_dump <show_clients>                             - prints info about DHCP instances\r\n");
+  printf("  ptin_dhcpClients_dump                                     - prints info about DHCP clients\r\n");
+  printf("  ptin_pppoe_dump <show_clients>                            - prints info about PPPoE instances\r\n");
+  printf("  ptin_pppoeClients_dump                                    - prints info about PPPoE clients\r\n");
   printf("  ptin_igmp_dump                                            - prints info about IGMP instances\r\n");
   printf("  ptin_igmp_assoc_dump                                      - prints info about MC service associations\r\n");
   printf("  ptin_igmp_mfdb_dump                                       - prints MFDB table entries\r\n");

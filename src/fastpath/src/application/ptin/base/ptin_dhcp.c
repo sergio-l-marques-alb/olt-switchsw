@@ -4400,7 +4400,7 @@ L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_fla
  * 
  * @param evc_idx 
  */
-void ptin_dhcp_dump(void)
+void ptin_dhcp_dump(L7_BOOL show_clients)
 {
   L7_uint i, i_client;
   ptinDhcpClientInfoData_t *avl_info;
@@ -4417,77 +4417,76 @@ void ptin_dhcp_dump(void)
            dhcpInstances[i].evc_idx, dhcpInstances[i].nni_ovid, dhcpInstances[i].n_evcs,
            dhcpInstances[i].evcDhcpOptions, dhcpInstances[i].circuitid.template_str);
     printf("\r\n");
-    i_client = 0;
 
-    /* Run all instance belonging clients */
-    clientInfo_entry = NULL;
-    dl_queue_get_head(&dhcpInstances[i].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
-    while (clientInfo_entry != NULL)
+    if (show_clients)
     {
-      avl_info = clientInfo_entry->client_info;
+      i_client = 0;
 
-      if (avl_info != L7_NULLPTR)
+      /* Run all instance belonging clients */
+      clientInfo_entry = NULL;
+      dl_queue_get_head(&dhcpInstances[i].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+      while (clientInfo_entry != NULL)
       {
-        /* Skip items not belonging to this instance */
-        if (avl_info->dhcpClientDataKey.dhcp_instance != i)
-          continue;
+        avl_info = clientInfo_entry->client_info;
 
-        printf("   Client#%-3u: "
-               #if (DHCP_CLIENT_INTERF_SUPPORTED)
-               "ptin_port=%-2u "
-               #endif
-               #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
-               "svlan=%-4u "
-               #endif
-               #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
-               "cvlan=%-4u "
-               #endif
-               #if (DHCP_CLIENT_IPADDR_SUPPORTED)
-               "IP=%03u.%03u.%03u.%03u "
-               #endif
-               #if (DHCP_CLIENT_MACADDR_SUPPORTED)
-               "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
-               #endif
-               ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
-               i_client,
-               #if (DHCP_CLIENT_INTERF_SUPPORTED)
-               avl_info->dhcpClientDataKey.ptin_port,
-               #endif
-               #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
-               avl_info->dhcpClientDataKey.outerVlan,
-               #endif
-               #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
-               avl_info->dhcpClientDataKey.innerVlan,
-               #endif
-               #if (DHCP_CLIENT_IPADDR_SUPPORTED)
-               (avl_info->dhcpClientDataKey.ipv4_addr>>24) & 0xff,
-                (avl_info->dhcpClientDataKey.ipv4_addr>>16) & 0xff,
-                 (avl_info->dhcpClientDataKey.ipv4_addr>>8) & 0xff,
-                  avl_info->dhcpClientDataKey.ipv4_addr & 0xff,
-               #endif
-               #if (DHCP_CLIENT_MACADDR_SUPPORTED)
-               avl_info->dhcpClientDataKey.macAddr[0],
-                avl_info->dhcpClientDataKey.macAddr[1],
-                 avl_info->dhcpClientDataKey.macAddr[2],
-                  avl_info->dhcpClientDataKey.macAddr[3],
-                   avl_info->dhcpClientDataKey.macAddr[4],
-                    avl_info->dhcpClientDataKey.macAddr[5],
-               #endif
-               avl_info->client_index,
-               avl_info->uni_ovid, avl_info->uni_ivid,
-               avl_info->client_data.dhcp_options,
-               avl_info->client_data.circuitId_str,
-               avl_info->client_data.remoteId_str);
+        if (avl_info != L7_NULLPTR)
+        {
+          printf("   Client#%-5u: "
+                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
+                 "ptin_port=%-2u "
+                 #endif
+                 #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+                 "svlan=%-4u "
+                 #endif
+                 #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+                 "cvlan=%-4u "
+                 #endif
+                 #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+                 "IP=%03u.%03u.%03u.%03u "
+                 #endif
+                 #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+                 "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+                 #endif
+                 ": [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+                 avl_info->client_index,
+                 #if (DHCP_CLIENT_INTERF_SUPPORTED)
+                 avl_info->dhcpClientDataKey.ptin_port,
+                 #endif
+                 #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+                 avl_info->dhcpClientDataKey.outerVlan,
+                 #endif
+                 #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+                 avl_info->dhcpClientDataKey.innerVlan,
+                 #endif
+                 #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+                 (avl_info->dhcpClientDataKey.ipv4_addr>>24) & 0xff,
+                  (avl_info->dhcpClientDataKey.ipv4_addr>>16) & 0xff,
+                   (avl_info->dhcpClientDataKey.ipv4_addr>>8) & 0xff,
+                    avl_info->dhcpClientDataKey.ipv4_addr & 0xff,
+                 #endif
+                 #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+                 avl_info->dhcpClientDataKey.macAddr[0],
+                  avl_info->dhcpClientDataKey.macAddr[1],
+                   avl_info->dhcpClientDataKey.macAddr[2],
+                    avl_info->dhcpClientDataKey.macAddr[3],
+                     avl_info->dhcpClientDataKey.macAddr[4],
+                      avl_info->dhcpClientDataKey.macAddr[5],
+                 #endif
+                 avl_info->uni_ovid, avl_info->uni_ivid,
+                 avl_info->client_data.dhcp_options,
+                 avl_info->client_data.circuitId_str,
+                 avl_info->client_data.remoteId_str);
+        }
+        else
+        {
+          printf("   Entry %u has a null pointer\r\n", i_client);
+        }
+
+        i_client++;
+
+        /* Next queue element */
+        clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[i].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
       }
-      else
-      {
-        printf("   Entry %u has a null pointer\r\n", i_client);
-      }
-
-      i_client++;
-
-      /* Next queue element */
-      clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[i].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
     }
   }
 
@@ -4500,11 +4499,13 @@ void ptin_dhcp_dump(void)
 }
 
 
-void ptin_dhcp_dump2(void)
+void ptin_dhcpClients_dump(void)
 {
   L7_int i_client = 0;
   ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientInfoData_t *avl_info;
+
+  printf("Listing complete list of DHCP clients:\r\n");
 
   /* Run all cells in AVL tree */
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
@@ -4515,7 +4516,7 @@ void ptin_dhcp_dump2(void)
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
 
-    printf("   Client#%-3u: dhcpInst=%2u "
+    printf("   Client#%-5u: Inst=%-2u "
            #if (DHCP_CLIENT_INTERF_SUPPORTED)
            "ptin_port=%-2u "
            #endif
@@ -4531,9 +4532,9 @@ void ptin_dhcp_dump2(void)
            #if (DHCP_CLIENT_MACADDR_SUPPORTED)
            "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
            #endif
-           ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
-           i_client,
-           avl_key.dhcp_instance,
+           ": [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+           avl_info->client_index,
+           avl_info->dhcpClientDataKey.dhcp_instance,
            #if (DHCP_CLIENT_INTERF_SUPPORTED)
            avl_info->dhcpClientDataKey.ptin_port,
            #endif
@@ -4557,7 +4558,6 @@ void ptin_dhcp_dump2(void)
                avl_info->dhcpClientDataKey.macAddr[4],
                 avl_info->dhcpClientDataKey.macAddr[5],
            #endif
-           avl_info->client_index,
            avl_info->uni_ovid, avl_info->uni_ivid,
            avl_info->client_data.dhcp_options,
            avl_info->client_data.circuitId_str,
