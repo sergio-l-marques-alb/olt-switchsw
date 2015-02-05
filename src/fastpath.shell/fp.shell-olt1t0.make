@@ -1,4 +1,4 @@
-export TOOLCHAIN_BASE_DIR=/home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
+export TOOLCHAIN_BASE_DIR=/opt/broadcom
 export TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH=$(TOOLCHAIN_BASE_DIR)/lib
 

@@ -1,6 +1,7 @@
 export TOOLCHAIN_BASE_DIR=/opt/eldk/usr
 export TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH=$(TOOLCHAIN_BASE_DIR)/lib
+#export LD_LIBRARY_PATH=/opt/eldk/ppc_85xxDP/lib
 
 # Makefile for a multifile kernel module
 CROSS=$(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-

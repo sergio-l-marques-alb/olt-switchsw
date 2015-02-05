@@ -27,7 +27,7 @@ OBJ =  $(OBJ_CTRL) $(OBJ_MAIN)
 all:	Makefile $(OBJ)
 		@echo Generating $(TARGET_PATH)/$(TARGET)
 		@mkdir -p $(TARGET_PATH)
-	       	@$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET_PATH)/$(TARGET) $(OBJ) -lc -lm -lrt
+	       	@$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET_PATH)/$(TARGET) $(OBJ) -lc -lm -lpthread -lrt
    
 install:	$(TARGET)
 		sh cli.install

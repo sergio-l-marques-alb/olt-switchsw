@@ -46,6 +46,9 @@ export SDK_LINK := vendor/broadcom
 export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
 #export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
 
+export LVL7_MAKEFILE_LOGGING := N
+export LVL7_MAKEFILE_DISPLAY_MODE := S
+
 export FP_CLI_PATH   := ../fastpath.cli
 export FP_SHELL_PATH := ../fastpath.shell
 
