@@ -125,8 +125,8 @@
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES               32     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES              32     /* Maximum nr of PPPoE instances */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE   8192   /* 512 clients per DHCP instance */
-# define PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE  8192
+# define PTIN_SYSTEM_DHCP_MAXCLIENTS                8192  /* Maximum DHCP clients */
+# define PTIN_SYSTEM_PPPOE_MAXCLIENTS               8192  /* Maximum PPPoE clients */
 
 #define SNOOP_PTIN_MGMD_SUPPORT //Comment this line if you want to disable MGMD integration (not supported..)
 #define SNOOP_PTIN_IGMPv3_GLOBAL 1//Change to 0 if you want to globally disable IGMPv3 Module

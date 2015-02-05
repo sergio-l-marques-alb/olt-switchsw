@@ -71,6 +71,8 @@ void ptin_debug_dhcp_enable(L7_BOOL enable)
 
 typedef struct
 {
+  L7_uint8  dhcp_instance;
+
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
   L7_uint8  ptin_port;                /* PTin port, which is attached */
   #endif
@@ -116,10 +118,25 @@ typedef struct {
 
 /* DHCP AVL Tree data */
 typedef struct {
-  L7_uint16                number_of_clients;
-  ptinDhcpClientInfoData_t *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE];
-  ptinDhcpClientsAvlTree_t avlTree;
-} ptinDhcpClients_t;
+  L7_uint16                 number_of_clients;
+  ptinDhcpClientsAvlTree_t  avlTree;
+} ptinDhcpClients_unified_t;
+
+/* Client entries pool */
+struct ptin_clientIdx_entry_s {
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_clientIdx_entry_s *next;
+  struct ptin_clientIdx_entry_s *prev;
+
+  L7_uint client_id;  /* One index of  array */
+};
+struct ptin_clientInfo_entry_s {
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_clientInfo_entry_s *next;
+  struct ptin_clientInfo_entry_s *prev;
+
+  ptinDhcpClientInfoData_t *client_info;
+};
 
 #define CIRCUITID_TEMPLATE_MAX_STRING   256
 
@@ -141,9 +158,9 @@ typedef struct {
   L7_uint32                   evc_idx;
   L7_uint16                   nni_ovid;
   L7_uint16                   n_evcs;
-  ptinDhcpClients_t           dhcpClients;
   ptin_dhcp_flag_enum_t       dhcpFlags;
   L7_uint16                   evcDhcpOptions;   /* DHCP Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
+  dl_queue_t                  queue_clients;
   ptin_DHCP_Statistics_t      stats_intf[PTIN_SYSTEM_N_INTERF];  /* DHCP statistics at interface level */
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_DhcpInstCfg_t;
@@ -164,12 +181,22 @@ NIM_INTF_MASK_t dhcp_intIfNum_trusted;
 /* DHCP instances array */
 st_DhcpInstCfg_t  dhcpInstances[PTIN_SYSTEM_N_DHCP_INSTANCES];
 
+/* DHCP clients */
+ptinDhcpClients_unified_t dhcpClients_unified;
+
 /* Global DHCP statistics at interface level */
 static ptin_DHCP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 
 /* Semaphores */
 void *dhcp_sem = NULL;
 void *ptin_dhcp_stats_sem = L7_NULLPTR;
+
+
+static struct ptin_clientIdx_entry_s  clientIdx_pool[PTIN_SYSTEM_DHCP_MAXCLIENTS];
+static struct ptin_clientInfo_entry_s clientInfo_pool[PTIN_SYSTEM_DHCP_MAXCLIENTS];
+
+static dl_queue_t queue_free_clients;    /* Queue of free client entries */
+
 
 /*********************************************************** 
  * Static prototypes
@@ -201,58 +228,132 @@ static L7_RC_t ptin_dhcp_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *c
  * INLINE FUNCTIONS
  ***********************************************************/
 
-inline L7_int dhcp_clientIndex_get_new(L7_uint8 dhcp_idx)
+inline L7_BOOL dhcp_clientIndex_check_free(L7_uint8 dhcp_idx)
 {
-  L7_uint i;
-
-  if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
+  /* Validate arguments */
+  if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid DHCP instance %u", dhcp_idx);
     return -1;
+  }
 
-  /* Search for the first free client index */
-  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE && dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[i]!=L7_NULLPTR; i++);
+  return (dhcpClients_unified.number_of_clients < PTIN_SYSTEM_DHCP_MAXCLIENTS &&
+          queue_free_clients.n_elems > 0);
+}
 
-  if (i>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+inline L7_int dhcp_clientIndex_allocate(L7_uint8 dhcp_idx, ptinDhcpClientInfoData_t *infoData)
+{
+  L7_int  client_idx;
+  struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+  struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid DHCP instance %u", dhcp_idx);
     return -1;
-  return i;
+  }
+
+  /* Check if there is free clients */
+  if (dhcpClients_unified.number_of_clients >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"No free clients available");
+    return -1;
+  }
+
+  /* Check if queue has free elements */
+  if (queue_free_clients.n_elems == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"No free clients available in queue");
+    return -1;
+  }
+
+  /* Try to get an entry from the pool of free elements */
+  rc = dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t **) &clientIdx_pool_entry);
+  if (rc != NOERR) {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There are no free clients available! rc=%d", rc);
+    return -1;
+  }
+
+  client_idx = clientIdx_pool_entry->client_id;
+
+  LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Selected index=%u, Free clients pool: %u of %u entries",
+            client_idx, queue_free_clients.n_elems, PTIN_SYSTEM_DHCP_MAXCLIENTS);
+
+  /* Assign AVL entry reference */
+  if (infoData != L7_NULLPTR)
+  {
+    /* Update clients list on related instance */
+    clientInfo_pool_entry = &clientInfo_pool[client_idx];
+
+    memset(clientInfo_pool_entry, 0x00, sizeof(struct ptin_clientInfo_entry_s));
+    clientInfo_pool_entry->client_info = infoData;
+
+    rc = dl_queue_add_tail(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
+    if (rc != NOERR) {
+      memset(clientInfo_pool_entry, 0x00, sizeof(struct ptin_clientInfo_entry_s));
+      dl_queue_add_head(&queue_free_clients, (dl_queue_elem_t *) clientIdx_pool_entry);
+      LOG_ERR(LOG_CTX_PTIN_DHCP, "Error adding element to queue! rc=%d", rc);
+      return -1;
+    }
+  }
+
+  /* One more client */
+  dhcpClients_unified.number_of_clients++;
+
+  /* Return new client id */
+  return client_idx;
 }
 
-inline void dhcp_clientIndex_mark(L7_uint8 dhcp_idx, L7_uint client_idx, ptinDhcpClientInfoData_t *infoData)
+inline void dhcp_clientIndex_release(L7_uint8 dhcp_idx, L7_uint32 client_idx)
 {
-  ptinDhcpClients_t *clients;
+  struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+  struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+  L7_RC_t rc;
 
-  if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+  /* Validate arguments */
+  if (dhcp_idx >= PTIN_SYSTEM_N_DHCP_INSTANCES || client_idx >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Invalid DHCP instance %u, or client index %u", dhcp_idx, client_idx);
     return;
+  }
 
-  clients = &dhcpInstances[dhcp_idx].dhcpClients;
-
-  if (clients->clients_in_use[client_idx]==L7_NULLPTR && clients->number_of_clients<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
-    clients->number_of_clients++;
-
-  clients->clients_in_use[client_idx] = infoData;
-}
-
-inline void dhcp_clientIndex_unmark(L7_uint8 dhcp_idx, L7_uint client_idx)
-{
-  ptinDhcpClients_t *clients;
-
-  if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+  /* Check if there is busy clients in queue */
+  if (queue_free_clients.n_elems >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "There are no busy clients in queue!");
     return;
+  }
 
-  clients = &dhcpInstances[dhcp_idx].dhcpClients;
+  /* Get the client entry based on its index */
+  clientIdx_pool_entry  = &clientIdx_pool[client_idx];
+  clientInfo_pool_entry = &clientInfo_pool[client_idx];
 
-  if (clients->clients_in_use[client_idx]!=L7_NULLPTR && clients->number_of_clients>0)
-    clients->number_of_clients--;
-
-  clients->clients_in_use[client_idx] = L7_NULLPTR;
-}
-
-inline void dhcp_clientIndex_clearAll(L7_uint8 dhcp_idx)
-{
-  if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
+  /* Remove element from clientInfo queue */
+  rc = dl_queue_remove(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
+  if (rc != NOERR) {
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error removing element from queue! rc=%d", rc);
     return;
+  }
 
-  memset(dhcpInstances[dhcp_idx].dhcpClients.clients_in_use,0x00,sizeof(dhcpInstances[dhcp_idx].dhcpClients.clients_in_use));
-  dhcpInstances[dhcp_idx].dhcpClients.number_of_clients = 0;
+  /* Add it to the free queue */
+  rc = dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t *) clientIdx_pool_entry);
+  if (rc != NOERR) {
+    dl_queue_add_head(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
+    LOG_ERR(LOG_CTX_PTIN_DHCP, "Error adding client to free queue! rc=%d", rc);
+    return;
+  }
+
+  /* Clear client info from queue */
+  memset(&clientInfo_pool[client_idx], 0x00, sizeof(struct ptin_clientInfo_entry_s));
+
+  /* One less client */
+  if (dhcpClients_unified.number_of_clients > 0)
+    dhcpClients_unified.number_of_clients--;
+
+  LOG_DEBUG(LOG_CTX_PTIN_DHCP, "Free client pool: %u of %u entries",
+            queue_free_clients.n_elems, PTIN_SYSTEM_DHCP_MAXCLIENTS);
 }
 
 /*********************************************************** 
@@ -266,7 +367,7 @@ inline void dhcp_clientIndex_clearAll(L7_uint8 dhcp_idx)
  */
 L7_RC_t ptin_dhcp_init(void)
 {
-  L7_uint dhcp_idx;
+  L7_uint dhcp_idx, i;
   ptinDhcpClientsAvlTree_t *avlTree;
 
   #if 0
@@ -291,44 +392,63 @@ L7_RC_t ptin_dhcp_init(void)
     return L7_FAILURE;
   }
 
-  /* Initialize AVL trees */
-  for (dhcp_idx=0; dhcp_idx<PTIN_SYSTEM_N_DHCP_INSTANCES; dhcp_idx++)
+  /* DHCP clients */
+  avlTree = &dhcpClients_unified.avlTree;
+  dhcpClients_unified.number_of_clients = 0;
+
+  avlTree->dhcpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_DHCP_MAXCLIENTS * sizeof(avlTreeTables_t)); 
+  avlTree->dhcpClientsDataHeap = (ptinDhcpClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_DHCP_MAXCLIENTS * sizeof(ptinDhcpClientInfoData_t)); 
+
+  if ((avlTree->dhcpClientsTreeHeap == L7_NULLPTR) ||
+      (avlTree->dhcpClientsDataHeap == L7_NULLPTR))
   {
-    avlTree = &dhcpInstances[dhcp_idx].dhcpClients.avlTree;
-
-    dhcp_clientIndex_clearAll(dhcp_idx);
-
-    avlTree->dhcpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE * sizeof(avlTreeTables_t)); 
-    avlTree->dhcpClientsDataHeap = (ptinDhcpClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE * sizeof(ptinDhcpClientInfoData_t)); 
-
-    if ((avlTree->dhcpClientsTreeHeap == L7_NULLPTR) ||
-        (avlTree->dhcpClientsDataHeap == L7_NULLPTR))
-    {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error allocating data for DHCP AVL Trees\n");
-      return L7_FAILURE;
-    }
-
-    /* Initialize the storage for all the AVL trees */
-    memset (&avlTree->dhcpClientsAvlTree, 0x00, sizeof(avlTree_t));
-    memset (avlTree->dhcpClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE);
-    memset (avlTree->dhcpClientsDataHeap, 0x00, sizeof(ptinDhcpClientInfoData_t)*PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE);
-
-    // AVL Tree creations - snoopIpAvlTree
-    avlCreateAvlTree(&(avlTree->dhcpClientsAvlTree),
-                     avlTree->dhcpClientsTreeHeap,
-                     avlTree->dhcpClientsDataHeap,
-                     PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE, 
-                     sizeof(ptinDhcpClientInfoData_t),
-                     0x10,
-                     sizeof(ptinDhcpClientDataKey_t));
+    LOG_ERR(LOG_CTX_PTIN_DHCP,"Error allocating data for DHCP AVL Trees\n");
+    return L7_FAILURE;
   }
 
+  /* Initialize the storage for all the AVL trees */
+  memset (&avlTree->dhcpClientsAvlTree, 0x00, sizeof(avlTree_t));
+  memset (avlTree->dhcpClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS);
+  memset (avlTree->dhcpClientsDataHeap, 0x00, sizeof(ptinDhcpClientInfoData_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS);
+
+  // AVL Tree creations - snoopIpAvlTree
+  avlCreateAvlTree(&(avlTree->dhcpClientsAvlTree),
+                   avlTree->dhcpClientsTreeHeap,
+                   avlTree->dhcpClientsDataHeap,
+                   PTIN_SYSTEM_DHCP_MAXCLIENTS, 
+                   sizeof(ptinDhcpClientInfoData_t),
+                   0x10,
+                   sizeof(ptinDhcpClientDataKey_t));
+
+  /* Initialize clients queue for each DHCP instance */
+  memset(clientInfo_pool, 0x00, sizeof(clientInfo_pool));
+  for (dhcp_idx = 0; dhcp_idx < PTIN_SYSTEM_N_DHCP_INSTANCES; dhcp_idx++)
+  {
+    dl_queue_init(&dhcpInstances[dhcp_idx].queue_clients);
+  }
+
+  /* Init Client index management */
+  dl_queue_init(&queue_free_clients);
+  memset(clientIdx_pool, 0x00, sizeof(clientIdx_pool));
+  for (i=0; i<PTIN_SYSTEM_DHCP_MAXCLIENTS; i++)
+  {
+    clientIdx_pool[i].client_id = i;
+    dl_queue_add(&queue_free_clients, (dl_queue_elem_t*) &clientIdx_pool[i]);
+  }
+
+  /* Semaphores */
   ptin_dhcp_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_dhcp_stats_sem == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_dhcp_stats_sem semaphore!");
     return L7_FAILURE;
   }
+
+  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(dhcp_intIfNum_trusted)      = %u", sizeof(dhcp_intIfNum_trusted));
+  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(dhcpInstances)              = %u", sizeof(dhcpInstances));
+  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(global_stats_intf)          = %u", sizeof(global_stats_intf));
+  LOG_INFO(LOG_CTX_PTIN_DHCP, "sizeof(dhcpClients_unified.avlTree)= %u",
+           sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS + sizeof(ptinDhcpClientInfoData_t)*PTIN_SYSTEM_DHCP_MAXCLIENTS);
 
   LOG_INFO(LOG_CTX_PTIN_DHCP, "DHCP init OK");
 
@@ -1068,11 +1188,15 @@ static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *te
   /* Run all cells in AVL tree */
   memset(&avl_key, 0x00, sizeof(ptinDhcpClientDataKey_t));
   while ( ( avl_info = (ptinDhcpClientInfoData_t *)
-                        avlSearchLVL7(&dhcpInstances[dhcp_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+                        avlSearchLVL7(&dhcpClients_unified.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
           ) != L7_NULLPTR )
   {
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+    /* Only apply for this dhcp instance */
+    if (avl_key.dhcp_instance != dhcp_idx)
+      continue;
 
     /* Rebuild circuit id */
     ptin_dhcp_circuitId_build( &dhcpInstances[dhcp_idx].circuitid, &avl_info->client_data.circuitId, avl_info->client_data.circuitId_str);
@@ -1321,7 +1445,8 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
                              L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId)
 {
   ptin_client_id_t client;
-  L7_uint dhcp_idx, client_idx;
+  L7_uint dhcp_idx;
+  L7_int  client_idx = -1;
   ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientsAvlTree_t *avl_tree;
   ptinDhcpClientInfoData_t *avl_infoData;
@@ -1406,8 +1531,11 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   }
 
   /* Check if this key already exists */
-  avl_tree = &dhcpInstances[dhcp_idx].dhcpClients.avlTree;
+  avl_tree = &dhcpClients_unified.avlTree;
+
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+
+  avl_key.dhcp_instance = dhcp_idx;
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
   #endif
@@ -1503,10 +1631,10 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
   /* New client */
   else
   {
-    /* Get new client index */
-    if ((client_idx=dhcp_clientIndex_get_new(dhcp_idx))<0)
+    /* Check if there is free clients */
+    if ( !dhcp_clientIndex_check_free(dhcp_idx) )
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Cannot get new client index for dhcp_idx=%u (evc=%u)",dhcp_idx,evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"There is no more free clients to be allocated for dhcp_idx=%u (evc=%u)", dhcp_idx, evc_idx);
       return L7_FAILURE;
     }
 
@@ -1588,15 +1716,22 @@ L7_RC_t ptin_dhcp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_i
       return L7_FAILURE;
     }
 
+    /* Allocate new client index */
+    client_idx = dhcp_clientIndex_allocate(dhcp_idx, avl_infoData);
+
+    if (client_idx < 0 || client_idx >= PTIN_SYSTEM_DHCP_MAXCLIENTS)
+    {
+      avlDeleteEntry(&(avl_tree->dhcpClientsAvlTree), (void *)&avl_key);
+      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error obtaining new client index for dhcp_idx=%u (evc=%u)",dhcp_idx, evc_idx);
+      return L7_FAILURE;
+    }
+
     /* Client index */
     avl_infoData->client_index = client_idx;
 
     /* Save UNI vlans (external vlans used for transmission) */
     avl_infoData->uni_ovid = uni_ovid;
     avl_infoData->uni_ivid = uni_ivid;
-
-    /* Mark one more client for AVL tree */
-    dhcp_clientIndex_mark(dhcp_idx,client_idx,avl_infoData);
 
     /* Clear circuit and remote id strings */
     memset(&avl_infoData->client_data,0x00,sizeof(ptinDhcpData_t));
@@ -1728,8 +1863,11 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
 
   /* Check if this key does not exists */
 
-  avl_tree = &dhcpInstances[dhcp_idx].dhcpClients.avlTree;
+  avl_tree = &dhcpClients_unified.avlTree;
+
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+
+  avl_key.dhcp_instance = dhcp_idx;
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
   #endif
@@ -1866,8 +2004,8 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
     return L7_FAILURE;
   }
 
-  /* Remove client for AVL tree */
-  dhcp_clientIndex_unmark(dhcp_idx,client_idx);
+  /* Release client index */
+  dhcp_clientIndex_release(dhcp_idx, client_idx);
 
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success removing Key {"
             #if (DHCP_CLIENT_INTERF_SUPPORTED)
@@ -2262,9 +2400,13 @@ L7_RC_t ptin_dhcp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
 L7_RC_t ptin_dhcp_stat_clearAll(void)
 {
   L7_uint dhcp_idx;
-  L7_uint client_idx;
+  ptinDhcpClientDataKey_t   avl_key;
+  ptinDhcpClientInfoData_t *avl_info;
 
   osapiSemaTake(ptin_dhcp_stats_sem,-1);
+
+  /* Clear global statistics */
+  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
 
   /* Run all DHCP instances */
   for (dhcp_idx=0; dhcp_idx<PTIN_SYSTEM_N_DHCP_INSTANCES; dhcp_idx++)
@@ -2273,19 +2415,20 @@ L7_RC_t ptin_dhcp_stat_clearAll(void)
 
     /* Clear instance statistics */
     memset(dhcpInstances[dhcp_idx].stats_intf, 0x00, sizeof(dhcpInstances[dhcp_idx].stats_intf));
-
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE; client_idx++)
-    {
-      if (dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics */
-      memset(&dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[client_idx]->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
-    }
   }
 
-  /* Clear global statistics */
-  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
+  /* Run all cells in AVL tree related to this instance */
+  memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+  while ( (avl_info = (ptinDhcpClientInfoData_t *)
+                      avlSearchLVL7(&dhcpClients_unified.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+    /* Clear client statistics */
+    memset(&avl_info->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
+  }
 
   osapiSemaGive(ptin_dhcp_stats_sem);
 
@@ -2302,7 +2445,7 @@ L7_RC_t ptin_dhcp_stat_clearAll(void)
 L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx)
 {
   L7_uint dhcp_idx;
-  L7_uint client_idx;
+  struct ptin_clientInfo_entry_s *clientInfo_entry;
 
   /* Get Dhcp instance */
   if (ptin_dhcp_instance_find(evc_idx,&dhcp_idx)!=L7_SUCCESS)
@@ -2316,13 +2459,19 @@ L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx)
   /* Clear instance statistics */
   memset(dhcpInstances[dhcp_idx].stats_intf, 0x00, sizeof(dhcpInstances[dhcp_idx].stats_intf));
 
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE; client_idx++)
+  /* Clear statistics of belonging clients */
+  clientInfo_entry = NULL;
+  dl_queue_get_head(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+  while (clientInfo_entry != NULL)
   {
-    if (dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
     /* Clear client statistics */
-    memset(&dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[client_idx]->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
+    if (clientInfo_entry->client_info != L7_NULLPTR)
+    {
+      memset(&clientInfo_entry->client_info->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t)); 
+    }
+
+    /* Next queue element */
+    clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
   }
 
   osapiSemaGive(ptin_dhcp_stats_sem);
@@ -2340,10 +2489,9 @@ L7_RC_t ptin_dhcp_stat_instance_clear(L7_uint32 evc_idx)
 L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
 {
   L7_uint dhcp_idx;
-  L7_uint client_idx;
   L7_uint32 ptin_port;
-  st_DhcpInstCfg_t *dhcpInst;
-  ptinDhcpClientInfoData_t *clientInfo;
+  ptinDhcpClientDataKey_t   avl_key;
+  ptinDhcpClientInfoData_t *avl_info;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -2361,34 +2509,35 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
 
   osapiSemaTake(ptin_dhcp_stats_sem,-1);
 
+  /* Clear global statistics */
+  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
+
   /* Run all DHCP instances */
   for (dhcp_idx=0; dhcp_idx<PTIN_SYSTEM_N_DHCP_INSTANCES; dhcp_idx++)
   {
     if (!dhcpInstances[dhcp_idx].inUse)  continue;
 
-    dhcpInst = &dhcpInstances[dhcp_idx];
-
     /* Clear instance statistics */
-    memset(&dhcpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
-
-    #if (DHCP_CLIENT_INTERF_SUPPORTED)
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE; client_idx++)
-    {
-      if (dhcpInst->dhcpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics (if port matches) */
-      clientInfo = dhcpInst->dhcpClients.clients_in_use[client_idx];
-      if (clientInfo->dhcpClientDataKey.ptin_port==ptin_port)
-      {
-        memset(&clientInfo->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
-      }
-    }
-    #endif
+    memset(&dhcpInstances[dhcp_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
   }
 
-  /* Clear global statistics */
-  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
+  #if (DHCP_CLIENT_INTERF_SUPPORTED)
+  /* Run all cells in AVL tree related to this instance instance */
+  memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+  while ( (avl_info = (ptinDhcpClientInfoData_t *)
+                      avlSearchLVL7(&dhcpClients_unified.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+    /* Clear stats */
+    if (avl_info->dhcpClientDataKey.ptin_port == ptin_port)
+    {
+      memset(&avl_info->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
+    }
+  }
+  #endif
 
   osapiSemaGive(ptin_dhcp_stats_sem);
 
@@ -2406,11 +2555,10 @@ L7_RC_t ptin_dhcp_stat_intf_clear(ptin_intf_t *ptin_intf)
 L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf)
 {
   L7_uint dhcp_idx;
-  L7_uint client_idx;
   L7_uint32 ptin_port;
   st_DhcpInstCfg_t *dhcpInst;
-  ptinDhcpClientInfoData_t *clientInfo;
   ptin_evc_intfCfg_t intfCfg;
+  struct ptin_clientInfo_entry_s *clientInfo_entry;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -2454,17 +2602,20 @@ L7_RC_t ptin_dhcp_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_i
   memset(&dhcpInst->stats_intf[ptin_port], 0x00, sizeof(ptin_DHCP_Statistics_t));
 
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE; client_idx++)
+  /* Clear statistics of belonging clients */
+  clientInfo_entry = NULL;
+  dl_queue_get_head(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+  while (clientInfo_entry != NULL)
   {
-    if (dhcpInst->dhcpClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics (if port matches) */
-    clientInfo = dhcpInst->dhcpClients.clients_in_use[client_idx];
-    if (clientInfo->dhcpClientDataKey.ptin_port==ptin_port)
+    /* Clear client statistics, if port matches */
+    if (clientInfo_entry->client_info != L7_NULLPTR &&
+        clientInfo_entry->client_info->dhcpClientDataKey.ptin_port == ptin_port)
     {
-      memset(&clientInfo->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
+      memset(&clientInfo_entry->client_info->client_stats, 0x00, sizeof(ptin_DHCP_Statistics_t));
     }
+
+    /* Next queue element */
+    clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[dhcp_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
   }
   #endif
 
@@ -2939,12 +3090,13 @@ L7_RC_t ptin_dhcp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16
 
   ovid = ivid = 0;
   /* If client is provided, go directly to client info */
-  if ((intf_type == PTIN_EVC_INTF_LEAF) &&
-      (client_idx>=0 && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE) &&
-      ptin_dhcp_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &dhcp_idx)==L7_SUCCESS)
+  if ((intf_type == PTIN_EVC_INTF_LEAF) &&                            /* Is a leaf port */
+      (client_idx>=0 && client_idx<PTIN_SYSTEM_DHCP_MAXCLIENTS) &&    /* Valid index */
+      (clientInfo_pool[client_idx].client_info != L7_NULLPTR) &&      /* Client exists */
+      ptin_dhcp_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &dhcp_idx)==L7_SUCCESS)  /* intOVlan is valid */
   {
     /* Get pointer to client structure in AVL tree */
-    clientInfo = dhcpInstances[dhcp_idx].dhcpClients.clients_in_use[client_idx];
+    clientInfo = clientInfo_pool[client_idx].client_info;
 
     ovid = clientInfo->uni_ovid;
     ivid = clientInfo->uni_ivid;
@@ -3133,17 +3285,18 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
                                  ptin_client_id_t *client)
 {
   ptin_intf_t ptin_intf;
-  st_DhcpInstCfg_t *dhcpInst;
+  //st_DhcpInstCfg_t *dhcpInst;
   ptinDhcpClientInfoData_t *clientInfo;
 
   /* Validate arguments */
-  if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE )
+  if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS )
   {
     if (ptin_debug_dhcp_snooping)
       LOG_ERR(LOG_CTX_PTIN_DHCP,"Invalid arguments");
     return L7_FAILURE;
   }
 
+  #if 0
   /* DHCP instance, from internal vlan */
   if (ptin_dhcp_inst_get_fromIntVlan(intVlan,&dhcpInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -3151,9 +3304,10 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
       LOG_ERR(LOG_CTX_PTIN_DHCP,"No DHCP instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get pointer to client structure in AVL tree */
-  clientInfo = dhcpInst->dhcpClients.clients_in_use[client_idx];
+  clientInfo = clientInfo_pool[client_idx].client_info;
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -3566,9 +3720,9 @@ L7_RC_t ptin_dhcp_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_ui
   }
 
   /* If client index is valid... */
-  if (dhcpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+  if (dhcpInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_DHCP_MAXCLIENTS)
   {
-    client = dhcpInst->dhcpClients.clients_in_use[client_idx];
+    client = clientInfo_pool[client_idx].client_info;
     if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
@@ -3783,8 +3937,11 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
   #endif
 
   /* Key to search for */
-  avl_tree = &dhcpInstances[dhcp_idx].dhcpClients.avlTree;
+  avl_tree = &dhcpClients_unified.avlTree;
+
   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+
+  avl_key.dhcp_instance = dhcp_idx;
   #if (DHCP_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
   #endif
@@ -3867,7 +4024,9 @@ static L7_RC_t ptin_dhcp_client_find(L7_uint dhcp_idx, ptin_client_id_t *client_
  */
 static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx)
 {
-  ptinDhcpClientsAvlTree_t *avl_tree;
+  ptinDhcpClientDataKey_t   avl_key;
+  ptinDhcpClientInfoData_t *avl_info;
+  L7_uint32 client_idx;
 
   /* Validate argument */
   if (dhcp_idx>=PTIN_SYSTEM_N_DHCP_INSTANCES)
@@ -3882,13 +4041,29 @@ static L7_RC_t ptin_dhcp_instance_deleteAll_clients(L7_uint dhcp_idx)
     return L7_FAILURE;
   }
 
-  avl_tree = &dhcpInstances[dhcp_idx].dhcpClients.avlTree;
+  /* Run all cells in AVL tree related to this instance instance */
+  memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+  while ( (avl_info = (ptinDhcpClientInfoData_t *)
+                      avlSearchLVL7(&dhcpClients_unified.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+     /* Prepare next key */
+     memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
 
-  /* Remove all entries from AVL tree */
-  avlPurgeAvlTree(&(avl_tree->dhcpClientsAvlTree), PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE);
+     /* Skip items not belonging to this instance */
+     if (avl_key.dhcp_instance != dhcp_idx)
+       continue;
 
-  /* Remove all clients of AVL tree */
-  dhcp_clientIndex_clearAll(dhcp_idx);
+     /* Save client index */
+     client_idx = avl_info->client_index;
+
+     /* Delete node */
+     if (avlDeleteEntry(&dhcpClients_unified.avlTree.dhcpClientsAvlTree, (void *)&avl_key) != L7_NULLPTR)
+     {
+       /* Release client index */
+       dhcp_clientIndex_release(dhcp_idx, client_idx);
+     }
+  }
 
   LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success removing all clients from dhcp_idx=%u",dhcp_idx);
 
@@ -4187,8 +4362,7 @@ void ptin_dhcp_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repla
  */
 L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_flag, L7_uint32 options)
 {
-   ptinDhcpClientDataKey_t   avl_key;
-   ptinDhcpClientInfoData_t *avl_info;
+   struct ptin_clientInfo_entry_s *clientInfo_entry;
 
    /* Validate dhcp instance */
    if (!dhcpInstances[dhcp_instance_idx].inUse)
@@ -4200,20 +4374,20 @@ L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_fla
    /* Save EVC DHCP Options */
    dhcpInstances[dhcp_instance_idx].evcDhcpOptions = options;
 
-   /* Run all cells in AVL tree */
-   memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
-   while ( ( avl_info = (ptinDhcpClientInfoData_t *)
-                       avlSearchLVL7(&dhcpInstances[dhcp_instance_idx].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-         ) != L7_NULLPTR )
+   /* Run all instance belonging clients */
+   clientInfo_entry = NULL;
+   dl_queue_get_head(&dhcpInstances[dhcp_instance_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+   while (clientInfo_entry != NULL)
    {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+     /* Reconfigure DHCP options for clients that are using Global EVC DHCP options */
+     if(clientInfo_entry->client_info != L7_NULLPTR &&
+        L7_TRUE == clientInfo_entry->client_info->client_data.useEvcDhcpOptions)
+     {
+        clientInfo_entry->client_info->client_data.dhcp_options = options;
+     }
 
-      /* Reconfigure DHCP options for clients that are using Global EVC DHCP options */
-      if(L7_TRUE == avl_info->client_data.useEvcDhcpOptions)
-      {
-         avl_info->client_data.dhcp_options = options;
-      }
+     /* Next queue element */
+     clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[dhcp_instance_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
    }
 
    return L7_SUCCESS;
@@ -4229,8 +4403,8 @@ L7_RC_t ptin_dhcp_reconf_instance(L7_uint32 dhcp_instance_idx, L7_uint8 dhcp_fla
 void ptin_dhcp_dump(void)
 {
   L7_uint i, i_client;
-  ptinDhcpClientDataKey_t avl_key;
   ptinDhcpClientInfoData_t *avl_info;
+  struct ptin_clientInfo_entry_s *clientInfo_entry;
 
   for (i = 0; i < PTIN_SYSTEM_N_DHCP_INSTANCES; i++)
   {
@@ -4245,69 +4419,154 @@ void ptin_dhcp_dump(void)
     printf("\r\n");
     i_client = 0;
 
-    /* Run all cells in AVL tree */
-    memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
-    while ( ( avl_info = (ptinDhcpClientInfoData_t *)
-                          avlSearchLVL7(&dhcpInstances[i].dhcpClients.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-            ) != L7_NULLPTR )
+    /* Run all instance belonging clients */
+    clientInfo_entry = NULL;
+    dl_queue_get_head(&dhcpInstances[i].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+    while (clientInfo_entry != NULL)
     {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+      avl_info = clientInfo_entry->client_info;
 
-      printf("   Client#%-3u: "
-             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-             "ptin_port=%-2u "
-             #endif
-             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
-             "svlan=%-4u "
-             #endif
-             #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
-             "cvlan=%-4u "
-             #endif
-             #if (DHCP_CLIENT_IPADDR_SUPPORTED)
-             "IP=%03u.%03u.%03u.%03u "
-             #endif
-             #if (DHCP_CLIENT_MACADDR_SUPPORTED)
-             "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
-             #endif
-             ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
-             i_client,
-             #if (DHCP_CLIENT_INTERF_SUPPORTED)
-             avl_info->dhcpClientDataKey.ptin_port,
-             #endif
-             #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
-             avl_info->dhcpClientDataKey.outerVlan,
-             #endif
-             #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
-             avl_info->dhcpClientDataKey.innerVlan,
-             #endif
-             #if (DHCP_CLIENT_IPADDR_SUPPORTED)
-             (avl_info->dhcpClientDataKey.ipv4_addr>>24) & 0xff,
-              (avl_info->dhcpClientDataKey.ipv4_addr>>16) & 0xff,
-               (avl_info->dhcpClientDataKey.ipv4_addr>>8) & 0xff,
-                avl_info->dhcpClientDataKey.ipv4_addr & 0xff,
-             #endif
-             #if (DHCP_CLIENT_MACADDR_SUPPORTED)
-             avl_info->dhcpClientDataKey.macAddr[0],
-              avl_info->dhcpClientDataKey.macAddr[1],
-               avl_info->dhcpClientDataKey.macAddr[2],
-                avl_info->dhcpClientDataKey.macAddr[3],
-                 avl_info->dhcpClientDataKey.macAddr[4],
-                  avl_info->dhcpClientDataKey.macAddr[5],
-             #endif
-             avl_info->client_index,
-             avl_info->uni_ovid, avl_info->uni_ivid,
-             avl_info->client_data.dhcp_options,
-             avl_info->client_data.circuitId_str,
-             avl_info->client_data.remoteId_str);
+      if (avl_info != L7_NULLPTR)
+      {
+        /* Skip items not belonging to this instance */
+        if (avl_info->dhcpClientDataKey.dhcp_instance != i)
+          continue;
+
+        printf("   Client#%-3u: "
+               #if (DHCP_CLIENT_INTERF_SUPPORTED)
+               "ptin_port=%-2u "
+               #endif
+               #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+               "svlan=%-4u "
+               #endif
+               #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+               "cvlan=%-4u "
+               #endif
+               #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+               "IP=%03u.%03u.%03u.%03u "
+               #endif
+               #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+               "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+               #endif
+               ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+               i_client,
+               #if (DHCP_CLIENT_INTERF_SUPPORTED)
+               avl_info->dhcpClientDataKey.ptin_port,
+               #endif
+               #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+               avl_info->dhcpClientDataKey.outerVlan,
+               #endif
+               #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+               avl_info->dhcpClientDataKey.innerVlan,
+               #endif
+               #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+               (avl_info->dhcpClientDataKey.ipv4_addr>>24) & 0xff,
+                (avl_info->dhcpClientDataKey.ipv4_addr>>16) & 0xff,
+                 (avl_info->dhcpClientDataKey.ipv4_addr>>8) & 0xff,
+                  avl_info->dhcpClientDataKey.ipv4_addr & 0xff,
+               #endif
+               #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+               avl_info->dhcpClientDataKey.macAddr[0],
+                avl_info->dhcpClientDataKey.macAddr[1],
+                 avl_info->dhcpClientDataKey.macAddr[2],
+                  avl_info->dhcpClientDataKey.macAddr[3],
+                   avl_info->dhcpClientDataKey.macAddr[4],
+                    avl_info->dhcpClientDataKey.macAddr[5],
+               #endif
+               avl_info->client_index,
+               avl_info->uni_ovid, avl_info->uni_ivid,
+               avl_info->client_data.dhcp_options,
+               avl_info->client_data.circuitId_str,
+               avl_info->client_data.remoteId_str);
+      }
+      else
+      {
+        printf("   Entry %u has a null pointer\r\n", i_client);
+      }
 
       i_client++;
+
+      /* Next queue element */
+      clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&dhcpInstances[i].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
     }
   }
+
+  printf("Total number of DHCP clients: %u\r\n", dhcpClients_unified.number_of_clients);
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   printf("Total number of QUATTRO-STACKED evcs: %u\r\n", dhcp_quattro_stacked_evcs);
   #endif
 
+  fflush(stdout);
+}
+
+
+void ptin_dhcp_dump2(void)
+{
+  L7_int i_client = 0;
+  ptinDhcpClientDataKey_t avl_key;
+  ptinDhcpClientInfoData_t *avl_info;
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinDhcpClientDataKey_t));
+  while ( ( avl_info = (ptinDhcpClientInfoData_t *)
+                        avlSearchLVL7(&dhcpClients_unified.avlTree.dhcpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->dhcpClientDataKey, sizeof(ptinDhcpClientDataKey_t));
+
+    printf("   Client#%-3u: dhcpInst=%2u "
+           #if (DHCP_CLIENT_INTERF_SUPPORTED)
+           "ptin_port=%-2u "
+           #endif
+           #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+           "svlan=%-4u "
+           #endif
+           #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+           "cvlan=%-4u "
+           #endif
+           #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+           "IP=%03u.%03u.%03u.%03u "
+           #endif
+           #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+           "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+           #endif
+           ": index=%-4u  [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+           i_client,
+           avl_key.dhcp_instance,
+           #if (DHCP_CLIENT_INTERF_SUPPORTED)
+           avl_info->dhcpClientDataKey.ptin_port,
+           #endif
+           #if (DHCP_CLIENT_OUTERVLAN_SUPPORTED)
+           avl_info->dhcpClientDataKey.outerVlan,
+           #endif
+           #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
+           avl_info->dhcpClientDataKey.innerVlan,
+           #endif
+           #if (DHCP_CLIENT_IPADDR_SUPPORTED)
+           (avl_info->dhcpClientDataKey.ipv4_addr>>24) & 0xff,
+            (avl_info->dhcpClientDataKey.ipv4_addr>>16) & 0xff,
+             (avl_info->dhcpClientDataKey.ipv4_addr>>8) & 0xff,
+              avl_info->dhcpClientDataKey.ipv4_addr & 0xff,
+           #endif
+           #if (DHCP_CLIENT_MACADDR_SUPPORTED)
+           avl_info->dhcpClientDataKey.macAddr[0],
+            avl_info->dhcpClientDataKey.macAddr[1],
+             avl_info->dhcpClientDataKey.macAddr[2],
+              avl_info->dhcpClientDataKey.macAddr[3],
+               avl_info->dhcpClientDataKey.macAddr[4],
+                avl_info->dhcpClientDataKey.macAddr[5],
+           #endif
+           avl_info->client_index,
+           avl_info->uni_ovid, avl_info->uni_ivid,
+           avl_info->client_data.dhcp_options,
+           avl_info->client_data.circuitId_str,
+           avl_info->client_data.remoteId_str);
+
+    i_client++;
+  }
+
+  printf("Total number of DHCP clients: %u\r\n", dhcpClients_unified.number_of_clients);
   fflush(stdout);
 }
 

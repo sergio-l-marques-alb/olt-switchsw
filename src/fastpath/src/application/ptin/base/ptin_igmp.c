@@ -834,6 +834,39 @@ L7_RC_t ptin_igmp_proxy_init(void)
   }
 #endif
 
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpInstances)             = %u", sizeof(igmpInstances));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpClientGroups)          = %u", sizeof(igmpClientGroups));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpClientGroups)*         = %u",
+           sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_IGMP_MAXONUS + sizeof(ptinIgmpClientGroupInfoData_t)*PTIN_SYSTEM_IGMP_MAXONUS);
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpSnapshotClientGroups)  = %u", sizeof(igmpSnapshotClientGroups));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpSnapshotClientGroups)* = %u", 
+           sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_IGMP_MAXONUS + sizeof(ptinIgmpClientGroupsSnapshotInfoData_t)*PTIN_SYSTEM_IGMP_MAXONUS);
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpClients_unified)       = %u", sizeof(igmpClients_unified));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpClients_unified)*      = %u",
+           sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_IGMP_MAXCLIENTS + sizeof(ptinIgmpClientInfoData_t)*PTIN_SYSTEM_IGMP_MAXCLIENTS);
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpPairDB)                = %u", sizeof(igmpPairDB));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpPairDB)*               = %u",
+           sizeof(avlTree_t) + sizeof(avlTreeTables_t)*IGMPASSOC_CHANNELS_MAX + sizeof(ptinIgmpPairInfoData_t)*IGMPASSOC_CHANNELS_MAX);
+#endif
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(global_stats_intf)         = %u", sizeof(global_stats_intf));
+
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpProxyCfg   )         = %u", sizeof(igmpProxyCfg));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpClientsIntf)         = %u", sizeof(igmpClientsIntf));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpRoutersIntf)         = %u", sizeof(igmpRoutersIntf));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpInst_fromRouterVlan) = %u", sizeof(igmpInst_fromRouterVlan));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpInst_fromUCVlan)     = %u", sizeof(igmpInst_fromUCVlan));
+
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(ptinIgmpChannelBandwidthCache) = %u", sizeof(ptinIgmpChannelBandwidthCache));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(clientGroupLookUpTable)        = %u", sizeof(clientGroupLookUpTable));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpPortAdmissionControl)      = %u", sizeof(igmpPortAdmissionControl));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(igmpMulticastAdmissionControl) = %u", sizeof(igmpMulticastAdmissionControl));
+#endif
+
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(clientIdx_pool)      = %u", sizeof(clientIdx_pool));
+  LOG_INFO(LOG_CTX_PTIN_IGMP,"sizeof(queue_free_clientIdx)= %u", sizeof(queue_free_clientIdx));
+
   LOG_INFO(LOG_CTX_PTIN_IGMP, "IGMP init OK");
 
   return L7_SUCCESS;

@@ -870,7 +870,7 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
         {
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
-              client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+              client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             if (ptin_debug_dhcp_snooping)
               LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u extOVlan=%u extIVlan=%u)",
@@ -1170,7 +1170,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         {
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
-              client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+              client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             if (ptin_debug_dhcp_snooping)
               LOG_ERR(LOG_CTX_PTIN_DHCP,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
@@ -3849,7 +3849,7 @@ L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId,
         #else
           if (ptin_dhcp_clientIndex_get(relayAgentInfo.intIfNum, vlanId, &client, &client_index)==L7_SUCCESS &&
         #endif
-              client_index<PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+              client_index<PTIN_SYSTEM_DHCP_MAXCLIENTS)
           {
             *client_idx = client_index;   /* Update to new client index */
             if (ptin_debug_dhcp_snooping)

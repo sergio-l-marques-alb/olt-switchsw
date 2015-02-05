@@ -68,6 +68,8 @@ void ptin_debug_pppoe_enable(L7_BOOL enable)
 
 typedef struct
 {
+  L7_uint8  pppoe_instance;
+
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   L7_uint8  ptin_port;                /* PTin port, which is attached */
   #endif
@@ -108,15 +110,30 @@ typedef struct
 typedef struct {
     avlTree_t                 pppoeClientsAvlTree;
     avlTreeTables_t           *pppoeClientsTreeHeap;
-    ptinPppoeClientInfoData_t  *pppoeClientsDataHeap;
+    ptinPppoeClientInfoData_t *pppoeClientsDataHeap;
 } ptinPppoeClientsAvlTree_t;
 
 /* PPPOE AVL Tree data */
 typedef struct {
-  L7_uint16                number_of_clients;
-  ptinPppoeClientInfoData_t *clients_in_use[PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE];
-  ptinPppoeClientsAvlTree_t avlTree;
-} ptinPppoeClients_t;
+  L7_uint16                  number_of_clients;
+  ptinPppoeClientsAvlTree_t  avlTree;
+} ptinPppoeClients_unified_t;
+
+/* Client entries pool */
+struct ptin_clientIdx_entry_s {
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_clientIdx_entry_s *next;
+  struct ptin_clientIdx_entry_s *prev;
+
+  L7_uint client_id;  /* One index of  array */
+};
+struct ptin_clientInfo_entry_s {
+  /* Pointers used in queues manipulation (MUST be placed at the top of the struct) */
+  struct ptin_clientInfo_entry_s *next;
+  struct ptin_clientInfo_entry_s *prev;
+
+  ptinPppoeClientInfoData_t *client_info;
+};
 
 #define CIRCUITID_TEMPLATE_MAX_STRING   256
 
@@ -138,8 +155,8 @@ typedef struct {
   L7_uint32                   evc_idx;
   L7_uint16                   nni_ovid;          /* NNI outer vlan */
   L7_uint16                   n_evcs;
-  ptinPppoeClients_t          pppoeClients;
   L7_uint16                   evcPppoeOptions;   /* PPPOE Options (0x01=Option82; 0x02=Option37; 0x02=Option18) */
+  dl_queue_t                  queue_clients;
   ptin_PPPOE_Statistics_t     stats_intf[PTIN_SYSTEM_N_INTERF];  /* PPPOE statistics at interface level */
   ptin_AccessNodeCircuitId_t  circuitid;
 } st_PppoeInstCfg_t;
@@ -154,11 +171,14 @@ static L7_uint32 pppoe_quattro_stacked_evcs = 0;
  * Data structs
  ***********************************************************/
 
-/* Global DHCP statistics at interface level */
+/* Global PPPoE statistics at interface level */
 NIM_INTF_MASK_t pppoe_intIfNum_trusted;
 
 /* PPPOE instances array */
 st_PppoeInstCfg_t  pppoeInstances[PTIN_SYSTEM_N_PPPOE_INSTANCES];
+
+/* PPPoE clients */
+ptinPppoeClients_unified_t pppoeClients_unified;
 
 /* Global PPPOE statistics at interface level */
 static ptin_PPPOE_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
@@ -166,6 +186,13 @@ static ptin_PPPOE_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
 /* Semaphores */
 void *pppoe_sem = NULL;
 void *ptin_pppoe_stats_sem = L7_NULLPTR;
+
+
+static struct ptin_clientIdx_entry_s  clientIdx_pool[PTIN_SYSTEM_PPPOE_MAXCLIENTS];  /* Array with all the indexes of clients to be used in a queue */
+static struct ptin_clientInfo_entry_s clientInfo_pool[PTIN_SYSTEM_PPPOE_MAXCLIENTS];
+
+static dl_queue_t queue_free_clients;    /* Queue of free client entries */
+
 
 /*********************************************************** 
  * Static prototypes
@@ -197,58 +224,132 @@ static L7_RC_t ptin_pppoe_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *
  * INLINE FUNCTIONS
  ***********************************************************/
 
-inline L7_int pppoe_clientIndex_get_new(L7_uint8 pppoe_idx)
+inline L7_BOOL pppoe_clientIndex_check_free(L7_uint8 pppoe_idx)
 {
-  L7_uint i;
-
-  if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES)
+  /* Validate arguments */
+  if (pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid PPPOE instance %u", pppoe_idx);
     return -1;
+  }
 
-  /* Search for the first free client index */
-  for (i=0; i<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE && pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[i]!=L7_NULLPTR; i++);
+  return (pppoeClients_unified.number_of_clients < PTIN_SYSTEM_PPPOE_MAXCLIENTS &&
+          queue_free_clients.n_elems > 0);
+}
 
-  if (i>=PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE)
+inline L7_int pppoe_clientIndex_allocate(L7_uint8 pppoe_idx, ptinPppoeClientInfoData_t *infoData)
+{
+  L7_int  client_idx;
+  struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+  struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+  L7_RC_t rc;
+
+  /* Validate arguments */
+  if (pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid PPPOE instance %u", pppoe_idx);
     return -1;
-  return i;
+  }
+
+  /* Check if there is free clients */
+  if (pppoeClients_unified.number_of_clients >= PTIN_SYSTEM_PPPOE_MAXCLIENTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"No free clients available");
+    return -1;
+  }
+
+  /* Check if queue has free clients */
+  if (queue_free_clients.n_elems == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"No free clients available in queue");
+    return -1;
+  }
+
+  /* Try to get an entry from the pool of free elements */
+  rc = dl_queue_remove_head(&queue_free_clients, (dl_queue_elem_t **) &clientIdx_pool_entry);
+  if (rc != NOERR) {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "There are no free clients available! rc=%d", rc);
+    return -1;
+  }
+
+  client_idx = clientIdx_pool_entry->client_id;
+
+  LOG_DEBUG(LOG_CTX_PTIN_PPPOE, "Selected index=%u, Free clients pool: %u of %u entries",
+            client_idx, queue_free_clients.n_elems, PTIN_SYSTEM_PPPOE_MAXCLIENTS);
+
+  /* Assign AVL entry reference */
+  if (infoData != L7_NULLPTR)
+  {
+    /* Update clients list on related instance */
+    clientInfo_pool_entry = &clientInfo_pool[client_idx];
+
+    memset(clientInfo_pool_entry, 0x00, sizeof(struct ptin_clientInfo_entry_s));
+    clientInfo_pool_entry->client_info = infoData;
+
+    rc = dl_queue_add_tail(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
+    if (rc != NOERR) {
+      memset(clientInfo_pool_entry, 0x00, sizeof(struct ptin_clientInfo_entry_s));
+      dl_queue_add_head(&queue_free_clients, (dl_queue_elem_t *) clientIdx_pool_entry);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error adding element to queue! rc=%d", rc);
+      return -1;
+    }
+  }
+
+  /* One more client */
+  pppoeClients_unified.number_of_clients++;
+
+  /* Return new client id */
+  return client_idx;
 }
 
-inline void pppoe_clientIndex_mark(L7_uint8 pppoe_idx, L7_uint client_idx, ptinPppoeClientInfoData_t *infoData)
+inline void pppoe_clientIndex_release(L7_uint8 pppoe_idx, L7_uint32 client_idx)
 {
-  ptinPppoeClients_t *clients;
+  struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
+  struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
+  L7_RC_t rc;
 
-  if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE)
+  /* Validate arguments */
+  if (pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES || client_idx >= PTIN_SYSTEM_PPPOE_MAXCLIENTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "Invalid PPPOE instance %u, or client index %u", pppoe_idx, client_idx);
     return;
+  }
 
-  clients = &pppoeInstances[pppoe_idx].pppoeClients;
-
-  if (clients->clients_in_use[client_idx]==L7_NULLPTR && clients->number_of_clients<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE)
-    clients->number_of_clients++;
-
-  clients->clients_in_use[client_idx] = infoData;
-}
-
-inline void pppoe_clientIndex_unmark(L7_uint8 pppoe_idx, L7_uint client_idx)
-{
-  ptinPppoeClients_t *clients;
-
-  if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE)
+  /* Check if there is busy clients */
+  if (queue_free_clients.n_elems >= PTIN_SYSTEM_PPPOE_MAXCLIENTS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "There are no busy clients!");
     return;
+  }
 
-  clients = &pppoeInstances[pppoe_idx].pppoeClients;
+  /* Get the client entry based on its index */
+  clientIdx_pool_entry  = &clientIdx_pool[client_idx];
+  clientInfo_pool_entry = &clientInfo_pool[client_idx];
 
-  if (clients->clients_in_use[client_idx]!=L7_NULLPTR && clients->number_of_clients>0)
-    clients->number_of_clients--;
-
-  clients->clients_in_use[client_idx] = L7_NULLPTR;
-}
-
-inline void pppoe_clientIndex_clearAll(L7_uint8 pppoe_idx)
-{
-  if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES)
+  /* Remove element from clientInfo queue */
+  rc = dl_queue_remove(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
+  if (rc != NOERR) {
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error removing element from queue! rc=%d", rc);
     return;
+  }
 
-  memset(pppoeInstances[pppoe_idx].pppoeClients.clients_in_use,0x00,sizeof(pppoeInstances[pppoe_idx].pppoeClients.clients_in_use));
-  pppoeInstances[pppoe_idx].pppoeClients.number_of_clients = 0;
+  /* Add it to the free queue */
+  rc = dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t *) clientIdx_pool_entry);
+  if (rc != NOERR) {
+    dl_queue_add_head(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t *) clientInfo_pool_entry);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE, "Error adding client to free queue! rc=%d", rc);
+    return;
+  }
+
+  /* Clear client info from queue */
+  memset(&clientInfo_pool[client_idx], 0x00, sizeof(struct ptin_clientInfo_entry_s));
+
+  /* One less client */
+  if (pppoeClients_unified.number_of_clients > 0)
+    pppoeClients_unified.number_of_clients--;
+
+  LOG_DEBUG(LOG_CTX_PTIN_EVC, "Free client pool: %u of %u entries",
+            queue_free_clients.n_elems, PTIN_SYSTEM_PPPOE_MAXCLIENTS);
 }
 
 /*********************************************************** 
@@ -262,7 +363,7 @@ inline void pppoe_clientIndex_clearAll(L7_uint8 pppoe_idx)
  */
 L7_RC_t ptin_pppoe_init(void)
 {
-  L7_uint pppoe_idx;
+  L7_uint pppoe_idx, i;
   ptinPppoeClientsAvlTree_t *avlTree;
 
   #if 0
@@ -287,44 +388,63 @@ L7_RC_t ptin_pppoe_init(void)
     return L7_FAILURE;
   }
 
-  /* Initialize AVL trees */
-  for (pppoe_idx=0; pppoe_idx<PTIN_SYSTEM_N_PPPOE_INSTANCES; pppoe_idx++)
+  /* PPPOE clients */
+  avlTree = &pppoeClients_unified.avlTree;
+  pppoeClients_unified.number_of_clients = 0;
+
+  avlTree->pppoeClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_PPPOE_MAXCLIENTS * sizeof(avlTreeTables_t)); 
+  avlTree->pppoeClientsDataHeap = (ptinPppoeClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_PPPOE_MAXCLIENTS * sizeof(ptinPppoeClientInfoData_t)); 
+
+  if ((avlTree->pppoeClientsTreeHeap == L7_NULLPTR) ||
+      (avlTree->pppoeClientsDataHeap == L7_NULLPTR))
   {
-    avlTree = &pppoeInstances[pppoe_idx].pppoeClients.avlTree;
-
-    pppoe_clientIndex_clearAll(pppoe_idx);
-
-    avlTree->pppoeClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE * sizeof(avlTreeTables_t)); 
-    avlTree->pppoeClientsDataHeap = (ptinPppoeClientInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE * sizeof(ptinPppoeClientInfoData_t)); 
-
-    if ((avlTree->pppoeClientsTreeHeap == L7_NULLPTR) ||
-        (avlTree->pppoeClientsDataHeap == L7_NULLPTR))
-    {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error allocating data for PPPOE AVL Trees\n");
-      return L7_FAILURE;
-    }
-
-    /* Initialize the storage for all the AVL trees */
-    memset (&avlTree->pppoeClientsAvlTree, 0x00, sizeof(avlTree_t));
-    memset (avlTree->pppoeClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE);
-    memset (avlTree->pppoeClientsDataHeap, 0x00, sizeof(ptinPppoeClientInfoData_t)*PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE);
-
-    // AVL Tree creations - snoopIpAvlTree
-    avlCreateAvlTree(&(avlTree->pppoeClientsAvlTree),
-                     avlTree->pppoeClientsTreeHeap,
-                     avlTree->pppoeClientsDataHeap,
-                     PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE, 
-                     sizeof(ptinPppoeClientInfoData_t),
-                     0x10,
-                     sizeof(ptinPppoeClientDataKey_t));
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error allocating data for PPPOE AVL Trees\n");
+    return L7_FAILURE;
   }
 
+  /* Initialize the storage for all the AVL trees */
+  memset (&avlTree->pppoeClientsAvlTree, 0x00, sizeof(avlTree_t));
+  memset (avlTree->pppoeClientsTreeHeap, 0x00, sizeof(avlTreeTables_t)*PTIN_SYSTEM_PPPOE_MAXCLIENTS);
+  memset (avlTree->pppoeClientsDataHeap, 0x00, sizeof(ptinPppoeClientInfoData_t)*PTIN_SYSTEM_PPPOE_MAXCLIENTS);
+
+  // AVL Tree creations - snoopIpAvlTree
+  avlCreateAvlTree(&(avlTree->pppoeClientsAvlTree),
+                   avlTree->pppoeClientsTreeHeap,
+                   avlTree->pppoeClientsDataHeap,
+                   PTIN_SYSTEM_PPPOE_MAXCLIENTS, 
+                   sizeof(ptinPppoeClientInfoData_t),
+                   0x10,
+                   sizeof(ptinPppoeClientDataKey_t));
+
+  /* Initialize clients queue for each PPPOE instance */
+  memset(clientInfo_pool, 0x00, sizeof(clientInfo_pool));
+  for (pppoe_idx = 0; pppoe_idx < PTIN_SYSTEM_N_PPPOE_INSTANCES; pppoe_idx++)
+  {
+    dl_queue_init(&pppoeInstances[pppoe_idx].queue_clients);
+  }
+
+  /* Init Client index management */
+  dl_queue_init(&queue_free_clients);
+  memset(clientIdx_pool, 0x00, sizeof(clientIdx_pool));
+  for (i=0; i<PTIN_SYSTEM_PPPOE_MAXCLIENTS; i++)
+  {
+    clientIdx_pool[i].client_id = i;
+    dl_queue_add(&queue_free_clients, (dl_queue_elem_t*) &clientIdx_pool[i]);
+  }
+
+  /* Semaphores */
   ptin_pppoe_stats_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_pppoe_stats_sem == L7_NULLPTR)
   {
     LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Failed to create ptin_pppoe_stats_sem semaphore!");
     return L7_FAILURE;
   }
+
+  LOG_INFO(LOG_CTX_PTIN_PPPOE, "sizeof(pppoe_intIfNum_trusted)      = %u", sizeof(pppoe_intIfNum_trusted));
+  LOG_INFO(LOG_CTX_PTIN_PPPOE, "sizeof(pppoeInstances)              = %u", sizeof(pppoeInstances));
+  LOG_INFO(LOG_CTX_PTIN_PPPOE, "sizeof(global_stats_intf)           = %u", sizeof(global_stats_intf));
+  LOG_INFO(LOG_CTX_PTIN_PPPOE, "sizeof(pppoeClients_unified.avlTree)= %u",
+           sizeof(avlTree_t) + sizeof(avlTreeTables_t)*PTIN_SYSTEM_PPPOE_MAXCLIENTS + sizeof(ptinPppoeClientInfoData_t)*PTIN_SYSTEM_PPPOE_MAXCLIENTS);
 
   LOG_INFO(LOG_CTX_PTIN_PPPOE, "PPPOE init OK");
 
@@ -945,11 +1065,15 @@ L7_RC_t ptin_pppoe_circuitid_set_instance(L7_uint32 pppoe_idx, L7_char8 *templat
   /* Run all cells in AVL tree */
   memset(&avl_key, 0x00, sizeof(ptinPppoeClientDataKey_t));
   while ( ( avl_info = (ptinPppoeClientInfoData_t *)
-                        avlSearchLVL7(&pppoeInstances[pppoe_idx].pppoeClients.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+                        avlSearchLVL7(&pppoeClients_unified.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
           ) != L7_NULLPTR )
   {
     /* Prepare next key */
     memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+
+    /* Only apply for this instance */
+    if (avl_key.pppoe_instance != pppoe_idx)
+      continue;
 
     /* Rebuild circuit id */
     ptin_pppoe_circuitId_build( &pppoeInstances[pppoe_idx].circuitid, &avl_info->client_data.circuitId, avl_info->client_data.circuitId_str);
@@ -1100,7 +1224,8 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
                               L7_uint16 options, ptin_clientCircuitId_t *circuitId, L7_char8 *remoteId)
 {
   ptin_client_id_t client;
-  L7_uint pppoe_idx, client_idx;
+  L7_uint pppoe_idx;
+  L7_int  client_idx = -1;
   ptinPppoeClientDataKey_t avl_key;
   ptinPppoeClientsAvlTree_t *avl_tree;
   ptinPppoeClientInfoData_t *avl_infoData;
@@ -1186,8 +1311,11 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
   }
 
   /* Check if this key already exists */
-  avl_tree = &pppoeInstances[pppoe_idx].pppoeClients.avlTree;
+  avl_tree = &pppoeClients_unified.avlTree;
+
   memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+
+  avl_key.pppoe_instance = pppoe_idx;
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
   #endif
@@ -1283,10 +1411,10 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
   /* New client */
   else
   {
-    /* Get new client index */
-    if ((client_idx=pppoe_clientIndex_get_new(pppoe_idx))<0)
+    /* Check if there is free clients */
+    if ( !pppoe_clientIndex_check_free(pppoe_idx) )
     {
-      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Cannot get new client index for pppoe_idx=%u (evc=%u)",pppoe_idx,evc_idx);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"There is no more free clients to be allocated for pppoe_idx=%u (evc=%u)", pppoe_idx, evc_idx);
       return L7_FAILURE;
     }
 
@@ -1368,15 +1496,22 @@ L7_RC_t ptin_pppoe_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_
       return L7_FAILURE;
     }
 
+    /* Allocate new client index */
+    client_idx = pppoe_clientIndex_allocate(pppoe_idx, avl_infoData);
+
+    if (client_idx < 0 || client_idx >= PTIN_SYSTEM_PPPOE_MAXCLIENTS)
+    {
+      avlDeleteEntry(&(avl_tree->pppoeClientsAvlTree), (void *)&avl_key);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error obtaining new client index for pppoe_idx=%u (evc=%u)", pppoe_idx, evc_idx);
+      return L7_FAILURE;
+    }
+
     /* Client index */
     avl_infoData->client_index = client_idx;
 
     /* Save UNI vlans (external vlans used for transmission) */
     avl_infoData->uni_ovid = uni_ovid;
     avl_infoData->uni_ivid = uni_ivid;
-
-    /* Mark one more client for AVL tree */
-    pppoe_clientIndex_mark(pppoe_idx,client_idx,avl_infoData);
 
     /* Clear circuit and remote id strings */
     memset(&avl_infoData->client_data,0x00,sizeof(ptinPppoeData_t));
@@ -1508,9 +1643,11 @@ L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clie
   #endif
 
   /* Check if this key does not exists */
+  avl_tree = &pppoeClients_unified.avlTree;
 
-  avl_tree = &pppoeInstances[pppoe_idx].pppoeClients.avlTree;
   memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+
+  avl_key.pppoe_instance = pppoe_idx;
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
   #endif
@@ -1647,8 +1784,8 @@ L7_RC_t ptin_pppoe_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clie
     return L7_FAILURE;
   }
 
-  /* Remove client for AVL tree */
-  pppoe_clientIndex_unmark(pppoe_idx,client_idx);
+  /* Release client index */
+  pppoe_clientIndex_release(pppoe_idx, client_idx);
 
   LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Success removing Key {"
             #if (PPPOE_CLIENT_INTERF_SUPPORTED)
@@ -2002,9 +2139,13 @@ L7_RC_t ptin_pppoe_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cl
 L7_RC_t ptin_pppoe_stat_clearAll(void)
 {
   L7_uint pppoe_idx;
-  L7_uint client_idx;
+  ptinPppoeClientDataKey_t   avl_key;
+  ptinPppoeClientInfoData_t *avl_info;
 
   osapiSemaTake(ptin_pppoe_stats_sem,-1);
+
+  /* Clear global statistics */
+  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
 
   /* Run all PPPOE instances */
   for (pppoe_idx=0; pppoe_idx<PTIN_SYSTEM_N_PPPOE_INSTANCES; pppoe_idx++)
@@ -2013,19 +2154,20 @@ L7_RC_t ptin_pppoe_stat_clearAll(void)
 
     /* Clear instance statistics */
     memset(pppoeInstances[pppoe_idx].stats_intf, 0x00, sizeof(pppoeInstances[pppoe_idx].stats_intf));
-
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE; client_idx++)
-    {
-      if (pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics */
-      memset(&pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[client_idx]->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
-    }
   }
 
-  /* Clear global statistics */
-  memset(global_stats_intf,0x00,sizeof(global_stats_intf));
+  /* Run all cells in AVL tree related to this instance */
+  memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+  while ( (avl_info = (ptinPppoeClientInfoData_t *)
+                      avlSearchLVL7(&pppoeClients_unified.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+
+    /* Clear client statistics */
+    memset(&avl_info->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
+  }
 
   osapiSemaGive(ptin_pppoe_stats_sem);
 
@@ -2042,7 +2184,7 @@ L7_RC_t ptin_pppoe_stat_clearAll(void)
 L7_RC_t ptin_pppoe_stat_instance_clear(L7_uint32 evc_idx)
 {
   L7_uint pppoe_idx;
-  L7_uint client_idx;
+  struct ptin_clientInfo_entry_s *clientInfo_entry;
 
   /* Get Pppoe instance */
   if (ptin_pppoe_instance_find(evc_idx,&pppoe_idx)!=L7_SUCCESS)
@@ -2056,13 +2198,19 @@ L7_RC_t ptin_pppoe_stat_instance_clear(L7_uint32 evc_idx)
   /* Clear instance statistics */
   memset(pppoeInstances[pppoe_idx].stats_intf, 0x00, sizeof(pppoeInstances[pppoe_idx].stats_intf));
 
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE; client_idx++)
+  /* Clear statistics of belonging clients */
+  clientInfo_entry = NULL;
+  dl_queue_get_head(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+  while (clientInfo_entry != NULL)
   {
-    if (pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
     /* Clear client statistics */
-    memset(&pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[client_idx]->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
+    if (clientInfo_entry->client_info != L7_NULLPTR)
+    {
+      memset(&clientInfo_entry->client_info->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t)); 
+    }
+
+    /* Next queue element */
+    clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
   }
 
   osapiSemaGive(ptin_pppoe_stats_sem);
@@ -2080,10 +2228,9 @@ L7_RC_t ptin_pppoe_stat_instance_clear(L7_uint32 evc_idx)
 L7_RC_t ptin_pppoe_stat_intf_clear(ptin_intf_t *ptin_intf)
 {
   L7_uint pppoe_idx;
-  L7_uint client_idx;
   L7_uint32 ptin_port;
-  st_PppoeInstCfg_t *pppoeInst;
-  ptinPppoeClientInfoData_t *clientInfo;
+  ptinPppoeClientDataKey_t   avl_key;
+  ptinPppoeClientInfoData_t *avl_info;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -2101,34 +2248,35 @@ L7_RC_t ptin_pppoe_stat_intf_clear(ptin_intf_t *ptin_intf)
 
   osapiSemaTake(ptin_pppoe_stats_sem,-1);
 
+  /* Clear global statistics */
+  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_PPPOE_Statistics_t));
+
   /* Run all PPPOE instances */
   for (pppoe_idx=0; pppoe_idx<PTIN_SYSTEM_N_PPPOE_INSTANCES; pppoe_idx++)
   {
     if (!pppoeInstances[pppoe_idx].inUse)  continue;
 
-    pppoeInst = &pppoeInstances[pppoe_idx];
-
     /* Clear instance statistics */
-    memset(&pppoeInst->stats_intf[ptin_port], 0x00, sizeof(ptin_PPPOE_Statistics_t));
-
-    #if (PPPOE_CLIENT_INTERF_SUPPORTED)
-    /* Run all clients */
-    for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE; client_idx++)
-    {
-      if (pppoeInst->pppoeClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-      /* Clear client statistics (if port matches) */
-      clientInfo = pppoeInst->pppoeClients.clients_in_use[client_idx];
-      if (clientInfo->pppoeClientDataKey.ptin_port==ptin_port)
-      {
-        memset(&clientInfo->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
-      }
-    }
-    #endif
+    memset(&pppoeInstances[pppoe_idx].stats_intf[ptin_port], 0x00, sizeof(ptin_PPPOE_Statistics_t));
   }
 
-  /* Clear global statistics */
-  memset(&global_stats_intf[ptin_port], 0x00, sizeof(ptin_PPPOE_Statistics_t));
+  #if (PPPOE_CLIENT_INTERF_SUPPORTED)
+  /* Run all cells in AVL tree related to this instance */
+  memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+  while ( (avl_info = (ptinPppoeClientInfoData_t *)
+                      avlSearchLVL7(&pppoeClients_unified.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+
+    /* Clear client statistics */
+    if (avl_info->pppoeClientDataKey.ptin_port == ptin_port)
+    {
+      memset(&avl_info->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
+    }
+  }
+  #endif
 
   osapiSemaGive(ptin_pppoe_stats_sem);
 
@@ -2146,11 +2294,10 @@ L7_RC_t ptin_pppoe_stat_intf_clear(ptin_intf_t *ptin_intf)
 L7_RC_t ptin_pppoe_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_intf)
 {
   L7_uint pppoe_idx;
-  L7_uint client_idx;
   L7_uint32 ptin_port;
   st_PppoeInstCfg_t *pppoeInst;
-  ptinPppoeClientInfoData_t *clientInfo;
   ptin_evc_intfCfg_t intfCfg;
+  struct ptin_clientInfo_entry_s *clientInfo_entry;
 
   /* Validate arguments */
   if (ptin_intf==L7_NULLPTR)
@@ -2194,17 +2341,19 @@ L7_RC_t ptin_pppoe_stat_instanceIntf_clear(L7_uint32 evc_idx, ptin_intf_t *ptin_
   memset(&pppoeInst->stats_intf[ptin_port], 0x00, sizeof(ptin_PPPOE_Statistics_t));
 
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
-  /* Run all clients */
-  for (client_idx=0; client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE; client_idx++)
+  /* Clear statistics of belonging clients */
+  clientInfo_entry = NULL;
+  dl_queue_get_head(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+  while (clientInfo_entry != NULL)
   {
-    if (pppoeInst->pppoeClients.clients_in_use[client_idx]==L7_NULLPTR)  continue;
-
-    /* Clear client statistics (if port matches) */
-    clientInfo = pppoeInst->pppoeClients.clients_in_use[client_idx];
-    if (clientInfo->pppoeClientDataKey.ptin_port==ptin_port)
+    if (clientInfo_entry->client_info != L7_NULLPTR &&
+        clientInfo_entry->client_info->pppoeClientDataKey.ptin_port == ptin_port) 
     {
-      memset(&clientInfo->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
+      memset(&clientInfo_entry->client_info->client_stats, 0x00, sizeof(ptin_PPPOE_Statistics_t));
     }
+
+    /* Next queue element */
+    clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&pppoeInstances[pppoe_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
   }
   #endif
 
@@ -2443,7 +2592,7 @@ void ptin_pppoe_intfTrusted_init(void)
 {
   memset(&pppoe_intIfNum_trusted, 0x00, sizeof(pppoe_intIfNum_trusted));
 
-  LOG_INFO(LOG_CTX_PTIN_DHCP,"Trusted ports initialized");
+  LOG_INFO(LOG_CTX_PTIN_PPPOE,"Trusted ports initialized");
 }
 
 /**
@@ -2577,25 +2726,26 @@ L7_RC_t ptin_pppoe_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint1
   if (ptin_evc_intf_type_get(intOVlan, intIfNum, &intf_type) != L7_SUCCESS)
   {
     if (ptin_debug_pppoe_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "Error getting intf configuration for intVlan %u, intIfNum %u", intOVlan, intIfNum);
     return L7_FAILURE;
   }
   /* Validate interface type */
   if (intf_type != PTIN_EVC_INTF_ROOT && intf_type != PTIN_EVC_INTF_LEAF)
   {
     if (ptin_debug_pppoe_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_DHCP, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
+      LOG_TRACE(LOG_CTX_PTIN_PPPOE, "intVlan %u / intIfNum %u is not used", intOVlan, intIfNum);
     return L7_FAILURE;
   }
 
   ovid = ivid = 0;
   /* If client is provided, go directly to client info */
-  if ((intf_type == PTIN_EVC_INTF_LEAF) &&
-      (client_idx>=0 && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE) &&
-      ptin_pppoe_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &pppoe_idx)==L7_SUCCESS)
+  if ((intf_type == PTIN_EVC_INTF_LEAF) &&                            /* Is a leaf port */
+      (client_idx>=0 && client_idx<PTIN_SYSTEM_PPPOE_MAXCLIENTS) &&   /* Valid index */
+      (clientInfo_pool[client_idx].client_info != L7_NULLPTR) &&      /* Client exists */
+      ptin_pppoe_inst_get_fromIntVlan(intOVlan, L7_NULLPTR, &pppoe_idx)==L7_SUCCESS)  /* intOVlan is valid */
   {
     /* Get pointer to client structure in AVL tree */
-    clientInfo = pppoeInstances[pppoe_idx].pppoeClients.clients_in_use[client_idx];
+    clientInfo = clientInfo_pool[client_idx].client_info;
 
     ovid = clientInfo->uni_ovid;
     ivid = clientInfo->uni_ivid;
@@ -2783,17 +2933,18 @@ L7_RC_t ptin_pppoe_clientData_get(L7_uint16 intVlan,
                                  ptin_client_id_t *client)
 {
   ptin_intf_t ptin_intf;
-  st_PppoeInstCfg_t *pppoeInst;
+  //st_PppoeInstCfg_t *pppoeInst;
   ptinPppoeClientInfoData_t *clientInfo;
 
   /* Validate arguments */
-  if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE )
+  if ( client==L7_NULLPTR || client_idx>=PTIN_SYSTEM_PPPOE_MAXCLIENTS )
   {
     if (ptin_debug_pppoe_snooping)
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"Invalid arguments");
     return L7_FAILURE;
   }
 
+  #if 0
   /* PPPOE instance, from internal vlan */
   if (ptin_pppoe_inst_get_fromIntVlan(intVlan,&pppoeInst,L7_NULLPTR)!=L7_SUCCESS)
   {
@@ -2801,9 +2952,10 @@ L7_RC_t ptin_pppoe_clientData_get(L7_uint16 intVlan,
       LOG_ERR(LOG_CTX_PTIN_PPPOE,"No PPPOE instance associated to intVlan %u",intVlan);
     return L7_FAILURE;
   }
+  #endif
 
   /* Get pointer to client structure in AVL tree */
-  clientInfo = pppoeInst->pppoeClients.clients_in_use[client_idx];
+  clientInfo = clientInfo_pool[client_idx].client_info;
   /* If does not exist... */
   if (clientInfo==L7_NULLPTR)
   {
@@ -3168,9 +3320,9 @@ L7_RC_t ptin_pppoe_stat_increment_field(L7_uint32 intIfNum, L7_uint16 vlan, L7_u
   }
 
   /* If client index is valid... */
-  if (pppoeInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE)
+  if (pppoeInst!=L7_NULLPTR && client_idx<PTIN_SYSTEM_PPPOE_MAXCLIENTS)
   {
-    client = pppoeInst->pppoeClients.clients_in_use[client_idx];
+    client = clientInfo_pool[client_idx].client_info;
     if (client!=L7_NULLPTR)
     {
       /* Statistics at client level */
@@ -3379,8 +3531,11 @@ static L7_RC_t ptin_pppoe_client_find(L7_uint pppoe_idx, ptin_client_id_t *clien
   #endif
 
   /* Key to search for */
-  avl_tree = &pppoeInstances[pppoe_idx].pppoeClients.avlTree;
+  avl_tree = &pppoeClients_unified.avlTree;
+
   memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+
+  avl_key.pppoe_instance = pppoe_idx;
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   avl_key.ptin_port = ptin_port;
   #endif
@@ -3462,8 +3617,10 @@ static L7_RC_t ptin_pppoe_client_find(L7_uint pppoe_idx, ptin_client_id_t *clien
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 static L7_RC_t ptin_pppoe_instance_deleteAll_clients(L7_uint pppoe_idx)
-{
-  ptinPppoeClientsAvlTree_t *avl_tree;
+{  
+  ptinPppoeClientDataKey_t   avl_key;
+  ptinPppoeClientInfoData_t *avl_info;
+  L7_uint32 client_idx;
 
   /* Validate argument */
   if (pppoe_idx>=PTIN_SYSTEM_N_PPPOE_INSTANCES)
@@ -3478,13 +3635,29 @@ static L7_RC_t ptin_pppoe_instance_deleteAll_clients(L7_uint pppoe_idx)
     return L7_FAILURE;
   }
 
-  avl_tree = &pppoeInstances[pppoe_idx].pppoeClients.avlTree;
+  /* Run all cells in AVL tree related to this instance instance */
+  memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+  while ( (avl_info = (ptinPppoeClientInfoData_t *)
+                      avlSearchLVL7(&pppoeClients_unified.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+     /* Prepare next key */
+     memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
 
-  /* Remove all entries from AVL tree */
-  avlPurgeAvlTree(&(avl_tree->pppoeClientsAvlTree), PTIN_SYSTEM_MAXCLIENTS_PER_PPPOE_INSTANCE);
+     /* Skip items not belonging to this instance */
+     if (avl_key.pppoe_instance != pppoe_idx)
+       continue;
 
-  /* Remove all clients of AVL tree */
-  pppoe_clientIndex_clearAll(pppoe_idx);
+     /* Save client index */
+     client_idx = avl_info->client_index;
+
+     /* Delete node */
+     if (avlDeleteEntry(&pppoeClients_unified.avlTree.pppoeClientsAvlTree, (void *)&avl_key) != L7_NULLPTR)
+     {
+       /* Release client index */
+       pppoe_clientIndex_release(pppoe_idx, client_idx);
+     }
+  }
 
   LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Success removing all clients from pppoe_idx=%u",pppoe_idx);
 
@@ -3663,7 +3836,7 @@ static L7_RC_t ptin_pppoe_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
 
   if (ptin_evc_intRootVlan_get(evc_idx, &vlan) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_DHCP,"Can't get root vlan for evc id %u", evc_idx);
+    LOG_ERR(LOG_CTX_PTIN_PPPOE,"Can't get root vlan for evc id %u", evc_idx);
     return L7_FAILURE;
   }
 
@@ -3673,10 +3846,10 @@ static L7_RC_t ptin_pppoe_evc_trap_configure(L7_uint32 evc_idx, L7_BOOL enable)
   {
     if (ptin_pppoePkts_vlan_trap(vlan, enable)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error configuring vlan %u for packet trapping", vlan);
+      LOG_ERR(LOG_CTX_PTIN_PPPOE,"Error configuring vlan %u for packet trapping", vlan);
       return L7_FAILURE;
     }
-    LOG_TRACE(LOG_CTX_PTIN_DHCP,"Success configuring vlan %u for packet trapping", vlan);
+    LOG_TRACE(LOG_CTX_PTIN_PPPOE,"Success configuring vlan %u for packet trapping", vlan);
   }
 
   return L7_SUCCESS;
@@ -3780,8 +3953,7 @@ void ptin_pppoe_circuitid_convert(L7_char8 *circuitid_str, L7_char8 *str_to_repl
 
 L7_RC_t ptin_pppoe_reconf_instance(L7_uint32 pppoe_instance_idx, L7_uint8 pppoe_flag, L7_uint32 options)
 {
-   ptinPppoeClientDataKey_t avl_key;
-   ptinPppoeClientInfoData_t *avl_info;
+   struct ptin_clientInfo_entry_s *clientInfo_entry;
 
    /* Validate pppoe instance */
    if (!pppoeInstances[pppoe_instance_idx].inUse)
@@ -3793,20 +3965,20 @@ L7_RC_t ptin_pppoe_reconf_instance(L7_uint32 pppoe_instance_idx, L7_uint8 pppoe_
    /* Save EVC PPPOE Options */
    pppoeInstances[pppoe_instance_idx].evcPppoeOptions = options;
 
-   /* Run all cells in AVL tree */
-   memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
-   while ( ( avl_info = (ptinPppoeClientInfoData_t *)
-                       avlSearchLVL7(&pppoeInstances[pppoe_instance_idx].pppoeClients.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-         ) != L7_NULLPTR )
+   /* Clear statistics of belonging clients */
+   clientInfo_entry = NULL;
+   dl_queue_get_head(&pppoeInstances[pppoe_instance_idx].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+   while (clientInfo_entry != NULL)
    {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+     /* Reconfigure PPPOE options for clients that are using Global EVC PPPOE options */
+     if(clientInfo_entry->client_info != L7_NULLPTR &&
+        L7_TRUE == clientInfo_entry->client_info->client_data.useEvcPppoeOptions)
+     {
+        clientInfo_entry->client_info->client_data.pppoe_options = options;
+     }
 
-      /* Reconfigure PPPOE options for clients that are using Global EVC PPPOE options */
-      if(L7_TRUE == avl_info->client_data.useEvcPppoeOptions)
-      {
-         avl_info->client_data.pppoe_options = options;
-      }
+     /* Next queue element */
+     clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&pppoeInstances[pppoe_instance_idx].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
    }
 
    return L7_SUCCESS;
@@ -3822,8 +3994,8 @@ L7_RC_t ptin_pppoe_reconf_instance(L7_uint32 pppoe_instance_idx, L7_uint8 pppoe_
 void ptin_pppoe_dump(void)
 {
   L7_uint i, i_client;
-  ptinPppoeClientDataKey_t avl_key;
   ptinPppoeClientInfoData_t *avl_info;
+  struct ptin_clientInfo_entry_s *clientInfo_entry;
 
   for (i = 0; i < PTIN_SYSTEM_N_PPPOE_INSTANCES; i++)
   {
@@ -3839,68 +4011,154 @@ void ptin_pppoe_dump(void)
 
     i_client = 0;
 
-    /* Run all cells in AVL tree */
-    memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
-    while ( ( avl_info = (ptinPppoeClientInfoData_t *)
-                          avlSearchLVL7(&pppoeInstances[i].pppoeClients.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-            ) != L7_NULLPTR )
+    /* Run all instance belonging clients */
+    clientInfo_entry = NULL;
+    dl_queue_get_head(&pppoeInstances[i].queue_clients, (dl_queue_elem_t **)&clientInfo_entry);
+    while (clientInfo_entry != NULL)
     {
-      /* Prepare next key */
-      memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+      avl_info = clientInfo_entry->client_info;
 
-      printf("   Client#%u: "
-             #if (PPPOE_CLIENT_INTERF_SUPPORTED)
-             "ptin_port=%-2u "
-             #endif
-             #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
-             "svlan=%-4u "
-             #endif
-             #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
-             "cvlan=%-4u "
-             #endif
-             #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
-             "IP=%03u.%03u.%03u.%03u "
-             #endif
-             #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
-             "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
-             #endif
-             ": index=%-4u [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
-             i_client,
-             #if (PPPOE_CLIENT_INTERF_SUPPORTED)
-             avl_info->pppoeClientDataKey.ptin_port,
-             #endif
-             #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
-             avl_info->pppoeClientDataKey.outerVlan,
-             #endif
-             #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
-             avl_info->pppoeClientDataKey.innerVlan,
-             #endif
-             #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
-             (avl_info->pppoeClientDataKey.ipv4_addr>>24) & 0xff,
-              (avl_info->pppoeClientDataKey.ipv4_addr>>16) & 0xff,
-               (avl_info->pppoeClientDataKey.ipv4_addr>>8) & 0xff,
-                avl_info->pppoeClientDataKey.ipv4_addr & 0xff,
-             #endif
-             #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
-             avl_info->pppoeClientDataKey.macAddr[0],
-              avl_info->pppoeClientDataKey.macAddr[1],
-               avl_info->pppoeClientDataKey.macAddr[2],
-                avl_info->pppoeClientDataKey.macAddr[3],
-                 avl_info->pppoeClientDataKey.macAddr[4],
-                  avl_info->pppoeClientDataKey.macAddr[5],
-             #endif
-             avl_info->client_index,
-             avl_info->uni_ovid, avl_info->uni_ivid,
-             avl_info->client_data.pppoe_options,
-             avl_info->client_data.circuitId_str,
-             avl_info->client_data.remoteId_str);
+      if (avl_info != L7_NULLPTR)
+      {
+        /* Skip items not belonging to this instance */
+        if (avl_info->pppoeClientDataKey.pppoe_instance != i)
+          continue;
+
+        printf("   Client#%u: "
+               #if (PPPOE_CLIENT_INTERF_SUPPORTED)
+               "ptin_port=%-2u "
+               #endif
+               #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
+               "svlan=%-4u "
+               #endif
+               #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
+               "cvlan=%-4u "
+               #endif
+               #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
+               "IP=%03u.%03u.%03u.%03u "
+               #endif
+               #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
+               "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+               #endif
+               ": index=%-4u [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+               i_client,
+               #if (PPPOE_CLIENT_INTERF_SUPPORTED)
+               avl_info->pppoeClientDataKey.ptin_port,
+               #endif
+               #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
+               avl_info->pppoeClientDataKey.outerVlan,
+               #endif
+               #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
+               avl_info->pppoeClientDataKey.innerVlan,
+               #endif
+               #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
+               (avl_info->pppoeClientDataKey.ipv4_addr>>24) & 0xff,
+                (avl_info->pppoeClientDataKey.ipv4_addr>>16) & 0xff,
+                 (avl_info->pppoeClientDataKey.ipv4_addr>>8) & 0xff,
+                  avl_info->pppoeClientDataKey.ipv4_addr & 0xff,
+               #endif
+               #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
+               avl_info->pppoeClientDataKey.macAddr[0],
+                avl_info->pppoeClientDataKey.macAddr[1],
+                 avl_info->pppoeClientDataKey.macAddr[2],
+                  avl_info->pppoeClientDataKey.macAddr[3],
+                   avl_info->pppoeClientDataKey.macAddr[4],
+                    avl_info->pppoeClientDataKey.macAddr[5],
+               #endif
+               avl_info->client_index,
+               avl_info->uni_ovid, avl_info->uni_ivid,
+               avl_info->client_data.pppoe_options,
+               avl_info->client_data.circuitId_str,
+               avl_info->client_data.remoteId_str);
+      }
+      else
+      {
+        printf("   Entry %u has a null pointer\r\n", i_client);
+      }
 
       i_client++;
+
+      /* Next queue element */
+      clientInfo_entry = (struct ptin_clientInfo_entry_s *) dl_queue_get_next(&pppoeInstances[i].queue_clients, (dl_queue_elem_t *) clientInfo_entry);
     }
   }
+
+  printf("Total number of PPPoE clients: %u\r\n", pppoeClients_unified.number_of_clients);
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   printf("Total number of QUATTRO-STACKED evcs: %u\r\n", pppoe_quattro_stacked_evcs);
   #endif
+
+  fflush(stdout);
+}
+
+void ptin_pppoe_dump2(void)
+{
+  L7_uint i_client = 0;
+  ptinPppoeClientDataKey_t avl_key;
+  ptinPppoeClientInfoData_t *avl_info;
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinPppoeClientDataKey_t));
+  while ( ( avl_info = (ptinPppoeClientInfoData_t *)
+                        avlSearchLVL7(&pppoeClients_unified.avlTree.pppoeClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&avl_key, &avl_info->pppoeClientDataKey, sizeof(ptinPppoeClientDataKey_t));
+
+    printf("   Client#%u: pppoeInst=%2u "
+           #if (PPPOE_CLIENT_INTERF_SUPPORTED)
+           "ptin_port=%-2u "
+           #endif
+           #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
+           "svlan=%-4u "
+           #endif
+           #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
+           "cvlan=%-4u "
+           #endif
+           #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
+           "IP=%03u.%03u.%03u.%03u "
+           #endif
+           #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
+           "MAC=%02x:%02x:%02x:%02x:%02x:%02x "
+           #endif
+           ": index=%-4u [uni_vlans=%4u+%-4u] options=0x%04x circuitId=\"%s\" remoteId=\"%s\"\r\n",
+           i_client,
+           avl_key.pppoe_instance,
+           #if (PPPOE_CLIENT_INTERF_SUPPORTED)
+           avl_info->pppoeClientDataKey.ptin_port,
+           #endif
+           #if (PPPOE_CLIENT_OUTERVLAN_SUPPORTED)
+           avl_info->pppoeClientDataKey.outerVlan,
+           #endif
+           #if (PPPOE_CLIENT_INNERVLAN_SUPPORTED)
+           avl_info->pppoeClientDataKey.innerVlan,
+           #endif
+           #if (PPPOE_CLIENT_IPADDR_SUPPORTED)
+           (avl_info->pppoeClientDataKey.ipv4_addr>>24) & 0xff,
+            (avl_info->pppoeClientDataKey.ipv4_addr>>16) & 0xff,
+             (avl_info->pppoeClientDataKey.ipv4_addr>>8) & 0xff,
+              avl_info->pppoeClientDataKey.ipv4_addr & 0xff,
+           #endif
+           #if (PPPOE_CLIENT_MACADDR_SUPPORTED)
+           avl_info->pppoeClientDataKey.macAddr[0],
+            avl_info->pppoeClientDataKey.macAddr[1],
+             avl_info->pppoeClientDataKey.macAddr[2],
+              avl_info->pppoeClientDataKey.macAddr[3],
+               avl_info->pppoeClientDataKey.macAddr[4],
+                avl_info->pppoeClientDataKey.macAddr[5],
+           #endif
+           avl_info->client_index,
+           avl_info->uni_ovid, avl_info->uni_ivid,
+           avl_info->client_data.pppoe_options,
+           avl_info->client_data.circuitId_str,
+           avl_info->client_data.remoteId_str);
+
+    i_client++;
+  }
+
+  printf("Total number of PPPoE clients: %u\r\n", pppoeClients_unified.number_of_clients);
+  fflush(stdout);
 }
 
 #if PPPOE_ACCEPT_UNSTACKED_PACKETS

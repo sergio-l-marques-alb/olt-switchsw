@@ -276,7 +276,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
     {
       /* Find client index, and validate it */
       if (ptin_pppoe_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
-          client_idx>=PTIN_SYSTEM_MAXCLIENTS_PER_DHCP_INSTANCE)
+          client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
       {
         if (ptin_debug_pppoe_snooping)
           LOG_WARNING(LOG_CTX_PTIN_PPPOE,"Client not found! (intIfNum=%u, ptin_intf=%u/%u, innerVlanId=%u, intVlanId=%u)",
