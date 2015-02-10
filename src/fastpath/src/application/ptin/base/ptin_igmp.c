@@ -2259,14 +2259,15 @@ L7_RC_t ptin_igmp_generalquerier_reset(void)
 //static ptin_igmpChannelInfo_t channelList_tmp[L7_MAX_GROUP_REGISTRATION_ENTRIES*PTIN_SYSTEM_IGMP_MAXSOURCES_PER_GROUP];
 
 L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *client_id,
-                                  L7_uint16 channel_index, L7_uint16 *number_of_channels, ptin_igmpChannelInfo_t *channel_list,
+                                  L7_uint16 channel_index, L7_uint16 *max_number_of_channels, ptin_igmpChannelInfo_t *channel_list,
                                   L7_uint16 *total_channels)
 { 
-  L7_uint32         globalGroupCount = 0;   
+  L7_uint32         entryId = 0;
+  L7_uint32         numberOfChannels = 0;   
   ptin_client_id_t  client;
 
   /* Validate arguments */
-  if (channel_list == L7_NULLPTR || number_of_channels == L7_NULLPTR)
+  if (channel_list == L7_NULLPTR || max_number_of_channels == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Null parameters");
     return L7_FAILURE;
@@ -2291,9 +2292,16 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
     }
   }
 
+  /*MGMD Lib is expecting the channel_index to be equal to the last index sent. 
+  However, Fastpath is expecting the index to be the first channel to be sent*/
+  if (channel_index != 0)
+  {
+    --channel_index;
+  }
+
   if(client.mask == 0)
   {   
-    uint32 groupCount;    
+    uint32 channelCopied;    
 
     do
     {       
@@ -2303,19 +2311,19 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t  mgmdGroupsMsg = {0}; 
       PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t mgmdGroupsRes = {0};
        
-      groupCount = 0;  
+      channelCopied = 0;  
 
       mgmdGroupsMsg.serviceId = McastEvcId;   
       mgmdGroupsMsg.portId = PTIN_MGMD_ROOT_PORT;
       mgmdGroupsMsg.clientId = PTIN_MGMD_MANAGEMENT_CLIENT_ID;
             
-      if(globalGroupCount==0)
+      if(numberOfChannels==0)
       {
         mgmdGroupsMsg.entryId   = (channel_index==0)?(PTIN_MGMD_CTRL_ACTIVEGROUPS_FIRST_ENTRY):(channel_index);
       }
       else
       {
-        mgmdGroupsMsg.entryId   = (globalGroupCount-1+channel_index);
+        mgmdGroupsMsg.entryId   = entryId;
       }
 
       ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GROUPS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdGroupsMsg, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t));
@@ -2332,9 +2340,9 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       if (0 == ctrlResMsg.dataLength%sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
       {
         LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u)", McastEvcId);
-        while((ctrlResMsg.dataLength > 0) && (globalGroupCount+groupCount < *number_of_channels))
+        while((ctrlResMsg.dataLength > 0) && (numberOfChannels < *max_number_of_channels))
         {
-          memcpy(&mgmdGroupsRes, ctrlResMsg.data + groupCount*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+          memcpy(&mgmdGroupsRes, ctrlResMsg.data + channelCopied*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
 
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "  Entry [%u]", mgmdGroupsRes.entryId);
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Type:           %s",   mgmdGroupsRes.groupType==PTIN_MGMD_CTRL_GROUPTYPE_DYNAMIC? ("Dynamic"):("Static"));
@@ -2344,12 +2352,13 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Timer:   %u",   mgmdGroupsRes.sourceTimer);
           LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Address: %08X", mgmdGroupsRes.sourceIP);
 
-          inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[groupCount+globalGroupCount].groupAddr);
-          inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[groupCount+globalGroupCount].sourceAddr);
-          channel_list[groupCount+globalGroupCount].static_type = mgmdGroupsRes.groupType;
+          inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[numberOfChannels].groupAddr);
+          inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[numberOfChannels].sourceAddr);
+          channel_list[numberOfChannels].static_type = mgmdGroupsRes.groupType;
 
           ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t);
-          ++groupCount;
+          ++channelCopied;
+          ++numberOfChannels;
         }
       }
       else
@@ -2358,18 +2367,20 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
           break;
         LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid response size from MGMD [size:%u]. Expecting Multiple of :%u", ctrlResMsg.dataLength, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
         return L7_FAILURE;
-      }
-      globalGroupCount+=groupCount;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "globalGroupCount=%u groupCount=%u sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t)=%u", globalGroupCount,groupCount,sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
-    } while ( globalGroupCount<*number_of_channels && groupCount == PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
-    *number_of_channels = globalGroupCount;
+      }      
+      entryId = mgmdGroupsRes.entryId;
+
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "channelCopied=%u channelCopied=%u sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t)=%u", channelCopied, numberOfChannels,sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+
+    } while ( numberOfChannels<*max_number_of_channels && channelCopied == PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+    *max_number_of_channels = numberOfChannels;
   }
   else
   {
     ptinIgmpClientGroupInfoData_t *clientGroup;   
     L7_uint32                      intIfNum;
     L7_uint32                      globalGroupCountperMsg = 0;
-    L7_BOOL                        firstDevice=L7_TRUE;
+    L7_BOOL                        isFirstDevice=L7_TRUE;
     
     /* Find client */
     if (ptin_igmp_clientGroup_find(&client, &clientGroup)!=L7_SUCCESS)
@@ -2409,13 +2420,20 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
 
     if(noOfClients>0)
     {
-      L7_uint16 noOfClientsFound=0;
+      L7_uint16 noOfClientsFound = 0;
+      L7_uint16 clientIdAux = 0;
+
+      L7_uint32 channelCopied;
+      L7_uint32 groupCountperMsg = 0;
 
       for(clientId = 0; clientId<PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
       {
-        L7_uint32  groupCount;
-        L7_uint32  groupCountperMsg = 0;
-      
+        
+        if (isFirstDevice == L7_FALSE && numberOfChannels >= PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
+        {
+          break;
+        }
+
         if(clientGroup->client_bmp_list[clientId/(sizeof(L7_uint32)*8)] == 0)
         {
           //Next Position on the Array of Clients. -1 since the for adds 1 unit.
@@ -2424,7 +2442,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
         }
 
         if(IS_BITMAP_BIT_SET(clientGroup->client_bmp_list, clientId, sizeof(L7_uint32)))
-        { 
+        {
           do
           { 
             PTIN_MGMD_EVENT_t                      reqMsg        = {0};
@@ -2437,16 +2455,16 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
             mgmdGroupsMsg.portId    = intIfNum;
             mgmdGroupsMsg.clientId  = clientId;
 
-            if(globalGroupCountperMsg==0)
+            if (globalGroupCountperMsg == 0 || clientIdAux != clientId)
             {
               mgmdGroupsMsg.entryId   = (channel_index==0)?(PTIN_MGMD_CTRL_ACTIVEGROUPS_FIRST_ENTRY):(channel_index);
             }
             else
             {
-              mgmdGroupsMsg.entryId   = (channel_index+globalGroupCountperMsg-1);
+              mgmdGroupsMsg.entryId   = entryId;
             }
             
-            groupCount = 0;
+            channelCopied = 0;
             groupCountperMsg = 0;
 
             ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_GROUPS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdGroupsMsg, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_REQUEST_t));
@@ -2474,7 +2492,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
             L7_uint16   existingEntry=L7_FALSE;
 
             LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Active groups (Service:%u)", McastEvcId);
-            while((ctrlResMsg.dataLength > 0) && (groupCount+globalGroupCount < *number_of_channels))
+            while((ctrlResMsg.dataLength > 0) && (numberOfChannels < *max_number_of_channels))
             {
               memcpy(&mgmdGroupsRes, ctrlResMsg.data + groupCountperMsg*sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t), sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));         
               
@@ -2486,14 +2504,15 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
               LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Timer:   %u",   mgmdGroupsRes.sourceTimer);
               LOG_DEBUG(LOG_CTX_PTIN_IGMP, "    Source Address: %08X", mgmdGroupsRes.sourceIP);
 
-              //This procedure is required, since the client id on mgmd identifies devices (e.g. set-top boxes), while on the manager identifies ONUs          
-              if(firstDevice==L7_FALSE)
+              //This procedure is required, since the client id on mgmd identifies devices (e.g. set-top boxes), while on the manager identifies ONUs    
+              //Import Note: The number of Groups of all devices should be bellow the size of buffer (i.e. 292 Groups) with the Manager and the Upper Layers (WebTi, CLI, Agora-NG). If this is not the case we should modify this function to support a bitmap of clients!
+              if(isFirstDevice==L7_FALSE)
               {
-                for (iterator=0;iterator<globalGroupCount+groupCount;iterator++)
+                for (iterator=0;iterator<numberOfChannels;iterator++)
                 {
                   //Verify if we have already read this entry before
-                  if (L7_INET_ADDR_COMPARE(&channel_list[iterator].groupAddr,&mgmdGroupsRes.groupIP)==L7_TRUE && 
-                      L7_INET_ADDR_COMPARE(&channel_list[iterator].sourceAddr,&mgmdGroupsRes.sourceIP)==L7_TRUE)
+                  if (channel_list[iterator].groupAddr.addr.ipv4.s_addr == mgmdGroupsRes.groupIP && 
+                      channel_list[iterator].sourceAddr.addr.ipv4.s_addr == mgmdGroupsRes.sourceIP)
                   {
                     existingEntry=L7_TRUE;
                     break;
@@ -2503,11 +2522,12 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
 
               if(existingEntry==L7_FALSE)
               {//Add entry
-                inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[groupCount+globalGroupCount].groupAddr);
-                inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[groupCount+globalGroupCount].sourceAddr);
-                channel_list[groupCount+globalGroupCount].static_type = mgmdGroupsRes.groupType;
+                inetAddressSet(L7_AF_INET, &mgmdGroupsRes.groupIP, &channel_list[numberOfChannels].groupAddr);
+                inetAddressSet(L7_AF_INET, &mgmdGroupsRes.sourceIP, &channel_list[numberOfChannels].sourceAddr);
+                channel_list[numberOfChannels].static_type = mgmdGroupsRes.groupType;
 
-                ++groupCount;
+                ++channelCopied;
+                ++numberOfChannels;
               }
               else
               {//Restore value            
@@ -2518,21 +2538,31 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
               ctrlResMsg.dataLength -= sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t);
             }        
             
-            
-
-            globalGroupCount+=groupCount;
             globalGroupCountperMsg+=groupCountperMsg;
+            entryId = mgmdGroupsRes.entryId;
 
-            LOG_TRACE(LOG_CTX_PTIN_IGMP, "globalGroupCount=%u groupCount=%u sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t)=%u", globalGroupCount,groupCount,sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
-          }while (globalGroupCount<*number_of_channels  &&   groupCountperMsg == PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
-          firstDevice=L7_FALSE;
+            LOG_TRACE(LOG_CTX_PTIN_IGMP, "channelCopied=%u numberOfChannels=%u sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t)=%u", channelCopied, numberOfChannels, sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));
+          
+          }while (isFirstDevice == TRUE && numberOfChannels<*max_number_of_channels  &&   groupCountperMsg == PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
 
+          if (isFirstDevice == TRUE)
+          {
+            isFirstDevice = L7_FALSE;
+          }
+          
           if ( ++noOfClientsFound >= noOfClients)
           {
             LOG_TRACE(LOG_CTX_PTIN_IGMP, "noOfClientsFound:%u >= noOfClients:%u", noOfClientsFound, noOfClients);
             break;
           }
+
+          clientIdAux = clientId;                    
         }
+
+        if ( numberOfChannels >= *max_number_of_channels )
+        {
+          break;
+        }        
       }
     }
     else
@@ -2540,7 +2570,7 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
       LOG_DEBUG(LOG_CTX_PTIN_IGMP, "This groupClient has zero devices currently attached!");
     }
        
-    *number_of_channels = globalGroupCount;
+    *max_number_of_channels = numberOfChannels;
 
     /*Give Semaphore*/
     osapiSemaGive(ptin_igmp_clients_sem);
@@ -6940,7 +6970,7 @@ static L7_RC_t igmp_assoc_avlTree_insert( ptinIgmpPairInfoData_t *node )
   /* Check if there is enough room for one more channels */
   if (igmpPairDB.number_of_entries >= IGMPASSOC_CHANNELS_MAX)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"No more free entries!");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"No more free entries! (number_of_entries:%u >= IGMPASSOC_CHANNELS_MAX:%u)", igmpPairDB.number_of_entries, IGMPASSOC_CHANNELS_MAX);
     return L7_FAILURE;
   }
 
