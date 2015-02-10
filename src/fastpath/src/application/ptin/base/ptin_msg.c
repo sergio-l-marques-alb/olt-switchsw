@@ -6519,6 +6519,25 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
 
   for (i=0; i<n_channels; i++)
   {
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List     
+    msg_MCAssocChannel_t channel_list;  
+
+    channel_list.SlotId=channel[i].SlotId;
+    channel_list.evcid_mc=channel[i].evc_id;
+
+    channel_list.channel_dstIp.family = PTIN_AF_INET;
+    channel_list.channel_dstIp.addr.ipv4 = channel[i].channelIp.s_addr;
+    channel_list.channel_dstmask=32;//32 Bits of Mask
+
+    channel_list.channel_srcIp.family=PTIN_AF_INET;
+    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
+    channel_list.channel_srcmask=32;
+
+    channel_list.channelBandwidth = channel[i].channelBandwidth;
+    
+    ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1);   
+    #endif//End Static Channel Add
+
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId           = %u",channel[i].SlotId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EvcId            = %u",channel[i].evc_id);
@@ -6547,26 +6566,6 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
       return rc;
     }
-
-    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List     
-    msg_MCAssocChannel_t channel_list;  
-
-    channel_list.SlotId=channel[i].SlotId;
-    channel_list.evcid_mc=channel[i].evc_id;
-
-    channel_list.channel_dstIp.family = PTIN_AF_INET;
-    channel_list.channel_dstIp.addr.ipv4 = channel[i].channelIp.s_addr;
-    channel_list.channel_dstmask=32;//32 Bits of Mask
-
-    channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
-    channel_list.channel_srcmask=32;
-
-    channel_list.channelBandwidth = channel[i].channelBandwidth;
-    
-    ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1);   
-    #endif//End Static Channel Add
-
   }
 
   return rc;
