@@ -1871,16 +1871,22 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     L7_uint32 minimum, maximum;
     nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minimum, &maximum);
 
-    ptin_intf->intf_type = PTIN_EVC_INTF_ROUTING;
-    ptin_intf->intf_id   = intIfNum - minimum;
+    if (ptin_intf != L7_NULLPTR)
+    {
+      ptin_intf->intf_type = PTIN_EVC_INTF_ROUTING;
+      ptin_intf->intf_id   = intIfNum - minimum;
+    }
   }
   else if(intfType == L7_LOOPBACK_INTF)
   {
     L7_uint32 minimum, maximum;
     nimIntIfNumRangeGet(L7_LOOPBACK_INTF, &minimum, &maximum);
 
-    ptin_intf->intf_type = PTIN_EVC_INTF_LOOPBACK;
-    ptin_intf->intf_id   = intIfNum - minimum;
+    if (ptin_intf != L7_NULLPTR)
+    {
+      ptin_intf->intf_type = PTIN_EVC_INTF_LOOPBACK; 
+      ptin_intf->intf_id   = intIfNum - minimum;
+    }
   }
   else
   {
@@ -1897,7 +1903,7 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
     }
 
     /* Convert ptin_port to type+id format */
-    if (ptin_intf_port2ptintf(ptin_port,ptin_intf)!=L7_SUCCESS)
+    if (ptin_intf_port2ptintf(ptin_port, ptin_intf)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_port %u to type+id format", ptin_port);
       return L7_FAILURE;
