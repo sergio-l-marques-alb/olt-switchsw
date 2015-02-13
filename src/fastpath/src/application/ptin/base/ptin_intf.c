@@ -745,6 +745,13 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   L7_uint32 speed_mode;
   ptin_HWEthRFC2819_PortStatistics_t portStats;
 
+  /* Validate arguments */
+  if (phyConf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    return L7_FAILURE;
+  }
+
   port = phyConf->Port;
 
   /* Validate port range */
@@ -960,7 +967,16 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
  */
 L7_RC_t ptin_intf_PhyConfig_get(ptin_HWEthPhyConf_t *phyConf)
 {
-  L7_uint port = phyConf->Port;
+  L7_uint port;
+
+  /* Validate arguments */
+  if (phyConf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    return L7_FAILURE;
+  }
+
+  port = phyConf->Port;
 
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
@@ -989,6 +1005,13 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
   L7_uint32 speed_mode;
+
+  /* Validate arguments */
+  if (phyState == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    return L7_FAILURE;
+  }
 
   port = phyState->Port;
   phyState->Mask = 0;
@@ -1109,7 +1132,16 @@ L7_RC_t ptin_intf_PhyState_read(ptin_HWEthPhyState_t *phyState)
  */
 L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
-  L7_uint port = portStats->Port;
+  L7_uint port;
+
+  /* Validate arguments */
+  if (portStats == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    return L7_FAILURE;
+  }
+
+  port = portStats->Port;
 
   /* Validate port range */
   if (port >= ptin_sys_number_of_ports)
@@ -1131,6 +1163,13 @@ L7_RC_t ptin_intf_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
  */
 L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
+  /* Validate arguments */
+  if (portStats == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    return L7_FAILURE;
+  }
+
   /* Validate port range */
   if (portStats->Port >= ptin_sys_number_of_ports)
   {
@@ -1152,6 +1191,13 @@ L7_RC_t ptin_intf_counters_clear(ptin_HWEthRFC2819_PortStatistics_t *portStats)
  */
 L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity)
 {
+  /* Validate arguments */
+  if (portActivity == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
+    return L7_FAILURE;
+  }
+
   return dtlPtinCountersActivityGet(portActivity);
 }
 
@@ -1617,7 +1663,7 @@ L7_RC_t ptin_intf_slotPort2ptintf(L7_uint16 slot, L7_uint16 port, ptin_intf_t *p
     return L7_FAILURE;
   }
 
-  if (ptin_intf!=L7_NULLPTR)
+  if (ptin_intf != L7_NULLPTR)
   {
     ptin_intf->intf_type = PTIN_EVC_INTF_PHYSICAL;
     ptin_intf->intf_id   = ptin_port;
@@ -1674,7 +1720,7 @@ L7_RC_t ptin_intf_ptintf2SlotPort(const ptin_intf_t *ptin_intf, L7_uint16 *slot_
 L7_RC_t ptin_intf_slot_get(L7_uint8 *slot_id)
 {
   /* Return management slot */
-  if (slot_id!=L7_NULLPTR)
+  if (slot_id != L7_NULLPTR)
   {
     *slot_id = ptin_fgpa_board_slot();
   }
@@ -1782,7 +1828,7 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
     p_intf.intf_id   = ptin_port - PTIN_SYSTEM_N_PORTS;
   }
 
-  if (ptin_intf!=L7_NULLPTR)  *ptin_intf = p_intf;
+  if (ptin_intf != L7_NULLPTR)  *ptin_intf = p_intf;
 
   return L7_SUCCESS;
 }
@@ -1801,7 +1847,7 @@ inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *pt
   L7_uint32 p_port=0;
 
   /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
+  if (ptin_intf == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF,"ptin_intf is a null pointer");
     return L7_FAILURE;
@@ -1840,7 +1886,7 @@ inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *pt
     return L7_FAILURE;
   }
 
-  if (ptin_port!=L7_NULLPTR)  *ptin_port = p_port;
+  if (ptin_port != L7_NULLPTR)  *ptin_port = p_port;
 
   return L7_SUCCESS;
 }
@@ -1928,7 +1974,7 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
   L7_RC_t         rc;
 
   /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR)
+  if (ptin_intf == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF,"ptin_intf is a null pointer");
     return L7_FAILURE;
@@ -1938,28 +1984,28 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
   {
     if(ptin_intf->intf_id == (L7_uint8)-1)
     {
-      *intIfNum = (L7_uint32)-1;
+      intIfNum0 = (L7_uint32)-1;
     }
     else
     {
       L7_uint32 minimum, maximum;
 
       nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minimum, &maximum);
-      *intIfNum = minimum + ptin_intf->intf_id;
+      intIfNum0 = minimum + ptin_intf->intf_id;
     }
   }
   else if(ptin_intf->intf_type == PTIN_EVC_INTF_LOOPBACK)
   {
     if(ptin_intf->intf_id == (L7_uint8)-1)
     {
-      *intIfNum = (L7_uint32)-1;
+      intIfNum0 = (L7_uint32)-1;
     }
     else
     {
       L7_uint32 minimum, maximum;
 
       nimIntIfNumRangeGet(L7_LOOPBACK_INTF, &minimum, &maximum);
-      *intIfNum = minimum + ptin_intf->intf_id;
+      intIfNum0 = minimum + ptin_intf->intf_id;
     }
   }
   else
@@ -1974,16 +2020,17 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
     /* Get interface# */
     if ((rc=ptin_intf_port2intIfNum(ptin_port,&intIfNum0))!=L7_SUCCESS)
       return rc;
-    /* Validate intIfNum */
-    if (intIfNum0==0 || intIfNum0>=L7_MAX_INTERFACE_COUNT)
-    {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "IntIfNum is out of range (%u)",intIfNum);
-      return L7_FAILURE;
-    }
-
-    /* Return intIfNum */
-    if (intIfNum!=L7_NULLPTR)  *intIfNum = intIfNum0;
   }
+
+  /* Validate intIfNum */
+  if (intIfNum0 == 0 || intIfNum0 >= L7_MAX_INTERFACE_COUNT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "IntIfNum is out of range (%u)", intIfNum0);
+    return L7_FAILURE;
+  }
+
+  /* Return intIfNum */
+  if (intIfNum != L7_NULLPTR)  *intIfNum = intIfNum0;
 
   return L7_SUCCESS;
 }
@@ -2011,7 +2058,11 @@ inline L7_RC_t ptin_intf_lag2intIfNum(L7_uint32 lag_idx, L7_uint32 *intIfNum)
     return L7_FAILURE;
   }
 
-  *intIfNum = map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx];
+  if (intIfNum != L7_NULLPTR)
+  {
+    *intIfNum = map_port2intIfNum[PTIN_SYSTEM_N_PORTS + lag_idx]; 
+  }
+
   return L7_SUCCESS;
 }
 
@@ -2102,7 +2153,10 @@ inline L7_RC_t ptin_intf_slot2lagIdx(L7_uint16 slot, L7_uint32 *lag_idx)
     return L7_FAILURE;
   }
 
-  *lag_idx = aux;
+  if (lag_idx != L7_NULLPTR)
+  {
+    *lag_idx = aux; 
+  }
 
   return L7_SUCCESS;
 } 
@@ -2147,7 +2201,16 @@ inline L7_RC_t ptin_intf_lag_exists(L7_uint32 lag_idx)
  */
 L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo)
 {
-  L7_uint32 lag_idx = lagInfo->lagId;
+  L7_uint32 lag_idx;
+
+  /* Validate arguments */
+  if (lagInfo == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  lag_idx = lagInfo->lagId;
 
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
   if (lag_idx >= PTIN_SYSTEM_N_LAGS)
@@ -2248,6 +2311,13 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   /* MAC Learning definitions */
   memset(&mefExt_lag,0x00,sizeof(ptin_HWMefExt_t));
   #endif
+
+  /* Validate arguments */
+  if (lagInfo == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
 
   lag_idx = lagInfo->lagId;
 
@@ -2980,6 +3050,13 @@ L7_RC_t ptin_intf_Lag_delete(ptin_LACPLagConfig_t *lagInfo)
   L7_uint64 ptin_pbmp;
   L7_uint32 intIfNum = 0;
 
+  /* Validate arguments */
+  if (lagInfo == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   lag_idx = lagInfo->lagId;
   lag_port = PTIN_SYSTEM_N_PORTS + lag_idx;
 
@@ -3180,6 +3257,13 @@ L7_RC_t ptin_intf_LagStatus_get(ptin_LACPLagStatus_t *lagStatus)
   L7_uint32 members_list[PTIN_SYSTEM_N_PORTS]; /* Internal interface numbers of portChannel members */
   L7_uint   i, nElems;
 
+  /* Validate arguments */
+  if (lagStatus == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   lag_idx = lagStatus->lagId;
 
   /* Validate LAG range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
@@ -3276,6 +3360,13 @@ L7_RC_t ptin_intf_LACPAdminState_set(ptin_LACPAdminState_t *adminState)
   L7_uint32 port_intf=0;
   L7_uchar8 actor_state, partner_state;
 
+  /* Validate arguments */
+  if (adminState == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   port_idx = adminState->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
@@ -3347,6 +3438,13 @@ L7_RC_t ptin_intf_LACPAdminState_get(ptin_LACPAdminState_t *adminState)
   L7_uint32 port_intf=0;
   L7_uchar8 actor_state;
 
+  /* Validate arguments */
+  if (adminState == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   port_idx = adminState->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
@@ -3384,6 +3482,13 @@ L7_RC_t ptin_intf_LACPStats_get(ptin_LACPStats_t *lagStats)
   L7_uint32 port_idx;
   L7_uint32 port_intf=0;
   L7_uint32 rxStats, txStats;
+
+  /* Validate arguments */
+  if (lagStats == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
 
   port_idx = lagStats->port;
 
@@ -3431,6 +3536,13 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
   L7_uint32 port_idx;
   L7_uint32 port_intf=0;
 
+  /* Validate arguments */
+  if (lagStats == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   port_idx = lagStats->port;
 
   /* Validate Port range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
@@ -3468,7 +3580,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
   /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR || intfQos==L7_NULLPTR)
+  if (ptin_intf == L7_NULLPTR || intfQos == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
     return L7_FAILURE;
@@ -3675,7 +3787,7 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
   /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR || intfQos==L7_NULLPTR)
+  if (ptin_intf == L7_NULLPTR || intfQos == L7_NULLPTR)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
     return L7_FAILURE;
@@ -3860,7 +3972,7 @@ L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   L7_qosCosQueueBwList_t        maxBw_list;
 
   /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR || qosConf==L7_NULLPTR || (cos!=(L7_uint8)-1 && cos>7))
+  if (ptin_intf == L7_NULLPTR || qosConf == L7_NULLPTR || (cos != (L7_uint8)-1 && cos > 7))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
     return L7_FAILURE;
@@ -4014,7 +4126,7 @@ L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin
   L7_qosCosQueueBwList_t        maxBw_list;
 
   /* Validate arguments */
-  if (ptin_intf==L7_NULLPTR || qosConf==L7_NULLPTR || (cos!=(L7_uint8)-1 && cos>7))
+  if (ptin_intf == L7_NULLPTR || qosConf == L7_NULLPTR || (cos != (L7_uint8)-1 && cos > 7))
   {
     LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid arguments");
     return L7_FAILURE;
@@ -4129,6 +4241,13 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
   L7_uint32 speed_mode/*, autoneg*/;
+
+  /* Validate arguments */
+  if (phyConf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
 
   port = phyConf->Port;
   phyConf->Mask = 0;  /* Clear Mask */
@@ -4290,6 +4409,13 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   ptin_QoS_intf_t qos_intf_cfg;
   ptin_QoS_cos_t  qos_cos_cfg;
   L7_RC_t         rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
 
   /* Define default QoS configuration */
   memset(&qos_intf_cfg,0x00,sizeof(ptin_QoS_intf_t));
@@ -5172,6 +5298,13 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
   L7_uint16 slot_id, slot_port, board_id;
 
   /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate arguments */
   if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_API,"Intf %u/%u does not exist!", ptin_intf->intf_type, ptin_intf->intf_id);
@@ -5288,6 +5421,13 @@ L7_RC_t ptin_intf_slotMode_get(L7_uint32 *slotmodes)
   ptin_slotmode_t slot_mode;
   L7_RC_t rc;
 
+  /* Validate arguments */
+  if (slotmodes == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   memset(&slot_mode,0x00,sizeof(ptin_slotmode_t));
   slot_mode.operation = DAPI_CMD_GET;
 
@@ -5314,6 +5454,13 @@ L7_RC_t ptin_intf_slotMode_validate(L7_uint32 *slotmodes)
 {
   ptin_slotmode_t slot_mode;
   L7_RC_t rc;
+
+  /* Validate arguments */
+  if (slotmodes == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
 
   memset(&slot_mode,0x00,sizeof(ptin_slotmode_t));
 
@@ -5961,7 +6108,15 @@ L7_RC_t ptin_intf_frame_oversize_get(L7_uint32 intIfNum, L7_uint32 *frame_size)
 }
 
 
-int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp) {
+int dapi_usp_is_internal_lag_member(DAPI_USP_t *dusp)
+{
+  /* Validate arguments */
+  if (dusp == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
   /* Only applicable to TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
    /* Internal LAG */
