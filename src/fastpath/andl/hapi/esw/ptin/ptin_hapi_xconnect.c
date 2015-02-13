@@ -1318,7 +1318,7 @@ L7_RC_t ptin_hapi_macaddr_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     if ( (macLearn_info_flow[vport_id].mac_counter <= macLearn_info_flow[vport_id].mac_maximum) )
     {
       if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
-      {      
+      {
         send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_flow[vport_id].uni_ovid);
         macLearn_info_flow[vport_id].trap_sent = L7_FALSE;
       }
@@ -1393,6 +1393,13 @@ L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport)
     macLearn_info_flow[vport_id].mac_total = 0;
     macLearn_info_flow[vport_id].mac_maximum = (L7_uint8)-1; /* Unlimited */
 
+    /* Close the alarm */
+    if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
+    {
+      send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_flow[vport_id].uni_ovid);
+      macLearn_info_flow[vport_id].trap_sent = L7_FALSE;
+    }
+
   }
   else
   {
@@ -1407,6 +1414,7 @@ L7_RC_t ptin_hapi_macaddr_reset(bcm_vlan_t vlan_id, bcm_gport_t gport)
 
     macLearn_info_vlan[vlan_id].mac_counter = 0;
     macLearn_info_vlan[vlan_id].mac_maximum = (L7_uint8)-1; /* Unlimited */
+    macLearn_info_vlan[vlan_id].trap_sent = L7_FALSE; /* TODO: Close the alarm */
   }
 
   return L7_SUCCESS;
