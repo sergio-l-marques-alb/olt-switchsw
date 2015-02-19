@@ -815,8 +815,8 @@ extern L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
-                                          L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
-                                          L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask);
+                                   L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
+                                   L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask, L7_uint8 isStatic);
 
 /**
  * Remove all associations of a MC instance
