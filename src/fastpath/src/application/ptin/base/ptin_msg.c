@@ -6267,7 +6267,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
 {
   L7_uint16 i;
   L7_inet_addr_t groupAddr, sourceAddr;
@@ -6339,7 +6339,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
 
     if ((rc=igmp_assoc_channel_add( 0, channel_list[i].evcid_mc,
                                     &groupAddr , channel_list[i].channel_dstmask,
-                                    &sourceAddr, channel_list[i].channel_srcmask, L7_FALSE, channel_list[i].channelBandwidth )) != L7_SUCCESS)
+                                    &sourceAddr, channel_list[i].channel_srcmask, isStatic, channel_list[i].channelBandwidth )) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
               channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
@@ -6366,7 +6366,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels)
+L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7_uint16 n_channels, L7_uint8 isStatic)
 {
   L7_uint16 i;
   L7_inet_addr_t groupAddr, sourceAddr;
@@ -6385,6 +6385,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Slot   = %d",channel_list[i].SlotId);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Entry_idx = %d",channel_list[i].entry_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," isStatic = %s", isStatic?"Yes":"No");
     LOG_DEBUG(LOG_CTX_PTIN_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
@@ -6429,7 +6430,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
 
     if ((rc = igmp_assoc_channel_remove( 0,
                                    &groupAddr , channel_list[i].channel_dstmask,
-                                   &sourceAddr, channel_list[i].channel_srcmask )) != L7_SUCCESS)
+                                   &sourceAddr, channel_list[i].channel_srcmask, isStatic )) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
               rc,
@@ -6535,7 +6536,7 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
     
-    ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1);   
+    ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1, L7_TRUE);   
     #endif//End Static Channel Add
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
@@ -6630,7 +6631,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
     
-    ptin_msg_IGMP_ChannelAssoc_remove(&channel_list,1);   
+    ptin_msg_IGMP_ChannelAssoc_remove(&channel_list,1, L7_TRUE);   
     #endif//End Static Channel Remove
     
   }

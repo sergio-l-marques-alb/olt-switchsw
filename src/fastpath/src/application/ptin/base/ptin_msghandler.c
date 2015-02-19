@@ -3214,7 +3214,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
 
       /* Execute command */
-      rc  = ptin_msg_IGMP_ChannelAssoc_add(ptr, n);
+      rc  = ptin_msg_IGMP_ChannelAssoc_add(ptr, n, L7_FALSE);
 
       if (L7_SUCCESS != rc)
       {        
@@ -3244,7 +3244,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       n = inbuffer->infoDim/sizeof(msg_MCAssocChannel_t);
 
       /* Execute command */
-      rc  = ptin_msg_IGMP_ChannelAssoc_remove(ptr, n);
+      rc  = ptin_msg_IGMP_ChannelAssoc_remove(ptr, n, L7_FALSE);
 
       if (L7_SUCCESS != rc)
       {        
