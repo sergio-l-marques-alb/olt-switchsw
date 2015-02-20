@@ -54,6 +54,7 @@ typedef enum {
     LOG_CTX_OAM,
     LOG_CTX_ERPS,
     LOG_CTX_IPSG,
+    LOG_CTX_DAI,
     LOG_CTX_EVENTS,
     LOG_CTX_SDK,
     LOG_CTX_STARTUP,    
