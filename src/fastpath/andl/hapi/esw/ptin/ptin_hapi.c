@@ -1242,6 +1242,8 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+  bcm_port_if_t                 intf_type;
+  bcm_error_t                   rv;
 #endif
 
   /* Validate dapiPort */
@@ -1275,10 +1277,16 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
+  if ((rv = bcm_port_interface_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &intf_type)) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error retrieving interface type {%d,%d,%d}/bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
   /* Speed of this interface should be 10G */
   if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||    /* Invalid port */
-      hapiWCMapPtr[ptin_port].slotNum < 0 ||                /* Not a backplane port */
-      hapiWCMapPtr[ptin_port].wcSpeedG != 10)               /* Not a 10G port */
+      intf_type == BCM_PORT_IF_KR ||
+      intf_type == BCM_PORT_IF_KR4)
   {
     LOG_WARNING(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
@@ -1324,6 +1332,7 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
   HAPI_WC_PORT_MAP_t           *hapiWCMapPtr;
+  bcm_port_if_t                 intf_type;
 #endif
 
   /* Validate dapiPort */
@@ -1357,10 +1366,16 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
+  if ((rv = bcm_port_interface_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &intf_type)) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error retrieving interface type {%d,%d,%d}/bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
   /* Speed of this interface should be 10G */
   if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||  /* Invalid port */
-      hapiWCMapPtr[ptin_port].slotNum < 0 ||              /* Not a backplane port */
-      hapiWCMapPtr[ptin_port].wcSpeedG != 10)             /* Not a 10G port */
+      intf_type == BCM_PORT_IF_KR ||
+      intf_type == BCM_PORT_IF_KR4)
   {
     LOG_WARNING(LOG_CTX_PTIN_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
