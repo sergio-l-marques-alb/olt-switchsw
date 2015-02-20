@@ -152,6 +152,8 @@ void ptin_debug(void)
   printf("  ptin_igmp_groupclients_dump                               - prints info about IMGP group of clients\r\n");
   printf("  ptin_igmptimer_show                                       - Show IGMP packet processing time data\r\n");
   printf("  ptin_igmptimer_clear                                      - Initializes IGMP packet processing time data\r\n");
+  printf("  dai_settings_get                                          - Get DAI configurations\r\n");
+  printf("  daiAcl_table_dump                                         - Dump ARP ACL table\r\n");
   printf("\r\n");                                                    
   printf("  snoopDebugTraceEnable                                     - Enable IGMP snoop trace debugging\r\n");
   printf("  snoopDebugTraceDisable                                    - Disable IGMP snoop trace debugging\r\n");
@@ -160,6 +162,8 @@ void ptin_debug(void)
   printf("  ptin_debug_igmp_enable <enable>                           - Show more debugging logs for the IGMP module\r\n");
   printf("  ptin_debug_igmp_packet_trace_enable <enable>              - Show IGMP Packet Trace\r\n");  
   printf("  ptin_debug_dhcp_enable <enable>                           - Show more debugging logs for the DHCP module\r\n");
+  printf("  ptin_debug_pppoe_enable <enable>                          - Show more debugging logs for the PPPoE module\r\n");
+  printf("  ptin_debug_dai_enable <enable>                            - Show more debugging logs for the DAI module\r\n");
   printf("  ptin_debug_xlate_enable <enable>                          - Show more debugging logs for the XLATE module\r\n");
   printf("  ptin_debug_oam_set <enable>                               - Show more debugging logs for the OAM module\r\n");
   printf("  ptin_debug_lacp_set <enable>                              - Show more debugging logs for the LACP module\r\n");

@@ -27,6 +27,7 @@
 #include "comm_mask.h"
 #include "l7_packet.h"
 
+#include "dai_api.h"
 #include "dai_cfg.h"
 #include "dai_util.h"
 #include "dai_cnfgr.h"
@@ -444,5 +445,112 @@ void daiDebugHelp(void)
   printf("4. daiTraceFlagsSet()        - Set the flags for DAI tracing.\n");
   printf("5. daiTraceFlagsDump()       - Dump the flags for DAI tracing.\n");
   printf("6. daiDebugQueueStats()      - Print the current event and packet queue lengths in DAI.\n\n");
+}
+
+/* PTin added: DAI */
+L7_RC_t dai_settings_get(void)
+{
+  L7_BOOL   verify, enable, trust;
+  L7_uint32 intIfNum, vlan, burstInterval, val;
+  L7_int32  rateLimit;
+  L7_uchar8 aclName[L7_ARP_ACL_NAME_LEN_MAX+1];
+  L7_RC_t   rc;
+
+  printf("DAI VLAN settings:");
+  for (vlan = 0; vlan <= 4095; vlan++)
+  {
+    /* For enabled vlans... */
+    if (daiVlanEnableGet(vlan, &val) == L7_SUCCESS && val)
+    {
+      printf("\r\n VLAN %-4u:  ", vlan);
+
+      rc = daiVlanArpAclStaticFlagGet(vlan, &val);
+      printf("Static=%s  ", (rc != L7_SUCCESS) ? "X    " : ((val) ? "TRUE " : "false"));
+
+      rc = daiVlanArpAclGet(vlan, aclName);
+      printf("ACLname=");
+      if (rc == L7_SUCCESS)
+      {
+        if (aclName[0]!='\0')  printf("\"%s\"", aclName);
+        else                   printf("--empty--");
+      }
+      else
+        printf("XXX");
+    }
+  }
+  printf("\r\n");
+
+  printf("\r\nDAI Interface settings:");
+  for (intIfNum = 1; intIfNum < L7_MAX_INTERFACE_COUNT; intIfNum++)
+  {
+    /* Only physical or Logical interfaces */
+    if (daiIntfIsValid(intIfNum))
+    {
+      /* DAI is enabled (at least one VLAN configured?) */
+      if (daiPortEnabledGet(intIfNum, &enable) == L7_SUCCESS || enable)
+      {
+        printf("\r\n intIfNum %-4u:  ", intIfNum);
+
+        rc = daiIntfTrustGet(intIfNum, &trust);
+        printf("trust=%s  ", (rc != L7_SUCCESS) ? "X  " : ((trust) ? "YES" : "no "));
+
+        rc = daiIntfRateLimitGet(intIfNum, &rateLimit);
+        printf("rateLimit=");
+        if (rc == L7_SUCCESS)
+          printf("%-4d  ", rateLimit);
+        else
+          printf("XXX   ");
+
+        rc = daiIntfBurstIntervalGet(intIfNum, &burstInterval);
+        printf("burstInterval=");
+        if (rc == L7_SUCCESS)
+          printf("%u", burstInterval);
+        else
+          printf("X");
+      }
+    }
+  }
+  printf("\r\n");
+
+  printf("\r\nDAI Global settings:");
+  rc = daiVerifySMacGet(&verify);
+  printf("\r\n SMAC verify: %s", (rc != L7_SUCCESS) ? "XXX" : ((verify) ? "Enabled" : "Disabled"));  
+  rc = daiVerifyDMacGet(&verify);
+  printf("\r\n DMAC verify: %s", (rc != L7_SUCCESS) ? "XXX" : ((verify) ? "Enabled" : "Disabled"));
+  rc = daiVerifyIPGet(&verify);
+  printf("\r\n IP verify  : %s", (rc != L7_SUCCESS) ? "XXX" : ((verify) ? "Enabled" : "Disabled"));
+  printf("\r\n");
+
+  fflush(stdout);
+
+  return L7_SUCCESS;
+}
+
+/* PTin added: DAI */
+void daiAcl_table_dump(void)
+{
+  L7_uint32 ipAddr;
+  L7_enetMacAddr_t macAddr;
+  char aclName[L7_ARP_ACL_NAME_LEN_MAX+1];
+
+  printf("Dumping ARP ACL table...\r\n");
+
+  aclName[0] = '\0';
+  while (arpAclNextGet(aclName, aclName) == L7_SUCCESS)
+  {
+    printf("Group %s:\r\n", aclName);
+
+    ipAddr = 0;
+    memset(macAddr.addr, 0x00, sizeof(macAddr.addr));
+
+    while (arpAclRuleInAclNextGet(aclName, ipAddr, &macAddr, &ipAddr, &macAddr) == L7_SUCCESS)
+    {
+      printf("  srcIP=%03u.%03u.%03u.%03u => srcMAC=%02x:%02x:%02x:%02x:%02x:%02x\r\n",
+             (ipAddr>>24) & 0xff, (ipAddr>>16) & 0xff, (ipAddr>>8) & 0xff, ipAddr & 0xff,
+             macAddr.addr[0],macAddr.addr[1],macAddr.addr[2],macAddr.addr[3],macAddr.addr[4],macAddr.addr[5]);
+    }
+  }
+  printf("Done!\r\n");
+  fflush(stdout);
 }
 
