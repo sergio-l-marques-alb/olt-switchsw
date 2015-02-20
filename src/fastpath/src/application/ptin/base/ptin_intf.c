@@ -98,7 +98,11 @@ static L7_uint32 map_port2intIfNum[PTIN_SYSTEM_N_INTERF];
 static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
 
 #if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1] = {PTIN_BOARD_TYPE_CXO160G};
+#else
 static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
+#endif
 #endif
 
 /**
@@ -1139,11 +1143,11 @@ L7_RC_t ptin_intf_boardid_get(L7_int ptin_port, L7_uint16 *board_id)
 
   if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
+    //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
     return L7_FAILURE;
   }
   /* Validate input params */
-  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
     LOG_ERR(LOG_CTX_PTIN_API,"Invalid slot_id=%d", slot_id);
     return L7_FAILURE;
@@ -1177,11 +1181,11 @@ L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id)
 
   if (ptin_intf_port2SlotPort(ptin_port, &slot_id, L7_NULLPTR, L7_NULLPTR) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
+    //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: ptin_port=%d", ptin_port);
     return L7_FAILURE;
   }
   /* Validate input params */
-  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
     LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
@@ -1207,7 +1211,7 @@ L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
   #if (PTIN_BOARD_IS_MATRIX)
 
   /* Validate input params */
-  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
     //LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
@@ -1236,7 +1240,7 @@ L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
   #if (PTIN_BOARD_IS_MATRIX)
 
   /* Validate input params */
-  if (slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX)
+  if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
   {
     LOG_ERR(LOG_CTX_PTIN_API,"Invalid inputs: slot_id=%d", slot_id);
     return L7_FAILURE;
@@ -5141,7 +5145,7 @@ L7_RC_t ptin_intf_info_get(const ptin_intf_t *ptin_intf, L7_uint16 *enable, L7_u
     slot_id   = 0;
     slot_port = 0;
     board_id  = 0;
-    LOG_WARNING(LOG_CTX_PTIN_API,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    //LOG_WARNING(LOG_CTX_PTIN_API,"Error getting slot information for intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
   }
 
   /* Admin state */

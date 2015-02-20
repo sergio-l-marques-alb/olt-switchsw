@@ -609,7 +609,7 @@ static void monitor_matrix_commutation(void)
   ptin_HWEthPhyConf_t phyConf;
   L7_uint             port, port_border;
 
-  cx_work_slot = (cpld_map->reg.slot_matrix >> 4) & 1;
+  cx_work_slot = ptin_fgpa_mx_is_matrixactive_rt(); //(cpld_map->reg.slot_matrix >> 4) & 1;
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
@@ -654,7 +654,7 @@ static void monitor_matrix_commutation(void)
     return;
   }
 
-  cx_work_slot = (cpld_map->reg.slot_matrix >> 4) & 1;
+  cx_work_slot = ptin_fgpa_mx_is_matrixactive_rt(); //(cpld_map->reg.slot_matrix >> 4) & 1;
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
@@ -793,7 +793,7 @@ void ptin_control_switchover_monitor(void)
   #ifdef MAP_CPLD
   L7_uint8  port;
   L7_uint32 intIfNum;
-  L7_uint8  slot_id;
+  //L7_uint8  slot_id;
   L7_uint16 board_id;
 
   L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
@@ -827,6 +827,7 @@ void ptin_control_switchover_monitor(void)
       /* For active matrix, disable force link up, and enable linkscan, only for uplink ports */
       if (matrix_is_active)
       {
+#if 0
         /* Run all slots */
         for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
         {
@@ -843,6 +844,29 @@ void ptin_control_switchover_monitor(void)
           LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
           ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
           LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan enabled for slot %u", slot_id);
+        }
+#endif
+        LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Going to disable linkscan to all ports");
+
+        /* Enable linkscan for all ports (links will go down) */
+        for (port=0; port<ptin_sys_number_of_ports; port++)
+        {
+          if ( ptin_intf_boardid_get(port, &board_id) != L7_SUCCESS ||
+               !PTIN_BOARD_IS_PRESENT(board_id)                     ||
+               !PTIN_BOARD_LS_CTRL(board_id)                        ||
+               !PTIN_BOARD_IS_UPLINK(board_id)                      ||
+               ptin_intf_port2intIfNum(port, &intIfNum) != L7_SUCCESS )
+          {
+            continue;
+          }
+          
+          /* Disable force link-up, and enable linkscan for uplink boards */
+          /* ... except for protected ports */
+          LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Going to disable force link-up to interface %u", intIfNum); 
+          ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
+          LOG_TRACE(LOG_CTX_PTIN_CONTROL, "Goig to enable linkscan to interface %u", intIfNum);
+          ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
+          LOG_INFO(LOG_CTX_PTIN_CONTROL, "Linkscan enabled for interface %u", intIfNum);
         }
       }
       /* For passive matrix, reset all ports, and disable linkscan for all of them */
