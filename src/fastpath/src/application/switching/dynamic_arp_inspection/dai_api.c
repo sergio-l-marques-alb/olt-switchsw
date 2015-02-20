@@ -763,6 +763,45 @@ L7_RC_t daiVlanArpAclSet(L7_uint32 vlanId, L7_uchar8 *aclName)
   return L7_SUCCESS;
 }
 
+/* PTin added: DAI */
+#if 1
+/*********************************************************************
+* @purpose  Clear the ARP ACL Name related to a vlan
+*
+* @param    vlanId    @b((input)) vlan Id
+*
+* @returns  L7_SUCCESS
+*           L7_ERROR, if inputs invalid
+*           L7_FAILURE
+*
+* @notes    This API is intended to be used by PTin Management
+*
+* @end
+*********************************************************************/
+L7_RC_t daiVlanArpAclClear(L7_uint32 vlanId)
+{
+  L7_uchar8 aclTemp[L7_ARP_ACL_NAME_LEN_MAX+1];
+
+  if ((vlanId < 1) || (vlanId > DAI_MAX_VLAN_COUNT))
+  {
+    return L7_ERROR;
+  }
+
+  if (osapiWriteLockTake(daiCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  /* If an ACL name is associated to this VLAN */
+  if (_daiVlanArpAclGet(vlanId, aclTemp))
+  {
+    _daiVlanArpAclClear(vlanId);
+    daiConfigDataChange();
+  }
+
+  osapiWriteLockGive(daiCfgRWLock);
+  return L7_SUCCESS;
+}
+#endif
+
 /*********************************************************************
 * @purpose  Get the ARP ACL static flag for a vlan
 *
