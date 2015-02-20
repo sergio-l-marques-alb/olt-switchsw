@@ -974,6 +974,53 @@ L7_RC_t ptin_evc_get_evcId_fromNNIvlan(L7_uint16 nni_ovid, L7_uint32 *evc_ext_id
 }
 
 /**
+ * Get NNI VLAN from EVC ext id
+ * 
+ * @param evc_ext_id : EVC extended id 
+ * @param nni_ovid   : NNI OVLAN (output)
+ *  
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_get_NNIvlan_fromEvcId(L7_uint32 evc_ext_id, L7_uint16 *nni_ovid)
+{
+  L7_uint32 evc_id;
+
+  /* Validate arguments */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments (eEVC=%u)", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS || evc_id >= PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+  if (!evcs[evc_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u / EVC %u is not in use", evc_ext_id, evc_id);
+    return L7_FAILURE;
+  }
+
+  /* Validate VLANs */
+  if (evcs[evc_id].root_info.nni_ovid == 0 || evcs[evc_id].root_info.nni_ovid >= 4096)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC#%u: No valid NNI vlan to return (%u)", evc_ext_id, evcs[evc_id].root_info.nni_ovid);
+    return L7_FAILURE;
+  }
+
+  /* Return NNI VLAN */
+  if (nni_ovid != L7_NULLPTR)
+  {
+    *nni_ovid = evcs[evc_id].root_info.nni_ovid;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Gets the internal vlan for a particular evc and interface
  * 
  * @param evc_ext_id : EVC extended id 
