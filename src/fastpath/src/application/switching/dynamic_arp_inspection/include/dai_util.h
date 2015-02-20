@@ -104,6 +104,9 @@ typedef struct daiFrameMsg_s
   /* VLAN on which message was received */
   L7_ushort16 vlanId;
 
+  /* Inner VLAN on which message was received */
+  L7_ushort16 innerVlanId;
+
   /* Frame length */
   L7_uint32 dataLen;
 
@@ -248,19 +251,19 @@ void dtlArpPacketHook(L7_uint32 intIfNum, L7_ushort16 vlanId,
                       L7_uchar8 *frame, L7_uint32 dataLen);
 void daiIpMapPacketHook(L7_uint32 intIfNum, L7_ushort16 vlanId,
                      L7_uchar8 *frame, L7_uint32 dataLen);
-void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
+void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                      L7_uchar8 *frame, L7_uint32 dataLen);
 daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                                        L7_uchar8 *frame, L7_uint32 dataLen);
 L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                                      L7_uchar8 *frame, L7_uint32 dataLen);
-L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                         L7_uchar8 *frame, L7_ushort16 frameLen);
-L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_uint32 vlanId,
+L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                         L7_uchar8 *frame, L7_ushort16 frameLen);
-L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                       L7_uchar8 *frame, L7_ushort16 frameLen);
-L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                     L7_uchar8 *frame, L7_ushort16 frameLen);
 
 /* dai_util.c */
