@@ -88,5 +88,26 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation);
  */
 L7_RC_t ptin_aclMacApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation);
 
+/**
+ * Create an ARP ACL Rule
+ * 
+ * @author mruas (02/16/2015)
+ * 
+ * @param msgAcl 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation);
+
+/**
+ * Apply an ARP ACL to a VLAN
+ * 
+ * @author mruas (02/16/2015)
+ * 
+ * @param msgAcl 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_aclArpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation);
 
 #endif //PTIN_ACL_H_

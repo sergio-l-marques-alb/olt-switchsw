@@ -8,6 +8,8 @@
 
 #include "ptin_acl.h"
 #include "ptin_evc.h"
+#include "dot1q_api.h"
+#include "dai_api.h"
 
 #define ACL_STANDARD  0
 #define ACL_EXTENDED  1
@@ -2351,7 +2353,233 @@ L7_RC_t ptin_aclMacApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
   return L7_SUCCESS;
 }
 
+/********************************************************************************** 
+ *                                   ARP ACL                                      *
+ **********************************************************************************/
 
+/**
+ * Create an ARP ACL Rule
+ * 
+ * @author mruas (02/16/2015)
+ * 
+ * @param msgAcl 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation)
+{
+  L7_enetMacAddr_t srcMacAddr;
+  L7_uint32 ipAddr;
+  
+  /* Validate arguments */
+  if (msgAcl == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    return L7_FAILURE;
+  }
+
+  /* Validate ACL type */
+  if (msgAcl->aclType != ACL_TYPE_ARP)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL_TYPE (%u)!", msgAcl->aclType);
+    return L7_FAILURE;
+  }
+
+  /* Validate IP family */
+  if (msgAcl->srcIpAddr.family != PTIN_AF_INET)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Only IPv4 is supported!");
+    return L7_FAILURE;
+  }
+
+  /* Validate ACL name */
+  if (msgAcl->name[0] == '\0')
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "ACL name is empty!");
+    return L7_FAILURE;
+  }
+
+  /* MAC address */
+  memcpy(srcMacAddr.addr, msgAcl->srcMacAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+
+  /* *********************** ACL_OPERATION_REMOVE *********************** */
+  if (operation == ACL_OPERATION_REMOVE)
+  {
+    /* Validate ACL name */
+    if (arpAclGet(msgAcl->name) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
+      return L7_NOT_EXIST;
+    }
+    /* Check if entry does not exist */
+    if (arpAclRuleGet(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
+      return L7_NOT_EXIST;
+    }
+    /* Remove entry */
+    if (arpAclRuleDelete(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing ACL rule %02x:%02x:%02x:%02x:%02x:%02x / %03u.%03u.%03u.%03u from \"%s\" group",
+              msgAcl->srcMacAddr[0],msgAcl->srcMacAddr[1],msgAcl->srcMacAddr[2],msgAcl->srcMacAddr[3],msgAcl->srcMacAddr[4],msgAcl->srcMacAddr[5],
+              (msgAcl->srcIpAddr.addr.ipv4>>24) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>16) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>8) & 0xff, msgAcl->srcIpAddr.addr.ipv4 & 0xff,
+              msgAcl->name);
+      return L7_FAILURE;
+    }
+
+    /* Check if ACL group is empty. If so, delete it */
+    ipAddr = 0;
+    memset(srcMacAddr.addr, 0x00, sizeof(srcMacAddr.addr));
+    if (arpAclRuleInAclNextGet(msgAcl->name, ipAddr, &srcMacAddr, &ipAddr, &srcMacAddr) != L7_SUCCESS)
+    {
+      if (arpAclDelete(msgAcl->name) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error deleting ACL group \"%s\"", msgAcl->name);
+        return L7_FAILURE;
+      }
+    }
+    return L7_SUCCESS;
+  }
+  /* *********************** ACL_OPERATION_CREATE *********************** */
+  else if (operation == ACL_OPERATION_CREATE)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Applying Rule...");
+
+    if (msgAcl->action != ACL_ACTION_PERMIT)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Only PERMIT action is allowed");
+      return L7_FAILURE;
+    }
+
+    /* If ACL name does not exist, create it */
+    if (arpAclGet(msgAcl->name) != L7_SUCCESS)
+    {
+      if (arpAclCreate(msgAcl->name) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error creating ACL group \"%s\"", msgAcl->name);
+        return L7_FAILURE;
+      }
+    }
+
+    /* Add ACL entry */
+    if (arpAclRuleAdd(msgAcl->name, msgAcl->srcIpAddr.addr.ipv4, &srcMacAddr) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding ACL rule %02x:%02x:%02x:%02x:%02x:%02x / %03u.%03u.%03u.%03u to \"%s\" group",
+              msgAcl->srcMacAddr[0],msgAcl->srcMacAddr[1],msgAcl->srcMacAddr[2],msgAcl->srcMacAddr[3],msgAcl->srcMacAddr[4],msgAcl->srcMacAddr[5],
+              (msgAcl->srcIpAddr.addr.ipv4>>24) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>16) & 0xff, (msgAcl->srcIpAddr.addr.ipv4>>8) & 0xff, msgAcl->srcIpAddr.addr.ipv4 & 0xff,
+              msgAcl->name);
+      return L7_FAILURE;
+    }
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Rule Applied!");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid operation %u", operation);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Apply an ARP ACL to a VLAN
+ * 
+ * @author mruas (02/16/2015)
+ * 
+ * @param msgAcl 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_aclArpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation)
+{
+  L7_uint16 vlanId;
+
+  /* Validate arguments */
+  if (msgAcl == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer!");
+    return L7_FAILURE;
+  }
+
+  /* Validate ACL type */
+  if (msgAcl->aclType != ACL_TYPE_ARP)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid ACL_TYPE (%u)!", msgAcl->aclType);
+    return L7_FAILURE;
+  }
+
+  /* Validate direction */
+  if (msgAcl->direction != ACL_DIRECTION_IN)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Only ACL_DIRECTION_IN is allowed (%u)!", msgAcl->direction);
+    return L7_FAILURE;
+  }
+
+  /* Validate EVC id */
+  if (msgAcl->evcId >= 1 && msgAcl->evcId < PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    if (!ptin_evc_is_in_use(msgAcl->evcId) || ptin_evc_intRootVlan_get(msgAcl->evcId, &vlanId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Given EVC id (%u) is not valid!", msgAcl->evcId);
+      return L7_FAILURE;
+    }
+  }
+  /* Validate VLAN id */
+  else if (msgAcl->vlanId >= PTIN_VLAN_MIN && msgAcl->vlanId <= PTIN_VLAN_MAX) 
+  {
+    if (dot1qVlanCheckValid(msgAcl->vlanId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is not valid!", msgAcl->vlanId);
+      return L7_FAILURE;
+    }
+    vlanId = msgAcl->vlanId;
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "EVC/VLAN not provided!");
+    return L7_FAILURE;
+  }
+  
+  /* Assign ACL name to VLAN */
+  if (operation == ACL_OPERATION_CREATE)
+  {
+    /* Validate ACL name */
+    if (msgAcl->name[0] == '\0')
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL name is empty!");
+      return L7_FAILURE;
+    }
+    if (arpAclGet(msgAcl->name) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "ACL group \"%s\" does not exist", msgAcl->name);
+      return L7_NOT_EXIST;
+    }
+
+    if (daiVlanArpAclSet(vlanId, msgAcl->name) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error assigning ACL name to VLAN %u", vlanId);
+      return L7_FAILURE;
+    }
+  }
+  /* Remove VLAN related to ACL name */
+  else if (operation == ACL_OPERATION_REMOVE)
+  {
+    if (daiVlanArpAclClear(vlanId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error removing ACL name from VLAN %u", vlanId);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid operation %u", operation);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS; 
+}
 
 
 /********************************************************************************** 
