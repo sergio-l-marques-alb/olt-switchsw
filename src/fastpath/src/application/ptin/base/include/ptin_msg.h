@@ -419,6 +419,48 @@ extern L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table);
  */
 extern L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table);
 
+/* Dynamic ARP Inspection *****************************************************/
+
+/**
+ * DAI global configurations
+ * 
+ * @param config 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config);
+
+/**
+ * DAI Interface configuration
+ * 
+ * @param config 
+ * @param nElems 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems);
+
+/**
+ * DAI VLANs configuration
+ * 
+ * @param config 
+ * @param nElems 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems);
+
+/**
+ * Get DAI statistics
+ * 
+ * @param stats 
+ * @param nElems 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *stats, L7_uint nElems);
+
+
 /* EVCs Manipulation Functions ************************************************/ 
 /**
  * Gets an EVC configuration

@@ -36,6 +36,8 @@
 #include "ptin_xconnect_api.h"
 #include "fdb_api.h"
 #include "usmdb_ip_api.h"
+#include "usmdb_dot1q_api.h"
+#include "usmdb_dai_api.h"
 #include "ptin_xlate_api.h"
 
 #include "ptin_acl.h"
@@ -2631,6 +2633,428 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
   }
 
   return rc;
+}
+
+/* Dynamic ARP Inspection *****************************************************/
+
+/**
+ * DAI global configurations
+ * 
+ * @param config 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config)
+{
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (config == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u", config->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask   = 0x%02x", config->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Enable = %u", config->global_enable);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," SrcMAC Validate = %u", config->validate_smac);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," DstMAC Validate = %u", config->validate_dmac);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," IPAddr Validate = %u", config->validate_ipAddr);
+
+  /* Global enable */
+  if (config->mask & 0x01)
+  {
+    /* Always enabled */
+  }
+  /* SrcMAC Validation */
+  if (config->mask & 0x02)
+  {
+    rc = usmDbDaiVerifySMacSet(config->validate_smac);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting SMAC validation (%u)", config->validate_smac);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "SMAC validation set to %u", config->validate_smac);
+    }
+  }
+  /* DstMAC Validation */
+  if (config->mask & 0x04)
+  {
+    rc = usmDbDaiVerifyDMacSet(config->validate_dmac);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting DMAC validation (%u)", config->validate_smac);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "DMAC validation set to %u", config->validate_dmac);
+    }
+  }
+  /* IP validation */
+  if (config->mask & 0x08)
+  {
+    rc = usmDbDaiVerifyIPSet(config->validate_ipAddr);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting IP validation (%u)", config->validate_ipAddr);
+      rc_global = rc;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_MSG, "IPAddr validation set to %u", config->validate_ipAddr);
+    }
+  }
+
+  return rc_global;
+}
+
+/**
+ * DAI Interface configuration
+ * 
+ * @param config 
+ * @param nElems 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems)
+{
+  L7_uint     i;
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum;
+  L7_int32    rate;
+  msg_dai_intf_settings_t *item;
+  L7_RC_t     rc, rc_global = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (config == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Run all elements */
+  for (i = 0; i < nElems; i++)
+  {
+    item = &config[i];
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u", item->slotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask   = 0x%02x", item->mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Interface      = %u/%u", item->intf.intf_type, item->intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Rate Limit     = %u", item->rateLimit);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Burst Interval = %u", item->burstInterval);
+
+    ptin_intf.intf_type = item->intf.intf_type;
+    ptin_intf.intf_id   = item->intf.intf_id;
+
+    /* Validate interface */
+    rc = ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum);
+    if (rc != L7_SUCCESS)
+    {
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Trust interface */
+    if (item->mask & 0x01)
+    {
+      rc = usmDbDaiIntfTrustSet(intIfNum, item->trust);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting trust mode (%u) for ptin_intf %u/%u", item->trust, ptin_intf.intf_type, ptin_intf.intf_id);
+        rc_global = rc;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_MSG, "Trust mode of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->trust);
+      }
+    }
+    /* Rate Limit */
+    if (item->mask & 0x02)
+    {
+      rc = usmDbDaiIntfRateLimitSet(intIfNum, (L7_int) item->rateLimit);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting rate limit (%u) for ptin_intf %u/%u", item->rateLimit, ptin_intf.intf_type, ptin_intf.intf_id);
+        rc_global = rc;
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_MSG, "Rate Limit of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->rateLimit);
+      }
+    }
+    /* Burst interval */
+    if (item->mask & 0x04)
+    {
+      if (usmDbDaiIntfRateLimitGet(intIfNum, &rate) == L7_SUCCESS && rate != -1)
+      {
+        rc = usmDbDaiIntfBurstIntervalSet(intIfNum, item->burstInterval);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting burst interval (%u) for ptin_intf %u/%u", item->burstInterval, ptin_intf.intf_type, ptin_intf.intf_id);
+          rc_global = rc;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_MSG, "Burst interval of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->burstInterval);
+        }
+      }
+      else
+      {
+        LOG_TRACE(LOG_CTX_PTIN_MSG, "Burst interval of intf %u/%u ignored", item->intf.intf_type, item->intf.intf_id);
+      }
+    }
+  }
+
+  return rc_global;
+}
+
+/**
+ * DAI VLANs configuration
+ * 
+ * @param config 
+ * @param nElems 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems)
+{
+  L7_uint     i;
+  L7_uint16   vlanId, vlanId_start, vlanId_end;
+  L7_uint32   evc_ext_id = (L7_uint32)-1;
+  msg_dai_vlan_settings_t *item;
+  L7_RC_t     rc, rc_global = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (config == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Run all elements */
+  for (i = 0; i < nElems; i++)
+  {
+    item = &config[i];
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId = %u", item->slotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx     = %u", item->evc_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," VLAN start  = %u", item->vlanId_start);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," VLAN end    = %u", item->vlanId_end);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask        = 0x%02x", item->mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," DAI enable  = %u", item->dai_enable);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Static Flag = %u", item->staticFlag);
+
+    /* If EVC id is provided, get related VLAN */
+    if (item->evc_idx >= 0 && item->evc_idx < PTIN_SYSTEM_N_EXTENDED_EVCS)
+    {
+      if (!ptin_evc_is_in_use(item->evc_idx))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", item->evc_idx);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      evc_ext_id = item->evc_idx;
+      vlanId_start = vlanId_end = 0;
+    }
+    /* Use given VLANs range */
+    else
+    {
+      if (item->vlanId_start < PTIN_VLAN_MIN || item->vlanId_start > PTIN_VLAN_MAX ||
+          item->vlanId_end   < PTIN_VLAN_MIN || item->vlanId_end   > PTIN_VLAN_MAX ||
+          item->vlanId_start > item->vlanId_end)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u-%u is out of valid range!", item->vlanId_start, item->vlanId_end);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      evc_ext_id   = (L7_uint32) -1;
+      vlanId_start = item->vlanId_start;
+      vlanId_end   = item->vlanId_end;
+    }
+
+    /* Run VLANs range: if EVC id was provided, only one iteration will be executed with vlanId=0 */
+    for (vlanId = vlanId_start; vlanId <= vlanId_end; vlanId++)
+    {
+      /* If (NNI) VLANs were provided (vlanId not null), convert this value to eEVC# to thereafter get the related internal VLAN */
+      if (vlanId != 0)
+      {
+        /* Get eEVC id from NNI VLAN */
+        if (ptin_evc_get_evcId_fromNNIvlan(vlanId, &evc_ext_id) != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", vlanId);
+          rc_global = L7_FAILURE;
+          continue;
+        }
+      }
+      /* Get internal VLAN from eEVC# */
+      if (ptin_evc_intRootVlan_get(evc_ext_id, &vlanId) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid eEVC#%u obtained from NNI VLAN %u!", evc_ext_id, vlanId);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      /* Check if VLAN is valid */
+      rc = usmDbVlanIDGet(0, vlanId);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      /* VLAN enable */
+      if (item->mask & 0x01)
+      {
+        rc = usmDbDaiVlanEnableSet(vlanId, item->dai_enable);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting enable state (%u) for VLAN %u", item->dai_enable, vlanId);
+          rc_global = rc;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_MSG, "DAI enable for VLAN %u set to %u", vlanId, item->dai_enable);
+        }
+      }
+      /* Static flag */
+      if (item->mask & 0x02)
+      {
+        rc = usmDbDaiVlanArpAclStaticFlagSet(vlanId, item->staticFlag);
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSG, "Error setting static flag (%u) for VLAN %u", item->staticFlag, vlanId);
+          rc_global = rc;
+        }
+        else
+        {
+          LOG_TRACE(LOG_CTX_PTIN_MSG, "Static flag for VLAN %u set to %u", vlanId, item->staticFlag);
+        }
+      }
+    }
+  }
+
+  return rc_global;
+}
+
+/**
+ * Get DAI statistics
+ * 
+ * @param stats 
+ * @param nElems 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
+{
+  L7_uint     i;
+  L7_uint32   val;
+  L7_uint32   evc_ext_id = (L7_uint32)-1;
+  L7_uint16   vlanId;
+  msg_dai_statistics_t *item;
+  daiVlanStats_t        stats;
+  L7_RC_t     rc, rc_global = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (msg_stats == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Run all elements */
+  for (i = 0; i < nElems; i++)
+  {
+    item = &msg_stats[i];
+
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Stats index %u:", i);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId  = %u", item->slotId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC_idx = %u", item->evc_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," VLAN    = %u", item->vlanId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf    = %u", item->intf.intf_type, item->intf.intf_id);
+
+    /* If EVC id is provided, get related VLAN */
+    if (item->evc_idx >= 0 && item->evc_idx < PTIN_SYSTEM_N_EXTENDED_EVCS)
+    {
+      if (!ptin_evc_is_in_use(item->evc_idx))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", item->evc_idx);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      evc_ext_id = item->evc_idx;
+    }
+    /* Use given VLANs range */
+    else
+    {
+      if (item->vlanId < PTIN_VLAN_MIN || item->vlanId > PTIN_VLAN_MAX)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is out of valid range!", item->vlanId);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      /* Get eEVC id from NNI VLAN */
+      if (ptin_evc_get_evcId_fromNNIvlan(item->vlanId, &evc_ext_id) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->vlanId);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+    }
+
+    /* Get internal VLAN from eEVC# */
+    if (ptin_evc_intRootVlan_get(evc_ext_id, &vlanId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid eEVC#%u obtained from NNI VLAN %u!", evc_ext_id, item->vlanId);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Check if VLAN is valid */
+    rc = usmDbVlanIDGet(0, vlanId);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u: VLAN %u is invalid, or don't belong to any EVC!", evc_ext_id, vlanId);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* VLAN is DAI enabled? */
+    if (usmDbDaiVlanEnableGet(vlanId, &val) != L7_SUCCESS || !val)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u: VLAN %u is not used by DAI!", evc_ext_id, vlanId);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Get stats */
+    if (usmDbDaiVlanStatsGet(vlanId, &stats) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u: Error getting Stats from VLAN %u!", evc_ext_id, vlanId);
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Copy data to be returned */
+    item->stats.forwarded       = stats.forwarded;
+    item->stats.dropped         = stats.dropped;
+    item->stats.dhcpDrops       = stats.dhcpDrops;
+    item->stats.dhcpPermits     = stats.dhcpPermits;
+    item->stats.aclDrops        = stats.aclDrops;
+    item->stats.aclPermits      = stats.aclPermits;
+    item->stats.sMacFailures    = stats.sMacFailures;
+    item->stats.dMacFailures    = stats.dMacFailures;
+    item->stats.ipValidFailures = stats.ipValidFailures;
+  }
+
+  return rc_global;
 }
 
 /* EVCs Manipulation Functions ************************************************/
@@ -8613,6 +9037,56 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
  * ACL Configuration
  *****************************************************************************/
 
+/**
+ * ARP ACL Rule Configuration
+ * 
+ * @author mruas (02/16/2015)
+ * 
+ * @param ptr 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t operation)
+{
+  L7_RC_t rc = L7_FAILURE;
+
+  if (msgArpAcl->aclType != ACL_TYPE_ARP)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgArpAcl->aclType);
+    return L7_FAILURE;
+  }
+
+  if (msgArpAcl->action != ACL_ACTION_PERMIT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "action Invalid (%d)", msgArpAcl->action);
+    return L7_FAILURE;
+  }
+  
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slot Id        %d",                              msgArpAcl->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Type       %s",                              "ARP");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "ACL Name       %s",                              msgArpAcl->name);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Action         %s",                              "PERMIT");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Src Mac Addr   %02x:%02x:%02x:%02x:%02x:%02x",   msgArpAcl->srcMacAddr[0], 
+                                                                                msgArpAcl->srcMacAddr[1],
+                                                                                msgArpAcl->srcMacAddr[2],
+                                                                                msgArpAcl->srcMacAddr[3],
+                                                                                msgArpAcl->srcMacAddr[4],
+                                                                                msgArpAcl->srcMacAddr[5]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "SrcIPAddr      %03u.%03u.%03u.%03u (family=%u)", (msgArpAcl->srcIpAddr.addr.ipv4>>24) & 0xff,
+                                                                                (msgArpAcl->srcIpAddr.addr.ipv4>>16) & 0xff,
+                                                                                (msgArpAcl->srcIpAddr.addr.ipv4>>8) & 0xff,
+                                                                                (msgArpAcl->srcIpAddr.addr.ipv4) & 0xff,
+                                                                                 msgArpAcl->srcIpAddr.family);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "-------------------------------------------");
+
+  rc = ptin_aclArpRuleConfig(msgArpAcl, operation);
+
+  return rc;
+}
+
 
 /**
  * MAC ACL Rule Configuration
@@ -8972,6 +9446,11 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
       rc = ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msg, operation);
       msg += sizeof(msg_ipv6_acl_t);
     }
+    if (msg[1] == ACL_TYPE_ARP)
+    {
+      rc = ptin_msg_arp_acl_rule_config((msg_arp_acl_t*) msg, operation);
+      msg += sizeof(msg_arp_acl_t);
+    }
     else
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid struct type: %u", msg[1]);
@@ -9009,7 +9488,7 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
  */
 L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L7_uint8 aclType)
 {
-  L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED"};
+  L7_uint8  *aclTypeStr[] = {"MAC", "IP STANDARD", "IP EXTENDED", "IP NAMED", "IPv6 EXTENDED", "ARP"};
   L7_uint8  *directionStr[] =  {"IN", "OUT"};
   L7_uint8  *operationStr[] =  {"APPLY ACL", "UNAPPLY ACL"};
 
@@ -9017,13 +9496,13 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   L7_uint16 intRootVlan;
   L7_RC_t   rc = L7_SUCCESS;
 
-  if (msgAcl->aclType > ACL_TYPE_IPv6_EXTENDED)
+  if (msgAcl->aclType >= ACL_TYPE_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "aclType Invalid (%d)", msgAcl->aclType);
     return L7_FAILURE;
   }
 
-  if (msgAcl->direction > ACL_DIRECTION_OUT)
+  if (msgAcl->direction >= ACL_DIRECTION_MAX)
   {
     LOG_ERR(LOG_CTX_PTIN_MSG, "direction Invalid (%d)", msgAcl->direction);
     return L7_FAILURE;
@@ -9051,7 +9530,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     return L7_FAILURE;
   }
 
-  if (msgAcl->vlanId != L7_ACL_INVALID_VLAN_ID)
+  if (msgAcl->vlanId > 0 && msgAcl->vlanId < 4096)
   {
     /* This is NNI VLAN. Get evc id from it, and use it to get the internal VLAN */
     if (ptin_evc_get_evcId_fromNNIvlan(msgAcl->vlanId, &evc_ext_id) != L7_SUCCESS)
@@ -9070,7 +9549,7 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     /* Rewrite VLAN with the internal VLAN */
     msgAcl->vlanId = (L7_uint32) intRootVlan;
   }
-  else if (msgAcl->evcId != L7_ACL_INVALID_EVC_ID)
+  else if (msgAcl->evcId < PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     /* Gets the root vlan (internal) for a particular evc */
     rc = ptin_evc_intRootVlan_get(msgAcl->evcId, &intRootVlan);
@@ -9106,6 +9585,10 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
   else if (aclType == ACL_TYPE_IPv6_EXTENDED)
   {
     rc = ptin_aclIpv6Apply(msgAcl, operation);
+  }
+  else if (aclType == ACL_TYPE_ARP)
+  {
+    rc = ptin_aclArpApply(msgAcl, operation);
   }
   else
   {
@@ -9172,6 +9655,10 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
       rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
     }
     else if (aclType == ACL_TYPE_IPv6_EXTENDED)
+    {
+      rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
+    }
+    else if (aclType == ACL_TYPE_ARP)
     {
       rc = ptin_msg_acl_apply(&msgAcl[i], operation, aclType);
     }
