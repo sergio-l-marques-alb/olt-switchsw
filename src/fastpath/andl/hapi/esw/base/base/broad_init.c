@@ -483,8 +483,8 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   BROAD_SYSTEM_t     *hapiSystem;
   L7_RC_t             result;
 
-#if PTIN_BROAD_INIT_TRAP_TO_CPU
   L7_ushort16         arp_ethtype = L7_ETYPE_ARP;
+#if PTIN_BROAD_INIT_TRAP_TO_CPU
   L7_ushort16         ip_ethtype  = L7_ETYPE_IP;
   L7_ushort16         eap_ethtype = L7_ETYPE_EAPOL;
   L7_uchar8           vrrp_proto[]  = {IP_PROT_VRRP};
@@ -501,11 +501,11 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
                                        FIELD_MASK_NONE, FIELD_MASK_NONE, 0xC0};
   L7_uchar8           res_mac_drop_mask[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                              FIELD_MASK_ALL, FIELD_MASK_ALL, FIELD_MASK_ALL};
+#endif
   BROAD_POLICY_RULE_t ruleId;
   BROAD_METER_ENTRY_t meterInfo;
   L7_uchar8           exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                        FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
-#endif
 
 #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE
 #ifdef L7_IPV6_PACKAGE
@@ -735,8 +735,6 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   }
 #endif /* L7_IPV6_PACKAGE */
 
-  /* PTin removed: Packets priority not modified */
-  #if PTIN_BROAD_INIT_TRAP_TO_CPU
   /* Dynamic ARP Inspection: ARP packets on untrusted ports must go to the CPU and be rate limited to 64 kbps */
   meterInfo.cir       = 64;
   meterInfo.cbs       = 64;
@@ -751,6 +749,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&arp_ethtype, exact_match);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+  hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
   hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
   LOG_TRACE(LOG_CTX_STARTUP,"ARP rule added");
 
@@ -761,7 +760,6 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   result = hapiBroadPolicyRemoveFromAll(hapiSystem->dynamicArpInspectUntrustedPolicyId);
   if (L7_SUCCESS != result)
       return result;
-  #endif
 
   /* PTin removed: Packets priority not modified */
   #if PTIN_BROAD_INIT_ALLOW_COS_CHANGE

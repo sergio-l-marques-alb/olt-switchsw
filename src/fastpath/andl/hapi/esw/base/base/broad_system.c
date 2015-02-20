@@ -4386,6 +4386,48 @@ void ptin_traprules_dump(void)
   int policer_id, counter_id;
   BROAD_POLICY_STATS_t stat;
   L7_RC_t rc;
+  BROAD_SYSTEM_t *hapiSystem;
+
+  /* Validate pointers */
+  if (dapi_g != L7_NULLPTR && dapi_g->system != L7_NULLPTR && dapi_g->system->hapiSystem != L7_NULLPTR)
+  {
+    /* hapiSystem pointer */
+    hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
+
+    printf("ARP packets trap: ");
+
+    if (hapiSystem->dynamicArpInspectUntrustedPolicyId == 0 || hapiSystem->dynamicArpInspectUntrustedPolicyId == BROAD_POLICY_INVALID)
+    {
+      printf("--not defined--\r\n");
+    }
+    else
+    {
+      printf("policyId=%u\r\n", hapiSystem->dynamicArpInspectUntrustedPolicyId);
+
+      rule = 0;
+      while (((rc=l7_bcm_policy_hwInfo_get(0, hapiSystem->dynamicArpInspectUntrustedPolicyId,
+                                           rule, &group_id, &entry_id, &policer_id, &counter_id))==L7_SUCCESS))
+      {
+        printf("  rule=%u -> group=%-2d, entry=%-4d (PolicerId=%-4d CounterId=%-4d)",
+               rule, group_id, entry_id, policer_id, counter_id);
+
+        /* Check counter */
+        if (counter_id > 0)
+        {
+          printf(": Packets=");
+          /* Get stat data */
+          if (hapiBroadPolicyStatsGet(hapiSystem->dynamicArpInspectUntrustedPolicyId, rule, &stat) != L7_SUCCESS)
+            printf("Error");
+          else
+            printf("%llu", stat.statMode.counter.count);
+        }
+        printf("\r\n");
+
+        rule++;
+      }
+    }
+    printf("\r\n");
+  }
 
   /* Run all indexes */
   for (index = 0; index < PTIN_TRAP_POLICY_MAX_VLANS; index++)
