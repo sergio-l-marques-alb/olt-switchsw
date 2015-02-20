@@ -1687,6 +1687,117 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     break;
 
     /************************************************************************** 
+     * Dynamic ARP Inspection
+     **************************************************************************/
+    /* Dynamic ARP Inspection */
+    case CCMSG_ETH_DAI_GLOBAL_CONFIG:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DAI_GLOBAL_CONFIG (0x%04X)", CCMSG_ETH_DAI_GLOBAL_CONFIG);
+      CHECK_INFO_SIZE(msg_dai_global_settings_t);
+
+      msg_dai_global_settings_t *config = (msg_dai_global_settings_t *) &inbuffer->info[0];
+
+      /* Execute command */
+      rc = ptin_msg_dai_global_config(config);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting config");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_ETH_DAI_INTF_CONFIG:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DAI_INTF_CONFIG (0x%04X)", CCMSG_ETH_DAI_INTF_CONFIG);
+      CHECK_INFO_SIZE_MOD(msg_dai_intf_settings_t);
+
+      msg_dai_intf_settings_t *config = (msg_dai_intf_settings_t *) &inbuffer->info[0];
+      L7_uint nElems = inbuffer->infoDim / sizeof(msg_dai_intf_settings_t);
+
+      /* Execute command */
+      rc = ptin_msg_dai_intf_config(config, nElems);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting config");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_ETH_DAI_VLAN_CONFIG:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DAI_VLAN_CONFIG (0x%04X)", CCMSG_ETH_DAI_VLAN_CONFIG);
+      CHECK_INFO_SIZE_MOD(msg_dai_vlan_settings_t);
+
+      msg_dai_vlan_settings_t *config = (msg_dai_vlan_settings_t *) &inbuffer->info[0];
+      L7_uint nElems = inbuffer->infoDim / sizeof(msg_dai_vlan_settings_t);
+
+      /* Execute command */
+      rc = ptin_msg_dai_vlan_config(config, nElems);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting config");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    case CCMSG_ETH_DAI_STATISTICS:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_DAI_STATISTICS (0x%04X)", CCMSG_ETH_DAI_STATISTICS);
+      CHECK_INFO_SIZE_MOD(msg_dai_statistics_t);
+
+      /* Copy input to output */
+      memcpy(outbuffer->info, inbuffer->info, inbuffer->infoDim);
+
+      msg_dai_statistics_t *stats = (msg_dai_statistics_t *) &outbuffer->info[0];
+      L7_uint nElems = inbuffer->infoDim / sizeof(msg_dai_statistics_t);
+
+      /* Execute command */
+      rc = ptin_msg_dai_stats_get(stats, nElems);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting config");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_dai_statistics_t)*nElems;
+
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /************************************************************************** 
      * EVCs Processing
      **************************************************************************/
 
