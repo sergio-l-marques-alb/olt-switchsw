@@ -28,6 +28,8 @@
 int canal_buga;
 
 static int convert_ipaddr2uint64(const char *ipaddr, uint64 *value_uint64);
+//static int convert_macaddr2uint64(const char *macaddr, uint64 *value_uint64);
+static int convert_macaddr2array(const char *macaddr, uint8 *array);
 
 void help_oltBuga(void)
 {
@@ -36,52 +38,63 @@ void help_oltBuga(void)
         "usar: buga [Opcoes]\n\r"
         "\n\r"
         "Opcoes:\n\r"
-        "help [comando]\n\r"
-        "ping [period] [N] - Waits until fastpath application is up or return error code [0-OK, 2-CRASH]\r\n"
-        "m 1000 console[/dev/...]\n\r"
-        "m 1001 [file_index: 0=main; 1=sdk] [filename] - Logger output\n\r"
+        "help <comando>\n\r"
+        "ping <period> <N> - Waits until fastpath application is up or return error code (0-OK, 2-CRASH)\r\n"
+        "m 1000 console(/dev/...)\n\r"
+        "m 1001 file_index(0=main;1=sdk) filename - Logger output\n\r"
         "m 1004 - Get resources state\r\n"
+        "--- Slot/Ports Configurations --------------------------------------------------------------------------------------------------------\n\r"
         "m 1005 - Get current slot map configuration\r\n"
-        "m 1006 <enable> <port1> <port2> ... - Enable PRBS TX/RX machine\r\n"
-        "m 1007 <port1> <port2> ... - Read number of PRBS errors\r\n"
+        "m 1006 enable(0/1) port1 port2 ... - Enable PRBS TX/RX machine\r\n"
+        "m 1007 port1 port2 ... - Read number of PRBS errors\r\n"
         "m 1008 - Validate provided slot map configuration\r\n"
         "m 1009 - Apply new slot map configuration\r\n"
-        "m 1010 port[0-17] enable[0,1] speed[1G=3,2.5G=4] fullduplex[0,1] framemax(bytes) lb[0,1] macLearn[0,1] - switch port configuration\n\r"
-        "m 1011 port[0-17] - get switch port configuration\n\r"
-        "m 1012 port[0-17] - Get Phy states\n\r"
-        "m 1013 slot[2-19] - Apply linkscan procedure\n\r"
-        "m 1014 slot[2-19] port[0-3] cmd[0/1] - (Uplink) Protection command\n\r"
-        "m 1015 [0-Phy,1-Lag]/[intf#] - Get port type definitions\r\n"
-        "m 1016 slot=[0-17] intf=<[0-Phy;1-Lag]/intf#> defvid=[1-4095] defprio=[0-7] aftypes=[0/1] ifilter=[0/1] rvlanreg=[0/1] vlanaware=[0/1] type=[0/1/2]\r\n"
-        "       dtag=[0/1] otpid=[XXXXh] itpid=[XXXXh] etype=[0/1/2] mlen=[0/1] mlsmen=[0/1] mlsmprio=[0-7] mlsmsp=[0/1] trust=[0/1] - Set port type definitions\r\n"
-        "m 1017 [0-Phy,1-Lag]/[intf#] - Get MAC address of given interface\r\n"
-        "m 1018 [0-Phy,1-Lag]/[intf#] macAddr[xxxxxxxxxxxxh] - Set MAC address for the provided interface\r\n"
-        "m 1020 port[0-17] - Show switch RFC2819 statistics\n\r"
-        "m 1021 port[0-17] - Clear switch RFC2819 statistics\n\r"
-        "m 1030 [0-Phy,1-Lag]/[intf#] - Get QoS configuration\r\n"
-        "m 1031 [0-Phy,1-Lag]/[intf#] trustMode[1:Untrust;2:802.1P;3:IPprec;4:DSCP] shapingRate[Mbps] cos_pr0[0-7] cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
-        "m 1032 [0-Phy,1-Lag]/[intf#] cos[0-7] scheduler[1:Strict;2:Weighted] min_bandwidth[Mbps] max_bandwidth[Mbps] - Set specific QoS configuration\r\n"
-        "m 1040 <startId> <numEntries> - Read MAC table\r\n"
-        "m 1041 vlan_id[1-4095] macAddr[xxxxxxxxxxxxh] [0-Phy,1-Lag]/[intf#] - Add a static entry to the MAC table\r\n"
-        "m 1042 vlan_id[1-4095] macAddr[xxxxxxxxxxxxh] - Remove an entry from MAC table\r\n"
+        "m 1010 port(0-MAX) enable(0/1) speed(100M-2;1G-3;2.5G-4;10G-5;AN-6) fd(0/1) framemax(bytes) lb(0/1) macLearn(0/1) - switch port configuration\n\r"
+        "m 1011 port(0-MAX) - get switch port configuration\n\r"
+        "m 1012 port(0-MAX) - Get Phy states\n\r"
+        "m 1013 slot(2-19) - Apply linkscan procedure\n\r"
+        "m 1014 slot(2-19) port(0-3) cmd(0/1) - (Uplink) Protection command\n\r"
+        "m 1015 intfType/intf# - Get port type definitions\r\n"
+        "m 1016 intf=<type>/<intf#> [defvid=1-4095] [defprio=0-7] [aftypes=0/1] [ifilter=0/1] [rvlanreg=0/1] [vlanaware=0/1] [type=0/1/2] [dtag=0/1]\r\n"
+        "       [otpid=xxxxh] [itpid=xxxxh] [etype=0/1/2] [mlen=0/1] [mlsmen=0/1] [mlsmprio=0-7] [mlsmsp=0/1] [trust=0/1] - Set port type definitions\r\n"
+        "m 1017 intfType/intf# - Get MAC address of given interface\r\n"
+        "m 1018 intfType/intf# macAddr(xx:xx:xx:xx:xx:xx) - Set MAC address for the provided interface\r\n"
+        "m 1020 port(0-MAX) - Show switch RFC2819 statistics\n\r"
+        "m 1021 port(0-MAX) - Clear switch RFC2819 statistics\n\r"
+        "--- QOS and L2 commands --------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1030 intfType/intf# - Get QoS configuration\r\n"
+        "m 1031 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
+        "m 1032 intfType/intf# cos(0-7) scheduler(1:Strict;2:Weighted) min_bandwidth(Mbps) max_bandwidth(Mbps) - Set specific QoS configuration\r\n"
+        "m 1040 startId(0..) numEntries - Read MAC table\r\n"
+        "m 1041 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) intfType/intf# - Add a static entry to the MAC table\r\n"
+        "m 1042 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) - Remove an entry from MAC table\r\n"
         "m 1043 - Flush all entries of MAC table\r\n"
-        "m 1220 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Read DHCPop82 profile\n\r"
-        "m 1221 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
-        "m 1222 flow_id[1-127] [0-Phy,1-Lag]/[intf#] cvid[1-4095] - Remove a DHCPop82 profile\n\r"
-        "m 1240 <page> - Read DHCP binding table (start reading from page 0)\r\n"
-        "m 1242 macAddr[xxxxxxxxxxxxh] - Remove a MAC address from DHCP Binding table\r\n"
-        "m 1310 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (ovid[0-4095] cvid[1-4095]) - Show IGMP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
-        "m 1312 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (ovid[0-4095] cvid[1-4095]) - Clear IGMP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
-        "m 1320 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Show DHCP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
-        "m 1322 flow_id[1-127] [0-Phy,1-Lag]/[intf#] (cvid[1-4095]) - Clear DHCP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
-        "m 1400 [admin=<0/1>] [ipaddr=x.x.x.x] [cos=0..7] [gmi=<group_membership_interval>] [qi=<querier_interval>] - Configure igmp snooping + querier\r\n"
-        "m 1401 MC_flow_id[1-127] UC_flow_id[1-127]  - Add IGMP instance with the MC+UC evc's pair\r\n"
-        "m 1402 MC_flow_id[1-127] UC_flow_id[1-127]  - Remove IGMP instance with the MC+UC evc's pair\r\n"
-        "m 1403 MC_evcId start_index[0-...] - Get list of IGMP channel-associations\r\n"
-        "m 1404 MC_evcId[1-127] groupAddr[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] groupMaskBits[22-32] sourceMaskBits[22-32] - Add IGMP channel-associations\r\n"
-        "m 1405 MC_evcId[1-127] groupAddr[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] groupMaskBits[22-32] sourceMaskBits[22-32] - Remove IGMP channel-associations\r\n"
-        "m 1406 MC_flow_id[1-127] [0-Phy,1-Lag]/[intf#] ovid[0-4095] cvid[0-4095] - Add MC client to IGMP instance\r\n"
-        "m 1407 MC_flow_id[1-127] [0-Phy,1-Lag]/[intf#] ovid[0-4095] cvid[0-4095] - Remove MC client to IGMP instance\r\n"
+        "--- Protocols ------------------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1220 EVC# intfType/intf# cvid(1-4095) - Read DHCPop82 profile\n\r"
+        "m 1221 EVC# intfType/intf# cvid(1-4095) op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
+        "m 1222 EVC# intfType/intf# cvid(1-4095) - Remove a DHCPop82 profile\n\r"
+        "m 1230 EVC# intfType/intf#                                       - DAI statistics\r\n"
+        "m 1231 smac_validate(0/1) dmac_validate(0/1) ip_validate(0/1)    - DAI Global configurations\r\n"
+        "m 1232 intfType/intf# trust(0/1) rateLimit(pps) burstInterval(s) - DAI Interface configurations\r\n"
+        "m 1233 EVC# enable(0/1) static(0/1)                              - DAI Service/VLAN configurations\r\n"
+        "m 1235 aclName ipAddr(d.d.d.d) macAddr(xx:xx:xx:xx:xx:xx)        - Add an ARP-ACL rule entry\r\n"
+        "m 1236 aclName ipAddr(d.d.d.d) macAddr(xx:xx:xx:xx:xx:xx)        - Remove an ARP-ACL rule entry\r\n"
+        "m 1237 EVC# aclName - Link aclName to EVC id\r\n"
+        "m 1238 EVC#         - Unlink aclName to EVC id\r\n"
+        "m 1240 page(0..)                  - Read DHCP binding table (start reading from page 0)\r\n"
+        "m 1242 macAddr(xx:xx:xx:xx:xx:xx) - Remove a MAC address from DHCP Binding table\r\n"
+        "m 1310 EVC# intfType/intf# [ovid(0-4095)] [cvid(1-4095)] - Show IGMP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
+        "m 1312 EVC# intfType/intf# [ovid(0-4095)] [cvid(1-4095)] - Clear IGMP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
+        "m 1320 EVC# intfType/intf# [cvid(1-4095)] - Show DHCP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
+        "m 1322 EVC# intfType/intf# [cvid(1-4095)] - Clear DHCP statistics for interface<type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
+        "m 1400 [admin=0/1] [ipaddr=d.d.d.d] [cos=0..7] [gmi=<group_membership_interval>] [qi=<querier_interval>] - Configure igmp snooping + querier\r\n"
+        "m 1401 MC_EVC# UC_EVC# - Add IGMP instance with the MC+UC evc's pair\r\n"
+        "m 1402 MC_EVC# UC_EVC# - Remove IGMP instance with the MC+UC evc's pair\r\n"
+        "m 1403 MC_EVC# start_index(0..) - Get list of IGMP channel-associations\r\n"
+        "m 1404 MC_EVC# groupAddr(d.d.d.d) sourceAddr(d.d.d.d) groupMaskBits(22-32) sourceMaskBits(22-32) - Add IGMP channel-associations\r\n"
+        "m 1405 MC_EVC# groupAddr(d.d.d.d) sourceAddr(d.d.d.d) groupMaskBits(22-32) sourceMaskBits(22-32) - Remove IGMP channel-associations\r\n"
+        "m 1406 MC_EVC# intfType/intf# ovid(0-4095) cvid(0-4095) - Add MC client to IGMP instance\r\n"
+        "m 1407 MC_EVC# intfType/intf# ovid(0-4095) cvid(0-4095) - Remove MC client to IGMP instance\r\n"
       /*"m 1400 snooping_admin[0/1] querier_admin[0/1] querier_ipaddr[ddd.ddd.ddd.ddd] querier_inerval[1-1800] cos[0-7] - IGMP snooping admin mode\r\n"
         "m 1402 port1[0-15] type1[0=client,1=router] port2 type2 ... - IGMP snooping: add client interfaces\r\n"
         "m 1403 port1[0-15] port2 ...   - IGMP snooping: remove interfaces\r\n"
@@ -91,64 +104,65 @@ void help_oltBuga(void)
         "m 1409 port[0-15] vlan1[2-4093] vlan2 ...     - IGMP snooping: remove mrouter vlans for the given port\r\n"
         "m 1411 vlan1[2-4093] ipaddr1[ddd.ddd.ddd.ddd] vlan2 ipaddr2 ... - IGMP snooping querier: Add vlan and its ip address\r\n"
 //      "m 1412 vlan1[2-4093] vlan2 ... - IGMP snooping querier: remove vlans\r\n"*/
-        "m 1420 evc_id[1-127] page_idx[0..] intf[0-Phy,1-Lag]/[intf#] svid[1-4095] cvid[1-4095/0]  - List active channels for a particular EVC and client\r\n"
-        "m 1421 evc_id[1-127] page_idx[0..] ipchannel[ddd.ddd.ddd.ddd] - List clients watching a channel (ip) associated to this EVCid\r\n"
-        "m 1430 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] - Add static MC channel\r\n"
-        "m 1431 flow_id[1-127] ipchannel[ddd.ddd.ddd.ddd] sourceAddr[ddd.ddd.ddd.ddd] - Remove static MC channel\r\n"
-        "m 1500 lag_index[0-17] - Get LAG configurations\r\n"
-        "m 1501 lag_index[0-17] static_mode[0/1] load_balance[0..6] port_bmp[XXXXXh] - Create LAG\r\n"
-        "m 1502 lag_index[0-17] - Destroy LAG\r\n"
-        "m 1503 lag_index[0-17] - Get LAG status\r\n"
-        "m 1504 port_index[0..17/-1] lacp_aggregation[0/1] lacp_activity[0/1] lacp_timeout[0=long,1=short] - Set LACP Admin State\r\n"
-        "m 1505 port_index[0..17/-1] - Get LACP Admin State\r\n"
-        "m 1510 port[0..17/-1] - Show LACP statistics for port <port>\n\r"
-        "m 1511 port[0..17/-1] - Clear LACP statistics for port <port>\n\r"
+        "m 1420 EVC# page_idx(0..) intfType/intf# [svid(1-4095)] [cvid(1-4095/0)] - List active channels for a particular EVC and client\r\n"
+        "m 1421 EVC# page_idx(0..) ipchannel(d.d.d.d) - List clients watching a channel (ip) associated to this EVCid\r\n"
+        "m 1430 EVC# ipchannel(d.d.d.d) sourceAddr(d.d.d.d) - Add static MC channel\r\n"
+        "m 1431 EVC# ipchannel(d.d.d.d) sourceAddr(d.d.d.d) - Remove static MC channel\r\n"
+        "--- LAGs -----------------------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1500 lag(0-MAX) - Get LAG configurations\r\n"
+        "m 1501 lag(0-MAX) static_mode(0/1) load_balance(0-6) port_bmp(xxxxxh) - Create LAG\r\n"
+        "m 1502 lag(0-MAX) - Destroy LAG\r\n"
+        "m 1503 lag(0-MAX) - Get LAG status\r\n"
+        "m 1504 port[0..MAX/-1) lacp_aggregation(0/1) lacp_activity(0/1) lacp_timeout(0=long,1=short) - Set LACP Admin State\r\n"
+        "m 1505 port[0..MAX/-1) - Get LACP Admin State\r\n"
+        "m 1510 port[0..MAC/-1) - Show LACP statistics for port <port>\n\r"
+        "m 1511 port[0..MAX/-1) - Clear LACP statistics for port <port>\n\r"
         "m 1997 - Reset Multicast machine\r\n"
         "m 1998 - Reset alarms\r\n"
         "m 1999 - Reset defaults, except for lag InBand\r\n"
-        "m 2000 [10-1000000] - Set MAC Learning table aging time\r\n"
+        "m 2000 age(30-1000000) - Set MAC Learning table aging time\r\n"
         "m 2001 - Get MAC Learning aging time\r\n"
-        "--- NEW COMMANDS FP6.3 ---------------------------------------------------------------------------------------------------------------\r\n"
-        "m 1600 EVC#[0-64] - Read EVC config\r\n"
-        "m 1601 EVC#[0-64] Type[0:P2MP/1:P2P/2:Q] Stacked[0/1] MacLearn[0/1] Mask[010h:CPUtrap;100h:DHCP;200h:IGMP] MCFlood[0-All;1-Unknown;2-None]\r\n"
-        "       type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Create EVC\r\n"
-        "m 1602 EVC#[0-64] - Delete EVC\r\n"
-        "m 1603 EVC#[0-64] type[0-Phy;1-Lag]/intf#/mef[0-Root;1-Leaf]/VLAN/iVlan ... - Add ports to EVC\r\n"
-        "m 1604 EVC#[0-64] type[0-Phy;1-Lag]/intf# ... - Remove ports from EVC\r\n"
-        "m 1605 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
-        "m 1606 EVC#[0-64] type[0-Phy;1-Lag] intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
-        "m 1607 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN Inn.VLAN CVlan flags[01h:DHCP;02h:IGMP;04h:PPPoE] MaxMACs - Add a GEM flow to an EVC\r\n"
-        "m 1608 EVC#[0-64] type[0-Phy;1-Lag] intf# Out.VLAN - Delete a GEM flow from an EVC\r\n"
-        "m 1609 EVC#[0-64] [type] [mc_flood] [flags_value] [flags_mask] - Change EVC options\r\n"
+        "--- EVCs -----------------------------------------------------------------------------------------------------------------------------\r\n"
+        "m 1600 EVC# - Read EVC config\r\n"
+        "m 1601 EVC# Type(0-P2MP;1-P2P;2-Q) Stacked(0/1) MacLearn(0/1) Mask(010h-CPUtrap;100h-DHCP;200h-IGMP) MCFlood(0-All;1-Unknown;2-None)\r\n"
+        "       intfType/intf#/mef(0-Root;1-Leaf)/VLAN/iVlan ... - Create EVC\r\n"
+        "m 1602 EVC# - Delete EVC\r\n"
+        "m 1603 EVC# intfType/intf#/mef(0-Root;1-Leaf)/VLAN/iVlan ... - Add ports to EVC\r\n"
+        "m 1604 EVC# intfType/intf# ... - Remove ports from EVC\r\n"
+        "m 1605 EVC# intfType intf# Out.VLAN Inn.VLAN - Add P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
+        "m 1606 EVC# intfType intf# Inn.VLAN - Deletes P2P bridge on Stacked EVCs between the root and a leaf intf\r\n"
+        "m 1607 EVC# intfType intf# Out.VLAN Inn.VLAN CVlan flags(01h:DHCP;02h:IGMP;04h:PPPoE) MaxMACs - Add a GEM flow to an EVC\r\n"
+        "m 1608 EVC# intfType intf# Out.VLAN - Delete a GEM flow from an EVC\r\n"
+        "m 1609 EVC# [type] [mc_flood] [flags_value] [flags_mask] - Change EVC options\r\n"
         "m 1610 - Reads Network Connectivity (inBand) configuration\r\n"
-        "m 1611 <intf_type[0:phy 1:lag]> <intf#> <ipaddr> <netmask> <gateway> <managememt_vlan> - Sets Network Connectivity (inBand) configuration\r\n"
-        "m 1620 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
-        "m 1621 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] cir=[mbps] eir=[mbps] cbs=[bytes] ebs=[bytes] - Create/reconfig bandwidth Policer\r\n"
-        "m 1622 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] - Delete bandwidth Policer\r\n"
-        "m 1624 slot=[0-17] bc=[BC rate (bps)] mc=[MC rate (bps)] uc=[unknown UC rate (bps)] - Storm control configuration\r\n"
-        "m 1625 slot=[0-17] - Storm control reset\r\n"
-        "m 1626 slot=[0-17] - Storm control clear\r\n"
-        "m 1630 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Show absolute evc statistics\n\r"
-        "m 1632 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Add evc statistics measurement\n\r"
-        "m 1633 slot=[0-17] evc=[1-64] intf=<[0-Phy;1-Lag]/intf#> svid=[1-4095] cvid=[1-4095] channel=[ipv4-xxx.xxx.xxx.xxx] - Remove evc statistics measurement\n\r"
+        "m 1611 intfType intf# ipaddr(d.d.d.d) netmask(d.d.d.d) gateway(d.d.d.d) managememt_vlan - Sets Network Connectivity (inBand) configuration\r\n"
+        "m 1620 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] - Get Profile data of a specific Bandwidth Policer\r\n"
+        "m 1621 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] cir=<mbps> eir=<mbps> cbs=<bytes> ebs=<bytes> - Create/reconfig bandwidth Policer\r\n"
+        "m 1622 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] - Delete bandwidth Policer\r\n"
+        "m 1624 [bc=<bps>] [mc=<bps>] [uc=<bps>] - Storm control configuration\r\n"
+        "m 1625 [bc=0] [mc=0] [uc=0]             - Storm control reset\r\n"
+        "m 1626 [bc=0] [mc=0] [uc=0]             - Storm control clear\r\n"
+        "m 1630 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] [channel=d.d.d.d] - Show absolute evc statistics\n\r"
+        "m 1632 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] [channel=d.d.d.d] - Add evc statistics measurement\n\r"
+        "m 1633 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] [channel=d.d.d.d] - Remove evc statistics measurement\n\r"
         "--- IP Source Guard ------------------------------------------------------------------------------------------------------------------\n\r"
-        "m 1700 type[0-Phy;1-Lag]/intf# enable[0/1] - Enable/Disable IP Source Guard on Ptin Port\n\r"
-        "m 1701 idType[1-eEVCId; 2-rootVLAN] iD[1-131071] type[0-Phy;1-Lag]/intf# macAddr[xxxxxxxxxxxxh] ipAddr[ddd.ddd.ddd.ddd] removeOrAdd[0/1] - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
+        "m 1700 intfType/intf# enable(0/1) - Enable/Disable IP Source Guard on Ptin Port\n\r"
+        "m 1701 idType(1-eEVCId;2-rootVLAN) iD(1-131071) intfType/intf# mac(xx:xx:xx:xx:xx:xx) ip(d.d.d.d) removeOrAdd(0/1) - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
         "--- Routing --------------------------------------------------------------------------------------------------------------------------\n\r"
-        "m 1810 routingIntf[2-Rtr]/[intf#] evc_id[1-127] ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] mtu[xxx]- Create new routing interface\r\n"
-        "m 1811 intf[2-Rtr]/[intf#] - Remove routing interface\r\n"
-        "m 1820 intf[2-Rtr]/[intf#] - Get ARP table\r\n"
-        "m 1821 intf[2-Rtr]/[intf#] ipaddr[ddd.ddd.ddd.ddd] - Purge ARP entry\r\n"
-        "m 1830 intf[2-Rtr]/[intf#] - Get route table\r\n"
-        "m 1831 ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] gateway[ddd.ddd.ddd.ddd] pref[1-255] isNullRoute[0/1] - Add static route\r\n"
-        "m 1832 ipaddr[ddd.ddd.ddd.ddd] subnetMask[ddd.ddd.ddd.ddd] gateway[ddd.ddd.ddd.ddd] isNullRoute[0/1] - Delete static route\r\n"
-        "m 1840 index[0-15] ipaddr[ddd.ddd.ddd.ddd] count[1-15] size[0-65507] interval[1-60] - Create ping session\r\n"
-        "m 1841 index[0-15] - Query ping session\r\n"
-        "m 1842 index[0-15] - Free ping session\r\n"
-        "m 1850 index[0-15] ipaddr[ddd.ddd.ddd.ddd] probes[1-10] size[0-65507] interval[1-60] dontFrag[0/1] port[0-65535] maxTtl[1-255] initTtl[1-255] maxFails[0-255] - Create traceroute session\r\n"
-        "m 1851 index[0-15] - Query traceroute session\r\n"
-        "m 1852 index[0-15] - Get traceroute session hops\r\n"
-        "m 1853 index[0-15] - Free traceroute session\r\n"
+        "m 1810 intfType(2-Rtr)/intf# evc_id ipaddr(d.d.d.d) subnetMask(d.d.d.d) mtu(xxx)- Create new routing interface\r\n"
+        "m 1811 intfType(2-Rtr)/intf# - Remove routing interface\r\n"
+        "m 1820 intfType(2-Rtr)/intf# - Get ARP table\r\n"
+        "m 1821 intfType(2-Rtr)/intf# ipaddr(d.d.d.d) - Purge ARP entry\r\n"
+        "m 1830 intfType(2-Rtr)/intf# - Get route table\r\n"
+        "m 1831 ipaddr(d.d.d.d) subnetMask(d.d.d.d) gateway(d.d.d.d) pref(1-255) isNullRoute(0/1) - Add static route\r\n"
+        "m 1832 ipaddr(d.d.d.d) subnetMask(d.d.d.d) gateway(d.d.d.d) isNullRoute(0/1) - Delete static route\r\n"
+        "m 1840 index(0-15) ipaddr(d.d.d.d) count(1-15) size(0-65507) interval(1-60) - Create ping session\r\n"
+        "m 1841 index(0-15) - Query ping session\r\n"
+        "m 1842 index(0-15) - Free ping session\r\n"
+        "m 1850 index(0-15) ipaddr(d.d.d.d) probes(1-10) size(0-65507) interval(1-60) dontFrag(0/1) port(0-65535) maxTtl(1-255) initTtl(1-255) maxFails(0-255) - Create traceroute session\r\n"
+        "m 1851 index(0-15) - Query traceroute session\r\n"
+        "m 1852 index(0-15) - Get traceroute session hops\r\n"
+        "m 1853 index(0-15) - Free traceroute session\r\n"
         "--------------------------------------------------------------------------------------------------------------------------------------\n\r"
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
 
@@ -1162,11 +1176,10 @@ int main (int argc, char *argv[])
         ptr->intf.intf_id   = intf;
 
         // MAC address
-        if (StrToLongLong(argv[3+1],&valued)<0)  {
+        if (convert_macaddr2array(argv[3+1],ptr->macAddr)<0)  {
           help_oltBuga();
           exit(0);
         }
-        memcpy(ptr->macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
         ptr->Mask = 0x0001;
 
@@ -1471,11 +1484,10 @@ int main (int argc, char *argv[])
           ptr->entry[0].vlanId = (uint16) valued;
 
           // MAC address
-          if (StrToLongLong(argv[3+1],&valued)<0)  {
+          if (convert_macaddr2array(argv[3+1],ptr->entry[0].addr)<0)  {
             help_oltBuga();
             exit(0);
           }
-          memcpy(ptr->entry[0].addr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           // port
           if (sscanf(argv[3+2],"%d/%d",&type,&intf)!=2)
@@ -1519,11 +1531,10 @@ int main (int argc, char *argv[])
           ptr->entry[0].vlanId = (uint16) valued;
 
           // MAC address
-          if (StrToLongLong(argv[3+1],&valued)<0)  {
+          if (convert_macaddr2array(argv[3+1],ptr->entry[0].addr)<0)  {
             help_oltBuga();
             exit(0);
           }
-          memcpy(ptr->entry[0].addr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           comando.msgId = CCMSG_ETH_MAC_ENTRY_REMOVE;
           comando.infoDim = sizeof(msg_switch_mac_table_t);
@@ -1728,6 +1739,332 @@ int main (int argc, char *argv[])
         }
         break;
 
+      /* DAI Statistics */
+      case 1230:
+      {
+        msg_dai_statistics_t *ptr;
+        int type, intf;
+
+        // Validate number of arguments
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_dai_statistics_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_dai_statistics_t));
+
+        ptr->slotId = (uint8)-1;
+
+        // EVC id
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evc_idx = (uint32) valued;
+
+        // port
+        if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = (uint8) type;
+        ptr->intf.intf_id   = (uint8) intf;
+
+        comando.msgId = CCMSG_ETH_DAI_STATISTICS;
+        comando.infoDim = sizeof(msg_dai_statistics_t);
+      }
+      break;
+
+      /* DAI global configurations */
+      case 1231:
+      {
+        msg_dai_global_settings_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+0)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_dai_global_settings_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_dai_global_settings_t));
+
+        ptr->slotId = (uint8)-1;
+
+        // SMAC validation
+        if (argc >= 3+1)
+        {
+          if (StrToLongLong(argv[3+0], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->validate_smac = (uint8) valued;
+          ptr->mask |= 0x02;
+        }
+        // DMAC validation
+        if (argc >= 3+2)
+        {
+          if (StrToLongLong(argv[3+1], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->validate_dmac = (uint8) valued;
+          ptr->mask |= 0x04;
+        }
+        // IP validation
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3+2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->validate_ipAddr = (uint8) valued;
+          ptr->mask |= 0x08;
+        }
+
+        comando.msgId = CCMSG_ETH_DAI_GLOBAL_CONFIG;
+        comando.infoDim = sizeof(msg_dai_global_settings_t);
+      }
+      break;
+
+      /* DAI interface configurations */
+      case 1232:
+      {
+        msg_dai_intf_settings_t *ptr;
+        int type, intf;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_dai_intf_settings_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_dai_intf_settings_t));
+
+        ptr->slotId = (uint8)-1;
+
+        // port
+        if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = (uint8) type;
+        ptr->intf.intf_id   = (uint8) intf;
+
+        // Trust mode
+        if (argc >= 3+2)
+        {
+          if (StrToLongLong(argv[3+1], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->trust = (uint8) valued;
+          ptr->mask |= 0x01;
+        }
+        // Rate Limit
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3+2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->rateLimit = (uint32) valued;
+          ptr->mask |= 0x02;
+        }
+        // Burst interval
+        if (argc >= 3+4)
+        {
+          if (StrToLongLong(argv[3+3], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->burstInterval = (uint32) valued;
+          ptr->mask |= 0x04;
+        }
+
+        comando.msgId = CCMSG_ETH_DAI_INTF_CONFIG;
+        comando.infoDim = sizeof(msg_dai_intf_settings_t);
+      }
+      break;
+
+      /* DAI VLAN configurations */
+      case 1233:
+      {
+        msg_dai_vlan_settings_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_dai_vlan_settings_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_dai_vlan_settings_t));
+
+        ptr->slotId = (uint8)-1;
+
+        // EVC id
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evc_idx = (uint32) valued;
+        ptr->vlanId_start = (L7_uint16)-1;
+        ptr->vlanId_end   = (L7_uint16)-1;
+
+        // DAI enable
+        if (argc >= 3+2)
+        {
+          if (StrToLongLong(argv[3+1], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dai_enable = (uint8) valued;
+          ptr->mask |= 0x01;
+        }
+        // Static flag
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3+2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->staticFlag = (uint8) valued;
+          ptr->mask |= 0x02;
+        }
+
+        comando.msgId = CCMSG_ETH_DAI_VLAN_CONFIG;
+        comando.infoDim = sizeof(msg_dai_vlan_settings_t);
+      }
+      break;
+
+      /* ARP-ACL rules management */
+      case 1235:
+      case 1236:
+      {
+        msg_arp_acl_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+3)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_arp_acl_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_arp_acl_t));
+
+        ptr->slotId  = (uint8)-1;
+        ptr->aclType = ACL_TYPE_ARP;
+        ptr->action  = ACL_ACTION_PERMIT;
+
+        // ACL name
+        strncpy((char *) ptr->name, argv[3+0], 32);
+
+        // IP address
+        if (convert_ipaddr2uint64(argv[3+1], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->srcIpAddr.family    = PTIN_AF_INET;
+        ptr->srcIpAddr.addr.ipv4 = (uint32) valued;
+
+        // MAC address
+        if (convert_macaddr2array(argv[3+2], ptr->srcMacAddr) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        comando.msgId   = (msg==1236) ? CCMSG_ACL_RULE_DEL : CCMSG_ACL_RULE_ADD;
+        comando.infoDim = sizeof(msg_arp_acl_t);
+      }
+      break;
+
+      case 1237:
+      {
+        msg_apply_acl_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_apply_acl_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_apply_acl_t));
+
+        ptr->slotId     = (uint8)-1;
+        ptr->aclType    = ACL_TYPE_ARP;
+        ptr->direction  = ACL_DIRECTION_IN;
+
+        // EVC id
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcId = (uint32) valued;
+
+        // ACL name
+        strncpy((char *) ptr->name, argv[3+1], 32); 
+        ptr->name[31] = '\0';
+
+        comando.msgId   = CCMSG_ACL_APPLY;
+        comando.infoDim = sizeof(msg_apply_acl_t);
+      }
+      break;
+      case 1238:
+      {
+        msg_apply_acl_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_apply_acl_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_apply_acl_t));
+
+        ptr->slotId     = (uint8)-1;
+        ptr->aclType    = ACL_TYPE_ARP;
+        ptr->direction  = ACL_DIRECTION_IN;
+
+        // EVC id
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcId = (uint32) valued;
+
+        comando.msgId   = CCMSG_ACL_UNAPPLY;
+        comando.infoDim = sizeof(msg_apply_acl_t);
+      }
+      break;
+
       // DHCP Bind table reading
       case 1240:
         {
@@ -1778,11 +2115,10 @@ int main (int argc, char *argv[])
           ptr->bind_table[0].entry_index= 0;
 
           // MAC address
-          if (StrToLongLong(argv[3+0],&valued)<0)  {
+          if (convert_macaddr2array(argv[3+0],ptr->bind_table[0].macAddr)<0)  {
             help_oltBuga();
             exit(0);
           }
-          memcpy(ptr->bind_table[0].macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_REMOVE;
           comando.infoDim = sizeof(msg_DHCPv4v6_bind_table_t);
@@ -4529,21 +4865,21 @@ int main (int argc, char *argv[])
           ptr->n_intf = 1;
 
           // IP Addr
-          if (StrToLongLong(argv[3+2], &valued)<0)  {
+          if (convert_ipaddr2uint64(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->ipaddr = valued;
 
           // NetMask
-          if (StrToLongLong(argv[3+3], &valued)<0)  {
+          if (convert_ipaddr2uint64(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->netmask = valued;
 
           // Gateway
-          if (StrToLongLong(argv[3+4], &valued)<0)  {
+          if (convert_ipaddr2uint64(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
@@ -4902,7 +5238,7 @@ int main (int argc, char *argv[])
             {
               if (convert_ipaddr2uint64(value,&valued)<0)
               {
-                printf("Invalid channel IP value (xxx.xxx.xxx.xxx format)\r\n");
+                printf("Invalid channel IP value (d.d.d.d format)\r\n");
                 exit(0);
               }
               ptr->channel_ip = (uint32) valued;
@@ -5006,11 +5342,10 @@ int main (int argc, char *argv[])
           ptr->intf.intf_id   = (uint8) intf;
 
           // MAC address
-          if (StrToLongLong(argv[3+3],&valued)<0)  {
+          if (convert_macaddr2array(argv[3+3],ptr->macAddr)<0)  {
             help_oltBuga();
             exit(0);
           }          
-          memcpy(ptr->macAddr,&(((uint8 *) &valued)[2]),sizeof(uint8)*6);
 
           /* IPv4 Address */          
           if (convert_ipaddr2uint64(argv[3+4],&valued)<0)  {
@@ -5758,6 +6093,80 @@ int main (int argc, char *argv[])
           printf(" Switch: DHCPop82 profile removed successfully\n\r");
         else
           printf(" Switch: DHCPop82 profile not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1230:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          msg_dai_statistics_t *ptr;
+
+          if (resposta.infoDim!=sizeof(msg_dai_statistics_t)) {
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_dai_statistics_t));
+            break;
+          }
+
+          ptr = (msg_dai_statistics_t *) &resposta.info[0];
+
+          printf("DAI statistics for EVC#%lu, VLAN%u, intf=%u/%u:\r\n", ptr->evc_idx, ptr->vlanId, ptr->intf.intf_type, ptr->intf.intf_id);
+          printf(" forwarded       = %lu\r\n", ptr->stats.forwarded       );
+          printf(" dropped         = %lu\r\n", ptr->stats.dropped         );
+          printf(" dhcpDrops       = %lu\r\n", ptr->stats.dhcpDrops       );
+          printf(" dhcpPermits     = %lu\r\n", ptr->stats.dhcpPermits     );
+          printf(" aclDrops        = %lu\r\n", ptr->stats.aclDrops        );
+          printf(" aclPermits      = %lu\r\n", ptr->stats.aclPermits      );
+          printf(" sMacFailures    = %lu\r\n", ptr->stats.sMacFailures    );
+          printf(" dMacFailures    = %lu\r\n", ptr->stats.dMacFailures    );
+          printf(" ipValidFailures = %lu\r\n", ptr->stats.ipValidFailures );
+          printf("Switch: DAI statistics read successfully\n\r");
+        }
+        else
+          printf(" Switch: Error reading DAI statistics - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1231:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: DAI global settings applied successfully\n\r");
+        else
+          printf(" Switch: DAI global settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1232:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: DAI interface settings applied successfully\n\r");
+        else
+          printf(" Switch: DAI interface settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1233:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: DAI VLAN settings applied successfully\n\r");
+        else
+          printf(" Switch: DAI VLAN settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1235:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: ARP-ACL entry added successfully\n\r");
+        else
+          printf(" Switch: ARP-ACL entry not added - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+      case 1236:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: ARP-ACL entry removed successfully\n\r");
+        else
+          printf(" Switch: ARP-ACL entry not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+      case 1237:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: ARP-ACL group associated to a Service\n\r");
+        else
+          printf(" Switch: ARP-ACL group not associated to a Service - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+      case 1238:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: ARP-ACL group removed from a Service\n\r");
+        else
+          printf(" Switch: ARP-ACL group not removed from a Service - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1240:
@@ -6876,7 +7285,7 @@ static int convert_ipaddr2uint64(const char *ipaddr, uint64 *value_uint64)
 {
   const char *start_ipaddr;
   uint8  address[4] = { 0, 0, 0, 0};
-  uint8  index;
+  uint8  index, char_i;
   uint32 multiplier;
 
   // Validate argument
@@ -6895,24 +7304,153 @@ static int convert_ipaddr2uint64(const char *ipaddr, uint64 *value_uint64)
     return -1;
 
   // Initialize Decimal multiplier
+  char_i = 0;
   multiplier = 1;
   // Run all characters starting from the last one
   for (index=0,--ipaddr; index<4 && ipaddr>=start_ipaddr; ipaddr--)  {
     // If character is a decimal digit...
-    if (isdigit(*ipaddr)) {
+    if (isdigit(*ipaddr) && char_i<3) {
       address[index] += (uint8) (*ipaddr-'0')*multiplier;   // update address array
       multiplier*=10;                                       // update decimal multiplier for next digit
+      char_i++;
     }
     // Other, is a dot character
     else
     {
       index++;                                              // Increment address array index
       multiplier=1;                                         // Reinitialize decimal multiplier
+      char_i = 0;
     }
   }
 
   // Calculate uint32 value
   *value_uint64 = ((uint32) address[0]<<0) | ((uint32) address[1]<<8) | ((uint32) address[2]<<16) | ((uint32) address[3]<<24);
+
+  return 0;
+}
+
+#if 0
+static int convert_macaddr2uint64(const char *macaddr, uint64 *value_uint64)
+{
+  const char *start_macaddr;
+  uint8  address[6] = { 0, 0, 0, 0, 0, 0};
+  uint8  index, char_i, value;
+  uint32 multiplier;
+
+  // Validate argument
+  if (macaddr==NULL || *macaddr=='\0' || value_uint64==NULL)
+    return -1;
+
+  // Search for the next non space/tab character
+  for (; (*macaddr==' ' || *macaddr=='\t') && *macaddr!='\0'; macaddr++ );
+
+  start_macaddr = macaddr;
+
+  // Search for the end of the argument
+  for (; *macaddr!='\0' && (*macaddr==':' || *macaddr=='-' || isxdigit(*macaddr)); macaddr++ );
+
+  if (start_macaddr==macaddr)
+    return -1;
+
+  // Initialize Decimal multiplier
+  char_i = 0;
+  multiplier = 1;
+  // Run all characters starting from the last one
+  for (index=0,--macaddr; index<6 && macaddr>=start_macaddr; macaddr--)  {
+    // If character is a decimal digit...
+    if (isxdigit(*macaddr) && char_i<2) {
+      if (*macaddr>='0' && *macaddr<='9')
+        value = (uint8) (*macaddr - '0');
+      else if (*macaddr>='a' && *macaddr<='f')
+        value = (uint8) (*macaddr - 'a' + 10);
+      else if (*macaddr>='A' && *macaddr<='F')
+        value = (uint8) (*macaddr - 'A' + 10);
+      else
+        value = 0;
+
+      address[index] += value * multiplier;                 // update address array
+      multiplier*=10;                                       // update decimal multiplier for next digit
+      char_i++;
+    }
+    // Other, is a dot character
+    else
+    {
+      index++;                                              // Increment address array index
+      multiplier=1;                                         // Reinitialize decimal multiplier
+      char_i = 0;
+    }
+  }
+
+  // Calculate uint32 value
+  *value_uint64 = ((uint64) address[0]<<0) |
+                  ((uint64) address[1]<<8) |
+                  ((uint64) address[2]<<16) |
+                  ((uint64) address[3]<<24) |
+                  ((uint64) address[4]<<32) |
+                  ((uint64) address[5]<<40);
+
+  return 0;
+}
+#endif
+
+static int convert_macaddr2array(const char *macaddr, uint8 *array)
+{
+  const char *start_macaddr;
+  uint8  address[6] = { 0, 0, 0, 0, 0, 0};
+  uint8  index, char_i, value;
+  uint32 multiplier;
+
+  // Validate argument
+  if (macaddr==NULL || *macaddr=='\0' || array==NULL)
+    return -1;
+
+  // Search for the next non space/tab character
+  for (; (*macaddr==' ' || *macaddr=='\t') && *macaddr!='\0'; macaddr++ );
+
+  start_macaddr = macaddr;
+
+  // Search for the end of the argument
+  for (; *macaddr!='\0' && (*macaddr==':' || *macaddr=='-' || isxdigit(*macaddr)); macaddr++ );
+
+  if (start_macaddr==macaddr)
+    return -1;
+
+  // Initialize Decimal multiplier
+  char_i = 0;
+  multiplier = 1;
+  // Run all characters starting from the last one
+  for (index=0,--macaddr; index<6 && macaddr>=start_macaddr; macaddr--)  {
+    // If character is a decimal digit...
+    if (isxdigit(*macaddr) && char_i<2) {
+      if (*macaddr>='0' && *macaddr<='9')
+        value = (uint8) (*macaddr - '0');
+      else if (*macaddr>='a' && *macaddr<='f')
+        value = (uint8) (*macaddr - 'a' + 10);
+      else if (*macaddr>='A' && *macaddr<='F')
+        value = (uint8) (*macaddr - 'A' + 10);
+      else
+        value = 0;
+
+      address[index] += value * multiplier;                 // update address array
+      multiplier*=10;                                       // update decimal multiplier for next digit
+      char_i++;
+    }
+    // Other, is a dot character
+    else
+    {
+      index++;                                              // Increment address array index
+      multiplier=1;                                         // Reinitialize decimal multiplier
+      char_i = 0;
+    }
+  }
+
+  // Calculate uint32 value
+  array[5] = address[0];
+  array[4] = address[1];
+  array[3] = address[2];
+  array[2] = address[3];
+  array[1] = address[4];
+  array[0] = address[5];
 
   return 0;
 }

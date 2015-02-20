@@ -113,6 +113,11 @@ extern int canal_buga;
 #define CCMSG_ETH_MAC_ENTRY_REMOVE          0x90A3  // struct msg_switch_mac_table_t
 #define CCMSG_ETH_MAC_ENTRY_ADD             0x90A4  // struct msg_switch_mac_table_t
 
+#define CCMSG_ETH_DAI_GLOBAL_CONFIG         0x90A7  // struct msg_dai_global_settings_t
+#define CCMSG_ETH_DAI_INTF_CONFIG           0x90A8  // struct msg_dai_intf_settings_t
+#define CCMSG_ETH_DAI_VLAN_CONFIG           0x90A9  // struct msg_dai_vlan_settings_t
+#define CCMSG_ETH_DAI_STATISTICS            0x90AA  // struct msg_dai_statistics_t
+
 #define CCMSG_ETH_DHCP_PROFILE_GET          0x90C0  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_ADD          0x90C1  // struct msg_HwEthernetDhcpOpt82Profile_t
 #define CCMSG_ETH_DHCP_PROFILE_REMOVE       0x90C2  // struct msg_HwEthernetDhcpOpt82Profile_t
@@ -155,6 +160,15 @@ extern int canal_buga;
 #define CCMSG_ROUTING_TRACERTSESSION_QUERY    0x915D  // msg_RoutingTracertSessionQuery
 #define CCMSG_ROUTING_TRACERTSESSION_GETHOPS  0x915E  // msg_RoutingTracertSessionHopsRequest / msg_RoutingTracertSessionHopsResponse
 #define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915F  // msg_RoutingTracertSessionFree
+
+/* ACL Configuration */
+
+#define CCMSG_ACL_RULE_ADD                  0x9190   /* ACL Type is used to validate msg size */
+#define CCMSG_ACL_RULE_DEL                  0x9191
+#define CCMSG_ACL_APPLY                     0x9192   /* Applies an ACL to an Interface or VLAN ID */
+#define CCMSG_ACL_UNAPPLY                   0x9193
+
+/* SLOT modes configuration */
 
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
@@ -1322,6 +1336,148 @@ typedef struct
   msg_rxStatus_t       rxStatus;
 } __attribute__((packed)) msg_ptin_pcs_prbs;
 
+/***************************************************************************** 
+ * ACL Configuration
+ *****************************************************************************/
+
+typedef enum
+{
+  ACL_TYPE_MAC            = 0,
+  ACL_TYPE_IP_STANDARD    = 1,
+  ACL_TYPE_IP_EXTENDED    = 2,
+  ACL_TYPE_IP_NAMED       = 3,
+  ACL_TYPE_IPv6_EXTENDED  = 4,
+  ACL_TYPE_ARP            = 5
+} ACL_TYPE_t;
+
+typedef enum
+{
+  ACL_ACTION_DENY      = 0,
+  ACL_ACTION_PERMIT    = 1
+} ACL_ACTION_t;
+
+typedef enum
+{
+  ACL_DIRECTION_IN      = 0,
+  ACL_DIRECTION_OUT     = 1
+} ACL_DIRECTION_t;
+
+typedef enum
+{
+  ACL_OPERATION_CREATE     = 0,
+  ACL_OPERATION_REMOVE     = 1
+} ACL_OPERATION_t;
+
+typedef enum
+{
+  ACL_ARP_RULE_MASK_NONE            = 0x0000,
+  ACL_ARP_RULE_MASK_srcMacAddr      = 0x0001,
+  ACL_ARP_RULE_MASK_srcIpAddr       = 0x0004,
+  ACL_ARP_RULE_MASK_startVlan       = 0x0020,
+  ACL_ARP_RULE_MASK_endVlan         = 0x0040,
+  ACL_ARP_RULE_MASK_ALL             = 0x00FF
+} ACL_ARP_RULE_MASK_t;
+
+typedef struct {
+  L7_uint8      slotId;
+  L7_uint8      aclType;        /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+  L7_uint8      aclRuleId;      /* This Rule Number */
+  L7_uint8      action;         /* ACL_ACTION_t */
+
+  /* Type ARP ACL */
+  L7_uint8            srcMacAddr[6];
+  chmessage_ip_addr_t srcIpAddr;
+
+  L7_uint16     startVlan;      /* Range is for future use                */
+  L7_uint16     endVlan;        /* Start and End must have the same value */
+
+} __attribute__ ((packed)) msg_arp_acl_t;
+
+
+typedef struct {
+  L7_uint8      slotId;
+  L7_uint8      aclType;        /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+
+  L7_uint32     interface;      /* Interface is always physical */
+  L7_uint16     vlanId;         /* unused */
+  L7_uint32     evcId;          /* Service ECV ID. Service Quattro Type is not supported */
+
+  L7_uint8      direction;      /* ACL_DIRECTION_t: Only ACL_DIRECTION_IN is supported */
+} __attribute__ ((packed)) msg_apply_acl_t;
+
+
+/***************************************************************************** 
+ * Dynamic ARP Inspection Configuration
+ *****************************************************************************/
+
+typedef struct
+{
+  L7_uint8 slotId;
+  L7_uint8 mask;
+
+  /* Global settings */
+  L7_uint8 global_enable;       /* [mask=0x01] Global enable */
+
+  /* Global validations to ARP packets */
+  L7_uint8 validate_smac;       /* [mask=0x02] Validate Source MAC: True or False */
+  L7_uint8 validate_dmac;       /* [mask=0x04] Validate Destination MAC: True or False */
+  L7_uint8 validate_ipAddr;     /* [mask=0x08] Validate IP address: True or False */
+} __attribute__ ((packed)) msg_dai_global_settings_t;
+
+typedef struct
+{
+  L7_uint8  slotId;
+
+  msg_HwEthInterface_t intf;      /* Interface type and id */
+
+  L7_uint8  mask;
+  L7_uint8  trust;                /* [mask=0x01] True of False */
+  L7_uint32 rateLimit;            /* [mask=0x02] in packets per second (-1 for unlimited) */
+  L7_uint32 burstInterval;        /* [mask=0x04] in seconds (0 to disable burst interval) */
+
+} __attribute__ ((packed)) msg_dai_intf_settings_t;
+
+typedef struct
+{
+  L7_uint8  slotId;
+  L7_uint32 evc_idx;              /* EVC ID: 0 or -1 to use VLANs instead of this value */
+  L7_uint16 vlanId_start;         /* Start VLAN (1-4094): This is the NNI VLAN */
+  L7_uint16 vlanId_end;           /* End VLAN (1-4094): For one VLAN only, use vlanId_end=vlanId_start or invalid value */
+
+  L7_uint8  mask;
+  L7_uint8  dai_enable;           /* [mask_local=0x01] DAI enable for these VLANs: True or False */
+  L7_uint8  staticFlag;           /* [mask_local=0x02] Look only to ACL rules: True or False */
+
+} __attribute__ ((packed)) msg_dai_vlan_settings_t;
+
+
+/* Dynamic ARP Inspection vlan statistics */
+typedef struct 
+{
+  L7_uint32 forwarded;
+  L7_uint32 dropped;
+  L7_uint32 dhcpDrops;
+  L7_uint32 dhcpPermits;
+  L7_uint32 aclDrops;
+  L7_uint32 aclPermits;
+  L7_uint32 sMacFailures;
+  L7_uint32 dMacFailures;
+  L7_uint32 ipValidFailures;
+} __attribute__ ((packed)) msg_dai_statCounters_t;
+
+typedef struct
+{
+  L7_uint8  slotId;
+  L7_uint32 evc_idx;          /* EVC ID: 0 or -1 to use VLANs instead of this value */
+  L7_uint16 vlanId;           /* VLAN (1-4094): This is the NNI VLAN */
+  msg_HwEthInterface_t intf;  /* Interface (type/id) */
+
+  msg_dai_statCounters_t  stats;          /* Statistics structure */
+} __attribute__ ((packed)) msg_dai_statistics_t;
 
 /***************************************************** 
  * SLOT MODE CONFIGURATION
