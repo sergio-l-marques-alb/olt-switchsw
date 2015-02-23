@@ -6535,8 +6535,12 @@ L7_RC_t ptin_msg_IGMP_staticChannel_add(msg_MCStaticChannel_t *channel, L7_uint1
     channel_list.channel_srcmask=32;
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
-    
-    ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1, L7_TRUE);   
+
+    if ((rc =  ptin_msg_IGMP_ChannelAssoc_add(&channel_list,1, L7_TRUE)) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) adding static channel", rc);
+      return rc;
+    }
     #endif//End Static Channel Add
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Static channel addition index %u:",i);
