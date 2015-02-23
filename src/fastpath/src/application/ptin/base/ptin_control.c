@@ -609,7 +609,7 @@ static void monitor_matrix_commutation(void)
   ptin_HWEthPhyConf_t phyConf;
   L7_uint             port, port_border;
 
-  cx_work_slot = ptin_fgpa_mx_is_matrixactive_rt(); //(cpld_map->reg.slot_matrix >> 4) & 1;
+  cx_work_slot = (cpld_map->reg.slot_matrix >> 4) & 1;
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
@@ -654,7 +654,7 @@ static void monitor_matrix_commutation(void)
     return;
   }
 
-  cx_work_slot = ptin_fgpa_mx_is_matrixactive_rt(); //(cpld_map->reg.slot_matrix >> 4) & 1;
+  cx_work_slot = (ptin_fgpa_mx_get_matrixactive()==PTIN_SLOT_WORK); //(cpld_map->reg.slot_matrix >> 4) & 1;
 
   /* Nothing to do if no change happened */
   if (cx_work_slot == cx_work_slot_h)
