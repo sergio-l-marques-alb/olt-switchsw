@@ -610,6 +610,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   /* Reset instances array */
   memset(&igmpProxyCfg, 0x00, sizeof(igmpProxyCfg));
+
   memset(igmpInstances, 0x00, sizeof(igmpInstances));
 
   /* Initialize interfaces lists */
@@ -630,6 +631,9 @@ L7_RC_t ptin_igmp_proxy_init(void)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Error creating a mutex for IGMP module");
     return L7_FAILURE;
   }
+
+  /*Igmp Proxy Default Configuration*/
+  ptin_igmp_proxy_defaultcfg_load();
 
   /* CLIENT GROUPS INITIALIZATION */
   /* GroupClients snapshot */
@@ -1019,6 +1023,59 @@ L7_RC_t ptin_igmp_proxy_deinit(void)
 //}
 
 /**
+ * Load IGMP proxy default configuraion parameters
+ * 
+ * @return RC_t SUCCESS/FAILURE
+ */
+L7_RC_t ptin_igmp_proxy_defaultcfg_load(void)
+{
+  ptin_IgmpProxyCfg_t igmpProxy;
+  L7_RC_t             rc;
+  
+  igmpProxy.mask                                   = 0xFFFF;
+  igmpProxy.admin                                  = 0;  
+  igmpProxy.networkVersion                         = PTIN_IGMP_DEFAULT_VERSION;
+  igmpProxy.clientVersion                          = PTIN_IGMP_DEFAULT_VERSION;
+  igmpProxy.ipv4_addr.s_addr                       = PTIN_IGMP_DEFAULT_IPV4;
+  igmpProxy.igmp_cos                               = PTIN_IGMP_DEFAULT_COS;
+  igmpProxy.fast_leave                             = PTIN_IGMP_DEFAULT_FASTLEAVEMODE;
+
+  igmpProxy.querier.mask                           = 0xFFFF;
+  igmpProxy.querier.flags                          = 0;
+  igmpProxy.querier.robustness                     = PTIN_IGMP_DEFAULT_ROBUSTNESS;
+  igmpProxy.querier.query_interval                 = PTIN_IGMP_DEFAULT_QUERYINTERVAL;
+  igmpProxy.querier.query_response_interval        = PTIN_IGMP_DEFAULT_QUERYRESPONSEINTERVAL;
+  igmpProxy.querier.group_membership_interval      = PTIN_IGMP_DEFAULT_GROUPMEMBERSHIPINTERVAL;
+  igmpProxy.querier.other_querier_present_interval = PTIN_IGMP_DEFAULT_OTHERQUERIERPRESENTINTERVAL;
+  igmpProxy.querier.startup_query_interval         = PTIN_IGMP_DEFAULT_STARTUPQUERYINTERVAL;
+  igmpProxy.querier.startup_query_count            = PTIN_IGMP_DEFAULT_STARTUPQUERYCOUNT;
+  igmpProxy.querier.last_member_query_interval     = PTIN_IGMP_DEFAULT_LASTMEMBERQUERYINTERVAL;
+  igmpProxy.querier.last_member_query_count        = PTIN_IGMP_DEFAULT_LASTMEMBERQUERYCOUNT;
+  igmpProxy.querier.older_host_present_timeout     = PTIN_IGMP_DEFAULT_OLDERHOSTPRESENTTIMEOUT;
+
+  igmpProxy.host.mask                              = 0xFF;
+  igmpProxy.host.flags                             = 0;
+  igmpProxy.host.robustness                        = PTIN_IGMP_DEFAULT_ROBUSTNESS;
+  igmpProxy.host.unsolicited_report_interval       = PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
+  igmpProxy.host.older_querier_present_timeout     = PTIN_IGMP_DEFAULT_OLDERQUERIERPRESENTTIMEOUT;
+  igmpProxy.host.max_records_per_report            = PTIN_IGMP_DEFAULT_MAX_RECORDS_PER_REPORT;
+  
+  igmpProxy.bandwidthControl                       = PTIN_IGMP_DEFAULT_BANDWIDTHCONTROL_MODE;
+  igmpProxy.channelsControl                        = PTIN_IGMP_DEFAULT_CHANNELSCONTROL_MODE;
+  igmpProxy.whiteList                              = PTIN_IGMP_DEFAULT_WHITELIST_MODE;
+
+  /* Apply default config */
+  rc = ptin_igmp_proxy_config_set__snooping_old(&igmpProxy);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "IGMP default config failed to be load");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Applies IGMP Proxy configuration
  * 
  * @param igmpProxy Structure with config parameters
@@ -1038,6 +1095,79 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   }
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Applying new config to IGMP Proxy...");
+
+  /*Validate Mask & Flags*/
+  {
+    if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV && !(igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_RV))
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Robustness Mask Not Set: 0x%08X", igmpProxy->querier.mask);
+      igmpProxy->querier.mask |=PTIN_IGMP_QUERIER_MASK_RV;
+      igmpProxy->querier.robustness = igmpProxy->host.robustness;
+    }
+
+    if ( (igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QI ||
+        igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_QRI ||
+          igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_RV))       
+    {
+      if (!(igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_GMI))
+      {
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Auto GMI Flag Not Set: 0x%08X", igmpProxy->querier.flags);
+        igmpProxy->querier.flags |= PTIN_IGMP_QUERIER_MASK_AUTO_GMI;
+      }
+
+      if (!(igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_OQPI))
+      {
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Auto OQPI Flag Not Set: 0x%08X", igmpProxy->querier.flags);
+        igmpProxy->querier.flags |= PTIN_IGMP_QUERIER_MASK_AUTO_OQPI;
+      }
+
+      if (!(igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_OHPT))
+      {
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Auto OHPT Flag Not Set: 0x%08X", igmpProxy->querier.flags);
+        igmpProxy->querier.flags |= PTIN_IGMP_QUERIER_MASK_AUTO_OHPT;
+      }
+
+      if (!(igmpProxy->host.flags & PTIN_IGMP_HOST_MASK_OQPT))
+      {
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Host Auto OQPT Flag Not Set: 0x%08X", igmpProxy->host.flags);
+        igmpProxy->querier.flags |= PTIN_IGMP_HOST_MASK_OQPT;
+      }
+    }
+
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQI &&
+        igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQI)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Auto SQI Mask Set: 0x%08X", igmpProxy->querier.flags); 
+      igmpProxy->querier.flags &= ~PTIN_IGMP_QUERIER_MASK_AUTO_SQI;      
+    }
+
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_SQC &&
+        igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_SQC)
+    {     
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Auto SQC Mask Set: 0x%08X", igmpProxy->querier.flags);    
+      igmpProxy->querier.flags &= ~PTIN_IGMP_QUERIER_MASK_AUTO_SQC;
+    }
+
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_LMQC &&
+        igmpProxy->querier.mask & PTIN_IGMP_QUERIER_MASK_LMQC)
+    {    
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Auto LMQC Mask Set: 0x%08X", igmpProxy->querier.flags);    
+      igmpProxy->querier.flags &= ~PTIN_IGMP_QUERIER_MASK_AUTO_LMQC;
+    }
+
+    if ( (igmpProxy->querier.mask || igmpProxy->querier.flags) && !(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_QUERIER))
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Querier Mask Not Set: 0x%08X", igmpProxy->mask);
+      igmpProxy->mask |= PTIN_IGMP_PROXY_MASK_QUERIER;
+    }
+
+    if ( (igmpProxy->host.mask || igmpProxy->host.flags) && !(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_HOST))
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "  Host Mask Not Set: 0x%08X", igmpProxy->mask);
+      igmpProxy->mask |= PTIN_IGMP_PROXY_MASK_HOST;
+    }
+  }
+  /*End Mask & Flag Validation*/
 
   /* *******************
    * IGMP general config
@@ -1215,7 +1345,7 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
     }
 
     /* Older Host Present Timeout */
-    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_LMQC)
+    if (igmpProxy->querier.flags & PTIN_IGMP_QUERIER_MASK_AUTO_OHPT)
     {
       igmpProxyCfg.querier.older_host_present_timeout = PTIN_IGMP_AUTO_OHPT(igmpProxyCfg.querier.robustness,
                                                                             igmpProxyCfg.querier.query_interval,
@@ -1237,14 +1367,14 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
    * IGMP Host config
    * *******************/
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "  Host config:");
-  if(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_QUERIER)
+  if(igmpProxy->mask & PTIN_IGMP_PROXY_MASK_HOST)
   {
     /* Host Robustness */
     if (igmpProxy->host.mask & PTIN_IGMP_HOST_MASK_RV
         && igmpProxyCfg.host.robustness != igmpProxy->host.robustness)
     {
       igmpProxyCfg.host.robustness = igmpProxy->host.robustness;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Robustness:                            %u", igmpProxyCfg.host.robustness);
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "    Host Robustness:                            %u", igmpProxyCfg.host.robustness);
     }
 
     /* Unsolicited Report Interval */
@@ -1301,6 +1431,45 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
 
   return L7_SUCCESS;
 }
+
+void ptin_igmp_proxy_config_dump__snooping_old(void)
+{
+  ptin_IgmpProxyCfg_t igmpProxy;
+
+  ptin_igmp_proxy_config_get__snooping_old(&igmpProxy);
+  
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "IGMP Proxy (mask=0x%08X)", igmpProxy.mask);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Admin #                          = %u",          igmpProxy.admin);  
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Network Version                  = %u",          igmpProxy.networkVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Client Version                   = %u",          igmpProxy.clientVersion);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " IP Addr                          = %u.%u.%u.%u", (igmpProxy.ipv4_addr.s_addr>>24)&0xFF, (igmpProxy.ipv4_addr.s_addr>>16)&0xFF, (igmpProxy.ipv4_addr.s_addr>>8)&0xFF, igmpProxy.ipv4_addr.s_addr&0xFF);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " COS                              = %u",          igmpProxy.igmp_cos);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " FastLeave                        = %s",          igmpProxy.fast_leave ? "ON" : "OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Querier (mask=0x%08X)", igmpProxy.querier.mask);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Flags                          = 0x%04X",      igmpProxy.querier.flags);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Robustness                     = %u",          igmpProxy.querier.robustness);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Query Interval                 = %u (s)",          igmpProxy.querier.query_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Query Response Interval        = %u (ds)",          igmpProxy.querier.query_response_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Group Membership Interval      = %u (s)",          igmpProxy.querier.group_membership_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Other Querier Present Interval = %u (s)",          igmpProxy.querier.other_querier_present_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Startup Query Interval         = %u (s)",          igmpProxy.querier.startup_query_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Startup Query Count            = %u",          igmpProxy.querier.startup_query_count);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Last Member Query Interval     = %u (ds)",          igmpProxy.querier.last_member_query_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Last Member Query Count        = %u",          igmpProxy.querier.last_member_query_count);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Older Host Present Timeout     = %u (s)",          igmpProxy.querier.older_host_present_timeout);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Host (mask=0x%08X)", igmpProxy.host.mask);         
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Flags                          = 0x%02X",      igmpProxy.host.flags);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Robustness                     = %u",          igmpProxy.host.robustness);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Unsolicited Report Interval    = %u (s)",          igmpProxy.host.unsolicited_report_interval);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Older Querier Present Timeout  = %u (s)",          igmpProxy.host.older_querier_present_timeout);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, "   Max Group Records per Packet   = %u",          igmpProxy.host.max_records_per_report);
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Bandwidth Control                = %s",          igmpProxy.bandwidthControl ? "ON" : "OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " Channels Control                 = %s",          igmpProxy.channelsControl ? "ON" : "OFF");
+  LOG_DEBUG(LOG_CTX_PTIN_IGMP, " White-List                       = %s",          igmpProxy.whiteList  ? "ON" : "OFF");
+}
+
+
+
 L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
 {
   PTIN_MGMD_EVENT_t      inEventMsg = {0}, outEventMsg = {0};
@@ -1354,6 +1523,10 @@ L7_RC_t ptin_igmp_proxy_config_set(PTIN_MGMD_CTRL_MGMD_CONFIG_t *igmpProxy)
     oldIgmpConfig.channelsControl                        = igmpProxy->channelsControl;
 
     ptin_igmp_proxy_config_set__snooping_old(&oldIgmpConfig);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Error configuring Igmp Proxy rc:%u", ctrlResMsg.res);
   }
 
   /* Configure global trapping */
@@ -3317,6 +3490,16 @@ L7_RC_t ptin_igmp_clientIndex_get(L7_uint32 intIfNum,
               );
   }
 
+  #if PTIN_SNOOP_USE_MGMD
+  /*Refresh the Timer*/
+  #if 0  /*This routine is not refreshing the timers!*/
+  ptin_igmp_client_timer_update(intIfNum, client_idx);
+  #else
+  ptin_igmp_client_timer_start(intIfNum, client_idx);
+  #endif
+  
+  #endif
+
   /* Return client index */
   if (client_index!=L7_NULLPTR)  *client_index = client_idx;
 
@@ -3377,7 +3560,7 @@ L7_RC_t ptin_igmp_client_type(L7_uint32 intIfNum,
 }
 
 /**
- * (Re)start the timer for this client
+ * Start the timer for this client
  *  
  * @param intIfNum    : Interface Number
  * @param client_idx  : client index
@@ -3410,6 +3593,57 @@ L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum, L7_uint32 client_idx)
 
   /* Add client */
   rc = ptin_igmp_timer_start(ptin_port, client_idx);
+
+  osapiSemaGive(ptin_igmp_clients_sem);
+
+  if (rc!=L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error (re)starting timer for this client (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
+  }
+
+  return rc;
+#else
+  return L7_SUCCESS;
+#endif
+}
+
+/**
+ * (Re)start the timer for this client
+ *  
+ * @param intIfNum    : Interface Number
+ * @param client_idx  : client index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ *  
+ * @notes Not working properly! 
+ */
+L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx)
+{
+#ifdef CLIENT_TIMERS_SUPPORTED
+  L7_uint32 ptin_port;
+  L7_RC_t   rc;
+
+  /* Validate arguments */
+  if (client_idx >= PTIN_IGMP_CLIENTIDX_MAX)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client_idx %u", client_idx);
+    return L7_FAILURE;
+  }
+  /* Validate interface */
+  if (ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS ||
+      ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Error converting intIfNum %u to ptin_port format", intIfNum);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+
+  /* Add client */
+  rc = ptin_igmp_timer_update(ptin_port, client_idx);
 
   osapiSemaGive(ptin_igmp_clients_sem);
 
@@ -4562,6 +4796,11 @@ L7_RC_t ptin_igmp_dynamic_client_add(L7_uint32 intIfNum,
   /* Add client */
   rc = ptin_igmp_new_client(&client, uni_ovid, uni_ivid, L7_TRUE, client_idx_ret);
 
+  #if PTIN_SNOOP_USE_MGMD
+  /*Start the Timer*/
+  ptin_igmp_client_timer_start(intIfNum, *client_idx_ret);
+  #endif
+
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"New client created: intIfNum %u, intVlan %u, innerVlan %u",
             intIfNum, intVlan, innerVlan);
 
@@ -5684,7 +5923,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
   if ( timer_exists )
   {
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Already exists a timer running for ptin_port=%u client_idx=%u", ptin_port, client_idx);
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Already exists a timer running for ptin_port=%u client_idx=%u", ptin_port, client_idx);
 
     #if 1
     if (pTimerData->timer != L7_NULL)
@@ -5732,14 +5971,6 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
   }
   else
   {
-    /* Check if there is room for one more timer */
-    if (igmpClients_unified.number_of_clients >= PTIN_IGMP_CLIENTIDX_MAX)
-    {
-      osapiSemaGive(ptin_igmp_timers_sem);
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not start timer. There is no room for more timers!");
-      return L7_FAILURE;
-    }
-
     /* Buffer pool allocation for pTimerData*/
     if (bufferPoolAllocate(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 **) &pTimerData) != L7_SUCCESS)
     {
@@ -5780,11 +6011,9 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
     pTimerData->timerHandle = 0;
     bufferPoolFree(igmpClients_unified.appTimerBufferPoolId, (L7_uchar8 *)pTimerData);
     osapiSemaGive(ptin_igmp_timers_sem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not Start the Group timer.");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Could not Start the Client timer.");
     return L7_FAILURE;
   }
-  if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer added (ptin_port=%u client_idx=%u) with timeout=%u", ptin_port, client_idx, timeout);
 
   if ( !timer_exists )
   {
@@ -5809,7 +6038,7 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer started successfully for ptin_port=%u client_idx=%u", ptin_port, client_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Timer Started: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
 
   return L7_SUCCESS;
 }
@@ -5820,7 +6049,9 @@ L7_RC_t ptin_igmp_timer_start(L7_uint32 ptin_port, L7_uint32 client_idx)
  * @param ptin_port  : Interface port
  * @param client_idx : client index
  * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE 
+ *  
+ * @notes Not working properly! 
  */
 L7_RC_t ptin_igmp_timer_update(L7_uint32 ptin_port, L7_uint32 client_idx)
 {
@@ -5857,7 +6088,7 @@ L7_RC_t ptin_igmp_timer_update(L7_uint32 ptin_port, L7_uint32 client_idx)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Client timer not found");
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Client timer not found: ptin_port=%u client_idx=%u",  ptin_port, client_idx);
     return L7_FAILURE;
   }
 
@@ -5865,30 +6096,93 @@ L7_RC_t ptin_igmp_timer_update(L7_uint32 ptin_port, L7_uint32 client_idx)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Client timer not running");
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Client timer not running: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle:%p", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle);
     return L7_FAILURE;
   }
-
-  if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Updating timer (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
 
   timeout = (igmpProxyCfg.querier.group_membership_interval*3)/2;
 
   if (appTimerUpdate(igmpClients_unified.timerCB, pTimerData->timer,
-                     (void *) igmp_timer_expiry, (void *) pTimerData->timerHandle, timeout,
+                     L7_NULLPTR, L7_NULLPTR, timeout,
                      "PTIN_TIMER") != L7_SUCCESS)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to update group membership timer");
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to update client timer: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
     return L7_FAILURE;
   }
 
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer updated successfully for ptin_port=%u client_idx=%u (timeout=%u)", ptin_port, client_idx, timeout);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Timer Updated: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p timeout=%u (s)", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle, timeout);
 
   return L7_SUCCESS;
+}
+
+/**
+ * Timer Tiemout for an existent client
+ * 
+ * @param ptin_port  : Interface port
+ * @param client_idx : client index
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_uint32 ptin_igmp_timer_timeout_get(L7_uint32 ptin_port, L7_uint32 client_idx)
+{
+  L7_uint32 time_left = 0;
+  igmpTimerData_t timerData, *pTimerData;
+  
+
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to get the timer timeout (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
+
+  /* Validate arguments */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid ptin_port %u", ptin_port);
+    return L7_FAILURE;
+  }
+  if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid client index %u", client_idx);
+    return L7_FAILURE;
+  }
+
+  osapiSemaTake(ptin_igmp_timers_sem, L7_WAIT_FOREVER);
+
+  memset(&timerData, 0x00, sizeof(igmpTimerData_t));
+
+  timerData.ptin_port  = PTIN_IGMP_CLIENT_PORT(ptin_port);
+  timerData.client_idx = client_idx;
+
+  if (ptin_debug_igmp_snooping)
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Searching for an SLL node (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
+
+  /* Searching for the client timer */
+  if ((pTimerData = (igmpTimerData_t *)SLLFind(&igmpClients_unified.ll_timerList, (void *)&timerData)) == L7_NULLPTR)
+  {
+    osapiSemaGive(ptin_igmp_timers_sem);
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Client timer not found: ptin_port=%u client_idx=%u",  ptin_port, client_idx);
+    return L7_FAILURE;
+  }
+
+  if (pTimerData->timer == L7_NULL)
+  {
+    osapiSemaGive(ptin_igmp_timers_sem);
+    if (ptin_debug_igmp_snooping)
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Client timer not running: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle);
+    return L7_FAILURE;
+  }
+    
+  appTimerTimeLeftGet(igmpClients_unified.timerCB, pTimerData->timer, &time_left);
+
+  if (ptin_debug_igmp_snooping)
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Client Timer TimeOut: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p time_left=%u (s))", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle, time_left);
+
+  osapiSemaGive(ptin_igmp_timers_sem);
+
+  return time_left;
 }
 
 /**
@@ -5904,7 +6198,7 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint32 ptin_port, L7_uint32 client_idx)
   igmpTimerData_t timerData;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to stop a timer (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to stop a timer (ptin_port=%u client_idx=%u )", ptin_port, client_idx);
 
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF)
@@ -5933,14 +6227,14 @@ L7_RC_t ptin_igmp_timer_stop(L7_uint32 ptin_port, L7_uint32 client_idx)
   {
     osapiSemaGive(ptin_igmp_timers_sem);
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Failed to delete timer node");
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to delete timer node: ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpClients_unified.timerCB, timerData.timer, timerData.timerHandle);
     return L7_FAILURE;
   }
 
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Timer stopped successfully for ptin_port=%u client_idx=%u", ptin_port, client_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Timer stopped successfully for ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpClients_unified.timerCB, timerData.timer, timerData.timerHandle);
 
   return L7_SUCCESS;
 }
@@ -5965,7 +6259,7 @@ void igmp_timer_expiry(void *param)
   igmpTimerData_t *pTimerData;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Expiration event ocurred for timerHandle %u!",timerHandle);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Expiration event ocurred for timerHandle %p!",timerHandle);
 
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
   osapiSemaTake(ptin_igmp_timers_sem, L7_WAIT_FOREVER);
@@ -5991,8 +6285,9 @@ void igmp_timer_expiry(void *param)
   client_idx = pTimerData->client_idx;
 
   if (ptin_debug_igmp_snooping)
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Expiration event ocurred for ptin_port=%u client_idx=%u", ptin_port, client_idx);
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Expiration event ocurred for ptin_port=%u client_idx=%u timerCB=%p timer=%p timerHandle=%p", ptin_port, client_idx, igmpClients_unified.timerCB, pTimerData->timer, pTimerData->timerHandle);
 
+#if 0
   /* Delete timer */
   if (appTimerDelete(igmpClients_unified.timerCB, pTimerData->timer)!=L7_SUCCESS)
   {
@@ -6006,7 +6301,7 @@ void igmp_timer_expiry(void *param)
   /* Delete the handle we had created */
   handleListNodeDelete(igmpClients_unified.appTimer_handle_list, &pTimerData->timerHandle);
   pTimerData->timerHandle = 0;
-
+#endif
   osapiSemaGive(ptin_igmp_timers_sem);
 
   if (ptin_debug_igmp_snooping)
@@ -6016,12 +6311,12 @@ void igmp_timer_expiry(void *param)
   if (ptin_igmp_rm_clientIdx(ptin_port, client_idx, L7_FALSE, L7_TRUE)!=L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Failed removing client (ptin_port=%u client_idx=%u)!", ptin_port, client_idx);
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed removing client (ptin_port=%u client_idx=%u)!", ptin_port, client_idx);
   }
   else
   {
     if (ptin_debug_igmp_snooping)
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client removed (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
+      LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Client removed (ptin_port=%u client_idx=%u)", ptin_port, client_idx);
   }
 
   osapiSemaGive(ptin_igmp_clients_sem);
@@ -8281,6 +8576,16 @@ static L7_RC_t ptin_igmp_rm_all_clients(L7_BOOL isDynamic, L7_BOOL only_wo_chann
     }
     else
     {
+      #if PTIN_SNOOP_USE_MGMD
+      L7_uint32                   intIfNum;   
+
+      /*Remove this Client From MGMD*/
+      if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS)
+      {
+        ptin_igmp_mgmd_client_remove(intIfNum, client_idx);
+      }
+      #endif
+
       if (clientGroup != L7_NULLPTR)
       {
         /* Remove device from client group */
@@ -8451,6 +8756,16 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
         igmp_clientDevice_remove(clientGroup, clientInfo);
       }
 
+      #if PTIN_SNOOP_USE_MGMD
+      L7_uint32                   intIfNum;   
+
+      /*Remove this Client From MGMD*/
+      if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS)
+      {
+        ptin_igmp_mgmd_client_remove(intIfNum, client_idx);
+      }
+      #endif
+
       /* Remove client from unified list of clients */
       igmp_clientIndex_unmark(ptin_port, client_idx);
 
@@ -8499,6 +8814,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
     }
   }
 
+#ifndef PTIN_SNOOP_USE_MGMD
   /* Only clean channels associated to this client, if force_remove flag is given */
   if ( force_remove )
   {
@@ -8530,6 +8846,7 @@ static L7_RC_t ptin_igmp_rm_clientIdx(L7_uint ptin_port, L7_uint client_idx, L7_
         LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cannot proceed to snoop channels remotion");
     }
   }
+#endif
 
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Success flushing client (client_idx=%u)", client_idx);
@@ -12098,8 +12415,7 @@ static L7_uint16 igmp_clientIndex_get_new(L7_uint ptin_port, ptinIgmpClientGroup
 static void igmp_clientIndex_free(L7_uint ptin_port, L7_uint16 client_idx)
 {
   struct ptinIgmpClientIdx_s *pClientIdx;
-  L7_uint32                   intIfNum;            
-
+  
 
   /* Validate arguments */
   if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
@@ -12137,11 +12453,6 @@ static void igmp_clientIndex_free(L7_uint ptin_port, L7_uint16 client_idx)
   //Remove this ClientId from the LookUp Table
   ptin_igmp_clientgroup_lookup_table_entry_remove(ptin_port, client_idx);
 #endif
-
-  if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) == L7_SUCCESS)
-  {
-    ptin_igmp_mgmd_client_remove(intIfNum, client_idx);
-  }
 }
 
 #if 0

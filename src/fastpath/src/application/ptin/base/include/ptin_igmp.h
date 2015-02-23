@@ -37,6 +37,9 @@
 
 
 /* Default config values (PTin custom parameters) */
+#define PTIN_IGMP_DEFAULT_WHITELIST_MODE                PTIN_MGMD_DISABLE /* Disabled */
+#define PTIN_IGMP_DEFAULT_BANDWIDTHCONTROL_MODE         PTIN_MGMD_DISABLE /* Disabled */
+#define PTIN_IGMP_DEFAULT_CHANNELSCONTROL_MODE          PTIN_MGMD_DISABLE /* Disabled */
 #define PTIN_IGMP_DEFAULT_COS                           SNOOP_IGMP_DEFAULT_PRIO
 #define PTIN_IGMP_DEFAULT_VERSION                       2
 #define PTIN_IGMP_DEFAULT_IPV4                          0xA00000A /* 10.0.0.10 */
@@ -469,6 +472,13 @@ extern L7_RC_t ptin_igmp_proxy_init(void);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_proxy_deinit(void);
+
+/**
+ * Load IGMP proxy default configuraion parameters
+ * 
+ * @return RC_t SUCCESS/FAILURE
+ */
+L7_RC_t ptin_igmp_proxy_defaultcfg_load(void);
 
 /**
  * Applies IGMP Proxy configuration
@@ -912,6 +922,18 @@ extern L7_RC_t ptin_igmp_client_type(L7_uint32 intIfNum,
  */
 L7_RC_t ptin_igmp_client_timer_start(L7_uint32 intIfNum,
                                      L7_uint32 client_idx);
+
+/**
+ * (Re)start the timer for this client
+ *  
+ * @param intIfNum    : Interface Number
+ * @param client_idx  : client index
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ *
+ * @notes Not working properly!
+ */
+L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx);
 
 /**
  * Add a new Multicast client group

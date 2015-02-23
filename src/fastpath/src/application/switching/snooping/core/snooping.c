@@ -515,27 +515,19 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   /* Search for client index */
   /* Validate client information */
-#if ( !PTIN_BOARD_IS_MATRIX )
-  L7_BOOL   unstacked_service = L7_FALSE;
-
-#if 0
-#ifndef IGMPASSOC_MULTI_MC_SUPPORTED
-  /* Check if MC service is unstacked. If it is, clients will be dynamic */
-  if (ptin_igmp_vlan_UC_is_unstacked(pduInfo->vlanId, &unstacked_service)!=L7_SUCCESS)
+#if ( PTIN_BOARD_IS_MATRIX )
+  if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
+                                L7_NULL, L7_NULL,
+                                L7_NULL,
+                                &client_idx) != L7_SUCCESS)
   {
-    SNOOP_TRACE(SNOOP_DEBUG_PROTO, pSnoopCB->family, "snoopPacketHandle: intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
-//  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_INTERCEPTED);
-//  ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);
-
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
-    return L7_FAILURE;
-  }
-#endif
-#endif
-
-  /* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
-  if ( (ptin_igmp_clientIntfVlan_validate( pduInfo->intIfNum, pduInfo->vlanId) == L7_SUCCESS) &&
-       (!unstacked_service) && (pduInfo->innerVlanId != 0) )
+    client_idx = (L7_uint) -1;
+    LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
+  }  
+#else
+/* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
+  if ( (ptin_igmp_clientIntfVlan_validate( pduInfo->intIfNum, pduInfo->vlanId) == L7_SUCCESS) 
+       && (pduInfo->innerVlanId != 0) )
   {
     if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
                                   pduInfo->vlanId, pduInfo->innerVlanId,
@@ -545,8 +537,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       client_idx = (L7_uint) -1;
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
-  }
-
+  }      
+#endif
+  
   /* Validate client index */
   if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
   {
@@ -554,10 +547,9 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     LOG_DEBUG(LOG_CTX_PTIN_IGMP, "Client not provided!");    
   }
   else
-  {
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client index is %u",client_idx);
+  {    
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Client index is %u",client_idx);    
   }
-#endif
 
 #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
   /* For leaf interfaces */
@@ -565,7 +557,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   {
 #if (PTIN_BOARD_IS_MATRIX)
     /* If the client does not exist, it will be created in dynamic mode */
-    if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS && ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
                                      L7_NULL, L7_NULL,
                                      L7_NULL,
                                      &client_idx) != L7_SUCCESS)
@@ -580,7 +572,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     {
       client_idx = (L7_uint) -1;
       LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
-    }
+    }    
   }
 #endif
 

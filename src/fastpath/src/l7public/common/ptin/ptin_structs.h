@@ -909,6 +909,7 @@ typedef struct {
 #define PTIN_IGMP_PROXY_MASK_HOST               0x0080
 #define PTIN_IGMP_PROXY_MASK_BANDWIDTHCONTROL   0x0100
 #define PTIN_IGMP_PROXY_MASK_CHANNELSCONTROL    0x0200
+#define PTIN_IGMP_PROXY_MASK_WHITELIST          0x0400
 
 typedef struct {
   L7_uint16               mask;                     /* PTIN_IGMP_PROXY_MASK_xxxx */
@@ -925,6 +926,7 @@ typedef struct {
 
   L7_uint8                bandwidthControl;         /* Mask: 0x100 ENABLE/DISABLE */
   L7_uint8                channelsControl;          /* Mask: 0x200 ENABLE/DISABLE */
+  L7_uint8                whiteList;                /* Mask: 0x200 ENABLE/DISABLE */
 
 } ptin_IgmpProxyCfg_t;
 
