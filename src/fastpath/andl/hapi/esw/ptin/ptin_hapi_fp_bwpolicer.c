@@ -427,13 +427,6 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   }
   LOG_TRACE(LOG_CTX_PTIN_HAPI,"New policy created!");
 
-  /* Validate interface: should be valid */
-  if ((usp->slot < 0) || (usp->port < 0))
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI,"No interface provided!");
-    return L7_FAILURE;
-  }
-
   /* Decide if this policer is to be applied at the ingress OR at the egress */
   if (profile->outer_vlan_out > 0 && profile->outer_vlan_out < 4096)
   {
@@ -449,6 +442,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   /* Set FP stage */
   if ((result=hapiBroadPolicyStageSet(stage))!=L7_SUCCESS)
   {
+    hapiBroadPolicyCreateCancel();
     LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting stage %u",stage);
     return result;
   }
@@ -460,6 +454,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
 
     if ((result=hapiBroadPolicyPolicerSet(bwPolicer->policer_id)) != L7_SUCCESS)
     {
+      hapiBroadPolicyCreateCancel();
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting policer id %u", bwPolicer->policer_id);
       return result;
     }
@@ -488,6 +483,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     {
       if (ptin_hapi_portDescriptor_get(usp, dapi_g, &portDescriptor, &pbm) != L7_SUCCESS) 
       {
+        hapiBroadPolicyCreateCancel();
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
         return L7_FAILURE;
       }
@@ -557,6 +553,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     {
       if (ptin_hapi_portDescriptor_get(usp, dapi_g, &portDescriptor, &pbm) != L7_SUCCESS)
       {
+        hapiBroadPolicyCreateCancel();
         LOG_ERR(LOG_CTX_PTIN_HAPI,"Error acquiring interface descriptor!");
         return L7_FAILURE;
       }
@@ -567,6 +564,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       {
         if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OUTPORT, (L7_uint8 *)&portDescriptor.bcm_port, (L7_uint8 *) mask))!=L7_SUCCESS)
         {
+          hapiBroadPolicyCreateCancel();
           LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(OUTPORT)");
           return result;
         }
@@ -577,6 +575,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
       {
         if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PORTCLASS, (L7_uint8 *)&(portDescriptor.class_port), (L7_uint8 *) mask))!=L7_SUCCESS)
         {
+          hapiBroadPolicyCreateCancel();
           LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(PORTCLASS)");
           return result;
         }

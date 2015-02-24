@@ -189,13 +189,12 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
   }
 #endif
 
+  usp.unit = ddusp->unit;
+  usp.slot = ddusp->slot;
+  usp.port = ddusp->port + 1;
+
   if (event == DAPI_EVENT_ADDR_LEARNED_ADDRESS)
   {
-
-    usp.unit = ddusp->unit;
-    usp.slot = ddusp->slot;
-    usp.port = ddusp->port + 1;
-
     if (nimGetIntIfNumFromUSP(&usp, &intIfNum) != L7_SUCCESS)
     {
       L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
@@ -203,6 +202,8 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
                 usp.unit, usp.slot, usp.port);
       return L7_FAILURE;
     }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} -> intIfNum=%u", usp.unit, usp.slot, usp.port, intIfNum);
 
 #ifdef L7_MACLOCK_PACKAGE
     pmlLearnEntryCallBack(intIfNum,
@@ -240,6 +241,17 @@ L7_RC_t dtlFdbReceive(DAPI_USP_t *ddusp,
   }
   else if (event==DAPI_EVENT_ADDR_AGED_ADDRESS)
   {
+    /* PTin added: Virtual ports */
+    if (nimGetIntIfNumFromUSP(&usp, &intIfNum) != L7_SUCCESS)
+    {
+      intIfNum = 0;
+      L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DRIVER_COMPONENT_ID,
+                "Received L2 FDB entry notification for invalid usp %d/%d/%u.",
+                usp.unit, usp.slot, usp.port);
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} -> intIfNum=%u", usp.unit, usp.slot, usp.port, intIfNum);
+
 #ifdef L7_MACLOCK_PACKAGE
     pmlAgeEntryCallBack(dei->cmdData.unsolLearnedAddress.macAddr,
                         dei->cmdData.unsolLearnedAddress.vlanID);
@@ -584,9 +596,13 @@ L7_RC_t dtlFdbMacAddrDelete(L7_uchar8 *macAddr,
   L7_RC_t dr;
   nimUSP_t usp;
 
+  LOG_TRACE(LOG_CTX_PTIN_L2, "vlan=%u, MAC=%02x:%02x:%02x:%02x:%02x:%02x",
+            filterDbID,
+            macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5]);
+
   if (nimGetUnitSlotPort(intfNum, &usp) != L7_SUCCESS)
   {
-
+    LOG_ERR(LOG_CTX_PTIN_L2,"Error!");
     return L7_FAILURE;
   }
   ddUsp.unit = usp.unit;
@@ -623,12 +639,17 @@ L7_RC_t dtlFdbMacAddrDelete(L7_uchar8 *macAddr,
   dapiCmd.cmdData.macAddressEntryDelete.vlanID = filterDbID;
 
   dr = dapiCtl(&ddUsp,DAPI_CMD_ADDR_MAC_ADDRESS_ENTRY_DELETE,&dapiCmd);
+
+  LOG_TRACE(LOG_CTX_PTIN_L2, "getOrSet=%d flags=0x%08x vlanId=%u, dr=%d",
+            dapiCmd.cmdData.macAddressEntryDelete.getOrSet,
+            dapiCmd.cmdData.macAddressEntryDelete.flags,
+            dapiCmd.cmdData.macAddressEntryDelete.vlanID,
+            dr);
+
   if (dr == L7_SUCCESS)
     return L7_SUCCESS;
   else
     return L7_FAILURE;
-
-
 }
 
 
