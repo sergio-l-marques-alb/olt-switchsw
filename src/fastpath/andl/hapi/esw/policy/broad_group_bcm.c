@@ -352,7 +352,7 @@ L7_RC_t l7_bcm_policy_hwInfo_get(int unit, BROAD_POLICY_t policy_id, L7_uint rul
 
   if (group_id!=L7_NULLPTR)   *group_id = policyPtr->group;
   if (entry_id!=L7_NULLPTR)   *entry_id = policyPtr->entry[rule_id];
-  if (policer_id!=L7_NULLPTR) *policer_id = policyPtr->policer_id[rule_id];
+  if (policer_id!=L7_NULLPTR) *policer_id = (policyPtr->policer_id[rule_id] > 0) ? policyPtr->policer_id[rule_id] : policyPtr->general_policer_id;
   if (counter_id!=L7_NULLPTR) *counter_id = policyPtr->counter_id[rule_id];
 
   return L7_SUCCESS;
@@ -837,6 +837,11 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
   policyPtr->entryCount  = 0;
   policyPtr->group       = BROAD_GROUP_INVALID;
 
+  /* PTin added: global policer */
+  #if 1
+  policyPtr->general_policer_id = policyData->general_policer_id;
+  #endif
+
   /* If we're supporting Egress ACLs using the IFP,
      process the stage as IFP instead of EFP. */
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_ACL_COMPONENT_ID, L7_FEAT_EGRESS_ACL_ON_IFP_ID))
@@ -1029,7 +1034,8 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       rulePtr->src_counterId = policyPtr->counter_id[srcRule];  /* PTin added: counter */
 
       /* PTin modified: SDK 6.3.0 */
-      policer_id = counter_id = 0;
+      policer_id = policyData->general_policer_id;
+      counter_id = 0;
       rv = policy_group_add_rule(unit, policyPtr->policyStage, policyData->policyType, group, rulePtr, policyPtr->pbm, policyPtr->flags & GROUP_MAP_EFP_ON_IFP,
                                  &entry, &policer_id, &counter_id);
 
@@ -1037,8 +1043,8 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       {
         /* PTin added: SDK 6.3.0 */
         #if 1
-        policyPtr->policer_id[i] = policer_id;
-        policyPtr->counter_id[i] = counter_id;
+        policyPtr->policer_id[i] = (rulePtr->ruleFlags & BROAD_METER_SPECIFIED  ) ? policer_id : -1;
+        policyPtr->counter_id[i] = (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED) ? counter_id : -1;
         #endif
         policyPtr->entry[i] = entry;
         policyPtr->srcEntry[i] = policyPtr->entry[srcRule]; /* PTin added: Policer/Counter */
@@ -1298,6 +1304,9 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
       osapiFree(L7_DRIVER_COMPONENT_ID, policyPtr->counter_id);
     }
     policyPtr->counter_id = L7_NULL;
+
+    /* No global policer */
+    policyPtr->general_policer_id = 0;
     #endif
 
     policyPtr->entryCount = 0;

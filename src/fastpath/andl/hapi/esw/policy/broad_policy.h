@@ -130,6 +130,18 @@ void hapiBroadPolicyCreateCancel();
 *********************************************************************/
 L7_RC_t hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_t policyStage);
 
+/* PTin added: global policer */
+#if 1
+/*********************************************************************
+*
+* @purpose Assign a global policer.
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadPolicyPolicerSet(L7_int policer_id);
+#endif
+
 /*********************************************************************
 *
 * @purpose Deletes an existing policy which removes it completely from

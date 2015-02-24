@@ -654,6 +654,31 @@ L7_RC_t hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_t policyStage)
     return L7_SUCCESS;
 }
 
+/* PTin added: global policer */
+#if 1
+/*********************************************************************
+*
+* @purpose Assign a global policer.
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t hapiBroadPolicyPolicerSet(L7_int policer_id)
+{
+    if (policer_id <= 0)
+    {
+      return L7_ERROR;
+    }
+
+    policyInfo->general_policer_id = policer_id;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_NONE)
+        sysapiPrintf("Setting policer_id %d\n", policer_id);
+
+    return L7_SUCCESS;
+}
+#endif
+
 /*********************************************************************
 *
 * @purpose Delete an existing policy by removing it from all units.

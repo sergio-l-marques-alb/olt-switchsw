@@ -697,6 +697,12 @@ typedef struct
 #endif
   L7_BOOL                    strictEthTypes;
   BROAD_POLICY_RULE_ENTRY_t *ruleInfo;
+
+  /* PTin added: General policers */
+  #if 1
+  L7_int                     general_policer_id;
+  L7_int                     general_counter_id;
+  #endif
 }
 BROAD_POLICY_ENTRY_t;
 
