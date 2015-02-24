@@ -259,11 +259,11 @@ L7_BOOL daiFrameDHCPSnoopingDbFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                                      L7_uchar8 *frame, L7_uint32 dataLen);
 L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                         L7_uchar8 *frame, L7_ushort16 frameLen);
-L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
                         L7_uchar8 *frame, L7_ushort16 frameLen);
 L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
                       L7_uchar8 *frame, L7_ushort16 frameLen);
-L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
                     L7_uchar8 *frame, L7_ushort16 frameLen);
 
 /* dai_util.c */

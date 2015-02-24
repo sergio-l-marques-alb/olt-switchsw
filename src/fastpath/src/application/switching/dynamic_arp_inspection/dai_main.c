@@ -41,6 +41,7 @@
 
 #include "logger.h"
 #include "ptin_evc.h"
+#include "ptin_intf.h"
 
 #define DAI_TIMER_EVENT_INTERVAL      1000
 
@@ -1732,10 +1733,14 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
   memset(vidMac, 0, L7_FDB_KEY_SIZE);
   (void)usmDbEntryVidMacCombine(vlanId, eth_header->dest.addr, vidMac);
 
+  if (ptin_debug_dai_snooping)
+    LOG_TRACE(LOG_CTX_DAI,"VidMAC=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x",
+              vidMac[0], vidMac[1], vidMac[2], vidMac[3], vidMac[4], vidMac[5], vidMac[6], vidMac[7]);
+
   memset(&fdbEntry, 0, sizeof(fdbEntry));
   if(L7_SUCCESS == fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry))
   {
-    return daiFrameUnicast(fdbEntry.dot1dTpFdbPort, vlanId, innerVlanId, frame, frameLen);
+    return daiFrameUnicast(fdbEntry.dot1dTpFdbPort, vlanId, innerVlanId, fdbEntry.dot1dTpFdbVirtualPort, frame, frameLen);
   }
 
   /* If Destination mac is not found in FDB table, flood the ARP Request/Reply
@@ -1750,6 +1755,7 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
 * @param    outgoingIf   @b{(input)} outgoing interface number
 * @param    vlanId       @b{(input)} VLAN ID
 * @param    innerVlanId  @b{(input)} Inner VLAN ID
+* @param    vport_id     @b{(input)} Virtual Port id
 * @param    frame        @b{(input)} ethernet frame
 * @param    frameLen     @b{(input)} ethernet frame length, incl eth header (bytes)
 *
@@ -1761,20 +1767,28 @@ L7_RC_t daiFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inne
 * @end
 *
 ***********************************************************************/
-L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+L7_RC_t daiFrameUnicast(L7_uint32 outgoingIf, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
                         L7_uchar8 *frame, L7_ushort16 frameLen)
 {
   L7_RC_t rc = L7_FAILURE;
   NIM_INTF_MASK_t portMask;
   L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+  L7_INTF_TYPES_t   sysIntfType = 0;
+
+  if (ptin_debug_dai_snooping)
+    LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", outgoingIf, vlanId, innerVlanId, vport_id);
 
   nimGetIntfName(outgoingIf, L7_SYSNAME, ifName);
 
+  /* Get interface type */
+  nimGetIntfType(outgoingIf, &sysIntfType);
+
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   {
-    if (L7_INTF_ISMASKBITSET(portMask, outgoingIf))
+    /* Do not evaluate port, if it is a virtual port */
+    if (sysIntfType == L7_VLAN_PORT_INTF || L7_INTF_ISMASKBITSET(portMask, outgoingIf))
     {
-      if (daiFrameSend(outgoingIf, vlanId, innerVlanId, frame, frameLen) == L7_SUCCESS)
+      if (daiFrameSend(outgoingIf, vlanId, innerVlanId, vport_id, frame, frameLen) == L7_SUCCESS)
       {
         return L7_SUCCESS;
       }
@@ -1818,6 +1832,9 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
   L7_uint32 i, activeState = L7_INACTIVE;
   L7_RC_t rc = L7_SUCCESS;
 
+  if (ptin_debug_dai_snooping)
+    LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+
   if (dot1qVlanEgressPortsGet(vlanId, &portMask) == L7_SUCCESS)
   {
     for (i = 1; i < DAI_MAX_INTF_COUNT; i++)
@@ -1831,7 +1848,7 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
              (activeState == L7_ACTIVE))
           {
             /* Send on an interface that is link up and in forwarding state */
-            if (daiFrameSend(i, vlanId, innerVlanId, frame, frameLen) != L7_SUCCESS)
+            if (daiFrameSend(i, vlanId, innerVlanId, 0, frame, frameLen) != L7_SUCCESS)
             {
               daiInfo->debugStats.pktTxFailures++;
               rc = L7_FAILURE;
@@ -1851,6 +1868,7 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
 * @param    intIfNum    @b{(input)} outgoing interface
 * @param    vlanId      @b{(input)} VLAN ID
 * @param    innerVlanId @b{(input)} Inner VLAN ID
+* @param    vport_id    @b{(input)} Virtual Port id
 * @param    frame       @b{(input)} ethernet frame
 * @param    frameLen    @b{(input)} ethernet frame length, incl eth header (bytes)
 *
@@ -1862,12 +1880,20 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
 * @end
 *
 ***********************************************************************/
-L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
                     L7_uchar8 *frame, L7_ushort16 frameLen)
 {
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
+  /* PTin added: DAI */
+  #if 1
+  ptin_HwEthEvcFlow_t vport_flow;
+  L7_uint16           vlanId_list[16][2], number_of_vlans=0, i;
+  L7_uint16           extOVlan = vlanId;
+  L7_uint16           extIVlan = 0;
+  #endif
+  L7_RC_t rc = L7_SUCCESS;
 
   /* If outgoing interface is CPU interface, don't send it */
   if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
@@ -1900,23 +1926,64 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     }
   }
 
-  SYSAPI_NET_MBUF_GET(bufHandle);
-  if (bufHandle == L7_NULL)
+  if (ptin_debug_dai_snooping)
+    LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
+
+  /* QUATTRO service? */
+  if (vport_id != 0)
   {
-    /* Don't bother logging this. mbuf alloc failures happen occasionally. */
-    daiInfo->debugStats.daiMbufFailures++;
-    return L7_FAILURE;
+    if (ptin_evc_extVlans_get_fromIntVlanVPort(vlanId, vport_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
+    {
+      if (ptin_debug_dai_snooping)
+        LOG_ERR(LOG_CTX_DAI, "Error obtaining Ext. VLANs for VLANs %u and VPort %u", vlanId, vport_id);
+      return L7_FAILURE;
+    }
+    number_of_vlans = 1;
+  }
+  /* Quattro VLAN, but no vport? (flooding) */
+  else if (ptin_evc_is_quattro_fromIntVlan(vlanId) && !ptin_evc_intf_isRoot(vlanId, intIfNum))
+  {
+    /* Get list of vlans (outer+inner) to be flooded */
+    for (memset(&vport_flow, 0x00, sizeof(vport_id));
+         ptin_evc_vlan_client_next(vlanId, intIfNum, &vport_flow, &vport_flow) == L7_SUCCESS && number_of_vlans < 16;
+         number_of_vlans++)
+    {
+      vlanId_list[number_of_vlans][0] = vport_flow.uni_ovid;
+      vlanId_list[number_of_vlans][1] = vport_flow.uni_ivid;
+    }
+  }
+  /* Regular service */
+  else
+  {
+    if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
+    {
+      if (ptin_debug_dai_snooping)
+        LOG_ERR(LOG_CTX_DAI, "Error obtaining UNI VLANs from IntIfNum %u, VLANs %u+%u", intIfNum, vlanId, innerVlanId);
+      return L7_FAILURE;
+    }
+    number_of_vlans = 1;
   }
 
-  /* PTin added: DAI */
-  #if 1
-  L7_uint16 extOVlan = vlanId;
-  L7_uint16 extIVlan = 0;
-  //L7_int i;
+  if (ptin_debug_dai_snooping)
+    LOG_TRACE(LOG_CTX_DAI, "number_of_vlans=%u", number_of_vlans);
 
-  /* Extract external outer and inner vlan for this tx interface */
-  if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &extOVlan,&extIVlan) == L7_SUCCESS)
+  /* Transmit for all VLANs */
+  for (i = 0; i < number_of_vlans; i++)
   {
+    extOVlan = vlanId_list[i][0];
+    extIVlan = vlanId_list[i][1];
+
+    if (ptin_debug_dai_snooping)
+      LOG_TRACE(LOG_CTX_DAI, "Going to transmit to intIfNum %u, with VLANs %u+%u", intIfNum, extOVlan, extIVlan);
+
+    SYSAPI_NET_MBUF_GET(bufHandle);
+    if (bufHandle == L7_NULL)
+    {
+      /* Don't bother logging this. mbuf alloc failures happen occasionally. */
+      daiInfo->debugStats.daiMbufFailures++;
+      return L7_FAILURE;
+    }
+
     if (osapiNtohs(*((L7_uint16 *) &frame[12])) != 0x8100 &&
         osapiNtohs(*((L7_uint16 *) &frame[12])) != 0x88A8 &&
         osapiNtohs(*((L7_uint16 *) &frame[12])) != 0x9100)
@@ -1963,16 +2030,22 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
       if (ptin_debug_dai_snooping)
         LOG_TRACE(LOG_CTX_DAI, "Added inner VLAN (%u)", extIVlan);
     }
+
+    if (ptin_debug_dai_snooping)
+      LOG_TRACE(LOG_CTX_DAI, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
+
+    SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+    memcpy(dataStart, frame, frameLen);
+    SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLen);
+
+    rc = dtlIpBufSend(intIfNum, vlanId, bufHandle);
+
+    if (rc != L7_SUCCESS)
+    {
+      break;
+    }
   }
 
-  if (ptin_debug_dai_snooping)
-    LOG_TRACE(LOG_CTX_DAI, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, extOVlan, extIVlan);
-  #endif
-
-  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
-  memcpy(dataStart, frame, frameLen);
-  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLen);
-
-  return dtlIpBufSend(intIfNum, vlanId, bufHandle);
+  return rc;
 }
 
