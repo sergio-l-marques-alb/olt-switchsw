@@ -132,6 +132,16 @@ extern L7_RC_t hapi_ptin_bcmUnit_get(L7_int *bcm_unit);
 extern L7_RC_t hapi_ptin_bcmPort_get(L7_int port, L7_int *bcm_port);
 
 /**
+ * Get pbmp value for a bitmap of ptin_ports
+ * 
+ * @param port_bmp 
+ * @param bcm_pbm 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t hapi_ptin_bcmPbmPort_get(L7_uint64 port_bmp, pbmp_t *bcm_pbm);
+
+/**
  * Get port if, from the sdk port reference
  * 
  * @param bcm_port: SDK port number 

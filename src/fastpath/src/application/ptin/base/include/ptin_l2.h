@@ -5,6 +5,20 @@
 #include "ptin_structs.h"
 
 /**
+ * Manage L2 earning events
+ * 
+ * @param macAddr 
+ * @param intIfNum 
+ * @param virtual_port 
+ * @param vlanId 
+ * @param msgsType 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 virtual_port,
+                            L7_uint32 vlanId, L7_uchar8 msgsType);
+
+/**
  * Get aging time
  * 
  * @param age : aging time in seconds (output)

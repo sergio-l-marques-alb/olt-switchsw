@@ -201,28 +201,30 @@ extern L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl);
  * Read data of a bandwidth profile
  * 
  * @param evc_ext_id : EVC extended index
- * @param profile    : bw profile (input and output)
+ * @param profile    : bw profile 
+ * @param meter      : Policer meter (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile);
+extern L7_RC_t ptin_evc_bwProfile_get(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter);
 
 /**
  * Apply a bandwidth profile to an EVC and (optionally) to a 
  * specific client 
  * 
  * @param evc_ext_id : EVC extended index
- * @param profile    : bw profile
+ * @param profile    : bw profile 
+ * @param meter      : Policer meter 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
-extern L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile);
+extern L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile, ptin_bw_meter_t *meter);
 
 /**
  * Remove a bandwidth profile to an EVC 
  * 
  * @param evc_ext_id : EVC extended index
- * @param profile    : bw profile
+ * @param profile    : bw profile 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FALSE
  */
@@ -722,7 +724,12 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 extern
 L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
-
+typedef struct
+{
+  L7_BOOL         in_use;
+  ptin_bw_meter_t meter;
+  L7_int          policer_id;
+} intf_vp_entry_policer_t;
 
 typedef struct {
     unsigned long   vport_id;
@@ -732,10 +739,7 @@ typedef struct {
     //int             vport_id;
 
     /* Policer */
-    struct {
-      L7_BOOL in_use;
-      ptin_bw_meter_t meter;
-    } policer;
+    intf_vp_entry_policer_t policer;
     
 } intf_vp_entry_t;
 
@@ -743,24 +747,14 @@ extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
 extern void dump_intf_vp_DB(void);
 
 /**
- * Find a particular entry inside virtual port list
- * 
- * @param vport_id 
- * @param entry 
- * 
- * @return int : 0 -> Found, -1 -> Not found
- */
-extern int intf_vp_find(L7_uint32 vport_id, intf_vp_entry_t **entry);
-
-/**
  * Set bandwidth policer for one virtual port
  * 
- * @param vport_id 
+ * @param vport_id
  * @param meter 
  * 
  * @return int : 0>Success, -1>Failed
  */
-extern int intf_vp_policer(unsigned long vport_id, ptin_bw_meter_t *meter);
+extern L7_RC_t ptin_evc_vp_policer(L7_uint32 vport_id, ptin_bw_meter_t *meter);
 
 
 /**
