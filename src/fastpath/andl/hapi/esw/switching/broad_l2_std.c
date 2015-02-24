@@ -3684,6 +3684,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
 void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
 {
   DAPI_ADDR_MGMT_CMD_t   macAddressInfo;
+  DAPI_USP_t             usp;
   DAPI_USP_t             cpuUsp;
   bcm_l2_addr_t          l2addr;
   L7_BOOL                ageAddr = L7_TRUE, hitSet = L7_FALSE;
@@ -3759,6 +3760,22 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     }
   }
 
+  /* PTin added: virtual ports */
+  #if 1
+  if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+  {
+    usp.unit = (L7_uchar8) L7_LOGICAL_UNIT;                //1;
+    usp.slot = (L7_uchar8) platSlotVlanPortSlotNumGet (); //L7_VLAN_PORT_SLOT_NUM;
+    usp.port = 0;
+    //HAPI_BROAD_LPORT_TO_USP(bcmx_l2_addr->lport,&usp); unusable: UPORTS aren't fixed in case of virtual VLAN PORTs
+    L7_LOGF(L7_LOG_SEVERITY_DEBUG, L7_DRIVER_COMPONENT_ID, "BCM_GPORT_IS_VLAN_PORT usp=(%d,%d,%d)", usp.unit, usp.slot, usp.port);
+  }
+  else
+  {
+    usp = cpuUsp;
+  }
+  #endif
+
   if (((bcmx_l2_addr->flags & BCM_L2_NATIVE) && (!(bcmx_l2_addr->flags & BCM_L2_TRUNK_MEMBER)))
       || ((bcmx_l2_addr->flags & BCM_L2_TRUNK_MEMBER) && ageAddr == L7_TRUE)
       || (BCM_GPORT_IS_WLAN_PORT(bcmx_l2_addr->lport) && ageAddr == L7_TRUE)
@@ -3818,7 +3835,7 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     /* increment the age counter regardless of the failure */
     hapiMacStats.age++;
 
-    if (dapiCallback(&cpuUsp,
+    if (dapiCallback(&usp,    /* PTin modified: Virtual ports */
                      DAPI_FAMILY_ADDR_MGMT,
                      DAPI_CMD_ADDR_UNSOLICITED_EVENT,
                      DAPI_EVENT_ADDR_AGED_ADDRESS,
