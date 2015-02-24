@@ -370,6 +370,7 @@ extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *fla
  */
 extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
  * Get the outer+inner external vlan for a specific evc_id+Vport 
  * (only applicable to QUATTRO services). 
@@ -386,6 +387,7 @@ extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L
  */
 extern L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 vport_id,
                                                L7_uint32 *port, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+#endif
 
 #if 0
 /**
@@ -623,6 +625,7 @@ extern L7_RC_t ptin_evc_get_NNIvlan_fromEvcId(L7_uint32 evc_ext_id, L7_uint16 *n
  */
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
  * Get the outer+inner external vlan for a specific oVLAN+Vport 
  * (only applicable to QUATTRO services). 
@@ -638,6 +641,7 @@ extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 i
  */
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vport_id,
                                                       L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+#endif
 
 /**
  * Gets the root vlan (internal) from the internal vlan

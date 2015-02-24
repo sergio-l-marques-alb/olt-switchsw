@@ -1313,6 +1313,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
   /* Interface is leaf? */
   if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
   {
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* Look to clients/flows for Quattro or standard stacked evcs: */
     if (IS_EVC_QUATTRO(evc_int_id))
     {
@@ -1326,7 +1327,9 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
       ovid = pclientFlow->uni_ovid;
       ivid = pclientFlow->uni_ivid;
     }
-    else if (IS_EVC_STACKED(evc_int_id))
+    else
+  #endif
+    if (IS_EVC_STACKED(evc_int_id))
     {
       /* Find this client vlan in EVC */
       ptin_evc_find_client(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
@@ -1347,6 +1350,7 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
   return L7_SUCCESS;
 }
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
  * Get the outer+inner external vlan for a specific evc_id+Vport 
  * (only applicable to QUATTRO services). 
@@ -1473,6 +1477,7 @@ L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_
 
   return L7_SUCCESS;
 }
+#endif
 
 #if 0
 /**
@@ -1901,6 +1906,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
   return L7_SUCCESS;
 }
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 /**
  * Get the outer+inner external vlan for a specific oVLAN+Vport 
  * (only applicable to QUATTRO services). 
@@ -1956,7 +1962,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vpo
 
   return L7_SUCCESS;
 }
-
+#endif
 
 /**
  * Return EVC type. 

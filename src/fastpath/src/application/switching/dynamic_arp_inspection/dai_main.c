@@ -1888,7 +1888,6 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   L7_INTF_TYPES_t   sysIntfType;
   /* PTin added: DAI */
   #if 1
-  ptin_HwEthEvcFlow_t vport_flow;
   L7_uint16           vlanId_list[16][2], number_of_vlans=0, i;
   L7_uint16           extOVlan = vlanId;
   L7_uint16           extIVlan = 0;
@@ -1930,6 +1929,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
     LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u, vport_id=%u", intIfNum, vlanId, innerVlanId, vport_id);
 
   /* QUATTRO service? */
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   if (vport_id != 0)
   {
     if (ptin_evc_extVlans_get_fromIntVlanVPort(vlanId, vport_id, &intIfNum, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
@@ -1943,6 +1943,8 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   /* Quattro VLAN, but no vport? (flooding) */
   else if (ptin_evc_is_quattro_fromIntVlan(vlanId) && !ptin_evc_intf_isRoot(vlanId, intIfNum))
   {
+    ptin_HwEthEvcFlow_t vport_flow;
+
     /* Get list of vlans (outer+inner) to be flooded */
     for (memset(&vport_flow, 0x00, sizeof(vport_id));
          ptin_evc_vlan_client_next(vlanId, intIfNum, &vport_flow, &vport_flow) == L7_SUCCESS && number_of_vlans < 16;
@@ -1954,6 +1956,7 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   }
   /* Regular service */
   else
+#endif
   {
     if (ptin_evc_extVlans_get_fromIntVlan(intIfNum, vlanId, innerVlanId, &vlanId_list[0][0], &vlanId_list[0][1]) != L7_SUCCESS)
     {
