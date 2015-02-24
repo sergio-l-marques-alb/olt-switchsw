@@ -2857,7 +2857,7 @@ L7_RC_t usmDbEntryVidMacCombine(L7_uint32 vlanId, L7_uchar8 *mac, L7_uchar8 *vid
 
   memset((void *)tmp, 0x00, L7_MFDB_KEY_SIZE);
 
-  vid = (L7_ushort16)vlanId;
+  vid = (L7_ushort16) osapiHtons(vlanId);
   memcpy(tmp, &vid, L7_MFDB_VLANID_LEN);
   memcpy(&tmp[L7_MFDB_VLANID_LEN], mac, L7_MAC_ADDR_LEN);
 

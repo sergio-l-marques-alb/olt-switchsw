@@ -404,6 +404,7 @@ void fdbInsert(char *mac, L7_uint32 intIfNum, L7_uint32 virtual_port /* PTin add
   {
     pData->dot1dTpFdbPort = intIfNum;
     pData->dot1dTpFdbEntryType = entryType;
+    pData->dot1dTpFdbVirtualPort = virtual_port;  /* PTin added: virtual ports */
 
     fdb_stats.dup_adds++;
   }
@@ -502,6 +503,40 @@ L7_RC_t fdbFind(char *mac, L7_uint32 matchType, dot1dTpFdbData_t *pData)
   return(L7_SUCCESS);
 }
 
+/**
+ * PTin added: FDB table dump
+ * 
+ * @author mruas (2/23/2015)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t fdbDump(void)
+{
+  char vidmac[L7_FDB_KEY_SIZE];
+  dot1dTpFdbData_t *pfdbData;
+
+  osapiSemaTake(fdbTreeData.semId, L7_WAIT_FOREVER);
+
+  memset(vidmac, 0x00, sizeof(vidmac));
+
+  while ((pfdbData=avlSearchLVL7(&fdbTreeData, vidmac, AVL_NEXT)) != L7_NULLPTR)
+  {
+    /* Prepare next key */
+    memcpy(vidmac, pfdbData->dot1dTpFdbAddress, sizeof(vidmac));
+
+    printf("dot1dTpFdbAddress=%02x:%02x/%02x:%02x:%02x:%02x:%02x:%02x  dot1dTpFdbPort=%-3u  dot1dTpFdbVirtualPort=0x%04x  dot1dTpFdbEntryType=%u\r\n",
+           pfdbData->dot1dTpFdbAddress[0], pfdbData->dot1dTpFdbAddress[1],
+           pfdbData->dot1dTpFdbAddress[2],pfdbData->dot1dTpFdbAddress[3],pfdbData->dot1dTpFdbAddress[4],pfdbData->dot1dTpFdbAddress[5],pfdbData->dot1dTpFdbAddress[6],pfdbData->dot1dTpFdbAddress[7],
+           pfdbData->dot1dTpFdbPort, pfdbData->dot1dTpFdbVirtualPort, pfdbData->dot1dTpFdbEntryType);
+  }
+
+  osapiSemaGive(fdbTreeData.semId);
+
+  fflush(stdout);
+
+  return(L7_SUCCESS);
+}
+
 /*********************************************************************
 * @purpose  Del the systems cpu mac address to table
 *
@@ -569,6 +604,7 @@ L7_RC_t fdbSysMacAddEntry(L7_uchar8 *macAddr, L7_uint32 vlanId, L7_uint32 intIfN
 
   fdbMsg.entryType = entryType;
   fdbMsg.intIfNum = intIfNum;
+  fdbMsg.virtual_port = 0;
 
   fdbGetTypeOfVL(&type);
   if (type == L7_SVL)
