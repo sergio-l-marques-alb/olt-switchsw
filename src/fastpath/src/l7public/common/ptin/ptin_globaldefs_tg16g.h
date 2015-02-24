@@ -13,6 +13,9 @@
 #define PTIN_SYS_MX1_SLOT           (PTIN_SYS_LC_SLOT_MIN-1)
 #define PTIN_SYS_MX2_SLOT           (PTIN_SYS_LC_SLOT_MAX+1)
 
+# define PTIN_SLOT_WORK                0
+# define PTIN_SLOT_PROT                1
+
 # define PTIN_SYSTEM_N_PORTS           20
 # define PTIN_SYSTEM_N_PONS            16 
 # define PTIN_SYSTEM_N_ETH             0
@@ -169,10 +172,11 @@ typedef union
     L7_uint8  chassis_ver;      /* 0x0D (1 byte)  */
     L7_uint8  chassis_bom_ver;  /* 0x0E (1 byte)  */
     L7_uint8  slot_id;          /* 0x0F (1 byte)  */
-
-    L7_uint8  empty2[0x1E - 0x10];
-    L7_uint8  slot_matrix;      /* 0x1e (1 byte) */
-    L7_uint8  empty4[PTIN_CPLD_MAP_SIZE - 0x1f];
+    L7_uint8  empty3[0x18 - 0x10];
+    L7_uint8  mx_get_active;    /* 0x18 (1 byte)  */
+    L7_uint8  empty4[0x1E - 0x19];
+    L7_uint8  slot_matrix;      /* 0x1E (1 byte)  */
+    L7_uint8  empty5[PTIN_CPLD_MAP_SIZE - 0x1F];
   } reg;
 } st_cpld_map_t;
 
