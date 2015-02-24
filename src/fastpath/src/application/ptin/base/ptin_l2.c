@@ -25,10 +25,6 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
                             L7_uint32 vlanId, L7_uchar8 msgsType)
 {
   L7_INTF_TYPES_t   intf_type;
-  intf_vp_entry_t   vp_entry;
-  ptin_bw_profile_t profile;
-  ptin_bw_meter_t   meter;
-  L7_RC_t           rc = L7_SUCCESS;
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Learning event received: %u", msgsType);
 
@@ -64,8 +60,14 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   }
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Processing vlan %u, MAC=%02x:%02x:%02x:%02x:%02x:%02x, intIfNum %u, vport 0x%x",
-            vlanId, profile.macAddr[0], profile.macAddr[1], profile.macAddr[2], profile.macAddr[3], profile.macAddr[4], profile.macAddr[5],
+            vlanId, macAddr[0], macAddr[1], macAddr[2], macAddr[3], macAddr[4], macAddr[5],
             intIfNum, virtual_port);
+
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+  ptin_bw_profile_t profile;
+  ptin_bw_meter_t   meter;
+  L7_RC_t           rc = L7_SUCCESS;
+  intf_vp_entry_t   vp_entry;
 
   /* Search for this entry */
   memset(&vp_entry, 0x00, sizeof(vp_entry));
@@ -135,6 +137,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   }
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Policer configured successfully");
+#endif
 
   return L7_SUCCESS;
 }
@@ -201,7 +204,6 @@ L7_RC_t ptin_l2_mac_table_load(void)
   L7_INTF_TYPES_t   intfType;
   L7_RC_t           rc = L7_SUCCESS;
   L7_uint32         evc_ext_id;
-  intf_vp_entry_t    e;
 
   LOG_TRACE(LOG_CTX_PTIN_L2, "Loading MAC table...");
 
@@ -229,7 +231,10 @@ L7_RC_t ptin_l2_mac_table_load(void)
     }
 
     /* Convert to ptin interface format */
+  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     if (intfType==L7_VLAN_PORT_INTF) {
+        intf_vp_entry_t   e;
+
         e.vport_id = fdbEntry.dot1dTpFdbVirtualPort;
         if (intf_vp_DB(3, &e)) {
             LOG_WARNING(LOG_CTX_PTIN_L2,"PON&GEMid for intIfNum %lu / vport %lu not found",fdbEntry.dot1dTpFdbPort,fdbEntry.dot1dTpFdbVirtualPort);
@@ -241,6 +246,7 @@ L7_RC_t ptin_l2_mac_table_load(void)
         gem_id    = e.gem_id;
     }
     else
+  #endif
     {
       if (ptin_intf_intIfNum2ptintf(fdbEntry.dot1dTpFdbPort,&ptin_intf)!=L7_SUCCESS)
       {

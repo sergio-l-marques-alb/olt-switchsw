@@ -724,6 +724,7 @@ extern L7_RC_t ptin_evc_intfVlan_validate(L7_uint32 intIfNum, L7_uint16 intVlan)
 extern
 L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEthEvcFlow_t *clientFlow, ptin_HwEthEvcFlow_t *clientFlow_next);
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 typedef struct
 {
   L7_BOOL         in_use;
@@ -745,6 +746,7 @@ typedef struct {
 
 extern int intf_vp_DB(int _0init_1insert_2remove_3find, intf_vp_entry_t *entry);
 extern void dump_intf_vp_DB(void);
+#endif
 
 /**
  * Set bandwidth policer for one virtual port

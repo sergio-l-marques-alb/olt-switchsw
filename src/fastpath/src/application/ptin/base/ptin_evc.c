@@ -581,7 +581,9 @@ L7_RC_t ptin_evc_init(void)
     return L7_FAILURE;
   }
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   intf_vp_DB(0, NULL);
+#endif
   LOG_INFO(LOG_CTX_PTIN_EVC, "EVC init OK");
 
   return L7_SUCCESS;
@@ -4193,15 +4195,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
 
 
-
-
-
-
-
-
-
-
-
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 
 #define INTF_VP_MAX   PTIN_SYSTEM_N_CLIENTS
 
@@ -4581,29 +4575,12 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
 
 //#undef INTF_VP_MAX
 
-
-
-
-
-
-
-
-
 void dump_intf_vp_db(void)
 {
   intf_vp_DB(4,NULL);
 }
 
-
-
-
-
-
-
-
-
-
-
+#endif
 
 
 
@@ -6364,8 +6341,9 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
     return L7_NOT_EXIST;
   }
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* For QUATTRO services, apply special profiles */
-  if (IS_EVC_QUATTRO(evc_id))
+  if (0 /*IS_EVC_QUATTRO(evc_id)*/)
   {
     L7_uint32 vport_id;
 
@@ -6387,6 +6365,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
 
     return L7_SUCCESS;
   }
+#endif
 
   /* Verify and update profile data */
   if (ptin_evc_bwProfile_verify(evc_id, profile) != L7_SUCCESS)
@@ -6433,8 +6412,9 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
     return L7_NOT_EXIST;
   }
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* For QUATTRO services, apply special profiles */
-  if (IS_EVC_QUATTRO(evc_id))
+  if (0 /*IS_EVC_QUATTRO(evc_id)*/)
   {
     L7_uint32 vport_id;
 
@@ -6461,6 +6441,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
 
     return L7_SUCCESS;
   }
+#endif
 
   /* Verify and update profile data */
   rc = ptin_evc_bwProfile_verify(evc_id,profile);
