@@ -370,6 +370,23 @@ extern L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *fla
  */
 extern L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint16 innerVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
+/**
+ * Get the outer+inner external vlan for a specific evc_id+Vport 
+ * (only applicable to QUATTRO services). 
+ * 
+ * @param evc_ext_id      : EVC extended index 
+ * @param evc_int_id      : EVC internal index  
+ * @param vport_id        : Vport_id 
+ * @param port            : Physical port for transmission (out)
+ * @param extOVlan        : External outer-vlan 
+ * @param extIVlan        : External inner-vlan (01 means that there 
+ *                      is no inner vlan)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 vport_id,
+                                               L7_uint32 *port, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+
 #if 0
 /**
  * Validate outer vlan
@@ -607,6 +624,22 @@ extern L7_RC_t ptin_evc_get_NNIvlan_fromEvcId(L7_uint32 evc_ext_id, L7_uint16 *n
 extern L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
 
 /**
+ * Get the outer+inner external vlan for a specific oVLAN+Vport 
+ * (only applicable to QUATTRO services). 
+ *  
+ * @param intOVlan   : Internal outer-vlan 
+ * @param vport_id   : Vport id 
+ * @param intIfNum   : Physical port for transmission (out) 
+ * @param extOVlan   : External outer-vlan 
+ * @param extIVlan   : External inner-vlan (01 means that there 
+ *                     is no inner vlan)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vport_id,
+                                                      L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan);
+
+/**
  * Gets the root vlan (internal) from the internal vlan
  * 
  * @param intVlan     : Internal vlan
@@ -635,6 +668,15 @@ extern L7_RC_t ptin_evc_check_evctype(L7_uint32 evc_id_ext, L7_uint8 *evc_type);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint8 *evc_type);
+
+/**
+ * Check if a specific internal VLAN is a QUATTRO service.
+ *  
+ * @param intVlan    : Internal outer-vlan 
+ * 
+ * @return L7_BOOL: L7_TRUE or L7_FALSE
+ */
+extern L7_BOOL ptin_evc_is_quattro_fromIntVlan(L7_uint16 intVlan);
 
 /**
  * Check if the EVC related to an internal vlan is stacked. 

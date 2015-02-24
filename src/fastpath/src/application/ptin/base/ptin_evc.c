@@ -432,6 +432,7 @@ static void    ptin_evc_intf_list_get(L7_uint evc_id, L7_uint8 mef_type, L7_uint
 static void    ptin_evc_find_client(L7_uint16 inn_vlan, dl_queue_t *queue, dl_queue_elem_t **pelem);
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_elem_t **pelem);
+static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, dl_queue_elem_t **pelem);
 #endif
 
 static L7_RC_t switching_root_add(L7_uint root_intf, L7_uint16 out_vlan, L7_uint16 inner_vlan, L7_uint16 int_vlan, L7_uint16 new_innerVlan,
@@ -1309,11 +1310,23 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
     ivid = innerVlan;
   }
 
-  /* Look to clients/flows for Quattro or standard stacked evcs: */
-  if (IS_EVC_QUATTRO(evc_int_id) || IS_EVC_STACKED(evc_int_id))
+  /* Interface is leaf? */
+  if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
   {
-    /* Interface is leaf? */
-    if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
+    /* Look to clients/flows for Quattro or standard stacked evcs: */
+    if (IS_EVC_QUATTRO(evc_int_id))
+    {
+      /* Find this client vlan in EVC */
+      ptin_evc_find_flow(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
+      if (pclientFlow==NULL)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC,"There is no flow with gemId=%u in IntIfNum=%u/ptin_port=%u and EVC=%u",innerVlan,intIfNum,ptin_port,evc_int_id);
+        return L7_FAILURE;
+      }
+      ovid = pclientFlow->uni_ovid;
+      ivid = pclientFlow->uni_ivid;
+    }
+    else if (IS_EVC_STACKED(evc_int_id))
     {
       /* Find this client vlan in EVC */
       ptin_evc_find_client(innerVlan, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
@@ -1323,13 +1336,140 @@ L7_RC_t ptin_evc_extVlans_get(L7_uint32 intIfNum, L7_uint32 evc_ext_id, L7_uint3
         return L7_FAILURE;
       }
       ovid = pclientFlow->uni_ovid;
-      ivid = IS_EVC_QUATTRO(evc_int_id) ? pclientFlow->uni_ivid : 0;    /* Use only inner vid, if EVC is QUATTRO type */
+      ivid = 0;
     }
   }
 
   /* Return output values */
   if (extOVlan!=L7_NULLPTR)  *extOVlan = ovid;
   if (extIVlan!=L7_NULLPTR)  *extIVlan = ivid;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the outer+inner external vlan for a specific evc_id+Vport 
+ * (only applicable to QUATTRO services). 
+ *  
+ * @param evc_ext_id      : EVC extended index 
+ * @param evc_int_id      : EVC internal index  
+ * @param vport_id        : Vport_id 
+ * @param port            : Physical port for transmission (out)
+ * @param extOVlan        : External outer-vlan (out)
+ * @param extIVlan        : External inner-vlan (01 means that there 
+ *                      is no inner vlan) (out)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_extVlans_get_fromVPort(L7_uint32 evc_ext_id, L7_uint32 evc_int_id, L7_uint32 vport_id,
+                                        L7_uint32 *port, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
+{
+  L7_uint32 ptin_port;
+  L7_uint16 ovid, ivid;
+  intf_vp_entry_t intf_vp_entry;
+  struct ptin_evc_client_s *pclientFlow;
+
+  /* Validate arguments */
+  if (evc_int_id!=(L7_uint32)-1 && evc_int_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* If the internal evc id is not given. We search for it*/
+  if (evc_int_id==(L7_uint32)-1)
+  {
+    /* Is EVC in use? */
+    if (ptin_evc_ext2int(evc_ext_id, &evc_int_id) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC, "eEVC# %u is not in use", evc_ext_id);
+      return L7_NOT_EXIST;
+    }
+  }
+
+  /* Validate internal EVc id */
+  if (!evcs[evc_int_id].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not in use", evc_int_id);
+    return L7_FAILURE;
+  }
+
+  /* This should be a QUATTRO service */
+  if (!(evcs[evc_int_id].flags & PTIN_EVC_MASK_QUATTRO))
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u is not a QUATTRO service", evc_int_id);
+    return L7_FAILURE;
+  }
+
+  /* Search for this virtual port */
+  memset(&intf_vp_entry, 0x00, sizeof(intf_vp_entry));
+  intf_vp_entry.vport_id = vport_id;
+
+  if (intf_vp_DB(3, &intf_vp_entry) == 0)
+  {
+    /* Validate interface */
+    if (ptin_intf_ptintf2port(&intf_vp_entry.pon, &ptin_port) != L7_SUCCESS ||
+        ptin_port >= ptin_sys_number_of_ports)
+    {
+      LOG_ERR(LOG_CTX_DAI, "Error obtaining ptin_port from PON interface (%u/%u)", intf_vp_entry.pon.intf_type, intf_vp_entry.pon.intf_id);
+      return L7_FAILURE;
+    }
+    /* Validate GEM id */
+    else if (intf_vp_entry.gem_id == 0 || intf_vp_entry.gem_id >= 4095)
+    {
+      LOG_ERR(LOG_CTX_DAI, "Invalid GEM id %u", intf_vp_entry.gem_id);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_DAI, "Vport %u not found", vport_id);
+    return L7_FAILURE;
+  }
+
+  /* Validate ptin_port */
+  if (!evcs[evc_int_id].intf[ptin_port].in_use)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"ptin_port=%u is not used in EVC=%u",ptin_port,evc_int_id);
+    return L7_FAILURE;
+  }
+
+  /* Initialize external outer+inner vlans */
+  ovid = evcs[evc_int_id].intf[ptin_port].out_vlan;
+  if (evcs[evc_int_id].intf[ptin_port].inner_vlan>0 && evcs[evc_int_id].intf[ptin_port].inner_vlan<4096)
+  {
+    ivid = evcs[evc_int_id].intf[ptin_port].inner_vlan;
+  }
+  else
+  {
+    ivid = 0;
+  }
+
+  /* Interface is leaf? */
+  if (evcs[evc_int_id].intf[ptin_port].type == PTIN_EVC_INTF_LEAF)
+  {
+    /* Find this client vlan in EVC */
+    ptin_evc_find_flow_fromVPort(vport_id, &(evcs[evc_int_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
+    if (pclientFlow==NULL)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"There is no flow with vport_id=%u in ptin_port=%u and EVC=%u",vport_id,ptin_port,evc_int_id);
+      return L7_FAILURE;
+    }
+    ovid = pclientFlow->uni_ovid;
+    ivid = pclientFlow->uni_ivid;
+  }
+
+  /* Return output values */
+  if (port != L7_NULLPTR)     *port = ptin_port;
+  if (extOVlan!=L7_NULLPTR)   *extOVlan = ovid;
+  if (extIVlan!=L7_NULLPTR)   *extIVlan = ivid;
 
   return L7_SUCCESS;
 }
@@ -1752,7 +1892,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
   evc_ext_id = evcs[evc_int_id].extended_id;
 
   /* Get external vlans */
-  if (ptin_evc_extVlans_get(intIfNum, evc_ext_id,evc_int_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
+  if (ptin_evc_extVlans_get(intIfNum, evc_ext_id, evc_int_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=%u, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
     return L7_FAILURE;
@@ -1760,6 +1900,63 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
 
   return L7_SUCCESS;
 }
+
+/**
+ * Get the outer+inner external vlan for a specific oVLAN+Vport 
+ * (only applicable to QUATTRO services). 
+ * 
+ * @param intOVlan   : Internal outer-vlan 
+ * @param vport_id   : Vport id 
+ * @param intIfNum   : Physical port for transmission (out)
+ * @param extOVlan   : External outer-vlan 
+ * @param extIVlan   : External inner-vlan (01 means that there 
+ *                     is no inner vlan)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vport_id,
+                                               L7_uint32 *intIfNum, L7_uint16 *extOVlan, L7_uint16 *extIVlan)
+{
+  L7_uint   evc_int_id;
+  L7_uint32 evc_ext_id;
+  L7_uint32 ptin_port;
+
+  /* Validate arguments */
+  if (intOVlan<PTIN_VLAN_MIN || intOVlan>PTIN_VLAN_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  /* Get evc id and validate it */
+  evc_int_id = evcId_from_internalVlan[intOVlan];
+  if (evc_int_id>=PTIN_SYSTEM_N_EVCS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Internal Outer vlan (%u) is not used in any EVC",intOVlan);
+    return L7_FAILURE;
+  }
+
+  evc_ext_id = evcs[evc_int_id].extended_id;
+
+  /* Get external vlans */
+  if (ptin_evc_extVlans_get_fromVPort(evc_ext_id, evc_int_id, vport_id, &ptin_port, extOVlan, extIVlan)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error getting external vlans for evc_ext_id=%u, vport_id=%u",evc_ext_id,vport_id);
+    return L7_FAILURE;
+  }
+
+  if (intIfNum != L7_NULLPTR)
+  {
+    if (ptin_intf_port2intIfNum(ptin_port, intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Error converting ptin_port %u to intIfNum format",ptin_port);
+      return L7_FAILURE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Return EVC type. 
@@ -1839,6 +2036,27 @@ L7_RC_t ptin_evc_check_evctype_fromIntVlan(L7_uint16 intVlan, L7_uint8 *evc_type
 
   /* Check if EVC is stacked, and return result */
   return ptin_evc_check_evctype(evcs[evc_id].extended_id, evc_type);
+}
+
+/**
+ * Check if a specific internal VLAN is a QUATTRO service.
+ *  
+ * @param intVlan    : Internal outer-vlan 
+ * 
+ * @return L7_BOOL: L7_TRUE or L7_FALSE
+ */
+L7_BOOL ptin_evc_is_quattro_fromIntVlan(L7_uint16 intVlan)
+{
+  L7_uint8 evc_type;
+
+  /* Get evc type */
+  if (ptin_evc_check_evctype_fromIntVlan(intVlan, &evc_type) != L7_SUCCESS)
+  {
+    return L7_FALSE;
+  }
+
+  /* Only return TRUE is is QUATTRO */
+  return (evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED);
 }
 
 /**
@@ -8503,6 +8721,36 @@ static void ptin_evc_find_flow(L7_uint16 uni_ovid, dl_queue_t *queue, dl_queue_e
   {
     /* If inner vlan is null, the first cvlan is returned */
     if (uni_ovid == 0 || pflow->uni_ovid == uni_ovid)
+    {
+      *pelem = (dl_queue_elem_t *) pflow;
+      break;
+    }
+    pflow = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pflow);
+  }
+
+  /* SEM DOWN */
+}
+
+/**
+ * Search flow based on VPort id
+ * 
+ * @param queue 
+ * @param pelem 
+ */
+static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, dl_queue_elem_t **pelem)
+{
+  struct ptin_evc_client_s *pflow = NULL;
+
+  /* SEM UP */
+
+  *pelem = NULL;
+
+  dl_queue_get_head(queue, (dl_queue_elem_t **)&pflow);
+
+  while (pflow != NULL)
+  {
+    /* If inner vlan is null, the first cvlan is returned */
+    if (vport_id == 0 || pflow->vport_id == (vport_id & 0xffff))
     {
       *pelem = (dl_queue_elem_t *) pflow;
       break;
