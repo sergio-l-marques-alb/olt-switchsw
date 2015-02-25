@@ -13,6 +13,19 @@
 #include "usmdb_util_api.h"
 #include "usmdb_qos_acl_api.h"
 
+typedef struct {
+  L7_uint8      aclType;          /* ACL_TYPE_t */
+  L7_uint16     aclId;
+  L7_uint8      name[32];
+
+  L7_uint32     interface;        /* Interface is always physical */
+
+  L7_uint       number_of_vlans;  /* Number of VLANs */
+  L7_uint16     vlanId[4096];     /* List of vlans */
+
+  L7_uint8      direction;        /* ACL_DIRECTION_t: Only ACL_DIRECTION_IN is supported */
+} ptin_acl_apply_t;
+
 /**
  * Clean All ACL
  * 
@@ -37,11 +50,11 @@ L7_RC_t ptin_aclIpRuleConfig(msg_ip_acl_t *msgAcl, ACL_OPERATION_t operation);
  * 
  * @author joaom (11/04/2013)
  * 
- * @param msgAcl 
+ * @param aclApply 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_aclIpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation);
+L7_RC_t ptin_aclIpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation);
 
 
 /**
@@ -60,11 +73,11 @@ L7_RC_t ptin_aclIpv6RuleConfig(msg_ipv6_acl_t *msgAcl, ACL_OPERATION_t operation
  * 
  * @author joaom (11/04/2013)
  * 
- * @param msgAcl 
+ * @param aclApply 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_aclIpv6Apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation);
+L7_RC_t ptin_aclIpv6Apply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation);
 
 /**
  * Create a MAC ACL Rule
@@ -82,11 +95,11 @@ L7_RC_t ptin_aclMacRuleConfig(msg_mac_acl_t *msgAcl, ACL_OPERATION_t operation);
  * 
  * @author joaom (10/30/2013)
  * 
- * @param msgAcl 
+ * @param aclApply 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_aclMacApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation);
+L7_RC_t ptin_aclMacApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation);
 
 /**
  * Create an ARP ACL Rule
@@ -104,10 +117,10 @@ L7_RC_t ptin_aclArpRuleConfig(msg_arp_acl_t *msgAcl, ACL_OPERATION_t operation);
  * 
  * @author mruas (02/16/2015)
  * 
- * @param msgAcl 
+ * @param aclApply 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_aclArpApply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation);
+L7_RC_t ptin_aclArpApply(ptin_acl_apply_t *aclApply, ACL_OPERATION_t operation);
 
 #endif //PTIN_ACL_H_

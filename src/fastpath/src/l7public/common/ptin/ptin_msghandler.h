@@ -2294,9 +2294,7 @@ typedef struct
 typedef struct
 {
   L7_uint8  slotId;
-  L7_uint32 evc_idx;              /* EVC ID: 0 or -1 to use VLANs instead of this value */
-  L7_uint16 vlanId_start;         /* Start VLAN (1-4094): This is the NNI VLAN */
-  L7_uint16 vlanId_end;           /* End VLAN (1-4094): For one VLAN only, use vlanId_end=vlanId_start or invalid value */
+  msg_id_t  service;              /* EVC or VLAN id */
 
   L7_uint8  mask;
   L7_uint8  dai_enable;           /* [mask_local=0x01] DAI enable for these VLANs: True or False */
@@ -2322,8 +2320,7 @@ typedef struct
 typedef struct
 {
   L7_uint8  slotId;
-  L7_uint32 evc_idx;          /* EVC ID: 0 or -1 to use VLANs instead of this value */
-  L7_uint16 vlanId;           /* VLAN (1-4094): This is the NNI VLAN */
+  msg_id_t  service;          /* EVC or VLAN id */
   msg_HwEthInterface_t intf;  /* Interface (type/id) */
 
   msg_dai_statCounters_t  stats;          /* Statistics structure */
