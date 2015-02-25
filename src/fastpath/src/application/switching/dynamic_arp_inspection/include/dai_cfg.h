@@ -59,6 +59,8 @@ typedef struct arpAclCfg_s
 
   arpAclRule_t  rules[L7_ARP_ACL_RULES_MAX];
 
+  L7_uint32     number_of_rules;  /* PTin added: DAI */
+
 } arpAclCfg_t;
 
 /* Rate limit config structure */
@@ -107,6 +109,5 @@ typedef struct daiCfgData_s
   arpAclCfg_t           arpAclCfg[L7_ARP_ACL_CMDS_MAX];
 
 } daiCfgData_t;
-
 
 #endif /* DAI_CFG_H */

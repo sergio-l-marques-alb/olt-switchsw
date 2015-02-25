@@ -687,6 +687,8 @@ L7_RC_t _arpAclRuleAdd(L7_uchar8 *aclName, L7_uint32 ipAddress,
           /* Add the first rule in this ACL */
           rule->senderHostIp = ipAddress;
           memcpy(rule->senderHostMac, macAddress, L7_ENET_MAC_ADDR_LEN);
+          /* PTin added: DAI */
+          acl->number_of_rules++;
           return L7_SUCCESS;
         }
         if(rule->senderHostIp == ipAddress)
@@ -708,6 +710,8 @@ L7_RC_t _arpAclRuleAdd(L7_uchar8 *aclName, L7_uint32 ipAddress,
             }
             rule->senderHostIp = ipAddress;
             memcpy(rule->senderHostMac, macAddress, L7_ENET_MAC_ADDR_LEN);
+            /* PTin added: DAI */
+            acl->number_of_rules++;
             return L7_SUCCESS;
           }
         }
@@ -724,6 +728,8 @@ L7_RC_t _arpAclRuleAdd(L7_uchar8 *aclName, L7_uint32 ipAddress,
             }
             rule->senderHostIp = ipAddress;
             memcpy(rule->senderHostMac, macAddress, L7_ENET_MAC_ADDR_LEN);
+            /* PTin added: DAI */
+            acl->number_of_rules++;
             return L7_SUCCESS;
         }
       }
@@ -775,6 +781,9 @@ L7_RC_t _arpAclRuleDelete(L7_uchar8 *aclName, L7_uint32 ipAddress,
             memcpy(&(acl->rules[k-1]), &(acl->rules[k]), sizeof(arpAclRule_t));
           }
           memset(&(acl->rules[L7_ARP_ACL_RULES_MAX-1]), 0, sizeof(arpAclRule_t));
+          /* PTin added: DAI */
+          if (acl->number_of_rules > 0)
+            acl->number_of_rules--;
           return L7_SUCCESS;
         }
         else if(rule->senderHostIp > ipAddress)
@@ -836,6 +845,48 @@ L7_RC_t _arpAclRuleGet(L7_uchar8 *aclName, L7_uint32 ipAddress, L7_uchar8 *macAd
   }
   return L7_FAILURE;
 }
+
+/* PTin added: DAI */
+#if 1
+/*********************************************************************
+* @purpose  API to Check if an ARP ACL Rule exists
+*
+* @param    aclName    @b((input))  ACL Name
+* @param    ipAddress  @b((input))  Sender's IP address
+* @param    macAddress @b((input))  Sender's MAC address
+*
+* @returns  L7_SUCCESS
+*           L7_FAILURE
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t _ptin_arpAclRuleGet(L7_uchar8 *aclName, L7_uint32 ipAddress, L7_uchar8 *macAddress)
+{
+  L7_uint32 i;
+  arpAclCfg_t  *acl;
+
+  for(i=0; i<L7_ARP_ACL_CMDS_MAX; i++)
+  {
+    if(osapiStrncmp(daiCfgData->arpAclCfg[i].aclName, ARP_ACL_NULL,
+                    L7_ARP_ACL_NAME_LEN_MAX+1) == 0)
+      return L7_FAILURE;
+
+    if(osapiStrncmp(daiCfgData->arpAclCfg[i].aclName, aclName,
+                    L7_ARP_ACL_NAME_LEN_MAX+1) == 0)
+    {
+      acl = &(daiCfgData->arpAclCfg[i]);
+
+      if (_ptin_arpAclRuleFindIndex(acl, ipAddress, macAddress) >= 0)
+      {
+        return L7_SUCCESS;
+      }
+    }
+  }
+  return L7_FAILURE;
+}
+#endif
 
 /*********************************************************************
 * @purpose  API to get the next ARP ACL Rule from all the ACL list
@@ -1013,3 +1064,84 @@ L7_RC_t _arpAclRuleInAclNextGet(L7_uchar8 *aclName, L7_uint32 ipAddrIn, L7_uchar
   /* Either matching current ACL is not found, or we reached end of the ACLs */
   return L7_FAILURE;
 }
+
+/* PTin added: DAI */
+#if 1
+/**
+ * Recursive algorithm divide-and-conquer to search for a target
+ * 
+ * @author mruas (2/24/2015)
+ * 
+ * @param array 
+ * @param start_index 
+ * @param end_index 
+ * @param target 
+ * 
+ * @return L7_int32 
+ */
+static L7_int32 _ptin_arpAclRuleBinarySearch(const arpAclRule_t *array, L7_int32 start_index, L7_int32 end_index, const arpAclRule_t *target)
+{
+  L7_int32 middle_index;
+  const arpAclRule_t *compare_value;
+
+  /* Not found */
+  if (start_index > end_index)
+  {
+    return -1;
+  }
+
+  middle_index = (start_index + end_index) / 2;
+  compare_value = &array[middle_index];
+
+  /* Comapare IP address */
+  if (compare_value->senderHostIp > target->senderHostIp)
+  {
+    return _ptin_arpAclRuleBinarySearch(array, start_index, middle_index-1, target);
+  }
+  if (compare_value->senderHostIp < target->senderHostIp)
+  {
+    return _ptin_arpAclRuleBinarySearch(array, middle_index+1, end_index, target);
+  }
+  /* Compare MAC address */
+  if (memcmp(compare_value->senderHostMac, target->senderHostMac, L7_ENET_MAC_ADDR_LEN) > 0)
+  {
+    return _ptin_arpAclRuleBinarySearch(array, start_index, middle_index-1, target);
+  }
+  if (memcmp(compare_value->senderHostMac, target->senderHostMac, L7_ENET_MAC_ADDR_LEN) < 0)
+  {
+    return _ptin_arpAclRuleBinarySearch(array, middle_index+1, end_index, target);
+  }
+
+  /* Found index */
+  return middle_index;
+}
+
+/**
+ * Search for an entry at ACL table, using divide-and-conquer 
+ * algorithm 
+ * 
+ * @author mruas (2/24/2015)
+ * 
+ * @param arpAcl_table 
+ * @param find_senderHostIp 
+ * @param find_senderHostMac 
+ * 
+ * @return L7_int32 : index (-1: not found)
+ */
+L7_int32 _ptin_arpAclRuleFindIndex(const arpAclCfg_t *arpAcl_table, L7_IP_ADDR_t find_senderHostIp, L7_uchar8 *find_senderHostMac)
+{
+  arpAclRule_t rule;
+
+  /* Check if table is empty */
+  if (arpAcl_table->number_of_rules == 0)
+  {
+    return -1;
+  }
+
+  /* Target to search for */
+  rule.senderHostIp = find_senderHostIp;
+  memcpy(rule.senderHostMac, find_senderHostMac, sizeof(L7_uchar8)*L7_ENET_MAC_ADDR_LEN);
+
+  return _ptin_arpAclRuleBinarySearch(arpAcl_table->rules, 0, arpAcl_table->number_of_rules, &rule);
+}
+#endif

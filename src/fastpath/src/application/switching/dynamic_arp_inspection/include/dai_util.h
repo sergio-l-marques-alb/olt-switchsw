@@ -31,6 +31,7 @@
 #include "l7_packet.h"
 #include "osapi_support.h"
 #include "l7_cnfgr_api.h"
+#include "dai_cfg.h"
 
 #define DAI_PKT_ALLOWED_MAX_SIZE      64
 
@@ -336,5 +337,11 @@ L7_RC_t _arpAclRuleInAclNextGet(L7_uchar8 *aclName, L7_uint32 ipAddrIn, L7_uchar
 
 /* dai_outcalls.c */
 L7_BOOL daiIntfIsValid(L7_uint32 intIfNum);
+
+/* PTin added: DAI */
+#if 1
+L7_RC_t _ptin_arpAclRuleGet(L7_uchar8 *aclName, L7_uint32 ipAddress, L7_uchar8 *macAddress);
+L7_int32 _ptin_arpAclRuleFindIndex(const arpAclCfg_t *arpAcl_table, L7_IP_ADDR_t find_senderHostIp, L7_uchar8 *find_senderHostMac);
+#endif
 
 #endif /* DAI_UTIL_H */

@@ -1468,8 +1468,8 @@ void daiFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
 daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
                                        L7_uchar8 *frame, L7_uint32 dataLen)
 {
-  L7_uint32    i, ip_address, senderIpAddr;
-  L7_uchar8    mac_address[L7_ENET_MAC_ADDR_LEN];
+  L7_uint32    /*i, ip_address,*/ senderIpAddr;
+  //L7_uchar8    mac_address[L7_ENET_MAC_ADDR_LEN];
   L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
   L7_ether_arp_t *arp_pkt = (L7_ether_arp_t*)(frame + ethHdrLen);
 
@@ -1490,6 +1490,15 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
 
   senderIpAddr = GET_IP_FROM_PKT(arp_pkt->arp_spa);
 
+  /* PTin modified: DAI */
+  #if 1
+  if (_ptin_arpAclRuleFindIndex(acl, senderIpAddr, arp_pkt->arp_sha) >= 0)
+  {
+    /* Match found, don't filter the packet */
+    daiVlanInfo[vlanId].stats.aclPermits++;
+    return DAI_FILTER_PASS;
+  }
+  #else
   /* If matching rule found, pass the packet */
   for(i = 0; i < L7_ARP_ACL_RULES_MAX; i++)
   {
@@ -1512,6 +1521,7 @@ daiFilterAction_t daiFrameARPAclFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
       }
     }
   }
+  #endif
 
   /* No matching rule exists in the ARP ACL for the ip address in ARP packet (or)
    * No rules at all configured in this ARP ACL.
