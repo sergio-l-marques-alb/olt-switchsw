@@ -191,15 +191,23 @@ L7_uint8 ptin_fgpa_matrixInactive_slot(void)
 *
 * @returns  TRUE or FALSE
 *
-* @comments 
+* @comments This funcion should be used only for dataplane crossover and not for control crossover
 *
 * @end
 *
 *************************************************************************/
+#include <stdio.h>
+#include <logger.h>
 L7_uint8 ptin_fgpa_mx_get_matrixactive(void)
 {
   int current_state = -1;
   static int previous_state = -1;
+
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  L7_BOOL olt1t1_backplane = L7_FALSE;
+  /* Condition for OLT1T1 backplane */
+  olt1t1_backplane = (((cpld_map->reg.slot_matrix >> 4) & 0x0f) != (cpld_map->reg.slot_matrix & 0x0f));
+#endif
 
   if((cpld_map->reg.mx_get_active & 0x03) == 0x02) {
       //Master Matrix was set to active
@@ -215,8 +223,16 @@ L7_uint8 ptin_fgpa_mx_get_matrixactive(void)
   }
 
   previous_state = current_state;
-  return current_state; 
-//return PTIN_SLOT_WORK;
+
+#if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
+  /* Note: the register 18h is not affected by the backplane, however lanes/data plane is inverted */
+  if (olt1t1_backplane)
+  {
+      return !current_state;
+  }
+#endif
+
+  return current_state;
 }
 
 #endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)

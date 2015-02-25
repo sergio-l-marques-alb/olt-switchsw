@@ -2735,9 +2735,8 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
 
-    if ( (msgEvcConf->intf[i].intf_id == (ptin_sys_number_of_ports - 1)) /*&& (msgEvcConf->intf[i].vid >= 1065)*/ )
+    if ( (msgEvcConf->intf[i].intf_id == ptin_sys_number_of_ports) && (msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL))
     {
-
       ptinEvcConf.flags = 0x18;
       ptinEvcConf.n_intf--;
       LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
