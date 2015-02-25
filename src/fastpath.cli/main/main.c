@@ -76,11 +76,12 @@ void help_oltBuga(void)
         "m 1230 EVC# intfType/intf#                                       - DAI statistics\r\n"
         "m 1231 smac_validate(0/1) dmac_validate(0/1) ip_validate(0/1)    - DAI Global configurations\r\n"
         "m 1232 intfType/intf# trust(0/1) rateLimit(pps) burstInterval(s) - DAI Interface configurations\r\n"
-        "m 1233 EVC# enable(0/1) static(0/1)                              - DAI Service/VLAN configurations\r\n"
+        "m 1233 EVC# enable(0/1) static(0/1)                              - DAI EVC configurations\r\n"
+        "m 1234 NNIVlanId(1-4094) enable(0/1) static(0/1)                 - DAI (NNI) VLAN configurations\r\n"
         "m 1235 aclName ipAddr(d.d.d.d) macAddr(xx:xx:xx:xx:xx:xx)        - Add an ARP-ACL rule entry\r\n"
         "m 1236 aclName ipAddr(d.d.d.d) macAddr(xx:xx:xx:xx:xx:xx)        - Remove an ARP-ACL rule entry\r\n"
-        "m 1237 EVC# aclName - Link aclName to EVC id\r\n"
-        "m 1238 EVC#         - Unlink aclName to EVC id\r\n"
+        "m 1237 EVC# [aclName]                                            - Link aclName to EVC id\r\n"
+        "m 1238 NNIVlanId(1-4094) [aclName]                               - Unlink aclName to EVC id\r\n"
         "m 1240 page(0..)                  - Read DHCP binding table (start reading from page 0)\r\n"
         "m 1242 macAddr(xx:xx:xx:xx:xx:xx) - Remove a MAC address from DHCP Binding table\r\n"
         "m 1310 EVC# intfType/intf# [ovid(0-4095)] [cvid(1-4095)] - Show IGMP statistics for interface <type>/<id> and client <cvid> associated to EVC <flow_id>\n\r"
@@ -1763,7 +1764,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->evc_idx = (uint32) valued;
+        ptr->service.id_type = MSG_ID_EVC_TYPE;
+        ptr->service.id_val.evc_id = (uint32) valued;
 
         // port
         if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -1901,7 +1903,7 @@ int main (int argc, char *argv[])
       }
       break;
 
-      /* DAI VLAN configurations */
+      /* DAI EVC configurations */
       case 1233:
       {
         msg_dai_vlan_settings_t *ptr;
@@ -1924,9 +1926,62 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->evc_idx = (uint32) valued;
-        ptr->vlanId_start = (L7_uint16)-1;
-        ptr->vlanId_end   = (L7_uint16)-1;
+        ptr->service.id_type = MSG_ID_EVC_TYPE;
+        ptr->service.id_val.evc_id = (uint32) valued;
+
+        // DAI enable
+        if (argc >= 3+2)
+        {
+          if (StrToLongLong(argv[3+1], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->dai_enable = (uint8) valued;
+          ptr->mask |= 0x01;
+        }
+        // Static flag
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3+2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->staticFlag = (uint8) valued;
+          ptr->mask |= 0x02;
+        }
+
+        comando.msgId = CCMSG_ETH_DAI_VLAN_CONFIG;
+        comando.infoDim = sizeof(msg_dai_vlan_settings_t);
+      }
+      break;
+
+      /* DAI EVC configurations */
+      case 1234:
+      {
+        msg_dai_vlan_settings_t *ptr;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_dai_vlan_settings_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_dai_vlan_settings_t));
+
+        ptr->slotId = (uint8)-1;
+
+        // EVC id
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->service.id_type = MSG_ID_NNIVID_TYPE;
+        ptr->service.id_val.nni_vid = (uint32) valued;
 
         // DAI enable
         if (argc >= 3+2)
@@ -2000,12 +2055,13 @@ int main (int argc, char *argv[])
       }
       break;
 
+      /* ARP-ACL groups assignment */
       case 1237:
       {
         msg_apply_acl_t *ptr;
 
         // Validate number of arguments
-        if (argc<3+2)  {
+        if (argc<3+1)  {
           help_oltBuga();
           exit(0);
         }
@@ -2024,16 +2080,26 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->evcId = (uint32) valued;
+        ptr->evcId  = (uint32) valued;
+        ptr->vlanId = (uint16) -1;
 
         // ACL name
-        strncpy((char *) ptr->name, argv[3+1], 32); 
-        ptr->name[31] = '\0';
+        if (argc >= 3+2)
+        {
+          strncpy((char *)ptr->name, argv[3 + 1], 32); 
+          ptr->name[31] = '\0';
+          comando.msgId   = CCMSG_ACL_APPLY;
+        }
+        else
+        {
+          ptr->name[0] = '\0';
+          comando.msgId   = CCMSG_ACL_UNAPPLY;
+        }
 
-        comando.msgId   = CCMSG_ACL_APPLY;
         comando.infoDim = sizeof(msg_apply_acl_t);
       }
       break;
+      /* ARP-ACL groups assignment */
       case 1238:
       {
         msg_apply_acl_t *ptr;
@@ -2058,9 +2124,22 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->evcId = (uint32) valued;
+        ptr->vlanId = (uint16) valued;
+        ptr->evcId  = (uint32) -1;
 
-        comando.msgId   = CCMSG_ACL_UNAPPLY;
+        // ACL name
+        if (argc >= 3+2)
+        {
+          strncpy((char *)ptr->name, argv[3 + 1], 32); 
+          ptr->name[31] = '\0';
+          comando.msgId   = CCMSG_ACL_APPLY;
+        }
+        else
+        {
+          ptr->name[0] = '\0';
+          comando.msgId   = CCMSG_ACL_UNAPPLY;
+        }
+
         comando.infoDim = sizeof(msg_apply_acl_t);
       }
       break;
@@ -6107,7 +6186,7 @@ int main (int argc, char *argv[])
 
           ptr = (msg_dai_statistics_t *) &resposta.info[0];
 
-          printf("DAI statistics for EVC#%lu, VLAN%u, intf=%u/%u:\r\n", ptr->evc_idx, ptr->vlanId, ptr->intf.intf_type, ptr->intf.intf_id);
+          printf("DAI statistics for EVC#%lu (type=%u), intf=%u/%u:\r\n", ptr->service.id_val.evc_id, ptr->service.id_type, ptr->intf.intf_type, ptr->intf.intf_id);
           printf(" forwarded       = %lu\r\n", ptr->stats.forwarded       );
           printf(" dropped         = %lu\r\n", ptr->stats.dropped         );
           printf(" dhcpDrops       = %lu\r\n", ptr->stats.dhcpDrops       );
@@ -6139,6 +6218,13 @@ int main (int argc, char *argv[])
 
       case 1233:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: DAI EVC settings applied successfully\n\r");
+        else
+          printf(" Switch: DAI EVC settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1234:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DAI VLAN settings applied successfully\n\r");
         else
           printf(" Switch: DAI VLAN settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
@@ -6158,15 +6244,15 @@ int main (int argc, char *argv[])
         break;
       case 1237:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
-          printf(" Switch: ARP-ACL group associated to a Service\n\r");
+          printf(" Switch: ARP-ACL group linked to an EVC\n\r");
         else
-          printf(" Switch: ARP-ACL group not associated to a Service - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: ARP-ACL group not linked to an EVC - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
       case 1238:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
-          printf(" Switch: ARP-ACL group removed from a Service\n\r");
+          printf(" Switch: ARP-ACL group linked to a VLAN\n\r");
         else
-          printf(" Switch: ARP-ACL group not removed from a Service - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: ARP-ACL group not linked to a VLAN - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1240:

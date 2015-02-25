@@ -200,6 +200,20 @@ typedef struct {
   L7_uint8  intf_id;    // Interface Id# (phy ports / LAGs)
 } __attribute__((packed)) msg_HwEthInterface_t;
 
+/* Struct used for reference valuue */
+#define MSG_ID_DEF_TYPE     0       /* Considered to be evc id */
+#define MSG_ID_EVC_TYPE     1       /* Use evc id */
+#define MSG_ID_NNIVID_TYPE  2       /* Use NNI vlan */
+typedef struct
+{
+  L7_uint8  id_type;                /* Reference id type: 1->evc id; 2->NNI SVid */
+  union
+  {
+    L7_uint32   evc_id;             /* EVC ID: 0xffff to use NNI_STAG */
+    L7_uint32   nni_vid;            /* NNI_STAG (to be used, when evc id id 0xffff) */
+  } __attribute__((packed)) id_val;
+} __attribute__((packed)) msg_id_t;
+
 typedef struct L7_in_addr_s
 {
     L7_uint32   s_addr;    /* 32 bit IPv4 address in network byte order */
@@ -1444,9 +1458,7 @@ typedef struct
 typedef struct
 {
   L7_uint8  slotId;
-  L7_uint32 evc_idx;              /* EVC ID: 0 or -1 to use VLANs instead of this value */
-  L7_uint16 vlanId_start;         /* Start VLAN (1-4094): This is the NNI VLAN */
-  L7_uint16 vlanId_end;           /* End VLAN (1-4094): For one VLAN only, use vlanId_end=vlanId_start or invalid value */
+  msg_id_t  service;              /* EVC or VLAN id */
 
   L7_uint8  mask;
   L7_uint8  dai_enable;           /* [mask_local=0x01] DAI enable for these VLANs: True or False */
@@ -1472,8 +1484,7 @@ typedef struct
 typedef struct
 {
   L7_uint8  slotId;
-  L7_uint32 evc_idx;          /* EVC ID: 0 or -1 to use VLANs instead of this value */
-  L7_uint16 vlanId;           /* VLAN (1-4094): This is the NNI VLAN */
+  msg_id_t  service;          /* EVC or VLAN id */
   msg_HwEthInterface_t intf;  /* Interface (type/id) */
 
   msg_dai_statCounters_t  stats;          /* Statistics structure */
