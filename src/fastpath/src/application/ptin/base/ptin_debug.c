@@ -14,6 +14,7 @@
 #include "ptin_evc.h"
 #include "ptin_msghandler.h"
 #include "dtl_ptin.h"
+#include "usmdb_telnet_api.h"
 #include <unistd.h>
 #include <usmdb_nim_api.h>
 #include <string.h>
@@ -109,6 +110,7 @@ void ptin_debug(void)
   printf("  ptin_evc_which <vlan_int>                                 - prints info about the EVC related to the given internal vlan\r\n");
   printf("  ptin_maclimit_dump                                        - Dumps MAC limit tables (non empty)\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>    - Generic DTL processor example\r\n");
+  printf("  cliTelnetAdminModeSet <port>\r\n");
   printf("\r\n");
   printf("  ptin_evc_clean_all <id>                                   - Clean all profiles and counters of an EVC (internal id)\r\n");
   printf("  ptin_evc_intf_clean_all <id> <intf_type> <intf_id>        - Clean all profiles and counters of one interface of an EVC (internal id)\r\n");
@@ -214,6 +216,24 @@ void ptin_debug(void)
 void ptin_help(void)
 {
   ptin_debug();
+}
+
+void cliTelnetAdminModeSet(L7_int port)
+{
+  if (port == FD_TELNET_PORT_NUM)
+  {
+    usmDbAgentTelnetAdminModeSet(1, L7_ENABLE);
+    printf("CLI Telnet enabled\r\n");
+  }
+  else
+  {
+    usmDbAgentTelnetAdminModeSet(1, L7_DISABLE);
+    if (port == 0)
+    {
+      printf("CLI Telnet disabled\r\n");
+    }
+  }
+  fflush(stdout);
 }
 
 /**
