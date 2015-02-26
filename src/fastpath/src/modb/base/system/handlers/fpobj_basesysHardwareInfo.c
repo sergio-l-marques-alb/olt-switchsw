@@ -479,7 +479,7 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   if (usmDbComponentPresentCheck(L7_UNIT_CURRENT, L7_FLEX_BGP_MAP_COMPONENT_ID) == L7_TRUE)
   {
     addpkgs = L7_TRUE;
-    osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "FASTPATH BGP-4");
+    osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "OLTSWITCH BGP-4");
   }
 
   if ((usmDbComponentPresentCheck(L7_UNIT_CURRENT, L7_FLEX_QOS_ACL_COMPONENT_ID) == L7_TRUE) ||
@@ -488,12 +488,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   {
     if (addpkgs == L7_FALSE)
     {
-      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "FASTPATH QoS");
+      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "OLTSWITCH QoS");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH QoS", strlen("FASTPATH QoS"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH QoS", strlen("OLTSWITCH QoS"));
     }
     addpkgs = L7_TRUE;
   }
@@ -502,12 +502,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   {
     if (addpkgs == L7_FALSE)
     {
-      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "FASTPATH Multicast");
+      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "OLTSWITCH Multicast");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH Multicast", strlen("FASTPATH Multicast"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH Multicast", strlen("OLTSWITCH Multicast"));
     }
     addpkgs = L7_TRUE;
   }
@@ -516,12 +516,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   {
     if (addpkgs == L7_FALSE)
     {
-      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "FASTPATH IPv6");
+      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "OLTSWITCH IPv6");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH IPv6", strlen("FASTPATH IPv6"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH IPv6", strlen("OLTSWITCH IPv6"));
     }
     addpkgs = L7_TRUE;
   }
@@ -530,12 +530,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   {
     if (addpkgs == L7_FALSE)
     {
-      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "FASTPATH IPv6 Management");
+      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue), "OLTSWITCH IPv6 Management");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH IPv6 Management", strlen("FASTPATH IPv6 Management"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH IPv6 Management", strlen("OLTSWITCH IPv6 Management"));
     }
     addpkgs = L7_TRUE;
   }
@@ -545,12 +545,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
     if (addpkgs == L7_FALSE)
     {
       osapiSnprintf (objsysInventoryAdditiionalPackagesValue, sizeof (objsysInventoryAdditiionalPackagesValue),
-                     "FASTPATH Wireless");
+                     "OLTSWITCH Wireless");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH Wireless", strlen("FASTPATH Wireless"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH Wireless", strlen("OLTSWITCH Wireless"));
     }
     addpkgs = L7_TRUE;
   }
@@ -559,12 +559,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   {
     if (addpkgs == L7_FALSE)
     {
-      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue),  "FASTPATH Stacking");
+      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue),  "OLTSWITCH Stacking");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH Stacking", strlen("FASTPATH Stacking"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH Stacking", strlen("OLTSWITCH Stacking"));
     }
     addpkgs = L7_TRUE;
   }
@@ -576,12 +576,12 @@ xLibRC_t fpObjGet_basesysHardwareInfo_sysInventoryAdditiionalPackages (void
   {
     if (addpkgs == L7_FALSE)
     {
-      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue),  "FASTPATH Metro");
+      osapiSnprintf(objsysInventoryAdditiionalPackagesValue, sizeof(objsysInventoryAdditiionalPackagesValue),  "OLTSWITCH Metro");
     }
     else
     {
       osapiStrncat(objsysInventoryAdditiionalPackagesValue, "\n", strlen("\n"));
-      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "FASTPATH Metro", strlen("FASTPATH Metro"));
+      osapiStrncat(objsysInventoryAdditiionalPackagesValue, "OLTSWITCH Metro", strlen("OLTSWITCH Metro"));
     }
     addpkgs = L7_TRUE;
   }

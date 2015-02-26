@@ -26,11 +26,11 @@
 usmNLSString_t usmEnglish[] = {
   {1,    "iso-8859-1\0"},
   {900,  "Login\0"},
-  {992,  "FASTPATH IPv6\0"},
-  {993,  "FASTPATH BGP-4\0"},
-  {994,  "FASTPATH Multicast\0"},
-  {995,  "FASTPATH QoS\0"},
-  {996,  "Broadcom FASTPATH Switch Applet\0"},
+  {992,  "OLTSWITCH IPv6\0"},
+  {993,  "OLTSWITCH BGP-4\0"},
+  {994,  "OLTSWITCH Multicast\0"},
+  {995,  "OLTSWITCH QoS\0"},
+  {996,  "Broadcom OLTSWITCH Switch Applet\0"},
   {997,  "Broadcom HOME\0"},
   {998,  "Link Aggregation\0"},
   {999,  "Users\0"},
@@ -4909,7 +4909,7 @@ usmNLSString_t usmEnglish[] = {
 {25777, "IEEE 802.11g\0"},
 {25782, "IEEE 802.11bg\0"},
 
-{25788, "FASTPATH Wireless\0"},
+{25788, "OLTSWITCH Wireless\0"},
 
 /* short radio phy modes */
 {25790, "802.11a\0"},
