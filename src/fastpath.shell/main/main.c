@@ -54,7 +54,7 @@ int main (int argc, char *argv[])
   comando.infoDim      = sizeof(int);
   *(int*)comando.info  = 0;
     
-  //printf("FastPath Shell Command Executer v1.0\n\n");
+  //printf("OLTSWITCH Shell Command Executer v1.0\n\n");
   
   // Define shell and command index, through arguments
   if ( argc<=1 )

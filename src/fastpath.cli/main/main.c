@@ -39,7 +39,7 @@ void help_oltBuga(void)
         "\n\r"
         "Opcoes:\n\r"
         "help <comando>\n\r"
-        "ping <period> <N> - Waits until fastpath application is up or return error code (0-OK, 2-CRASH)\r\n"
+        "ping <period> <N> - Waits until OLTSWITCH application is up or return error code (0-OK, 2-CRASH)\r\n"
         "m 1000 console(/dev/...)\n\r"
         "m 1001 file_index(0=main;1=sdk) filename - Logger output\n\r"
         "m 1004 - Get resources state\r\n"
@@ -226,20 +226,20 @@ int main (int argc, char *argv[])
       exit(-1);
     }
 
-    printf("Checking if Fastpath is alive...\n\r");
+    printf("Checking if OLTSWITCH is alive...\n\r");
     do {
       // Send command
       valued = send_data (canal_buga, PORTO_RX_MSG_BUGA, IP_LOCALHOST, &comando, &resposta);
       ret = *((int *)resposta.info);
       if ( valued ) {
-        printf("Without answer from fastpath... probably it is still starting\n\r");
+        printf("Without answer from OLTSWITCH... probably it is still starting\n\r");
       }
       else if (resposta.flags != (FLAG_RESPOSTA | FLAG_ACK)) {
         printf("Invalid answer... Request not Aknowledged\n\r");
         sleep(period);
       }
       else if (resposta.infoDim == sizeof(int) && ret == 1) {
-        printf("Fastpath replied... Application is still loading!\n\r");
+        printf("OLTSWITCH replied... Application is still loading!\n\r");
         sleep(period);
       }
       else
@@ -250,22 +250,22 @@ int main (int argc, char *argv[])
 
     if (nretries > 0) {
       if (ret == 0) {
-        printf("Fastpath replied... Application is up!\n\r");
+        printf("OLTSWITCH replied... Application is up!\n\r");
         exit(ret);
       }
       else if (ret == 2) {
-        printf("Fastpath replied... Application has CRASHED!\n\r");
+        printf("OLTSWITCH replied... Application has CRASHED!\n\r");
         exit(ret);
       }
       else {
-        printf("Fastpath replied... return code is unknown: %d\n\r", (int)ret);
+        printf("OLTSWITCH replied... return code is unknown: %d\n\r", (int)ret);
         exit(ret);
       }
     }
     else if (resposta.infoDim == sizeof(int) && ret == 1)
       exit(ret);
 
-    printf("Fastpath did not reply... Timeout!\n\r");
+    printf("OLTSWITCH did not reply... Timeout!\n\r");
     exit(-2);
   }
 
