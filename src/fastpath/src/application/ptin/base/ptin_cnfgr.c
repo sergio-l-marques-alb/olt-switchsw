@@ -123,7 +123,7 @@ L7_RC_t ptinApplyConfigCompleteCb(L7_uint32 event)
 
   if (event == TXT_CFG_APPLY_FAILURE)
   {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Fastpath configurations failed!");
+    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "OLTSWITCH configurations failed!");
     return L7_FAILURE;
   }
 

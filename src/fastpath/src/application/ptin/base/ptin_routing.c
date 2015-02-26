@@ -427,10 +427,10 @@ L7_RC_t ptin_routing_init(void)
   }
 
   /* Enable routing on Fastpath */
-  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting Fastpath's routing admin mode to L7_ENABLE");
+  LOG_INFO(LOG_CTX_PTIN_ROUTING, "Setting OLTSWITCH's routing admin mode to L7_ENABLE");
   if(usmDbIpRtrAdminModeSet(PTIN_ROUTING_USMDB_UNITINDEX, L7_ENABLE) != L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set Fastpath's routing admin mode to L7_ENABLE");
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to set OLTSWITCH's routing admin mode to L7_ENABLE");
     return L7_FAILURE;
   }
 
@@ -540,10 +540,10 @@ L7_RC_t ptin_routing_intf_create(ptin_intf_t* routingIntf, L7_uint16 internalVla
   }
   
   /* Associate the new interface with the given vlanId in Fastpath's routing tables */
-  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Associating %s%u with vlan %u on fastpath's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
+  LOG_DEBUG(LOG_CTX_PTIN_ROUTING, "Associating %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
   if(usmDbIpVlanRoutingIntfCreate(PTIN_ROUTING_USMDB_UNITINDEX, internalVlanId, routingIntf->intf_id+1) != 0)
   {
-    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to associate %s%u with vlan %u on fastpath's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
+    LOG_ERR(LOG_CTX_PTIN_ROUTING, "Unable to associate %s%u with vlan %u on OLTSWITCH's routing tables", PTIN_ROUTING_INTERFACE_NAME_PREFIX, routingIntf->intf_id, internalVlanId);
     return L7_FAILURE;
   }
 
