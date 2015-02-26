@@ -48,9 +48,48 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
  */
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
+  ptin_dtl_example_t *example = (ptin_dtl_example_t *) data;
+
   LOG_INFO(LOG_CTX_PTIN_HAPI, "Hello World: usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
 
-  return L7_SUCCESS;
+  /* Validate data pointer */
+  if (example == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Structure data pointer is null");
+    return L7_FAILURE;
+  }
+
+  /* Validate data size */
+  if (dataSize != sizeof(ptin_dtl_example_t))
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_example_t));
+    return L7_FAILURE;
+  }
+
+  switch (operation)
+  {
+    case DAPI_CMD_GET:
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_GET");
+      /* Put here function for GET procedure */
+      break;
+
+    case DAPI_CMD_SET:
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_SET");
+      /* Put here function for SET procedure */
+      break;
+
+    case DAPI_CMD_CLEAR:
+      LOG_INFO(LOG_CTX_PTIN_HAPI, "Operation is DAPI_CMD_CLEAR");
+      /* Put here function for CLEAR procedure */
+      break;
+
+    default:
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      return L7_FAILURE;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Calling ptin_hapi_example...");
+  return ptin_hapi_example(usp, example, dapi_g);
 }
 
 

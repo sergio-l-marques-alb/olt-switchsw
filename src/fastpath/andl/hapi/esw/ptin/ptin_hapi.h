@@ -407,5 +407,18 @@ extern L7_RC_t hapiBroadSystemInstallPtin(void);
  */
 extern L7_RC_t ptin_debug_trap_packets_show( L7_int bcm_port, bcm_pkt_t *bcm_pkt );
 
+/**
+ * Generic HAPI example 
+ * 
+ * @author mruas (2/26/2015)
+ * 
+ * @param usp 
+ * @param example
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_example(DAPI_USP_t *usp, ptin_dtl_example_t *example, DAPI_t *dapi_g);
+
 #endif /*_PTIN_HAPI_H */
 

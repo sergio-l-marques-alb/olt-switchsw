@@ -11,7 +11,15 @@ typedef enum
 {
   PTIN_DTL_MSG_EXAMPLE=0,
   PTIN_DTL_MSG_MAX
-} ptin_drl_msg_enum;
+} ptin_dtl_msg_enum;
+
+/* Example structure for PTIN_DTL_MSG_EXAMPLE message */
+typedef struct
+{
+  L7_uint32 param1;
+  L7_uint32 param2;
+} ptin_dtl_example_t;
+
 
 /* Used for packet processing timing measure */
 typedef struct

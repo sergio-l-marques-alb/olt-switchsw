@@ -6079,3 +6079,30 @@ L7_RC_t ptin_hapi_register_set(L7_int ptin_port, L7_uint16 block, L7_uint16 offs
   return L7_SUCCESS;
 }
 
+/**
+ * Generic HAPI example 
+ * 
+ * @author mruas (2/26/2015)
+ * 
+ * @param usp 
+ * @param example
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_example(DAPI_USP_t *usp, ptin_dtl_example_t *example, DAPI_t *dapi_g)
+{
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Hello World: usp={%d,%d,%d}", usp->unit, usp->slot, usp->port);
+
+  /* Validate data pointer */
+  if (example == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Structure data pointer is null");
+    return L7_FAILURE;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Structure contents: param1=%u param2=%u", example->param1, example->param2); 
+
+  return L7_SUCCESS;
+}
+

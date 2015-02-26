@@ -11,6 +11,18 @@ typedef enum
 
 
 /**
+ * Example to use Generic DTL processor
+ * 
+ * @param intIfNum 
+ * @param operation 
+ * @param param1 
+ * @param param2 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_debug_example(L7_uint32 intIfNum, L7_uint operation, L7_uint param1, L7_uint param2);
+
+/**
  * Start time measurement
  * 
  * @param instance 

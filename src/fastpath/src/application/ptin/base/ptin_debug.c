@@ -108,6 +108,7 @@ void ptin_debug(void)
   printf("  ptin_evc_map                                              - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int>                                 - prints info about the EVC related to the given internal vlan\r\n");
   printf("  ptin_maclimit_dump                                        - Dumps MAC limit tables (non empty)\r\n");
+  printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>    - Generic DTL processor example\r\n");
   printf("\r\n");
   printf("  ptin_evc_clean_all <id>                                   - Clean all profiles and counters of an EVC (internal id)\r\n");
   printf("  ptin_evc_intf_clean_all <id> <intf_type> <intf_id>        - Clean all profiles and counters of one interface of an EVC (internal id)\r\n");
@@ -213,6 +214,35 @@ void ptin_debug(void)
 void ptin_help(void)
 {
   ptin_debug();
+}
+
+/**
+ * Example to use Generic DTL processor
+ * 
+ * @param intIfNum 
+ * @param operation 
+ * @param param1 
+ * @param param2 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_debug_example(L7_uint32 intIfNum, L7_uint operation, L7_uint param1, L7_uint param2)
+{
+  ptin_dtl_example_t example;
+  L7_RC_t rc;
+
+  LOG_INFO(LOG_CTX_MISC, "Executing generic DTL processor: intIfNum=%u operation=%u param1=%u param2=%u sizeof(ptin_dtl_example_t)=%u",
+           intIfNum, operation, param1, param2, sizeof(ptin_dtl_example_t));
+
+  memset(&example, 0x00, sizeof(example));
+  example.param1 = param1;
+  example.param2 = param2;
+
+  rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_EXAMPLE, operation, sizeof(ptin_dtl_example_t), (void *) &example);
+
+  LOG_INFO(LOG_CTX_PTIN_DTL, "Result rc=%u", rc);
+
+  return rc;
 }
 
 /* Counter of CPU packets */
