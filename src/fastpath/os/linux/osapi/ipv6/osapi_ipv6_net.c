@@ -788,7 +788,7 @@ L7_RC_t osapiIfIpv6IcmpSendDestinationUnreachableSet( L7_uint32 intIfNum, L7_uin
      L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_OSAPI_COMPONENT_ID,
          "Error in Opening file %s."
          " When trying to set the ipv6_unreachables where this variable is not "
-         "defined in the proc file sysyem. A kernel change specific to FASTPATH "
+         "defined in the proc file sysyem. A kernel change specific to OLTSWITCH "
          "is needed.", procfs_message);
      return L7_FAILURE;
    }

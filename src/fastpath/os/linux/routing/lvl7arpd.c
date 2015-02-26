@@ -360,7 +360,7 @@ void arpd_entry_fn()
   int rc;
 
 #ifdef L7_ARPD_DEBUG
-  printf("Starting Fastpath ARP monitor for Linux\n");
+  printf("Starting OLTSWITCH ARP monitor for Linux\n");
 #endif
 
   /* Set the kernel's neighbour tables sizes to our application arp and 

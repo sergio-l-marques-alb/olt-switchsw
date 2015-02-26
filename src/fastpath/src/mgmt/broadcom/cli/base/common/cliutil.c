@@ -5386,7 +5386,7 @@ void cliReadDefaultBanner(L7_char8 * buffer, L7_uint32 bufferSize)
     /* No default banner to be displayed for FASTPATH */
 /*  char tempdefbuffer0[] =
      "\r\n"
-     "Fastpath\r\n"
+     "OLTSWITCH\r\n"
      "\r\n"
      "   LL   VV  VV LL   7777777\r\n"
      "   LL   VV  VV LL   7   77\r\n"

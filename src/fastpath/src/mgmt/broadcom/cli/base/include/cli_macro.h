@@ -53,7 +53,7 @@
 #define CLILVL7_HOME_PAGE    "Broadcom Home Page"
 #define CLILVL7_HOME_PAGE_1    "Broadcom Home Page"
 #define CLILVL7_NETWORKING    "Broadcom Networking"
-#define CLILVL7_SYSTEMS_FASTPATH_SWITCH_APPLET    "Broadcom FASTPATH Switch Applet"
+#define CLILVL7_SYSTEMS_FASTPATH_SWITCH_APPLET    "Broadcom OLTSWITCH Switch Applet"
 #define CLILVL7_SYSTEMS_HOME    "Broadcom HOME"
 #define CLIROUTING_IPV6_LIFETIME_INTERVAL "Router Advertisement Lifetime"
 

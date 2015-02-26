@@ -187,7 +187,7 @@ L7_RC_t tlvRegister(L7_uint32 tlvSizeMax, L7_uint32 appId, L7_uchar8 *pAppName,
                        traceNameStr, &traceId) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_CRITICAL , L7_SIM_COMPONENT_ID, "tlvRegister: Unable to obtain trace buffer "
-                            "for App ID %u, TLV handle 0x%8.8x. FASTPATH trace component is out of trace "
+                            "for App ID %u, TLV handle 0x%8.8x. OLTSWITCH trace component is out of trace "
                             "buffers.\n", appId, (L7_uint32)pTlvCtrl);
     traceId = L7_TLV_TRACE_ID_INVALID;
   }

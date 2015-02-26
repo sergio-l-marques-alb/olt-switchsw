@@ -231,7 +231,7 @@ void startupStatusTask(int argc, void *argv)
   int i = 0;
   char seq[] = {'|', '/', '-', '\\'};
 
-  printf("\nFASTPATH starting...");
+  printf("\nOLTSWITCH starting...");
 
   while(1)
   {
@@ -396,7 +396,7 @@ int fp_main(int argc, char *argv[])
   rc = 10;
   L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_BSP_COMPONENT_ID,
          "Starting code... BSP initialization complete, "
-               "starting FastPath application.");
+               "starting OLTSWITCH application.");
   L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_BSP_COMPONENT_ID,
             "rc = %d"
             " Second message logged at bootup, right "
@@ -946,8 +946,8 @@ int main(int argc, char *argv[], char *envp[])
   log_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
   log_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
 
-  LOG_NOTICE(LOG_CTX_STARTUP,"--------------------------------------");
-  LOG_NOTICE(LOG_CTX_STARTUP,"FASTPATH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
+  LOG_NOTICE(LOG_CTX_STARTUP,"---------------------------------------");
+  LOG_NOTICE(LOG_CTX_STARTUP,"OLTSWITCH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
 
   environ = envp;
 

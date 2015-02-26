@@ -165,12 +165,12 @@ typedef struct tag_ifExt
 /* definition of system objects group */
 extern ulng sys_timeSystemUp;
 
-#define SYSDESCR        "Broadcom FASTPATH"
+#define SYSDESCR        "Broadcom OLTSWITCH"
 #define SYSOBJECTID     {{1, 3, 6, 1, 4, 1, 353, 1, 5}, 9 }
 #define SYSUPTIME       (TICKS_TO_MILLI(TIMER_SysTime() - sys_timeSystemUp) / 10)
-#define SYSCONTACT      "Broadcom"
-#define SYSNAME         "www.lvl7.com"
-#define SYSLOCATION     "North Carolina, USA"
+#define SYSCONTACT      "PTInovacao"
+#define SYSNAME         "www.ptinovacao.pt"
+#define SYSLOCATION     "Aveiro, PORTUGAL"
 #define SYSSERVICES     72
 
 #endif
