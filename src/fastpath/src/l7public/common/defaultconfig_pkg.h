@@ -45,8 +45,8 @@ typedef struct
 
 /* Start of SIM Component's Factory Defaults */
 #define FD_SIM_DEFAULT_SYSTEM_SERVICES      6   /* Refer to rfc1213 */
-#define FD_SIM_DEFAULT_SYSTEM_DESCR         "Broadcom FASTPATH Routing"   
-#define FD_CLI_WEB_COMMAND_PROMPT           "Broadcom FASTPATH Routing"
+#define FD_SIM_DEFAULT_SYSTEM_DESCR         "Broadcom OLTSWITCH Routing"   
+#define FD_CLI_WEB_COMMAND_PROMPT           "Broadcom OLTSWITCH Routing"
 
 
 /* Start of Sim Factory Defaults */
@@ -103,9 +103,9 @@ static mibDescr_t FD_mibDescr[] =
 #ifdef L7_PRODUCT_SMARTPATH
 #define FD_SIM_DEFAULT_SYSTEM_DESCR         "Broadcom SmartPATH"   
 #else
-#define FD_SIM_DEFAULT_SYSTEM_DESCR         "Broadcom FASTPATH Switching"   
+#define FD_SIM_DEFAULT_SYSTEM_DESCR         "Broadcom OLTSWITCH Switching"   
 #endif
-#define FD_CLI_WEB_COMMAND_PROMPT           "Broadcom FASTPATH Switching" 
+#define FD_CLI_WEB_COMMAND_PROMPT           "Broadcom OLTSWITCH Switching" 
 
 /* Start of Sim Factory Defaults */
 /* Start of Sim Factory Defaults */
@@ -144,14 +144,14 @@ static mibDescr_t FD_mibDescr[] =
 
 #endif /* L7_SWITCHING_PACKAGE */
 
-#define L7_FASTPATH_FLEX_BGP_PACKAGE_STR       "FASTPATH BGP-4"
-#define L7_FASTPATH_FLEX_QOS_PACKAGE_STR       "FASTPATH QOS"
-#define L7_FASTPATH_FLEX_MCAST_PACKAGE_STR     "FASTPATH Multicast"
-#define L7_FASTPATH_FLEX_IPV6_PACKAGE_STR      "FASTPATH IPv6"
-#define L7_FASTPATH_FLEX_IPV6_MGMT_PACKAGE_STR "FASTPATH IPv6 Management"
-#define L7_FASTPATH_FLEX_WIRELESS_PACKAGE_STR  "FASTPATH Wireless"
-#define L7_FASTPATH_FLEX_STACKING_PACKAGE_STR  "FASTPATH Stacking"
-#define L7_FASTPATH_FLEX_METRO_PACKAGE_STR     "FASTPATH Metro"
+#define L7_FASTPATH_FLEX_BGP_PACKAGE_STR       "OLTSWITCH BGP-4"
+#define L7_FASTPATH_FLEX_QOS_PACKAGE_STR       "OLTSWITCH QOS"
+#define L7_FASTPATH_FLEX_MCAST_PACKAGE_STR     "OLTSWITCH Multicast"
+#define L7_FASTPATH_FLEX_IPV6_PACKAGE_STR      "OLTSWITCH IPv6"
+#define L7_FASTPATH_FLEX_IPV6_MGMT_PACKAGE_STR "OLTSWITCH IPv6 Management"
+#define L7_FASTPATH_FLEX_WIRELESS_PACKAGE_STR  "OLTSWITCH Wireless"
+#define L7_FASTPATH_FLEX_STACKING_PACKAGE_STR  "OLTSWITCH Stacking"
+#define L7_FASTPATH_FLEX_METRO_PACKAGE_STR     "OLTSWITCH Metro"
 
 
 /* TBD: This customer specific checks need to be replaced with the following
