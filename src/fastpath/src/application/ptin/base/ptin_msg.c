@@ -158,7 +158,7 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
   msgFPInfo->SlotIndex    = ptin_fgpa_board_slot();
   msgFPInfo->BoardPresent = (ptin_state == PTIN_LOADED);
 
-  osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "FASTPATH 6.3.0.2", 20);
+  osapiStrncpySafe(msgFPInfo->BoardSerialNumber, "OLTSWITCH 1.2.3.4", 20);
 
   return L7_SUCCESS;
 }
@@ -2841,6 +2841,10 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
   return rc_global;
 }
 
+/* List of VLANs to be used for local purposes */
+static L7_uint16 dai_intVid_list[4096];
+static L7_uint dai_maxVlans = 0;
+
 /**
  * DAI VLANs configuration
  * 
@@ -2851,8 +2855,8 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
  */
 L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems)
 {
-  L7_uint     i, vlan_index, max_vlans;
-  L7_uint16   vlanId, intVid_list[4096];
+  L7_uint     i, vlan_index;
+  L7_uint16   vlanId;
   msg_dai_vlan_settings_t *item;
   L7_RC_t     rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
@@ -2876,7 +2880,8 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Static Flag  = %u", item->staticFlag);
 
     /* Clear list of VLANs */
-    memset(intVid_list, 0x00, sizeof(intVid_list));
+    memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
+    dai_maxVlans = 0;
 
     /* If EVC id is provided, get related VLAN */
     if (item->service.id_type == MSG_ID_DEF_TYPE || item->service.id_type == MSG_ID_EVC_TYPE)
@@ -2896,10 +2901,10 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
         continue;
       }
       /* Get internal VLAN from eEVC# */
-      max_vlans = 1;
-      if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &intVid_list[0]) != L7_SUCCESS)
+      dai_maxVlans = 1;
+      if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id, intVid_list[0]);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id, dai_intVid_list[0]);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
@@ -2916,8 +2921,8 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       }
 
       /* Get int VLAN list from NNI VLAN */
-      max_vlans = 4096;
-      if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, intVid_list, &max_vlans) != L7_SUCCESS)
+      dai_maxVlans = 4096;
+      if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->service.id_val.nni_vid);
         rc_global = L7_NOT_EXIST;
@@ -2931,10 +2936,12 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       continue;
     }
 
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Going to process %u VLANs", dai_maxVlans);
+
     /* Run VLANs range: if EVC id was provided, only one iteration will be executed with vlanId=0 */
-    for (vlan_index = 0; vlan_index < max_vlans; vlan_index++)
+    for (vlan_index = 0; vlan_index < dai_maxVlans; vlan_index++)
     {
-      vlanId = intVid_list[vlan_index];
+      vlanId = dai_intVid_list[vlan_index];
 
       /* Validate NNI VLAN */
       if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
@@ -3004,9 +3011,9 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
  */
 L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
 {
-  L7_uint     i;
+  L7_uint     i, vlan_index;
   L7_uint32   val;
-  L7_uint16   vlanId = 0;
+  L7_uint16   vlanId;
   msg_dai_statistics_t *item;
   daiVlanStats_t        stats;
   L7_RC_t     rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
@@ -3029,6 +3036,10 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
     LOG_DEBUG(LOG_CTX_PTIN_MSG," service_id   = %u", item->service.id_val.evc_id);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf         = %u", item->intf.intf_type, item->intf.intf_id);
 
+    /* Clear list of VLANs */
+    memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
+    dai_maxVlans = 0;
+
     /* If EVC id is provided, get related VLAN */
     if (item->service.id_type == MSG_ID_DEF_TYPE || item->service.id_type == MSG_ID_EVC_TYPE)
     {
@@ -3047,7 +3058,8 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
         continue;
       }
       /* Get internal VLAN from eEVC# */
-      if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &vlanId) != L7_SUCCESS)
+      dai_maxVlans = 1;
+      if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &dai_intVid_list[0]) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id);
         rc_global = rc_global_failure = L7_FAILURE;
@@ -3064,7 +3076,8 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
         continue;
       }
       /* Get eEVC id from NNI VLAN */
-      if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, &vlanId, L7_NULLPTR) != L7_SUCCESS)
+      dai_maxVlans = 4096;
+      if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->service.id_val.nni_vid);
         rc_global = L7_NOT_EXIST;
@@ -3078,55 +3091,66 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       continue;
     }
 
-    /* Validate NNI VLAN */
-    if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Int. VLAN %u is out of range!", vlanId);
-      rc_global = rc_global_failure = L7_FAILURE;
-      continue;
-    }
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Going to process %u VLANs", dai_maxVlans);
 
-    /* Check if VLAN is valid */
-    rc = usmDbVlanIDGet(0, vlanId);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
-      rc_global = L7_NOT_EXIST;
-      continue;
-    }
+    /* Clear results for this request */
+    memset(&item->stats, 0x00, sizeof(item->stats));
 
-    /* VLAN is DAI enabled? */
-    rc = usmDbDaiVlanEnableGet(vlanId, &val);
-    if (rc != L7_SUCCESS || !val)
+    /* Run all vlans */
+    for (vlan_index = 0; vlan_index < dai_maxVlans; vlan_index++)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is not used by DAI!", vlanId);
-      rc_global = rc;
-      if (IS_FAILURE_ERROR(rc))
-        rc_global_failure = rc;
-      continue;
-    }
+      vlanId = dai_intVid_list[vlan_index];
 
-    /* Get stats */
-    rc = usmDbDaiVlanStatsGet(vlanId, &stats);
-    if (rc != L7_SUCCESS)
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting Stats from VLAN %u!", vlanId);
-      rc_global = rc;
-      if (IS_FAILURE_ERROR(rc))
-        rc_global_failure = rc;
-      continue;
-    }
+      /* Validate NNI VLAN */
+      if (vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Int. VLAN %u is out of range!", vlanId);
+        rc_global = rc_global_failure = L7_FAILURE;
+        continue;
+      }
 
-    /* Copy data to be returned */
-    item->stats.forwarded       = stats.forwarded;
-    item->stats.dropped         = stats.dropped;
-    item->stats.dhcpDrops       = stats.dhcpDrops;
-    item->stats.dhcpPermits     = stats.dhcpPermits;
-    item->stats.aclDrops        = stats.aclDrops;
-    item->stats.aclPermits      = stats.aclPermits;
-    item->stats.sMacFailures    = stats.sMacFailures;
-    item->stats.dMacFailures    = stats.dMacFailures;
-    item->stats.ipValidFailures = stats.ipValidFailures;
+      /* Check if VLAN is valid */
+      rc = usmDbVlanIDGet(0, vlanId);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is invalid, or don't belong to any EVC!", vlanId);
+        rc_global = L7_NOT_EXIST;
+        continue;
+      }
+
+      /* VLAN is DAI enabled? */
+      rc = usmDbDaiVlanEnableGet(vlanId, &val);
+      if (rc != L7_SUCCESS || !val)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is not used by DAI!", vlanId);
+        rc_global = rc;
+        if (IS_FAILURE_ERROR(rc))
+          rc_global_failure = rc;
+        continue;
+      }
+
+      /* Get stats */
+      rc = usmDbDaiVlanStatsGet(vlanId, &stats);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error getting Stats from VLAN %u!", vlanId);
+        rc_global = rc;
+        if (IS_FAILURE_ERROR(rc))
+          rc_global_failure = rc;
+        continue;
+      }
+
+      /* Sum statistics to be returned */
+      item->stats.forwarded       += stats.forwarded;
+      item->stats.dropped         += stats.dropped;
+      item->stats.dhcpDrops       += stats.dhcpDrops;
+      item->stats.dhcpPermits     += stats.dhcpPermits;
+      item->stats.aclDrops        += stats.aclDrops;
+      item->stats.aclPermits      += stats.aclPermits;
+      item->stats.sMacFailures    += stats.sMacFailures;
+      item->stats.dMacFailures    += stats.dMacFailures;
+      item->stats.ipValidFailures += stats.ipValidFailures;
+    }
   }
 
   if (rc_global_failure != L7_SUCCESS)
