@@ -51,9 +51,9 @@ k_private_routing_initialize(void)
                                    "Definitions of Managed Objects for the Virtual Router Redundancy Protocol",
                                    "vrrpMIB");
 #endif
-  SnmpSupportedMibTableEntryCreate("FASTPATH-ROUTING-MIB",
-                                   "FASTPATH Routing - Layer 3",
-                                   "fastPathRouting");
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-ROUTING-MIB",
+                                   "OLTSWITCH Routing - Layer 3",
+                                   "OLTSWITCHRouting");
   return 1;
 }
 

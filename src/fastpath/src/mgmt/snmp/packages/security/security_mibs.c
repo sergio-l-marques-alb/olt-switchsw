@@ -26,9 +26,9 @@ k_private_security_initialize(void)
                                    "Port Access Entity module for managing IEEE 802.1X.",
                                    "paeMIBObjects");
 
-  SnmpSupportedMibTableEntryCreate("FASTPATH-RADIUS-AUTH-CLIENT-MIB",
-                                   "Broadcom FastPath Radius MIB",
-                                   "fastPathRadius");
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-RADIUS-AUTH-CLIENT-MIB",
+                                   "Broadcom OLTSWITCH Radius MIB",
+                                   "OLTSWITCHRadius");
 
   SnmpSupportedMibTableEntryCreate("RADIUS-ACC-CLIENT-MIB",
                                    "RADIUS Accounting Client MIB",
@@ -38,9 +38,9 @@ k_private_security_initialize(void)
                                    "RADIUS Authentication Client MIB",
                                    "radiusAuthClientMIB");
 
-  SnmpSupportedMibTableEntryCreate("FASTPATH-CAPTIVE-PORTAL-MIB",
-                                   "FastPath Captive Portal MIB",
-                                   "fastPathCaptivePortal");
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-CAPTIVE-PORTAL-MIB",
+                                   "OLTSWITCH Captive Portal MIB",
+                                   "OLTSWITCHCaptivePortal");
 
   return 1;
 }

@@ -58,17 +58,17 @@ k_private_switching_initialize(void)
                                    "Definitions of Managed Objects for the Ethernet-like Interface Types",
                                    "etherMIB");
   
-  SnmpSupportedMibTableEntryCreate("FASTPATH-SWITCHING-MIB",
-                                   "FASTPATH Switching - Layer 2",
-                                   "fastPathSwitching");
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-SWITCHING-MIB",
+                                   "OLTSWITCH Switching - Layer 2",
+                                   "OLTSWITCHSwitching");
 /* Chassis package will not have inventory mib */
 #ifndef L7_CHASSIS 
-  SnmpSupportedMibTableEntryCreate("FASTPATH-INVENTORY-MIB",
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-INVENTORY-MIB",
                                    "Unit and Slot configuration.",
-                                   "fastPathInventory");
+                                   "OLTSWITCHInventory");
 #endif
-  SnmpSupportedMibTableEntryCreate("FASTPATH-PORTSECURITY-PRIVATE-MIB",
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-PORTSECURITY-PRIVATE-MIB",
                                    "Port Security MIB.",
-                                   "fastPathPortSecurity");
+                                   "OLTSWITCHPortSecurity");
   return 1;
 }

@@ -124,9 +124,9 @@ k_private_initialize(void)
                                    "SNMP Research, Inc.",
                                    "usmTargetTagMIB");
 
-  SnmpSupportedMibTableEntryCreate("FASTPATH-POWER-ETHERNET-MIB",
-                                   "Fastpath Power Ethernet Extensions MIB",
-                                   "fastPathpowerEthernetMIB");
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-POWER-ETHERNET-MIB",
+                                   "OLTSWITCH Power Ethernet Extensions MIB",
+                                   "OLTSWITCHpowerEthernetMIB");
 
   SnmpSupportedMibTableEntryCreate("POWER-ETHERNET-MIB",
                                    "Power Ethernet MIB",
@@ -137,9 +137,9 @@ k_private_initialize(void)
                                    "sFlowMIB");
   
 #ifdef  L7_ISDP_PACKAGE
-  SnmpSupportedMibTableEntryCreate("FASTPATH-ISDP-MIB",
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-ISDP-MIB",
                                    "Industry Standard Discovery Protocol MIB",
-                                   "fastPathIsdp");
+                                   "OLTSWITCHIsdp");
 #endif
 
   #ifdef SNMP_SWITCHING

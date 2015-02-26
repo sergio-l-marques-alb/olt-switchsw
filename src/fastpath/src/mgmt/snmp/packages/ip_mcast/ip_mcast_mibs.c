@@ -53,8 +53,8 @@ k_private_ip_mcast_initialize(void)
                                    "IANA IP Route Protocol and IP MRoute Protocol Textual Conventions",
                                    "ianaRtProtoMIB");
 
-/*  SnmpSupportedMibTableEntryCreate("FASTPATH-MULTICAST-MIB",
-                                   "FASTPATH Flex Multicast Routing Private MIB",
-                                   "fastPathMulticast"); */
+/*  SnmpSupportedMibTableEntryCreate("OLTSWITCH-MULTICAST-MIB",
+                                   "OLTSWITCH Flex Multicast Routing Private MIB",
+                                   "OLTSWITCHMulticast"); */
   return 1;
 }

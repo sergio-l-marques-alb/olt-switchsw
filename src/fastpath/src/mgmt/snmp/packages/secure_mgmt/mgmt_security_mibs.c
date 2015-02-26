@@ -22,9 +22,9 @@
 int
 k_private_mgmt_security_initialize(void)
 {
-  SnmpSupportedMibTableEntryCreate("FASTPATH-MGMT-SECURITY-MIB",
-                                   "The Broadcom Private MIB for FastPath Mgmt Security",
-                                   "fastPathMgmtSecurity");
+  SnmpSupportedMibTableEntryCreate("OLTSWITCH-MGMT-SECURITY-MIB",
+                                   "The Broadcom Private MIB for OLTSWITCH Mgmt Security",
+                                   "OLTSWITCHMgmtSecurity");
 
   return 1;
 }

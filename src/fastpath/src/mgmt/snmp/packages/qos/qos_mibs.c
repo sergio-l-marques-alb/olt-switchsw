@@ -32,24 +32,24 @@ k_private_qos_initialize(void)
   if (usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_FEATURE_SUPPORTED) == L7_TRUE ||
       usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_FEATURE_SUPPORTED) == L7_TRUE ||
       usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, L7_DIFFSERV_FEATURE_SUPPORTED) == L7_TRUE) 
-        SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-MIB",
-                                         "FASTPATH Flex QOS Support",
-                                         "fastPathQOS");
+        SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-MIB",
+                                         "OLTSWITCH Flex QOS Support",
+                                         "OLTSWITCHQOS");
 
   if (usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_ACL_COMPONENT_ID, L7_ACL_FEATURE_SUPPORTED) == L7_TRUE) 
-       SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-ACL-MIB",
-                                        "FASTPATH Flex QOS ACL",
-                                        "fastPathQOSACL");
+       SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-ACL-MIB",
+                                        "OLTSWITCH Flex QOS ACL",
+                                        "OLTSWITCHQOSACL");
   
   if (usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_FEATURE_SUPPORTED) == L7_TRUE) 
-       SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-COS-MIB",
-                                        "FASTPATH Flex QOS COS",
-                                        "fastPathQOSCOS");
+       SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-COS-MIB",
+                                        "OLTSWITCH Flex QOS COS",
+                                        "OLTSWITCHQOSCOS");
   if (usmDbComponentPresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_VOIP_COMPONENT_ID) == L7_TRUE)
   {
-       SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-AUTOVOIP-MIB",
-                                        "FASTPATH Flex QOS VOIP",
-                                        "fastPathQOSAUTOVOIP");
+       SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-AUTOVOIP-MIB",
+                                        "OLTSWITCH Flex QOS VOIP",
+                                        "OLTSWITCHQOSAUTOVOIP");
   }
   
   if (usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID, L7_DIFFSERV_FEATURE_SUPPORTED) == L7_TRUE) 
@@ -63,22 +63,22 @@ k_private_qos_initialize(void)
                                        "Management Information Base for the Differentiated Services Architecture",
                                        "diffServMib");
 
-      SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-DIFFSERV-EXTENSIONS-MIB",
-                                       "FASTPATH Flex QOS DiffServ Private MIBs' definitions",
-                                       "fastPathQOSDiffServExtensions");
+      SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-DIFFSERV-EXTENSIONS-MIB",
+                                       "OLTSWITCH Flex QOS DiffServ Private MIBs' definitions",
+                                       "OLTSWITCHQOSDiffServExtensions");
 #endif
 
-      SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-DIFFSERV-PRIVATE-MIB",
-                                       "FASTPATH Flex QOS DiffServ Private MIBs' definitions",
-                                       "fastPathQOSDiffServPrivate");
+      SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-DIFFSERV-PRIVATE-MIB",
+                                       "OLTSWITCH Flex QOS DiffServ Private MIBs' definitions",
+                                       "OLTSWITCHQOSDiffServPrivate");
   }
 
 
   if (usmDbFeaturePresentCheck(USMDB_UNIT_CURRENT, L7_FLEX_QOS_ISCSI_COMPONENT_ID, L7_ISCSI_FEATURE_SUPPORTED) == L7_TRUE) 
   {
-      SnmpSupportedMibTableEntryCreate("FASTPATH-QOS-ISCSI-MIB",
-                                       "FASTPATH Flex QOS iSCSI Flow Acceleration MIBs' definitions",
-                                       "fastPathIscsiFlowAcceleration");
+      SnmpSupportedMibTableEntryCreate("OLTSWITCH-QOS-ISCSI-MIB",
+                                       "OLTSWITCH Flex QOS iSCSI Flow Acceleration MIBs' definitions",
+                                       "OLTSWITCHIscsiFlowAcceleration");
   }
   return 1;
 }
