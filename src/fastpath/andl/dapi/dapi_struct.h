@@ -379,6 +379,7 @@
 #define  DAPI_CMD_PTIN_HW_PROCEDURE_NAME                 "DAPI_CMD_PTIN_HW_PROCEDURE"
 #define  DAPI_CMD_PTIN_L3_NAME                           "DAPI_CMD_PTIN_L3"
 #define  DAPI_CMD_PTIN_MEP_CTRL_NAME                     "DAPI_CMD_PTIN_MEP_CTRL"
+#define  DAPI_CMD_PTIN_GENERIC_NAME                      "DAPI_CMD_PTIN_GENERIC"
 /* PTin end */
 
 #define DAPI_PORT_GET(_pDapiUsp,_dapi_g)     (_dapi_g->unit[(_pDapiUsp)->unit]->slot[(_pDapiUsp)->slot]->port[(_pDapiUsp)->port])

@@ -3,6 +3,19 @@
 
 #include "dapi.h"
 #include "dapi_struct.h"
+#include "ptin_structs.h"
+
+/**
+ * Generic processor of DTL operations
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g);
 
 
 /**

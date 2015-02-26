@@ -21,6 +21,93 @@
 static L7_RC_t hapiBroadPTinPrbsPreemphasisGet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes);
 static L7_RC_t hapiBroadPTinPrbsPreemphasisSet(DAPI_USP_t *usp, L7_uint16 *preemphasys, L7_int number_of_lanes, L7_BOOL force);
 
+
+/**
+ * Callback for generic operations
+ */
+typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+
+/* Add here your callback prototype */
+L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+
+/* List of callbacks */
+broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
+  broad_ptin_example,
+};
+
+/**
+ * First callback example
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Hello World: usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Generic processor of DTL operations
+ * 
+ * @param usp 
+ * @param cmd 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadPtinGeneric(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
+{
+  DAPI_INTF_MGMT_CMD_t *dapiCmd = (DAPI_INTF_MGMT_CMD_t *) data;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (dapiCmd == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate message id */
+  if (dapiCmd->cmdData.ptinDtlGeneric.msgId >= PTIN_DTL_MSG_MAX)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid Message ID (%u)", dapiCmd->cmdData.ptinDtlGeneric.msgId);
+    return L7_FAILURE;
+  }
+
+  /* Validate datasize */
+  if (dapiCmd->cmdData.ptinDtlGeneric.dataSize > PTIN_GENERIC_MAX_DATASIZE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid datasize (%u)", dapiCmd->cmdData.ptinDtlGeneric.dataSize);
+    return L7_FAILURE;
+  }
+
+  /* Is a valid function pointer? */
+  if (ptin_dtl_callbacks[dapiCmd->cmdData.ptinDtlGeneric.msgId] == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Null callback for message ID %u", dapiCmd->cmdData.ptinDtlGeneric.msgId);
+    return L7_FAILURE;
+  }
+
+  /* Execute callback */
+  rc = ptin_dtl_callbacks[dapiCmd->cmdData.ptinDtlGeneric.msgId](usp,
+                                                                 dapiCmd->cmdData.ptinDtlGeneric.getOrSet,
+                                                                 dapiCmd->cmdData.ptinDtlGeneric.dataSize,
+                                                                 dapiCmd->cmdData.ptinDtlGeneric.data,
+                                                                 dapi_g);
+  /* Return result */
+  return rc;
+}
+
+
 /**
  * Initialize HAPI PTin data structures
  * 
@@ -1975,23 +2062,6 @@ L7_RC_t hapiBroadPtinStart(void)
   return L7_SUCCESS;
 }
 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

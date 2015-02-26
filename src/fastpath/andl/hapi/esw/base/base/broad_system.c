@@ -253,6 +253,7 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_HW_PROCEDURE                 ] = (HAPICTLFUNCPTR_t)hapiBroadHwApply;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_L3                           ] = (HAPICTLFUNCPTR_t)hapiBroadPtinL3Manage;
   dapiPortPtr->cmdTable[DAPI_CMD_PTIN_MEP_CTRL                     ] = (HAPICTLFUNCPTR_t)hapiBroadPtinMEPControl;
+  dapiPortPtr->cmdTable[DAPI_CMD_PTIN_GENERIC                      ] = (HAPICTLFUNCPTR_t)hapiBroadPtinGeneric;
   /* PTin end */
 
   return result;

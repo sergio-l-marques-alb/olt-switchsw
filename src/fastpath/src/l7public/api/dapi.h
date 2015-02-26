@@ -535,6 +535,7 @@ typedef enum
   DAPI_CMD_PTIN_HW_PROCEDURE,
   DAPI_CMD_PTIN_L3,
   DAPI_CMD_PTIN_MEP_CTRL,
+  DAPI_CMD_PTIN_GENERIC,
   /* PTin end */
 
   DAPI_NUM_OF_CMDS
@@ -1475,6 +1476,16 @@ typedef struct
       L7_BOOL                     enable;
       L7_LLPF_BLOCK_TYPE_t        blockType;
     } llpfConfig;
+
+    /* PTin added: Generic DTL operation */
+    #define PTIN_GENERIC_MAX_DATASIZE  1024
+    struct
+    {
+      DAPI_CMD_GET_SET_t          getOrSet;
+      L7_uint16                   msgId;
+      L7_uint32                   dataSize;
+      L7_uint8                    data[PTIN_GENERIC_MAX_DATASIZE];
+    } ptinDtlGeneric;
 
   } cmdData;
 

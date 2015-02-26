@@ -13,6 +13,20 @@
  */
 extern L7_RC_t dtlPtinInit(void);
 
+
+/**
+ * Generic DTL procedure
+ * 
+ * @param intIfNum 
+ * @param msgId 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data);
+
 /**
  * Set Port Ext definitions
  * 
@@ -278,4 +292,5 @@ extern L7_RC_t dtlPtinL3RouteAdd(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 i
 extern L7_RC_t dtlPtinL3RouteRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAddr, L7_uint32 ipMask, L7_char8 *mac);
 
 extern L7_RC_t dtlPtinMEPControl(L7_uint32 intIfNum, hapi_mep_t *dapiCmd);
+
 #endif

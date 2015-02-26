@@ -6,6 +6,13 @@
 #include "dapi.h"
 #include <ethsrv_oam.h>
 
+/* List of generic DTL messages */
+typedef enum
+{
+  PTIN_DTL_MSG_EXAMPLE=0,
+  PTIN_DTL_MSG_MAX
+} ptin_drl_msg_enum;
+
 /* Used for packet processing timing measure */
 typedef struct
 {

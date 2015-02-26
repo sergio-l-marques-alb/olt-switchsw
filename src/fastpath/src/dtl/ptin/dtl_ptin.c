@@ -25,6 +25,75 @@ L7_RC_t dtlPtinInit(void)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Generic DTL procedure
+ * 
+ * @author mruas (2/26/2015)
+ * 
+ * @param intIfNum 
+ * @param msgId 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data)
+{
+  nimUSP_t usp;
+  DAPI_USP_t ddUsp;
+  DAPI_INTF_MGMT_CMD_t cmd;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Interface */
+  if ( intIfNum == L7_ALL_INTERFACES )
+  {
+    ddUsp.unit = -1;
+    ddUsp.slot = -1;
+    ddUsp.port = -1;
+  }
+  else
+  {
+    if (nimGetUnitSlotPort(intIfNum, &usp) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid intIfNum %u!", intIfNum);
+      return L7_FAILURE;
+    }
+
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+  }
+
+  /* Validate size */
+  if (dataSize > PTIN_GENERIC_MAX_DATASIZE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid dataSize (%u > %u bytes)!", dataSize, PTIN_GENERIC_MAX_DATASIZE);
+    return L7_FAILURE;
+  }
+
+  /* Fill parameters */
+  memset(&cmd, 0x00, sizeof(cmd));
+
+  cmd.cmdData.ptinDtlGeneric.getOrSet = operation;
+  cmd.cmdData.ptinDtlGeneric.msgId    = msgId;
+  cmd.cmdData.ptinDtlGeneric.dataSize = dataSize;
+  memcpy(cmd.cmdData.ptinDtlGeneric.data, data, dataSize);
+
+  /* Goto HAPI layer */
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_GENERIC, (void *) &cmd);
+
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Error rc=%u", rc);
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+
 /**
  * Set Port Ext definitions
  * 
@@ -918,18 +987,16 @@ L7_RC_t dtlPtinL3RouteRemove(L7_uint32 intIfNum, L7_int l3_intf, L7_uint32 ipAdd
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * dtlPtinMEPControl
+ * 
+ * @author mruas (2/26/2015)
+ * 
+ * @param intIfNum 
+ * @param dapiCmd 
+ * 
+ * @return L7_RC_t 
+ */
 L7_RC_t dtlPtinMEPControl(L7_uint32 intIfNum, hapi_mep_t *dapiCmd)
 {
   DAPI_USP_t ddUsp;
