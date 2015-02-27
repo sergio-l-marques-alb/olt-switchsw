@@ -4670,6 +4670,37 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+    case CCMSG_ERPS_SYNC:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CCMSG_ERPS_SYNC (0x%04X)", inbuffer->msgId);
+      
+        CHECK_INFO_SIZE_MOD(msg_erps_cmd_t);
+
+        msg_erps_cmd_t *ptr;
+
+        ptr = (msg_erps_cmd_t *) outbuffer->info;
+
+        memcpy(outbuffer->info, inbuffer->info, sizeof(msg_erps_cmd_t));
+
+        /* Execute command */
+        rc = ptin_msg_erps_cmd(ptr);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      
+      }
+      break;
+
     /************************************************************************** 
     * ACL Configuration
     **************************************************************************/
