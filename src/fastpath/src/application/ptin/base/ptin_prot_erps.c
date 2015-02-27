@@ -1455,6 +1455,24 @@ int ptin_erps_aps_rx(L7_uint8 erps_idx, L7_uint8 *req, L7_uint8 *status, L7_uint
  * 
  * @return int 
  */
+int ptin_erps_FSM_remote_transition(L7_uint8 erps_idx, L7_uint8 state_machine)
+{
+  int ret = PROT_ERPS_EXIT_OK;
+
+  return(ret);
+}
+
+
+/**
+ * Force ERPS FSM new state
+ * 
+ * @author joaom (6/5/2013)
+ * 
+ * @param erps_idx 
+ * @param state 
+ * 
+ * @return int 
+ */
 int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line_callback)
 {
   int ret = PROT_ERPS_EXIT_OK;
@@ -1488,6 +1506,8 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
       tbl_erps[erps_idx].localRequest = LReq_NONE;
       tbl_erps[erps_idx].localReqPort = PROT_ERPS_PORT0;
     }
+
+    ptin_erps_FSM_remote_transition(erps_idx, state_machine);
   }
 
   return(ret);
