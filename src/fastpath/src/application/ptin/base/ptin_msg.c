@@ -2642,6 +2642,87 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
   return rc;
 }
 
+
+/**
+ * Configure L2 MAC Learn limit
+ * 
+ * @param maclimit: Mac limit structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
+{
+  ptin_l2_maclimit_t entry;
+  L7_RC_t rc = L7_SUCCESS;
+
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' being executed",__FUNCTION__);
+
+  /* Validate arguments */
+  if (maclimit==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask         = 0x%.8X",  maclimit->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," system       = %u",      maclimit->system);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," vid          = %u",      maclimit->vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," limit        = %u",      maclimit->limit);
+
+  memset(&entry, 0, sizeof(ptin_l2_maclimit_t));
+
+  if ((maclimit->mask & L2_MACLIMIT_MASK_SYSTEM) & (maclimit->system))
+  {
+    intIfNum = L7_ALL_INTERFACES;
+  }
+  else
+  {
+    if (maclimit->mask & L2_MACLIMIT_MASK_INTF)
+    {
+      /* Get intIfNum */
+      ptin_intf.intf_type = maclimit->intf.intf_type;
+      ptin_intf.intf_id = maclimit->intf.intf_id;
+      
+      if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
+        return L7_FAILURE;
+      }
+    }
+
+    if (maclimit->mask & L2_MACLIMIT_MASK_VLAN)
+    {
+      entry.vlanId = maclimit->vid;
+    }
+  }
+  
+  entry.limit = maclimit->limit;
+
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
+  
+  return rc;
+}
+
+void ptin_msg_debug_l2_maclimit_config(L7_uint32 mask, L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint16 vid, L7_uint32 limit)
+{
+  msg_l2_maclimit_config_t maclimit;
+
+  maclimit.slotId =         1;
+  maclimit.mask =           mask;
+  maclimit.system =         system;
+  maclimit.intf.intf_type = intf_type;
+  maclimit.intf.intf_id =   intf_id;
+  maclimit.vid =            vid;
+  maclimit.limit =          limit;
+
+  ptin_msg_l2_maclimit_config(&maclimit);
+}
+
 /* Dynamic ARP Inspection *****************************************************/
 
 /**
@@ -3261,9 +3342,8 @@ L7_RC_t ptin_msg_EVC_create(msg_HwEthMef10Evc_t *msgEvcConf)
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "ptin_sys_number_of_ports (%d)", ptin_sys_number_of_ports);
 
-    if ( (msgEvcConf->intf[i].intf_id == (ptin_sys_number_of_ports - 1)) /*&& (msgEvcConf->intf[i].vid >= 1065)*/ )
+    if ( (msgEvcConf->intf[i].intf_id == ptin_sys_number_of_ports) && (msgEvcConf->intf[i].intf_type == PTIN_EVC_INTF_PHYSICAL))
     {
-
       ptinEvcConf.flags = 0x18;
       ptinEvcConf.n_intf--;
       LOG_DEBUG(LOG_CTX_PTIN_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);

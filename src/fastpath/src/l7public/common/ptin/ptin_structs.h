@@ -10,6 +10,7 @@
 typedef enum
 {
   PTIN_DTL_MSG_EXAMPLE=0,
+  PTIN_DTL_MSG_L2_MACLIMIT,
   PTIN_DTL_MSG_MAX
 } ptin_dtl_msg_enum;
 
@@ -19,6 +20,13 @@ typedef struct
   L7_uint32 param1;
   L7_uint32 param2;
 } ptin_dtl_example_t;
+
+/* L2 MAC Limit Configuration */
+typedef struct
+{
+  L7_uint16   vlanId;       // VLAN ID
+  L7_uint32   limit;        // MAC Limit
+} ptin_l2_maclimit_t;
 
 
 /* Used for packet processing timing measure */

@@ -19,6 +19,7 @@
 #include "ptin_hapi.h"
 #include "ptin_hapi_xlate.h"
 #include "ptin_hapi_xconnect.h"
+#include "ptin_hapi_l2.h"
 #include "ptin_hapi_fp_bwpolicer.h"
 #include "ptin_hapi_fp_counters.h"
 #include "broad_policy.h"
@@ -131,7 +132,7 @@ L7_RC_t hapi_ptin_data_init(void)
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
-  rc = ptin_hapi_macaddr_init();
+  rc = ptin_hapi_maclimit_init();
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 

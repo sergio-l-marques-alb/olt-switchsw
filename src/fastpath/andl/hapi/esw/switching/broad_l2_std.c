@@ -82,6 +82,7 @@
 
 #include "logger.h"
 #include "ptin_hapi_xconnect.h"
+#include "ptin_hapi_l2.h"
 
 extern int _bcm_esw_l2_from_l2x(int unit, soc_mem_t mem, bcm_l2_addr_t *l2addr, uint32 *l2_entry);
 
@@ -3571,11 +3572,11 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     #if 1
     if (bcmx_l2_addr->flags & BCM_L2_MOVE)
     {
-      ptin_hapi_macaddr_dec(bcmx_l2_addr);
+      ptin_hapi_maclimit_dec(bcmx_l2_addr);
     }
     else
     {
-      if (ptin_hapi_macaddr_inc(bcmx_l2_addr) != L7_FAILURE)
+      if (ptin_hapi_maclimit_inc(bcmx_l2_addr) != L7_FAILURE)
       {
         bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
         rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
@@ -3796,7 +3797,7 @@ void hapiBroadAddrMacUpdateAge(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
 
         rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac,bcmx_l2_addr->vid);
         /* PTin added: MAC learning limit */
-        ptin_hapi_macaddr_dec(bcmx_l2_addr);
+        ptin_hapi_maclimit_dec(bcmx_l2_addr);
       }
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {

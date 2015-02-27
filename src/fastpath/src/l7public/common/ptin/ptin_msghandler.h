@@ -230,6 +230,7 @@
 #define CCMSG_ERPS_STATUS_NEXT              0x9174
 #define CCMSG_ERPS_STATUS_PAGESIZE          16
 #define CCMSG_ERPS_OPERATOR_CMD             0x9175
+#define CCMSG_ERPS_SYNC                     0x9176
 
 
 /* ACL Configuration */
@@ -652,6 +653,26 @@ typedef struct {
                                           // 0x0001 - Aging Time
   L7_uint32 aging_time;               // [0x0001] Forwarding Database Aging Interval    (10-1000000) */
 } __attribute__((packed)) msg_switch_config_t;
+
+
+typedef enum
+{
+  L2_MACLIMIT_MASK_NONE            = 0x0000,
+  L2_MACLIMIT_MASK_SYSTEM          = 0x0001,
+  L2_MACLIMIT_MASK_INTF            = 0x0002,
+  L2_MACLIMIT_MASK_VLAN            = 0x0004
+} L2_MACLIMIT_MASK_t;
+
+typedef struct {
+  L7_uint8  slotId;                   /* slot */
+  L7_uint32 mask;                     /* Mask (32 bits for alignment purposes) */
+
+  L7_uint8              system;       /* Limit is system wide */
+  msg_HwEthInterface_t  intf;         /* Interface            */
+  L7_uint16             vid;          /* VLAN ID              */
+
+  L7_uint32             limit;        /* Maximum number of learned entries, -1 for unlimited. */
+} __attribute__((packed)) msg_l2_maclimit_config_t;
 
 /***************************************************** 
  * LAGs messages
@@ -2023,6 +2044,13 @@ typedef struct {
   L7_uint8  cmd;
   L7_uint8  port;
 } __attribute__ ((packed)) msg_erps_cmd_t;
+
+typedef struct {
+  L7_uint8  slotId;
+  L7_uint32 idx;
+  L7_uint8  cmd;
+  L7_uint8  port;
+} __attribute__ ((packed)) msg_erps_sync_t;
 
 /**************************************************************************** 
  * UPLINK PROTECTION

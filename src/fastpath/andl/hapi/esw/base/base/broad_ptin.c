@@ -1,6 +1,7 @@
 #include "broad_ptin.h"
 #include "logger.h"
 #include "ptin_hapi.h"
+#include "ptin_hapi_l2.h"
 #include "ptin_hapi_l3.h"
 #include "ptin_hapi_xlate.h"
 #include "ptin_hapi_xconnect.h"
@@ -29,10 +30,12 @@ typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 
 /* Add here your callback prototype */
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 /* List of callbacks */
 broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_example,
+  broad_ptin_l2_maclimit,
 };
 
 /**
@@ -90,6 +93,32 @@ L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
 
   LOG_INFO(LOG_CTX_PTIN_HAPI, "Calling ptin_hapi_example...");
   return ptin_hapi_example(usp, example, dapi_g);
+}
+
+/**
+ * First callback example
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  ptin_l2_maclimit_t *entry;
+
+  entry = (ptin_l2_maclimit_t*) data;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  rc = ptin_hapi_maclimit_setmax(usp, entry->vlanId, entry->limit, dapi_g);
+
+  return rc;
 }
 
 
@@ -1212,12 +1241,12 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_macaddr_setmax(vport->int_ovid, vport->virtual_gport, vport->macLearnMax);
+        rc = ptin_hapi_vport_maclimit_setmax(vport->virtual_gport, vport->macLearnMax);
       }
     }
     else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_macaddr_setmax(vport->int_ovid, vport->virtual_gport, vport->macLearnMax); 
+      rc = ptin_hapi_vport_maclimit_setmax(vport->virtual_gport, vport->macLearnMax); 
     }
     break;
 
@@ -1229,12 +1258,12 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
       if (rc == L7_SUCCESS)
       {
-        rc = ptin_hapi_macaddr_reset(vport->int_ovid, vport->virtual_gport);
+        rc = ptin_hapi_vport_maclimit_reset(vport->virtual_gport);
       }
     }
     else if (vport->cmd == PTIN_VPORT_CMD_MAXMAC_SET)
     {
-      rc = ptin_hapi_macaddr_reset(vport->int_ovid, vport->virtual_gport);
+      rc = ptin_hapi_vport_maclimit_reset(vport->virtual_gport);
     }
     break;
 
