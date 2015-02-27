@@ -855,15 +855,37 @@ void daiRateLimitCheck(void)
 
   for (i = 1; i < DAI_MAX_INTF_COUNT; i++)
   {
-    if((daiCfgData->intfCfg[i].rate_limit != L7_DAI_RATE_LIMIT_NONE) &&
-       (daiIntfInfo[i].pktRxCount >= (L7_uint32)daiCfgData->intfCfg[i].rate_limit))
+    if (daiCfgData->intfCfg[i].rate_limit != L7_DAI_RATE_LIMIT_NONE)
     {
-      daiIntfInfo[i].consecutiveInterval++;
+      /* Above rate limit */
+      if (daiIntfInfo[i].pktRxCount >= (L7_uint32)daiCfgData->intfCfg[i].rate_limit)
+      {
+        daiIntfInfo[i].consecutiveInterval++;
+      }
+      /* Below rate limit */
+      else
+      {
+        daiIntfInfo[i].consecutiveInterval = 1;
+
+        /* Decrement blocking interval */
+        if (daiIntfInfo[i].blockedInterval > 0)
+        {
+          daiIntfInfo[i].blockedInterval--;
+
+          if (daiIntfInfo[i].blockedInterval == 0)
+          {
+            if (ptin_debug_dai_snooping)
+              LOG_DEBUG(LOG_CTX_DAI, "ARP rate limiter unblocked for intIfNum %u.", i);
+          }
+        }
+      }
     }
     else
     {
       daiIntfInfo[i].consecutiveInterval = 1;
+      daiIntfInfo[i].blockedInterval = 0;
     }
+
     daiIntfInfo[i].pktRxCount = 0;
   }
 
@@ -913,9 +935,19 @@ L7_BOOL rateLimitFilter(sysnet_pdu_info_t *pduInfo)
   {
     daiIntfInfo[pduInfo->intIfNum].pktRxCount++;
 
+    /* PTin added: DAI */
+    #if 1
+    if (daiIntfInfo[pduInfo->intIfNum].blockedInterval > 0)
+    {
+      /* Drop packet */
+      osapiReadLockGive(daiCfgRWLock);
+      return L7_TRUE;
+    }
+    #endif
+
     if((daiIntfInfo[pduInfo->intIfNum].consecutiveInterval >=
         daiCfgData->intfCfg[pduInfo->intIfNum].burst_interval) &&
-       (daiIntfInfo[pduInfo->intIfNum].pktRxCount >=
+        (daiIntfInfo[pduInfo->intIfNum].pktRxCount >=
         (L7_uint32)daiCfgData->intfCfg[pduInfo->intIfNum].rate_limit))
     {
       /* Error disable this interface by calling NIM API.
@@ -931,9 +963,13 @@ L7_BOOL rateLimitFilter(sysnet_pdu_info_t *pduInfo)
       L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DAI_COMPONENT_ID,
               "User has to bring the interface %s up explicitly",ifName);
 
+      /* PTin removed: DAI - Do not disable interface... only drop packet */
+      #if 0
       daiIntfInfo[pduInfo->intIfNum].pktRxCount = 0;
       /* Disable the i/f in h/w */
       nimSetIntfAdminState(pduInfo->intIfNum, L7_DIAG_DISABLE);
+      #endif
+      daiIntfInfo[pduInfo->intIfNum].blockedInterval = daiCfgData->intfCfg[pduInfo->intIfNum].burst_interval*2;
 
       /* Raise a trap for the error disabling event */
       trapMgrDaiIntfErrorDisabledTrap(pduInfo->intIfNum);

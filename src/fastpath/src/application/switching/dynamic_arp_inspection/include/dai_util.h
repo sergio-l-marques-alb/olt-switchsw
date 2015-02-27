@@ -226,6 +226,9 @@ typedef struct daiIntfInfo_s
    * packet rate on this interface (if untrusted) has exceeded
    * configured rate limit */
   L7_uint32   consecutiveInterval;
+
+  /* PTin added: Interval of time, with ARPs blocked */
+  L7_uint32   blockedInterval;
 } daiIntfInfo_t;
 
 /* dai_main.c */
