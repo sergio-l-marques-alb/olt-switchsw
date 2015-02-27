@@ -36,17 +36,13 @@ typedef struct {
   L7_uint32     link;		    // Bit 0 -> Link state; Bit 1 -> RX traffic; Bit 2 -> TX traffic
   L7_uint32     port_state;     // Uso futuro (exemplo: indicacao de actividade/trafego)
 
- #ifdef SYNC_SSM_IS_SUPPORTED
   L7_uint32     ssm_rx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
   L7_uint32     ssm_tx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
- #endif
 } t_eth_status;
 
 typedef struct {
   t_eth_status  intf[SSM_N_INTFS];
- #ifdef SYNC_SSM_IS_SUPPORTED
   L7_uchar8     SyncE_Recovery_clock[2];
- #endif
 } t_fw_shm;
 
 #elif (defined(SYNC_SSM_IS_SUPPORTED) && PTIN_BOARD_IS_MATRIX)
@@ -66,13 +62,14 @@ typedef struct {
   } intf[SSM_N_SLOTS][SSM_N_INTFS];
 } t_fw_shm;
 
-#elif (defined(SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_LINECARD))
+#elif (defined(SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_ACTIVETH))
 
-#define FW_SHM_KEY          9889
+#define FW_SHM_KEY          9890
+
 
 #define SSM_N_SLOTS         1                         /* Always 1 slot for linecards */
 #define SSM_N_INTFS         PTIN_SYSTEM_MAX_N_PORTS   /* 64 ports used for array dim */
-#define SSM_N_INTFS_IN_USE  PTIN_SYSTEM_N_PORTS       /* Ports actually used for the related board */
+#define SSM_N_INTFS_IN_USE  PTIN_SYSTEM_N_ETH         /* Ports actually used for the related board (Only front ports) */
 
 typedef struct {
   L7_uint32     admin;                          // Estado administrativo: 0=Down , 1=Up

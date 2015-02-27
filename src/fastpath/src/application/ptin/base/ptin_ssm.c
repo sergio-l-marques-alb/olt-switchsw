@@ -92,7 +92,7 @@ void ptin_debug_ssm_enable(L7_BOOL enable)
   ssm_debug_enable = enable & 1;
 }
 
-#if (!PTIN_BOARD_IS_STANDALONE)
+#if (PTIN_BOARD_IS_MATRIX)
  #define SHMEM(slot,intf)   pfw_shm->intf[slot][intf]
 #else
  #define SHMEM(slot,intf)   pfw_shm->intf[intf]

@@ -1,6 +1,9 @@
 #ifndef _PTIN_GLOBALDEFS_TA48GE_H
 #define _PTIN_GLOBALDEFS_TA48GE_H
 
+/* If SSM is not supported, comment this line */
+#define SYNC_SSM_IS_SUPPORTED
+
 /* Allows direct control over port add/remove of a LAG (shortcut to message queues) */
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
