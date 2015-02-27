@@ -419,6 +419,15 @@ extern L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_t *mac_table);
  */
 extern L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table);
 
+/**
+ * Configure L2 MAC Learn limit
+ * 
+ * @param maclimit: Mac limit structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit);
+
 /* Dynamic ARP Inspection *****************************************************/
 
 /**

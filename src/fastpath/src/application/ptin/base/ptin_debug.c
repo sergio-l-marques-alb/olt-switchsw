@@ -14,6 +14,7 @@
 #include "ptin_evc.h"
 #include "ptin_msghandler.h"
 #include "dtl_ptin.h"
+#include "ptin_msg.h"
 #include "usmdb_telnet_api.h"
 #include <unistd.h>
 #include <usmdb_nim_api.h>
@@ -109,6 +110,7 @@ void ptin_debug(void)
   printf("  ptin_evc_map                                              - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int>                                 - prints info about the EVC related to the given internal vlan\r\n");
   printf("  ptin_maclimit_dump                                        - Dumps MAC limit tables (non empty)\r\n");
+  printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt> - Configures L2 MAC Limit on system/ per VLAN / per Port");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>    - Generic DTL processor example\r\n");
   printf("  cliTelnetAdminModeSet <port>\r\n");
   printf("\r\n");
@@ -853,3 +855,45 @@ void ptin_lag_dump(void)
   return;
 }
 
+
+/**
+ * ptin_debug_l2_maclimit_config
+ * 
+ * @param system 
+ * @param intf_type 
+ * @param intf_id 
+ * @param vid 
+ * @param limit 
+ */
+void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint16 vid, L7_uint32 limit)
+{
+  msg_l2_maclimit_config_t maclimit;
+
+  memset(&maclimit, 0, sizeof(msg_l2_maclimit_config_t));
+
+  maclimit.slotId =         1;
+
+  if (system != 0)
+  {
+    maclimit.mask |=  L2_MACLIMIT_MASK_SYSTEM;
+    maclimit.system = system;
+  }
+  else
+  {
+    if ((intf_type != -1) && (intf_id!=-1))
+    {
+      maclimit.mask |=          L2_MACLIMIT_MASK_INTF;
+      maclimit.intf.intf_type = intf_type;
+      maclimit.intf.intf_id =   intf_id;
+    }
+    if (vid != 0)
+    {
+      maclimit.mask |=  L2_MACLIMIT_MASK_VLAN;
+      maclimit.vid =    vid;
+    }
+  }
+  
+  maclimit.limit =          limit;
+
+  ptin_msg_l2_maclimit_config(&maclimit);
+}

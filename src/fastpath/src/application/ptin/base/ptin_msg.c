@@ -2682,6 +2682,12 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   }
   else
   {
+    if (maclimit->mask & L2_MACLIMIT_MASK_VLAN)
+    {
+      intIfNum = L7_ALL_INTERFACES;
+      entry.vlanId = maclimit->vid;
+    }
+
     if (maclimit->mask & L2_MACLIMIT_MASK_INTF)
     {
       /* Get intIfNum */
@@ -2694,11 +2700,6 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
         return L7_FAILURE;
       }
     }
-
-    if (maclimit->mask & L2_MACLIMIT_MASK_VLAN)
-    {
-      entry.vlanId = maclimit->vid;
-    }
   }
   
   entry.limit = maclimit->limit;
@@ -2706,21 +2707,6 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
   
   return rc;
-}
-
-void ptin_msg_debug_l2_maclimit_config(L7_uint32 mask, L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint16 vid, L7_uint32 limit)
-{
-  msg_l2_maclimit_config_t maclimit;
-
-  maclimit.slotId =         1;
-  maclimit.mask =           mask;
-  maclimit.system =         system;
-  maclimit.intf.intf_type = intf_type;
-  maclimit.intf.intf_id =   intf_id;
-  maclimit.vid =            vid;
-  maclimit.limit =          limit;
-
-  ptin_msg_l2_maclimit_config(&maclimit);
 }
 
 /* Dynamic ARP Inspection *****************************************************/
