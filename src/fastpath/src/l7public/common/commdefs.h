@@ -355,6 +355,7 @@ typedef enum
   L7_BER_RX_SYNC,               /* PTin added: BER task  */
   L7_PTIN_ERPS_TASK_SYNC,       /* PTin added: ptin task */
   L7_PTIN_APS_PACKET_TASK_SYNC, /* PTin added: ptin task */
+  L7_PTIN_RFC2819_TASK_SYNC,    /* PTin added: ptin task */
   L7_PTIN_OAM_ETH_TASK_SYNC,    /* PTin added: ptin task */
   L7_PTIN_IPDTL0_TASK_SYNC,     /* PTin added: ptin task */
   L7_PTIN_10MS_TASK_SYNC,       /* PTin added: 10ms task */

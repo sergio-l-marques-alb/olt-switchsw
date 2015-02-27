@@ -35,6 +35,7 @@
 #include "ptin_ssm.h"
 #include "ptin_prot_erps.h"
 #include "ptin_ipdtl0_packet.h"
+#include "ptin_rfc2819.h"
 #include <ptin_prot_oam_eth.h>
 #include <ptin_oam_packet.h>
 
@@ -551,6 +552,9 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 #endif
 #endif
 #endif
+
+  /* Initialize rfc2819 monitoring (includes structures and tasks) */
+  ptin_rfc2819_init();
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 

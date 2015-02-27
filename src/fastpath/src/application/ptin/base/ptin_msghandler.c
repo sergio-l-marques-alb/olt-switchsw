@@ -4771,6 +4771,157 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       break;
 
+    case CHMSG_RFC2819_MONITORING_CONFIG:      
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CHMSG_RFC2819_MONITORING_CONFIG (0x%04X)", inbuffer->msgId);
+
+        CHECK_INFO_SIZE_MOD(msg_rfc2819_admin_t);
+
+        msg_rfc2819_admin_t *ptr;
+
+        ptr = (msg_rfc2819_admin_t *)inbuffer->info;
+
+        /* Execute command */
+        rc = ptin_msg_config_rfc2819_monitoring(ptr);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
+
+    case CHMSG_RFC2819_MONITORING_GET:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CHMSG_RFC2819_MONITORING_GET (0x%04X)", inbuffer->msgId);
+  
+        CHECK_INFO_SIZE_MOD(L7_int);
+  
+        msg_rfc2819_buffer_t *ptr;
+        L7_int                n;
+  
+        ptr = (msg_rfc2819_buffer_t *) outbuffer->info;
+  
+        /* Execute command */
+        rc = ptin_msg_get_next_qualRFC2819_inv(*((L7_uint32 *)inbuffer->info), ptr, &n);
+  
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+  
+        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_t)*n;
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
+
+    case CHMSG_RFC2819_MONITORING_CLEAR:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CHMSG_RFC2819_MONITORING_CLEAR (0x%04X)", inbuffer->msgId);
+  
+        CHECK_INFO_SIZE_MOD(L7_uint32);
+
+        /* Execute command */
+        rc = ptin_msg_clear_rfc2819_monitoring_buffer(*((L7_uint32 *)inbuffer->info));
+  
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+  
+        SETIPCACKOK(outbuffer);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+        
+      }
+      break;
+
+
+    case CHMSG_RFC2819_MONITORING_SHOW_CONF:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CHMSG_RFC2819_MONITORING_SHOW_CONF (0x%04X)", inbuffer->msgId);
+
+        L7_int Port;
+        L7_uint8 Admin;        
+        L7_uint32 *resp;        
+        CHECK_INFO_SIZE_MOD(L7_int);
+
+        Port = *((L7_uint32 *)inbuffer->info);
+        resp = (L7_uint32 *)outbuffer->info;
+
+        /* Execute command */
+        rc = ptin_msg_get_rfc2819_probe_config(Port, &Admin);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        if (Admin==0) {
+          *resp = (Port & 0xFFFF);
+        }
+        else {
+          *resp = 0x80000000 | (Port & 0xFFFF);
+        }
+
+        outbuffer->infoDim = sizeof(L7_uint32);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
+
+    case CHMSG_RFC2819_MONITORING_BUFF_STATUS:
+      {
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message received: CHMSG_RFC2819_MONITORING_BUFF_STATUS (0x%04X)", inbuffer->msgId);
+
+        msg_rfc2819_buffer_status_t *status;
+        L7_int buffer_type;
+
+        status = (msg_rfc2819_buffer_status_t *) outbuffer->info;
+
+        CHECK_INFO_SIZE_MOD(L7_int);
+
+        buffer_type = *((L7_int *)inbuffer->info);
+
+        /* Execute command */
+        rc = ptin_msg_rfc2819_buffer_status(buffer_type, status);
+
+        if (L7_SUCCESS != rc)
+        {
+          LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(msg_rfc2819_buffer_status_t);
+        LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+                 "Message processed: response with %d bytes", outbuffer->infoDim);
+      }
+      break;
+
 #ifdef __802_1x__
     case CCMSG_WR_802_1X_ADMINMODE:
     case CCMSG_WR_802_1X_TRACE:

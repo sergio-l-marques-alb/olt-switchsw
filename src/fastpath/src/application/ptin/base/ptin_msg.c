@@ -53,6 +53,9 @@
 
 #include "ptin_fpga_api.h"//To interact with CPLD register
 
+#include "ptin_rfc2819_buffer.h"
+#include "ptin_rfc2819.h"
+
 #include <dtl_ptin.h>
 
 #define CMD_MAX_LEN   200   /* Shell command maximum length */
@@ -10976,3 +10979,149 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
 
   return;
 }
+
+
+/**
+ * Clear RFC2819 buffer monitoring.
+ * 
+ * @param buffer_index: 
+ * @param buffer_type: 0: 15min buffer, 1: 24Hours buffer
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_clear_rfc2819_monitoring_buffer(L7_uint32 buffer_index)
+{ 
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Clear buffer_index: %u", buffer_index);
+
+  //test bit31 to decide which buffer must be cleared (15min or 24hours)
+  if (buffer_index & 0x80000000)
+    buffer_index=RFC2819_BUFFER_24HOURS;
+  else
+    buffer_index=RFC2819_BUFFER_15MIN;
+
+  return ptin_rfc2819_buffer_clear(buffer_index);
+}
+
+
+
+
+/**
+ * get entrys from rfc2819 ring buffer
+ * 
+ * @param buffer_index: buffer index
+ * @param buffer: points to the returned buffer
+ * @param n_elements: number of buffers 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffer_t *buffer, L7_int *n_elements)
+{
+  L7_int buffer_id;
+  L7_int first_reg=0;
+  TBufferRegQualRFC2819 ring_buffer;
+
+  buffer_id = buffer_index & 0xFFFF;
+
+  if (buffer_index & 0x80000000)
+    buffer_index=RFC2819_BUFFER_24HOURS;
+  else
+    buffer_index=RFC2819_BUFFER_15MIN;
+
+  if (buffer_id==0xFFFF) {
+    first_reg = -1; 
+  } else {
+    first_reg = buffer_id-1;
+    if (first_reg<0)
+      first_reg = MAX_QUAL_RFC2819_REG_NUM-1;
+  }   
+
+  *n_elements = 0;
+
+  while (*n_elements<RFC2819_MAX_BUFFER_GET_NEXT) {
+    first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
+        
+    buffer[*n_elements].index               = ring_buffer.index;
+    buffer[*n_elements].arg                 = ring_buffer.arg;
+    buffer[*n_elements].time                = ring_buffer.time;
+    buffer[*n_elements].path                = ring_buffer.path;
+    buffer[*n_elements].cTempo              = ring_buffer.cTempo;
+
+    buffer[*n_elements].Octets               = ring_buffer.Octets;
+    buffer[*n_elements].Pkts                 = ring_buffer.Pkts;                
+    buffer[*n_elements].Broadcast            = ring_buffer.Broadcast;
+    buffer[*n_elements].Multicast            = ring_buffer.Multicast;           
+    buffer[*n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+    buffer[*n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+    buffer[*n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+    buffer[*n_elements].Fragments            = ring_buffer.Fragments;           
+    buffer[*n_elements].Jabbers              = ring_buffer.Jabbers;             
+    buffer[*n_elements].Collisions           = ring_buffer.Collisions;          
+    buffer[*n_elements].Utilization          = ring_buffer.Utilization;         
+    buffer[*n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+    buffer[*n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+    buffer[*n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+    buffer[*n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+    buffer[*n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+    buffer[*n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
+
+    if (first_reg<0) 
+      break;
+
+    (*n_elements)++;        
+  }  
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * RFC2819 Probe Configuration
+ * 
+ * @param config: 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config)
+{ 
+  L7_RC_t rc;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
+
+  //Configure
+  rc = ptin_rfc2819_config_probe(config->Port, config->Admin);
+
+  if (L7_SUCCESS != rc)
+    return L7_FAILURE;
+  else
+    return L7_SUCCESS;
+}
+
+
+/**
+ * Get RFC2819 Probe Configuration
+ * 
+ * @param Port (input): 
+ * @param Admin (output): 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_get_rfc2819_probe_config(L7_int Port, L7_uint8 *Admin)
+{ 
+  return ptin_rfc2819_get_config_probe(Port, Admin);
+}
+
+
+/**
+ * Get RFC2819 Buffer status (For debug purposes)
+ * 
+ * @param buffer_type
+ * @param status 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_rfc2819_buffer_status(L7_int buffer_type, msg_rfc2819_buffer_status_t *status)
+{  
+  status->BufferType = buffer_type;
+  return ptin_rfc2819_get_buffer_status(buffer_type, &status->max_entrys,  &status->wrptr, &status->bufferfull);
+}
+

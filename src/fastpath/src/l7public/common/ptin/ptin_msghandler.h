@@ -181,7 +181,11 @@
                                                     
 #define CCMSG_ETH_IGMP_ADMISSION_CONTROL    0x9082  // struct msg_IgmpAdmissionControl_t
 
-
+#define CHMSG_RFC2819_MONITORING_CONFIG     0x9083  // enable/disable RFC2819 monitoring
+#define CHMSG_RFC2819_MONITORING_GET        0x9084  // struct msg_rfc2819_buffer_t
+#define CHMSG_RFC2819_MONITORING_CLEAR      0x9085  // clear buffers
+#define CHMSG_RFC2819_MONITORING_SHOW_CONF  0x9086  // Show config
+#define CHMSG_RFC2819_MONITORING_BUFF_STATUS 0x9087 // buffers status (For debug purposes)
 
 
 /* OAM MEPs Configuration */
@@ -2353,6 +2357,53 @@ typedef struct
 
   msg_dai_statCounters_t  stats;          /* Statistics structure */
 } __attribute__ ((packed)) msg_dai_statistics_t;
+
+
+/* RCF2819 monitoring */
+
+#define RFC2819_MAX_BUFFER_GET_NEXT 30
+
+/* Probe configuration */
+typedef struct {
+  L7_uint8  SlotId;
+  L7_uint8  Port;
+  L7_uint8  Admin; //0-Disable, 1-Enable
+} __attribute__ ((packed)) msg_rfc2819_admin_t;
+
+/* Buffer entry */
+typedef struct {
+  L7_ulong32 index;  /* Entry id */    
+  L7_ulong32 arg;
+  L7_ulong32 time;   /* timestamp */
+  L7_ulong32 path;   /* portid    */
+  L7_ulong32 cTempo; /* monitorin period in seconds */ 
+
+  L7_uint64 Octets;
+  L7_uint64 Pkts;
+  L7_uint64 Broadcast;
+  L7_uint64 Multicast;
+  L7_uint64 CRCAlignErrors;
+  L7_uint64 UndersizePkts;
+  L7_uint64 OversizePkts;
+  L7_uint64 Fragments;
+  L7_uint64 Jabbers;
+  L7_uint64 Collisions;
+  L7_uint64 Utilization;
+  L7_uint64 Pkts64Octets;
+  L7_uint64 Pkts65to127Octets;
+  L7_uint64 Pkts128to255Octets;
+  L7_uint64 Pkts256to511Octets;
+  L7_uint64 Pkts512to1023Octets;
+  L7_uint64 Pkts1024to1518Octets;
+} __attribute__ ((packed)) msg_rfc2819_buffer_t;
+
+/* RFC2819 Buffer status*/
+typedef struct {
+  L7_uint16    max_entrys;
+  L7_uint16    BufferType;     
+  L7_uint16    wrptr;     
+  L7_uint16    bufferfull;
+} __attribute__ ((packed)) msg_rfc2819_buffer_status_t;
 
 
 /***************************************************************************** 

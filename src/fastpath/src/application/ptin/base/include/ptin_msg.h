@@ -1463,5 +1463,56 @@ L7_RC_t ptin_msg_routing_tracertsession_gethops(msg_RoutingTracertSessionHopsReq
 L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data);
 
 
+/**
+ * Clear RFC2819 buffer monitoring.
+ * 
+ * @param buffer_index: 
+ * @param buffer_type: 0: 15min buffer, 1: 24Hours buffer
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE 
+ */
+L7_RC_t ptin_msg_clear_rfc2819_monitoring_buffer(L7_uint32 buffer_index);
+
+
+/**
+ * get entrys from rfc2819 ring buffer
+ * 
+ * @param buffer_index: buffer index
+ * @param buffer: points to the returned buffer
+ * @param n_elements: number of buffers 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffer_t *buffer, L7_int *n_elements);
+
+/**
+ * RFC2819 Probe Configuration
+ * 
+ * @param config: 
+ * 
+ * @return L7_RC_t : L7_SUCCESS
+ */
+L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config);
+
+/**
+ * Get RFC2819 Probe Configuration
+ * 
+ * @param Port (input): 
+ * @param Admin (output): 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_get_rfc2819_probe_config(L7_int Port, L7_uint8 *Admin);
+
+/**
+ * Get RFC2819 Buffer status (For debug purposes)
+ * 
+ * @param buffer_type
+ * @param status 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_rfc2819_buffer_status(L7_int buffer_type, msg_rfc2819_buffer_status_t *status);
+
 #endif /* _PTIN_MSG_H */
 
