@@ -880,7 +880,7 @@ void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_
   }
   else
   {
-    if ((intf_type != -1) && (intf_id!=-1))
+    if ((intf_type != (L7_uint8)-1) && (intf_id!=(L7_uint8)-1))
     {
       maclimit.mask |=          L2_MACLIMIT_MASK_INTF;
       maclimit.intf.intf_type = intf_type;
