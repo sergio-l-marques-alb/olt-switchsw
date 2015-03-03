@@ -5967,18 +5967,18 @@ int main (int argc, char *argv[])
               // Priorities map
               printf("                  ");
               for (j=0; j<8; j++) {
-                printf("----------");
+                printf("------------");
                 if (j<7)  printf("-");
               }
               printf("\r\n");
               printf("  Pkt. Priority ");
               for (j=0; j<8; j++) {
-                printf(" | %8u",j);
+                printf(" | %10u",j);
               }
               printf(" |\r\n");
               printf("                 ");
               for (j=0; j<8; j++) {
-                printf("|----------");
+                printf("|------------");
               }
               printf("|\r\n");
               printf("  ClassOfService");
@@ -5987,13 +5987,13 @@ int main (int argc, char *argv[])
                   printf(" | 0x%08lX",ptr->pktprio.cos[j]);
                 }
                 else {
-                  printf(" | %8lu",ptr->pktprio.cos[j]);
+                  printf(" | %10lu",ptr->pktprio.cos[j]);
                 }
               }
               printf(" |\r\n");
               printf("                  ");
               for (j=0; j<8; j++) {
-                printf("----------");
+                printf("------------");
                 if (j<7)  printf("-");
               }
               printf("\r\n");
@@ -6001,42 +6001,42 @@ int main (int argc, char *argv[])
               // CoS configurations
               printf("                  ");
               for (j=0; j<8; j++) {
-                printf("----------");
+                printf("------------");
                 if (j<7)  printf("-");
               }
               printf("\r\n");
               printf("  CoS           ");
               for (j=0; j<8; j++) {
-                printf(" | %8u",j);
+                printf(" | %10u",j);
               }
               printf(" |\r\n");
               printf("                 ");
               for (j=0; j<8; j++) {
-                printf("|----------");
+                printf("|------------");
               }
               printf("|\r\n");
               printf("  Scheduler Type");
               for (j=0; j<8; j++) {
                 printf(" | ");
-                if (ptr->cos_config.cos[j].scheduler==0)       printf(" NotConf");
-                else if (ptr->cos_config.cos[j].scheduler==1)  printf("  Strict");
-                else if (ptr->cos_config.cos[j].scheduler==2)  printf("Weighted");
-                else                                           printf(" Invalid");
+                if (ptr->cos_config.cos[j].scheduler==0)       printf("   NotConf");
+                else if (ptr->cos_config.cos[j].scheduler==1)  printf("    Strict");
+                else if (ptr->cos_config.cos[j].scheduler==2)  printf("  Weighted");
+                else                                           printf("   Invalid");
               }
               printf(" |\r\n");
               printf("  Min. Bandwidth");
               for (j=0; j<8; j++) {
-                printf(" | %8lu",ptr->cos_config.cos[j].min_bandwidth);
+                printf(" | %10lu",ptr->cos_config.cos[j].min_bandwidth);
               }
               printf(" |\r\n");
               printf("  Max. Bandwidth");
               for (j=0; j<8; j++) {
-                printf(" | %8lu",ptr->cos_config.cos[j].max_bandwidth);
+                printf(" | %10lu",ptr->cos_config.cos[j].max_bandwidth);
               }
               printf(" |\r\n");
               printf("                  ");
               for (j=0; j<8; j++) {
-                printf("----------");
+                printf("------------");
                 if (j<7)  printf("-");
               }
               printf("\r\n");

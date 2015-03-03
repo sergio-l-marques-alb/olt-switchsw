@@ -914,14 +914,14 @@ static L7_BOOL cnfgrFlexQosCosIsFeaturePresent(L7_uint32 featureId)
       listEnt = (L7_uint32)CNFGR_QOS_COS_FEATURES_STRATA_LIST_ENTRIES;
       break;
 
-    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
-      pPlatformList = cnfgrQosCosFeaturesBcmXgs;
-      listEnt = (L7_uint32)CNFGR_QOS_COS_FEATURES_XGS_LIST_ENTRIES;
-      break;
-
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3:
       pPlatformList = cnfgrQosCosFeaturesBcmXgs3;
       listEnt = (L7_uint32)CNFGR_QOS_COS_FEATURES_XGS3_LIST_ENTRIES;
+      break;
+
+    case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS:
+      pPlatformList = cnfgrQosCosFeaturesBcmXgs;
+      listEnt = (L7_uint32)CNFGR_QOS_COS_FEATURES_XGS_LIST_ENTRIES;
       break;
 
     case L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4:
@@ -986,25 +986,26 @@ static L7_BOOL cnfgrFlexQosCosIsFeaturePresent(L7_uint32 featureId)
      * NOTE: There must be a more elegant way to handle subtype differences,
      *       so avoid the temptation of copying this to use in other places!
      */
-     if ((techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS) &&
-        (techSubtype == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5665))
+    if (techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS &&
+        techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4 &&
+        techType != L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5)
     {
-      /* 5665 does support global DSCP mapping table. */
-      pMatrix[L7_COS_MAP_IPDSCP_FEATURE_ID] = L7_TRUE;
-      pMatrix[L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID] = L7_FALSE;
+      if (techSubtype == L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5665)
+      {
+        /* 5665 does support global DSCP mapping table. */
+        pMatrix[L7_COS_MAP_IPDSCP_FEATURE_ID] = L7_TRUE;
+        pMatrix[L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID] = L7_FALSE;
+      }
+      else if (techSubtype != L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5695)
+      {
+        pMatrix[L7_COS_MAP_IPDSCP_FEATURE_ID] = L7_FALSE;
+        pMatrix[L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID] = L7_FALSE;
+      }
     }
-    else if ((techType == L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS) &&
-             (techSubtype != L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5695))
-    {
-      pMatrix[L7_COS_MAP_IPDSCP_FEATURE_ID] = L7_FALSE;
-      pMatrix[L7_COS_MAP_IPDSCP_PER_INTF_FEATURE_ID] = L7_FALSE;
-    }
-
 
     cosFeatureInit = L7_TRUE;
 
   } /* endif not initialized */
-
 
   /* Check the feature support matrix.  If COS not supported, don't
    * check the individual feature ID.

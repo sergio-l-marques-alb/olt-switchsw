@@ -3580,7 +3580,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 {
   L7_uint8  prio, prio2, cos;
   L7_uint32 intIfNum;
-  L7_RC_t   rc = L7_SUCCESS;
+  L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
   /* Validate arguments */
@@ -3634,14 +3634,14 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   {
     LOG_ERR(LOG_CTX_PTIN_INTF,"Error with usmDbQosCosMapTrustModeGet");
     trust_mode = L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED;
-    rc = L7_FAILURE;
+    rc_global = L7_FAILURE;
   }
   // Validate trust mode
   else if (trust_mode==L7_NULL || trust_mode>L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
   {
     LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid trust mode (%u)",trust_mode);
     trust_mode = L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED;
-    rc = L7_FAILURE;
+    rc_global = L7_FAILURE;
   }
   LOG_TRACE(LOG_CTX_PTIN_INTF, "Current trust mode is %u",trust_mode);
 
@@ -3652,7 +3652,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     if (usmDbQosCosMapTrustModeSet(1,intIfNum,intfQos->trust_mode)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapTrustModeSet");
-      rc = L7_FAILURE;
+      rc_global = L7_FAILURE;
     }
     else
     {
@@ -3673,7 +3673,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     if (usmDbQosCosQueueIntfShapingRateSet(1,intIfNum,intfQos->shaping_rate)!=L7_SUCCESS)
     {  
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet");
-      rc = L7_FAILURE;
+      rc_global = L7_FAILURE;
     }
     else
     {
@@ -3686,7 +3686,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     if (usmDbQosCosQueueWredDecayExponentSet(1,intIfNum,intfQos->wred_decay_exponent)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosQueueWredDecayExponentSet");
-      rc = L7_FAILURE;
+      rc_global = L7_FAILURE;
     }
     else
     {
@@ -3709,10 +3709,11 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         /* CoS goes from 0 to 7 (0b000 to 0b111) */
         cos = intfQos->pktprio.cos[prio] & 0x07;
 
-        if (usmDbDot1dTrafficClassSet(1,intIfNum,prio,cos)!=L7_SUCCESS)
+        rc = usmDbDot1dTrafficClassSet(1,intIfNum,prio,cos);
+        if (rc != L7_SUCCESS)
         {
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbDot1dTrafficClassSet (prio=%u => cos=%u)",prio,cos);
-          rc = L7_FAILURE;
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbDot1dTrafficClassSet (prio=%u => cos=%u): rc=%d",prio,cos, rc);
+          rc_global = L7_FAILURE;
         }
         else
         {
@@ -3725,10 +3726,11 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         /* CoS goes from 0 to 7 (0b000 to 0b111) */
         cos = intfQos->pktprio.cos[prio] & 0x07;
 
-        if (usmDbQosCosMapIpPrecTrafficClassSet(1, intIfNum, prio, cos)!=L7_SUCCESS)
+        rc = usmDbQosCosMapIpPrecTrafficClassSet(1, intIfNum, prio, cos);
+        if (rc != L7_SUCCESS)
         { 
-          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassSet (IPprec=%u => cos=%u)",prio,cos); 
-          rc = L7_FAILURE;
+          LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpPrecTrafficClassSet (IPprec=%u => cos=%u): rc=%d",prio,cos, rc); 
+          rc_global = L7_FAILURE;
         }
         else
         {
@@ -3744,10 +3746,11 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
           /* Map 64 different priorities (6 bits) to 8 CoS */
           cos = ((intfQos->pktprio.cos[prio])>>(4*prio2)) & 0x07;
 
-          if (usmDbQosCosMapIpDscpTrafficClassSet(1, intIfNum, prio*8+prio2, cos)!=L7_SUCCESS)
+          rc = usmDbQosCosMapIpDscpTrafficClassSet(1, intIfNum, prio*8+prio2, cos);
+          if (rc != L7_SUCCESS)
           {
-            LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassSet (DscpPrio=%u => CoS=%u)",prio*8+prio2,cos);
-            rc = L7_FAILURE;
+            LOG_ERR(LOG_CTX_PTIN_INTF, "Error with usmDbQosCosMapIpDscpTrafficClassSet (DscpPrio=%u => CoS=%u): rc=%d",prio*8+prio2,cos, rc);
+            rc_global = L7_FAILURE;
           }
           else
           {
@@ -3758,12 +3761,12 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
       else
       {
         LOG_ERR(LOG_CTX_PTIN_INTF, "Unknown trust mode for prio=%u (%u)",prio,trust_mode);
-        rc = L7_FAILURE;
+        rc_global = L7_FAILURE;
       }
     }
   }
 
-  if (rc==L7_SUCCESS)
+  if (rc_global==L7_SUCCESS)
   {
     LOG_TRACE(LOG_CTX_PTIN_INTF, "QoS configuration successfully applied to ptin_intf=%u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
   }
@@ -3772,7 +3775,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     LOG_ERR(LOG_CTX_PTIN_INTF, "Error applying QoS configuration to ptin_intf=%u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
   }
 
-  return rc;
+  return rc_global;
 }
 
 /**
