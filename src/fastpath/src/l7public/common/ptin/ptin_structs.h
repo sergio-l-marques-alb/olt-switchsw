@@ -21,6 +21,17 @@ typedef struct
   L7_uint32 param2;
 } ptin_dtl_example_t;
 
+/* PTin added: Generic DTL operation */
+#define PTIN_DTL_GENERICMSG_MAX_DATASIZE  1024
+typedef struct
+{
+  DAPI_CMD_GET_SET_t          getOrSet;
+  L7_uint16                   msgId;
+  L7_uint32                   dataSize;
+  L7_uint8                    data[PTIN_DTL_GENERICMSG_MAX_DATASIZE];
+} ptinDtlGenericMsg_t;
+
+
 /* L2 MAC Limit Configuration */
 typedef struct
 {

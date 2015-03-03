@@ -43,7 +43,7 @@ L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t o
 {
   nimUSP_t usp;
   DAPI_USP_t ddUsp;
-  DAPI_INTF_MGMT_CMD_t cmd;
+  ptinDtlGenericMsg_t ptinDtlGeneric;
   L7_RC_t rc = L7_SUCCESS;
 
   /* Interface */
@@ -67,22 +67,22 @@ L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t o
   }
 
   /* Validate size */
-  if (dataSize > PTIN_GENERIC_MAX_DATASIZE)
+  if (dataSize > PTIN_DTL_GENERICMSG_MAX_DATASIZE)
   {
-    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid dataSize (%u > %u bytes)!", dataSize, PTIN_GENERIC_MAX_DATASIZE);
+    LOG_ERR(LOG_CTX_PTIN_DTL, "Invalid dataSize (%u > %u bytes)!", dataSize, PTIN_DTL_GENERICMSG_MAX_DATASIZE);
     return L7_FAILURE;
   }
 
   /* Fill parameters */
-  memset(&cmd, 0x00, sizeof(cmd));
+  memset(&ptinDtlGeneric, 0x00, sizeof(ptinDtlGeneric));
 
-  cmd.cmdData.ptinDtlGeneric.getOrSet = operation;
-  cmd.cmdData.ptinDtlGeneric.msgId    = msgId;
-  cmd.cmdData.ptinDtlGeneric.dataSize = dataSize;
-  memcpy(cmd.cmdData.ptinDtlGeneric.data, data, dataSize);
+  ptinDtlGeneric.getOrSet = operation;
+  ptinDtlGeneric.msgId    = msgId;
+  ptinDtlGeneric.dataSize = dataSize;
+  memcpy(ptinDtlGeneric.data, data, dataSize);
 
   /* Goto HAPI layer */
-  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_GENERIC, (void *) &cmd);
+  rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_GENERIC, (void *) &ptinDtlGeneric);
 
   if (rc != L7_SUCCESS)
   {
