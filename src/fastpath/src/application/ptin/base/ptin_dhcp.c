@@ -806,6 +806,12 @@ L7_RC_t ptin_dhcp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
       dhcpInstances[dhcp_idx].nni_ovid = (nni_ovlan>=PTIN_VLAN_MIN && nni_ovlan<=PTIN_VLAN_MAX) ? nni_ovlan : 0;
       dhcpInstances[dhcp_idx].n_evcs   = 0;
       dhcpInstances[dhcp_idx].inUse    = L7_TRUE;
+
+      /* Clear configurations and statistics */
+      dhcpInstances[dhcp_idx].dhcpFlags       = DHCP_BOOTP_FLAG_NONE;
+      dhcpInstances[dhcp_idx].evcDhcpOptions  = 0;
+      memset(&dhcpInstances[dhcp_idx].circuitid, 0x00, sizeof(dhcpInstances[dhcp_idx].circuitid));
+      memset(dhcpInstances[dhcp_idx].stats_intf, 0x00, sizeof(dhcpInstances[dhcp_idx].stats_intf));
     }
   }
   else
@@ -924,6 +930,12 @@ L7_RC_t ptin_dhcp_evc_remove(L7_uint32 evc_idx)
   /* Only clear instance, if there is no one using this NNI outer vlan */
   if (remove_instance)
   {
+    /* Clear configurations and statistics */
+    dhcpInstances[dhcp_idx].dhcpFlags       = DHCP_BOOTP_FLAG_NONE;
+    dhcpInstances[dhcp_idx].evcDhcpOptions  = 0;
+    memset(&dhcpInstances[dhcp_idx].circuitid, 0x00, sizeof(dhcpInstances[dhcp_idx].circuitid));
+    memset(dhcpInstances[dhcp_idx].stats_intf, 0x00, sizeof(dhcpInstances[dhcp_idx].stats_intf));
+
     /* Clear data and free instance */
     dhcpInstances[dhcp_idx].evc_idx   = 0;
     dhcpInstances[dhcp_idx].nni_ovid  = 0;
