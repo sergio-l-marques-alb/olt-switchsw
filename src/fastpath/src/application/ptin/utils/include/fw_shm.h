@@ -66,7 +66,6 @@ typedef struct {
 
 #define FW_SHM_KEY          9890
 
-
 #define SSM_N_SLOTS         1                         /* Always 1 slot for linecards */
 #define SSM_N_INTFS         PTIN_SYSTEM_MAX_N_PORTS   /* 64 ports used for array dim */
 #define SSM_N_INTFS_IN_USE  PTIN_SYSTEM_N_ETH         /* Ports actually used for the related board (Only front ports) */
