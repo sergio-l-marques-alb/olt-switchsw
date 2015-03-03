@@ -181,15 +181,6 @@ L7_RC_t ssm_init(void)
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "SSM TX task launch OK");
 
-#if ( PTIN_BOARD_IS_MATRIX )
-  /* Open shared memory zone */
-  if (fw_shm_open()!=0)
-  {
-    LOG_FATAL(LOG_CTX_PTIN_CNFGR, "Error initializing shared memory");
-    return L7_FAILURE;
-  }
-#endif
-
   /* Initialize shared memory and internal structures */
   ssmCodesInit();
 #endif
@@ -716,6 +707,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   L7_netBufHandle bufHandle = L7_NULL;
   ssm_pdu_t *pdu;
   L7_uchar8 *data;
+  L7_uint16 frameLength;
   L7_uint16 slot, intf;
   L7_uint32 itu_oui;
   L7_RC_t   rc;
@@ -749,6 +741,7 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
   SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
   SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, SSM_PDU_DATALENGTH);
   pdu = (ssm_pdu_t *)data;
+  frameLength = SSM_PDU_DATALENGTH;
 
   memset(pdu,0,sizeof(ssm_pdu_t));
 
@@ -791,6 +784,19 @@ L7_RC_t ssmPDUTransmit(L7_uint32 intIfNum)
 
   /* SSM code */
   pdu->ssm_code = SHMEM(slot,intf).ssm_tx & 0x0f; // 0x0f;
+
+  /* Insert Outer Vlan with VLAN 1 */
+#if (PTIN_BOARD_IS_GPON)
+  memmove(&data[16], &data[12], frameLength - 12);
+
+  data[12] = (FD_DVLANTAG_802_1Q_ETHERTYPE >> 8) & 0xff;
+  data[13] = FD_DVLANTAG_802_1Q_ETHERTYPE & 0xff;
+  data[14] = 0x00;
+  data[15] = 0x01;
+
+  frameLength += 4;
+  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLength);
+#endif
 
   /*FCS calculation*/
   /*done by lower layers*/
