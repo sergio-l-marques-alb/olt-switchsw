@@ -532,7 +532,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
 {
   ptin_HWEthRFC2819_PortStatistics_t portStats;
 
-  //if ((RFC2819_probes_Rx[Port].conf.estado==1) || (RFC2819_probes_Tx[Port].conf.estado==1)) {
+  if ((RFC2819_probes_Rx[Port].conf.estado==1) || (RFC2819_probes_Tx[Port].conf.estado==1)) {
       /* Read statistics */
       portStats.Port = Port;
       portStats.Mask = 0xFF;
@@ -545,7 +545,7 @@ L7_int ptin_rfc2819_load_counters(L7_int Port)
       else
         LOG_TRACE(LOG_CTX_RFC2819, "Getting statistics of port# %u: SUCCESS", portStats.Port);
 
-  //}
+  }
 
     
   //Process receive counters
@@ -733,7 +733,7 @@ void ptin_rfc2819_task( void )
         }
     }      
 
-    for (Port=0; Port<PTIN_SYSTEM_N_PORTS; Port++)
+    for (Port=0; Port<ptin_sys_number_of_ports; Port++)
     {
       //load counters every 15min period. 
       // We don't need to load every second because we only need to proccess counters in periods of 15min/24hours.
