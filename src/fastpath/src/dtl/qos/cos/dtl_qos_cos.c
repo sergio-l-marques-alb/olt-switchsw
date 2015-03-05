@@ -336,7 +336,8 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 * @param    intIfNum        @b{(input)}  Internal interface number     
 * @param    *pMinBwList     @b{(input)}  Ptr to minimum bandwidth parm list
 * @param    *pMaxBwList     @b{(input)}  Ptr to maximum bandwidth parm list
-* @param    *pSchedTypeList @b{(input)}  Ptr to scheduler type list   
+* @param    *pSchedTypeList @b{(input)}  Ptr to scheduler type list
+* @param    *pWeightList    @b{(input)}  Ptr to Weight list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -349,7 +350,8 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, 
                                      L7_qosCosQueueBwList_t *pMinBwList,
                                      L7_qosCosQueueBwList_t *pMaxBwList,
-                                     L7_qosCosQueueSchedTypeList_t *pSchedTypeList)
+                                     L7_qosCosQueueSchedTypeList_t *pSchedTypeList,
+                                     L7_qosCosQueueWeightList_t *pWeightList)         /* PTin modified: QoS */
 {
   DAPI_QOS_CMD_t  dapiCmd;
   nimUSP_t        nimUsp;
@@ -385,6 +387,7 @@ L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum,
 
     dapiCmd.cmdData.queueSchedConfig.minBandwidth[i] = (L7_ulong32)pMinBwList->bandwidth[i];
     dapiCmd.cmdData.queueSchedConfig.maxBandwidth[i] = (L7_ulong32)pMaxBwList->bandwidth[i];
+    dapiCmd.cmdData.queueSchedConfig.wrr_weight[i] = (L7_uint8) pWeightList->queue_weight[i];   /* PTin added: QoS */
     dapiCmd.cmdData.queueSchedConfig.schedulerType[i] = queueSchedType;
   } /* endfor i */
 
@@ -452,6 +455,9 @@ L7_RC_t dtlQosCosQueueDropConfigSet(L7_uint32 intIfNum,
         dapiCmd.cmdData.queueDropConfig.parms[queueIndex].dropProb[precIndex] = 
             pDropParms->queue[queueIndex].dropProb[precIndex];
       }
+      /* PTin added: QoS */
+      dapiCmd.cmdData.queueDropConfig.parms[queueIndex].wred_decayExponent = 
+          pDropParms->queue[queueIndex].wred_decayExponent;
   }
   dapiCmd.cmdData.queueDropConfig.getOrSet = DAPI_CMD_SET;
   

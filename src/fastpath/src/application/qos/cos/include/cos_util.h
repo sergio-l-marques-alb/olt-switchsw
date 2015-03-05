@@ -95,6 +95,7 @@ typedef struct
   L7_qosCosQueueBwList_t          minBwList;
   L7_qosCosQueueBwList_t          maxBwList;
   L7_qosCosQueueSchedTypeList_t   schedTypeList;
+  L7_qosCosQueueWeightList_t      wrr_weights;    /* PTin added: QoS */
 
 } L7_cosQueueSchedParms_t;
       

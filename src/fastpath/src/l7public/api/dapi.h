@@ -2642,6 +2642,8 @@ typedef struct
   /* Also queue size for tail-drop */
   L7_uchar8                       maxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1];
   L7_uchar8                       dropProb[L7_MAX_CFG_DROP_PREC_LEVELS+1];
+  
+  L7_uint8                        wred_decayExponent;     /* PTin added: QoS */
 
 } DAPI_QOS_COS_DROP_PARMS_t;
 
@@ -2848,6 +2850,7 @@ typedef struct
       L7_ulong32                      minBandwidth[L7_MAX_CFG_QUEUES_PER_PORT];   /* 0% means best-effort (no guarantees) */
       L7_ulong32                      maxBandwidth[L7_MAX_CFG_QUEUES_PER_PORT];   /* 0% means unlimited (no shaping) */
       DAPI_QOS_COS_QUEUE_SCHED_TYPE_t schedulerType[L7_MAX_CFG_QUEUES_PER_PORT];
+      L7_uint16                       wrr_weight[L7_MAX_CFG_QUEUES_PER_PORT];     /* PTin added: QoS */
     } queueSchedConfig;
 
     struct

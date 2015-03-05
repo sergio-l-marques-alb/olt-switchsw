@@ -946,6 +946,26 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
                                              L7_uint32 intIfNum,
                                              L7_qosCosQueueSchedTypeList_t *pVal);
 
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Get the Weight list for all queues on this interface
+*
+* @param    UnitIndex   @b{(input)}  System unit number
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    *pVal       @b{(output)} Ptr to Weight output list    
+*
+* @returns  L7_SUCCESS
+* @returns  L7_NOT_SUPPORTED  This feature not supported
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex, 
+                                      L7_uint32 intIfNum,
+                                      L7_qosCosQueueWeightList_t *pVal);
+
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues on this interface
 *
@@ -964,6 +984,26 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
 L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex, 
                                              L7_uint32 intIfNum,
                                              L7_qosCosQueueSchedTypeList_t *pVal);
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the Weight list for all queues on this interface
+*
+* @param    UnitIndex   @b{(input)}  System unit number
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    *pVal       @b{(input)}  Ptr to Weight list    
+*
+* @returns  L7_SUCCESS
+* @returns  L7_NOT_SUPPORTED  This feature not supported
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex, 
+                                      L7_uint32 intIfNum,
+                                      L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the scheduler type for a specific queue on this interface
@@ -985,6 +1025,28 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
                                          L7_uint32 intIfNum,
                                          L7_uint32 queueId,
                                          L7_uint32 val);
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the queue weight (for WRR schedulers) on this interface
+*
+* @param    UnitIndex   @b{(input)}  System unit number
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    queueId     @b{(input)}  Queue id
+* @param    val         @b{(input)}  Weight
+*
+* @returns  L7_SUCCESS
+* @returns  L7_NOT_SUPPORTED  This feature not supported
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex, 
+                                  L7_uint32 intIfNum,
+                                  L7_uint32 queueId,
+                                  L7_uint32 val);
 
 /*************************************************************************
 * @purpose  Get the queue management type list for all queues on this interface

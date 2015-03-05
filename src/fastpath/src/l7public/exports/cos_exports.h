@@ -90,6 +90,9 @@ typedef enum
 /*--------------------------------------*/
 /*  COS Constants and Types             */
 /*--------------------------------------*/
+#define L7_QOS_COS_QUEUE_WEIGHT_MIN             1     /* PTin added: QoS */
+#define L7_QOS_COS_QUEUE_WEIGHT_MAX             128   /* PTin added: QoS */
+
 #define L7_QOS_COS_MAP_NUM_IPPREC               8     /* indexed 0 to 7 */
 #define L7_QOS_COS_MAP_NUM_IPDSCP               64    /* indexed 0 to 63 */
 
@@ -196,9 +199,11 @@ typedef struct
   L7_uint32             minBwPercent;   /* 0-100% (ignored for SP) */   /* PTin modified: L7_uchar8 */
   L7_uint32             maxBwPercent;   /* 0-100% (0=unlimited) */      /* PTin modified: L7_uchar8 */
   L7_uchar8             schedulerType;  /* strict vs. weighted */
+  L7_uint16             wrr_weight;                                     /* PTin added: QoS */
   L7_uchar8             queueMgmtType;  /* per-queue: tail drop vs. WRED */
   L7_uchar8             rsvd1[3];       /* (reserved -- for alignment) */
   L7_cosDropPrecCfg_t   dropPrec[L7_COS_INTF_DROP_PREC_MAX_COUNT+1]; /* DP parms, +1 for non-TCP WRED */
+  L7_uchar8             wred_decayExponent;                          /* PTin added: QoS */
 } L7_cosQueueCfg_t;
 
 /* COS configurable parameters */

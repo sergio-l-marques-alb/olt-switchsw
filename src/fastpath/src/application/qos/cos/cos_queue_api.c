@@ -896,6 +896,7 @@ L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum,
     qParms.minBwList.bandwidth[i] = pQ->minBwPercent;
     qParms.maxBwList.bandwidth[i] = pQ->maxBwPercent;
     qParms.schedTypeList.schedType[i] = pQ->schedulerType;
+    qParms.wrr_weights.queue_weight[i] = pQ->wrr_weight;      /* PTin added: QoS */
 
     if (qParms.minBwList.bandwidth[i] != pVal->bandwidth[i])
     {
@@ -1136,6 +1137,7 @@ L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum,
     qParms.minBwList.bandwidth[i] = pQ->minBwPercent;
     qParms.maxBwList.bandwidth[i] = pQ->maxBwPercent;
     qParms.schedTypeList.schedType[i] = pQ->schedulerType;
+    qParms.wrr_weights.queue_weight[i] = pQ->wrr_weight;      /* PTin added: QoS */
 
     if (qParms.maxBwList.bandwidth[i] != pVal->bandwidth[i])
     {
@@ -1323,6 +1325,39 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
   return L7_SUCCESS;
 }
 
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Get the weights list for all queues on this interface
+*
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    *pVal       @b{(output)} Ptr to weights output list
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
+                              L7_qosCosQueueWeightList_t *pVal)
+{
+  L7_cosCfgParms_t  *pCfg;
+  L7_uint32         i;
+
+  if (pVal == L7_NULLPTR)
+    return L7_FAILURE;
+
+  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+    pVal->queue_weight[i] = pCfg->queue[i].wrr_weight;
+
+  return L7_SUCCESS;
+}
+
+
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues on this interface
 *
@@ -1376,6 +1411,7 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
     qParms.minBwList.bandwidth[i] = pQ->minBwPercent;
     qParms.maxBwList.bandwidth[i] = pQ->maxBwPercent;
     qParms.schedTypeList.schedType[i] = pQ->schedulerType;
+    qParms.wrr_weights.queue_weight[i] = pQ->wrr_weight;      /* PTin added: QoS */
 
     if (qParms.schedTypeList.schedType[i] != pVal->schedType[i])
     {
@@ -1399,6 +1435,89 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
   /* update the COS queue config from the temporary local list info */
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
     pCfg->queue[i].schedulerType = (L7_uchar8)qParms.schedTypeList.schedType[i];
+
+  pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+
+  return L7_SUCCESS;
+}
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the scheduler type list for all queues on this interface
+*
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    *pVal       @b{(input)}  Ptr to scheduler type list
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments Only handles individual intIfNum values, not L7_ALL_INTERFACES.
+*
+* @end
+*********************************************************************/
+L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
+                              L7_qosCosQueueWeightList_t *pVal)
+{
+  L7_cosCfgParms_t              *pCfg;
+  L7_cosQueueCfg_t              *pQ;
+  L7_uint32                     i;
+  L7_BOOL                       valChanged;
+  L7_cosQueueSchedParms_t       qParms;
+  L7_RC_t                       rc;
+
+  if (intIfNum == L7_ALL_INTERFACES)
+    return L7_FAILURE;
+
+  if (pVal == L7_NULLPTR)
+    return L7_FAILURE;
+
+  /* check proposed value list */
+  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+  {
+    if (((pVal->queue_weight[i]+1) < (L7_QOS_COS_QUEUE_WEIGHT_MIN+1)) ||
+        (pVal->queue_weight[i] > L7_QOS_COS_QUEUE_WEIGHT_MAX))
+      return L7_FAILURE;
+  }
+
+  if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  /* need to do the following:
+   *   1. create local copy of 'list' values from queue config arrays
+   *   2. flag any change in currently configured values
+   */
+  valChanged = L7_FALSE;
+  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+  {
+    pQ = &pCfg->queue[i];
+
+    qParms.minBwList.bandwidth[i] = pQ->minBwPercent;
+    qParms.maxBwList.bandwidth[i] = pQ->maxBwPercent;
+    qParms.schedTypeList.schedType[i] = pQ->schedulerType;
+    qParms.wrr_weights.queue_weight[i] = pQ->wrr_weight;
+
+    if (qParms.wrr_weights.queue_weight[i] != pVal->queue_weight[i])
+    {
+      qParms.wrr_weights.queue_weight[i] = pVal->queue_weight[i];
+      valChanged = L7_TRUE;
+    }
+  }
+
+  if (valChanged == L7_FALSE)
+    return L7_SUCCESS;
+
+  /* apply the new schedType values along with the other queue config parms */
+  rc = cosQueueSchedConfigApply(intIfNum, &qParms);  /* rc ignored here */
+#if defined(FEAT_METRO_CPE_V1_0)
+  if (rc == L7_FAILURE)
+  {
+    return rc;
+  }
+#endif
+
+  /* update the COS queue config from the temporary local list info */
+  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+    pCfg->queue[i].wrr_weight = (L7_uchar8)qParms.wrr_weights.queue_weight[i];
 
   pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
 
@@ -1496,6 +1615,105 @@ L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
     if (pQ->schedulerType != (L7_uchar8)pVal->schedType[i])
     {
       pQ->schedulerType = (L7_uchar8)pVal->schedType[i];
+      pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
+    }
+  }
+
+  return L7_SUCCESS;
+}
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the Weight list for all queues globally on all
+*           interfaces
+*
+* @param    *pVal       @b{(input)}  Ptr to weight list
+* @param    *pListMask  @b{(input)}  Mask indicating which list items changed
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments Only updates global values for list items whose corresponding
+*           *pListMask value is set to L7_TRUE.  All list values are
+*           considered valid for error checking, etc.
+*
+* @end
+*********************************************************************/
+L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
+                                    L7_qosCosQueueListMask_t *pListMask)
+{
+  L7_cosCfgParms_t              *pCfgGlob, *pCfgIntf;
+  L7_cosQueueCfg_t              *pQ;
+  L7_uint32                     i, intIfNum;
+  L7_qosCosQueueWeightList_t    weightIntf;
+
+  if (pVal == L7_NULLPTR)
+    return L7_FAILURE;
+  if (pListMask == L7_NULLPTR)
+    return L7_FAILURE;
+
+  /* check proposed value list */
+  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+  {
+    if (((pVal->queue_weight[i]+1) < (L7_QOS_COS_QUEUE_WEIGHT_MIN+1)) ||
+        (pVal->queue_weight[i] > L7_QOS_COS_QUEUE_WEIGHT_MAX))
+      return L7_FAILURE;
+  }
+
+  /* make sure global config can be referenced */
+  if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  /* update each configurable interface with this global value
+   *
+   * NOTE:  Favoring simplicity over robustness here.  Not worrying
+   *        about trying to undo a partially-applied config change
+   *        when a failure occurs on an individual interface.
+   */
+  intIfNum = 0;
+  while (cosQueueIntfIndexGetNext(intIfNum, &intIfNum) == L7_SUCCESS)
+  {
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+
+    /* only work with configurable interfaces when changing global config */
+    if (cosCfgPtrFind(intIfNum, &pCfgIntf) == L7_SUCCESS)
+    {
+      if (cosQueueWeightListGet(intIfNum, &weightIntf) == L7_SUCCESS)
+      {
+        for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+        {
+          /* update interface with global parms indicated as being set */
+          if (pListMask->setMask[i] == L7_TRUE)
+            weightIntf.queue_weight[i] = pVal->queue_weight[i];
+        }
+
+        if (cosQueueWeightListSet(intIfNum, &weightIntf) != L7_SUCCESS)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                  "Unable to set global COS Weight config on intf %s\n",
+                  ifName);
+          #if defined(FEAT_METRO_CPE_V1_0)
+           return L7_FAILURE;
+          #endif
+        }
+      }
+      else
+      {
+        L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
+                "Unable to get COS weight config from intf %s\n",
+                ifName);
+      }
+    }
+  }
+
+  /* look for changes to global config values */
+  for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+  {
+    pQ = &pCfgGlob->queue[i];
+    if (pQ->wrr_weight != (L7_uchar8)pVal->queue_weight[i])
+    {
+      pQ->wrr_weight = (L7_uchar8)pVal->queue_weight[i];
       pCosCfgData_g->cfgHdr.dataChanged = L7_TRUE;
     }
   }
@@ -1754,6 +1972,7 @@ L7_RC_t cosQueueDropParmsListGet(L7_uint32 intIfNum,
   for (queueIndex=0; queueIndex < L7_MAX_CFG_QUEUES_PER_PORT; queueIndex++)
   {
       pVal->queue[queueIndex].mgmtType = pCfg->queue[queueIndex].queueMgmtType;
+      pVal->queue[queueIndex].wred_decayExponent = pCfg->queue[queueIndex].wred_decayExponent;  /* PTin added: QoS */
       for (precIndex = 0; precIndex < (L7_MAX_CFG_DROP_PREC_LEVELS+1); precIndex++)
       {
         pDP = &pCfg->queue[queueIndex].dropPrec[precIndex];

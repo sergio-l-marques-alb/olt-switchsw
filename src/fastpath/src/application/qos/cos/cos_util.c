@@ -591,7 +591,8 @@ L7_RC_t cosQueueSchedConfigApply(L7_uint32 intIfNum,
   if (dtlQosCosQueueSchedConfigSet(intIfNum,
                                    &pQParms->minBwList,
                                    &pQParms->maxBwList,
-                                   &pQParms->schedTypeList) != L7_SUCCESS)
+                                   &pQParms->schedTypeList,
+                                   &pQParms->wrr_weights) != L7_SUCCESS)      /* PTin modified: QoS */
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_FLEX_QOS_COS_COMPONENT_ID,
             "COS queueing: Unable to apply COS scheduler config on intf %s\n",
@@ -740,6 +741,12 @@ L7_RC_t cosQueueDropParmsValidate(L7_qosCosDropParmsList_t *pVal)
         {
             return L7_FAILURE;
         }
+        /* PTin added: QoS */
+        if (((pVal->queue[queueIndex].wred_decayExponent+1) < (L7_QOS_COS_INTF_WRED_DECAY_EXP_MIN+1)) ||
+            (pVal->queue[queueIndex].wred_decayExponent > L7_QOS_COS_INTF_WRED_DECAY_EXP_MAX))
+        {
+            return L7_FAILURE;
+        }
       }
   }
   return L7_SUCCESS;
@@ -775,6 +782,11 @@ L7_BOOL cosQueueDropParmsDiffer(L7_qosCosDropParmsList_t *pVal, L7_cosCfgParms_t
             continue;
         }
         if (pCfg->queue[queueIndex].queueMgmtType != pVal->queue[queueIndex].mgmtType)
+        {
+            return L7_TRUE;
+        }
+        /* PTin added: QoS */
+        if (pCfg->queue[queueIndex].wred_decayExponent != pVal->queue[queueIndex].wred_decayExponent)
         {
             return L7_TRUE;
         }
@@ -818,6 +830,10 @@ void cosQueueDropConfigUpdate(L7_qosCosDropParmsList_t *pVal, L7_cosCfgParms_t *
             continue;
         }
         pCfg->queue[queueIndex].queueMgmtType = pVal->queue[queueIndex].mgmtType;
+
+        /* PTin added: QoS */
+        pCfg->queue[queueIndex].wred_decayExponent = pVal->queue[queueIndex].wred_decayExponent;
+
         for (precIndex = 0; precIndex < (L7_MAX_CFG_DROP_PREC_LEVELS+1); precIndex++)
         {
           pDP = &pCfg->queue[queueIndex].dropPrec[precIndex];

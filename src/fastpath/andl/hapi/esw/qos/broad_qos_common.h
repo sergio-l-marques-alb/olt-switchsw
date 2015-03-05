@@ -115,8 +115,9 @@ typedef struct
     DAPI_QOS_COS_QUEUE_SCHED_TYPE_t schedType[BCM_COS_COUNT];
     L7_uint32                       minBw[BCM_COS_COUNT];     /* PTin modified: QoS: L7_uchar8 to L7_uint32 */
     L7_uint32                       maxBw[BCM_COS_COUNT];     /* PTin modified: QoS: L7_uchar8 to L7_uint32 */
+    L7_uint16                       wrr_weights[BCM_COS_COUNT];     /* PTin added: QoS */
 #ifdef L7_COS_PACKAGE
-    L7_uchar8                       wredExponent;
+    L7_uchar8                       wredExponent[BCM_COS_COUNT];    /* PTin modified: QoS */
     HAPI_BROAD_COS_COLOR_PORT_t     perColorParams[BCM_COS_COUNT];
 #endif
 }

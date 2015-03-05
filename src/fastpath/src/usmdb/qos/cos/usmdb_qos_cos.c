@@ -1698,6 +1698,37 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListGet(L7_uint32 UnitIndex,
   return cosQueueSchedulerTypeListGet(intIfNum, pVal);
 }
 
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Get the Weight list for all queues on this interface
+*
+* @param    UnitIndex   @b{(input)}  System unit number
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    *pVal       @b{(output)} Ptr to Weight output list    
+*
+* @returns  L7_SUCCESS
+* @returns  L7_NOT_SUPPORTED  This feature not supported
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbQosCosQueueWeightListGet(L7_uint32 UnitIndex, 
+                                      L7_uint32 intIfNum,
+                                      L7_qosCosQueueWeightList_t *pVal)
+{
+  if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
+                            L7_COS_FEATURE_SUPPORTED) != L7_TRUE)
+    return L7_NOT_SUPPORTED;
+
+  if ((intIfNum != L7_ALL_INTERFACES) &&
+      (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_FALSE))
+    return L7_NOT_SUPPORTED;
+
+  return cosQueueWeightListGet(intIfNum, pVal);
+}
+
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues on this interface
 *
@@ -1737,6 +1768,51 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeListSet(L7_uint32 UnitIndex,
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
     rc = cosQueueSchedulerTypeListSet(intIfNum, pVal);
+  }
+
+  return rc;
+}
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the Weight list for all queues on this interface
+*
+* @param    UnitIndex   @b{(input)}  System unit number
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    *pVal       @b{(input)}  Ptr to Weight list    
+*
+* @returns  L7_SUCCESS
+* @returns  L7_NOT_SUPPORTED  This feature not supported
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbQosCosQueueWeightListSet(L7_uint32 UnitIndex, 
+                                      L7_uint32 intIfNum,
+                                      L7_qosCosQueueWeightList_t *pVal)
+{
+  L7_RC_t                   rc = L7_NOT_SUPPORTED;
+  L7_uint32                 i;
+  L7_qosCosQueueListMask_t  listMask;
+
+  if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
+                            L7_COS_FEATURE_SUPPORTED) != L7_TRUE)
+    return L7_NOT_SUPPORTED;
+
+  if (intIfNum == L7_ALL_INTERFACES)
+  {
+    /* indicate all list values are being set */
+    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+      listMask.setMask[i] = L7_TRUE;
+
+    rc = cosQueueWeightGlobalListSet(pVal, &listMask);
+  }
+
+  else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
+  {
+    rc = cosQueueWeightListSet(intIfNum, pVal);
   }
 
   return rc;
@@ -1794,6 +1870,64 @@ L7_RC_t usmDbQosCosQueueSchedulerTypeSet(L7_uint32 UnitIndex,
   else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
   {
     rc = cosQueueSchedulerTypeListSet(intIfNum, &list);
+  }
+
+  return rc;
+}
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the queue weight (for WRR schedulers) on this interface
+*
+* @param    UnitIndex   @b{(input)}  System unit number
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    queueId     @b{(input)}  Queue id
+* @param    val         @b{(input)}  Weight
+*
+* @returns  L7_SUCCESS
+* @returns  L7_NOT_SUPPORTED  This feature not supported
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbQosCosQueueWeightSet(L7_uint32 UnitIndex, 
+                                  L7_uint32 intIfNum,
+                                  L7_uint32 queueId,
+                                  L7_uint32 val)
+{
+  L7_RC_t                       rc = L7_NOT_SUPPORTED;
+  L7_uint32                     listIndex = queueId - L7_QOS_COS_QUEUE_ID_MIN;
+  L7_uint32                     i;
+  L7_qosCosQueueWeightList_t    list;
+  L7_qosCosQueueListMask_t      listMask;
+
+  if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, 
+                            L7_COS_FEATURE_SUPPORTED) != L7_TRUE)
+    return L7_NOT_SUPPORTED;
+
+  if (cosQueueWeightListGet(intIfNum, &list) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  /* update the individual list item value */
+  list.queue_weight[listIndex] = val;
+
+  if (intIfNum == L7_ALL_INTERFACES)
+  {
+    /* initialize list setMask to no values being set */
+    for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
+      listMask.setMask[i] = L7_FALSE;
+
+    /* indicate specific list item being set */
+    listMask.setMask[listIndex] = L7_TRUE;
+
+    rc = cosQueueWeightGlobalListSet(&list, &listMask);
+  }
+
+  else if (usmDbQosCosQueueCfgPerIntfIsAllowed() == L7_TRUE)
+  {
+    rc = cosQueueWeightListSet(intIfNum, &list);
   }
 
   return rc;

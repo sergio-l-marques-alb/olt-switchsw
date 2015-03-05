@@ -23,6 +23,9 @@
 #include "broad_qos_debug.h"
 #include "log.h"
 
+/* Default weights used in non-QoS packages. */
+extern L7_uint32 wrr_default_weights[];     /* PTin added: QoS */
+
 /*********************************************************************
 *
 * @purpose Initialize the QoS package
@@ -124,6 +127,7 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
     BROAD_PORT_t          *hapiPortPtr;
     HAPI_BROAD_QOS_PORT_t *qosPortPtr;
     HAPI_QOS_INTF_DIR_t    direction;
+    L7_uint8               cosIndex;
 
     /* allocate QOS structures for all hapiPorts on this card */
     usp.unit = unitNum;
@@ -169,7 +173,13 @@ L7_RC_t hapiBroadQosCardInit(L7_ushort16 unitNum, L7_ushort16 slotNum, DAPI_t *d
 
         hapiPortPtr->voipPolicy = BROAD_POLICY_INVALID;
 
-        qosPortPtr->cos.wredExponent = FD_QOS_COS_QCFG_WRED_DECAY_EXP;
+        /* Ptin modified: QoS */
+        for (cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++)
+        {
+          qosPortPtr->cos.wredExponent[cosIndex] = FD_QOS_COS_QCFG_WRED_DECAY_EXP; 
+
+          qosPortPtr->cos.wrr_weights[cosIndex] = wrr_default_weights[cosIndex];
+        }
     }
 
     return result;

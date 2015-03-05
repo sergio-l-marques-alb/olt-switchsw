@@ -64,6 +64,12 @@ typedef struct L7_qosCosQueueSchedTypeList_s
   L7_QOS_COS_QUEUE_SCHED_TYPE_t   schedType[L7_MAX_CFG_QUEUES_PER_PORT];
 } L7_qosCosQueueSchedTypeList_t;
 
+/* PTin added: QoS */
+typedef struct L7_qosCosQueueWeightList_s
+{
+  L7_uint16                       queue_weight[L7_MAX_CFG_QUEUES_PER_PORT];
+} L7_qosCosQueueWeightList_t;
+
 /* QOS COS queue management type configuration parameter list */
 typedef struct L7_qosCosQueueMgmtTypeList_s
 {
@@ -78,6 +84,7 @@ typedef struct L7_qosCosDropParmsPerQueue_s
     L7_uchar8                       wredMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1]; /* WRED thresh, percentage (0-100) */
     L7_uchar8                       dropProb[L7_MAX_CFG_DROP_PREC_LEVELS+1];     /* percentage (0-100) */
     L7_uchar8                       tailDropMaxThreshold[L7_MAX_CFG_DROP_PREC_LEVELS+1]; /* percentage (0-100) */
+    L7_uchar8                       wred_decayExponent;                          /* PTin added: QoS */
 } L7_qosCosDropParmsPerQueue_t;
 
 /* QOS COS drop per-precedence per-queue parameters */
@@ -944,6 +951,23 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
 L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
                                      L7_qosCosQueueSchedTypeList_t *pVal);
 
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Get the Weight list for all queues on this interface
+*
+* @param    intIfNum    @b{(input)}  Internal interface number     
+* @param    *pVal       @b{(output)} Ptr to weights output list    
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments An intIfNum of L7_ALL_INTERFACES denotes global config operation.
+*
+* @end
+*********************************************************************/
+L7_RC_t cosQueueWeightListGet(L7_uint32 intIfNum,
+                              L7_qosCosQueueWeightList_t *pVal);
+
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues on this interface
 *
@@ -959,6 +983,23 @@ L7_RC_t cosQueueSchedulerTypeListGet(L7_uint32 intIfNum,
 *********************************************************************/
 L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
                                      L7_qosCosQueueSchedTypeList_t *pVal);
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the scheduler type list for all queues on this interface
+*
+* @param    intIfNum    @b{(input)}  Internal interface number
+* @param    *pVal       @b{(input)}  Ptr to scheduler type list
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments Only handles individual intIfNum values, not L7_ALL_INTERFACES.
+*
+* @end
+*********************************************************************/
+L7_RC_t cosQueueWeightListSet(L7_uint32 intIfNum,
+                              L7_qosCosQueueWeightList_t *pVal);
 
 /*************************************************************************
 * @purpose  Set the scheduler type list for all queues globally on all
@@ -978,6 +1019,26 @@ L7_RC_t cosQueueSchedulerTypeListSet(L7_uint32 intIfNum,
 *********************************************************************/
 L7_RC_t cosQueueSchedulerTypeGlobalListSet(L7_qosCosQueueSchedTypeList_t *pVal,
                                            L7_qosCosQueueListMask_t *pListMask);
+
+/* PTin added: QoS */
+/*************************************************************************
+* @purpose  Set the Weight list for all queues globally on all
+*           interfaces
+*
+* @param    *pVal       @b{(input)}  Ptr to weight list
+* @param    *pListMask  @b{(input)}  Mask indicating which list items changed
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments Only updates global values for list items whose corresponding
+*           *pListMask value is set to L7_TRUE.  All list values are
+*           considered valid for error checking, etc.
+*
+* @end
+*********************************************************************/
+L7_RC_t cosQueueWeightGlobalListSet(L7_qosCosQueueWeightList_t *pVal,
+                                    L7_qosCosQueueListMask_t *pListMask);
 
 /*************************************************************************
 * @purpose  Get the queue management type list for all queues on this interface

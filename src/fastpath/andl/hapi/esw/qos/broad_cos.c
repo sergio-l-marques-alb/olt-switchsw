@@ -777,10 +777,15 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
     {
       if (schedulerMode == BCM_COSQ_DEFICIT_ROUND_ROBIN)
       {
+        /* PTin modified: Use provided weights */
+      #if 1
+        weights[i] = cosData->wrr_weights[i];
+      #else
         /* Need to multiply weight by MTU quantum for BCM APIs when using WDRR mode. */
         weights[i] *= BROAD_WDRR_MTU_QUANTA;
         /* PTin added: correction for trident - Maximum weight for trident is 127 (not 128) */
         weights[i]--;
+      #endif
       }
     }
 
@@ -867,6 +872,8 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
     }
     else
     {
+      /* Use these weights, instead of default ones */
+      weights[i] = cosData->wrr_weights[i];   /* PTin added: QoS */
       weightedSchd = L7_TRUE;
     }
   }
@@ -1484,9 +1491,11 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
     {                
         if (qosPortPtr->cos.dropType[cosIndex] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 
         {
-            parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE | 
-	      BCM_COSQ_DISCARD_CAP_AVERAGE;
-            parms.gain[cosIndex] = qosPortPtr->cos.wredExponent;
+            parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE | BCM_COSQ_DISCARD_CAP_AVERAGE;
+
+            /* PTin modified: QoS */
+            parms.gain[cosIndex] = qosPortPtr->cos.wredExponent[cosIndex];
+
             for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
             {
                 parms.minThreshold[cosIndex][colorIndex] = 
@@ -1560,7 +1569,8 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     DAPI_PORT_t                    *dapiPortPtr;
     HAPI_BROAD_QOS_PORT_t          *qosPortPtr;
     L7_RC_t                         tmpRc;
-    L7_BOOL                         wredChanged = L7_FALSE;    
+    L7_BOOL                         wredChanged = L7_FALSE;
+    L7_uint8                        cosIndex;
 
     hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
     dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -1577,10 +1587,14 @@ L7_RC_t hapiBroadQosCosIntfConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, D
     qosPortPtr->cos.intfShapingSpec = L7_TRUE;
     qosPortPtr->cos.intfShaping     = (L7_uint32)cmdCos->cmdData.intfConfig.intfShapingRate;
     /* Ignore queueMgmtTypePerIntf, these devices configure mgmt type per-queue */
-    if (qosPortPtr->cos.wredExponent != cmdCos->cmdData.intfConfig.wredDecayExponent) 
+    /* Ptin modified: QoS */
+    for (cosIndex = 0; cosIndex < L7_MAX_CFG_QUEUES_PER_PORT; cosIndex++)
     {
-        qosPortPtr->cos.wredExponent = cmdCos->cmdData.intfConfig.wredDecayExponent;
-        wredChanged = L7_TRUE;
+      if (qosPortPtr->cos.wredExponent[cosIndex] != cmdCos->cmdData.intfConfig.wredDecayExponent) 
+      {
+          qosPortPtr->cos.wredExponent[cosIndex] = cmdCos->cmdData.intfConfig.wredDecayExponent;
+          wredChanged = L7_TRUE;
+      }
     }
 
     /* Apply the configuration to the interface. */
@@ -1758,6 +1772,7 @@ L7_RC_t hapiBroadQosCosQueueSchedConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     qosPortPtr->cos.minBw[index]     = cmdCos->cmdData.queueSchedConfig.minBandwidth[index];
     qosPortPtr->cos.maxBw[index]     = cmdCos->cmdData.queueSchedConfig.maxBandwidth[index];
     qosPortPtr->cos.schedType[index] = cmdCos->cmdData.queueSchedConfig.schedulerType[index];
+    qosPortPtr->cos.wrr_weights[index] = cmdCos->cmdData.queueSchedConfig.wrr_weight[index];    /* PTin added: QoS */
   }
 
   /* treat remaining queues, if any, as SP */
@@ -1766,6 +1781,7 @@ L7_RC_t hapiBroadQosCosQueueSchedConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     qosPortPtr->cos.minBw[index]     = 0;
     qosPortPtr->cos.maxBw[index]     = 0;
     qosPortPtr->cos.schedType[index] = DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
+    qosPortPtr->cos.wrr_weights[index] = 0;     /* PTin added: QoS */
   }
 
   if (BROAD_PORT_IS_LAG(hapiPortPtr))
@@ -1856,6 +1872,9 @@ L7_RC_t hapiBroadQosCosQueueDropConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
         qosPortPtr->cos.dropType[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropType;
         if (qosPortPtr->cos.dropType[queueId] == DAPI_QOS_COS_QUEUE_MGMT_TYPE_WRED) 
         {
+            /* PTin added: QoS */
+            qosPortPtr->cos.wredExponent[queueId] = cmdCos->cmdData.queueDropConfig.parms[queueId].wred_decayExponent;
+
             for(colorIndex=0; colorIndex<(L7_MAX_CFG_DROP_PREC_LEVELS+1); colorIndex++) 
             {
                 qosPortPtr->cos.perColorParams[queueId].wredDropProb[colorIndex] = cmdCos->cmdData.queueDropConfig.parms[queueId].dropProb[colorIndex];

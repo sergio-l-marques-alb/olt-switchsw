@@ -136,7 +136,8 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 * @param    intIfNum        @b{(input)}  Internal interface number     
 * @param    *pMinBwList     @b{(input)}  Ptr to minimum bandwidth parm list
 * @param    *pMaxBwList     @b{(input)}  Ptr to maximum bandwidth parm list
-* @param    *pSchedTypeList @b{(input)}  Ptr to scheduler type list   
+* @param    *pSchedTypeList @b{(input)}  Ptr to scheduler type list
+* @param    *pWeightList    @b{(input)}  Ptr to Weight list
 *
 * @returns  L7_SUCCESS
 * @returns  L7_FAILURE
@@ -149,7 +150,8 @@ L7_RC_t dtlQosCosIntfStatusGet(L7_uint32 intIfNum,
 L7_RC_t dtlQosCosQueueSchedConfigSet(L7_uint32 intIfNum, 
                                      L7_qosCosQueueBwList_t *pMinBwList,
                                      L7_qosCosQueueBwList_t *pMaxBwList,
-                                     L7_qosCosQueueSchedTypeList_t *pSchedTypeList);
+                                     L7_qosCosQueueSchedTypeList_t *pSchedTypeList,
+                                     L7_qosCosQueueWeightList_t *pWeightList);        /* PTin modified: QoS */
 
 /*************************************************************************
 * @purpose  Set the COS drop config (taildrop or WRED) parameters

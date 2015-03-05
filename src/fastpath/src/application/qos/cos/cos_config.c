@@ -416,7 +416,9 @@ void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, L7_uint32 queueId)
   pCfgQ->minBwPercent = FD_QOS_COS_QCFG_MIN_BANDWIDTH;
   pCfgQ->maxBwPercent = FD_QOS_COS_QCFG_MAX_BANDWIDTH;
   pCfgQ->schedulerType = (L7_uchar8)FD_QOS_COS_QCFG_SCHED_TYPE;
+  pCfgQ->wrr_weight    = queueId+1;                                       /* PTin added: QoS */
   pCfgQ->queueMgmtType = (L7_uchar8)FD_QOS_COS_QCFG_MGMT_TYPE;
+  pCfgQ->wred_decayExponent = (L7_uchar8) FD_QOS_COS_QCFG_WRED_DECAY_EXP; /* PTin added: QoS */
 
   if (cnfgrIsFeaturePresent(L7_FLEX_QOS_COS_COMPONENT_ID, L7_COS_QUEUE_SCHED_STRICT_ONLY_FEATURE_ID) == L7_TRUE)
   {
@@ -787,8 +789,10 @@ L7_RC_t cosConfigIntfQueueCfgDataApply(L7_uint32 intIfNum, L7_cosCfgParms_t *pCf
     qParms.maxBwList.bandwidth[queueId] = pQ->maxBwPercent;
     qParms.schedTypeList.schedType[queueId] =
       (L7_QOS_COS_QUEUE_SCHED_TYPE_t)pQ->schedulerType;
+    qParms.wrr_weights.queue_weight[queueId] = pQ->wrr_weight;            /* PTin added: QoS */
 
     dropList.queue[queueId].mgmtType = pQ->queueMgmtType;
+    dropList.queue[queueId].wred_decayExponent = pQ->wred_decayExponent;  /* PTin added: QoS */
     /* construct tail drop and WRED parms lists */
     for (i = 0; i < (L7_MAX_CFG_DROP_PREC_LEVELS+1); i++)
     {
@@ -1954,7 +1958,9 @@ void cosBuildTestIntfConfigData(L7_uint32 intIfNum, L7_cosCfgParms_t *pCfg)
     pQueue->minBwPercent = 5;
     pQueue->maxBwPercent = 90;
     pQueue->schedulerType = L7_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
+    pQueue->wrr_weight    = i+1;                                  /* PTin added: QoS */
     pQueue->queueMgmtType = L7_QOS_COS_QUEUE_MGMT_TYPE_WRED;
+    pQueue->wred_decayExponent = 9;                               /* PTin added: QoS */
     /* drop precedence parm config */
     for (j = 0; j < L7_COS_INTF_DROP_PREC_MAX_COUNT+1; j++)
     {
