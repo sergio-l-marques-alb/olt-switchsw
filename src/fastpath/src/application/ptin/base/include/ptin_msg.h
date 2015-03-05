@@ -293,6 +293,24 @@ extern L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_config);
  */
 extern L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_config);
 
+/**
+ * Get CoS configuration
+ * 
+ * @param qos_config : CoS configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg);
+
+/**
+ * Redefine CoS configuration
+ * 
+ * @param qos_config : CoS configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg);
+
 
 /* LAGs Manipulation Functions ************************************************/ 
 /**

@@ -1292,6 +1292,64 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    /* Get CoS configuration */
+    case CCMSG_ETH_PORT_COS2_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PORT_COS2_GET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_QoSConfiguration2_t);
+
+      msg_QoSConfiguration2_t *ptr;
+      ptr = (msg_QoSConfiguration2_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_QoSConfiguration2_t));
+
+      /* Execute command */
+      rc = ptin_msg_CoS2_get(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error getting data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_QoSConfiguration2_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
+    /* Set new CoS configuration */
+    case CCMSG_ETH_PORT_COS2_SET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_PORT_COS2_SET (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_QoSConfiguration2_t);
+
+      msg_QoSConfiguration2_t *ptr;
+      ptr = (msg_QoSConfiguration2_t *) inbuffer->info;
+
+      /* Execute command */
+      rc = ptin_msg_CoS2_set(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+    }
+    break;
+
     /************************************************************************** 
      * LAGs Processing
      **************************************************************************/

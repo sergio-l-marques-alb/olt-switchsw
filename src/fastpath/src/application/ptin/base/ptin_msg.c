@@ -1622,6 +1622,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
+  L7_RC_t rc;
 
   /* Save slot id and interface */
   slot_id = qos_msg->SlotId;
@@ -1639,7 +1640,8 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   memset(qos_cos,0x00,sizeof(ptin_QoS_cos_t)*8);
 
   /* Get Interface configuration */
-  if (ptin_QoS_intf_config_get(&ptin_intf,&qos_intf)==L7_SUCCESS)
+  rc = ptin_QoS_intf_config_get(&ptin_intf,&qos_intf);
+  if (rc == L7_SUCCESS)
   {
     /* Trust mode */
     if (qos_intf.mask & PTIN_QOS_INTF_TRUSTMODE_MASK)
@@ -1681,11 +1683,12 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   else
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface QoS configuration");
-    return L7_FAILURE;
+    return rc;
   }
 
   /* QoS configuration */
-  if (ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos)==L7_SUCCESS)
+  rc = ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos);
+  if (rc == L7_SUCCESS)
   {
     /* Run all QoS */
     for (i=0; i<8; i++)
@@ -1722,7 +1725,7 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   else
   {
     LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS configuration for all 8 CoS");
-    return L7_FAILURE;
+    return rc;
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
@@ -1760,7 +1763,7 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   ptin_intf_t             ptin_intf;
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
-  L7_RC_t                 rc = L7_SUCCESS;
+  L7_RC_t                 rc, rc_global = L7_SUCCESS;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid         = %u",qos_msg->SlotId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
@@ -1832,10 +1835,11 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   if (qos_intf.mask)
   {
     /* Execute priority map configuration */
-    if (ptin_QoS_intf_config_set(&ptin_intf,&qos_intf)!=L7_SUCCESS)
+    rc = ptin_QoS_intf_config_set(&ptin_intf,&qos_intf);
+    if (rc != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring priority map");
-      rc = L7_FAILURE;
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring priority map (rc=%d)", rc);
+      rc_global = rc;
     }
   }
 
@@ -1872,24 +1876,553 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
     if (qos_msg->cos_config.mask)
     {
       /* Apply configuration */
-      if (ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos)!=L7_SUCCESS)
+      rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
+      if (rc != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS %d",i);
-        rc =  L7_FAILURE;
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS (rc=%d)",rc);
+        rc_global = rc;
       }
     }
   }
 
-  if (rc==L7_SUCCESS)
+  if (rc_global == L7_SUCCESS)
   {
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success applying QoS configurations to all CoS");
   }
   else
   {
-    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS");
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
   }
 
-  return rc;
+  return rc_global;
+}
+
+/**
+ * Get CoS configuration
+ * 
+ * @param qos_config : CoS configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
+{
+  L7_int                  i, j;
+  L7_uint8                slot_id;
+  ptin_intf_t             ptin_intf;
+  ptin_QoS_intf_t         qos_intf;
+  ptin_QoS_cos_t          qos_cos[8];
+  ptin_QoS_drop_t         qos_drop[8];
+  L7_RC_t                 rc;
+
+  /* Save slot id and interface */
+  slot_id = qos_msg->SlotId;
+  ptin_intf.intf_type = qos_msg->intf.intf_type;
+  ptin_intf.intf_id   = qos_msg->intf.intf_id;
+
+  /* Clear and initialize message structure */
+  memset(qos_msg,0x00,sizeof(msg_QoSConfiguration_t));
+  qos_msg->SlotId = slot_id;
+  qos_msg->intf.intf_type = ptin_intf.intf_type;
+  qos_msg->intf.intf_id   = ptin_intf.intf_id;
+
+  /* Clear temporary structures */
+  memset(&qos_intf,0x00,sizeof(qos_intf));
+  memset(qos_cos,0x00,sizeof(qos_cos));
+  memset(qos_drop,0x00,sizeof(qos_drop));
+
+  /* Get Interface configuration */
+  rc = ptin_QoS_intf_config_get(&ptin_intf,&qos_intf);
+  if (rc == L7_SUCCESS)
+  {
+    /* Trust mode */
+    if (qos_intf.mask & PTIN_QOS_INTF_TRUSTMODE_MASK)
+    {
+      qos_msg->trust_mode = qos_intf.trust_mode;
+      qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_TRUSTMODE_MASK;
+    }
+    /* Bandwidth units */
+    if (qos_intf.mask & PTIN_QOS_INTF_BANDWIDTHUNIT_MASK)
+    {
+      qos_msg->bandwidth_unit = qos_intf.bandwidth_unit;
+      qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK;
+    }
+    /* Shaping rate */
+    if (qos_intf.mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
+    {
+      qos_msg->shaping_rate = qos_intf.shaping_rate;
+      qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK;
+    }
+    /* Priority map to CoS */
+    if (qos_intf.mask & PTIN_QOS_INTF_PACKETPRIO_MASK)
+    {
+      /* Run all priorities */
+      for (i=0; i<8; i++)
+      {
+        /* Is priority i to be defined? If so define CoS */
+        if ((qos_intf.pktprio.mask >> i) & 1)
+        {
+          qos_msg->pktprio.prio_mask  |= (L7_uint8) 1<<i;
+          qos_msg->pktprio.cos[i] = qos_intf.pktprio.cos[i];
+        }
+      }
+      if (qos_msg->pktprio.prio_mask)
+      {
+        qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK;
+      }
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading interface QoS configuration");
+    return rc;
+  }
+
+  /* QoS configuration */
+  rc = ptin_QoS_cos_config_get(&ptin_intf,(L7_uint8)-1,qos_cos);
+  if (rc == L7_SUCCESS)
+  {
+    /* Run all QoS */
+    for (i=0; i<8; i++)
+    {
+      /* QoS i is to be configured? */
+      if (qos_cos[i].mask==0)  continue;
+
+      qos_msg->cos_config.cos_mask |= (L7_uint8) 1<<i;
+
+      /* Scheduler type */
+      if (qos_cos[i].mask & PTIN_QOS_COS_SCHEDULER_MASK)
+      {
+        qos_msg->cos_config.cos[i].scheduler = qos_cos[i].scheduler_type;
+        qos_msg->cos_config.cos[i].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK;
+      }
+      /* Minimum mandwidth */
+      if (qos_cos[i].mask & PTIN_QOS_COS_BW_MIN_MASK)
+      {
+        qos_msg->cos_config.cos[i].min_bandwidth = qos_cos[i].min_bandwidth;
+        qos_msg->cos_config.cos[i].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK;
+      }
+      /* Maximum bandwidth */
+      if (qos_cos[i].mask & PTIN_QOS_COS_BW_MAX_MASK)
+      {
+        qos_msg->cos_config.cos[i].max_bandwidth = qos_cos[i].max_bandwidth;
+        qos_msg->cos_config.cos[i].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK;
+      }
+      /* WRR Weights */
+      if (qos_cos[i].mask & PTIN_QOS_COS_WRR_WEIGHT_MASK)
+      {
+        qos_msg->cos_config.cos[i].wrrSched_weight = qos_cos[i].wrrSched_weight;
+        qos_msg->cos_config.cos[i].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_WRR_WEIGHT_MASK;
+      }
+    }
+    if (qos_msg->cos_config.cos_mask)
+    {
+      qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_QOSCONF_MASK;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS configuration for all 8 CoS");
+    return rc;
+  }
+
+  /* QoS drop configuration */
+  rc = ptin_QoS_drop_config_get(&ptin_intf, (L7_uint8)-1, qos_drop);
+  if (rc == L7_SUCCESS)
+  {
+    /* Run all QoS */
+    for (i=0; i<8; i++)
+    {
+      /* QoS i is to be configured? */
+      if (qos_cos[i].mask==0)  continue;
+
+      qos_msg->cos_config.cos_mask |= (L7_uint8) 1<<i;
+
+      /* Management type */
+      if (qos_drop[i].mask & PTIN_QOS_COS_QUEUE_MANGM_MASK)
+      {
+        qos_msg->cos_config.cos[i].dropMgmtType = qos_drop[i].queue_management_type;
+        qos_msg->cos_config.cos[i].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_MGMT_TYPE_MASK;
+      }
+      /* WRED decay exponent */
+      if (qos_drop[i].mask & PTIN_QOS_COS_WRED_DECAY_EXP_MASK)
+      {
+        qos_msg->cos_config.cos[i].wred_decayExp = qos_drop[i].wred_decayExp;
+        qos_msg->cos_config.cos[i].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_WRED_DECAYEXP_MASK;
+      }
+      /* Run all DP levels */
+      for (j = 0; j < 4; j++)
+      {
+        if (qos_drop[i].dp[j].local_mask == 0)  continue;
+
+        /* Taildrop threshold */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK)
+        {
+          qos_msg->cos_config.cos[i].dropThresholds[j].tailDrop_threshold = qos_drop[i].dp[j].taildrop_threshold;
+          qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_TAILDROP_THRES_MASK;
+        }
+
+        /* WRED min threshold */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK)
+        {
+          qos_msg->cos_config.cos[i].dropThresholds[j].wred_minThreshold = qos_drop[i].dp[j].wred_min_threshold;
+          qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MINTHRES_MASK;
+        }
+
+        /* WRED max threshold */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK)
+        {
+          qos_msg->cos_config.cos[i].dropThresholds[j].wred_maxThreshold = qos_drop[i].dp[j].wred_max_threshold;
+          qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MAXTHRES_MASK;
+        }
+
+        /* WRED drop probability */
+        if (qos_drop[i].dp[j].local_mask & PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK)
+        {
+          qos_msg->cos_config.cos[i].dropThresholds[j].wred_dropProb = qos_drop[i].dp[j].wred_drop_prob;
+          qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_DROPPROB_MASK;
+        }
+      }
+    }
+    if (qos_msg->cos_config.cos_mask)
+    {
+      qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_QOSCONF_MASK;
+    }
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading QoS drop configuration for all 8 CoS");
+    return rc;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid            = %u",qos_msg->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "General Mask      = 0x%02X",qos_msg->generic_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode        = %u",qos_msg->trust_mode);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = 0x%02x",qos_msg->pktprio.prio_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
+            qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS local Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
+            qos_msg->cos_config.cos[0].local_mask, qos_msg->cos_config.cos[1].local_mask, qos_msg->cos_config.cos[2].local_mask, qos_msg->cos_config.cos[3].local_mask, qos_msg->cos_config.cos[4].local_mask, qos_msg->cos_config.cos[5].local_mask, qos_msg->cos_config.cos[6].local_mask, qos_msg->cos_config.cos[7].local_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].wrrSched_weight, qos_msg->cos_config.cos[1].wrrSched_weight, qos_msg->cos_config.cos[2].wrrSched_weight, qos_msg->cos_config.cos[3].wrrSched_weight, qos_msg->cos_config.cos[4].wrrSched_weight, qos_msg->cos_config.cos[5].wrrSched_weight, qos_msg->cos_config.cos[6].wrrSched_weight, qos_msg->cos_config.cos[7].wrrSched_weight);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "dropMgmttype    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].dropMgmtType, qos_msg->cos_config.cos[1].dropMgmtType, qos_msg->cos_config.cos[2].dropMgmtType, qos_msg->cos_config.cos[3].dropMgmtType, qos_msg->cos_config.cos[4].dropMgmtType, qos_msg->cos_config.cos[5].dropMgmtType, qos_msg->cos_config.cos[6].dropMgmtType, qos_msg->cos_config.cos[7].dropMgmtType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wred_decayExp   = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].wred_decayExp, qos_msg->cos_config.cos[1].wred_decayExp, qos_msg->cos_config.cos[2].wred_decayExp, qos_msg->cos_config.cos[3].wred_decayExp, qos_msg->cos_config.cos[4].wred_decayExp, qos_msg->cos_config.cos[5].wred_decayExp, qos_msg->cos_config.cos[6].wred_decayExp, qos_msg->cos_config.cos[7].wred_decayExp);
+  for (i=0; i<4; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: local_mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[1].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[2].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[3].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[4].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[5].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[6].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[7].dropThresholds[i].local2_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[1].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[2].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[3].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[4].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[5].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[6].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[7].dropThresholds[i].tailDrop_threshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[1].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[2].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[3].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[4].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[5].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[6].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[7].dropThresholds[i].wred_minThreshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[1].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[2].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[3].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[4].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[5].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[6].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[7].dropThresholds[i].wred_dropProb);
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Redefine CoS configuration
+ * 
+ * @param qos_config : CoS configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
+{
+  L7_int i, j;
+  ptin_intf_t             ptin_intf;
+  ptin_QoS_intf_t         qos_intf;
+  ptin_QoS_cos_t          qos_cos[8];
+  ptin_QoS_drop_t         qos_drop[8];
+  L7_RC_t                 rc, rc_global = L7_SUCCESS;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Slotid            = %u",qos_msg->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "General Mask      = 0x%02X",qos_msg->generic_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode        = %u",qos_msg->trust_mode);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = 0x%02x",qos_msg->pktprio.prio_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
+            qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS local Mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]",
+            qos_msg->cos_config.cos[0].local_mask, qos_msg->cos_config.cos[1].local_mask, qos_msg->cos_config.cos[2].local_mask, qos_msg->cos_config.cos[3].local_mask, qos_msg->cos_config.cos[4].local_mask, qos_msg->cos_config.cos[5].local_mask, qos_msg->cos_config.cos[6].local_mask, qos_msg->cos_config.cos[7].local_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_scheduler = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].scheduler, qos_msg->cos_config.cos[1].scheduler, qos_msg->cos_config.cos[2].scheduler, qos_msg->cos_config.cos[3].scheduler, qos_msg->cos_config.cos[4].scheduler, qos_msg->cos_config.cos[5].scheduler, qos_msg->cos_config.cos[6].scheduler, qos_msg->cos_config.cos[7].scheduler);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_min_bw    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].min_bandwidth, qos_msg->cos_config.cos[1].min_bandwidth, qos_msg->cos_config.cos[2].min_bandwidth, qos_msg->cos_config.cos[3].min_bandwidth, qos_msg->cos_config.cos[4].min_bandwidth, qos_msg->cos_config.cos[5].min_bandwidth, qos_msg->cos_config.cos[6].min_bandwidth, qos_msg->cos_config.cos[7].min_bandwidth);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wrrSched_weight = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].wrrSched_weight, qos_msg->cos_config.cos[1].wrrSched_weight, qos_msg->cos_config.cos[2].wrrSched_weight, qos_msg->cos_config.cos[3].wrrSched_weight, qos_msg->cos_config.cos[4].wrrSched_weight, qos_msg->cos_config.cos[5].wrrSched_weight, qos_msg->cos_config.cos[6].wrrSched_weight, qos_msg->cos_config.cos[7].wrrSched_weight);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "dropMgmttype    = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].dropMgmtType, qos_msg->cos_config.cos[1].dropMgmtType, qos_msg->cos_config.cos[2].dropMgmtType, qos_msg->cos_config.cos[3].dropMgmtType, qos_msg->cos_config.cos[4].dropMgmtType, qos_msg->cos_config.cos[5].dropMgmtType, qos_msg->cos_config.cos[6].dropMgmtType, qos_msg->cos_config.cos[7].dropMgmtType);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "wred_decayExp   = [ %u %u %u %u %u %u %u %u ]",
+            qos_msg->cos_config.cos[0].wred_decayExp, qos_msg->cos_config.cos[1].wred_decayExp, qos_msg->cos_config.cos[2].wred_decayExp, qos_msg->cos_config.cos[3].wred_decayExp, qos_msg->cos_config.cos[4].wred_decayExp, qos_msg->cos_config.cos[5].wred_decayExp, qos_msg->cos_config.cos[6].wred_decayExp, qos_msg->cos_config.cos[7].wred_decayExp);
+  for (i=0; i<4; i++)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: local_mask = [ 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[1].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[2].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[3].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[4].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[5].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[6].dropThresholds[i].local2_mask,
+              qos_msg->cos_config.cos[7].dropThresholds[i].local2_mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: Taildrop threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[1].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[2].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[3].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[4].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[5].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[6].dropThresholds[i].tailDrop_threshold,
+              qos_msg->cos_config.cos[7].dropThresholds[i].tailDrop_threshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED min.threshold = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[1].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[2].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[3].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[4].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[5].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[6].dropThresholds[i].wred_minThreshold,
+              qos_msg->cos_config.cos[7].dropThresholds[i].wred_minThreshold);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "DP%u: WRED drop prob.    = [ %3u %3u %3u %3u %3u %3u %3u %3u ]", i+1,
+              qos_msg->cos_config.cos[0].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[1].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[2].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[3].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[4].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[5].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[6].dropThresholds[i].wred_dropProb,
+              qos_msg->cos_config.cos[7].dropThresholds[i].wred_dropProb);
+  }
+
+  /* Clear structures */
+  memset(&qos_intf,0x00,sizeof(ptin_QoS_intf_t));
+  memset(qos_cos,0x00,sizeof(qos_cos));
+  memset(qos_drop,0x00,sizeof(qos_drop));
+
+  /* Interface */
+  ptin_intf.intf_type = qos_msg->intf.intf_type;
+  ptin_intf.intf_id   = qos_msg->intf.intf_id;
+
+  /* Interface configuration */
+
+  /* Trust mode */
+  if (qos_msg->generic_mask & MSG_QOS_CONFIGURATION_TRUSTMODE_MASK)
+  {
+    qos_intf.trust_mode = qos_msg->trust_mode;
+    qos_intf.mask |= PTIN_QOS_INTF_TRUSTMODE_MASK;
+  }
+  /* Bandwidth units */
+  if (qos_msg->generic_mask & MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK)
+  {
+    qos_intf.bandwidth_unit = qos_msg->bandwidth_unit;
+    qos_intf.mask |= PTIN_QOS_INTF_BANDWIDTHUNIT_MASK;
+  }
+  /* Shaping rate */
+  if (qos_msg->generic_mask & MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK)
+  {
+    qos_intf.shaping_rate = qos_msg->shaping_rate;
+    qos_intf.mask |= PTIN_QOS_INTF_SHAPINGRATE_MASK;
+  }
+  /* Priority map to CoS */
+  if (qos_msg->generic_mask & MSG_QOS_CONFIGURATION_PACKETPRIO_MASK)
+  {
+    /* Run all priorities */
+    for (i=0; i<8; i++)
+    {
+      /* Is priority i to be defined? If so define CoS */
+      if ((qos_msg->pktprio.prio_mask>>i) & 1)
+      {
+        qos_intf.pktprio.mask  |= 1<<i;
+        qos_intf.pktprio.cos[i] = qos_msg->pktprio.cos[i];
+      }
+    }
+    if (qos_intf.pktprio.mask)
+    {
+      qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
+    }
+  }
+
+  /* Is there any configuration to be applied? */
+  if (qos_intf.mask)
+  {
+    /* Execute priority map configuration */
+    rc = ptin_QoS_intf_config_set(&ptin_intf,&qos_intf);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring priority map (rc=%d)", rc);
+      rc_global = rc;
+    }
+  }
+
+  /* QoS configuration */
+  if (qos_msg->generic_mask & MSG_QOS_CONFIGURATION_QOSCONF_MASK)
+  {
+    /* Run all QoS */
+    for (i=0; i<8; i++)
+    {
+      /* QoS i is to be configured? */
+      if ( !((qos_msg->cos_config.cos_mask>>i) & 1) )  continue;
+
+      /* Scheduler type */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK)
+      {
+        qos_cos[i].scheduler_type = qos_msg->cos_config.cos[i].scheduler;
+        qos_cos[i].mask |= PTIN_QOS_COS_SCHEDULER_MASK;
+      }
+      /* Minimum mandwidth */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK)
+      {
+        qos_cos[i].min_bandwidth = qos_msg->cos_config.cos[i].min_bandwidth;
+        qos_cos[i].mask |= PTIN_QOS_COS_BW_MIN_MASK;
+      }
+      /* Maximum bandwidth */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK)
+      {
+        qos_cos[i].max_bandwidth = qos_msg->cos_config.cos[i].max_bandwidth;
+        qos_cos[i].mask |= PTIN_QOS_COS_BW_MAX_MASK;
+      }
+      /* WRR Weight */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_WRR_WEIGHT_MASK)
+      {
+        qos_cos[i].wrrSched_weight = qos_msg->cos_config.cos[i].wrrSched_weight;
+        qos_cos[i].mask |= PTIN_QOS_COS_WRR_WEIGHT_MASK;
+      }
+    }
+
+    /* Apply configuration */
+    rc = ptin_QoS_cos_config_set(&ptin_intf, (L7_uint8)-1, qos_cos);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS (rc=%d)",rc);
+      rc_global = rc;
+    }
+  }
+
+  /* DROP configuration */
+  if (qos_msg->generic_mask & MSG_QOS_CONFIGURATION_QOSCONF_MASK)
+  {
+    /* Run all QoS */
+    for (i=0; i<8; i++)
+    {
+      /* QoS i is to be configured? */
+      if ( !((qos_msg->cos_config.cos_mask>>i) & 1) )  continue;
+
+      /* Drop MGMT type */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_MGMT_TYPE_MASK)
+      {
+        qos_drop[i].queue_management_type = qos_msg->cos_config.cos[i].dropMgmtType;
+        qos_drop[i].mask |= PTIN_QOS_COS_QUEUE_MANGM_MASK;
+      }
+      /* WRED decay exponent */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_WRED_DECAYEXP_MASK)
+      {
+        qos_drop[i].wred_decayExp = qos_msg->cos_config.cos[i].wred_decayExp;
+        qos_drop[i].mask |= PTIN_QOS_COS_WRED_DECAY_EXP_MASK;
+      }
+      /* Thresholds */
+      if (qos_msg->cos_config.cos[i].local_mask & MSG_QOS_CONFIGURATION_QOSCONF_THRESHOLDS_MASK)
+      {
+        /* Run all DP levels */
+        for (j = 0; j < 4; j++)
+        {
+          if (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask == 0)  continue;
+
+          qos_drop[i].mask |= PTIN_QOS_COS_WRED_THRESHOLDS_MASK;
+
+          /* Taildrop threshold */
+          if (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask & MSG_QOS_CONFIGURATION_QOSCONF_DROP_TAILDROP_THRES_MASK)
+          {
+            qos_drop[i].dp[j].taildrop_threshold = qos_msg->cos_config.cos[i].dropThresholds[j].tailDrop_threshold;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK;
+          }
+          /* WRED min threshold */
+          if (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask & MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MINTHRES_MASK)
+          {
+            qos_drop[i].dp[j].wred_min_threshold = qos_msg->cos_config.cos[i].dropThresholds[j].wred_minThreshold;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK;
+          }
+          /* WRED max threshold */
+          if (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask & MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MAXTHRES_MASK)
+          {
+            qos_drop[i].dp[j].wred_max_threshold = qos_msg->cos_config.cos[i].dropThresholds[j].wred_maxThreshold;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK;
+          }
+          /* WRED drop probability */
+          if (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask & MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_DROPPROB_MASK)
+          {
+            qos_drop[i].dp[j].wred_drop_prob = qos_msg->cos_config.cos[i].dropThresholds[j].wred_dropProb;
+            qos_drop[i].dp[j].local_mask |= PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK;
+          }
+        }
+      }
+    }
+
+    /* Apply configuration */
+    rc = ptin_QoS_drop_config_set(&ptin_intf, (L7_uint8)-1, qos_drop);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring QoS Drop management (rc=%d)",rc);
+      rc_global = rc;
+    }
+  }
+
+  if (rc_global==L7_SUCCESS)
+  {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success applying QoS configurations to all CoS");
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error applying QoS configurations to all CoS (rc_global=%d)", rc_global);
+  }
+
+  return rc_global;
 }
 
 
