@@ -65,6 +65,11 @@ void help_oltBuga(void)
         "m 1030 intfType/intf# - Get QoS configuration\r\n"
         "m 1031 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
         "m 1032 intfType/intf# cos(0-7) scheduler(1:Strict;2:Weighted) min_bandwidth(Mbps) max_bandwidth(Mbps) - Set specific QoS configuration\r\n"
+        "m 1033 intfType/intf# - Get QoS2 configuration\r\n"
+        "m 1034 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set QoS2-interface configuration\r\n"
+        "m 1035 intfType/intf# cos(0-7) scheduler(1:Strict;2:Weighted) weight(1-128) min_bandwidth(Mbps) max_bandwidth(Mbps) - Set QoS2-cos configuration\r\n"
+        "m 1036 intfType/intf# cos(0-7) mgmtType(0/1) decayExp(0-15) - Set QoS2-drop configuration\r\n"
+        "m 1037 intfType/intf# cos(0-7) dplevel(1-4) tdThresh(0-100) wredMinThresh(0-100) wredMaxThresh(0-100) wredDropProb(0-100)- Set QoS2-drop configuration\r\n"
         "m 1040 startId(0..) numEntries - Read MAC table\r\n"
         "m 1041 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) intfType/intf# - Add a static entry to the MAC table\r\n"
         "m 1042 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) - Remove an entry from MAC table\r\n"
@@ -1409,6 +1414,370 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_ETH_PORT_COS_SET;
           comando.infoDim = sizeof(msg_QoSConfiguration_t);
+        }
+        break;
+
+        case 1033:
+        {
+          msg_QoSConfiguration2_t *ptr;
+          int type, intf;
+
+          // Validate number of arguments (flow_id + 2 pairs port+svid)
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_QoSConfiguration2_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_QoSConfiguration2_t));
+
+          ptr->SlotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          comando.msgId = CCMSG_ETH_PORT_COS2_GET;
+          comando.infoDim = sizeof(msg_QoSConfiguration2_t);
+        }
+        break;
+
+    case 1034:
+      {
+        msg_QoSConfiguration2_t *ptr;
+        int type, intf;
+        uint8 i;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_QoSConfiguration2_t *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_QoSConfiguration2_t));
+
+        ptr->SlotId = (uint8)-1;
+
+        // port
+        if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = (uint8) type;
+        ptr->intf.intf_id   = (uint8) intf;
+
+        // Trust mode
+        if (StrToLongLong(argv[3+1],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->trust_mode = (uint8) valued;
+        ptr->generic_mask |= MSG_QOS_CONFIGURATION_TRUSTMODE_MASK;
+
+        ptr->bandwidth_unit = 0;
+        ptr->generic_mask |= MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK;
+
+        // Shaping rate
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3 + 2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->shaping_rate = (uint32) valued*1000;
+          ptr->generic_mask |= MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK;
+        }
+
+        // Priorities map
+        for (i=0; i<8 && argc>=(3+4+i); i++) {
+          if (StrToLongLong(argv[3+3+i],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->pktprio.cos[i] = (uint32) valued;
+          ptr->pktprio.prio_mask |= 1 << i;
+        }
+        if (ptr->pktprio.prio_mask != 0)
+        {
+          ptr->generic_mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK; 
+        }
+
+        comando.msgId = CCMSG_ETH_PORT_COS2_SET;
+        comando.infoDim = sizeof(msg_QoSConfiguration2_t);
+      }
+      break;
+
+      case 1035:
+        {
+          msg_QoSConfiguration2_t *ptr;
+          int type, intf;
+          uint8 cos;
+
+          // Validate number of arguments (flow_id + 2 pairs port+svid)
+          if (argc<3+3)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_QoSConfiguration2_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_QoSConfiguration2_t));
+
+          ptr->SlotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // Extract CoS and validate it
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          cos = (uint8) valued;
+          if (cos>=8) {
+            help_oltBuga();
+            exit(0);
+          }
+
+          ptr->generic_mask = MSG_QOS_CONFIGURATION_QOSCONF_MASK;
+          ptr->cos_config.cos_mask |= (1<<cos);
+
+          // Scheduler
+          if (argc >= 3+3)
+          {
+            if (StrToLongLong(argv[3+2],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].scheduler = (uint8) valued;
+            ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK;
+          }
+
+          // WRR weight
+          if (argc >= 3+4)
+          {
+            if (StrToLongLong(argv[3 + 3], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].wrrSched_weight = (uint16) valued;
+            ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_WRR_WEIGHT_MASK;
+          }
+
+          // Min Bandwidth
+          if (argc >= 3+5)
+          {
+            if (StrToLongLong(argv[3+4],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].min_bandwidth = (uint32) valued*1000;
+            ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK;
+          }
+
+          // Max Bandwidth
+          if (argc >= 3+6)
+          {
+            if (StrToLongLong(argv[3+5],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].max_bandwidth = (uint32) valued*1000;
+            ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK;
+          }
+
+          comando.msgId = CCMSG_ETH_PORT_COS2_SET;
+          comando.infoDim = sizeof(msg_QoSConfiguration2_t);
+        }
+        break;
+
+      case 1036:
+        {
+          msg_QoSConfiguration2_t *ptr;
+          int type, intf;
+          uint8 cos;
+
+          // Validate number of arguments (flow_id + 2 pairs port+svid)
+          if (argc<3+3)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_QoSConfiguration2_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_QoSConfiguration2_t));
+
+          ptr->SlotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // Extract CoS and validate it
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          cos = (uint8) valued;
+          if (cos>=8) {
+            help_oltBuga();
+            exit(0);
+          }
+
+          ptr->generic_mask = MSG_QOS_CONFIGURATION_QOSCONF_MASK;
+          ptr->cos_config.cos_mask |= (1<<cos);
+
+          // WRR weight
+          if (argc >= 3+3)
+          {
+            if (StrToLongLong(argv[3 + 2], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].dropMgmtType = (uint8) valued;
+            ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_MGMT_TYPE_MASK;
+          }
+
+          // Min Bandwidth
+          if (argc >= 3+4)
+          {
+            if (StrToLongLong(argv[3+3],&valued)<0)  {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].wred_decayExp = (uint8) valued;
+            ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_WRED_DECAYEXP_MASK;
+          }
+
+          comando.msgId = CCMSG_ETH_PORT_COS2_SET;
+          comando.infoDim = sizeof(msg_QoSConfiguration2_t);
+        }
+        break;
+
+      case 1037:
+        {
+          msg_QoSConfiguration2_t *ptr;
+          int type, intf;
+          uint8 cos, dp;
+
+          // Validate number of arguments (flow_id + 2 pairs port+svid)
+          if (argc<3+4)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_QoSConfiguration2_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_QoSConfiguration2_t));
+
+          ptr->SlotId = (uint8)-1;
+
+          // port
+          if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) type;
+          ptr->intf.intf_id   = (uint8) intf;
+
+          // Extract CoS and validate it
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          cos = (uint8) valued;
+          if (cos>=8) {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Extract DP and validate it
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          dp = (uint8) valued;
+          if (dp==0 || dp>=5) {
+            help_oltBuga();
+            exit(0);
+          }
+          dp--;
+
+          ptr->generic_mask = MSG_QOS_CONFIGURATION_QOSCONF_MASK;
+          ptr->cos_config.cos_mask |= (1<<cos);
+          ptr->cos_config.cos[cos].local_mask |= MSG_QOS_CONFIGURATION_QOSCONF_THRESHOLDS_MASK;
+
+          // Taildrop threshold
+          if (argc >= 3+4)
+          {
+            if (StrToLongLong(argv[3 + 3], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].dropThresholds[dp].tailDrop_threshold = (uint8) valued;
+            ptr->cos_config.cos[cos].dropThresholds[dp].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_TAILDROP_THRES_MASK;
+          }
+          // WRED min threshold
+          if (argc >= 3+5)
+          {
+            if (StrToLongLong(argv[3 + 4], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].dropThresholds[dp].wred_minThreshold = (uint8) valued;
+            ptr->cos_config.cos[cos].dropThresholds[dp].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MINTHRES_MASK;
+          }
+          // WRED max threshold
+          if (argc >= 3+6)
+          {
+            if (StrToLongLong(argv[3 + 5], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].dropThresholds[dp].wred_maxThreshold = (uint8) valued;
+            ptr->cos_config.cos[cos].dropThresholds[dp].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MAXTHRES_MASK;
+          }
+          // WRED drop probability
+          if (argc >= 3+7)
+          {
+            if (StrToLongLong(argv[3 + 6], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            ptr->cos_config.cos[cos].dropThresholds[dp].wred_dropProb = (uint8) valued;
+            ptr->cos_config.cos[cos].dropThresholds[dp].local2_mask |= MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_DROPPROB_MASK;
+          }
+
+          comando.msgId = CCMSG_ETH_PORT_COS2_SET;
+          comando.infoDim = sizeof(msg_QoSConfiguration2_t);
         }
         break;
 
@@ -6061,6 +6430,215 @@ int main (int argc, char *argv[])
           printf(" Switch: Specific QoS configuration executed successfuly\n\r");
         else
           printf(" Switch: Error setting specific QoS configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1033:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          msg_QoSConfiguration2_t *ptr;
+          uint8 i, j, n, dp;
+          // Validate size
+          if (resposta.infoDim==0 || (resposta.infoDim%sizeof(msg_QoSConfiguration2_t))!=0) {
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_QoSConfiguration_t),resposta.infoDim);
+            break;
+          }
+          // Number of elements
+          n = resposta.infoDim/sizeof(msg_QoSConfiguration2_t);
+
+          // Run all elements
+          for (i=0; i<n; i++) {
+
+            // Pointer to element
+            ptr = &(((msg_QoSConfiguration2_t *) resposta.info)[i]);
+
+            // Print configuration
+            printf(" QoS configuration for port %u/%u (SlotId=%u)\r\n",ptr->intf.intf_type,ptr->intf.intf_id,ptr->SlotId);
+            printf("  Trust mode    : ");
+            if (ptr->trust_mode==0)      printf("Not configured");
+            else if (ptr->trust_mode==1) printf("Untrust marks");
+            else if (ptr->trust_mode==2) printf("802.1p marks");
+            else if (ptr->trust_mode==3) printf("IP-precedence marks");
+            else if (ptr->trust_mode==4) printf("DSCP marks");
+            else                         printf("Invalid");
+            printf("\r\n");
+            printf("  Bandwidth unit: ");
+            if (ptr->bandwidth_unit==0)      printf("Kilobits per second");
+            else if (ptr->bandwidth_unit==1) printf("Packets per second");
+            else if (ptr->bandwidth_unit==2) printf("Percentage (0-100%%)");
+            else                         printf("Invalid");
+            printf("\r\n");
+            printf("  Shaping rate  : %lu Kbps\r\n",ptr->shaping_rate);
+
+            // Only proceed, if trust mode is valid
+            if (ptr->trust_mode!=0 && ptr->trust_mode<=4) {
+
+              // Priorities map
+              printf("                  ");
+              for (j=0; j<8; j++) {
+                printf("------------");
+                if (j<7)  printf("-");
+              }
+              printf("\r\n");
+              printf("  Pkt. Priority ");
+              for (j=0; j<8; j++) {
+                printf(" | %10u",j);
+              }
+              printf(" |\r\n");
+              printf("                 ");
+              for (j=0; j<8; j++) {
+                printf("|------------");
+              }
+              printf("|\r\n");
+              printf("  ClassOfService");
+              for (j=0; j<8; j++) {
+                if (ptr->trust_mode==4) {
+                  printf(" | 0x%08lX",ptr->pktprio.cos[j]);
+                }
+                else {
+                  printf(" | %10lu",ptr->pktprio.cos[j]);
+                }
+              }
+              printf(" |\r\n");
+              printf("                  ");
+              for (j=0; j<8; j++) {
+                printf("------------");
+                if (j<7)  printf("-");
+              }
+              printf("\r\n");
+
+              // CoS configurations
+              printf("                  ");
+              for (j=0; j<8; j++) {
+                printf("------------");
+                if (j<7)  printf("-");
+              }
+              printf("\r\n");
+              printf("  CoS           ");
+              for (j=0; j<8; j++) {
+                printf(" | %10u",j);
+              }
+              printf(" |\r\n");
+              printf("                 ");
+              for (j=0; j<8; j++) {
+                printf("|------------");
+              }
+              printf("|\r\n");
+              printf("  Scheduler Type");
+              for (j=0; j<8; j++) {
+                printf(" | ");
+                if (ptr->cos_config.cos[j].scheduler==0)       printf("   NotConf");
+                else if (ptr->cos_config.cos[j].scheduler==1)  printf("    Strict");
+                else if (ptr->cos_config.cos[j].scheduler==2)  printf("  Weighted");
+                else                                           printf("   Invalid");
+              }
+              printf(" |\r\n");
+              printf("  WRR Weights   ");
+              for (j=0; j<8; j++) {
+                printf(" | %10u",ptr->cos_config.cos[j].wrrSched_weight);
+              }
+              printf(" |\r\n");
+              printf("  Min. Bandwidth");
+              for (j=0; j<8; j++) {
+                printf(" | %10lu",ptr->cos_config.cos[j].min_bandwidth);
+              }
+              printf(" |\r\n");
+              printf("  Max. Bandwidth");
+              for (j=0; j<8; j++) {
+                printf(" | %10lu",ptr->cos_config.cos[j].max_bandwidth);
+              }
+              printf(" |\r\n");
+              printf("  MGMT Type     ");
+              for (j=0; j<8; j++) {
+                printf(" | ");
+                if (ptr->cos_config.cos[j].dropMgmtType==0)       printf("  TailDrop");
+                else if (ptr->cos_config.cos[j].dropMgmtType==1)  printf("      WRED");
+                else                                              printf("   Invalid");
+              }
+              printf(" |\r\n");
+              printf("                 |");
+              for (j=0; j<8; j++) {
+                printf("------------");
+                if (j<7)  printf("-");
+              }
+              printf("|\r\n");
+
+              /* Run all DP levels */
+              for (dp = 0; dp < 4; dp++)
+              {
+                printf("  TDRP Thresh[%u]", dp+1);
+                for (j=0; j<8; j++) {
+                  printf(" | %10u",ptr->cos_config.cos[j].dropThresholds[dp].tailDrop_threshold);
+                }
+                printf(" |\r\n");
+                printf("  WRED minThr[%u]", dp+1);
+                for (j=0; j<8; j++) {
+                  printf(" | %10u",ptr->cos_config.cos[j].dropThresholds[dp].wred_minThreshold);
+                }
+                printf(" |\r\n");
+                printf("  WRED maxThr[%u]", dp+1);
+                for (j=0; j<8; j++) {
+                  printf(" | %10u",ptr->cos_config.cos[j].dropThresholds[dp].wred_maxThreshold);
+                }
+                printf(" |\r\n");
+                printf("  WRED dropPr[%u]", dp+1);
+                for (j=0; j<8; j++) {
+                  printf(" | %10u",ptr->cos_config.cos[j].dropThresholds[dp].wred_dropProb);
+                }
+                printf(" |\r\n");
+
+                printf("                 |");
+                for (j=0; j<8; j++) {
+                  printf("------------");
+                  if (j<7)  printf("-");
+                }
+                printf("|\r\n");
+              }
+              printf("  WRED decayExp ");
+              for (j=0; j<8; j++) {
+                printf(" | %10u",ptr->cos_config.cos[j].wred_decayExp);
+              }
+              printf(" |\r\n");
+              printf("                  ");
+              for (j=0; j<8; j++) {
+                printf("------------");
+                if (j<7)  printf("-");
+              }
+              printf("\r\n");
+            } // Only proceed, if trust mode is valid
+          } // Run all elements
+
+          printf(" Switch: General QoS2 configuration read successfuly\n\r");
+        }
+        else
+          printf(" Switch: Error reading general QoS2 configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1034:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: QoS2-interface configuration executed successfuly\n\r");
+        else
+          printf(" Switch: Error setting QoS2-interface configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1035:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: QoS2-cos configuration executed successfuly\n\r");
+        else
+          printf(" Switch: Error setting QoS2-cos configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1036:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: QoS2-mgmt configuration executed successfuly\n\r");
+        else
+          printf(" Switch: Error setting QoS2-mgmt configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1037:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: QoS2-dpThresholds configuration executed successfuly\n\r");
+        else
+          printf(" Switch: Error setting QoS2-dpThresholds configuration - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1040:

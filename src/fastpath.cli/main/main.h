@@ -106,6 +106,8 @@ extern int canal_buga;
 
 #define CCMSG_ETH_PORT_COS_GET              0x9090  // struct msg_QoSConfiguration_t
 #define CCMSG_ETH_PORT_COS_SET              0x9091  // struct msg_QoSConfiguration_t
+#define CCMSG_ETH_PORT_COS2_GET             0x9092  // struct msg_QoSConfiguration2_t
+#define CCMSG_ETH_PORT_COS2_SET             0x9093  // struct msg_QoSConfiguration2_t
 
 #define CCMSG_ETH_SWITCH_CONFIG_GET         0x90A0  // struct msg_switch_config_t
 #define CCMSG_ETH_SWITCH_CONFIG_SET         0x90A1  // struct msg_switch_config_t
@@ -414,11 +416,22 @@ typedef struct
 #define MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK     0x02
 #define MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK       0x04
 #define MSG_QOS_CONFIGURATION_PACKETPRIO_MASK        0x08
-#define MSG_QOS_CONFIGURATION_PACKETPRIO_COS_MASK      0xff
+#define MSG_QOS_CONFIGURATION_PACKETPRIO_COS_MASK    0xff
 #define MSG_QOS_CONFIGURATION_QOSCONF_MASK           0x10
-#define MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK   0x01
-#define MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK      0x02
-#define MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK      0x04
+
+#define MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK      0x01
+#define MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK         0x02
+#define MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK         0x04
+#define MSG_QOS_CONFIGURATION_QOSCONF_WRR_WEIGHT_MASK     0x08
+
+#define MSG_QOS_CONFIGURATION_QOSCONF_MGMT_TYPE_MASK      0x10
+#define MSG_QOS_CONFIGURATION_QOSCONF_WRED_DECAYEXP_MASK  0x20
+#define MSG_QOS_CONFIGURATION_QOSCONF_THRESHOLDS_MASK     0x40
+
+#define MSG_QOS_CONFIGURATION_QOSCONF_DROP_TAILDROP_THRES_MASK  0x01
+#define MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MINTHRES_MASK   0x02
+#define MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_MAXTHRES_MASK   0x04
+#define MSG_QOS_CONFIGURATION_QOSCONF_DROP_WRED_DROPPROB_MASK   0x08
 
 #define MSG_QOS_CONFIGURATION_PRIORITY_MAP_MASK    ( MSG_QOS_CONFIGURATION_TRUSTMODE_MASK | \
                                                      MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK | \
@@ -452,6 +465,48 @@ typedef struct
     } __attribute__((packed)) cos[8];   //   Specific CoS configuration (8 queues)
   } __attribute__((packed)) cos_config; // mask=0x10: CoS configuration
 } __attribute__((packed)) msg_QoSConfiguration_t;
+
+typedef struct
+{
+  L7_uint8 SlotId;                      // Slot id
+  msg_HwEthInterface_t intf;            // Interface
+
+  L7_uint8  generic_mask;               // General Configurations mask
+
+  L7_uint8  trust_mode;                 // generic_mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
+  L7_uint8  bandwidth_unit;             // generic_mask=0x02: 0: Kbps, 1: PPS, 2: Percentage (Default=0)
+  L7_uint32 shaping_rate;               // generic_mask=0x04: in kbps. Default=0 (unlimited)
+
+  struct {                              // Packet priority map
+    L7_uint8  prio_mask;                //   pktpriority map mask (nth bit, tells to configure the nth priority)
+    L7_uint32 cos[8];                   //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
+  } __attribute__((packed)) pktprio;    // generic_mask=0x08: Packet priority map
+
+  struct {                              // CoS configuration (generic_mask=0x10)
+    L7_uint8 cos_mask;                  //   CoS map mask (nth bit, tells to configure the nth CoS)
+    struct {                            //   Specific CoS configuration
+      L7_uint8  local_mask;             //     Specific CoS configuration mask
+
+      L7_uint8  scheduler;              //     local_mask=0x01: Scheduler type: 0-None, 1-Strict, 2-Weighted (Default=1)
+      L7_uint32 min_bandwidth;          //     local_mask=0x02: Minimum bandwidth (kbps): Default=0 (no guarantee)
+      L7_uint32 max_bandwidth;          //     local_mask=0x04: Maximum bandwidth (kbps): Default=0 (unlimited)
+
+      L7_uint16 wrrSched_weight;        //     local_mask=0x08: WRR scheduler weight (for each queue)
+
+      L7_uint8  dropMgmtType;           //     local_mask=0x10: Drop Management type (0:Taildrop, 1-WRED)
+      L7_uint8  wred_decayExp;          //     local_mask=0x20: WRED decay exponent (0-15)
+
+      struct {                          //     Drop thresholds configuration for each Drop Precedence Level (local_mask=0x40)
+        L7_uint8  local2_mask;          //       Local mask for thresholds definition
+        L7_uint8  tailDrop_threshold;   //       local2_mask=0x01: Taildrop threshold (0-100)
+        L7_uint8  wred_minThreshold;    //       local2_mask=0x02: Min. WRED threshold (0-100)
+        L7_uint8  wred_maxThreshold;    //       local2_mask=0x04: Max. WRED threshold (0-100)
+        L7_uint8  wred_dropProb;        //       local2_mask=0x08: WRED Drop probability (0-100)
+      } dropThresholds[3+1];            //     local_mask=0x40: Drop thresholds configuration for each Drop Precedence Level
+
+    } __attribute__((packed)) cos[8];   //   Specific CoS configuration (8 queues)
+  } __attribute__((packed)) cos_config; // generic_mask=0x10: CoS configuration
+} __attribute__((packed)) msg_QoSConfiguration2_t;
 
 /***************************************************** 
  * L2 Table messages
