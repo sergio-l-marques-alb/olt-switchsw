@@ -6326,7 +6326,7 @@ int main (int argc, char *argv[])
             else if (ptr->bandwidth_unit==2) printf("Packets per second");
             else                         printf("Invalid");
             printf("\r\n");
-            printf("  Shaping rate  : %lu\r\n",ptr->shaping_rate);
+            printf("  Shaping rate  : %lu %s\r\n",ptr->shaping_rate, ((ptr->bandwidth_unit==0) ? "%%" : "Kbps"));
 
             // Only proceed, if trust mode is valid
             if (ptr->trust_mode!=0 && ptr->trust_mode<=4) {
@@ -6465,7 +6465,7 @@ int main (int argc, char *argv[])
             else if (ptr->bandwidth_unit==2) printf("Packets per second");
             else                         printf("Invalid");
             printf("\r\n");
-            printf("  Shaping rate  : %lu Kbps\r\n",ptr->shaping_rate);
+            printf("  Shaping rate  : %lu %s\r\n",ptr->shaping_rate, ((ptr->bandwidth_unit==0) ? "%%" : "Kbps"));
 
             // Only proceed, if trust mode is valid
             if (ptr->trust_mode!=0 && ptr->trust_mode<=4) {
