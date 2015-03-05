@@ -3705,7 +3705,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     for (prio=0; prio<8; prio++)
     {
       /* If priority mask active, attribute cos */
-      if (!((intfQos->pktprio.mask>>prio) & 1))  continue;
+      if (intfQos->pktprio.mask[prio] == 0)  continue;
       
       // 802.1p trust mode
       if (trust_mode==L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
@@ -3747,6 +3747,8 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         // Run all 8 sub-priorities (8*8=64 possiblle priorities)
         for (prio2=0; prio2<8; prio2++)
         {
+          if ( !((intfQos->pktprio.mask[prio]>>prio2) & 1) )  continue;
+
           /* Map 64 different priorities (6 bits) to 8 CoS */
           cos = ((intfQos->pktprio.cos[prio])>>(4*prio2)) & 0x07;
 
@@ -3839,6 +3841,10 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     intfQos->mask |= PTIN_QOS_INTF_TRUSTMODE_MASK;
   }
 
+  /* Get units */
+  intfQos->bandwidth_unit = (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_PERCENT) ? 0 : 1;
+  intfQos->mask |= PTIN_QOS_INTF_BANDWIDTHUNIT_MASK;
+
   /* Shaping rate */
   rc = usmDbQosCosQueueIntfShapingRateGet(1,intIfNum,&value);
   if (rc != L7_SUCCESS)
@@ -3882,8 +3888,8 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         }
         else
         {
-          intfQos->pktprio.mask |= (L7_uint8) 1<<prio;
-          intfQos->pktprio.cos[prio] = cos;
+          intfQos->pktprio.mask[prio] = 1;
+          intfQos->pktprio.cos[prio]  = cos;
           LOG_TRACE(LOG_CTX_PTIN_INTF, "Pbit %u => CoS=%u",prio,cos);
         }
       }
@@ -3898,8 +3904,8 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
         }
         else
         {
-          intfQos->pktprio.mask |= (L7_uint8) 1<<prio;
-          intfQos->pktprio.cos[prio] = cos;
+          intfQos->pktprio.mask[prio] = 1;
+          intfQos->pktprio.cos[prio]  = cos;
           LOG_TRACE(LOG_CTX_PTIN_INTF, "IPprec %u => CoS=%u",prio,cos);
         }
       }
@@ -3918,13 +3924,10 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
           }
           else
           {
-            intfQos->pktprio.cos[prio] |= ((L7_uint32) cos & 0x0f)<<(prio2*4);
+            intfQos->pktprio.mask[prio] |= (L7_uint8) 1 << prio2;
+            intfQos->pktprio.cos[prio]  |= ((L7_uint32) cos & 0x0f)<<(prio2*4);
             LOG_TRACE(LOG_CTX_PTIN_INTF, "DscpPrio %u => CoS=%u",prio*8+prio2,cos);
           }
-        }
-        if (prio2>=8)
-        {
-          intfQos->pktprio.mask |= (L7_uint8) 1<<prio;
         }
       }
       else
@@ -3946,7 +3949,8 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   LOG_TRACE(LOG_CTX_PTIN_INTF,"BWunits      = %u",intfQos->bandwidth_unit);
   LOG_TRACE(LOG_CTX_PTIN_INTF,"ShapingRate  = %u",intfQos->shaping_rate);
   LOG_TRACE(LOG_CTX_PTIN_INTF,"WREDDecayExp = %u",intfQos->wred_decay_exponent);
-  LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.mask   =0x%02x",intfQos->pktprio.mask);
+  LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.mask   ={0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x,0x%02x}",
+            intfQos->pktprio.mask[0],intfQos->pktprio.mask[1],intfQos->pktprio.mask[2],intfQos->pktprio.mask[3],intfQos->pktprio.mask[4],intfQos->pktprio.mask[5],intfQos->pktprio.mask[6],intfQos->pktprio.mask[7]);
   LOG_TRACE(LOG_CTX_PTIN_INTF,"PrioMap.prio[8]={0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x,0x%08x}",
             intfQos->pktprio.cos[0],
             intfQos->pktprio.cos[1],
@@ -4717,11 +4721,12 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   memset(&qos_intf_cfg,0x00,sizeof(ptin_QoS_intf_t));
   qos_intf_cfg.mask         = PTIN_QOS_INTF_TRUSTMODE_MASK | PTIN_QOS_INTF_PACKETPRIO_MASK;
   qos_intf_cfg.trust_mode   = L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P;
-  qos_intf_cfg.pktprio.mask = PTIN_QOS_INTF_PACKETPRIO_COS_MASK;
+  
   /* Linear pbit->cos mapping */
   for (i=0; i<8; i++)
   {
-    qos_intf_cfg.pktprio.cos[i] = i;
+    qos_intf_cfg.pktprio.mask[i] = PTIN_QOS_INTF_PACKETPRIO_COS_MASK;
+    qos_intf_cfg.pktprio.cos[i]  = i;
   }
   /* Strict scheduler */
   memset(&qos_cos_cfg,0x00,sizeof(ptin_QoS_cos_t));

@@ -625,11 +625,11 @@ typedef struct
   L7_uint8  generic_mask;               // General Configurations mask
 
   L7_uint8  trust_mode;                 // generic_mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
-  L7_uint8  bandwidth_unit;             // generic_mask=0x02: 0: Kbps, 1: PPS, 2: Percentage (Default=0)
+  L7_uint8  bandwidth_unit;             // generic_mask=0x02: 0: Percentage, 1: Kbps, 2: PPS, (Default=0)
   L7_uint32 shaping_rate;               // generic_mask=0x04: in kbps. Default=0 (unlimited)
 
   struct {                              // Packet priority map
-    L7_uint8  prio_mask;                //   pktpriority map mask (nth bit, tells to configure the nth priority)
+    L7_uint8  prio_mask[8];             //   pktpriority map mask (nth bit, tells to configure the nth priority)
     L7_uint32 cos[8];                   //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
   } __attribute__((packed)) pktprio;    // generic_mask=0x08: Packet priority map
 

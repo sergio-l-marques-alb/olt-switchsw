@@ -1010,7 +1010,7 @@ typedef struct
   L7_uint32   shaping_rate;             // [mask=0x04] Kbps: Default=0 (unlimited)
   L7_uint8    wred_decay_exponent;      // [mask=0x08] WRED Decay Exponent: 0-15
   struct {                              // Packet priority map
-    L7_uint8  mask;                     //   pktpriority map mask (nth bit, tells to configure the nth priority)
+    L7_uint8  mask[8];                  //   pktpriority map mask (nth bit, tells to configure the nth priority)
     L7_uint32 cos[8];                   //   Mapping: CoS(pcp): Default={0,1,2,3,4,5,6,7}
   } pktprio;                            // [mask=0x08] Packet priority map
 } ptin_QoS_intf_t;

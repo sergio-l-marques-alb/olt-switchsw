@@ -1668,15 +1668,13 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
       for (i=0; i<8; i++)
       {
         /* Is priority i to be defined? If so define CoS */
-        if ((qos_intf.pktprio.mask >> i) & 1)
+        if (qos_intf.pktprio.mask[i] != 0)
         {
           qos_msg->pktprio.mask  |= (L7_uint8) 1<<i;
           qos_msg->pktprio.cos[i] = qos_intf.pktprio.cos[i];
+
+          qos_msg->mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK;
         }
-      }
-      if (qos_msg->pktprio.mask)
-      {
-        qos_msg->mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK;
       }
     }
   }
@@ -1821,13 +1819,11 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
       /* Is priority i to be defined? If so define CoS */
       if ((qos_msg->pktprio.mask>>i) & 1)
       {
-        qos_intf.pktprio.mask  |= 1<<i;
-        qos_intf.pktprio.cos[i] = qos_msg->pktprio.cos[i];
+        qos_intf.pktprio.mask[i] = 0xff;
+        qos_intf.pktprio.cos[i]  = qos_msg->pktprio.cos[i];
+
+        qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
       }
-    }
-    if (qos_intf.pktprio.mask)
-    {
-      qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
     }
   }
 
@@ -1959,15 +1955,13 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
       for (i=0; i<8; i++)
       {
         /* Is priority i to be defined? If so define CoS */
-        if ((qos_intf.pktprio.mask >> i) & 1)
+        if (qos_intf.pktprio.mask[i] != 0)
         {
-          qos_msg->pktprio.prio_mask  |= (L7_uint8) 1<<i;
-          qos_msg->pktprio.cos[i] = qos_intf.pktprio.cos[i];
+          qos_msg->pktprio.prio_mask[i] = qos_intf.pktprio.mask[i];
+          qos_msg->pktprio.cos[i]       = qos_intf.pktprio.cos[i];
+
+          qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK;
         }
-      }
-      if (qos_msg->pktprio.prio_mask)
-      {
-        qos_msg->generic_mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK;
       }
     }
   }
@@ -2100,7 +2094,8 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode        = %u",qos_msg->trust_mode);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = 0x%02x",qos_msg->pktprio.prio_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->pktprio.prio_mask[0],qos_msg->pktprio.prio_mask[1],qos_msg->pktprio.prio_mask[2],qos_msg->pktprio.prio_mask[3],qos_msg->pktprio.prio_mask[4],qos_msg->pktprio.prio_mask[5],qos_msg->pktprio.prio_mask[6],qos_msg->pktprio.prio_mask[7]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
             qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
@@ -2183,7 +2178,8 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Trust mode        = %u",qos_msg->trust_mode);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Bandwidth unit    = %u",qos_msg->bandwidth_unit);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Shaping rate      = %u",qos_msg->shaping_rate);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = 0x%02x",qos_msg->pktprio.prio_mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.prio_mask = [ 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ]",
+            qos_msg->pktprio.prio_mask[0],qos_msg->pktprio.prio_mask[1],qos_msg->pktprio.prio_mask[2],qos_msg->pktprio.prio_mask[3],qos_msg->pktprio.prio_mask[4],qos_msg->pktprio.prio_mask[5],qos_msg->pktprio.prio_mask[6],qos_msg->pktprio.prio_mask[7]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "pktprio.cos       = [ %Xh %Xh %Xh %Xh %Xh %Xh %Xh %Xh ]",
             qos_msg->pktprio.cos[0],qos_msg->pktprio.cos[1],qos_msg->pktprio.cos[2],qos_msg->pktprio.cos[3],qos_msg->pktprio.cos[4],qos_msg->pktprio.cos[5],qos_msg->pktprio.cos[6],qos_msg->pktprio.cos[7]);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "CoS Mask       = 0x%02X",qos_msg->cos_config.cos_mask);
@@ -2277,23 +2273,19 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
     for (i=0; i<8; i++)
     {
       /* Is priority i to be defined? If so define CoS */
-      if ((qos_msg->pktprio.prio_mask>>i) & 1)
+      if (qos_msg->pktprio.prio_mask[i] != 0)
       {
-        qos_intf.pktprio.mask  |= 1<<i;
-        qos_intf.pktprio.cos[i] = qos_msg->pktprio.cos[i];
-      }
-    }
-    if (qos_intf.pktprio.mask)
-    {
-      qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
+        qos_intf.pktprio.mask[i] = qos_msg->pktprio.prio_mask[i];
+        qos_intf.pktprio.cos[i]  = qos_msg->pktprio.cos[i];
+
+        qos_intf.mask |= PTIN_QOS_INTF_PACKETPRIO_MASK;
+      }      
     }
   }
-
-  /* Is there any configuration to be applied? */
   if (qos_intf.mask)
   {
     /* Execute priority map configuration */
-    rc = ptin_QoS_intf_config_set(&ptin_intf,&qos_intf);
+    rc = ptin_QoS_intf_config_set(&ptin_intf, &qos_intf);
     if (rc != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring priority map (rc=%d)", rc);

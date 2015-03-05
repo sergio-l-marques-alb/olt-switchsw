@@ -1505,10 +1505,8 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->pktprio.cos[i] = (uint32) valued;
-          ptr->pktprio.prio_mask |= 1 << i;
-        }
-        if (ptr->pktprio.prio_mask != 0)
-        {
+          ptr->pktprio.prio_mask[i] = 0xff;
+
           ptr->generic_mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK; 
         }
 
@@ -6462,9 +6460,9 @@ int main (int argc, char *argv[])
             else                         printf("Invalid");
             printf("\r\n");
             printf("  Bandwidth unit: ");
-            if (ptr->bandwidth_unit==0)      printf("Kilobits per second");
-            else if (ptr->bandwidth_unit==1) printf("Packets per second");
-            else if (ptr->bandwidth_unit==2) printf("Percentage (0-100%%)");
+            if (ptr->bandwidth_unit==0)      printf("Percentage (0-100%%)");
+            else if (ptr->bandwidth_unit==1) printf("Kilobits per second");
+            else if (ptr->bandwidth_unit==2) printf("Packets per second");
             else                         printf("Invalid");
             printf("\r\n");
             printf("  Shaping rate  : %lu Kbps\r\n",ptr->shaping_rate);
