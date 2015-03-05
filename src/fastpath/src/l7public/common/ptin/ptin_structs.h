@@ -1006,8 +1006,8 @@ typedef struct
 {
   L7_uint8    mask;                     // Configurations mask
   L7_uint8    trust_mode;               // [mask=0x01] 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
-  L7_uint8    bandwidth_unit;           // [mask=0x02] 0: Percentage, 1: Kbps, 2: PPS (Default=0)
-  L7_uint32   shaping_rate;             // [mask=0x04] 0-100: Default=0 (unlimited)
+  L7_uint8    bandwidth_unit;           // [mask=0x02] 0: Kbps, 1: PPS, 2: Percentage (Default=0)
+  L7_uint32   shaping_rate;             // [mask=0x04] Kbps: Default=0 (unlimited)
   L7_uint8    wred_decay_exponent;      // [mask=0x08] WRED Decay Exponent: 0-15
   struct {                              // Packet priority map
     L7_uint8  mask;                     //   pktpriority map mask (nth bit, tells to configure the nth priority)
@@ -1017,22 +1017,43 @@ typedef struct
 
 /* QoS scheduler and bandwidths */
 #define PTIN_QOS_COS_SCHEDULER_MASK       0x01
-#define PTIN_QOS_COS_QUEUE_MANGM_MASK     0x02
-#define PTIN_QOS_COS_WRED_THRESH_MIN_MASK 0x04
-#define PTIN_QOS_COS_WRED_THRESH_MAX_MASK 0x08
-#define PTIN_QOS_COS_BW_MIN_MASK          0x10
-#define PTIN_QOS_COS_BW_MAX_MASK          0x20
+#define PTIN_QOS_COS_BW_MIN_MASK          0x02
+#define PTIN_QOS_COS_BW_MAX_MASK          0x04
+#define PTIN_QOS_COS_WRR_WEIGHT_MASK      0x08
+
 typedef struct
 {
   L7_uint8    mask;                   // Mask
   L7_uint8    scheduler_type;         // [mask=0x01] Scheduler type: 0-None, 1-Strict, 2-Weighted (Default=1)
-  L7_uint8    queue_management_type;  // [mask=0x02] Queue management type: 0-taildrop, 1-wred
-  L7_uint8    wred_min_threshold;     // [mask=0x04] WRED minimum threshold: 0-100
-  L7_uint8    wred_max_threshold;     // [mask=0x08] WRED maximum threshold: 0-100
-  L7_uint32   min_bandwidth;          // [mask=0x10] Minimum bandwidth (0-100): Default=0 (no guarantee)
-  L7_uint32   max_bandwidth;          // [mask=0x20] Maximum bandwidth (0-100): Default=0 (unlimited)
+  L7_uint32   min_bandwidth;          // [mask=0x02] Minimum bandwidth (kbps): Default=0 (no guarantee)
+  L7_uint32   max_bandwidth;          // [mask=0x04] Maximum bandwidth (kbps): Default=0 (unlimited)
+  L7_uint16   wrrSched_weight;        // [mask=0x08] WRR weight (1-128)
 } ptin_QoS_cos_t;
 
+
+#define PTIN_QOS_COS_QUEUE_MANGM_MASK     0x10
+#define PTIN_QOS_COS_WRED_DECAY_EXP_MASK  0x20
+#define PTIN_QOS_COS_WRED_THRESHOLDS_MASK 0x40
+
+#define PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK  0x01
+#define PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK  0x02
+#define PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK  0x04
+#define PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK   0x08
+
+typedef struct
+{
+  L7_uint8    mask;                   // Mask
+  L7_uint8    queue_management_type;  // [mask=0x01] Queue management type: 0-taildrop, 1-wred
+  L7_uint8    wred_decayExp;          // [mask=0x02] WRED decay exponent: 0-15
+
+  struct {
+    L7_uint8    local_mask;
+    L7_uint8    taildrop_threshold;     // [mask=0x01] taildrop threshold: 0-100
+    L7_uint8    wred_min_threshold;     // [mask=0x02] WRED minimum threshold: 0-100
+    L7_uint8    wred_max_threshold;     // [mask=0x04] WRED maximum threshold: 0-100
+    L7_uint8    wred_drop_prob;         // [mask=0x08] WRED drop probability: 0-100
+  } dp[3+1];
+} ptin_QoS_drop_t;
 
 
 /***************************************************************************** 

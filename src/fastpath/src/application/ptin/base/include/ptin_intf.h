@@ -529,6 +529,28 @@ extern L7_RC_t ptin_QoS_cos_config_set(const ptin_intf_t *ptin_intf, L7_uint8 co
 extern L7_RC_t ptin_QoS_cos_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_cos_t *qosConf);
 
 /**
+ * Configures a class of service for QoS
+ * 
+ * @param intf : interface 
+ * @param cos : Class of Service id
+ * @param qosConf: configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_QoS_drop_config_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_drop_t *qosConf);
+
+/**
+ * Reads a class of service QoS configuration
+ * 
+ * @param intf : interface 
+ * @param cos : Class of Service id
+ * @param qosConf: configuration
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_QoS_drop_config_get(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_QoS_drop_t *qosConf);
+
+/**
  * Activate PRBS generator/checker
  *  
  * @param intIfNum : Interface
