@@ -863,22 +863,49 @@ L7_RC_t cosQueueMinBandwidthListSet(L7_uint32 intIfNum,
   totalBw = 0;
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
   {
-    if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) ||
-        (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX))
-      return L7_FAILURE;
+    /* Kbps units */
+    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX))
+        return L7_FAILURE;
 
-    /* check percentage as an integral step size amount between min, max */
-    if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) &&
-        (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX) &&
-        ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
-      return L7_FAILURE;
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
+    /* Percent units */
+    else
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX))
+        return L7_FAILURE;
+
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_PERCENT_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
 
     totalBw += pVal->bandwidth[i];
   }
 
   /* sum of individual min bandwidth values cannot exceed defined maximum */
-  if (totalBw > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX)
-    return L7_FAILURE;
+  /* Kbps units */
+  if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+  {
+    if (totalBw > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX)
+      return L7_FAILURE;
+  }
+  /* Percent units */
+  else
+  {
+    if (totalBw > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX)
+      return L7_FAILURE;
+  }
 
   if (cosCfgPtrFind(intIfNum, &pCfg) != L7_SUCCESS)
     return L7_FAILURE;
@@ -963,21 +990,48 @@ L7_RC_t cosQueueMinBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
   totalBw = 0;
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
   {
-    if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) ||
-        (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX))
-      return L7_FAILURE;
+    /* Kbps units */
+    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX))
+        return L7_FAILURE;
 
-    /* check percentage as an integral step size amount between min, max */
-    if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) &&
-        (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX) &&
-        ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
-      return L7_FAILURE;
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
+    /* Percent units */
+    else
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX))
+        return L7_FAILURE;
+
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_PERCENT_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
 
     totalBw += pVal->bandwidth[i];
   }
   /* sum of individual min bandwidth values cannot exceed defined upper limit */
-  if (totalBw > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX)
-    return L7_FAILURE;
+  /* Kbps units */
+  if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+  {
+    if (totalBw > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX)
+      return L7_FAILURE;
+  }
+  /* Percent units */
+  else
+  {
+    if (totalBw > L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX)
+      return L7_FAILURE;
+  }
 
   /* make sure global config can be referenced */
   if (cosCfgPtrFind(L7_ALL_INTERFACES, &pCfgGlob) != L7_SUCCESS)
@@ -1109,15 +1163,32 @@ L7_RC_t cosQueueMaxBandwidthListSet(L7_uint32 intIfNum,
   /* check proposed value list */
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
   {
-    if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) ||
-        (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX))
-      return L7_FAILURE;
+    /* Kbps units */
+    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX))
+        return L7_FAILURE;
 
-    /* check percentage as an integral step size amount between min, max */
-    if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) &&
-        (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX) &&
-        ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
-      return L7_FAILURE;
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
+    /* Percent units */
+    else
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MAX))
+        return L7_FAILURE;
+
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_PERCENT_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
 
     /* any nonzero max must not be less than existing min */
     if (pVal->bandwidth[i] != 0)
@@ -1198,15 +1269,32 @@ L7_RC_t cosQueueMaxBandwidthGlobalListSet(L7_qosCosQueueBwList_t *pVal,
   /* check proposed value list */
   for (i = 0; i < L7_MAX_CFG_QUEUES_PER_PORT; i++)
   {
-    if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) ||
-        (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX))
-      return L7_FAILURE;
+    /* Kbps units */
+    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX))
+        return L7_FAILURE;
 
-    /* check percentage as an integral step size amount between min, max */
-    if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) &&
-        (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX) &&
-        ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
-      return L7_FAILURE;
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
+    /* Percent units */
+    else
+    {
+      if ((pVal->bandwidth[i] < L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MIN) ||
+          (pVal->bandwidth[i] > L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MAX))
+        return L7_FAILURE;
+
+      /* check percentage as an integral step size amount between min, max */
+      if ((pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MIN) &&
+          (pVal->bandwidth[i] != L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MAX) &&
+          ((pVal->bandwidth[i] % L7_QOS_COS_QUEUE_BANDWIDTH_PERCENT_STEP_SIZE) != 0))
+        return L7_FAILURE;
+    }
 
     /* pre-check global and all intfs for new nonzero max < existing min
      * since this is an invalid config

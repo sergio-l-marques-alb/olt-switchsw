@@ -680,16 +680,16 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
 
     memset(&shaperConfig, 0, sizeof(shaperConfig));
 
-    if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_PERCENT)
+    if (L7_QOS_COS_INTF_SHAPING_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      /* parameter provided is in Kbps */
+      shaperConfig.rate = egrRate;
+    }
+    else
     {
       /* result is a percent converted to Kbps */
       hapiBroadQosIntfSpeedGet(dstPortPtr, &portSpeed);
       shaperConfig.rate = ((egrRate * portSpeed) / 100); 
-    }
-    else
-    {
-      /* parameter provided is in Kbps */
-      shaperConfig.rate = egrRate;
     }
 
     /* Set kbits_burst equal to 2% of kbit per sec */
@@ -790,13 +790,26 @@ static L7_RC_t hapiBroadQosCosEgressBwConfig(BROAD_PORT_t *dstPortPtr, HAPI_BROA
     }
 
     /* PTin modified: COS */
-    #if 0
-    minKbps[i] = ((cosData->minBw[i] * portSpeed) / 100); 
-    maxKbps[i] = ((cosData->maxBw[i] * portSpeed) / 100); 
-    #else
-    minKbps[i] = (cosData->minBw[i]>portSpeed) ? portSpeed : cosData->minBw[i];
-    maxKbps[i] = (cosData->maxBw[i]>portSpeed) ? portSpeed : cosData->maxBw[i];
-    #endif
+    /* Kbps units */
+    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      // Limit speeds
+      if (cosData->minBw[i] > portSpeed)  cosData->minBw[i] = portSpeed;
+      if (cosData->maxBw[i] > portSpeed)  cosData->maxBw[i] = portSpeed;
+
+      minKbps[i] = cosData->minBw[i];
+      maxKbps[i] = cosData->maxBw[i];
+    }
+    /* Percent units */
+    else
+    {
+      // Limit values
+      if (cosData->minBw[i] > 100)  cosData->minBw[i] = 100;
+      if (cosData->maxBw[i] > 100)  cosData->maxBw[i] = 100;
+
+      minKbps[i] = (cosData->minBw[i] * portSpeed) / 100;
+      maxKbps[i] = (cosData->maxBw[i] * portSpeed) / 100;
+    }
   }
 
   /* apply the scheduling policy to the port */
@@ -851,19 +864,31 @@ static L7_RC_t hapiBroadQosCosQueueWeightsConfig(BROAD_PORT_t *dstPortPtr, HAPI_
   {
     /* PTin added: COS */
     #if 1
-    minKbps[i] = cosData->minBw[i];
-    maxKbps[i] = cosData->maxBw[i];
+    /* Kbps units */
+    if (L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS == L7_RATE_UNIT_KBPS)
+    {
+      // Limit speeds
+      if (cosData->minBw[i] > portSpeed)  cosData->minBw[i] = portSpeed;
+      if (cosData->maxBw[i] > portSpeed)  cosData->maxBw[i] = portSpeed;
 
-    // Translate min bandwidth to percentage
-    if (cosData->minBw[i]>=portSpeed)
-      cosData->minBw[i] = 100;
+      minKbps[i] = cosData->minBw[i];
+      maxKbps[i] = cosData->maxBw[i];
+
+      // Translate min bandwidth to percentage
+      cosData->minBw[i] = (cosData->minBw[i] * 100) / portSpeed;
+      // Translate max bandwidth to percentage
+      cosData->maxBw[i] = (cosData->maxBw[i] * 100) / portSpeed;
+    }
+    /* Percent units */
     else
-      cosData->minBw[i] = (cosData->minBw[i]*100)/portSpeed;
-    // Translate max bandwidth to percentage
-    if (cosData->maxBw[i]>=portSpeed)
-      cosData->maxBw[i] = 100;
-    else
-      cosData->maxBw[i] = (cosData->maxBw[i]*100)/portSpeed;
+    {
+      // Limit values
+      if (cosData->minBw[i] > 100)  cosData->minBw[i] = 100;
+      if (cosData->maxBw[i] > 100)  cosData->maxBw[i] = 100;
+
+      minKbps[i] = (cosData->minBw[i] * portSpeed) / 100;
+      maxKbps[i] = (cosData->maxBw[i] * portSpeed) / 100;
+    }
     #endif
 
     if (cosData->schedType[i] == DAPI_QOS_COS_QUEUE_SCHED_TYPE_STRICT)
