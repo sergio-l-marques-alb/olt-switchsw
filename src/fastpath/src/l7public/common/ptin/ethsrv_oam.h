@@ -349,6 +349,33 @@ typedef struct {
 
 
 
+typedef struct {
+    u32 n_frames;
+    u16 oam_datagrm_len;
+    u8  period;
+
+    u64 fd, fd_min, fd_max, fd_sum,
+        //delta
+        dfd, dfd_min, dfd_max, dfd_sum;
+} __attribute__ ((packed)) T_MEP_DM;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 typedef struct {
@@ -412,6 +439,8 @@ typedef struct {
 #define AIS_OPCODE  33
 #define LMR_OPCODE  42
 #define LMM_OPCODE  43
+#define DMR_OPCODE  46
+#define DMM_OPCODE  47
 #define CSF_OPCODE  52
 
  u8  flags;
@@ -468,7 +497,7 @@ typedef ETH_SRV_OAM_DATAGRM ETH_SRV_OAM_CSF_DATAGRM;
 
 
 typedef struct {
- u8  MAlevel_and_version;
+ u8  MAlevel_and_version;   //version==1
 
  u8  opcode;
 
@@ -480,6 +509,29 @@ typedef struct {
 } __attribute__ ((packed)) ETH_LMM_OAM_DATAGRM;
 
 typedef ETH_LMM_OAM_DATAGRM ETH_LMR_OAM_DATAGRM;
+
+
+
+
+typedef struct {
+ u8  MAlevel_and_version;   //version==1
+
+ u8  opcode;
+
+ u8  flags;
+ u8  TLV_offset;    //Set to 32
+ u64 TxTimeStampf,
+     RxTimeStampf,  //for DMM receiving equipment (0)
+     TxTimeStampb,  //for DMR (0)
+     RxTimeStampb;  //for DMR receiving equipment (0)
+ 
+ //OPTIONAL TLV starts here; otherwise, End TLV 
+                    
+ u8	 end_TLV;       // Set to all ZEROes
+} __attribute__ ((packed)) ETH_DMM_OAM_DATAGRM;
+
+typedef ETH_DMM_OAM_DATAGRM ETH_DMR_OAM_DATAGRM;
+
 
 
 
