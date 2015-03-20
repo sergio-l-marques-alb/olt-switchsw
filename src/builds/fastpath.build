@@ -13,6 +13,8 @@ USERNAME=olt
 DST_IPADDR=10.112.15.243
 DST_PATH=/home/olt/fastpath_builds/fastpath
 
+MAIN_BIN=switchdrvr
+
 n_args=$#
 
 svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
@@ -84,6 +86,7 @@ echo -en $colorReset
 
 for plat in $PLATFORMS; do
   cp ./$APPLICATION.ver $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin
+  echo "OLTSWITCH md5sum: "`md5sum $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$APPLICATION.ver
 done
 
 echo -en $colorNotice

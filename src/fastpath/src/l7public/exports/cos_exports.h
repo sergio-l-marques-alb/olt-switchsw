@@ -107,7 +107,7 @@ typedef enum
 #define L7_QOS_COS_MAP_TRAFFIC_CLASS_MAX        (L7_DOT1P_NUM_TRAFFIC_CLASSES - 1)
 
 /* PTin modified: COS */
-#define L7_QOS_COS_INTF_SHAPING_RATE_UNITS      L7_RATE_UNIT_KBPS /*L7_RATE_UNIT_PERCENT*/     /* intf shaping rate expressed in percent of link speed or kbps */
+#define L7_QOS_COS_INTF_SHAPING_RATE_UNITS      L7_RATE_UNIT_PERCENT                /* intf shaping rate expressed in percent of link speed or kbps */
 #define L7_QOS_COS_INTF_SHAPING_RATE_MIN        0     /* intf shaping rate range */
 #define L7_QOS_COS_INTF_SHAPING_RATE_MAX        100
 #define L7_QOS_COS_INTF_SHAPING_STEP_SIZE       1    /* bandwidth intf shaping rate increment for percentage */
@@ -119,21 +119,21 @@ typedef enum
 
 /* PTin added: QoS */
 #if 1
-#define L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS   L7_RATE_UNIT_KBPS   /* PTin added: CoS - intf shaping rate expressed in percent of link speed or kbps */
-#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MIN  0               /* PTin added: COS */
-#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX  100             /* PTin added: COS */
-#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MIN  0               /* PTin added: COS */
-#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MAX  100             /* PTin added: COS */
-#define L7_QOS_COS_QUEUE_BANDWIDTH_PERCENT_STEP_SIZE  1             /* PTin added: QoS */
+#define L7_QOS_COS_QUEUE_BANDWIDTH_RATE_UNITS   L7_RATE_UNIT_PERCENT  /* PTin added: CoS - intf shaping rate expressed in percent of link speed or kbps */
+#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MIN  0                 /* PTin added: COS */
+#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_PERCENT_MAX  100               /* PTin added: COS */
+#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MIN  0                 /* PTin added: COS */
+#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_PERCENT_MAX  100               /* PTin added: COS */
+#define L7_QOS_COS_QUEUE_BANDWIDTH_PERCENT_STEP_SIZE  1               /* PTin added: QoS */
 #endif
 
-#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN      0                   /* min bandwidth range */
-#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX      10000000UL          /*100*/  /* PTin modified: COS */
+#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN      0                     /* min bandwidth range */
+#define L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX      10000000UL            /*100*/  /* PTin modified: COS */
 
-#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN      0                   /* max bandwidth range */
-#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX      10000000UL          /*100*/  /* PTin modified: COS */
+#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN      0                     /* max bandwidth range */
+#define L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX      10000000UL            /*100*/  /* PTin modified: COS */
 
-#define L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE    1                   /* bandwidth percent increment */
+#define L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE    1                     /* bandwidth percent increment */
 
 #define L7_QOS_COS_QUEUE_TDROP_THRESH_MIN       0     /* tail drop thresh range */
 #define L7_QOS_COS_QUEUE_TDROP_THRESH_MAX       100
