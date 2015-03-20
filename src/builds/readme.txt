@@ -4,21 +4,19 @@ Finally they will be transferred to where the final setup will be built.
 
 To create a new OLT version:
 
+(not necessary: step 3 executes this step)
 1. Compile all the necessary binaries inside fastpath folder
    typing 'make all', or equivalent:
 
    @fastpath$ make all
 
+(not necessary: step 3 executes this step)
 2. Copy the generated binaries into builds/apps folder
    typing 'make install' or equivalent at fastpath folder:
 
    @fastpath$ make install
 
-3. At builds folder, update fp.releasenotes file with the latest updates:
-
-   @builds$ vim fp.releasenotes
-
-4. Run fastpath-olt.build script to create a generic tarball with all binaries,
+3. Run fastpath-olt.build script to create a generic tarball with all binaries,
 
    @builds$ fastpath-olt.build <version>
 
@@ -44,6 +42,9 @@ After conclusion of the first stage, you can proceed to step 5.
    @fastpath_builds$ sudo sh image_update.sh
    fastpath/fastpath-olt.image-v<version>-r<revision>.tgz /home/olt/<mkboards>/
 
-Finally, mkboards is ready to be used to build the setup file.
+Finally, go to mkboards of CXO160G and CXOLT1T0 and run fastpath-xxx.sh script to
+prepare the final tarball to be present inside 'files' folder.
+
+Now, mkboards is ready to be used to build the setup file!
 
 Good luck for the tests ;-)
