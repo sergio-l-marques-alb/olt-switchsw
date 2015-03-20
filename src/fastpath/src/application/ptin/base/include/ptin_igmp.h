@@ -15,6 +15,24 @@
 #include "l3_addrdefs.h"
 #include "ptin_mgmd_ctrl.h"
 
+/*********************************************************** 
+ * MACRO TOOLS
+ ***********************************************************/
+#define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
+#define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/((size)*8)] >> ((index)%((size)*8)) ) & 1 )
+#define BITMAP_BIT_SET(array, index, size)    array[(index)/((size)*8)] |=  ((L7_uint32) 1 << ((index)%((size)*8)))
+#define BITMAP_BIT_CLR(array, index, size)    array[(index)/((size)*8)] &= ~((L7_uint32) 1 << ((index)%((size)*8)))
+#define IS_BITMAP_BYTE_SET(array, index, size)  ( array[(index)/((size)*8)] == 0 ? 0 : 1)
+
+
+#define PTIN_IGMP_PORT_MASK_UNIT      UINT32_BITSIZE
+#define PTIN_IGMP_PORT_BITMAP_SIZE    (PTIN_SYSTEM_N_UPLINK_INTERF-1)/PTIN_IGMP_PORT_MASK_UNIT+1
+
+#define PTIN_IGMP_CLIENT_MASK_UNIT    UINT32_BITSIZE
+#define PTIN_IGMP_CLIENT_BITMAP_SIZE  (PTIN_IGMP_CLIENTIDX_MAX-1)/PTIN_IGMP_CLIENT_MASK_UNIT+1
+
+
+
 /* Set MGMD integration */
 #define PTIN_SNOOP_USE_MGMD 1
 
@@ -117,7 +135,7 @@
 #define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS_DISABLE     0xFFFFFFFF /*((L7_uint32) -1 )*/
 #define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE              0xFFFF /* L7_uint16) -1 */
                                                                       
-#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS                      16384
+#define PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS                      PTIN_IGMP_CHANNELS_MAX
 #define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_KBPS             000100000000 /*100.000.000 kbps*/
 #define PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS              100000000000ULL /*100.000.000.000 bps*/
                                                                   
@@ -125,16 +143,11 @@
 #error "Admission Control Max Bandwidth is higher than supported value: 0xFFFFFFFF"
 #endif
                                                                  
-#define PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS                  PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH
-
-#if PTIN_BOARD_IS_ACTIVETH
-#define PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID 40
-#else                           
-#define PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID 8
-#endif
+#define PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID PTIN_SYSTEM_N_IGMP_INSTANCES
 
 #endif
 /**End IGMP Admission Control Feature**/ 
+
 
 /* FOR STATISTICS */
 // The values below must be in the same order as in L7_IGMP_Statistics_t structure
@@ -653,10 +666,13 @@ extern L7_RC_t ptin_igmp_evc_destroy(L7_uint32 evc_idx);
  * @param maxChannels  : [mask 0x02] Maximum number of channels 
  *                     for this client. Use (L7_uint64)-1 to
  *                     disable.
+ * @param addOrRemove  : Add/Remove Packages
+ * @param packagePtr   : Package Bitmap Pointer 
+ * @param noOfPackages : Number of Packages
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels);
+extern L7_RC_t ptin_igmp_client_add(L7_uint32 evc_idx, const ptin_client_id_t *client_id, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxBandwidth, L7_uint16 maxChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages);
 
 /**
  * Remove a Multicast client
@@ -735,10 +751,10 @@ extern L7_RC_t ptin_igmp_static_channel_add(PTIN_MGMD_CTRL_STATICGROUP_t* channe
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_channel_remove(PTIN_MGMD_CTRL_STATICGROUP_t* channel);
+extern L7_RC_t ptin_igmp_static_channel_remove(PTIN_MGMD_CTRL_STATICGROUP_t* channel);
 
 
-#define IGMPASSOC_CHANNELS_MAX    16384
+#define PTIN_IGMP_CHANNELS_MAX    16384
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
@@ -757,22 +773,6 @@ typedef struct
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t igmp_assoc_init( void );
-
-/**
- * Get the association of a particular dst/src channel using 
- * vlans. 
- * 
- * @param vlan_uc : UC vlan
- * @param channel_group   : Group address
- * @param channel_source  : Source address
- * @param vlan_mc : MC vlan pair (out)
- * 
- * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
- */
-extern L7_RC_t igmp_assoc_vlanPair_get( L7_uint16 vlan_uc,
-                                        L7_inet_addr_t *channel_group,
-                                        L7_inet_addr_t *channel_source,
-                                        L7_uint16 *vlan_mc );
 
 /**
  * Get the the list of channels of a UC+MC association
@@ -816,7 +816,8 @@ extern L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * Remove an association to a MC service, applied only to a 
  * specific dst/src channel. 
  * 
- * @param evc_uc : UC EVC index
+ * @param evc_uc : UC EVC index 
+ * @param evc_uc : MC EVC index 
  * @param channel_group   : Group channel
  * @param channel_grpMask : Number of masked bits
  * @param channel_source  : Source channel
@@ -824,7 +825,7 @@ extern L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_uc,
+extern L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc, 
                                    L7_inet_addr_t *channel_group, L7_uint16 channel_grpMask,
                                    L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask, L7_uint8 isStatic);
 
@@ -951,11 +952,13 @@ L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx);
  * @param maxChannels  : [Mask = 0x02] Maximum number of 
  *                     channels for this client. Use
  *                     (L7_uint64)-1 to disable.
+ * @param addOrRemove  : Add/Remove Packages
+ * @param packagePtr   : Package Bitmap Pointer 
+ * @param noOfPackages : Number of Packages 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientGroup_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels);
-
+extern L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages);
 /**
  * Add a new Multicast client group
  * 
@@ -975,14 +978,14 @@ extern L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientGroup_remove(ptin_client_id_t *client);
+extern L7_RC_t ptin_igmp_group_client_remove(ptin_client_id_t *client);
 
 /**
  * Remove all Multicast client groups
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_clientGroup_clean(void);
+extern L7_RC_t ptin_igmp_group_client_clean(void);
 
 /**
  * Remove all Multicast client groups
@@ -1106,8 +1109,7 @@ extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 i
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_inet_addr_t *groupChannel, L7_inet_addr_t *sourceChannel,
-                                           L7_uint16 intVlan, L7_uint16 *McastRootVlan);
+extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint32 intIfNum, L7_uint32 client_idx, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *McastRootVlan);
 #else
 /**
  * Get the MC root vlan associated to the internal vlan
@@ -1591,6 +1593,104 @@ extern inline  L7_uint8 ptin_igmp_proxy_channels_control_get(void){return igmpPr
 
 
 #endif
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+/**********************************Multicast Group Packages*********************************************************/
+
+/* Number of entries per mask */
+#define PTIN_IGMP_PACKAGE_MASK_UNIT   UINT32_BITSIZE
+
+#define PTIN_IGMP_PACKAGE_BITMAP_SIZE (PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/PTIN_IGMP_PACKAGE_MASK_UNIT+1  /* Packages Bitmap Size */
+
+/**
+ * @purpose Add Multicast Package
+ * 
+ * @param packageId 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_package_add(L7_uint32 packageId);
+
+/**
+ * @purpose Remove Multicast Package
+ * 
+ * @param packageId 
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_package_remove(L7_uint32 packageId);
+
+/**
+ * @purpose Add Multicast Channels to a Package
+ * 
+ * @param packageId 
+ * @param serviceId 
+ * @param groupNetAddr 
+ * @param groupMask  
+ * @param sourceNetAddr 
+ * @param sourceMask  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 serviceId, L7_inet_addr_t *groupNetAddr, L7_uint32 groupMask, L7_inet_addr_t *sourceNetAddr, L7_uint32 sourceMask);
+
+/**
+ * @purpose Remove Multicast Channels from a Package
+ * 
+ * @param packageId 
+ * @param serviceId 
+ * @param groupNetAddr 
+ * @param groupMask  
+ * @param sourceNetAddr 
+ * @param sourceMask  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_package_channels_remove(L7_uint32 packageId, L7_uint32 serviceId, L7_inet_addr_t *groupNetAddr, L7_uint32 groupMask, L7_inet_addr_t *sourceNetAddr, L7_uint32 sourceMask);
+
+/**
+ * @purpose Add Multicast Service Identifier
+ * 
+ * @param ptinPort 
+ * @param onuId 
+ * @param serviceId  
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_service_add(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
+
+/**
+ * @purpose Remove Multicast Service Identifier
+ * 
+ * @param ptinPort 
+ * @param onuId 
+ * @param serviceId  
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
+
+#endif//IGMPASSOC_MULTI_MC_SUPPORTED
 
 #endif//_PTIN_IGMP_H
 

@@ -410,7 +410,7 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
   return SUCCESS;
 }
 
-unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
+unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
 {
   LOG_TRACE(LOG_CTX_PTIN_IGMP, "Context [groupAddr:%08X sourceAddr:%08X serviceId:%p]", groupAddr, sourceAddr, serviceId);
 
@@ -429,7 +429,8 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int gr
   /* Get multicast root vlan */
   inetAddressSet(L7_AF_INET, &groupAddr,  &groupInetAddr);
   inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
-  if (ptin_igmp_McastRootVlan_get(&groupInetAddr, &sourceInetAddr, (L7_uint16)-1, &mcastRootVlan)==L7_SUCCESS)
+
+  if (ptin_igmp_McastRootVlan_get(portId, clientId, &groupInetAddr, &sourceInetAddr, &mcastRootVlan)==L7_SUCCESS)
   {
     if(SUCCESS != ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
     {

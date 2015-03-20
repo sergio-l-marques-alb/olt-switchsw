@@ -5010,6 +5010,312 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;
 #endif //__802_1x__
 
+/*****************************************Multicast Package Feature********************************************************/
+    /*Multicast Packages Add*/
+    case CCMSG_IGMP_PACKAGES_ADD:
+    {        
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_PACKAGES_ADD);
+
+      CHECK_INFO_SIZE(msg_igmp_package_t);
+
+      msg_igmp_package_t *msgPtr;
+      msgPtr = (msg_igmp_package_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_igmp_package_t));
+
+      /* Execute command */
+      rc = ptin_msg_igmp_packages_add(msgPtr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_igmp_package_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;/*Multicast Packages Add*/
+    }
+
+    /*Multicast Packages Remove*/
+    case CCMSG_IGMP_PACKAGES_REMOVE:
+    {        
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message received: CCMSG_IGMP_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGES_REMOVE);
+
+      CHECK_INFO_SIZE(msg_igmp_package_t);
+
+      msg_igmp_package_t *msgPtr;
+      msgPtr = (msg_igmp_package_t *) outbuffer->info;
+
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_igmp_package_t));
+
+      /* Execute command */
+      rc = ptin_msg_igmp_packages_remove(msgPtr);
+
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error %u while processing message", rc);
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_igmp_package_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER, "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break; /* CCMSG_IGMP_PACKAGES_REMOVE */
+    }
+
+    /*Multicast Package Channels Add*/
+    case CCMSG_IGMP_PACKAGE_CHANNELS_ADD:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_ADD (0x%04X)", CCMSG_IGMP_PACKAGE_CHANNELS_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_igmp_package_channels_t);
+
+      msg_igmp_package_channels_t *msgPtr;
+      msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
+
+      /* Execute command */
+      rc = ptin_msg_igmp_package_channels_add(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_PACKAGE_CHANNELS_ADD */
+    }
+
+    /*Multicast Package Channels Remove*/
+    case CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE (0x%04X)", CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_igmp_package_channels_t);
+
+      msg_igmp_package_channels_t *msgPtr;
+      msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
+
+      /* Execute command */
+      rc = ptin_msg_igmp_package_channels_remove(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE */
+    }
+
+    /*Igmp Unicast Client Packages Add*/
+    case CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_igmp_unicast_client_packages_t);
+
+      msg_igmp_unicast_client_packages_t *msgPtr;
+      msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
+
+      /* Execute command */      
+      rc = ptin_msg_igmp_unicast_client_packages_add(msgPtr, noOfMessages);
+      
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD */
+    }
+
+    /*Igmp Unicast Client Packages Remove*/
+    case CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_igmp_unicast_client_packages_t);
+
+      msg_igmp_unicast_client_packages_t *msgPtr;
+      msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
+      
+      /* Execute command */      
+      rc = ptin_msg_igmp_unicast_client_packages_remove(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
+    }
+
+    /*Igmp Macbridge Client Packages Add*/
+    case CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD (0x%04X)", CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_igmp_macbridge_client_packages_t);
+
+      msg_igmp_macbridge_client_packages_t *msgPtr;
+      msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
+
+      /* Execute command */      
+      rc = ptin_msg_igmp_macbridge_client_packages_add(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
+    }
+
+    /*Igmp Macbridge Client Packages Remove*/
+    case CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE (0x%04X)", CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_igmp_macbridge_client_packages_t);
+
+      msg_igmp_macbridge_client_packages_t *msgPtr;
+      msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
+
+      /* Execute command */
+      rc = ptin_msg_igmp_macbridge_client_packages_remove(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
+    }
+
+    /*Multicast Service Add*/
+    case CCMSG_MULTICAST_SERVICE_ADD:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_MULTICAST_SERVICE_ADD (0x%04X)", CCMSG_MULTICAST_SERVICE_ADD);
+
+      CHECK_INFO_SIZE_MOD(msg_multicast_service_t);
+
+      msg_multicast_service_t *msgPtr;
+      msgPtr = (msg_multicast_service_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
+
+      /* Execute command */
+      rc = ptin_msg_igmp_multicast_service_add(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
+    }
+
+    /*Multicast Service Remove*/
+    case CCMSG_MULTICAST_SERVICE_REMOVE:
+    {        
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_MULTICAST_SERVICE_REMOVE (0x%04X)", CCMSG_MULTICAST_SERVICE_REMOVE);
+
+      CHECK_INFO_SIZE_MOD(msg_multicast_service_t);
+
+      msg_multicast_service_t *msgPtr;
+      msgPtr = (msg_multicast_service_t *) inbuffer->info;
+      L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
+
+      /* Execute command */
+      rc = ptin_msg_igmp_multicast_service_remove(msgPtr, noOfMessages);
+
+      if (L7_SUCCESS != rc)
+      {       
+       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+       LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while adding Channels to Package [res:0x%x]", res);
+       SetIPCNACK(outbuffer, res);
+       break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
+    }
+/************************************End Multicast Package Feature********************************************************/
+
+    
+    
+    
+
+    
+
 //CCMSG_ETH_IGMP_STATIC_GROUP_ADD
 //CCMSG_ETH_IGMP_STATIC_GROUP_REMOVE
 //CCMSG_ETH_IGMP_GROUPS_GET

@@ -271,10 +271,38 @@
 
 #define CCMSG_WR_802_1X_AUTHSERV                    0x91C0
 
-/* Generic Flush Configuration Message */
-#define CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END 0x91FE
+/* Multicast Package Configuration */
+//Reserved Message Identifiers [0x91D0-0x91DF]
+#define CCMSG_IGMP_PACKAGES_ADD                         0x91D0  // struct msg_igmp_package_t
+#define CCMSG_IGMP_PACKAGES_REMOVE                      0x91D1  // struct msg_igmp_package_t
+#define CCMSG_IGMP_PACKAGE_CHANNELS_ADD                 0x91D2  // struct msg_igmp_package_channels_t
+#define CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE              0x91D3  // struct msg_igmp_package_channels_t
+#define CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD          0x91D4  // struct msg_igmp_unicast_client_packages_t
+#define CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE       0x91D5  // struct msg_igmp_unicast_client_packages_t
+#define CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD        0x91D6  // struct msg_igmp_macbridge_client_packages_t
+#define CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE     0x91D7  // struct msg_igmp_macbridge_client_packages_t
+                                                      
+#define CCMSG_MULTICAST_SERVICE_ADD                     0x91D8  // struct msg_multicast_service_t
+#define CCMSG_MULTICAST_SERVICE_REMOVE                  0x91D9  // struct msg_multicast_service_t
 
-#define CCMSG_LAST_MSG_ID                           0x91FF
+
+/*End Multicast Package Configuration*/
+
+/* Generic Flush Configuration Message */
+#define CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END    0x91FE
+
+#define CCMSG_LAST_MSG_ID                                  0x91FF
+
+
+/*Multicast Package Defines*/
+#ifndef PTIN_IGMP_PACKAGE_MASK_UNIT
+#define PTIN_IGMP_PACKAGE_MASK_UNIT   (sizeof(L7_uint32) * 8)
+#endif
+
+#ifndef PTIN_IGMP_PACKAGE_BITMAP_SIZE
+#define PTIN_IGMP_PACKAGE_BITMAP_SIZE (PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/PTIN_IGMP_PACKAGE_MASK_UNIT+1  /* Packages Bitmap Size */
+#endif
+/*End Multicast Package Defines*/
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -896,6 +924,12 @@ typedef struct {
 
 /* EVC flow */
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
+#define PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS         0x01
+#define PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH        0x02
+#define PTIN_MSG_EVC_FLOW_MASK_PACKAGE_BMP_LIST             0x04
+#define PTIN_MSG_EVC_FLOW_MASK_NUMBER_OF_PACKAGES           0x08
+#define PTIN_MSG_EVC_FLOW_MASK_VALID                        0x0F
+
 typedef struct {
   L7_uint8             SlotId;
   L7_uint32            evcId;  // EVC Id [1..PTIN_SYSTEM_N_EVCS]
@@ -907,9 +941,13 @@ typedef struct {
   msg_HwEthIntf_t      intf;         // Outer vlan is the GEM id
   L7_uint8             macLearnMax;  // Maximum number of Learned MAC addresses
   L7_uint8             onuId;        //ONU Identifier
-  L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
+  L7_uint8             mask;         //Mask of fields to be considered [0x00 0x0F]                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
+  L7_uint32            packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*[mask=0x04]  package bitmap list */
+  L7_uint8             noOfPackages;  /*[mask=0x08]  Number Of Bits Set */
+#endif
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /* EVC port add/remove */
@@ -1362,18 +1400,27 @@ typedef struct {
 
 /* IGMP Client add/remove struct */
 // Messages CCMSG_ETH_IGMP_CLIENT_ADD, CCMSG_ETH_IGMP_CLIENT_REMOVE
+#define PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS         0x01
+#define PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH        0x02
+#define PTIN_MSG_IGMP_CLIENT_MASK_PACKAGE_BMP_LIST             0x04
+#define PTIN_MSG_IGMP_CLIENT_MASK_NUMBER_OF_PACKAGES           0x08
+#define PTIN_MSG_IGMP_CLIENT_MASK_VALID                        0x0F
+
 typedef struct {
   L7_uint8             SlotId;
   L7_uint32            mcEvcId;      //Multicast EVC Id 
   msg_client_info_t    client;       //Client identification 
   L7_uint8             onuId;        //ONU Identifier
-  L7_uint8             mask;         //Mask of fields to be considered (use 0x03 to enable both)                            
+  L7_uint8             mask;         //Mask of fields to be considered [0x0 - 0xF]                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
+  L7_uint32            packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*[mask=0x04]  package bitmap list */
+  L7_uint8             noOfPackages;  /*[mask=0x08]  Number Bits Set */
+#endif
 } __attribute__((packed)) msg_IgmpClient_t;
 
 // Messages CCMSG_ETH_IGMP_ADMISSION_CONTROL
-
 #define PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID         0x01
 #define PTIN_MSG_ADMISSION_CONTROL_MASK_INTF          0x02
 #define PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID         0x04
@@ -2507,8 +2554,68 @@ typedef struct {
 
 
 
+/***************************************************************************** 
+ * IGMP Package Structs
+ *****************************************************************************/
+//#define PTIN_SYSTEM_IGMP_MAXPACKAGES 256
+
+/* Igmp Package Add/Remove*/
+//CCMSG_IGMP_PACKAGES_ADD
+//CCMSG_IGMP_PACKAGES_REMOVE
+typedef struct {
+  L7_uint8     slotId;
+  L7_uint32    packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
+  L7_uint8     noOfPackages;                                                          /*Number of Active Bits*/  
+} __attribute__ ((packed)) msg_igmp_package_t;
+
+/* Igmp Package Channels Add/Remove*/
+//CCMSG_IGMP_PACKAGE_CHANNELS_ADD
+//CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE
+typedef struct {
+  L7_uint8             slotId;
+  L7_uint32            packageId;  /* Package Identifier [0-255] */
+  L7_uint32            evcId;  /* Service Identifier*/
+  chmessage_ip_addr_t  groupAddr;  /* Group Address*/
+  L7_uint8             groupMask;  /* Group Mask (LSB)*/
+  chmessage_ip_addr_t  sourceAddr; /* Source Address*/   
+  L7_uint8             sourceMask; /* Source Mask (LSB)*/  
+} __attribute__ ((packed)) msg_igmp_package_channels_t;
+
+/* Igmp Unicast Client Packages Add/Remove*/
+//CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD
+//CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE
+typedef struct {
+  L7_uint8            slotId;   
+  L7_uint32           evcId;      //Multicast EVC Id 
+  msg_client_info_t   client;       //Client identification 
+  L7_uint8            onuId;        //ONU Identifier
+  L7_uint32           packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
+  L7_uint8            noOfPackages;                                                          /*Number of Active Bits*/  
+} __attribute__ ((packed)) msg_igmp_unicast_client_packages_t;
+
+/* Igmp Macbridge Client Packages Add/Remove*/
+//CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD
+//CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE
+typedef struct {
+  L7_uint8            slotId;
+  L7_uint32           evcId;        // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint16           nni_cvlan;    // NNI inner vlan
+  msg_HwEthIntf_t     intf;         // Outer vlan is the GEM id  
+  L7_uint8            onuId;        //ONU Identifier
+  L7_uint32           packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
+  L7_uint8            noOfPackages;                                                          /*Number of Active Bits*/  
+} __attribute__ ((packed)) msg_igmp_macbridge_client_packages_t;
 
 
+// Multicast Service Add/Remove
+// CCMSG_MULTICAST_SERVICE_ADD
+// CCMSG_MULTICAST_SERVICE_REMOVE
+typedef struct {
+  L7_uint8             slotId;        
+  L7_uint32            evcId;        // EVC Id
+  msg_HwEthInterface_t intf;         // Interface 
+  L7_uint8             onuId;        // ONU Identifier                                     
+} __attribute__((packed)) msg_multicast_service_t;
 
 /***************************************************************************** 
  * Functions prototypes

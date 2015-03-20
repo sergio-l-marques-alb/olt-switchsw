@@ -467,7 +467,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
       }
       
       /*If port is valid*/
-      if (ptin_port < PTIN_IGMP_ADMISSION_CONTROL_N_UPLINK_PORTS)
+      if (ptin_port < PTIN_SYSTEM_N_UPLINK_INTERF)
       {
         if ( (mefExt->Mask & PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF) == PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF)
           mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;

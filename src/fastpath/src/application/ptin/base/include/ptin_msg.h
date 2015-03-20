@@ -1532,5 +1532,117 @@ L7_RC_t ptin_msg_get_rfc2819_probe_config(L7_int Port, L7_uint8 *Admin);
  */
 L7_RC_t ptin_msg_rfc2819_buffer_status(L7_int buffer_type, msg_rfc2819_buffer_status_t *status);
 
+
+/*********************************************Multicast Package Feature**************************************************/
+
+/**
+ * Multicast Packages Add
+ * 
+ * @param msg : Pointer to  a Message 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_ALREADY_CONFIGURED
+ */
+L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg);
+
+/**
+ * Multicast Packages Remove
+ * 
+ * @param msg : Pointer to  a Message 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg);
+
+/**
+ * Multicast Package Channels Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_uint32 noOfMessages);
+
+/**
+ * Multicast Package Channels Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, L7_uint32 noOfMessages);
+
+/**
+ * Unicast Client Packages Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packages_t *msg, L7_uint32 noOfMessages);
+
+/**
+ * Unicast Client Packages Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_packages_t *msg, L7_uint32 noOfMessages);
+
+
+/**
+ * Macbridge Client Packages Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages);
+
+/**
+ * Macbridge Client Packages Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages);
+
+/**
+ * Multicast Service Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uint32 noOfMessages);
+
+/**
+ * Multicast Service Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_uint32 noOfMessages);
+
+/****************************************End Multicast Package Feature**************************************************/
+
 #endif /* _PTIN_MSG_H */
 

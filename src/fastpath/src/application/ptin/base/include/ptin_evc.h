@@ -794,6 +794,24 @@ extern
 L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow);
 
 /**
+ * Macbridge Flow Client Packages Add
+ * 
+ * @param ecvFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_packages_t *ecvFlow);
+
+/**
+ * Macbridge Flow Client Packages Remove
+ * 
+ * @param ecvFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_packages_t *ecvFlow);
+
+/**
  * Gets the flooding vlans list
  * 
  * @param intIfNum    : leaf interface

@@ -604,11 +604,25 @@ typedef struct {
   L7_uint16   uni_ovid;     // GEM id
   L7_uint16   uni_ivid;     // UNI cvlan
   L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses                           
-  L7_uint8    onuId;        //ONU/CPE Identifier
+  L7_uint8    onuId;        // ONU/CPE Identifier
   L7_uint8    mask;
   L7_uint16   maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64   maxBandwidth; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+  L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
+  L7_uint32   noOfPackages; //[mask=0x08]  Number of Packages 
 } ptin_HwEthEvcFlow_t;
+
+typedef struct {
+  L7_uint32 evc_idx;      // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint16 int_ivid;     // C-VLAN tagged in the upstream flows (inside the switch)
+  /* Client interface (root is already known by the EVC) */
+  ptin_intf_t ptin_intf;    // PON interface
+  L7_uint16   uni_ovid;     // GEM id
+  L7_uint16   uni_ivid;     // UNI cvlan  
+  L7_uint8    onuId;        // ONU/CPE Identifier  
+  L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //Package Bitmap List   
+  L7_uint32   noOfPackages; // Number of Packages 
+} ptin_evc_macbridge_client_packages_t;
 
 /* Client identification */
 

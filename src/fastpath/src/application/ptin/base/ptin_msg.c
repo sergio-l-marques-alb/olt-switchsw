@@ -4166,6 +4166,9 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptin_HwEthEvcFlow_t ptinEvcFlow;
   L7_RC_t rc;
 
+  /*Initialize Structure*/
+  memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+
   /* Copy data */
   ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
   ptinEvcFlow.flags               = msgEvcFlow->flags;
@@ -4185,21 +4188,25 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
   LOG_DEBUG(LOG_CTX_PTIN_MSG, " macLearnMax = %u", ptinEvcFlow.macLearnMax);  
 
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   if (ptinEvcFlow.flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
   {
-    if ( (msgEvcFlow->mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID) || 
-        ( ( (msgEvcFlow->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH ) &&
+    if  (msgEvcFlow->mask > PTIN_MSG_EVC_FLOW_MASK_VALID)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Mask [mask:0x%02x",msgEvcFlow->mask);
+      return L7_FAILURE;
+    }
+
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT    
+    if  (( ( (msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH ) &&
           (msgEvcFlow->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgEvcFlow->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
-         ( ( (msgEvcFlow->mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS ) &&
+         ( ( (msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS ) &&
           (msgEvcFlow->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgEvcFlow->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
         
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",msgEvcFlow->mask, msgEvcFlow->maxBandwidth, msgEvcFlow->maxChannels);
       return L7_FAILURE;
     }
-    ptinEvcFlow.onuId               = msgEvcFlow->onuId;
-    ptinEvcFlow.mask                = msgEvcFlow->mask;
+    ptinEvcFlow.onuId               = msgEvcFlow->onuId;      
     ptinEvcFlow.maxBandwidth        = msgEvcFlow->maxBandwidth;
     ptinEvcFlow.maxChannels         = msgEvcFlow->maxChannels;
     
@@ -4207,8 +4214,35 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " mask        = 0x%x", ptinEvcFlow.mask);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
-  }
 #endif
+
+#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
+    if (( msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_NUMBER_OF_PACKAGES ) == PTIN_MSG_EVC_FLOW_MASK_NUMBER_OF_PACKAGES)
+    {
+      ptinEvcFlow.noOfPackages = msgEvcFlow->noOfPackages;
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);
+    }
+
+    if ( (ptinEvcFlow.mask & PTIN_MSG_EVC_FLOW_MASK_PACKAGE_BMP_LIST) == PTIN_MSG_EVC_FLOW_MASK_PACKAGE_BMP_LIST)
+    {
+      L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+      L7_char8 *charPtr = packageBmpStr;
+      L7_int32  packageId;
+
+      /*Copy Multicast Package Bitmap*/
+      memcpy(ptinEvcFlow.packageBmpList, msgEvcFlow->packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
+
+      
+      for (packageId =(PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint32)*8)-1); packageId>=0; --packageId)
+      {
+        osapiSnprintf(charPtr, sizeof(*charPtr),
+                    "%08X", ptinEvcFlow.packageBmpList[packageId]);
+        charPtr++;
+      }
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "PackageBmpList:%s", packageBmpStr);
+    }
+#endif    
+  }
 
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
   {
@@ -6395,7 +6429,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
   }
 
   igmpAdmissionControl.mask = 0x00;
-
+ 
   if ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS)
     igmpAdmissionControl.mask = PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS;
 
@@ -6482,8 +6516,13 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinMgmdProxy.bandwidthControl                       = msgIgmpProxy->bandwidthControl;
   ptinMgmdProxy.channelsControl                        = msgIgmpProxy->channelsControl;
 
-  //Force the whitelist feauture to DISABLE
-  ptinMgmdProxy.whiteList                              = PTIN_MGMD_DISABLE;
+  
+#if PTIN_BOARD_IS_MATRIX
+  ptinMgmdProxy.whiteList                              = L7_DISABLE;
+#else
+  ptinMgmdProxy.whiteList                              = L7_ENABLE;
+#endif
+                         
   ptinMgmdProxy.mask                                  |= PTIN_MGMD_CONFIG_WHITELIST_MASK;
 
   /* Output data */
@@ -6717,24 +6756,51 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", McastClient[i].client.outer_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", McastClient[i].client.inner_vlan);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
-#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT                                     
-  
-    if ( (McastClient[i].mask > PTIN_IGMP_ADMISSION_CONTROL_MASK_VALID) || 
-        ( ( (McastClient[i].mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-          (McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
-         ( ( (McastClient[i].mask & PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS) == PTIN_IGMP_ADMISSION_CONTROL_MASK_MAX_ALLOWED_CHANNELS ) &&
-          (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
-        
+
+    if (McastClient[i].mask > PTIN_MSG_IGMP_CLIENT_MASK_VALID)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId        = %u", McastClient[i].onuId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   mask         = %u", McastClient[i].mask);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT                                         
+      if ( ( ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH ) &&
+            (McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+           ( ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS ) &&
+            (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+          
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+        return L7_FAILURE;
+      }
+
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId        = %u", McastClient[i].onuId);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   mask         = %u", McastClient[i].mask);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
+      LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
+
+#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
+      if ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_NUMBER_OF_PACKAGES) == PTIN_MSG_IGMP_CLIENT_MASK_NUMBER_OF_PACKAGES )
+      {
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages = %u bit/s ", McastClient[i].noOfPackages);
+      }
+
+      if ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_PACKAGE_BMP_LIST) == PTIN_MSG_IGMP_CLIENT_MASK_PACKAGE_BMP_LIST)
+      {
+        L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+        L7_char8 *charPtr = packageBmpStr;
+        L7_int32  packageId;
+
+        for (packageId=(PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint32)*8)-1); packageId>=0; --packageId)
+        {
+          osapiSnprintf(charPtr, sizeof(*charPtr),
+                      "%08X", McastClient[i].packageBmpList[packageId]);
+          charPtr++;
+        }
+        LOG_DEBUG(LOG_CTX_PTIN_MSG, "PackageBmpList:%s", packageBmpStr);
+      }
+#endif    
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
@@ -6755,7 +6821,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     /* Apply config */
-    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
+    rc = ptin_igmp_client_add(McastClient[i].mcEvcId, &client, 0, 0, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);
 
     if (rc!=L7_SUCCESS)
     {
@@ -7268,7 +7334,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
  */
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   #define IGMPASSOC_MAX_CHANNELS_IN_MESSAGE   100   /* Maximum number of channels in one message */
-static igmpAssoc_entry_t igmpAssoc_list[IGMPASSOC_CHANNELS_MAX];
+static igmpAssoc_entry_t igmpAssoc_list[PTIN_IGMP_CHANNELS_MAX];
 static L7_uint16 igmpAssoc_channels_max = 0;
 #endif
 
@@ -7299,7 +7365,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
     memset(igmpAssoc_list, 0x00, sizeof(igmpAssoc_list));
     igmpAssoc_channels_max = 0;
 
-    number_of_channels = IGMPASSOC_CHANNELS_MAX;
+    number_of_channels = PTIN_IGMP_CHANNELS_MAX;
     if (igmp_assoc_channelList_get(0, channel_list->evcid_mc, igmpAssoc_list, &number_of_channels)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error reading list of channels");
@@ -7551,7 +7617,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove(msg_MCAssocChannel_t *channel_list, L7
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
-    if ((rc = igmp_assoc_channel_remove( 0,
+    if ((rc = igmp_assoc_channel_remove( channel_list[i].evcid_mc, 0, 
                                    &groupAddr , channel_list[i].channel_dstmask,
                                    &sourceAddr, channel_list[i].channel_srcmask, isStatic )) != L7_SUCCESS)
     {
@@ -7735,7 +7801,7 @@ L7_RC_t ptin_msg_IGMP_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16 n
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
     staticGroup.portType  = PTIN_MGMD_PORT_TYPE_LEAF;
 
-    if ((rc = ptin_igmp_channel_remove(&staticGroup)) != L7_SUCCESS)
+    if ((rc = ptin_igmp_static_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG, "Error (%d) removing channel", rc);
       rc_global = rc;
@@ -11650,3 +11716,709 @@ L7_RC_t ptin_msg_rfc2819_buffer_status(L7_int buffer_type, msg_rfc2819_buffer_st
   return ptin_rfc2819_get_buffer_status(buffer_type, &status->max_entrys,  &status->wrptr, &status->bufferfull);
 }
 
+/*********************************************Multicast Package Feature**************************************************/
+
+/**
+ * Multicast Packages Add
+ * 
+ * @param msg : Pointer to  a Message 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_ALREADY_CONFIGURED
+ */
+L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_int32  packageIdIterator;
+  L7_uint32 noOfPackagesFound = 0;
+  L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8 *charPtr = packageBmpStr;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p]",msg);    
+    return L7_FAILURE;
+  }
+      
+  for (packageIdIterator = PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+  {
+    osapiSnprintf(charPtr, sizeof(*charPtr),
+                "%08X", msg->packageBmpList[packageIdIterator]);
+    charPtr++;
+  }
+      
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
+
+  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageIdIterator++)
+  {
+    //Move forward 32 bits if this byte is 0 (no packages)
+    if (IS_BITMAP_BYTE_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    {
+     packageIdIterator += UINT32_BITSIZE -1; //Less one, because of the For cycle that increments also 1 unit.
+     continue;
+    }
+
+    if (IS_BITMAP_BIT_SET( msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    {
+      continue;
+    }
+    /*Add This Package*/
+    rc = ptin_igmp_multicast_package_add(packageIdIterator);      
+
+    if (++noOfPackagesFound >= msg->noOfPackages)
+    {
+      /*Found All Packages*/
+      break;
+    }
+ }
+  return rc;  
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif 
+}
+
+/**
+ * Multicast Packages Remove
+ * 
+ * @param msg : Pointer to  a Message 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_int32  packageIdIterator;
+  L7_uint32 noOfPackagesFound = 0;
+  L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8 *charPtr = packageBmpStr;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR )
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p]",msg);    
+    return L7_FAILURE;
+  }
+      
+  for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+  {
+    osapiSnprintf(charPtr, sizeof(*charPtr),
+                "%08X", msg->packageBmpList[packageIdIterator]);
+    charPtr++;
+  }
+      
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
+
+  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageIdIterator++)
+  {
+    //Move forward 32 bits if this byte is 0 (no packages)
+    if (IS_BITMAP_BYTE_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    {
+     packageIdIterator += UINT32_BITSIZE -1; //Less one, because of the For cycle that increments also 1 unit.
+     continue;
+    }
+
+    if (IS_BITMAP_BIT_SET( msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    {
+      continue;
+    }
+    /*Add This Package*/
+    if ( L7_DEPENDENCY_NOT_MET == (rc = ptin_igmp_multicast_package_remove(packageIdIterator)) )
+    {
+      /*Error Already Logged*/
+      return rc;
+    }
+
+    if (++noOfPackagesFound >= msg->noOfPackages)
+    {
+      /*Found All Packages*/
+      break;
+    }
+ }
+  return rc;   
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif 
+}
+
+/**
+ * Multicast Package Channels Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  char            groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char            sourceAddrStr[IPV6_DISP_ADDR_LEN]={};  
+  L7_inet_addr_t  groupAddr;
+  L7_inet_addr_t  sourceAddr;
+  L7_uint32       messageIterator;
+  L7_RC_t         rc = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  {
+    /*Convert Group Address to fp Notation*/
+    rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
+    if ( rc != L7_SUCCESS)
+    {
+      return rc;
+    }
+
+    /*Convert Source Address to fp Notation*/
+    rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
+    if ( rc != L7_SUCCESS)
+    {
+      return rc;
+    }
+
+    /*Input Parameters*/
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
+              msg[messageIterator].slotId, msg[messageIterator].packageId, msg[messageIterator].evcId, 
+              inetAddrPrint(&groupAddr, groupAddrStr), msg[messageIterator].groupMask, inetAddrPrint(&sourceAddr, sourceAddrStr), msg[messageIterator].sourceMask );
+
+    /*Error Any Error Occurs It is Already Logged*/
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_package_channels_add(msg[messageIterator].packageId, msg[messageIterator].evcId, 
+                                                   &groupAddr, msg[messageIterator].groupMask, &sourceAddr, msg[messageIterator].sourceMask)) )
+    {
+      return rc;
+    }
+  }
+  return rc;
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif 
+}
+
+/**
+ * Multicast Package Channels Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  char            groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+  char            sourceAddrStr[IPV6_DISP_ADDR_LEN]={};  
+  L7_inet_addr_t  groupAddr;
+  L7_inet_addr_t  sourceAddr;
+  L7_uint32       messageIterator;
+  L7_RC_t         rc = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  {
+    /*Convert Group Address to fp Notation*/
+    rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
+    if ( rc != L7_SUCCESS)
+    {
+      return rc;
+    }
+
+    /*Convert Source Address to fp Notation*/
+    rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
+    if ( rc != L7_SUCCESS)
+    {
+      return rc;
+    }
+
+    /*Input Parameters*/
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
+              msg[messageIterator].slotId, msg[messageIterator].packageId, msg[messageIterator].evcId, 
+              inetAddrPrint(&groupAddr, groupAddrStr), msg[messageIterator].groupMask, inetAddrPrint(&sourceAddr, sourceAddrStr), msg[messageIterator].sourceMask );
+
+    /*Error Any Error Occurs It is Already Logged*/
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_package_channels_remove(msg[messageIterator].packageId, msg[messageIterator].evcId, 
+                                                   &groupAddr, msg[messageIterator].groupMask, &sourceAddr, msg[messageIterator].sourceMask)) )
+    {
+      return rc;
+    }
+  }
+  return rc;
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif 
+}
+
+/**
+ * Unicast Client Packages Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packages_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint32       messageIterator;
+  L7_uint32        packageIdIterator;  
+  L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8        *charPtr           = packageBmpStr;
+  ptin_client_id_t client;
+  L7_BOOL          addOrRemove = L7_FALSE;//Add Packages
+  L7_RC_t          rc                = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  {
+    
+    for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+    {
+      osapiSnprintf(charPtr, sizeof(*charPtr),
+                "%08X", msg[messageIterator].packageBmpList[packageIdIterator]);
+      charPtr++;
+    }
+    
+     /* Output data */
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId               = %u", msg[messageIterator].onuId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   PackageBmpList      = %s", packageBmpStr);
+
+    memset(&client,0x00,sizeof(ptin_client_id_t));
+    if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
+    {
+      client.outerVlan = msg[messageIterator].client.outer_vlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    }
+    if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
+    {
+      client.innerVlan = msg[messageIterator].client.inner_vlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    }
+    if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
+    {
+      client.ptin_intf.intf_type  = msg[messageIterator].client.intf.intf_type;
+      client.ptin_intf.intf_id    = msg[messageIterator].client.intf.intf_id;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+
+    if ( msg[messageIterator].noOfPackages > 0 )
+    {
+      /* Apply config */
+      rc = ptin_igmp_client_add(msg[messageIterator].evcId, &client, 0, 0, msg[messageIterator].onuId, 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, msg[messageIterator].noOfPackages);
+
+      if (rc!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");
+        return rc;
+      }
+    }
+  }
+  return rc;
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif 
+}
+
+/**
+ * Unicast Client Packages Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_packages_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint32        messageIterator;
+  L7_int32         packageIdIterator;  
+  L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8        *charPtr           = packageBmpStr;
+  ptin_client_id_t client;
+  L7_BOOL          addOrRemove = L7_TRUE;//Remove Packages
+  L7_RC_t          rc                = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  {
+    
+    for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE -1; packageIdIterator>=0; --packageIdIterator)
+    {
+      osapiSnprintf(charPtr, sizeof(*charPtr),
+                "%02X", msg[messageIterator].packageBmpList[packageIdIterator]);
+      charPtr++;
+    }
+    
+     /* Output data */
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Going to add MC client");
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   onuId               = %u", msg[messageIterator].onuId);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "   PackageBmpList      = %s", packageBmpStr);
+
+    memset(&client,0x00,sizeof(ptin_client_id_t));
+    if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
+    {
+      client.outerVlan = msg[messageIterator].client.outer_vlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    }
+    if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
+    {
+      client.innerVlan = msg[messageIterator].client.inner_vlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    }
+    if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
+    {
+      client.ptin_intf.intf_type  = msg[messageIterator].client.intf.intf_type;
+      client.ptin_intf.intf_id    = msg[messageIterator].client.intf.intf_id;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+
+    if ( msg[messageIterator].noOfPackages > 0 )
+    {
+      /* Apply config */
+      rc = ptin_igmp_client_add(msg[messageIterator].evcId, &client, 0, 0, msg[messageIterator].onuId, 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, msg[messageIterator].noOfPackages);
+
+      if (rc!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding MC client");
+        return rc;
+      }
+    }
+  }
+  return rc;
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif 
+}
+
+/**
+ * Macbridge Client Packages Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint32        messageIterator;
+  L7_int32         packageIdIterator;  
+  L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8        *charPtr           = packageBmpStr;
+  ptin_evc_macbridge_client_packages_t ptinEvcFlow;  
+  L7_RC_t          rc                = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  {    
+    /*Initialize Structure*/
+    memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+
+    /* Copy data */
+    ptinEvcFlow.evc_idx             = msg[messageIterator].evcId;    
+    ptinEvcFlow.int_ivid            = msg[messageIterator].nni_cvlan;
+    ptinEvcFlow.ptin_intf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msg[messageIterator].intf.intf_id;
+    ptinEvcFlow.uni_ovid            = msg[messageIterator].intf.outer_vid; /* must be a leaf */
+    ptinEvcFlow.uni_ivid            = msg[messageIterator].intf.inner_vid;
+    ptinEvcFlow.noOfPackages        = msg[messageIterator].noOfPackages;
+
+    /*Copy Multicast Package Bitmap*/
+    memcpy(ptinEvcFlow.packageBmpList, msg[messageIterator].packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
+    
+    for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+    {
+      osapiSnprintf(charPtr, sizeof(*charPtr),
+                  "%08X", ptinEvcFlow.packageBmpList[packageIdIterator]);
+      charPtr++;
+    }    
+    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                    ptinEvcFlow.ptin_intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " packageBmpList:%s", packageBmpStr);
+
+    if (ptinEvcFlow.noOfPackages >= 0)
+    {
+      if ((rc=ptin_evc_macbridge_client_packages_add(&ptinEvcFlow)) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
+        return rc;
+      }
+    }
+  }
+  return rc;
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif
+}
+
+/**
+ * Macbridge Client Packages Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client_packages_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint32        messageIterator;
+  L7_int32         packageIdIterator;  
+  L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8        *charPtr           = packageBmpStr;
+  ptin_evc_macbridge_client_packages_t ptinEvcFlow;  
+  L7_RC_t          rc                = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  {    
+    /*Initialize Structure*/
+    memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+
+    /* Copy data */
+    ptinEvcFlow.evc_idx             = msg->evcId;    
+    ptinEvcFlow.int_ivid            = msg->nni_cvlan;
+    ptinEvcFlow.ptin_intf.intf_type = msg->intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msg->intf.intf_id;
+    ptinEvcFlow.uni_ovid            = msg->intf.outer_vid; /* must be a leaf */
+    ptinEvcFlow.uni_ivid            = msg->intf.inner_vid;
+    ptinEvcFlow.noOfPackages        = msg->noOfPackages;
+
+    /*Copy Multicast Package Bitmap*/
+    memcpy(ptinEvcFlow.packageBmpList, msg->packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
+    
+    for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+    {
+      osapiSnprintf(charPtr, sizeof(*charPtr),
+                  "%08X", ptinEvcFlow.packageBmpList[packageIdIterator]);
+      charPtr++;
+    }    
+    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);    
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                                                    ptinEvcFlow.ptin_intf.intf_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, " packageBmpList:%s", packageBmpStr);
+
+
+    if (ptinEvcFlow.noOfPackages > 0)
+    {
+      if ((rc=ptin_evc_macbridge_client_packages_remove(&ptinEvcFlow)) != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
+        return rc;
+      }
+    }
+  }
+  return rc;
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported in this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif
+}
+
+/**
+ * Multicast Service Add
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint32         messageIterator; 
+  ptin_intf_t       ptinIntf;
+  L7_uint32         ptinPort;  
+  L7_RC_t           rc                = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  { 
+    /*Input Parameters*/
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+              msg[messageIterator].slotId, msg[messageIterator].evcId, msg[messageIterator].intf.intf_type, msg[messageIterator].intf.intf_id, msg[messageIterator].onuId);
+
+    /*Copy to ptin intf struct*/
+    ptinIntf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinIntf.intf_id   = msg[messageIterator].intf.intf_id;
+
+    /*Convert from ptin intf to otin port*/
+    if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+      return rc;
+    }
+
+    /*If Any Error Occurs It is Already Logged*/
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, msg[messageIterator].onuId, msg[messageIterator].evcId) ) )
+    {
+      return rc;
+    }    
+  }
+  return rc;  
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported on this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif
+}
+
+/**
+ * Multicast Service Remove
+ * 
+ * @param msg          : Pointer to  a Message 
+ * @param noOfMessages : Number of Messages
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_uint32 noOfMessages)
+{
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+  L7_uint32         messageIterator; 
+  ptin_intf_t       ptinIntf;
+  L7_uint32         ptinPort;
+  L7_RC_t           rc                = L7_SUCCESS;
+
+  /* Input Argument validation */
+  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    return L7_FAILURE;
+  }
+
+  /*Input Parameters*/
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
+
+  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  { 
+    /*Input Parameters*/
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+              msg[messageIterator].slotId, msg[messageIterator].evcId, msg[messageIterator].intf.intf_type, msg[messageIterator].intf.intf_id, msg[messageIterator].onuId);
+
+    /*Copy to ptin intf struct*/
+    ptinIntf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinIntf.intf_id   = msg[messageIterator].intf.intf_id;
+
+    /*Convert from ptin intf to otin port*/
+    if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+      return rc;
+    }
+
+    /*If Any Error Occurs It is Already Logged*/
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, msg[messageIterator].onuId, msg[messageIterator].evcId) ) )
+    {
+      return rc;
+    }
+  }
+  return rc;  
+#else
+  LOG_ERR(LOG_CTX_PTIN_IGMP, "Featured not supported on this card!");  
+  return L7_NOT_SUPPORTED;  
+#endif
+}
+
+/****************************************End Multicast Package Feature**************************************************/
