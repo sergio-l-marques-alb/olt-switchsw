@@ -220,6 +220,8 @@ void ptin_debug(void)
   printf("  mgmd.cli                                                        - Show MGMD help\r\n");
   printf("  ber_help                                                        - Show BER/PRBS help\r\n");
   printf("\r\n");
+  printf("  ipc_msg_bytes_debug_enable (0/1)                          - Dump IPC MSGs' bytes\r\n");
+  printf("\r\n");
 
   fflush(stdout);
 }
@@ -874,7 +876,7 @@ void ptin_lag_dump(void)
  * @param vid 
  * @param limit 
  */
-void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint16 vid, L7_uint32 limit)
+void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint16 vid, L7_uint32 limit, L7_uint8 action, L7_uint8 send_trap)
 {
   msg_l2_maclimit_config_t maclimit;
 

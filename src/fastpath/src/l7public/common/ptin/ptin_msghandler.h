@@ -288,6 +288,10 @@
 
 /*End Multicast Package Configuration*/
 
+/* MAC Limiting per interface */
+#define CCMSG_L2_MACLIMIT_CONFIG                    0x91EA
+#define CCMSG_L2_MACLIMIT_STATUS                    0x91EB
+
 /* Generic Flush Configuration Message */
 #define CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END    0x91FE
 
@@ -627,7 +631,7 @@ typedef struct
 
   L7_uint8  trust_mode;                 // mask=0x01: 0-None, 1-Untrust markings, 2-802.1p marking, 3: IP-precedence mark; 4-DSCP mark (Default=2)
   L7_uint8  bandwidth_unit;             // mask=0x02: 0: Percentage, 1: Kbps, 2: PPS (Default=0)
-  L7_uint32 shaping_rate;               // mask=0x04: 0-100: Default=0 (unlimited)
+  L7_uint32 shaping_rate;               // mask=0x04: 0-100: Default=0 (unklimited)
 
   struct {                              // Packet priority map
     L7_uint8  mask;                     //   pktpriority map mask (nth bit, tells to configure the nth priority)
@@ -747,20 +751,41 @@ typedef enum
 {
   L2_MACLIMIT_MASK_NONE            = 0x0000,
   L2_MACLIMIT_MASK_SYSTEM          = 0x0001,
-  L2_MACLIMIT_MASK_INTF            = 0x0002,
-  L2_MACLIMIT_MASK_VLAN            = 0x0004
+  L2_MACLIMIT_MASK_LIMIT           = 0x0002,
+  L2_MACLIMIT_MASK_ACTION          = 0x0004,
+  L2_MACLIMIT_MASK_SEND_TRAP       = 0x0008,
+  L2_MACLIMIT_MASK_VLAN            = 0x0010,
+  L2_MACLIMIT_MASK_INTF            = 0x0011
+
 } L2_MACLIMIT_MASK_t;
 
-typedef struct {
-  L7_uint8  slotId;                   /* slot */
-  L7_uint32 mask;                     /* Mask (32 bits for alignment purposes) */
+typedef struct
+{
 
-  L7_uint8              system;       /* Limit is system wide */
-  msg_HwEthInterface_t  intf;         /* Interface            */
-  L7_uint16             vid;          /* VLAN ID              */
+  L7_uint8              slotId;         /* slot */
+  msg_HwEthInterface_t  intf;           /* Interface            */
 
-  L7_uint32             limit;        /* Maximum number of learned entries, -1 for unlimited. */
+  L7_uint16             vid;            /* VLAN ID              */
+  L7_uint32             mask;           /* Mask (32 bits for alignment purposes) */
+
+  L7_uint8              system;         /* 0x01 Limits the number of MACs learned by the system (sum of MACs learned in the all interfaces, future propose). Always = 0 */
+  L7_uint32             limit;          /* 0x02 Maximum number of learned entries, -1 for unlimited. (Default = 500)*/
+  L7_uint8              action;         /* 0x04 Action trigged when the limit is reached. NONE=0, LIMIT=1 (Default = 1)*/
+  L7_uint8              send_trap;      /* 0x08 Trap generated when the maximum value is reached. DISABLE=0, ENABLE =1 (Default=1)*/
+
 } __attribute__((packed)) msg_l2_maclimit_config_t;
+
+
+typedef struct {
+
+  L7_uint8  slotId;                     /* slot */
+  msg_HwEthInterface_t  intf;           /* Interface            */ 
+
+  L7_uint32 mask;                       /* Mask (32 bits for alignment purposes) */
+
+  L7_uint32 number_mac_learned;           /* 0x01 Indicates the number of MAC's learned */
+  L7_uint32 status;                     /* 0x02 Indicates if the specific interface is within/over the MAC's learned limit. WITHIN_LIMIT=0,OVER_LIMIT =1 */
+} __attribute__((packed)) msg_l2_maclimit_status_t;
 
 /***************************************************** 
  * LAGs messages
@@ -2620,6 +2645,9 @@ typedef struct {
 /***************************************************************************** 
  * Functions prototypes
  *****************************************************************************/
+
+
+extern int ipc_msg_bytes_debug_enable(int disable0_enable1_read2);
 
 /**
  * Message handler for the PTin Module.

@@ -3196,11 +3196,13 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   }
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit->slotId);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask         = 0x%.8X",  maclimit->mask);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," system       = %u",      maclimit->system);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask         = 0x%.8X",  maclimit->mask);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," vid          = %u",      maclimit->vid);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," system       = %u",      maclimit->system);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," limit        = %u",      maclimit->limit);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," action       = %u",      maclimit->action);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," trap         = %u",      maclimit->send_trap);
 
   memset(&entry, 0, sizeof(ptin_l2_maclimit_t));
 
@@ -3228,12 +3230,34 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
         return L7_FAILURE;
       }
     }
+    if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
+    {
+      entry.action = maclimit->action;
+    }
+    if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
+    {
+      entry.send_trap = maclimit->send_trap;
+    }
+    if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
+    {
+      entry.limit = maclimit->limit;
+
+      if (entry.limit == -1) /* case unlimited turn off Trap and Action*/
+      {
+         entry.send_trap = 0;
+         entry.action = 0;
+      }
+    }
   }
-  
-  entry.limit = maclimit->limit;
 
   dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
   
+  return rc;
+}
+
+L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
+{
+  L7_RC_t rc = L7_SUCCESS;
   return rc;
 }
 

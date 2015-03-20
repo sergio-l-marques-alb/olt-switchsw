@@ -31,14 +31,27 @@ typedef struct
   L7_uint8                    data[PTIN_DTL_GENERICMSG_MAX_DATASIZE];
 } ptinDtlGenericMsg_t;
 
-
-/* L2 MAC Limit Configuration */
 typedef struct
 {
-  L7_uint16   vlanId;       // VLAN ID
-  L7_uint32   limit;        // MAC Limit
+  L7_uint8    intf_type;         // Interface type: { 0-Physical, 1-Logical (LAG) }
+  L7_uint8    intf_id;           // Interface           
+  L7_uint16   vlanId;          // VLAN ID
+  L7_uint32   limit;           // MAC Limit
+  L7_uint8    action;          // Action trigged when the limit is reached. NONE=0, LIMIT=1 (Default = 1)*/
+  L7_uint8    send_trap;       // Trap generated when the maximum value is reached. DISABLE=0, ENABLE =1 (Default=1)*/
+
 } ptin_l2_maclimit_t;
 
+/* L2 MAC Limiting status */
+typedef struct
+{
+  L7_uint8    intf_type;               // Interface type: { 0-Physical, 1-Logical (LAG) }
+  L7_uint8    intf_id;
+  L7_uint16   vlanId;                  // VLAN ID
+  L7_uint32   number_mac_learned;      // MAC Limit
+  L7_uint32   status;                  // Trap generated when the maximum value is reached. DISABLE=0, ENABLE =1 (Default=1)*/
+
+} ptin_l2_maclimit_status_t;
 
 /* Used for packet processing timing measure */
 typedef struct

@@ -195,6 +195,27 @@ static int msg_generic_wrd(int (*msg_generic_wrd_1struct)(ipc_msg *inbuff, ipc_m
 
 
 
+
+int ipc_msg_bytes_debug_enable(int disable0_enable1_read2) {
+static int enable=0;
+
+ switch (disable0_enable1_read2) {
+ case 0:
+ case 1: enable=disable0_enable1_read2; break;
+ }
+
+ return enable;
+}
+
+
+
+
+
+
+
+
+
+
 /**
  * Message handler for the PTin Module.
  * 
@@ -246,6 +267,25 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     SetIPCNACK(outbuffer, res);
     return IPC_OK;
   }
+
+
+  if(ipc_msg_bytes_debug_enable(2))
+  {
+    L7_uint i;
+
+    if (inbuffer == NULL)
+    {
+        LOG_WARNING(LOG_CTX_PTIN_MSGHANDLER, "NULL message received!");
+        return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
+    }
+    printf("\n\rmsgId[%4.4x] inbuffer->info:",inbuffer->msgId);
+    for(i=0; i<inbuffer->infoDim; i++)
+    {
+        printf(" %2.2Xh",inbuffer->info[i]); 
+    }
+    printf("\n\r");  
+  }
+
 
   /* If reached here, means PTin module is loaded and ready to process messages */
   switch (inbuffer->msgId)
@@ -4541,6 +4581,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
                "Message processed: response with %d bytes", outbuffer->infoDim);
   
       break;
+
+
 #endif //__Y1731_802_1ag_OAM_ETH__
 
     /************************************************************************** 
@@ -5338,6 +5380,67 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 //CCMSG_ETH_DHCP_INTF_STATS_CLEAR
 //CCMSG_ETH_DHCP_BIND_TABLE_GET
 //CCMSG_ETH_DHCP_BIND_TABLE_CLEAR
+
+
+    /************************************************************************** 
+    * MAC Limiting Configuration
+    **************************************************************************/
+
+    case CCMSG_L2_MACLIMIT_CONFIG:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_L2_MACLIMIT_CONFIG (0x%04X)", inbuffer->msgId); 
+      CHECK_INFO_SIZE(msg_l2_maclimit_config_t);
+
+      msg_l2_maclimit_config_t *ptr;
+
+      ptr = (msg_l2_maclimit_config_t *) outbuffer->info;
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_l2_maclimit_config_t));
+
+      /* Execute command */
+      rc = ptin_msg_l2_maclimit_config(ptr);  
+    
+      if (L7_SUCCESS != rc)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_l2_maclimit_config_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim); 
+    }
+    break;
+
+    case CCMSG_L2_MACLIMIT_STATUS:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_L2_MACLIMIT_STATUS (0x%04X)", inbuffer->msgId);
+      CHECK_INFO_SIZE(msg_l2_maclimit_status_t);
+
+      msg_l2_maclimit_status_t *ptr;
+
+      ptr = (msg_l2_maclimit_status_t *) outbuffer->info;
+      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_l2_maclimit_status_t));
+
+     /* Execute command */
+     rc = ptin_msg_l2_maclimit_status(ptr);  
+    
+     if (L7_SUCCESS != rc)
+     {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+     }
+
+     outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim); 
+   }
+  break;
 
     /* Signalling the end of a Equipment Flush Configuration*/
     case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:
