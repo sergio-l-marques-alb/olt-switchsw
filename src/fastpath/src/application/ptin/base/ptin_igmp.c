@@ -581,6 +581,38 @@ static RC_t ptin_igmp_client_channel_dependency_validation(L7_uint32 packageId, 
  */
 static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, ptinIgmpChannelInfoData_t  *channelAvlTreeEntry);
 
+/**
+ * @purpose Add a given client to a Multicast Channel Package 
+ * 
+ * @param ptinPort 
+ * @param groupClientId  Client Identifier
+ * @param serviceId Multicast Service Identifier
+ * @param groupAddr 
+ * @param sourceAddr  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+static RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 ptinPort, L7_uint32 groupClientId, L7_uint32 serviceId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr);
+
+/**
+ * @purpose Remove a given client from Multicast Channel 
+ * 
+ * @param ptinPort 
+ * @param groupClientId  Client Identifier
+ * @param serviceId Multicast Service Identifier
+ * @param groupAddr 
+ * @param sourceAddr  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+static RC_t ptin_igmp_multicast_channel_client_remove(L7_uint32 ptinPort, L7_uint32 groupClientId, L7_uint32 serviceId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr);
+
 /************End Multicast Channel Package Feature****************************************************/ 
 
 
@@ -13194,7 +13226,7 @@ void ptin_igmp_group_clients_dump(void)
 #if (MC_CLIENT_INTERF_SUPPORTED)
           "ptin_port=%-2u "
 #endif
-          "clientId=%-2u (OnuId=%u) (#devices=%u) "
+          "groupClientId=%-2u (OnuId=%u) (#devices=%u) "
 #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
           "svlan=%-4u (intVlan=%-4u) "
 #endif
@@ -13209,7 +13241,7 @@ void ptin_igmp_group_clients_dump(void)
 #endif           
           "uni_vid=%4u+%-4u "
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-          "mask=0x%02x maxChannels=%hu  maxBandwidth=%u channels=%hu  bandwidth=%u"
+          "mask=0x%02x maxChannels=%hu  maxBw=%u channels=%hu  Bw=%u"
 #endif
           "\r\n",          
 #if (MC_CLIENT_INTERF_SUPPORTED)
@@ -17536,6 +17568,31 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
  * @notes none 
  *  
  */
+RC_t ptin_igmp_debug_multicast_channel_client_add(L7_uint32 ptinPort, L7_uint32 groupClientId, L7_uint32 serviceId, L7_uint32 inGroupAddr, L7_uint32 inSourceAddr)
+{
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+
+  inetAddressSet(L7_AF_INET, &inGroupAddr, &groupAddr);
+  inetAddressSet(L7_AF_INET, &inSourceAddr, &sourceAddr);
+
+  return (ptin_igmp_multicast_channel_client_add(ptinPort,groupClientId,serviceId,&groupAddr,&sourceAddr));
+}
+
+/**
+ * @purpose Add a given client to a Multicast Channel  
+ * 
+ * @param ptinPort 
+ * @param groupClientId  Client Identifier
+ * @param serviceId Multicast Service Identifier
+ * @param groupAddr 
+ * @param sourceAddr  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
 RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 ptinPort, L7_uint32 groupClientId, L7_uint32 serviceId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr)
 {
   char                            groupAddrStr[IPV6_DISP_ADDR_LEN]={};
@@ -17576,6 +17633,31 @@ RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 ptinPort, L7_uint32 groupC
   return L7_SUCCESS;
 
 
+}
+
+/**
+ * @purpose Remove a given client from a Multicast Channel 
+ * 
+ * @param ptinPort 
+ * @param groupClientId  Client Identifier
+ * @param serviceId Multicast Service Identifier
+ * @param groupAddr 
+ * @param sourceAddr  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_debug_multicast_channel_client_remove(L7_uint32 ptinPort, L7_uint32 groupClientId, L7_uint32 serviceId, L7_uint32 inGroupAddr, L7_uint32 inSourceAddr)
+{
+  L7_inet_addr_t groupAddr;
+  L7_inet_addr_t sourceAddr;
+
+  inetAddressSet(L7_AF_INET, &inGroupAddr, &groupAddr);
+  inetAddressSet(L7_AF_INET, &inSourceAddr, &sourceAddr);
+
+  return (ptin_igmp_multicast_channel_client_remove(ptinPort,groupClientId,serviceId,&groupAddr,&sourceAddr));
 }
 
 /**

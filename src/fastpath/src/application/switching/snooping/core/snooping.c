@@ -577,6 +577,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_inet_addr_t   groupAddr;
   L7_inet_addr_t   sourceAddr;
   L7_uint16        noOfGroupRecords = 1;
+  L7_uint16        noOfSources;
   char             groupAddrStr[IPV6_DISP_ADDR_LEN]={}; 
 
   /* Set Group Address to Zero*/
@@ -625,6 +626,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
         igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT ||
         igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
     {      
+      /*Get Multicast Group Address*/         
       groupAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[4]);
       
       //Convert to Little Endian
@@ -632,13 +634,33 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
     else if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
     {
+      /*Get Number of Group Records*/
       noOfGroupRecords = osapiNtohs(*((L7_uint16 *) &igmpPtr[6]));
+      
+      
       if ( noOfGroupRecords > 0 )
-      {     
+      { 
+        /*Get Multicast Group Address of First Group Record*/         
         groupAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[12]);
 
         //Convert to Little Endian
         groupAddr.addr.ipv4.s_addr = osapiNtohl(groupAddr.addr.ipv4.s_addr);
+
+        /*Get Number of Sources of First Group Address*/
+        noOfSources = osapiNtohs(*((L7_uint16 *) &igmpPtr[10]));    
+
+        if (noOfSources == 0)
+        {
+          //AnySource
+        }
+        else
+        {
+          /*Get Source  Address of First Group Record*/         
+          sourceAddr.addr.ipv4.s_addr = *(L7_uint32 *) ((L7_uint8 *) &igmpPtr[16]);
+
+          //Convert to Little Endian
+          sourceAddr.addr.ipv4.s_addr = osapiNtohl(sourceAddr.addr.ipv4.s_addr);
+        }        
       }
       else
       {
