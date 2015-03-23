@@ -1102,14 +1102,17 @@ extern L7_RC_t ptin_igmp_clientIntfVlan_validate(L7_uint32 intIfNum, L7_uint16 i
 /**
  * Get the MC root vlan associated to the internal vlan
  *  
- * @param groupChannel  : Channel Group address 
- * @param sourceChannel : Channel Source address 
- * @param intVlan       : internal vlan
- * @param McastRootVlan : multicast root vlan
+ * @param intVlan       : Internal VLAN 
+ * @param intIfNum      : Interface Number isLeafPort 
+ * @param isLeafPort    : Port Type is Leaf
+ * @param clientId      : Client Identifier
+ * @param groupAddr     : Channel Group address 
+ * @param sourceAddr    : Channel Source address 
+ * @param mcastRootVlan : Multicast root vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint32 intIfNum, L7_uint32 client_idx, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *McastRootVlan);
+extern L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *mcastRootVlan);
 #else
 /**
  * Get the MC root vlan associated to the internal vlan
@@ -1445,7 +1448,8 @@ extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_groupcli
 /**
  * @purpose Get the bandwidth requested by a given 
  * channel
- * 
+ *  
+ * @param evc_mc:   
  * @param channel_group:  
  * @param channel_source:  
  * @param channelBandwidth: 
@@ -1457,7 +1461,7 @@ extern L7_RC_t ptin_igmp_admission_control_verify_the_presence_of_other_groupcli
  *        returned.
  *  
  */
-extern L7_RC_t ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* channel_group, L7_inet_addr_t* channel_source, L7_uint32 *channel_bandwidth);
+extern L7_RC_t ptin_igmp_channel_bandwidth_get(L7_uint32 evc_mc, L7_inet_addr_t* channel_group, L7_inet_addr_t* channel_source, L7_uint32 *channel_bandwidth);
 
 /**
  * @purpose Verifies if a given client Id has available 

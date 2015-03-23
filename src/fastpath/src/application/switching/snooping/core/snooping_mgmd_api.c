@@ -425,12 +425,14 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
   L7_inet_addr_t groupInetAddr;
   L7_inet_addr_t sourceInetAddr;
   L7_uint16      mcastRootVlan;
+  L7_uint16      intVlan = (L7_uint16) -1;
+  L7_BOOL        isLeafPort = L7_TRUE;
 
   /* Get multicast root vlan */
   inetAddressSet(L7_AF_INET, &groupAddr,  &groupInetAddr);
   inetAddressSet(L7_AF_INET, &sourceAddr, &sourceInetAddr);
 
-  if (ptin_igmp_McastRootVlan_get(portId, clientId, &groupInetAddr, &sourceInetAddr, &mcastRootVlan)==L7_SUCCESS)
+  if (ptin_igmp_McastRootVlan_get(intVlan, portId, isLeafPort, clientId, &groupInetAddr, &sourceInetAddr, &mcastRootVlan)==L7_SUCCESS)
   {
     if(SUCCESS != ptin_igmp_clientIntfVlan_validate(portId, mcastRootVlan))
     {
@@ -516,7 +518,7 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
     inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
 
     ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(serviceId, &inetGroupAddr, &inetSourceAddr, &channelBandwidth))
     {
       ptin_timer_stop(60);
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -576,7 +578,7 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
     inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
 
     ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(serviceId, &inetGroupAddr, &inetSourceAddr, &channelBandwidth))
     {
       ptin_timer_stop(60);
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -636,7 +638,7 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
     inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
 
     ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(serviceId, &inetGroupAddr, &inetSourceAddr, &channelBandwidth))
     {
       ptin_timer_stop(60);
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -707,7 +709,7 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
     inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
 
     ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(serviceId, &inetGroupAddr, &inetSourceAddr, &channelBandwidth))
     {
       ptin_timer_stop(60);
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -800,7 +802,7 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
     inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
 
     ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(serviceId, &inetGroupAddr, &inetSourceAddr, &channelBandwidth))
     {
       ptin_timer_stop(60);
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);
@@ -893,7 +895,7 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
     inetAddressSet(L7_AF_INET, &sourceAddr , &inetSourceAddr);
 
     ptin_timer_start(60,"ptin_igmp_channel_bandwidth_get");
-    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(&inetGroupAddr, &inetSourceAddr, &channelBandwidth))
+    if ( L7_SUCCESS != ptin_igmp_channel_bandwidth_get(serviceId, &inetGroupAddr, &inetSourceAddr, &channelBandwidth))
     {
       ptin_timer_stop(60);
       LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to obtain channel bandwidth [serviceId:%u portId:%u groupAddr:0x%08x sourceAddr:0x%08x]", serviceId, portId, groupAddr, sourceAddr);

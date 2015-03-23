@@ -168,6 +168,13 @@ L7_RC_t ptin_msg_FPInfo_get(msg_FWFastpathInfo *msgFPInfo)
 
 L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *ptinIpAddr)
 {
+   if ( ptinIpAddr == L7_NULLPTR || fpIpAddr == L7_NULLPTR)
+   {
+      return L7_FAILURE;
+   } 
+
+   memset(ptinIpAddr, 0, sizeof(*ptinIpAddr));
+
    if ( fpIpAddr->family == L7_AF_INET)
    {
       ptinIpAddr->family = PTIN_AF_INET;
@@ -191,15 +198,19 @@ L7_RC_t fp_to_ptin_ip_notation(L7_inet_addr_t *fpIpAddr, chmessage_ip_addr_t *pt
 
 L7_RC_t ptin_to_fp_ip_notation(chmessage_ip_addr_t *ptinIpAddr, L7_inet_addr_t *fpIpAddr)
 {
+   if ( ptinIpAddr == L7_NULLPTR || fpIpAddr == L7_NULLPTR)
+   {
+      return L7_FAILURE;
+   }
+  
    if ( ptinIpAddr->family == PTIN_AF_INET )
    {      
      inetAddressSet(L7_AF_INET, &ptinIpAddr->addr.ipv4, fpIpAddr);          
      return L7_SUCCESS;
    }
    else if ( ptinIpAddr->family == PTIN_AF_INET6 )
-   { 
-     fpIpAddr->family = L7_AF_INET6;
-     memcpy(fpIpAddr->addr.ipv6.in6.addr8, ptinIpAddr->addr.ipv6, L7_IP6_ADDR_LEN*sizeof(L7_uchar8));               
+   {
+     inetAddressSet(L7_AF_INET6, &ptinIpAddr->addr.ipv6, fpIpAddr);          
      return L7_SUCCESS;
    }
    else
@@ -7510,19 +7521,13 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
       return L7_FAILURE;
     }
     #endif
-    /* Prepare group address */
-    memset(&groupAddr, 0x00, sizeof(L7_inet_addr_t));
-    if (channel_list[i].channel_dstIp.family == PTIN_AF_INET6)
+    /* Prepare group address */    
+    rc = ptin_to_fp_ip_notation(&channel_list[i].channel_dstIp, &groupAddr);
+    if ( rc != L7_SUCCESS)
     {
-      groupAddr.family = L7_AF_INET6;
-      memcpy(groupAddr.addr.ipv6.in6.addr8, channel_list[i].channel_dstIp.addr.ipv6, sizeof(L7_uint8)*16);
+      return rc;
     }
-    else
-    {
-      groupAddr.family = L7_AF_INET;
-      groupAddr.addr.ipv4.s_addr = channel_list[i].channel_dstIp.addr.ipv4;
-    }
-
+   
     if (inetIsAddressZero(&groupAddr) == L7_FALSE && inetIsInMulticast(&groupAddr)== L7_FALSE)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Group channel = 0x%08x (ipv6=%u) / %u is not a multicast address",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
@@ -7530,23 +7535,16 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
     }
 
     /* Prepare source address */
-    memset(&sourceAddr, 0x00, sizeof(L7_inet_addr_t));
-    if (channel_list[i].channel_srcIp.family == PTIN_AF_INET6)
+    rc = ptin_to_fp_ip_notation(&channel_list[i].channel_srcIp, &sourceAddr);
+    if ( rc != L7_SUCCESS)
     {
-      sourceAddr.family = L7_AF_INET6;
-      memcpy(sourceAddr.addr.ipv6.in6.addr8, channel_list[i].channel_srcIp.addr.ipv6, sizeof(L7_uint8)*16);     
-    }
-    else
-    {
-      sourceAddr.family = L7_AF_INET;
-      sourceAddr.addr.ipv4.s_addr = channel_list[i].channel_srcIp.addr.ipv4;
+      return rc;
     }
 
     if ( channel_list[i].channel_srcmask == 0 && inetIsAddressZero(&sourceAddr) != L7_TRUE)
     {
       channel_list[i].channel_srcmask = 32;
-    }
-    
+    }    
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 

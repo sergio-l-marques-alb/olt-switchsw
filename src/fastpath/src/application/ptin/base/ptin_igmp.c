@@ -383,6 +383,7 @@ typedef struct
 typedef struct
 {
   L7_uint8       inUse;
+  L7_uint32      evc_mc;
   L7_inet_addr_t channel_group;
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
   L7_inet_addr_t  channel_source;
@@ -5908,48 +5909,62 @@ ptinIgmpGroupClientInfoData_t* groupClientId2groupClientPtr(L7_uint32 ptin_port,
 /**
  * Get the MC root vlan associated to the internal vlan
  *  
- * @param groupAddr  : Channel Group address 
- * @param sourceAddr : Channel Source address 
- * @param intVlan       : internal vlan
- * @param McastRootVlan : multicast root vlan
+ * @param intVlan       : Internal VLAN 
+ * @param intIfNum      : Interface Number isLeafPort 
+ * @param isLeafPort    : Port Type is Leaf
+ * @param clientId      : Client Identifier
+ * @param groupAddr     : Channel Group address 
+ * @param sourceAddr    : Channel Source address 
+ * @param mcastRootVlan : Multicast root vlan
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint32 intIfNum, L7_uint32 client_idx, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *McastRootVlan)
+L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BOOL isLeafPort, L7_uint32 clientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint16 *mcastRootVlan)
 {
-  L7_uint32         evcId_mc;
-  L7_uint32         ptin_port;
+  L7_uint32         mcastEvcId;
+  L7_uint32         ptinPort;
   L7_uint16         intRootVlan;
+  st_IgmpInstCfg_t *igmpInst;
 
   /*Input Parameters Validation*/  
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || client_idx >= PTIN_IGMP_CLIENTIDX_MAX ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || McastRootVlan == L7_NULLPTR)
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastRootVlan == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p McastRootVlan:%p]", intIfNum, client_idx, groupAddr, sourceAddr, McastRootVlan);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p McastRootVlan:%p]", intIfNum, clientId, groupAddr, sourceAddr, mcastRootVlan);    
     return L7_FAILURE;
   }
 
-  if ( ptin_intf_intIfNum2port(intIfNum, &ptin_port) != L7_SUCCESS )
+  /* IGMP instance, from internal vlan */
+  if (isLeafPort == L7_FALSE && (L7_uint16)-1 != intVlan && ptin_igmp_inst_get_fromIntVlan(intVlan,&igmpInst,L7_NULLPTR)==L7_SUCCESS)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to obtain ptin_port from intIfNum:%u", intIfNum);
-    return L7_FAILURE;
+    /* This vlan is related to an EVC belonging to an IGMP instance: use its evc id */
+    mcastEvcId = igmpInst->McastEvcId;
   }
-
-  if ( ptin_igmp_multicast_channel_service_get(ptin_port, client_idx, groupAddr, sourceAddr, &evcId_mc) != L7_SUCCESS )
+  else
   {
-    if (ptin_debug_igmp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to Get Multicast Service [ptin_port:%u client_idx:%u]", ptin_port, client_idx);
-    return L7_FAILURE;
+    if ( ptin_intf_intIfNum2port(intIfNum, &ptinPort) != L7_SUCCESS )
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to obtain ptin_port from intIfNum:%u", intIfNum);
+      return L7_FAILURE;
+    }
+
+    if ( ptin_igmp_multicast_channel_service_get(ptinPort, clientId, groupAddr, sourceAddr, &mcastEvcId) != L7_SUCCESS )
+    {
+      if (ptin_debug_igmp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_IGMP,"Failed to Get Multicast Service [ptin_port:%u client_idx:%u]", ptinPort, clientId);
+      return L7_FAILURE;
+    }
   }
 
   /* Get Multicast root vlan */
-  if ( ptin_evc_intRootVlan_get(evcId_mc, &intRootVlan) != L7_SUCCESS )
+  if ( ptin_evc_intRootVlan_get(mcastEvcId, &intRootVlan) != L7_SUCCESS )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan from MCEvcId=%u", evcId_mc);      
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Error getting McastRootVlan from MCEvcId=%u", mcastEvcId);      
     return L7_FAILURE;
   }
+ 
 
   /* Return Multicast root vlan */
-  *McastRootVlan = intRootVlan;  
+  *mcastRootVlan = intRootVlan;  
   return L7_SUCCESS;
 }
 #else
@@ -7302,8 +7317,7 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   if (ptin_igmp_netmask_to_channel( channel_group, channel_grpMask, &group, &n_groups)!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error preparing groupAddr");
-    //return L7_FAILURE;
-    return L7_SUCCESS;
+    return L7_FAILURE;    
   }
   /* Validate output ip address */
 
@@ -7315,15 +7329,11 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add group 0x%08x (%u addresses)", group.addr.ipv4.s_addr, n_groups);
 
-  /* source ip */
-  memset(&source, 0x00, sizeof(L7_inet_addr_t));
-  n_sources = 1;
-
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
   //AnySource
   if (inetIsAddressZero(channel_source)==L7_TRUE && channel_srcMask==0)
   {
-    memcpy(&source, channel_source, sizeof(L7_inet_addr_t));
+    inetAddressZeroSet(channel_source->family, &source);    
     n_sources=1;    
   }
   else
@@ -7337,9 +7347,13 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   {
     n_sources = 1;
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Source address is not valid!");
-  }
-  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add source 0x%08x (%u addresses)", source.addr.ipv4.s_addr, n_sources);
+  }  
+#else
+  /* source ip */  
+  inetAddressZeroSet(channel_group->family, &source);    
+  n_sources = 1;
 #endif
+  LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add source 0x%08x (%u addresses)", source.addr.ipv4.s_addr, n_sources);
 
   /* Validate multicast service */
   if ( evc_mc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
@@ -7359,7 +7373,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
     LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u does not belong to any IGMP instance!", evc_mc);
     return L7_FAILURE;
   }
-
 
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Maximum addresses to be added: %u", n_groups*n_sources);
 
@@ -7387,7 +7400,8 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   {
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
     L7_int32        j = 0;
-    memcpy(&sourceAux, &source, sizeof(L7_inet_addr_t));
+    inetCopy(&sourceAux, &source);
+      
     /* Run all source addresses */
     while ((rc==L7_SUCCESS && j<n_sources) || (rc!=L7_SUCCESS && j>=0))
 #endif
@@ -7399,10 +7413,10 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
       avl_node.channelDataKey.evc_uc = evc_uc;
 #endif
 
-      memcpy(&avl_node.channelDataKey.channel_group, &group, sizeof(L7_inet_addr_t));
-
+      inetCopy(&avl_node.channelDataKey.channel_group, &group);    
+        
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
-      memcpy(&avl_node.channelDataKey.channel_source, &sourceAux, sizeof(L7_inet_addr_t));
+      inetCopy(&avl_node.channelDataKey.channel_source, &sourceAux);      
 #endif
 
       /* In case of success, continue adding nodes into avl tree */
@@ -13450,6 +13464,8 @@ static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpChannelInfoData_t* pti
 
   ptinIgmpChannelBandwidthCache.inUse = L7_TRUE;
   ptinIgmpChannelBandwidthCache.channelBandwidth = ptinIgmpPairInfoData->channelBandwidth;
+
+  ptinIgmpChannelBandwidthCache.evc_mc = ptinIgmpPairInfoData->channelDataKey.evc_mc;
   memcpy(&ptinIgmpChannelBandwidthCache.channel_group, &ptinIgmpPairInfoData->channelDataKey.channel_group, sizeof(L7_inet_addr_t));   
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
   memcpy(&ptinIgmpChannelBandwidthCache.channel_source, &ptinIgmpPairInfoData->channelDataKey.channel_source, sizeof(L7_inet_addr_t));   
@@ -13457,8 +13473,11 @@ static void ptin_igmp_channel_bandwidth_cache_set(ptinIgmpChannelInfoData_t* pti
 
   if (ptin_debug_igmp_snooping)
   {
-    char  debug_buf[IPV6_DISP_ADDR_LEN]={};    
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Caching Channel Bandwidth [channel:%s bandwidth:%u kbps]",inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,debug_buf), ptinIgmpChannelBandwidthCache.channelBandwidth); 
+    char  groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+    char  sourceAddrStr[IPV6_DISP_ADDR_LEN]={};   
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Uncache Channel Bandwidth [inUse:%s evc_mc:%u groupAddr:%s sourceAddr:%s bandwidth:%u kbps]",ptinIgmpChannelBandwidthCache.inUse?"Yes":"No", 
+              ptinIgmpChannelBandwidthCache.evc_mc, inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,groupAddrStr), 
+              inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_source,sourceAddrStr), ptinIgmpChannelBandwidthCache.channelBandwidth); 
   }
 }
 
@@ -13471,7 +13490,7 @@ static void ptin_igmp_channel_bandwidth_cache_unset(ptinIgmpChannelDataKey_t* pt
     return;
   }
 
-  if ( ptinIgmpChannelBandwidthCache.inUse == L7_TRUE && L7_INET_ADDR_COMPARE(&ptinIgmpPairDataKey->channel_group, &ptinIgmpChannelBandwidthCache.channel_group) == 0
+  if ( ptinIgmpChannelBandwidthCache.inUse == L7_TRUE && ptinIgmpPairDataKey->evc_mc == ptinIgmpChannelBandwidthCache.evc_mc && L7_INET_ADDR_COMPARE(&ptinIgmpPairDataKey->channel_group, &ptinIgmpChannelBandwidthCache.channel_group) == 0
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
        && L7_INET_ADDR_COMPARE(&ptinIgmpPairDataKey->channel_source, &ptinIgmpChannelBandwidthCache.channel_source) == 0
 #endif
@@ -13479,8 +13498,11 @@ static void ptin_igmp_channel_bandwidth_cache_unset(ptinIgmpChannelDataKey_t* pt
   {
     if (ptin_debug_igmp_snooping)
     {
-      char  debug_buf[IPV6_DISP_ADDR_LEN]={};    
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Uncache Channel Bandwidth [channel:%s bandwidth:%u kbps]",inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,debug_buf), ptinIgmpChannelBandwidthCache.channelBandwidth); 
+      char  groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+      char  sourceAddrStr[IPV6_DISP_ADDR_LEN]={};   
+      LOG_TRACE(LOG_CTX_PTIN_IGMP,"Uncache Channel Bandwidth [inUse:%s evc_mc:%u groupAddr:%s sourceAddr:%s bandwidth:%u kbps]",ptinIgmpChannelBandwidthCache.inUse?"Yes":"No",
+                 ptinIgmpChannelBandwidthCache.evc_mc, inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,groupAddrStr), 
+                inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_source,sourceAddrStr), ptinIgmpChannelBandwidthCache.channelBandwidth); 
     }
 
     ptinIgmpChannelBandwidthCache.inUse = L7_FALSE;
@@ -13491,8 +13513,11 @@ static ptinIgmpChannelBandwidthCache_t* ptin_igmp_channel_bandwidth_cache_get(vo
 {
   if (ptin_debug_igmp_snooping)
   {
-    char  debug_buf[IPV6_DISP_ADDR_LEN]={};
-    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cached Channel Bandwidth [inUse:%s channel:%s bandwidth:%u kbps]",ptinIgmpChannelBandwidthCache.inUse?"Yes":"No", inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,debug_buf), ptinIgmpChannelBandwidthCache.channelBandwidth); 
+    char  groupAddrStr[IPV6_DISP_ADDR_LEN]={};
+    char  sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+    LOG_TRACE(LOG_CTX_PTIN_IGMP,"Cached Channel Bandwidth [inUse:%s evc_mc:%u groupAddr:%s sourceAddr:%s bandwidth:%u kbps]",ptinIgmpChannelBandwidthCache.inUse?"Yes":"No",
+               ptinIgmpChannelBandwidthCache.evc_mc, inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_group,groupAddrStr), 
+              inetAddrPrint(&ptinIgmpChannelBandwidthCache.channel_source,sourceAddrStr), ptinIgmpChannelBandwidthCache.channelBandwidth); 
   }
   return(&ptinIgmpChannelBandwidthCache);  
 }
@@ -14086,7 +14111,8 @@ void ptin_igmp_admission_control_multicast_service_dump_all(void)
 /**
  * @purpose Get the bandwidth requested by a given 
  * channel
- * 
+ *  
+ * @param evc_mc:   
  * @param channel_group:  
  * @param channel_source:  
  * @param channelBandwidth: 
@@ -14098,12 +14124,11 @@ void ptin_igmp_admission_control_multicast_service_dump_all(void)
  *        returned.
  *  
  */
-L7_RC_t ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* channel_group, L7_inet_addr_t* channel_source, L7_uint32 *channel_bandwidth)
+L7_RC_t ptin_igmp_channel_bandwidth_get(L7_uint32 evc_mc, L7_inet_addr_t* channel_group, L7_inet_addr_t* channel_source, L7_uint32 *channel_bandwidth)
 {
-  ptinIgmpChannelDataKey_t              ptinIgmpPairDataKey;
-  ptinIgmpChannelInfoData_t*            ptinIgmpPairInfoData;
-  ptinIgmpChannelBandwidthCache_t*   ptinIgmpChannelBandwidthCachePtr;  
-
+  ptinIgmpChannelInfoData_t*            ptinIgmpPairInfoData = L7_NULLPTR;
+  ptinIgmpChannelBandwidthCache_t*      ptinIgmpChannelBandwidthCachePtr;  
+ 
 //We currently do not support any of this modes
 #if ( IGMPASSOC_CHANNEL_UC_EVC_ISOLATION )
 #error "Parameter Currently Not Supported!"
@@ -14120,7 +14145,7 @@ L7_RC_t ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* channel_group, L7_inet_a
 
   if (ptinIgmpChannelBandwidthCachePtr->inUse == L7_TRUE)
   {
-    if (L7_INET_ADDR_COMPARE(channel_group, &ptinIgmpChannelBandwidthCachePtr->channel_group) == 0  
+    if (evc_mc == ptinIgmpChannelBandwidthCachePtr->evc_mc && L7_INET_ADDR_COMPARE(channel_group, &ptinIgmpChannelBandwidthCachePtr->channel_group) == 0  
 #if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
         && L7_INET_ADDR_COMPARE(channel_source, &ptinIgmpChannelBandwidthCachePtr->channel_source) == 0 
 #endif
@@ -14130,55 +14155,13 @@ L7_RC_t ptin_igmp_channel_bandwidth_get(L7_inet_addr_t* channel_group, L7_inet_a
       return L7_SUCCESS;
     }
   }
-
-  /* Prepare ptinIgmpPairDataKey */
-  memset( &ptinIgmpPairDataKey, 0x00, sizeof(ptinIgmpChannelDataKey_t));
-
-  memcpy(&ptinIgmpPairDataKey.channel_group, channel_group, sizeof(L7_inet_addr_t));
-
-#if ( IGMPASSOC_CHANNEL_SOURCE_SUPPORTED )
-  memcpy(&ptinIgmpPairDataKey.channel_source, channel_source, sizeof(L7_inet_addr_t));
-#endif
-
+ 
   /* Check if this key does exist */
-  if ((ptinIgmpPairInfoData = (ptinIgmpChannelInfoData_t *) avlSearchLVL7( &(channelDB.channelAvlTree), (void *) &ptinIgmpPairDataKey, AVL_EXACT)) == L7_NULLPTR)
+  if ( ptin_igmp_channel_get(evc_mc, channel_group, channel_source, &ptinIgmpPairInfoData) != L7_SUCCESS ||  ptinIgmpPairInfoData == L7_NULLPTR )
   {
-#if 0
-    /*If this key does not exist. Should we try to use a pre-defined value or search for the default multicast group?*/    
-
-    /*Trying to search for a pre-defined value*/
-    memset( &ptinIgmpPairDataKey, 0x00, sizeof(ptinIgmpPairDataKey_t));
-    if ((ptinIgmpPairInfoData = (ptinIgmpPairInfoData_t *) avlSearchLVL7( &(igmpPairDB.igmpPairAvlTree), (void *) &ptinIgmpPairDataKey, AVL_EXACT)) == L7_NULLPTR)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist.",
-                  ptinIgmpPairDataKey.channel_group.addr.ipv4.s_addr);   
-      return L7_FAILURE;
-    }
-    else
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist. Using Instead Default Multicast Service",
-                   ptinIgmpPairDataKey.channel_group.addr.ipv4.s_addr);
-    }
-#else
-    /*ToDo: We need to decide if we allow this behaviour*/
-
-    /* Lets try to search, but using any source instead*/    
-    inetAddressZeroSet(channel_group->family, &ptinIgmpPairDataKey.channel_source);
-    if ( inetIsAddressZero(channel_source) == L7_TRUE || (ptinIgmpPairInfoData = (ptinIgmpChannelInfoData_t *) avlSearchLVL7( &(channelDB.channelAvlTree), (void *) &ptinIgmpPairDataKey, AVL_EXACT)) == L7_NULLPTR)
-    {
-      LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group 0x%08x / Source does 0x%08x not exist.",
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Group 0x%08x / Source does 0x%08x not exist.",
                   channel_group->addr.ipv4.s_addr, channel_source->addr.ipv4.s_addr);   
-      return L7_FAILURE;
-
-    }
-    else
-    {
-      if (ptin_debug_igmp_snooping)
-        LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Group 0x%08x / Source does 0x%08x not exist (using any source instead).",
-                   channel_group->addr.ipv4.s_addr, channel_source->addr.ipv4.s_addr);
-    }
-#endif
+    return L7_FAILURE;
   }
 
   /*Set Channel Bandwidth Cache*/
