@@ -18503,9 +18503,8 @@ static RC_t ptin_igmp_client_channel_dependency_validation(L7_uint32 packageId, 
     return L7_SUCCESS;
   }
 
-
   while ( L7_NULLPTR != (packageEntry = queue_package_entry_get_next(channelAvlTreeEntry, packageEntry)) && 
-          PTIN_SYSTEM_IGMP_MAXPACKAGES < (packageIdAux = packageEntry->packageId) )
+           (packageIdAux = packageEntry->packageId) < PTIN_SYSTEM_IGMP_MAXPACKAGES)
   {
     if ( packageIdAux ==  packageId )
     {
