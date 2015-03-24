@@ -54,6 +54,7 @@ typedef struct
 
 static mac_learn_info_t macLearn_info_vlan[MAX_VLANS+1];
 static mac_learn_info_t macLearn_info_flow[MAX_GPORTS+1];
+static mac_learn_info_t macLearn_info_physical[L7_MAX_PORT_COUNT+1];
 
 
 /********************************************************************
@@ -99,7 +100,20 @@ L7_RC_t ptin_hapi_maclimit_init(void)
     macLearn_info_flow[i].uni_ovid            = 0;
   }
 
+  /* MAC learning control at physical port level */
+  for (i=0; i<L7_MAX_PORT_COUNT; i++)
+  {
+    macLearn_info_physical[i].mac_counter = 0;
+    macLearn_info_physical[i].mac_total   = 0;
+    macLearn_info_physical[i].mac_limit   = (L7_uint8)-1;  /*no limit */
+
+    macLearn_info_physical[i].trap_sent           = L7_FALSE;
+    macLearn_info_physical[i].ptin_intf.intf_type = 0;
+    macLearn_info_physical[i].ptin_intf.intf_id   = 0;
+    macLearn_info_physical[i].uni_ovid            = 0;
+  }
   return L7_SUCCESS;
+
 }
 
 /**
@@ -111,10 +125,13 @@ L7_RC_t ptin_hapi_maclimit_init(void)
  */
 L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
 {
-  L7_uint vport_id = 0;
-  L7_uint vlan_id = 0;
-
-  if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+  L7_uint vport_id      = 0;
+  L7_uint vlan_id       = 0;
+  bcm_port_t bcm_port   = 0;
+  L7_uint physical_port = 0; 
+   
+  
+  if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport)) // Check if a Virtual port level
   {
     vport_id = bcmx_l2_addr->lport & 0xffff;
 
@@ -146,7 +163,6 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
         send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[vport_id].uni_ovid);
         macLearn_info_flow[vport_id].trap_sent = L7_TRUE;
       }
-
       return L7_FAILURE;
     }
 
@@ -165,34 +181,90 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
       bcm_port_learn_set(0, bcmx_l2_addr->lport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
     }
-
   }
-  else
-  {
-    vlan_id = bcmx_l2_addr->vid;
 
+  /* Check if is a VLAN port */
+  vlan_id = bcmx_l2_addr->vid;
+
+  if(vlan_id != 0)
+  {
     /* VLAN ID is valid? */
     if (vlan_id > MAX_VLANS)
     {
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (VLAN ID=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
-
     /* Feature enabled? */
     if (macLearn_info_flow[vport_id].mac_limit == (L7_uint8)-1)
-    {
-      return L7_FAILURE;
-    }
-
-    /* Do not accept more MAC addresses, if maximum was reached */
-    if (macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_limit)
-    {
-      return L7_FAILURE;
-    }
-
-    macLearn_info_vlan[vlan_id].mac_counter++;
+   {
+     return L7_FAILURE;
+   }
+   /* Do not accept more MAC addresses, if maximum was reached */
+   if (macLearn_info_vlan[vlan_id].mac_counter >= macLearn_info_vlan[vlan_id].mac_limit)
+   {
+     return L7_FAILURE;
+   }
+   macLearn_info_vlan[vlan_id].mac_counter++; 
   }
 
+  /* Check if is a physical port */
+  else 
+  { 
+    /* Check if is valid physical port */
+    if(BCMX_LPORT_VALID(bcmx_l2_addr->lport))
+    { 
+      bcm_port = BCMX_LPORT_BCM_PORT(bcmx_l2_addr->lport);
+      hapi_ptin_port_get(bcm_port, &physical_port);
+    }
+   
+    /*Physical port ID is valid? */
+    if (physical_port > L7_MAX_PORT_COUNT)
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Physical is out of range! (physical_id=%u max=%u)", physical_port, L7_MAX_PORT_COUNT);
+      return L7_FAILURE;
+    }
+      
+    /* Feature enabled? */
+    if (macLearn_info_physical[physical_port].mac_limit == (L7_uint8)-1)
+    {  
+      return L7_FAILURE;
+    }
+      
+    /* Do not accept more mac addresses, if maximum was reached */
+    if (macLearn_info_physical[physical_port].mac_counter >= macLearn_info_physical[physical_port].mac_limit)
+    {  
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on Physical port %d and GPORT 0x%x rejected (flags 0x%x)",
+              __FUNCTION__, 
+              bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+              bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+     
+      macLearn_info_physical[physical_port].mac_total++;
+       
+      if (macLearn_info_physical[physical_port].trap_sent == L7_FALSE)
+      {
+        send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_physical[physical_port].uni_ovid);
+        macLearn_info_physical[physical_port].trap_sent = L7_TRUE;
+      }
+      
+      return L7_FAILURE;
+    }
+      
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x accepted (flags 0x%x)\r\n",
+              __FUNCTION__, 
+              bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+              bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+      
+    macLearn_info_physical[physical_port].mac_counter++;
+    macLearn_info_physical[physical_port].mac_total++;
+      
+    /* Check if maximum was reached */
+    if (macLearn_info_physical[physical_port].mac_counter >= macLearn_info_physical[physical_port].mac_limit)
+    {
+      /* Enable the use of Pending Mechanism but disable FWD */
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (Physical Port=0x%x)", bcmx_l2_addr->lport);
+            bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+    }    
+  }
   return L7_SUCCESS;
 }
 
@@ -207,15 +279,17 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
 {
   L7_uint vport_id = 0;
   L7_uint vlan_id = 0;
-
+  bcm_port_t bcm_port = 0; 
+  L7_uint physical_port = 0;
+  
   if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
   {
     vport_id = bcmx_l2_addr->lport & 0xffff;
 
     /* Virtual port ID is valid? */
-    if (vport_id > MAX_GPORTS)
+    if (vport_id > L7_MAX_PORT_COUNT)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "GPORT is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Physical port is out of range! (vport_id=%u max=%u)", vport_id, MAX_GPORTS);
       return L7_FAILURE;
     }
 
@@ -274,17 +348,19 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     }
     #endif
   }
-  else
-  {
-    vlan_id = bcmx_l2_addr->vid;
 
+  /* Check if is a VLAN port */
+  vlan_id = bcmx_l2_addr->vid;
+
+  if(vlan_id != 0)
+  {
     /* VLAN ID is valid? */
     if (vlan_id > MAX_VLANS)
     {
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (VLAN ID=%u max=%u)", vlan_id, MAX_VLANS);
       return L7_FAILURE;
     }
-
+  
     /* Feature enabled? */
     if (macLearn_info_flow[vport_id].mac_limit == (L7_uint8)-1)
     {
@@ -296,8 +372,71 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       macLearn_info_vlan[vlan_id].mac_counter--;
     }
-  }
 
+  }
+  /* Check if is a physical port */
+  else
+  {
+    /* Check if is valid */
+    if(BCMX_LPORT_VALID(bcmx_l2_addr->lport))
+    {
+      bcm_port = BCMX_LPORT_BCM_PORT(bcmx_l2_addr->lport);
+    }
+    hapi_ptin_port_get(bcm_port, &physical_port); 
+
+    /*Physical port ID is valid?  */
+    if ( (physical_port > L7_MAX_PORT_COUNT) )
+    {
+      LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Physical is out of range! (physical_id=%u max=%u)", hapi_ptin_port_get(physical_port, &physical_port), L7_MAX_PORT_COUNT);
+      return L7_FAILURE;
+    }
+
+    /* Feature enabled? */
+    if (macLearn_info_physical[physical_port].mac_limit == (L7_uint8)-1)
+    {
+      return L7_FAILURE;
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x cleared (flags 0x%x)",
+              __FUNCTION__, 
+              bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+              bcmx_l2_addr->vid, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
+
+     /*Do not accept more MAC addresses, if maximum was reached 
+     if BCM_L2_PENDING is cleared, it means it is a aging of a learned MAC in the L2 table */
+      
+     if (((bcmx_l2_addr->flags & BCM_L2_PENDING) && !(bcmx_l2_addr->flags & BCM_L2_MOVE)))
+     {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x/VID %d with PENDING flag",__FUNCTION__,
+                  bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
+                  bcmx_l2_addr->vid);
+
+        /* Decrement, but only if greater than 0*/
+        if ((macLearn_info_physical[physical_port].mac_total > macLearn_info_physical[physical_port].mac_counter) && (macLearn_info_physical[physical_port].mac_total > 0))
+         {
+           macLearn_info_physical[physical_port].mac_total--;
+         }
+        
+         return L7_FAILURE;
+      }  
+  
+      /* Decrement, but only if greater than 0 */
+      if (macLearn_info_physical[physical_port].mac_counter > 0)
+      {
+         macLearn_info_physical[physical_port].mac_counter--;
+         macLearn_info_physical[physical_port].mac_total--;
+      }
+
+      /* Check if maximum was reached */
+      if ((macLearn_info_physical[physical_port].mac_counter <= macLearn_info_physical[physical_port].mac_limit) )
+      {
+         if (macLearn_info_physical[physical_port].trap_sent == L7_TRUE)
+         {
+           send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_physical[physical_port].uni_ovid);
+           macLearn_info_physical[physical_port].trap_sent = L7_FALSE;
+         }
+      }
+  }
   return L7_SUCCESS;
 }
 
@@ -370,6 +509,35 @@ L7_RC_t ptin_hapi_vlan_maclimit_reset(bcm_vlan_t vlan_id)
   macLearn_info_vlan[vlan_id].mac_counter = 0;
   macLearn_info_vlan[vlan_id].mac_limit = (L7_uint8)-1; /* no limit */
   macLearn_info_vlan[vlan_id].trap_sent = L7_FALSE; /* TODO: Close the alarm */
+
+  return L7_SUCCESS;
+}
+
+/**
+ * 
+ * 
+ * @param  
+ * @param 
+ * @param type :    BROAD_FLUSH_BY_PORT | BROAD_FLUSH_BY_VLAN | 
+ *                  BROAD_FLUSH_BY_MAC
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_physical_maclimit_reset(L7_uint port_id)
+{
+ 
+  /* VLAN ID is valid? */
+  if (port_id > L7_MAX_PORT_COUNT)
+  {
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Physical is out of range! (VLAN ID=%u max=%u)", port_id, L7_MAX_PORT_COUNT);
+    return L7_FAILURE;
+  }
+
+  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling MAC Limit Mechanism (Port ID=%u)", port_id);
+
+  macLearn_info_physical[port_id].mac_counter = 0;
+  macLearn_info_physical[port_id].mac_limit = (L7_uint8)-1; /* no limit */
+  macLearn_info_physical[port_id].trap_sent = L7_FALSE; /* TODO: Close the alarm */
 
   return L7_SUCCESS;
 }
@@ -489,7 +657,7 @@ L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 mac_limit)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint vlan_id, L7_int mac_limit, DAPI_t *dapi_g)
+L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_limit, DAPI_t *dapi_g)
 {
   DAPI_PORT_t           *dapiPortPtr;
   BROAD_PORT_t          *hapiPortPtr;
@@ -499,100 +667,126 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint vlan_id, L7_int mac
   bcm_l2_learn_limit_t  limit;
   L7_RC_t               rc = L7_SUCCESS;
   bcm_error_t           rv;
+  L7_uint               physical_port=0;
 
   bcm_l2_learn_limit_t_init(&limit);
 
-  /* Validate interface */
-  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
+  if(PTIN_BOARD == PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
   {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI,"No provided interface!");
-    return L7_SUCCESS;
+    return rc;
   }
-  if (ddUsp->unit<0 || ddUsp->slot<0 || ddUsp->port<0)
-  {
-    LOG_WARNING(LOG_CTX_PTIN_HAPI,"Invalid interface!");
-    return L7_FAILURE;
-  }
-
-  dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
-  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
-
-  /* Extract lport */
-  lport = hapiPortPtr->bcmx_lport;
-  LOG_TRACE(LOG_CTX_PTIN_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, lport);
-
-  /* Extract Trunk id */
-  if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
-  {
-    trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, trunk_id);    
-
-    limit.flags = BCM_L2_LEARN_LIMIT_TRUNK | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
-
-    limit.trunk = trunk_id;
-    limit.limit = mac_limit;
-  }
-  /* Extract Physical port */
-  else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
-  {
-    bcm_port = hapiPortPtr->bcm_port;
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, bcm_port);
-
-    limit.flags = BCM_L2_LEARN_LIMIT_PORT | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
-
-    limit.port = bcm_port;
-    limit.limit = mac_limit;
-
-    /* VLAN ID is valid? */
-    if ((vlan_id > 0) && (vlan_id < MAX_VLANS))
-    {
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Valid VLAN ID=%u", MAX_VLANS);
-
-      limit.flags |= BCM_L2_LEARN_LIMIT_VLAN;
-      limit.vlan = vlan_id;
-    }
-  }
-  /* VLAN type if VLAN ID is valid? */
-  else if ((vlan_id != 0) && (vlan_id <= MAX_VLANS))
-  {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Valid VLAN ID=%u", vlan_id);
-
-    limit.flags = BCM_L2_LEARN_LIMIT_VLAN | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
-
-    limit.vlan = vlan_id;
-    limit.limit = mac_limit;
-  }
-  /* Limit is system wide. */
   else
   {
-    LOG_TRACE(LOG_CTX_PTIN_HAPI, "Limit is system wide");
-
-    limit.flags = BCM_L2_LEARN_LIMIT_SYSTEM | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
-
-    limit.limit = mac_limit;
-  }
-
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", limit.flags);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "trunk  %u", limit.trunk);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "port   %u", limit.port);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vlan   %u", limit.vlan);
-  LOG_NOTICE(LOG_CTX_PTIN_HAPI, "limit  %u", limit.limit);
-
-  if ((rv=bcm_l2_learn_limit_set(0, &limit))!=BCM_E_NONE)
-  {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error (%d) setting L2 learn limit to %u", rv, mac_limit);
-    return L7_FAILURE;
-  }
-
-  if (mac_limit == (L7_uint8)-1)
-  {
-    if (macLearn_info_vlan[vlan_id].mac_limit != (L7_uint8)-1)
+    /* Validate interface */
+    if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
     {
-      rc = ptin_hapi_vlan_maclimit_reset(vlan_id);
+      LOG_WARNING(LOG_CTX_PTIN_HAPI,"No provided interface!");
+      return L7_SUCCESS;
     }
-  }
+    if (ddUsp->unit<0 || ddUsp->slot<0 || ddUsp->port<0)
+    {
+      LOG_WARNING(LOG_CTX_PTIN_HAPI,"Invalid interface!");
+      return L7_FAILURE;
+    }
 
-  return rc;
+    dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
+    hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+    /* Extract lport */
+    lport = hapiPortPtr->bcmx_lport;
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"Analysing interface {%d,%d,%d}: lport=0x%08x", ddUsp->unit, ddUsp->slot, ddUsp->port, lport);
+
+    /* Extract Trunk id */
+    if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr))
+    {
+      trunk_id = hapiPortPtr->hapiModeparm.lag.tgid;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d} is a lag: trunk_id = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, trunk_id);    
+
+      limit.flags = BCM_L2_LEARN_LIMIT_TRUNK | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+      limit.trunk = trunk_id;
+      limit.limit = mac_limit;
+    }
+    /* Extract Physical port */
+    else if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr))
+    {
+      bcm_port = hapiPortPtr->bcm_port;
+      LOG_TRACE(LOG_CTX_PTIN_HAPI,"Interface {%d,%d,%d} is a port: bcm_port = %d", ddUsp->unit, ddUsp->slot, ddUsp->port, bcm_port);
+
+      limit.flags = BCM_L2_LEARN_LIMIT_PORT | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+    
+      limit.port = bcm_port;
+      limit.limit = mac_limit;
+   
+      /* VLAN ID is valid? */
+      if ((vlan_id > 0) && (vlan_id < MAX_VLANS))
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, "Valid VLAN ID=%u", MAX_VLANS);
+
+        limit.flags |= BCM_L2_LEARN_LIMIT_VLAN;
+        limit.vlan = vlan_id;
+      }
+    }
+    /* VLAN type if VLAN ID is valid? */
+    else if ((vlan_id != 0) && (vlan_id <= MAX_VLANS))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Valid VLAN ID=%u", vlan_id);
+
+
+      limit.flags = BCM_L2_LEARN_LIMIT_VLAN | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+      limit.limit = mac_limit;
+    }
+
+    /*L7_int physical_port;
+    else if ((vlan_id ==0) && ((hapi_ptin_port_get(bcm_port, &physical_port)<L7_MAX_PORT_COUNT)))
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Valid Physical ID=%u", physical_port);
+
+      limit.flags = BCM_L2_LEARN_LIMIT_PORT | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+
+      limit.port = bcm_port;
+      limit.limit = mac_limit;
+    }*/
+
+    /* Limit is system wide. */
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "Limit is system wide");
+   
+      limit.flags = BCM_L2_LEARN_LIMIT_SYSTEM | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
+      limit.limit = mac_limit;
+    }
+
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "flags  0x%.4X", limit.flags);
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "trunk  %u", limit.trunk);
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "port   %u", limit.port);
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "vlan   %u", limit.vlan);
+    LOG_NOTICE(LOG_CTX_PTIN_HAPI, "limit  %u", limit.limit);
+
+    if ((rv=bcm_l2_learn_limit_set(0, &limit))!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error (%d) setting L2 learn limit to %u", rv, mac_limit);
+      return L7_FAILURE;
+    }
+
+    if (mac_limit == (L7_uint8)-1)
+    {
+      // Reset Mac Limit per VLAN level 
+      if (((vlan_id > 0) && (vlan_id < MAX_VLANS)) && (macLearn_info_vlan[vlan_id].mac_limit != (L7_uint8)-1))
+      {
+        rc = ptin_hapi_vlan_maclimit_reset(vlan_id);
+      }
+
+      // Reset Mac Limit per physical port level
+      hapi_ptin_port_get(limit.port, &physical_port);
+
+      if (((vlan_id == 0) && (physical_port < L7_MAX_PORT_COUNT)) && (macLearn_info_physical[physical_port].mac_limit != (L7_uint8)-1))
+      {
+        rc = ptin_hapi_physical_maclimit_reset(physical_port);
+      }
+    }
+
+    return rc;
+  }
 }
 
 /**
@@ -689,6 +883,14 @@ void ptin_maclimit_dump(void)
     }
   }
 
+   /* MAC learning control at physical port level */
+  for (i=0; i<MAX_GPORTS; i++) 
+  {
+    if (macLearn_info_physical[i].mac_limit != (L7_uint8)-1)
+    {
+      printf(" Physical PORT=0x%.4x  %u of %u (total: %u)\n", i, macLearn_info_physical[i].mac_counter, macLearn_info_physical[i].mac_limit, macLearn_info_physical[i].mac_total);
+    }
+  }
   printf("\n");
   fflush(stdout);
 }

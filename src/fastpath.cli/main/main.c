@@ -61,6 +61,7 @@ void help_oltBuga(void)
         "m 1018 intfType/intf# macAddr(xx:xx:xx:xx:xx:xx) - Set MAC address for the provided interface\r\n"
         "m 1020 port(0-MAX) - Show switch RFC2819 statistics\n\r"
         "m 1021 port(0-MAX) - Clear switch RFC2819 statistics\n\r"
+        "m 1022 MAC Limiting per interface - [slot] [system] [intf] [limit] [action] [send_trap]\n\r"
         "--- QOS and L2 commands --------------------------------------------------------------------------------------------------------------\n\r"
         "m 1030 intfType/intf# - Get QoS configuration\r\n"
         "m 1031 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
@@ -1250,6 +1251,74 @@ int main (int argc, char *argv[])
 
           comando.msgId = CCMSG_ETH_PHY_COUNTERS_CLEAR;
           comando.infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t);
+        }
+        break;
+
+        //MAC Limiting per interface
+      case 1022:
+        {
+          msg_l2_maclimit_config_t *ptr;
+
+          // Validate number of arguments
+          if (argc!=3+7)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_l2_maclimit_config_t *) &(comando.info[0]);
+          memset(ptr,0,sizeof(msg_l2_maclimit_config_t));
+
+          //SlotID
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->slotId = (uint8) valued;
+
+          // System
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->system = (uint8) valued;
+
+          // Intf
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_type = (uint8) valued;
+
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->intf.intf_id = (uint8) valued;
+
+          // limit
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->limit = (uint32) valued;
+
+          // action
+          if (StrToLongLong(argv[3+5],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->action = (uint8) valued;
+
+          // send_trap
+          if (StrToLongLong(argv[3+6],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->send_trap = (uint8) valued;
+      
+          comando.msgId = CCMSG_L2_MACLIMIT_CONFIG;
+          comando.infoDim = sizeof(msg_l2_maclimit_config_t);
         }
         break;
 
@@ -6290,6 +6359,25 @@ int main (int argc, char *argv[])
         else
           printf(" Switch: Error clearing port statistics - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
+
+      case 1022:
+
+       /*msg_l2_maclimit_config_t *ptr;
+        ptr = &(((msg_l2_maclimit_config_t *) resposta.info)[0]);
+         */
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          printf(" MAC Learning limiting applied \n\r");/*
+          printf(" SlotId    : %10lu\r\n",ptr->slotid    );
+          printf(" Mask     : %10lu\r\n",ptr->mask  );
+          printf(" System   : %10lu\r\n",ptr->system);
+          printf(" Intf Type: %10lu\r\n",ptr->intf.intf_type);
+          printf(" Intf ID  : %10lu\r\n",ptr->intf.intf_id );*/
+        }
+        else
+          printf(" Switch: Error appling MAC learning limiting - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
 
       case 1030:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))

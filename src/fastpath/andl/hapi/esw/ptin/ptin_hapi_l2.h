@@ -73,7 +73,7 @@ extern L7_RC_t ptin_hapi_vport_maclimit_setmax(bcm_gport_t gport, L7_uint8 max_v
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint vlan_id, L7_int mac_limit, DAPI_t *dapi_g);
+extern L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_limit, DAPI_t *dapi_g);
 
 /**
  * Set maximum number of learned MAC addresses

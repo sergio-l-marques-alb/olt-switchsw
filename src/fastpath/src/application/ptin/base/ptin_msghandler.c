@@ -5436,11 +5436,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
      }
 
-     outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
-     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+      outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim); 
-   }
-  break;
+    }
+    break;
 
     /* Signalling the end of a Equipment Flush Configuration*/
     case CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END:

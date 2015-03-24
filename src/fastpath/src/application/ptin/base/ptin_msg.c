@@ -3223,24 +3223,17 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   }
   else
   {
-    if (maclimit->mask & L2_MACLIMIT_MASK_VLAN)
-    {
-      intIfNum = L7_ALL_INTERFACES;
-      entry.vlanId = maclimit->vid;
-    }
 
-    if (maclimit->mask & L2_MACLIMIT_MASK_INTF)
-    {
-      /* Get intIfNum */
-      ptin_intf.intf_type = maclimit->intf.intf_type;
-      ptin_intf.intf_id = maclimit->intf.intf_id;
+    /* Get intIfNum */
+    ptin_intf.intf_type = maclimit->intf.intf_type;
+    ptin_intf.intf_id = maclimit->intf.intf_id;
       
-      if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
-      {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
-        return L7_FAILURE;
-      }
+    if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
+      return L7_FAILURE;
     }
+    
     if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
     {
       entry.action = maclimit->action;
@@ -3268,7 +3261,34 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
 L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
 {
+  ptin_l2_maclimit_status_t entry;
   L7_RC_t rc = L7_SUCCESS;
+
+  ptin_intf_t ptin_intf;
+  L7_uint32   intIfNum;
+  ptin_intf.intf_type = maclimit_status->intf.intf_type;
+  ptin_intf.intf_id = maclimit_status->intf.intf_id;
+
+  if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Message function '%s' being executed",__FUNCTION__);
+
+  /* Validate arguments */
+  if (maclimit_status==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
+
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
+
   return rc;
 }
 

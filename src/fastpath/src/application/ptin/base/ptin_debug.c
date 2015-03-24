@@ -110,7 +110,7 @@ void ptin_debug(void)
   printf("  ptin_evc_map                                                    - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int>                                       - prints info about the EVC related to the given internal vlan\r\n");
   printf("  ptin_maclimit_dump                                              - Dumps MAC limit tables (non empty)\r\n");
-  printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt>       - Configures L2 MAC Limit on system/ per VLAN / per Port");
+  printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt>       - Configures L2 MAC Limit on system/ per VLAN / per Port\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
   printf("  cliTelnetAdminModeSet <port>\r\n");                            
   printf("\r\n");                                                          
@@ -220,7 +220,7 @@ void ptin_debug(void)
   printf("  mgmd.cli                                                        - Show MGMD help\r\n");
   printf("  ber_help                                                        - Show BER/PRBS help\r\n");
   printf("\r\n");
-  printf("  ipc_msg_bytes_debug_enable (0/1)                          - Dump IPC MSGs' bytes\r\n");
+  printf("  ipc_msg_bytes_debug_enable (0/1)                                - Dump IPC MSGs' bytes\r\n");
   printf("\r\n");
 
   fflush(stdout);
@@ -876,7 +876,7 @@ void ptin_lag_dump(void)
  * @param vid 
  * @param limit 
  */
-void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint16 vid, L7_uint32 limit, L7_uint8 action, L7_uint8 send_trap)
+void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 limit, L7_uint8 action, L7_uint8 send_trap)
 {
   msg_l2_maclimit_config_t maclimit;
 
@@ -884,27 +884,25 @@ void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_
 
   maclimit.slotId =         1;
 
-  if (system != 0)
+  system          = 0;
+  maclimit.system = system;
+
+  if ((intf_type != (L7_uint8)-1) && (intf_id!=(L7_uint8)-1))
   {
-    maclimit.mask |=  L2_MACLIMIT_MASK_SYSTEM;
-    maclimit.system = system;
+    maclimit.intf.intf_type = intf_type;
+    maclimit.intf.intf_id =   intf_id;
   }
-  else
+  if(limit !=0)
   {
-    if ((intf_type != (L7_uint8)-1) && (intf_id!=(L7_uint8)-1))
-    {
-      maclimit.mask |=          L2_MACLIMIT_MASK_INTF;
-      maclimit.intf.intf_type = intf_type;
-      maclimit.intf.intf_id =   intf_id;
-    }
-    if (vid != 0)
-    {
-      maclimit.mask |=  L2_MACLIMIT_MASK_VLAN;
-      maclimit.vid =    vid;
-    }
+    maclimit.limit = limit;
+    maclimit.mask |= L2_MACLIMIT_MASK_LIMIT;
   }
-  
-  maclimit.limit =          limit;
+
+  maclimit.action     = action;
+  maclimit.send_trap  = send_trap;
+  maclimit.mask      |= L2_MACLIMIT_MASK_ACTION;
+  maclimit.mask      |= L2_MACLIMIT_MASK_SEND_TRAP ;      
 
   ptin_msg_l2_maclimit_config(&maclimit);
 }
+
