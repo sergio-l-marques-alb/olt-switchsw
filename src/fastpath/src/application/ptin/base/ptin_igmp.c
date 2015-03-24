@@ -15844,7 +15844,7 @@ void ptin_igmp_assoc_dump(L7_int evc_mc, L7_int evc_uc)
           , avl_info->queuePackage.n_elems                    
           );          
           while ( L7_NULLPTR != (packageEntry = queue_package_entry_get_next(avl_info, packageEntry)) && 
-          PTIN_SYSTEM_IGMP_MAXPACKAGES < (packageIdAux = packageEntry->packageId) )
+          (packageIdAux = packageEntry->packageId) < PTIN_SYSTEM_IGMP_MAXPACKAGES )
           {
             printf("packageId:%u ", packageIdAux);
           }          
