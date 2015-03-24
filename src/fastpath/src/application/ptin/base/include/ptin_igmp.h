@@ -19,10 +19,11 @@
  * MACRO TOOLS
  ***********************************************************/
 #define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
-#define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/((size)*8)] >> ((index)%((size)*8)) ) & 1 )
-#define BITMAP_BIT_SET(array, index, size)    array[(index)/((size)*8)] |=  ((L7_uint32) 1 << ((index)%((size)*8)))
-#define BITMAP_BIT_CLR(array, index, size)    array[(index)/((size)*8)] &= ~((L7_uint32) 1 << ((index)%((size)*8)))
-#define IS_BITMAP_BYTE_SET(array, index, size)  ( array[(index)/((size)*8)] == 0 ? 0 : 1)
+
+#define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/(size)] >> ((index)%(size)) ) & 1 )
+#define BITMAP_BIT_SET(array, index, size)    array[(index)/(size)] |=  ((L7_uint32) 1 << ((index)%(size)))
+#define BITMAP_BIT_CLR(array, index, size)    array[(index)/(size)] &= ~((L7_uint32) 1 << ((index)%(size)))
+#define IS_BITMAP_BYTE_SET(array, index, size)  ( array[(index)/(size)] == 0 ? 0 : 1)
 
 
 #define PTIN_IGMP_PORT_MASK_UNIT      UINT32_BITSIZE
