@@ -89,6 +89,10 @@ L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t o
     LOG_ERR(LOG_CTX_PTIN_DTL, "Error rc=%u", rc);
     return rc;
   }
+  else
+  {
+    memcpy(data, ptinDtlGeneric.data, dataSize);
+  }
 
   return L7_SUCCESS;
 }
