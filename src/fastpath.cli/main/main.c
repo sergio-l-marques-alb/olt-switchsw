@@ -155,6 +155,17 @@ void help_oltBuga(void)
         "--- IP Source Guard ------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1700 intfType/intf# enable(0/1) - Enable/Disable IP Source Guard on Ptin Port\n\r"
         "m 1701 idType(1-eEVCId;2-rootVLAN) iD(1-131071) intfType/intf# mac(xx:xx:xx:xx:xx:xx) ip(d.d.d.d) removeOrAdd(0/1) - Add/Remove IP Source Guard Entry on Ptin Port of Extended EVC Id\n\r"
+        "--- IGMP Multicast Channel Packages---------------------------------------------------------------------------------------------------\n\r"
+        "m 1710 packageId(0-255) - Add Multicast Package\n\r"
+        "m 1711 packageId(0-255) - Remove Multicast Package\n\r"        
+        "m 1712 packageId(0-255) evcId# groupAddr(d.d.d.d) groupMask# sourceAddr(d.d.d.d) sourceMask# - Add Multicast Channels to Package\n\r"
+        "m 1713 packageId(0-255) evcId# groupAddr(d.d.d.d) groupMask# sourceAddr(d.d.d.d) sourceMask# - Add Multicast Channels to Package\n\r"        
+        "m 1714 evcId# intfType/intf# onuId# - Add Multicast Service\n\r"
+        "m 1715 evcId# intfType/intf# onuId# - Remove Multicast Service\n\r"     
+        "m 1716 evcId# intfType/intf# ovid(0-4095) cvid(0-4095) onuId(0-127) packageId(0-255) - Igmp Unicast Client Add \r\n"
+        "m 1717 evcId# intfType/intf# ovid(0-4095) cvid(0-4095) onuId(0-127) packageId(0-255) - Igmp Unicast Client Remove\r\n"   
+        "m 1718 evcId# intfType/intf# ovid(0-4095) ivid(0-4095) cvid(0-4095)  onuId(0-127) packageId(0-255) - Igmp MacBridge Client Add \r\n"
+        "m 1719 evcId# intfType/intf# ovid(0-4095) ivid(0-4095) cvid(0-4095)  onuId(0-127) packageId(0-255) - Igmp MacBridge Client Remove \r\n"
         "--- Routing --------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1810 intfType(2-Rtr)/intf# evc_id ipaddr(d.d.d.d) subnetMask(d.d.d.d) mtu(xxx)- Create new routing interface\r\n"
         "m 1811 intfType(2-Rtr)/intf# - Remove routing interface\r\n"
@@ -5881,6 +5892,394 @@ int main (int argc, char *argv[])
           comando.infoDim = sizeof(msg_IPSG_static_entry_t); 
         }
         break;
+//     "m 1710 packageId(0-255) - Add Multicast Package\n\r"
+//     "m 1711 packageId(0-255) - Remove Multicast Package\n\r"
+    case 1710:
+    case 1711:
+      {
+        msg_igmp_package_t *ptr;        
+        int packageId;
+
+        // Validate number of arguments
+        if (argc<3+1)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_igmp_package_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_igmp_package_t));
+
+        // Package Id
+        if (StrToLongLong(argv[3+0],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        packageId = (uint32) valued;
+
+        if (packageId != PTIN_SYSTEM_IGMP_MAXPACKAGES && packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES)
+        {
+          printf("Invalid PackageId:%u >Max_Packages:%u\n", packageId, PTIN_SYSTEM_IGMP_MAXPACKAGES);
+          exit(0);
+        }
+
+        /*Add All Packages*/
+        if (packageId == PTIN_SYSTEM_IGMP_MAXPACKAGES)
+        {
+          for ( packageId = 0; packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageId++ )
+          {
+            BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
+            ptr->noOfPackages++;
+          }
+        }
+        else
+        {
+          BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
+          ptr->noOfPackages++;
+        }
+
+        if (msg==1710)
+          comando.msgId = CCMSG_IGMP_PACKAGES_ADD;
+        else
+          comando.msgId = CCMSG_IGMP_PACKAGES_REMOVE;
+        comando.infoDim = sizeof(msg_igmp_package_t);
+      }
+      break;
+//   "m 1712 packageId(0-255) evcId# groupAddr(d.d.d.d) groupMask# sourceAddr(d.d.d.d) sourceMask# - Add Multicast Channels to Package\n\r"
+//   "m 1713 packageId(0-255) evcId# groupAddr(d.d.d.d) groupMask# sourceAddr(d.d.d.d) sourceMask# - Add Multicast Channels to Package\n\r"
+    case 1712:
+    case 1713:
+      {
+        msg_igmp_package_channels_t *ptr;        
+
+        // Validate number of arguments
+        if (argc<3+6)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_igmp_package_channels_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_igmp_package_channels_t));
+
+        /* Package Id */
+        if (StrToLongLong(argv[3+0],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->packageId = (uint32) valued;
+
+        /* Service Id */
+        if (StrToLongLong(argv[3+1],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcId = (uint32) valued;
+
+        /*Group Address */          
+        if (convert_ipaddr2uint64(argv[3+2],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->groupAddr.addr.ipv4 = (uint32) valued;
+        ptr->groupAddr.family = PTIN_AF_INET;
+
+        /* Group Mask */
+        if (StrToLongLong(argv[3+3],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->groupMask = (uint8) valued;
+
+        /*Source Address */          
+        if (convert_ipaddr2uint64(argv[3+4],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->sourceAddr.addr.ipv4 = (uint32) valued;
+        ptr->sourceAddr.family = PTIN_AF_INET;
+
+        /* Source Mask */
+        if (StrToLongLong(argv[3+5],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->sourceMask = (uint8) valued;
+
+        if (msg==1712)
+          comando.msgId = CCMSG_IGMP_PACKAGE_CHANNELS_ADD;
+        else
+          comando.msgId = CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE;
+        comando.infoDim = sizeof(msg_igmp_package_channels_t);
+      }
+      break;
+//    "m 1714 evcId# intfType/intf# onuId# - Add Multicast Service\n\r"
+//    "m 1715 evcId# intfType/intf# onuId# - Remove Multicast Service\n\r"
+    case 1714:
+    case 1715:
+      {
+        msg_multicast_service_t *ptr;    
+        uint type, intf;    
+
+        // Validate number of arguments
+        if (argc<3+3)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_multicast_service_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_multicast_service_t));
+
+        /* Service Id */
+        if (StrToLongLong(argv[3+0],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcId = (uint32) valued;
+
+        // Ptin Port
+        if (sscanf(argv[3+1],"%u/%u",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = (uint8) type;
+        ptr->intf.intf_id   = (uint8) intf;
+
+        /* Onu Id */
+        if (StrToLongLong(argv[3+2],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->onuId = (uint8) valued;
+
+        if (msg==1714)
+          comando.msgId = CCMSG_MULTICAST_SERVICE_ADD;
+        else
+          comando.msgId = CCMSG_MULTICAST_SERVICE_REMOVE;
+        comando.infoDim = sizeof(msg_multicast_service_t);
+      }
+      break;
+//    "m 1716 evcId# intfType/intf# ovid(0-4095) cvid(0-4095) onuId(0-127) packageId(0-255) - Igmp Unicast Client Add \r\n"
+//    "m 1717 evcId# intfType/intf# ovid(0-4095) cvid(0-4095) onuId(0-127) packageId(0-255) - Igmp Unicast Client Remove\r\n"
+    case 1716:
+    case 1717:
+      {
+        msg_igmp_unicast_client_packages_t *ptr;
+        int type, intf, packageId;
+
+        // Validate number of arguments
+        if (argc<3+6)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_igmp_unicast_client_packages_t *) &(comando.info[0]);
+        memset(ptr,0x00,sizeof(msg_igmp_unicast_client_packages_t));
+
+        // Multicast EVC id
+        if (StrToLongLong(argv[3+0],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcId = (uint32) valued;
+
+        // port
+        if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->client.intf.intf_type = (uint8) type;
+        ptr->client.intf.intf_id   = (uint8) intf;
+        ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+
+        // Outer vlan
+        if (StrToLongLong(argv[3+2],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->client.outer_vlan = (uint16) valued;
+        ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
+
+        // Client vlan
+        if (StrToLongLong(argv[3+3],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->client.inner_vlan = (uint16) valued;
+        ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+
+        // Onu Id
+        if (StrToLongLong(argv[3+4], &valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->onuId = (L7_uint8) valued;
+
+        // Package Id
+        if (StrToLongLong(argv[3+5],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        packageId = (uint32) valued;
+
+        if (packageId != PTIN_SYSTEM_IGMP_MAXPACKAGES && packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES)
+        {
+          printf("Invalid PackageId:%u >Max_Packages:%u\n", packageId, PTIN_SYSTEM_IGMP_MAXPACKAGES);
+          exit(0);
+        }
+
+        /*Add All Packages*/
+        if (packageId == PTIN_SYSTEM_IGMP_MAXPACKAGES)
+        {
+          for ( packageId = 0; packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageId++ )
+          {
+            BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
+            ptr->noOfPackages++;
+          }
+        }
+        else
+        {
+          BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
+          ptr->noOfPackages++;
+        }
+
+        if (msg==1716)
+          comando.msgId = CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD;
+        else
+          comando.msgId = CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE;
+        comando.infoDim = sizeof(msg_igmp_unicast_client_packages_t);
+      }
+      break;
+//    "m 1718 evcId# intfType/intf# ovid(0-4095) ivid(0-4095) cvid(0-4095)  onuId(0-127) packageId(0-255) - Igmp MacBridge Client Add \r\n"
+//    "m 1719 evcId# intfType/intf# ovid(0-4095) ivid(0-4095) cvid(0-4095)  onuId(0-127) packageId(0-255) - Igmp MacBridge Client Remove \r\n"
+    case 1718:
+    case 1719:
+      {
+        msg_igmp_macbridge_client_packages_t *ptr;
+        int type, intf, packageId;
+
+        // Validate number of arguments
+        if (argc<3+7)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_igmp_macbridge_client_packages_t *) &(comando.info[0]);
+        memset(ptr, 0x00, sizeof(msg_igmp_macbridge_client_packages_t));
+
+
+        // EVC index
+        if (StrToLongLong(argv[3+0], &valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->evcId = (L7_uint32) valued;
+
+        // port
+        if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = (L7_uint8) valued;
+        ptr->intf.intf_id = (L7_uint8) valued;
+
+        // Outer VLAN
+        if (StrToLongLong(argv[3+2], &valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.outer_vid = (L7_uint16) valued;
+
+        // Inner VLAN
+        if (StrToLongLong(argv[3+3], &valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.inner_vid = (L7_uint16) valued;
+
+        // NNI Client VLAN
+        if (argc >= 3+6)
+        {
+          if (StrToLongLong(argv[3+4], &valued)<0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->nni_cvlan = (L7_uint16) valued;
+        }
+
+        // Onu Id
+        if (StrToLongLong(argv[3+5], &valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->onuId = (L7_uint8) valued;
+
+        // Package Id
+        if (StrToLongLong(argv[3+6],&valued)<0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        packageId = (uint32) valued;
+
+        if (packageId != PTIN_SYSTEM_IGMP_MAXPACKAGES && packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES)
+        {
+          printf("Invalid PackageId:%u >Max_Packages:%u\n", packageId, PTIN_SYSTEM_IGMP_MAXPACKAGES);
+          exit(0);
+        }
+
+        /*Add All Packages*/
+        if (packageId == PTIN_SYSTEM_IGMP_MAXPACKAGES)
+        {
+          for ( packageId = 0; packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageId++ )
+          {
+            BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
+            ptr->noOfPackages++;
+          }
+        }
+        else
+        {
+          BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
+          ptr->noOfPackages++;
+        }
+
+        if (msg==1718)
+          comando.msgId = CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD;
+        else
+          comando.msgId = CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE;
+        comando.infoDim = sizeof(msg_igmp_macbridge_client_packages_t);
+      }
+      break;
       default:
         printf("A mensagem %d nao esta implementada!!\n\r", msg);
         exit(0);
@@ -7962,6 +8361,66 @@ int main (int argc, char *argv[])
         else
           printf(" IP Source Guard Static Entry not Configured\n\r");          
         break;
+      case 1710:      
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" IGMP Multicast Package Correctly Added\n\r");
+        else
+          printf(" IGMP Multicast  Package Failed to Add\n\r");          
+        break;
+      case 1711:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Multicast Package Correctly Removed\n\r");
+      else
+        printf(" IGMP Multicast Package Failed to Remove\n\r");          
+      break;
+      case 1712:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Multicast Channel Packages Correctly Added\n\r");
+      else
+        printf(" IGMP Multicast Channel Packages Failed to Add\n\r");          
+      break;
+      case 1713:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Multicast Channel Packages Correctly Removed\n\r");
+      else
+        printf(" IGMP Multicast Channel Packages Failed to Remove\n\r");          
+      break;
+      case 1714:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Multicast Service Correctly Added\n\r");
+      else
+        printf(" IGMP Multicast Service Failed to Add\n\r");          
+      break;
+      case 1715:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Multicast Service Correctly Removed\n\r");
+      else
+        printf(" IGMP Multicast Service Failed to Remove\n\r");          
+      break;
+      case 1716:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Unicast Client  Correctly Added\n\r");
+      else
+        printf(" IGMP Unicast Client Failed to Add\n\r");          
+      break;
+      case 1717:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP Unicast Client  Correctly Removed\n\r");
+      else
+        printf(" IGMP Unicast Client Failed to Remove\n\r");          
+      break;
+      case 1718:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP MacBridge Client  Correctly Added\n\r");
+      else
+        printf(" IGMP MacBridge Client Failed to Add\n\r");          
+      break;
+      case 1719:
+      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        printf(" IGMP MacBridge Client  Correctly Removed\n\r");
+      else
+        printf(" IGMP MacBridge Client Failed to Remove\n\r");          
+      break;
       default:
         printf(" Resposta a mensagem %u\n\r",msg);
         break;

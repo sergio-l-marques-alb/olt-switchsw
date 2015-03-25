@@ -11783,7 +11783,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
     return L7_FAILURE;
   }
       
-  for (packageIdIterator = PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+  for (packageIdIterator = (PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/((sizeof(L7_uint8) * 8)); packageIdIterator>=0; --packageIdIterator)
   {
     osapiSnprintf(charPtr, sizeof(*charPtr),
                 "%08X", msg->packageBmpList[packageIdIterator]);
@@ -11791,7 +11791,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
   }
       
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, &packageBmpStr);
 
   for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageIdIterator++)
   {
@@ -11845,7 +11845,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
     return L7_FAILURE;
   }
       
-  for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
+  for (packageIdIterator =(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/((sizeof(L7_uint8) * 8)); packageIdIterator>=0; --packageIdIterator)
   {
     osapiSnprintf(charPtr, sizeof(*charPtr),
                 "%08X", msg->packageBmpList[packageIdIterator]);
@@ -11853,7 +11853,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   }
       
   /*Input Parameters*/
-  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, &packageBmpStr);
 
   for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageIdIterator++)
   {
@@ -11917,7 +11917,7 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
     /*Convert Group Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
@@ -11981,7 +11981,7 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
     /*Convert Group Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
@@ -12046,7 +12046,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
     
     for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
@@ -12134,7 +12134,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
     
     for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE -1; packageIdIterator>=0; --packageIdIterator)
@@ -12221,7 +12221,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {    
     /*Initialize Structure*/
     memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
@@ -12299,7 +12299,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {    
     /*Initialize Structure*/
     memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
@@ -12376,7 +12376,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   { 
     /*Input Parameters*/
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
@@ -12433,7 +12433,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
 
-  for (messageIterator = 0; messageIterator < noOfMessages; noOfMessages++)
+  for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   { 
     /*Input Parameters*/
     LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",

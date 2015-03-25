@@ -22,6 +22,16 @@ extern int canal_buga;
   #define max(x, y) (((x) < (y)) ? (y) : (x))
 #endif
 
+/*********************************************************** 
+ * MACRO TOOLS
+ ***********************************************************/
+#define UINT32_BITSIZE  (sizeof(L7_uint32)*8)
+
+#define IS_BITMAP_BIT_SET(array, index, size) ( ( array[(index)/(size)] >> ((index)%(size)) ) & 1 )
+#define BITMAP_BIT_SET(array, index, size)    array[(index)/(size)] |=  ((L7_uint32) 1 << ((index)%(size)))
+#define BITMAP_BIT_CLR(array, index, size)    array[(index)/(size)] &= ~((L7_uint32) 1 << ((index)%(size)))
+#define IS_BITMAP_BYTE_SET(array, index, size)  ( array[(index)/(size)] == 0 ? 0 : 1)
+
 /*****************************************************************************
  * IPC Messages codes 
  *****************************************************************************/
@@ -179,6 +189,21 @@ extern int canal_buga;
 /* MAC Limiting per interface */
 #define CCMSG_L2_MACLIMIT_CONFIG            0x91EA
 #define CCMSG_L2_MACLIMIT_STATUS            0x91EB
+
+/* Multicast Package Configuration */
+//Reserved Message Identifiers [0x91D0-0x91DF]
+#define CCMSG_IGMP_PACKAGES_ADD                         0x91D0  // struct msg_igmp_package_t
+#define CCMSG_IGMP_PACKAGES_REMOVE                      0x91D1  // struct msg_igmp_package_t
+#define CCMSG_IGMP_PACKAGE_CHANNELS_ADD                 0x91D2  // struct msg_igmp_package_channels_t
+#define CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE              0x91D3  // struct msg_igmp_package_channels_t
+#define CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD          0x91D4  // struct msg_igmp_unicast_client_packages_t
+#define CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE       0x91D5  // struct msg_igmp_unicast_client_packages_t
+#define CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD        0x91D6  // struct msg_igmp_macbridge_client_packages_t
+#define CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE     0x91D7  // struct msg_igmp_macbridge_client_packages_t
+                                                      
+#define CCMSG_MULTICAST_SERVICE_ADD                     0x91D8  // struct msg_multicast_service_t
+#define CCMSG_MULTICAST_SERVICE_REMOVE                  0x91D9  // struct msg_multicast_service_t
+/*End Multicast Package Configuration*/
 
 /* Fastpath typedefs */
 typedef uint8    L7_uint8;
@@ -1740,6 +1765,79 @@ typedef struct {
   L7_uint32 status;                     /* 0x02 Indicates if the specific interface is within/over the MAC's learned limit. WITHIN_LIMIT=0,OVER_LIMIT =1 */
 } __attribute__((packed)) msg_l2_maclimit_status_t;
 
+
+/*Multicast Package Defines*/
+#define PTIN_SYSTEM_IGMP_MAXPACKAGES 256
+
+#ifndef PTIN_IGMP_PACKAGE_MASK_UNIT
+#define PTIN_IGMP_PACKAGE_MASK_UNIT   (sizeof(L7_uint32) * 8)
+#endif
+
+#ifndef PTIN_IGMP_PACKAGE_BITMAP_SIZE
+#define PTIN_IGMP_PACKAGE_BITMAP_SIZE (PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/PTIN_IGMP_PACKAGE_MASK_UNIT+1  /* Packages Bitmap Size */
+#endif
+/*End Multicast Package Defines*/
+
+/***************************************************************************** 
+ * IGMP Package Structs
+ *****************************************************************************/
+/* Igmp Package Add/Remove*/
+//CCMSG_IGMP_PACKAGES_ADD
+//CCMSG_IGMP_PACKAGES_REMOVE
+typedef struct {
+  L7_uint8     slotId;
+  L7_uint32    packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
+  L7_uint8     noOfPackages;                                                          /*Number of Active Bits*/  
+} __attribute__ ((packed)) msg_igmp_package_t;
+
+/* Igmp Package Channels Add/Remove*/
+//CCMSG_IGMP_PACKAGE_CHANNELS_ADD
+//CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE
+typedef struct {
+  L7_uint8             slotId;
+  L7_uint32            packageId;  /* Package Identifier [0-255] */
+  L7_uint32            evcId;  /* Service Identifier*/
+  chmessage_ip_addr_t  groupAddr;  /* Group Address*/
+  L7_uint8             groupMask;  /* Group Mask (LSB)*/
+  chmessage_ip_addr_t  sourceAddr; /* Source Address*/   
+  L7_uint8             sourceMask; /* Source Mask (LSB)*/  
+} __attribute__ ((packed)) msg_igmp_package_channels_t;
+
+/* Igmp Unicast Client Packages Add/Remove*/
+//CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD
+//CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE
+typedef struct {
+  L7_uint8            slotId;   
+  L7_uint32           evcId;      //Multicast EVC Id 
+  msg_client_info_t   client;       //Client identification 
+  L7_uint8            onuId;        //ONU Identifier
+  L7_uint32           packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
+  L7_uint8            noOfPackages;                                                          /*Number of Active Bits*/  
+} __attribute__ ((packed)) msg_igmp_unicast_client_packages_t;
+
+/* Igmp Macbridge Client Packages Add/Remove*/
+//CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD
+//CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE
+typedef struct {
+  L7_uint8            slotId;
+  L7_uint32           evcId;        // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  L7_uint16           nni_cvlan;    // NNI inner vlan
+  msg_HwEthIntf_t     intf;         // Outer vlan is the GEM id  
+  L7_uint8            onuId;        //ONU Identifier
+  L7_uint32           packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*Package Bitmap List */
+  L7_uint8            noOfPackages;                                                          /*Number of Active Bits*/  
+} __attribute__ ((packed)) msg_igmp_macbridge_client_packages_t;
+
+
+// Multicast Service Add/Remove
+// CCMSG_MULTICAST_SERVICE_ADD
+// CCMSG_MULTICAST_SERVICE_REMOVE
+typedef struct {
+  L7_uint8             slotId;        
+  L7_uint32            evcId;        // EVC Id
+  msg_HwEthInterface_t intf;         // Interface 
+  L7_uint8             onuId;        // ONU Identifier                                     
+} __attribute__((packed)) msg_multicast_service_t;
 
 #endif //_MAIN_H_
 
