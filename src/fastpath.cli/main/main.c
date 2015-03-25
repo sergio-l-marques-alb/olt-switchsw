@@ -6206,8 +6206,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = (L7_uint8) valued;
-        ptr->intf.intf_id = (L7_uint8) valued;
+        ptr->intf.intf_type = (L7_uint8) type;
+        ptr->intf.intf_id = (L7_uint8) intf;
 
         // Outer VLAN
         if (StrToLongLong(argv[3+2], &valued)<0)
@@ -6225,16 +6225,12 @@ int main (int argc, char *argv[])
         }
         ptr->intf.inner_vid = (L7_uint16) valued;
 
-        // NNI Client VLAN
-        if (argc >= 3+6)
+        if (StrToLongLong(argv[3+4], &valued)<0)
         {
-          if (StrToLongLong(argv[3+4], &valued)<0)
-          {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->nni_cvlan = (L7_uint16) valued;
+          help_oltBuga();
+          exit(0);
         }
+        ptr->nni_cvlan = (L7_uint16) valued;
 
         // Onu Id
         if (StrToLongLong(argv[3+5], &valued)<0)

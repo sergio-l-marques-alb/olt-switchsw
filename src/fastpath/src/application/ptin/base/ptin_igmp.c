@@ -4444,7 +4444,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   if (noOfPackages > 0)
   {
-    if ( addOrRemove == L7_TRUE)
+    if ( addOrRemove == L7_FALSE)
     {
       /*Multicast Client Packages  Add*/
       if ( L7_SUCCESS != ptin_igmp_multicast_client_packages_add(packagePtr, noOfPackages, avl_infoData))
