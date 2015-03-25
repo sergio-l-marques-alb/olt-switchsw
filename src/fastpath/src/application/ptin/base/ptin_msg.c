@@ -4659,6 +4659,66 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
+L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl)
+{
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+
+  /* Validate arguments */
+  if (msgStormControl==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x", msgStormControl->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block UC = %u", msgStormControl->block_unicast);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block MC = %u", msgStormControl->block_multicast);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Configure storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
+{
+  LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
+
+  /* Validate arguments */
+  if (msgStormControl==L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid Message Pointer");
+    return L7_FAILURE;
+  }
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId = %u", msgStormControl->SlotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," intf   = %u/%u",  msgStormControl->intf.intf_type, msgStormControl->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%02x", msgStormControl->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Broadcast = %ld (%u)", msgStormControl->broadcast.rate_value, msgStormControl->broadcast.rate_units);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Multicast = %ld (%u)", msgStormControl->multicast.rate_value, msgStormControl->multicast.rate_units);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block UC = %u", msgStormControl->block_unicast);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Block MC = %u", msgStormControl->block_multicast);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get data of an existent storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
 L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
 {
   ptin_stormControl_t stormControl;

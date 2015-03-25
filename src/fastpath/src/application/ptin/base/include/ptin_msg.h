@@ -639,6 +639,24 @@ extern L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, uns
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
+extern L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl);
+
+/**
+ * Configure storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl);
+
+/**
+ * Get data of an existent storm control profile
+ * 
+ * @param msgStormControl : Storm control profile
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
 extern L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl);
 
 /**

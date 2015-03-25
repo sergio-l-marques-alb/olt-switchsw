@@ -17,6 +17,41 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+
+L7_RC_t ptin_maclimit_setmax(bcm_port_t bcm_port, L7_uint16 vlanId, L7_uint32 flags, L7_int max)
+{
+  bcm_l2_learn_limit_t  limit;
+  bcm_error_t           rv;
+
+  bcm_l2_learn_limit_t_init(&limit);
+
+  limit.flags = flags;
+
+  limit.port = bcm_port;
+  limit.vlan = vlanId;
+  limit.limit = max;
+
+  printf("flags  0x%.4X\r\n", limit.flags);
+  printf("trunk  %u\r\n", limit.trunk);
+  printf("port   %u\r\n", limit.port);
+  printf("vlan   %u\r\n", limit.vlan);
+  printf("limit  %u\r\n", limit.limit);
+
+  rv=bcm_l2_learn_limit_set(0, &limit);
+
+  if (rv != BCM_E_NONE)
+  {
+    printf("Error (%d) setting L2 learn limit to %u\r\n", rv, max);
+  }
+  else
+  {
+    printf("Sucessfully set L2 learn limit to %u\r\n", max);
+  }
+
+  return rv;
+}
+
+
 static BROAD_POLICY_t       policyId_counter[10]  = {[0 ... 9] = BROAD_POLICY_INVALID};
 static BROAD_POLICY_RULE_t  ruleId_counter[10]    = {[0 ... 9] = BROAD_POLICY_INVALID};
 

@@ -850,6 +850,11 @@ typedef struct {
   L7_uint32 mcast_rate;         /* [flags=0x0002] in bps */
   L7_uint32 ucunk_rate;         /* [flags=0x0004] in bps */
   L7_uint32 cpu_rate;           /* [flags=0x0008] in bps */
+
+  L7_uint8  bcast_units;        /* Units for broadcast stormcontrol: 0:PPS; 1:PERCENT; 2:KBPS */
+  L7_uint8  mcast_units;        /* Units for multicast stormcontrol: 0:PPS; 1:PERCENT; 2:KBPS */
+  L7_uint8  ucunk_units;        /* Units for UnknownUC stormcontrol: 0:PPS; 1:PERCENT; 2:KBPS */
+  L7_uint8  cpu_units;          /* Units for CPU stormcontrol: 0:PPS; 1:PERCENT; 2:KBPS */
 } ptin_stormControl_t;
 
 /* Network Connectivity (inBand) structs **************************************/

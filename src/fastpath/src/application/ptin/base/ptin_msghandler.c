@@ -2560,6 +2560,64 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_BW_PROFILE_DELETE */
     }
 
+    /* CCMSG_ETH_STORM_CONTROL_GET ***********************************************/
+    case CCMSG_ETH_STORMCONTROL2_GET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_STORMCONTROL2_GET (0x%04X)", CCMSG_ETH_STORMCONTROL2_GET);
+
+      CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
+
+      msg_HwEthStormControl2_t *stormControl_in, *stormControl_out;
+      stormControl_in  = (msg_HwEthStormControl2_t *) inbuffer->info;
+      stormControl_out = (msg_HwEthStormControl2_t *) outbuffer->info;
+
+      memcpy(stormControl_out, stormControl_in, sizeof(msg_HwEthStormControl2_t));
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_stormControl2_get(stormControl_out))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting Storm Control profile");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      outbuffer->infoDim = sizeof(msg_HwEthStormControl2_t);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_STORM_CONTROL_GET */
+    }
+
+    /* CCMSG_ETH_STORM_CONTROL_SET ***********************************************/
+    case CCMSG_ETH_STORMCONTROL2_SET:
+    {
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message received: CCMSG_ETH_STORMCONTROL2_SET (0x%04X)", CCMSG_ETH_STORMCONTROL2_SET);
+
+      CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
+
+      msg_HwEthStormControl2_t *stormControl;
+      stormControl = (msg_HwEthStormControl2_t *) inbuffer->info;
+
+      /* Execute command */
+      if (L7_SUCCESS != ptin_msg_stormControl2_set(stormControl))
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting Storm Control profile");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPCACKOK(outbuffer);
+      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+               "Message processed: response with %d bytes", outbuffer->infoDim);
+
+      break;  /* CCMSG_ETH_STORM_CONTROL_SET */
+    }
+
+
     /************************************************************************** 
      * inBand Config
      **************************************************************************/
