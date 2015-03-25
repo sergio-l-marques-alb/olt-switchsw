@@ -1064,10 +1064,10 @@ typedef struct {
 } __attribute__((packed)) msg_HwEthStormControl_t;
 
 typedef struct {
-  L7_uint8    SlotId;
-  ptin_intf_t intf;             /* Interface ID */
+  L7_uint8 SlotId;
+  msg_HwEthInterface_t intf;            /* Interface ID */
 
-  L7_uint8  mask;               /* Mask */
+  L7_uint8  mask;                       /* Mask */
 
   struct {
     L7_uint8  rate_units;                  /* rate_units: 0:PPS; 1:PERCENT; 2:KBPS */
@@ -1085,8 +1085,8 @@ typedef struct {
   } __attribute__((packed)) unknown_uc; /* [mask=0x04] Unknown Unicast traffic */
 
   // Block Traffic
-  L7_uint8    block_unicast;            // [mask=0x08] Block UnknownUC traffic:
-  L7_uint8    block_multicast;          // [mask=0x10] Block Multicast traffic:
+  L7_uint8    block_unicast;            // [mask=0x10] Block UnknownUC traffic:
+  L7_uint8    block_multicast;          // [mask=0x20] Block Multicast traffic:
 
 } __attribute__((packed)) msg_HwEthStormControl2_t;
 
