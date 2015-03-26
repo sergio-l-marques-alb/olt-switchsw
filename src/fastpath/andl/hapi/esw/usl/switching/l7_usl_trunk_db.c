@@ -1304,7 +1304,7 @@ int usl_trunk_hw_id_allocate(L7_uint32 appId, bcm_trunk_t *tid)
 {
   int                 rv = BCM_E_NONE;
   usl_trunk_db_elem_t searchElem, trunkElem;
-  L7_int32            idx;
+  //L7_int32            idx;
   uslDbElemInfo_t     searchInfo, elemInfo;
 
 //  *tid = BCM_TRUNK_INVALID; /* PTin removed: trunks */
@@ -1363,9 +1363,12 @@ int usl_trunk_hw_id_allocate(L7_uint32 appId, bcm_trunk_t *tid)
     else
     {
       *tid = BCM_TRUNK_INVALID;
+      LOG_ERR(LOG_CTX_PTIN_TRUNKS, "Invalid trunk id");
     }
     /* PTin end */
     
+    /* PTin removed: LAGs */
+    #if 0
     for (idx = uslTrunkHwIdMin; idx <= uslTrunkHwIdMax; idx++)
     {
       /* Found an unused index */
@@ -1378,6 +1381,7 @@ int usl_trunk_hw_id_allocate(L7_uint32 appId, bcm_trunk_t *tid)
         break;
       }
     }
+    #endif
   } while(0);
 
 

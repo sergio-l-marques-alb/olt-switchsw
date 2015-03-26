@@ -962,7 +962,7 @@ snmpAgentLagConfigCreateSet(L7_uint32 UnitIndex, L7_char8 *buf, L7_uint32 *lagIn
   if (buf[0] != 0)
   {
     /*create lag with 0 members*/
-    if (usmDbDot3adCreateSet(UnitIndex,
+    if (usmDbDot3adCreateSet(UnitIndex, -1 /*PTin added*/,
                              buf,
                              FD_DOT3AD_ADMIN_MODE,
                              FD_DOT3AD_LINK_TRAP_MODE,

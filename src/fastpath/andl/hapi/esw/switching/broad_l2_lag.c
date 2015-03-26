@@ -959,7 +959,7 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
     portLagSet[entry].usp.port = 0xFFFF;
   }
 
-  if (usp->port > L7_MAX_NUM_LAG_INTF)
+  if (usp->port >= L7_MAX_NUM_LAG_INTF)
   {
     LOG_ERROR (usp->port);
   }
@@ -968,7 +968,13 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   hapiPortPtr->hapiModeparm.lag.hashMode = L7_DOT3AD_HASH_SADA_VLAN_ETYPE_INTF;
 
   /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
+  /* PTin modified: LAGs */
+  #if 1
+  tid = usp->port;
+  LOG_DEBUG(LOG_CTX_PTIN_TRUNKS, "Suggested TID is %u", tid);
+  #else
   tid = hapiPortPtr->hapiModeparm.lag.lastValidTgid; // Try to assign the previous tid * BCM_TRUNK_INVALID;
+  #endif
   rc = usl_bcmx_trunk_create(usp->port, &tid);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {

@@ -1737,7 +1737,8 @@ L7_RC_t dot3adAggSystemHashModeGet(L7_uint32 * hashMode)
 
 /*********************************************************************
  * @purpose  Creates a new LAG.
- *
+ * 
+ * @param    lag_index   Suggested index
  * @param    *name       name string for the LAG (up to LAG_MAX_NAME-1 chars)
  *                         (@b{Input:} string of 0 to LAG_MAX_NAME-1 ASCII 
  *                          characters, terminated by a '\0' character)
@@ -1769,7 +1770,7 @@ L7_RC_t dot3adAggSystemHashModeGet(L7_uint32 * hashMode)
  *
  * @end
  *********************************************************************/
-L7_RC_t dot3adLagCreate(L7_char8 *name, L7_uint32 members[],
+L7_RC_t dot3adLagCreate(L7_int lag_index /*PTin added*/, L7_char8 *name, L7_uint32 members[],
     L7_uint32 adminMode, L7_uint32 linkTrapMode,
                         L7_uint32 hashMode,
     L7_uint32 *pIntIfNum)
@@ -1781,15 +1782,33 @@ L7_RC_t dot3adLagCreate(L7_char8 *name, L7_uint32 members[],
   maxLagIntf = platIntfLagIntfMaxCountGet();
 
   /* find an available LAG ID */
-  for (index = 0; index < maxLagIntf ; index++)
+  if (lag_index < 0)
   {
-    if (dot3adAgg[index].inuse != L7_TRUE)
+    for (index = 0; index < maxLagIntf; index++) 
     {
-      dot3adAgg[index].inuse = L7_TRUE;
-      break;
+      if (dot3adAgg[index].inuse != L7_TRUE)
+      {
+        dot3adAgg[index].inuse = L7_TRUE;
+        break;
+      }
     }
   }
+  else
+  {
+    index = lag_index;
 
+    /* If index already exists, return error */
+    if (dot3adAgg[index].inuse == L7_TRUE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_TRUNKS, "LAG index %u already exists!", lag_index);
+      return L7_FAILURE;
+    }
+    else
+    {
+      LOG_TRACE(LOG_CTX_PTIN_TRUNKS, "LAG index %u is going to be used!", lag_index);
+      dot3adAgg[index].inuse = L7_TRUE;
+    }
+  }
 
   if (index == maxLagIntf)
   {

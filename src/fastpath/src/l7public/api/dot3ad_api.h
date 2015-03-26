@@ -1407,7 +1407,7 @@ L7_RC_t dot3adAggPortPartnerAdminStateGet(L7_uint32 intf, L7_uchar8 *state);
 *********************************************************************/
 L7_RC_t dot3adAggPortPartnerAdminStateSet(L7_uint32 intf, L7_uchar8 state);
 
-L7_RC_t dot3adLagCreate(L7_char8 *name, L7_uint32 members[],
+L7_RC_t dot3adLagCreate(L7_int lag_index /*PTin added*/, L7_char8 *name, L7_uint32 members[],
                         L7_uint32 adminMode, L7_uint32 linkTrapMode,
                         L7_uint32 hashMode, L7_uint32 *pIntIfNum);
 

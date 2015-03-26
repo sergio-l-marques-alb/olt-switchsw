@@ -29,6 +29,7 @@
  * @purpose  Create a LAG with an initial set of configuration attributes
  *
  * @param UnitIndex    the unit for this operation
+ * @param lag_index    ID suggested
  * @param *name        name string assigned to this LAG
  * @param adminMode    administrative mode of LAG interface
  *                       (@b{Input:  L7_ENABLE, L7_DISABLE})
@@ -53,7 +54,7 @@
  *
  * @end
  *********************************************************************/
-L7_RC_t usmDbDot3adCreateSet(L7_uint32 UnitIndex, L7_char8 *name,
+L7_RC_t usmDbDot3adCreateSet(L7_uint32 UnitIndex, L7_int lag_index /*PTin added*/, L7_char8 *name,
     L7_uint32 adminMode,
     L7_uint32 linkTrapMode, L7_uint32 numMembers,
                              L7_uint32 hashMode, L7_uint32 *pMembers, L7_uint32 *val);

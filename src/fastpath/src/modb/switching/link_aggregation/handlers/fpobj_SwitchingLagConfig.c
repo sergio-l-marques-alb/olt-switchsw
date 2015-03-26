@@ -180,7 +180,7 @@ xLibRC_t fpObjSet_SwitchingLagConfig_LagRowStatus (void *wap, void *bufp)
 
    /* set the value in application */
 
-   owa.l7rc = usmDbDot3adCreateSet (L7_UNIT_CURRENT, objLagNameValue, FD_DOT3AD_ADMIN_MODE, 
+   owa.l7rc = usmDbDot3adCreateSet (L7_UNIT_CURRENT, -1 /*PTin added*/, objLagNameValue, FD_DOT3AD_ADMIN_MODE, 
 
                           FD_DOT3AD_LINK_TRAP_MODE, FD_DOT3AD_MEMBER_UNIT, USMDB_FD_DOT3AD_HASH_MODE, member, &ifIndx);
 

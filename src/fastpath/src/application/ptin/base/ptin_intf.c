@@ -2547,7 +2547,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     osapiSnprintf(lag_name, DOT3AD_MAX_NAME, "lag%02u", lag_idx);
 
     /* Try to create an empty LAG */
-    res = usmDbDot3adCreateSet(1, lag_name, FD_DOT3AD_ADMIN_MODE, 
+    res = usmDbDot3adCreateSet(1, lag_idx, lag_name, FD_DOT3AD_ADMIN_MODE, 
                               FD_DOT3AD_LINK_TRAP_MODE, 0,
                               FD_DOT3AD_HASH_MODE, NULL, &lag_intf);
     if (res != L7_SUCCESS)

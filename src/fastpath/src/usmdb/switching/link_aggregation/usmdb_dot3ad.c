@@ -40,6 +40,7 @@ static L7_RC_t usmdbDot3adLagHashTranslate(L7_BOOL getHash, L7_uint32 *hashMode)
  * @purpose  Create a LAG with an initial set of configuration attributes
  *
  * @param UnitIndex    the unit for this operation
+ * @param lag_index    ID suggested
  * @param *name        name string assigned to this LAG
  * @param adminMode    administrative mode of LAG interface
  *                       (@b{Input:  L7_ENABLE, L7_DISABLE})
@@ -64,7 +65,7 @@ static L7_RC_t usmdbDot3adLagHashTranslate(L7_BOOL getHash, L7_uint32 *hashMode)
  *
  * @end
  *********************************************************************/
-L7_RC_t usmDbDot3adCreateSet(L7_uint32 UnitIndex, L7_char8 *name,
+L7_RC_t usmDbDot3adCreateSet(L7_uint32 UnitIndex, L7_int lag_index /*PTin added*/, L7_char8 *name,
     L7_uint32 adminMode,
     L7_uint32 linkTrapMode, L7_uint32 numMembers,
                              L7_uint32 hashMode,
@@ -102,7 +103,7 @@ L7_RC_t usmDbDot3adCreateSet(L7_uint32 UnitIndex, L7_char8 *name,
    *        query NIM at any time to get the LAG interface number from the
    *        ifIndex passed in from the user interface code.
    */
-  if (dot3adLagCreate(name, lagMembers, adminMode, linkTrapMode,
+  if (dot3adLagCreate(lag_index, name, lagMembers, adminMode, linkTrapMode,
                       toBeTranslatedHashMode, &intIfNum) != L7_SUCCESS)
     return L7_FAILURE;
 

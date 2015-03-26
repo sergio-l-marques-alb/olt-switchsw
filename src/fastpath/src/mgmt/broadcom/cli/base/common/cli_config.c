@@ -5378,7 +5378,7 @@ const L7_char8 *commandInterfacePortChannel(EwsContext ewsContext, L7_uint32 arg
         if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
         {
           /* just call the function to create it w/ correct default parameters */
-          if ( usmDbDot3adCreateSet(unit, portChannelName, FD_DOT3AD_ADMIN_MODE,FD_DOT3AD_LINK_TRAP_MODE,
+          if ( usmDbDot3adCreateSet(unit, -1 /*PTin added*/, portChannelName, FD_DOT3AD_ADMIN_MODE,FD_DOT3AD_LINK_TRAP_MODE,
                 FD_DOT3AD_MEMBER_UNIT, FD_DOT3AD_HASH_MODE, member, &intIfNum) != L7_SUCCESS )
           {
             return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, L7_NULLPTR,  ewsContext, pStrInfo_base_LagNotCreated);
