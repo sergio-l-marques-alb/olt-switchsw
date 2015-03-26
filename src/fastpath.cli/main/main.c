@@ -5901,7 +5901,7 @@ int main (int argc, char *argv[])
         int packageId;
 
         // Validate number of arguments
-        if (argc<3+1)
+        if (argc!=3+1)
         {
           help_oltBuga();
           exit(0);
@@ -5928,6 +5928,7 @@ int main (int argc, char *argv[])
         /*Add All Packages*/
         if (packageId == PTIN_SYSTEM_IGMP_MAXPACKAGES)
         {
+          packageId = 0;
           for ( packageId = 0; packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageId++ )
           {
             BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
@@ -5955,7 +5956,7 @@ int main (int argc, char *argv[])
         msg_igmp_package_channels_t *ptr;        
 
         // Validate number of arguments
-        if (argc<3+6)
+        if (argc!=3+6)
         {
           help_oltBuga();
           exit(0);
@@ -6031,7 +6032,7 @@ int main (int argc, char *argv[])
         uint type, intf;    
 
         // Validate number of arguments
-        if (argc<3+3)
+        if (argc!=3+3)
         {
           help_oltBuga();
           exit(0);
@@ -6082,7 +6083,7 @@ int main (int argc, char *argv[])
         int type, intf, packageId;
 
         // Validate number of arguments
-        if (argc<3+6)
+        if (argc!=3+6)
         {
           help_oltBuga();
           exit(0);
@@ -6153,6 +6154,7 @@ int main (int argc, char *argv[])
         /*Add All Packages*/
         if (packageId == PTIN_SYSTEM_IGMP_MAXPACKAGES)
         {
+          packageId = 0;
           for ( packageId = 0; packageId < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageId++ )
           {
             BITMAP_BIT_SET(ptr->packageBmpList, packageId, UINT32_BITSIZE);
@@ -6181,7 +6183,7 @@ int main (int argc, char *argv[])
         int type, intf, packageId;
 
         // Validate number of arguments
-        if (argc<3+7)
+        if (argc!=3+7)
         {
           help_oltBuga();
           exit(0);

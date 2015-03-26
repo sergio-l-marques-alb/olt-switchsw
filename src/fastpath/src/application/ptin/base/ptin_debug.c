@@ -212,6 +212,18 @@ void ptin_debug(void)
   printf("  ptin_igmp_admission_control_group_clients_reset_allocation      - Reset Admission Control Parameters of Service with IGMP Flag\r\n");
   printf("  ptin_igmp_admission_control_multicast_service_reset_allocation  - Reset All Admission Control Parameters\r\n"); 
   printf("\r\n");
+  printf("Multicast Channel Packages\r\n");
+  printf("   ptin_igmp_multicast_package_add    <packageId>                                                                                    \r\n");
+  printf("   ptin_igmp_multicast_package_remove <packageId>                                                                                    \r\n");
+  printf("   ptin_igmp_multicast_package_dump   <packageId>                                                                                    \r\n");
+  printf("   ptin_igmp_multicast_service_add    <ptinPort> <onuId> <serviceId>                                                                 \r\n");
+  printf("   ptin_igmp_multicast_service_remove <ptinPort> <onuId> <serviceId>                                                                 \r\n");
+  printf("   ptin_igmp_multicast_service_dump   <ptinPort> <onuId> <serviceId>                                                                 \r\n");
+  printf("   ptin_igmp_debug_multicast_package_channels_add    <packageId> <serviceId> <groupAddr> <groupMask> <sourceAddr> <sourceMask>       \r\n");
+  printf("   ptin_igmp_debug_multicast_package_channels_remove <packageId> <serviceId> <groupAddr> <groupMask> <sourceAddr> <sourceMask>       \r\n");
+  printf("   ptin_igmp_debug_multicast_client_package_add    <packageId> <ptinPort> <groupClientId>                                            \r\n");
+  printf("   ptin_igmp_debug_multicast_client_package_remove <packageId> <ptinPort> <groupClientId>                                            \r\n");
+  printf("\r\n");
   printf("  log_help                                                        - displays logger help\r\n");
   printf("  log_sev_set   <ctx_mask> <severity>                             - use log_help for more info\r\n");
   printf("  log_color_set <ctx_mask> <color>                                - use log_help for more info\r\n");
