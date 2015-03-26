@@ -7578,6 +7578,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
   L7_uint16 i;
   L7_inet_addr_t groupAddr, sourceAddr;
   L7_RC_t rc = L7_SUCCESS;
+  L7_RC_t rc_global = L7_SUCCESS;
 
   if (channel_list==L7_NULLPTR)
   {
@@ -7634,11 +7635,20 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
                                     &groupAddr , channel_list[i].channel_dstmask,
                                     &sourceAddr, channel_list[i].channel_srcmask, isStatic, channel_list[i].channelBandwidth )) != L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
-              channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
-              channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
-              channel_list[i].evcid_mc);
-      return rc;
+      if ( L7_REQUEST_DENIED == rc)
+      {
+        rc_global = rc;
+        rc = L7_SUCCESS;
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Error adding group address 0x%08x/%u, source address 0x%08x/%u to MC EVC %u",
+                channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstmask,
+                channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcmask,
+                channel_list[i].evcid_mc);
+        return rc;
+      }
+      
     }
 
 #else
@@ -7648,7 +7658,14 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_add(msg_MCAssocChannel_t *channel_list, L7_ui
 #endif
   }
 
-  return rc;
+  if (rc_global != L7_SUCCESS)
+  {    
+    if (rc != L7_SUCCESS)
+      rc_global = rc;
+    LOG_WARNING(LOG_CTX_PTIN_MSG, "One or more channels were already added! rc:%u", rc_global);
+  }  
+
+  return rc_global;
 }
 
 /**

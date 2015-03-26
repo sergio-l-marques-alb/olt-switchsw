@@ -7450,11 +7450,10 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
       /* In case of success, continue adding nodes into avl tree */
       if (rc == L7_SUCCESS)
       {
-        if (ptin_igmp_channel_add( &avl_node ) != L7_SUCCESS)
+        if ( (rc = ptin_igmp_channel_add( &avl_node )) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error inserting group channel 0x%08x, source=0x%08x for UC_EVC=%u",
-                  group.addr.ipv4.s_addr, sourceAux.addr.ipv4.s_addr, evc_uc);
-          rc = L7_FAILURE;
+                    group.addr.ipv4.s_addr, sourceAux.addr.ipv4.s_addr, evc_uc);
         }
         else
         {
@@ -7897,12 +7896,20 @@ static L7_RC_t ptin_igmp_channel_add( ptinIgmpChannelInfoData_t *node )
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x already exists",
                  node->channelDataKey.channel_group.addr.ipv4.s_addr);
+
+    if (avl_infoData->entryType != node->entryType)
+    {
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    avl_infoData->channelBandwidth = node->channelBandwidth;
+      avl_infoData->channelBandwidth = node->channelBandwidth;
 #endif
 
-    avl_infoData->entryType |= node->entryType;
-    return L7_SUCCESS;
+      avl_infoData->entryType |= node->entryType;
+      return L7_SUCCESS;
+    }
+    else
+    {
+      return L7_REQUEST_DENIED;
+    }
   }
 
   /* Check if there is enough room for one more channels */
