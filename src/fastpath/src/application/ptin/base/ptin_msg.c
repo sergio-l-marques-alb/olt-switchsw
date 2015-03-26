@@ -11856,7 +11856,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
-  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageIdIterator++)
+  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
     //Move forward 32 bits if this byte is 0 (no packages)
     if (IS_BITMAP_BYTE_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
@@ -11918,7 +11918,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   /*Input Parameters*/
   LOG_DEBUG(LOG_CTX_PTIN_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
-  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES; packageIdIterator++)
+  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
     //Move forward 32 bits if this byte is 0 (no packages)
     if (IS_BITMAP_BYTE_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
@@ -12065,7 +12065,7 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
               msg[messageIterator].slotId, msg[messageIterator].packageId, msg[messageIterator].evcId, 
               inetAddrPrint(&groupAddr, groupAddrStr), msg[messageIterator].groupMask, inetAddrPrint(&sourceAddr, sourceAddrStr), msg[messageIterator].sourceMask );
 
-    /*Error Any Error Occurs It is Already Logged*/
+    /*If Any Error Occurs It is Already Logged*/
     if ( L7_SUCCESS != (rc = ptin_igmp_multicast_package_channels_remove(msg[messageIterator].packageId, msg[messageIterator].evcId, 
                                                    &groupAddr, msg[messageIterator].groupMask, &sourceAddr, msg[messageIterator].sourceMask)) )
     {
