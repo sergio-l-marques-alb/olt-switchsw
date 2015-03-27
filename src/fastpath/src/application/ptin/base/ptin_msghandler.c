@@ -5123,8 +5123,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_igmp_package_t));
 
+      ptin_timer_start(80,"CCMSG_IGMP_PACKAGES_ADD");
       /* Execute command */
       rc = ptin_msg_igmp_packages_add(msgPtr);
+      ptin_timer_stop(80);
 
       if (L7_SUCCESS != rc)
       {
@@ -5152,8 +5154,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_igmp_package_t));
 
+      ptin_timer_start(81,"CCMSG_IGMP_PACKAGES_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_packages_remove(msgPtr);
+      ptin_timer_stop(81);
 
       if (L7_SUCCESS != rc)
       {
@@ -5181,8 +5185,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
 
+      ptin_timer_start(82,"CCMSG_IGMP_PACKAGE_CHANNELS_ADD");
       /* Execute command */
       rc = ptin_msg_igmp_package_channels_add(msgPtr, noOfMessages);
+      ptin_timer_stop(82);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5211,8 +5217,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
 
+      ptin_timer_start(83,"CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_package_channels_remove(msgPtr, noOfMessages);
+      ptin_timer_stop(83);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5241,8 +5249,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
 
+      ptin_timer_start(84,"CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD");
       /* Execute command */      
       rc = ptin_msg_igmp_unicast_client_packages_add(msgPtr, noOfMessages);
+      ptin_timer_stop(84);
       
       if (L7_SUCCESS != rc)
       {       
@@ -5271,8 +5281,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
       
+      ptin_timer_start(85,"CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE");
       /* Execute command */      
       rc = ptin_msg_igmp_unicast_client_packages_remove(msgPtr, noOfMessages);
+      ptin_timer_stop(85);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5301,8 +5313,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
 
+      ptin_timer_start(86,"CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD");
       /* Execute command */      
       rc = ptin_msg_igmp_macbridge_client_packages_add(msgPtr, noOfMessages);
+      ptin_timer_stop(86);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5331,8 +5345,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
 
+      ptin_timer_start(87,"CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_macbridge_client_packages_remove(msgPtr, noOfMessages);
+       ptin_timer_stop(87);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5361,8 +5377,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_multicast_service_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
 
+      ptin_timer_start(88,"CCMSG_MULTICAST_SERVICE_ADD");
       /* Execute command */
       rc = ptin_msg_igmp_multicast_service_add(msgPtr, noOfMessages);
+      ptin_timer_stop(88);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5391,8 +5409,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_multicast_service_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
 
+      ptin_timer_start(89,"CCMSG_MULTICAST_SERVICE_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_multicast_service_remove(msgPtr, noOfMessages);
+      ptin_timer_stop(89);
 
       if (L7_SUCCESS != rc)
       {       

@@ -26,6 +26,7 @@
 #include "ptin_mgmd_ctrl.h"
 #include "ptin_cnfgr.h"
 #include "ptin_fpga_api.h"
+#include "ptin_debug.h"
 
 #define IGMP_INVALID_ENTRY    0xFF
 
@@ -2279,7 +2280,7 @@ L7_RC_t ptin_igmp_clean_all(void)
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   /* Remove Multicast associations */
-  if ((rc=igmp_assoc_clean_all())!=L7_SUCCESS)
+  if ((rc=ptin_igmp_assoc_clean_all())!=L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Error clearing igmp associations");
     rc_global = rc;
@@ -7181,16 +7182,19 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
   memcpy(&avl_key.channel_source, &source_address, sizeof(L7_inet_addr_t));
 #endif
 
+  ptin_timer_start(77,"ptin_igmp_channel_get");
   /* Check if this key does not exist */
   if ((avl_infoData=(ptinIgmpChannelInfoData_t *) avlSearchLVL7( &(channelDB.channelAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
   {
+    ptin_timer_stop(77);
     if (ptin_debug_igmp_snooping)
       LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist!",group_address.addr.ipv4.s_addr);
     return L7_NOT_EXIST;      
-  }
+  }  
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   else
   {
+    ptin_timer_stop(77);
     if (ptin_igmp_proxy_bandwidth_control_get())
     {
       //Cache this Group and it's channelBandwidth
@@ -7198,6 +7202,7 @@ static L7_RC_t ptin_igmp_channel_get( L7_uint32 evc_mc,
     }
   }
 #endif
+
 
   /* Return AVL Tree Entry */
   if ( avlEntry != L7_NULLPTR )
@@ -7772,7 +7777,7 @@ L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t igmp_assoc_clean_all(void)
+L7_RC_t ptin_igmp_assoc_clean_all(void)
 {
   /*Trigger the Removal on MGMD Lib*/
   ptin_igmp_mgmd_whitelist_clean();
@@ -7908,7 +7913,11 @@ static L7_RC_t ptin_igmp_channel_add( ptinIgmpChannelInfoData_t *node )
     }
     else
     {
+      #if 0
       return L7_REQUEST_DENIED;
+      #else
+      return L7_SUCCESS;
+      #endif
     }
   }
 
@@ -16431,9 +16440,11 @@ RC_t ptin_igmp_debug_multicast_package_channels_add(L7_uint32 packageId, L7_uint
  */
 RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 serviceId, L7_inet_addr_t *groupNetAddr, L7_uint32 groupMask, L7_inet_addr_t *sourceNetAddr, L7_uint32 sourceMask)
 {
+  ptinIgmpChannelInfoData_t      *channelAvlTreeEntry = L7_NULLPTR;
   char                           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                           sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   L7_inet_addr_t                 groupAddr;
+  L7_inet_addr_t                 groupAddrAux;
   L7_inet_addr_t                 sourceAddr;
   L7_inet_addr_t                 sourceAddrAux;
   L7_uint32                      noOfGroups = 0;
@@ -16447,6 +16458,13 @@ RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 ser
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [packageId:%u serviceId:%u groupNetAddr:%p sourceNetAddr:%p]",packageId, serviceId, groupNetAddr, sourceNetAddr);    
     return L7_FAILURE;
+  }
+
+  /*Validate Family Address. We only support IPV4!*/
+  if (groupNetAddr->family != L7_AF_INET || sourceNetAddr->family != L7_AF_INET)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Family not supported groupNetAddr->family:%u sourceNetAddr->family:%u", groupNetAddr->family, sourceNetAddr->family);
+    return L7_NOT_SUPPORTED;
   }
 
   /*Input Parameters*/
@@ -16511,13 +16529,46 @@ RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 ser
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Source address is not valid!");
   }
 
+  memcpy(&groupAddrAux, &groupAddr, sizeof(groupAddrAux));
+
+  /*Verify If We can Add this Channels to this Package*/
+  for (groupIterator = 0; groupIterator<noOfGroups; groupIterator++, groupAddrAux.addr.ipv4.s_addr++)
+  {   
+    memcpy(&sourceAddrAux, &sourceAddr, sizeof(sourceAddrAux));
+    for (sourceIterator = 0; sourceIterator<noOfSources; sourceIterator++, sourceAddrAux.addr.ipv4.s_addr++)
+    {
+      /* Find Channel Entry */
+      rc = ptin_igmp_channel_get (serviceId, &groupAddrAux, &sourceAddrAux,  &channelAvlTreeEntry );
+      if ( rc == L7_NOT_EXIST )
+      {
+        LOG_WARNING(LOG_CTX_PTIN_IGMP, "Channel Does Not Exist [serviceId:%u groupAddr:%s sourceAddr:%s]",
+                    serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), inetAddrPrint(&sourceAddr, sourceAddrStr));
+        return L7_NOT_EXIST;      
+      }
+      else if (rc != L7_SUCCESS || channelAvlTreeEntry == L7_NULLPTR )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Search Channel Entry [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%p channelEntry:%p]", packageId, serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), inetAddrPrint(&sourceAddrAux, sourceAddrStr), channelAvlTreeEntry);    
+        return rc;
+      }
+
+      if ( L7_SUCCESS != (rc = ptin_igmp_package_channel_conflict_validation(packageId, channelAvlTreeEntry) ) )
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Channel Conflict Found [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), inetAddrPrint(&sourceAddrAux, sourceAddrStr));    
+        return rc;
+      }      
+    }
+  }
+
   LOG_TRACE(LOG_CTX_PTIN_IGMP,"Going to add groupAddr:%s (%u addresses)", inetAddrPrint(&sourceAddr, sourceAddrStr), noOfSources);
+
+  groupIterator = 0;
+  memcpy(&groupAddrAux, &groupAddr, sizeof(groupAddrAux));
 
   /* Run all group addresses */
   while ((rc==L7_SUCCESS && groupIterator<noOfGroups) || ( rc!= L7_SUCCESS && groupIterator>=0))
   {
     sourceIterator = 0; 
-     memcpy(&sourceAddrAux, &sourceAddr, sizeof(sourceAddrAux));
+    memcpy(&sourceAddrAux, &sourceAddr, sizeof(sourceAddrAux));
     /* Run all source addresses */
     while ( ( rc == L7_SUCCESS && sourceIterator<noOfSources ) || ( rc != L7_SUCCESS && sourceIterator>=0 ) )
     {
@@ -16525,30 +16576,30 @@ RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 ser
       if (rc == L7_SUCCESS)
       {
 
-        if ( ptin_igmp_multicast_package_channel_add(packageId, serviceId, &groupAddr, &sourceAddrAux) != L7_SUCCESS )
+        if ( ptin_igmp_multicast_package_channel_add(packageId, serviceId, &groupAddrAux, &sourceAddrAux) != L7_SUCCESS )
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error adding channel to multicast package [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
-                  packageId, serviceId, inetAddrPrint(&groupAddr, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
+                  packageId, serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
           rc = L7_FAILURE;
         }
         else
         {
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"Added channel to multicast package [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
-                    packageId, serviceId, inetAddrPrint(&groupAddr, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
+                    packageId, serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
         }
       }
       /* If one error ocurred, remove previously added nodes */
       else
       {
-        if (ptin_igmp_multicast_package_channel_remove(packageId, serviceId, &groupAddr, &sourceAddrAux) != L7_SUCCESS)
+        if (ptin_igmp_multicast_package_channel_remove(packageId, serviceId, &groupAddrAux, &sourceAddrAux) != L7_SUCCESS)
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing channel from multicast package [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
-                  packageId, serviceId, inetAddrPrint(&groupAddr, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
+                  packageId, serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
         }
         else
         {
           LOG_TRACE(LOG_CTX_PTIN_IGMP,"Removed channel from multicast package [packageId:%u serviceId:%u groupAddr:%s groupMask:%u sourceAddr:%s sourceMask:%u]",
-                    packageId, serviceId, inetAddrPrint(&groupAddr, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
+                    packageId, serviceId, inetAddrPrint(&groupAddrAux, groupAddrStr), groupMask, inetAddrPrint(&sourceAddrAux, sourceAddrStr), sourceMask);
         }
       }
 
@@ -16568,22 +16619,22 @@ RC_t ptin_igmp_multicast_package_channels_add(L7_uint32 packageId, L7_uint32 ser
         break;      
     }
     /* Next group address */
-    if (groupAddr.family != L7_AF_INET6)
+    if (groupAddrAux.family != L7_AF_INET6)
     {
       if ( rc == L7_SUCCESS )
       {
-        groupAddr.addr.ipv4.s_addr++;   groupIterator++;
+        groupAddrAux.addr.ipv4.s_addr++;   groupIterator++;
       }
       else
       {
-        groupAddr.addr.ipv4.s_addr--;   groupIterator--;
+        groupAddrAux.addr.ipv4.s_addr--;   groupIterator--;
       }
     }
     else
       break;
   }
 
-  return L7_SUCCESS;
+  return rc;;
 }
 
 /**
@@ -16745,7 +16796,7 @@ RC_t ptin_igmp_multicast_package_channels_remove(L7_uint32 packageId, L7_uint32 
     else
       break;
   }
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -16802,12 +16853,6 @@ static RC_t ptin_igmp_multicast_package_channel_add(L7_uint32 packageId, L7_uint
   else if (rc != L7_SUCCESS || channelAvlTreeEntry == L7_NULLPTR )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Search Channel Entry [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%p channelEntry:%p]", packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), channelAvlTreeEntry);    
-    return rc;
-  }
-
-  if ( L7_SUCCESS != (rc = ptin_igmp_package_channel_conflict_validation(packageId, channelAvlTreeEntry) ) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Channel Conflict Found [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
     return rc;
   }
 
@@ -17130,8 +17175,9 @@ static RC_t queue_channel_entry_add(L7_uint32 packageId, ptinIgmpChannelInfoData
 
   rc = queue_channel_entry_find(packageId, channelAvlTreeEntry, &channelEntry);
   if (rc == L7_SUCCESS)
-  {    
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Already Added");    
+  { 
+    if (ptin_debug_igmp_snooping)   
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Already Added");    
     #if 0//Do not return this rc to caller
     return L7_ALREADY_CONFIGURED;
     #else
@@ -17359,7 +17405,8 @@ static RC_t queue_package_entry_add(L7_uint32 packageId, ptinIgmpChannelInfoData
   rc = queue_package_entry_find(packageId, channelAvlTreeEntry, &packageEntry);
   if (rc == L7_SUCCESS)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Already Added");    
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Already Added");    
     #if 0//Do not return this rc to caller
     return L7_ALREADY_CONFIGURED;
     #else

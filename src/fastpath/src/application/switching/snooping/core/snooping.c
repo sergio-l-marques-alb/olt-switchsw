@@ -276,10 +276,13 @@ SYSNET_PDU_RC_t snoopIGMPPktIntercept(L7_uint32 hookId,
     debug_pktTimer.pkt_intercept_counter++;
     hapiBroadReceice_igmp_count++;
 
+    ptin_timer_start(72,"snoopPacketHandle");
     if (snoopPacketHandle(bufHandle, pduInfo, L7_AF_INET) == L7_SUCCESS)
     {
+      ptin_timer_stop(72);
       return SYSNET_PDU_RC_COPIED;
     }
+    ptin_timer_stop(72);
   }
 
   return SYSNET_PDU_RC_IGNORED;
@@ -506,32 +509,38 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   /* PTin added: IGMP snooping */
 #if 1
+   ptin_timer_start(73,"ptin_igmp_clientIntfVlan_validate");
   /*Get Port Type*/
   isRootPort  = ptin_igmp_clientIntfVlan_validate(pduInfo->intIfNum, pduInfo->vlanId);
+  ptin_timer_stop(73);
 
   /* Search for client index */
   /* Validate client information */
 #if ( PTIN_BOARD_IS_MATRIX )
+  ptin_timer_start(74,"ptin_igmp_clientIndex_get");
   if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
                                 L7_NULL, L7_NULL,
                                 L7_NULL,
                                 &client_idx) != L7_SUCCESS)
-  {
+  {    
     client_idx = (L7_uint) -1;
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
-  }  
+  }
+  ptin_timer_stop(74);  
 #else
 /* Only for linecards, clients are identified with the inner vlan (matrix are ports) */
   if ( (!isRootPort) && (pduInfo->innerVlanId != 0) )
   {
+    ptin_timer_start(74,"ptin_igmp_clientIndex_get");
     if (ptin_igmp_clientIndex_get(pduInfo->intIfNum,
                                   pduInfo->vlanId, pduInfo->innerVlanId,
                                   &data[L7_MAC_ADDR_LEN],
                                   &client_idx) != L7_SUCCESS)
-    {
+    {   
       client_idx = (L7_uint) -1;
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "ptin_igmp_clientIndex_get failed");
     }
+    ptin_timer_stop(74);
   }      
 #endif
   
@@ -550,24 +559,28 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* For leaf interfaces */
   if ( !isRootPort )
   {
-#if (PTIN_BOARD_IS_MATRIX)
-    /* If the client does not exist, it will be created in dynamic mode */
-    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS && ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
-                                     L7_NULL, L7_NULL,
-                                     L7_NULL,
-                                     &client_idx) != L7_SUCCESS)
-#else
-    /* For Linecard only: If client was not recognized, add it as dynamic */
-    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS &&
-        ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
-                                     pduInfo->vlanId, pduInfo->innerVlanId,
-                                     &data[L7_MAC_ADDR_LEN],
-                                     &client_idx) != L7_SUCCESS)
-#endif
+    if (client_idx>=PTIN_SYSTEM_IGMP_MAXCLIENTS)
     {
-      client_idx = (L7_uint) -1;
-      LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
-    }    
+       ptin_timer_start(75,"ptin_igmp_dynamic_client_add");
+  #if (PTIN_BOARD_IS_MATRIX)
+      /* If the client does not exist, it will be created in dynamic mode */
+       if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                       L7_NULL, L7_NULL,
+                                       L7_NULL,
+                                       &client_idx) != L7_SUCCESS)
+  #else
+      /* For Linecard only: If client was not recognized, add it as dynamic */
+      if (ptin_igmp_dynamic_client_add(pduInfo->intIfNum,
+                                       pduInfo->vlanId, pduInfo->innerVlanId,
+                                       &data[L7_MAC_ADDR_LEN],
+                                       &client_idx) != L7_SUCCESS)
+  #endif
+      {        
+        client_idx = (L7_uint) -1;
+        LOG_TRACE(LOG_CTX_PTIN_IGMP,"intIfNum=%u,vlan=%u are not accepted", pduInfo->intIfNum, pduInfo->vlanId);
+      }
+      ptin_timer_stop(75);    
+    }
   }
 #endif
 
@@ -701,14 +714,17 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     return L7_FAILURE;
   }
 
+  ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* Get multicast root vlan */  
   if ( ptin_igmp_McastRootVlan_get(pduInfo->vlanId, pduInfo->intIfNum, !isRootPort, client_idx, &groupAddr, &sourceAddr, &mcastRootVlan) == L7_SUCCESS )
   {
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u (grpAddr=%s)",
               pduInfo->vlanId, mcastRootVlan, inetAddrPrint(&groupAddr,groupAddrStr));
+    ptin_timer_stop(76);
   }
   else 
   {
+    ptin_timer_stop(76);
     if (noOfGroupRecords == 1 || igmpPtr[0] != L7_IGMP_V3_MEMBERSHIP_REPORT)
     {
       LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u (grpAddr=%s). Packet Silently ignored...",
@@ -729,13 +745,16 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
   }
 #else
+  ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* !IGMPASSOC_MULTI_MC_SUPPORTED */
   if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
+    ptin_timer_stop(76);
     LOG_TRACE(LOG_CTX_PTIN_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,mcastRootVlan);
   }
   else
   {
+    ptin_timer_stop(76);
     LOG_DEBUG(LOG_CTX_PTIN_IGMP,"Can't get McastRootVlan for vlan=%u. Packet Silently ignored...",pduInfo->vlanId);
     if(igmpPtr!=L7_NULLPTR)
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));

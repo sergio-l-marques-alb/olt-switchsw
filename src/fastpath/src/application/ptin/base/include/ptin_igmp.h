@@ -845,7 +845,7 @@ extern L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc );
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-extern L7_RC_t igmp_assoc_clean_all(void);
+extern L7_RC_t ptin_igmp_assoc_clean_all(void);
 #endif
 
 /******************************************************** 

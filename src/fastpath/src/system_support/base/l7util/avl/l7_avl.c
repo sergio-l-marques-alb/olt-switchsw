@@ -232,9 +232,9 @@ void * avlInsertEntry (avlTree_t *avl_tree, void *item)
 {
   void * rc;
 
-  ptin_timer_start(16,"avlInsertEntry-avlAddEntry");
+  ptin_timer_start(44,"avlInsertEntry");
   rc = avlAddEntry (avl_tree, item);
-  ptin_timer_stop(16);
+  ptin_timer_stop(44);
 
   return(rc);
 }
@@ -259,7 +259,9 @@ void * avlDeleteEntry (avlTree_t *avl_tree, void *item)
 {
   void * rc;
 
+  ptin_timer_start(45,"avlDeleteEntry");
   rc = avlRemoveEntry( avl_tree, item);
+  ptin_timer_stop(45);
 
   return(rc);
 }
@@ -281,7 +283,9 @@ void *avlGetNextEntry(avlTree_t *avlTree, avlTreeTables_t **cell_ptr, L7_uint di
 {
   void *entry;
 
+  ptin_timer_start(46,"avlGetNextEntry");
   entry = avlGetNextLVL7 (avlTree, cell_ptr, direction);
+  ptin_timer_stop(46);
 
   if (entry == L7_NULL) {
     return L7_NULLPTR;
@@ -314,6 +318,7 @@ void * avlSearchLVL7 (avlTree_t *avl_tree, void *key, L7_uint32 flags)
   saved_node = L7_NULL;
   found_equal = L7_FALSE;
 
+  ptin_timer_start(47,"avlSearchLVL7");
   while (ptr != NULL)
   {
 
@@ -342,6 +347,7 @@ void * avlSearchLVL7 (avlTree_t *avl_tree, void *key, L7_uint32 flags)
       ptr=ptr->link[L7_RIGHT];
     }
   }   /* ptr */
+  ptin_timer_stop(47);
 
   if ( ( found_equal == L7_TRUE) || 
        ( (flags & AVL_NEXT) && saved_node != L7_NULL) ) /* if found or doing a get next */
