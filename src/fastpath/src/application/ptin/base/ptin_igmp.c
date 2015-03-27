@@ -16856,6 +16856,35 @@ static RC_t ptin_igmp_multicast_package_channel_add(L7_uint32 packageId, L7_uint
     return rc;
   }
 
+  if ( L7_SUCCESS != (rc = queue_package_entry_add(packageId, channelAvlTreeEntry ) ) )
+  {
+    if (L7_ALREADY_CONFIGURED != rc)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Package to Queue  [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
+      return rc;
+    }
+    else
+    {
+      //Package Already Added To Channel
+      return L7_SUCCESS;
+    }
+  }
+  
+  if ( L7_SUCCESS != (rc = queue_channel_entry_add(packageId, channelAvlTreeEntry) ) )
+  {
+    if (L7_ALREADY_CONFIGURED != rc)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel to Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
+      return rc;
+    }
+    else
+    {
+      //Channel Already Added to Package
+      return L7_SUCCESS;
+    }
+  } 
+
+  
   if ( multicastPackage[packageId].noOfPorts != 0 )
   {    
     for ( portIterator = 0; portIterator < PTIN_SYSTEM_N_UPLINK_INTERF && noOfPortsFound < multicastPackage[packageId].noOfPorts; portIterator++)
@@ -16915,20 +16944,7 @@ static RC_t ptin_igmp_multicast_package_channel_add(L7_uint32 packageId, L7_uint
         }
       }
     }
-  }
-
-  if ( L7_SUCCESS != (rc = queue_channel_entry_add(packageId, channelAvlTreeEntry) ) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Channel to Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
-    return rc;
-  }
-
-  if ( L7_SUCCESS != (rc = queue_package_entry_add(packageId, channelAvlTreeEntry ) ) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Package to Queue  [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
-    return rc;
-  }
-
+  } 
   return L7_SUCCESS;
 }
 
@@ -17071,16 +17087,32 @@ static RC_t ptin_igmp_multicast_package_channel_remove(L7_uint32 packageId, L7_u
 #endif
   }
 
-  if ( L7_SUCCESS != (rc = queue_channel_entry_remove(packageId, channelAvlTreeEntry) ) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel from Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
-    return rc;
-  }
-
   if ( L7_SUCCESS != (rc = queue_package_entry_remove(packageId, channelAvlTreeEntry) ) )
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Package from Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
-    return rc;
+    if ( L7_NOT_EXIST != rc)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Package from Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
+      return rc;
+    }
+    else
+    {
+      //Package Entry Already Remove
+      return L7_SUCCESS;
+    }
+  }
+
+  if ( L7_SUCCESS != (rc = queue_channel_entry_remove(packageId, channelAvlTreeEntry) ) )
+  {
+    if ( L7_NOT_EXIST != rc)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Channel from Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
+      return rc;
+    }
+    else
+    {
+      //Channel Entry Already Remove
+      return L7_SUCCESS;
+    }
   }
 
   return L7_SUCCESS;
@@ -17177,12 +17209,8 @@ static RC_t queue_channel_entry_add(L7_uint32 packageId, ptinIgmpChannelInfoData
   if (rc == L7_SUCCESS)
   { 
     if (ptin_debug_igmp_snooping)   
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Already Added");    
-    #if 0//Do not return this rc to caller
-    return L7_ALREADY_CONFIGURED;
-    #else
-    return L7_SUCCESS;
-    #endif
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Already Added");        
+    return L7_ALREADY_CONFIGURED;    
   }
   else
   {
@@ -17256,12 +17284,9 @@ static RC_t queue_channel_entry_remove(L7_uint32 packageId, ptinIgmpChannelInfoD
   /* Check if queue has free elements */
   if (queueFreeChannelId.n_elems >= PTIN_IGMP_CHANNELS_MAX)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"All elements already removed (Free Queue is full: n_elems:%u)!", queueFreeChannelId.n_elems);    
-    #if 0//Do not return this rc to caller
-    return L7_TABLE_IS_FULL;
-    #else
-    return L7_SUCCESS;
-    #endif
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"All elements already removed (Free Queue is full: n_elems:%u)!", queueFreeChannelId.n_elems);        
+    return L7_NOT_EXIST;    
   }
 
   rc = queue_channel_entry_find(packageId, channelAvlTreeEntry, &channelEntry);
@@ -17270,11 +17295,7 @@ static RC_t queue_channel_entry_remove(L7_uint32 packageId, ptinIgmpChannelInfoD
     if (rc == L7_NOT_EXIST)
     {
       LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Channel Entry Does Not Exist [packageId:%u channelAvlTreeEntry:%p]",packageId, channelAvlTreeEntry);          
-      #if 0//Do not return this rc to caller
-      return L7_NOT_EXIST;
-      #else
-      return L7_SUCCESS;
-      #endif
+      return L7_NOT_EXIST;      
     }
     else
     {    
@@ -17406,12 +17427,8 @@ static RC_t queue_package_entry_add(L7_uint32 packageId, ptinIgmpChannelInfoData
   if (rc == L7_SUCCESS)
   {
     if (ptin_debug_igmp_snooping)
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Already Added");    
-    #if 0//Do not return this rc to caller
-    return L7_ALREADY_CONFIGURED;
-    #else
-    return L7_SUCCESS;
-    #endif
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Already Added");        
+    return L7_ALREADY_CONFIGURED;    
   }
   else
   {
@@ -17486,12 +17503,9 @@ static RC_t queue_package_entry_remove(L7_uint32 packageId, ptinIgmpChannelInfoD
   /* Check if queue has free elements */
   if (queueFreePackageId.n_elems >= PTIN_IGMP_CHANNELS_MAX)
   {
-    LOG_NOTICE(LOG_CTX_PTIN_IGMP,"All elements already removed (Free Queue is full: n_elems:%u)!", queueFreePackageId.n_elems);    
-    #if 0//Do not return this rc to caller
-    return L7_TABLE_IS_FULL;
-    #else
-    return L7_SUCCESS;
-    #endif
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP,"All elements already removed (Free Queue is full: n_elems:%u)!", queueFreePackageId.n_elems);        
+    return L7_NOT_EXIST;    
   }
 
   rc = queue_package_entry_find(packageId, channelAvlTreeEntry, &packageEntry);  
@@ -17499,12 +17513,9 @@ static RC_t queue_package_entry_remove(L7_uint32 packageId, ptinIgmpChannelInfoD
   {
     if (rc == L7_NOT_EXIST)
     {
-      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Does Not Exist [packageId:%u channelAvlTreeEntry:%p]",packageId, channelAvlTreeEntry);          
-      #if 0//Do not return this rc to caller
-      return L7_NOT_EXIST;
-      #else
-      return L7_SUCCESS;
-      #endif
+      if (ptin_debug_igmp_snooping)
+        LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Does Not Exist [packageId:%u channelAvlTreeEntry:%p]",packageId, channelAvlTreeEntry);                
+      return L7_NOT_EXIST;      
     }
     else
     {    
@@ -18779,8 +18790,10 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
 {
   struct channelPoolEntry_s *channelEntry = L7_NULLPTR;
   ptinIgmpChannelInfoData_t *channelAvlTreeEntryAux;  
+  struct packagePoolEntry_s *packageEntry;  
   char                       groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                       sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
+  RC_t                       rc;
 
   /* Input Argument validation */
   if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES || channelAvlTreeEntry == L7_NULLPTR )
@@ -18793,6 +18806,22 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
   if (ptin_debug_igmp_snooping)
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [packageId:%u channelAvlTreeEntry:%p]",
               packageId, channelAvlTreeEntry);
+
+  rc = queue_package_entry_find(packageId, channelAvlTreeEntry, &packageEntry);
+  if (rc == L7_SUCCESS)
+  {
+    if (ptin_debug_igmp_snooping)
+      LOG_NOTICE(LOG_CTX_PTIN_IGMP, "Package Entry Already Added");        
+    return rc;    
+  }
+  else
+  {
+    if (rc != L7_NOT_EXIST)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Find Package Entry [packageId:%u channelAvlTreeEntry:%p]",packageId, channelAvlTreeEntry);    
+      return L7_FAILURE;
+    }
+  }
 
   while ( L7_NULLPTR != (channelEntry = queue_channel_entry_get_next(packageId, channelEntry)) && 
           L7_NULLPTR != (channelAvlTreeEntryAux = channelEntry->channelAvlTreeEntry) )
