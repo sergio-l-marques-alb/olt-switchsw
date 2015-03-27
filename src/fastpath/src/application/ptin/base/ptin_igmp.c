@@ -332,8 +332,8 @@ typedef struct
   dl_queue_t                queuePackage;    /* Pool of Package Identifiers*/
   L7_uint32                 groupClientBmpPerPort[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_IGMP_CLIENT_BITMAP_SIZE];    
   L7_uint8                  noOfGroupClientsPerPort[PTIN_SYSTEM_N_UPLINK_INTERF];  
-//L7_uint32                 portBmp[PTIN_SYSTEM_N_UPLINK_INTERF/(sizeof(L7_uint32)*8)+1];
-//L7_uint8                  noOfPorts;
+  L7_uint32                 portBmp[PTIN_SYSTEM_N_UPLINK_INTERF/(sizeof(L7_uint32)*8)+1];
+  L7_uint8                  noOfPorts;
   void                     *next; /*AVL Tree Element*/
 } ptinIgmpChannelInfoData_t;
 
@@ -7693,7 +7693,7 @@ L7_RC_t igmp_assoc_channel_remove( L7_uint32 evc_mc, L7_uint32 evc_uc,
         {
           LOG_ERR(LOG_CTX_PTIN_IGMP,"Error removing group channel 0x%08x, source=0x%08x for UC_EVC=%u",
                   group.addr.ipv4.s_addr, sourceAux.addr.ipv4.s_addr, evc_uc);
-          rc = L7_FAILURE;
+          return L7_FAILURE;
         }
         else
         {
@@ -7961,9 +7961,9 @@ static L7_RC_t ptin_igmp_channel_add( ptinIgmpChannelInfoData_t *node )
     memset( &avl_infoData->noOfGroupClientsPerPort, 0x00, sizeof(avl_infoData->noOfGroupClientsPerPort));
 
     /*Initialize number of group Clients*/
-//  memset( &avl_infoData->portBmp, 0x00, sizeof(avl_infoData->portBmp));
+    memset( &avl_infoData->portBmp, 0x00, sizeof(avl_infoData->portBmp));
 
-//  avl_infoData->noOfPorts = 0;
+    avl_infoData->noOfPorts = 0;
   }
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
@@ -7997,6 +7997,22 @@ static L7_RC_t ptin_igmp_channel_remove( ptinIgmpChannelDataKey_t *avl_key )
     LOG_WARNING(LOG_CTX_PTIN_IGMP,"Group channel 0x%08x does not exist",
                 avl_key->channel_group.addr.ipv4.s_addr);
     return L7_SUCCESS;
+  }
+
+  /*Check if this channel has packages attached*/
+  if (avl_infoData->queuePackage.n_elems != 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot remove Group channel 0x%08x, since it has packages currently attached:%u!",
+            avl_key->channel_group.addr.ipv4.s_addr, avl_infoData->queuePackage.n_elems);
+    return L7_FAILURE;
+  }
+
+  /*Check if this channel has packages attached*/
+  if (avl_infoData->noOfPorts != 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot remove Group channel 0x%08x, since it has ports currently attached:%u!",
+            avl_key->channel_group.addr.ipv4.s_addr, avl_infoData->noOfPorts);
+    return L7_FAILURE;
   }
 
   /* Remove key */
@@ -16855,20 +16871,6 @@ static RC_t ptin_igmp_multicast_package_channel_add(L7_uint32 packageId, L7_uint
     LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Search Channel Entry [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%p channelEntry:%p]", packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr), channelAvlTreeEntry);    
     return rc;
   }
-
-  if ( L7_SUCCESS != (rc = queue_package_entry_add(packageId, channelAvlTreeEntry ) ) )
-  {
-    if (L7_ALREADY_CONFIGURED != rc)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Add Package to Queue  [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
-      return rc;
-    }
-    else
-    {
-      //Package Already Added To Channel
-      return L7_SUCCESS;
-    }
-  }
   
   if ( L7_SUCCESS != (rc = queue_channel_entry_add(packageId, channelAvlTreeEntry) ) )
   {
@@ -16883,7 +16885,6 @@ static RC_t ptin_igmp_multicast_package_channel_add(L7_uint32 packageId, L7_uint
       return L7_SUCCESS;
     }
   } 
-
   
   if ( multicastPackage[packageId].noOfPorts != 0 )
   {    
@@ -16974,8 +16975,6 @@ static RC_t ptin_igmp_multicast_package_channel_remove(L7_uint32 packageId, L7_u
   char                                 groupAddrStr[IPV6_DISP_ADDR_LEN]={};
   char                                 sourceAddrStr[IPV6_DISP_ADDR_LEN]={}; 
   RC_t                                 rc;
-  
-  
 
   /* Input Argument validation */
   if ( packageId >= PTIN_SYSTEM_IGMP_MAXPACKAGES || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR )
@@ -17087,20 +17086,6 @@ static RC_t ptin_igmp_multicast_package_channel_remove(L7_uint32 packageId, L7_u
 #endif
   }
 
-  if ( L7_SUCCESS != (rc = queue_package_entry_remove(packageId, channelAvlTreeEntry) ) )
-  {
-    if ( L7_NOT_EXIST != rc)
-    {
-      LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to Remove Package from Queue [packageId:%u serviceId:%u groupAddr:%s sourceAddr:%s]",packageId, serviceId, inetAddrPrint(groupAddr, groupAddrStr), inetAddrPrint(sourceAddr, sourceAddrStr));    
-      return rc;
-    }
-    else
-    {
-      //Package Entry Already Remove
-      return L7_SUCCESS;
-    }
-  }
-
   if ( L7_SUCCESS != (rc = queue_channel_entry_remove(packageId, channelAvlTreeEntry) ) )
   {
     if ( L7_NOT_EXIST != rc)
@@ -17205,6 +17190,29 @@ static RC_t queue_channel_entry_add(L7_uint32 packageId, ptinIgmpChannelInfoData
     LOG_TRACE(LOG_CTX_PTIN_IGMP, "Input Parameters [packageId:%u channelAvlTreeEntry:%p]",
               packageId, channelAvlTreeEntry);
 
+  /*Attach this package on this channel*/
+  if ( L7_SUCCESS != (rc = queue_package_entry_add(packageId, channelAvlTreeEntry ) ) )
+  {
+    if (L7_ALREADY_CONFIGURED != rc)
+    {
+      //Error Already Logged
+      return rc;
+    }
+    else
+    {
+      //Package Already Added To Channel
+      return L7_SUCCESS;
+    }
+  }
+
+  /* Check if queue has free elements */
+  if (queueFreeChannelId.n_elems == 0)
+  {
+    LOG_ERR(LOG_CTX_PTIN_IGMP,"Queue is empty!");
+    return L7_NO_MEMORY;
+  }
+
+#if 0 //This verification is not required, if we perform the attach of this package before.
   rc = queue_channel_entry_find(packageId, channelAvlTreeEntry, &channelEntry);
   if (rc == L7_SUCCESS)
   { 
@@ -17220,13 +17228,7 @@ static RC_t queue_channel_entry_add(L7_uint32 packageId, ptinIgmpChannelInfoData
       return L7_FAILURE;
     }
   }
-
-  /* Check if queue has free elements */
-  if (queueFreeChannelId.n_elems == 0)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"Queue is empty!");
-    return L7_NO_MEMORY;
-  }
+#endif
 
   /* Pop Channel Pool Entry Id*/
   rc = dl_queue_remove_head(&queueFreeChannelId, (dl_queue_elem_t **) &channelEntryId);
@@ -17287,6 +17289,21 @@ static RC_t queue_channel_entry_remove(L7_uint32 packageId, ptinIgmpChannelInfoD
     if (ptin_debug_igmp_snooping)
       LOG_NOTICE(LOG_CTX_PTIN_IGMP,"All elements already removed (Free Queue is full: n_elems:%u)!", queueFreeChannelId.n_elems);        
     return L7_NOT_EXIST;    
+  }
+
+  /*Detach this package from this channel*/
+  if ( L7_SUCCESS != (rc = queue_package_entry_remove(packageId, channelAvlTreeEntry) ) )
+  {
+    if ( L7_NOT_EXIST != rc)
+    {
+      //Error Already Logged
+      return rc;
+    }
+    else
+    {
+      //Package Entry Already Remove
+      return L7_SUCCESS;
+    }
   }
 
   rc = queue_channel_entry_find(packageId, channelAvlTreeEntry, &channelEntry);
@@ -18040,7 +18057,18 @@ RC_t ptin_igmp_multicast_channel_client_add(L7_uint32 packageId, ptinIgmpGroupCl
   BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE);
 
   /*Increment the Number of Group Clients*/
-  channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]++;
+  if (channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]++ == 0)
+  {
+    if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE) == L7_FALSE)
+    {
+      /* Set portId in the port bitmap */
+      BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE);
+
+      /*Increment the Number of Used Ports*/
+      channelAvlTreeEntry->noOfPorts++;    
+    }
+  }
+
 
   return L7_SUCCESS;
 }
@@ -18149,7 +18177,22 @@ RC_t ptin_igmp_multicast_channel_client_remove(L7_uint32 packageId, ptinIgmpGrou
 
   /*Decrement the Number of Group Clients*/
   if (channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port] > 0)
-    channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port]--;
+  {
+    if (--channelAvlTreeEntry->noOfGroupClientsPerPort[groupClient->igmpClientDataKey.ptin_port] == 0)
+    {
+      if (IS_BITMAP_BIT_SET(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE) == L7_TRUE)
+      {
+        /* Clear portId in the port bitmap */
+        BITMAP_BIT_CLR(channelAvlTreeEntry->portBmp, groupClient->igmpClientDataKey.ptin_port, UINT32_BITSIZE);
+
+        if (channelAvlTreeEntry->noOfPorts > 0)
+        {
+          /*Decrement the Number of Used Ports*/
+          channelAvlTreeEntry->noOfPorts++;    
+        }
+      }
+    }
+  }
 
   return L7_SUCCESS;
 }
