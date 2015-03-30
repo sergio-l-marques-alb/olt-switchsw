@@ -64,6 +64,8 @@ typedef struct
 {
   L7_int32 limit;
   L7_int32 flags;
+  L7_int32 bucket_size;
+  L7_uint8 units;             /* PTin added: stormControl: L7_RATE_UNIT_PPS, L7_RATE_UNIT_KBPS */
 } usl_bcm_port_rate_limit_t;
 
 typedef struct

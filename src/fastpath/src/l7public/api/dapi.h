@@ -821,6 +821,7 @@ typedef struct
       L7_STORMCONTROL_TYPE        type;
       L7_BOOL                     enable;
       L7_uint32                   threshold;
+      L7_uint32                   bucket_size;
       L7_RATE_UNIT_t              unit;
     } broadcastControl;
 

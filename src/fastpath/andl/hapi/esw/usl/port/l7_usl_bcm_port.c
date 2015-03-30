@@ -57,7 +57,19 @@ int usl_bcm_port_rate_bcast_set (int unit,
   /* Check if the hardware should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
   {
-    rv = bcm_rate_bcast_set(unit, bcast_limit->limit, bcast_limit->flags, port);
+    /* PTin modified: storm control */
+    if (bcast_limit->units == L7_RATE_UNIT_PPS)
+    {
+      rv = bcm_rate_bcast_set(unit, bcast_limit->limit, bcast_limit->flags, port);
+    }
+    else if (bcast_limit->units == L7_RATE_UNIT_KBPS)
+    {
+      rv = bcm_rate_bandwidth_set(unit, port, bcast_limit->flags | BCM_RATE_BCAST, bcast_limit->limit, bcast_limit->bucket_size);
+    }
+    else
+    {
+      rv = BCM_E_PARAM;
+    }
   }
 
   /* Update the USL port database only on non-management units */
@@ -103,7 +115,19 @@ int usl_bcm_port_rate_mcast_set (int unit,
   /* Check if the hardware should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
   {
-    rv = bcm_rate_mcast_set(unit, mcast_limit->limit, mcast_limit->flags, port);
+    /* PTin modified: storm control */
+    if (mcast_limit->units == L7_RATE_UNIT_PPS)
+    {
+      rv = bcm_rate_mcast_set(unit, mcast_limit->limit, mcast_limit->flags, port);
+    }
+    else if (mcast_limit->units == L7_RATE_UNIT_KBPS)
+    {
+      rv = bcm_rate_bandwidth_set(unit, port, mcast_limit->flags | BCM_RATE_MCAST, mcast_limit->limit, mcast_limit->bucket_size);
+    }
+    else
+    {
+      rv = BCM_E_PARAM;
+    }
   }
 
   /* Update the USL port database only on non-management units */
@@ -148,7 +172,19 @@ int usl_bcm_port_rate_dlfbc_set (int unit,
   /* Check if the hardware should be configured */
   if (USL_BCM_CONFIGURE_HW(USL_PORT_DB_ID) == L7_TRUE)
   {
-    rv = bcm_rate_dlfbc_set(unit, dlf_limit->limit, dlf_limit->flags, port);
+    /* PTin modified: storm control */
+    if (dlf_limit->units == L7_RATE_UNIT_PPS)
+    {
+      rv = bcm_rate_dlfbc_set(unit, dlf_limit->limit, dlf_limit->flags, port);
+    }
+    else if (dlf_limit->units == L7_RATE_UNIT_KBPS)
+    {
+      rv = bcm_rate_bandwidth_set(unit, port, dlf_limit->flags | BCM_RATE_DLF, dlf_limit->limit, dlf_limit->bucket_size);
+    }
+    else
+    {
+      rv = BCM_E_PARAM;
+    }
   }
 
   /* Update the USL port database only on non-management units */
