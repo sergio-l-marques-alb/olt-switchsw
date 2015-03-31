@@ -2504,7 +2504,7 @@ L7_RC_t cliRunningStormControlInfo(EwsContext ewsContext, L7_uint32 unit)
   if (usmDbFeaturePresentCheck(unit, L7_POLICY_COMPONENT_ID, L7_POLICY_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
   {
     if (usmDbSwDevCtrlBcastStormModeGet(unit, &val) == L7_SUCCESS &&
-        usmDbSwDevCtrlBcastStormThresholdGet(unit, &threshold, &rate_unit) == L7_SUCCESS )
+        usmDbSwDevCtrlBcastStormThresholdGet(unit, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit) == L7_SUCCESS )
     {
       if (val != FD_POLICY_DEFAULT_BCAST_STORM_MODE) /* If not the default value. */
       {
@@ -2590,7 +2590,7 @@ L7_RC_t cliRunningStormControlInfo(EwsContext ewsContext, L7_uint32 unit)
   if (usmDbFeaturePresentCheck(unit, L7_POLICY_COMPONENT_ID, L7_POLICY_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
   {
     if (usmDbSwDevCtrlMcastStormModeGet(unit, &val) == L7_SUCCESS &&
-        usmDbSwDevCtrlMcastStormThresholdGet(unit, &threshold, &rate_unit) == L7_SUCCESS )
+        usmDbSwDevCtrlMcastStormThresholdGet(unit, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit) == L7_SUCCESS )
     {
       if (val != FD_POLICY_DEFAULT_MCAST_STORM_MODE)  /* If not the default value. */
       {
@@ -2676,7 +2676,7 @@ L7_RC_t cliRunningStormControlInfo(EwsContext ewsContext, L7_uint32 unit)
   if (usmDbFeaturePresentCheck(unit, L7_POLICY_COMPONENT_ID, L7_POLICY_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
   {
     if (usmDbSwDevCtrlUcastStormModeGet(unit, &val) == L7_SUCCESS &&
-        usmDbSwDevCtrlUcastStormThresholdGet(unit, &threshold, &rate_unit) == L7_SUCCESS )
+        usmDbSwDevCtrlUcastStormThresholdGet(unit, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit) == L7_SUCCESS )
     {
       if (val != FD_POLICY_DEFAULT_UCAST_STORM_MODE)  /* If not the default value. */
       {
@@ -2954,7 +2954,7 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
     if (usmDbFeaturePresentCheck(unit, L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
       if (usmDbSwDevCtrlBcastStormModeIntfGet(interface, &val) == L7_SUCCESS &&
-          usmDbSwDevCtrlBcastStormThresholdIntfGet(interface, &threshold, &rate_unit) == L7_SUCCESS )
+          usmDbSwDevCtrlBcastStormThresholdIntfGet(interface, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit) == L7_SUCCESS )
       {
         if (val != FD_POLICY_DEFAULT_BCAST_STORM_MODE)  /* If not the default value. */
         {
@@ -3044,7 +3044,7 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
     if (usmDbFeaturePresentCheck(unit, L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
       if (usmDbSwDevCtrlMcastStormModeIntfGet(interface, &val) == L7_SUCCESS &&
-          usmDbSwDevCtrlMcastStormThresholdIntfGet(interface, &threshold, &rate_unit) == L7_SUCCESS )
+          usmDbSwDevCtrlMcastStormThresholdIntfGet(interface, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit) == L7_SUCCESS )
       {
         if (val != FD_POLICY_DEFAULT_MCAST_STORM_MODE)  /* If not the default value. */
         {
@@ -3134,7 +3134,7 @@ L7_RC_t cliRunningPhysicalInterfaceInfo(EwsContext ewsContext, L7_uint32 unit, L
     if (usmDbFeaturePresentCheck(unit, L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
       if (usmDbSwDevCtrlUcastStormModeIntfGet(interface, &val) == L7_SUCCESS &&
-          usmDbSwDevCtrlUcastStormThresholdIntfGet(interface, &threshold, &rate_unit) == L7_SUCCESS )
+          usmDbSwDevCtrlUcastStormThresholdIntfGet(interface, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit) == L7_SUCCESS )
       {
         if (val != FD_POLICY_DEFAULT_UCAST_STORM_MODE)  /* If not the default value. */
         {

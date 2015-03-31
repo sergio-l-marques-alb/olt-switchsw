@@ -188,13 +188,19 @@ L7_uint32 policySystemBcastStormModeSet(L7_uint32 mode)
          continue;
        policyCfgData->policyIntfCfgData[cfgIndex].bcastStormMode = mode;
 
-       if (dtlPolicyIntfBcastCtrlModeSet(intIfNum, mode, policyCfgData->policyIntfCfgData[cfgIndex].bcastStormThreshold, policyCfgData->policyIntfCfgData[cfgIndex].bcastStormThresholdUnit) != L7_SUCCESS)
+       if (dtlPolicyIntfBcastCtrlModeSet(intIfNum, mode, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].bcastStormThreshold, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].bcastStormBurstSize /* PTin added: stormcontrol */, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].bcastStormThresholdUnit) != L7_SUCCESS)
          rc = L7_FAILURE;
      }
   }
   else
   {
-     if (dtlPolicyIntfAllBcastCtrlModeSet(mode, policyCfgData->systemBcastStormThreshold, policyCfgData->systemBcastStormThresholdUnit) != L7_SUCCESS)
+     if (dtlPolicyIntfAllBcastCtrlModeSet(mode, 
+                                          policyCfgData->systemBcastStormThreshold, 
+                                          policyCfgData->systemBcastStormBurstSize /* PTin added: stormcontrol */, 
+                                          policyCfgData->systemBcastStormThresholdUnit) != L7_SUCCESS)
      {
         rc = L7_FAILURE;
      }
@@ -214,7 +220,7 @@ L7_uint32 policySystemBcastStormModeSet(L7_uint32 mode)
 * @purpose  Sets the Unit's System Broadcast Storm Threshold
 *
 * @param    threshold  System Broadcast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -223,7 +229,7 @@ L7_uint32 policySystemBcastStormModeSet(L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_uint32 policySystemBcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t rate_unit)
+L7_uint32 policySystemBcastStormThresholdSet(L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */, L7_RATE_UNIT_t rate_unit)
 {
   L7_RC_t rc = L7_SUCCESS;
   L7_uint32 cfgIndex;
@@ -233,6 +239,7 @@ L7_uint32 policySystemBcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t
   memset(&configIdNull, 0, sizeof(nimConfigID_t));
 
   policyCfgData->systemBcastStormThreshold = threshold;
+  policyCfgData->systemBcastStormBurstSize = burstSize;     /* PTin added: stormcontrol */
   policyCfgData->systemBcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
@@ -245,11 +252,15 @@ L7_uint32 policySystemBcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t
        if (nimIntIfFromConfigIDGet(&(policyCfgData->policyIntfCfgData[cfgIndex].configId), &intIfNum) != L7_SUCCESS)
          continue;
        policyCfgData->policyIntfCfgData[cfgIndex].bcastStormThreshold = threshold;
+       policyCfgData->policyIntfCfgData[cfgIndex].bcastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
        policyCfgData->policyIntfCfgData[cfgIndex].bcastStormThresholdUnit = rate_unit;
      }
   }
 
-  if (dtlPolicyIntfAllBcastCtrlModeSet(policyCfgData->systemBcastStormMode, threshold, rate_unit) != L7_SUCCESS)
+  if (dtlPolicyIntfAllBcastCtrlModeSet(policyCfgData->systemBcastStormMode, 
+                                       threshold, 
+                                       burstSize /* PTin added: stormcontrol */, 
+                                       rate_unit) != L7_SUCCESS)
   {
      rc = L7_FAILURE;
   }
@@ -298,13 +309,19 @@ L7_uint32 policySystemMcastStormModeSet(L7_uint32 mode)
          continue;
        policyCfgData->policyIntfCfgData[cfgIndex].mcastStormMode = mode;
 
-       if (dtlPolicyIntfMcastCtrlModeSet(intIfNum, mode, policyCfgData->policyIntfCfgData[cfgIndex].mcastStormThreshold, policyCfgData->policyIntfCfgData[cfgIndex].mcastStormThresholdUnit) != L7_SUCCESS)
+       if (dtlPolicyIntfMcastCtrlModeSet(intIfNum, mode, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].mcastStormThreshold, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].mcastStormBurstSize /* PTin added: stormcontrol */, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].mcastStormThresholdUnit) != L7_SUCCESS)
          rc = L7_FAILURE;
      }
   }
   else
   {
-    if (dtlPolicyIntfAllMcastCtrlModeSet(mode, policyCfgData->systemMcastStormThreshold, policyCfgData->systemMcastStormThresholdUnit) != L7_SUCCESS)
+    if (dtlPolicyIntfAllMcastCtrlModeSet(mode, 
+                                         policyCfgData->systemMcastStormThreshold, 
+                                         policyCfgData->systemMcastStormBurstSize /* PTin added: stormcontrol */, 
+                                         policyCfgData->systemMcastStormThresholdUnit) != L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
@@ -322,7 +339,7 @@ L7_uint32 policySystemMcastStormModeSet(L7_uint32 mode)
 * @purpose  Sets the Unit's System Multicast Storm Threshold
 *
 * @param    threshold  System Multicast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -331,7 +348,7 @@ L7_uint32 policySystemMcastStormModeSet(L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_uint32 policySystemMcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t rate_unit)
+L7_uint32 policySystemMcastStormThresholdSet(L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */, L7_RATE_UNIT_t rate_unit)
 {
   L7_RC_t rc = L7_SUCCESS;
   L7_uint32 cfgIndex;
@@ -341,6 +358,7 @@ L7_uint32 policySystemMcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t
   memset(&configIdNull, 0, sizeof(nimConfigID_t));
 
   policyCfgData->systemMcastStormThreshold = threshold;
+  policyCfgData->systemMcastStormBurstSize = burstSize;     /* PTin added: stormcontrol */
   policyCfgData->systemMcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
@@ -353,11 +371,15 @@ L7_uint32 policySystemMcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t
        if (nimIntIfFromConfigIDGet(&(policyCfgData->policyIntfCfgData[cfgIndex].configId), &intIfNum) != L7_SUCCESS)
          continue;
        policyCfgData->policyIntfCfgData[cfgIndex].mcastStormThreshold = threshold;
+       policyCfgData->policyIntfCfgData[cfgIndex].mcastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
        policyCfgData->policyIntfCfgData[cfgIndex].mcastStormThresholdUnit = rate_unit;
      }
   }
 
-  if (dtlPolicyIntfAllMcastCtrlModeSet(policyCfgData->systemMcastStormMode, threshold, rate_unit) != L7_SUCCESS)
+  if (dtlPolicyIntfAllMcastCtrlModeSet(policyCfgData->systemMcastStormMode, 
+                                       threshold, 
+                                       burstSize /* PTin added: stormcontrol */, 
+                                       rate_unit) != L7_SUCCESS)
     rc = L7_FAILURE;
 
   if ( rc != L7_SUCCESS)
@@ -405,13 +427,19 @@ L7_uint32 policySystemUcastStormModeSet(L7_uint32 mode)
          continue;
        policyCfgData->policyIntfCfgData[cfgIndex].ucastStormMode = mode;
 
-       if (dtlPolicyIntfUcastCtrlModeSet(intIfNum, mode, policyCfgData->policyIntfCfgData[cfgIndex].ucastStormThreshold, policyCfgData->policyIntfCfgData[cfgIndex].ucastStormThresholdUnit) != L7_SUCCESS)
+       if (dtlPolicyIntfUcastCtrlModeSet(intIfNum, mode, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].ucastStormThreshold, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].ucastStormBurstSize /* PTin added: stormcontrol */, 
+                                         policyCfgData->policyIntfCfgData[cfgIndex].ucastStormThresholdUnit) != L7_SUCCESS)
          rc = L7_FAILURE;
      }
   }
   else
   {
-    if (dtlPolicyIntfAllUcastCtrlModeSet(mode, policyCfgData->systemUcastStormThreshold, policyCfgData->systemUcastStormThresholdUnit) != L7_SUCCESS)
+    if (dtlPolicyIntfAllUcastCtrlModeSet(mode, 
+                                         policyCfgData->systemUcastStormThreshold, 
+                                         policyCfgData->systemUcastStormBurstSize /* PTin added: stormcontrol */, 
+                                         policyCfgData->systemUcastStormThresholdUnit) != L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
@@ -429,7 +457,7 @@ L7_uint32 policySystemUcastStormModeSet(L7_uint32 mode)
 * @purpose  Sets the Unit's System Destination lookup failure Storm Threshold
 *
 * @param    threshold  System Multicast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -438,7 +466,7 @@ L7_uint32 policySystemUcastStormModeSet(L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_uint32 policySystemUcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t rate_unit)
+L7_uint32 policySystemUcastStormThresholdSet(L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */, L7_RATE_UNIT_t rate_unit)
 {
   L7_RC_t rc = L7_SUCCESS;
   L7_uint32 cfgIndex;
@@ -448,6 +476,7 @@ L7_uint32 policySystemUcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t
   memset(&configIdNull, 0, sizeof(nimConfigID_t));
 
   policyCfgData->systemUcastStormThreshold = threshold;
+  policyCfgData->systemUcastStormBurstSize = burstSize;     /* PTin added: stormcontrol */
   policyCfgData->systemUcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
@@ -461,11 +490,15 @@ L7_uint32 policySystemUcastStormThresholdSet(L7_uint32 threshold, L7_RATE_UNIT_t
        if (nimIntIfFromConfigIDGet(&(policyCfgData->policyIntfCfgData[cfgIndex].configId), &intIfNum) != L7_SUCCESS)
          continue;
        policyCfgData->policyIntfCfgData[cfgIndex].ucastStormThreshold = threshold;
+       policyCfgData->policyIntfCfgData[cfgIndex].ucastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
        policyCfgData->policyIntfCfgData[cfgIndex].ucastStormThresholdUnit = rate_unit;
      }
   }
 
-  if (dtlPolicyIntfAllUcastCtrlModeSet(policyCfgData->systemUcastStormMode, threshold, rate_unit) != L7_SUCCESS)
+  if (dtlPolicyIntfAllUcastCtrlModeSet(policyCfgData->systemUcastStormMode, 
+                                       threshold, 
+                                       burstSize /* PTin added: stormcontrol */, 
+                                       rate_unit) != L7_SUCCESS)
     rc = L7_FAILURE;
 
   if ( rc != L7_SUCCESS)
@@ -501,7 +534,10 @@ L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   pCfg->bcastStormMode = mode;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfBcastCtrlModeSet(interface, mode, pCfg->bcastStormThreshold, pCfg->bcastStormThresholdUnit) != L7_SUCCESS)
+  if ( dtlPolicyIntfBcastCtrlModeSet(interface, mode, 
+                                     pCfg->bcastStormThreshold, 
+                                     pCfg->bcastStormBurstSize /* PTin added: stormcontrol */, 
+                                     pCfg->bcastStormThresholdUnit) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
             "Failure setting port %d broadcast storm mode to %d\n", interface, mode);
@@ -516,7 +552,7 @@ L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 * @purpose  Sets an interface's System Broadcast Storm Threshold
 *
 * @param    threshold  System Broadcast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -525,7 +561,7 @@ L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                  L7_RATE_UNIT_t rate_unit)
 {
   L7_RC_t rc = L7_SUCCESS;
@@ -535,10 +571,14 @@ L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
     return L7_FAILURE;
 
   pCfg->bcastStormThreshold = threshold;
+  pCfg->bcastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
   pCfg->bcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfBcastCtrlModeSet(interface, pCfg->bcastStormMode, threshold, rate_unit) != L7_SUCCESS)
+  if ( dtlPolicyIntfBcastCtrlModeSet(interface, pCfg->bcastStormMode, 
+                                     threshold, 
+                                     burstSize /* PTin added: stormcontrol */, 
+                                     rate_unit) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
             "Failure setting port %d broadcast storm threshold to %d\n", interface, threshold);
@@ -573,7 +613,10 @@ L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
 
-  if ( dtlPolicyIntfMcastCtrlModeSet(interface, mode, pCfg->mcastStormThreshold, pCfg->mcastStormThresholdUnit) != L7_SUCCESS)
+  if ( dtlPolicyIntfMcastCtrlModeSet(interface, mode, 
+                                     pCfg->mcastStormThreshold, 
+                                     pCfg->mcastStormBurstSize /* PTin added: stormcontrol */, 
+                                     pCfg->mcastStormThresholdUnit) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
             "Failure setting port %d multicast storm mode to %d\n", interface, mode);
@@ -588,7 +631,7 @@ L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 * @purpose  Sets an interface's System Broadcast Storm Threshold
 *
 * @param    threshold  System Broadcast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -597,7 +640,7 @@ L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                  L7_RATE_UNIT_t rate_unit)
 {
   L7_RC_t rc = L7_SUCCESS;
@@ -607,10 +650,14 @@ L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
     return L7_FAILURE;
 
   pCfg->mcastStormThreshold = threshold;
+  pCfg->mcastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
   pCfg->mcastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfMcastCtrlModeSet(interface, pCfg->mcastStormMode, threshold, rate_unit) != L7_SUCCESS)
+  if ( dtlPolicyIntfMcastCtrlModeSet(interface, pCfg->mcastStormMode, 
+                                     threshold, 
+                                     burstSize /* PTin added: stormcontrol */, 
+                                     rate_unit) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
             "Failure setting port %d multicast storm threshold to %d\n", interface, threshold);
@@ -644,7 +691,10 @@ L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
   pCfg->ucastStormMode = mode;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfUcastCtrlModeSet(interface, mode, pCfg->ucastStormThreshold, pCfg->ucastStormThresholdUnit) != L7_SUCCESS)
+  if ( dtlPolicyIntfUcastCtrlModeSet(interface, mode, 
+                                     pCfg->ucastStormThreshold, 
+                                     pCfg->ucastStormBurstSize /* PTin added: stormcontrol */, 
+                                     pCfg->ucastStormThresholdUnit) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
             "Failure setting port %d unicast storm mode to %d\n", interface, mode);
@@ -659,7 +709,7 @@ L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 * @purpose  Sets an interface's System Unicast Storm Threshold
 *
 * @param    threshold  System Unicast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -668,7 +718,7 @@ L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface, L7_uint32 mode)
 *
 * @end
 *********************************************************************/
-L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                  L7_RATE_UNIT_t rate_unit)
 {
   L7_RC_t rc = L7_SUCCESS;
@@ -678,10 +728,14 @@ L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 
     return L7_FAILURE;
 
   pCfg->ucastStormThreshold = threshold;
+  pCfg->ucastStormBurstSize = burstSize;      /* PTin added: stormcontrol */
   pCfg->ucastStormThresholdUnit = rate_unit;
   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
 
-  if ( dtlPolicyIntfUcastCtrlModeSet(interface, pCfg->ucastStormMode, threshold, rate_unit) != L7_SUCCESS)
+  if ( dtlPolicyIntfUcastCtrlModeSet(interface, pCfg->ucastStormMode, 
+                                     threshold, 
+                                     burstSize /* PTin added: stormcontrol */, 
+                                     rate_unit) != L7_SUCCESS)
   {
     L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
             "Failure setting port %d unicast storm threshold to %d\n", interface, threshold);
@@ -746,6 +800,7 @@ L7_uint32 policySystemUcastStormModeGet(void)
 * @purpose  Returns the Unit's System Broadcast Storm threshold
 *
 * @param    *threshold  System Broadcast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -754,11 +809,12 @@ L7_uint32 policySystemUcastStormModeGet(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold,
+L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                              L7_RATE_UNIT_t *rate_unit)
 {
-  *threshold = policyCfgData->systemBcastStormThreshold;
-  *rate_unit = policyCfgData->systemBcastStormThresholdUnit;
+  if (threshold != L7_NULLPTR)  *threshold = policyCfgData->systemBcastStormThreshold;
+  if (burstSize != L7_NULLPTR)  *burstSize = policyCfgData->systemBcastStormBurstSize;      /* PTin added: stormcontrol */
+  if (rate_unit != L7_NULLPTR)  *rate_unit = policyCfgData->systemBcastStormThresholdUnit;
   return L7_SUCCESS;
 }
 
@@ -766,6 +822,7 @@ L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold,
 * @purpose  Returns the Unit's System Multicast Storm threshold
 *
 * @param    *threshold  System Multicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -774,11 +831,12 @@ L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold,
 *
 * @end
 *********************************************************************/
-L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold,
+L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                              L7_RATE_UNIT_t *rate_unit)
 {
-  *threshold = policyCfgData->systemMcastStormThreshold;
-  *rate_unit = policyCfgData->systemMcastStormThresholdUnit;
+  if (threshold != L7_NULLPTR)  *threshold = policyCfgData->systemMcastStormThreshold;
+  if (burstSize != L7_NULLPTR)  *burstSize = policyCfgData->systemMcastStormBurstSize;      /* PTin added: stormcontrol */
+  if (rate_unit != L7_NULLPTR)  *rate_unit = policyCfgData->systemMcastStormThresholdUnit;
   return L7_SUCCESS;
 }
 
@@ -786,6 +844,7 @@ L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold,
 * @purpose  Returns the Unit's System Destination lookup failure Storm threshold
 *
 * @param    *threshold  System Unknown Unicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -794,11 +853,12 @@ L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold,
 *
 * @end
 *********************************************************************/
-L7_RC_t policySystemUcastStormThresholdGet(L7_uint32 *threshold,
+L7_RC_t policySystemUcastStormThresholdGet(L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                              L7_RATE_UNIT_t *rate_unit)
 {
-  *threshold = policyCfgData->systemUcastStormThreshold;
-  *rate_unit = policyCfgData->systemUcastStormThresholdUnit;
+  if (threshold != L7_NULLPTR)  *threshold = policyCfgData->systemUcastStormThreshold;
+  if (burstSize != L7_NULLPTR)  *burstSize = policyCfgData->systemUcastStormBurstSize;      /* PTin added: stormcontrol */
+  if (rate_unit != L7_NULLPTR)  *rate_unit = policyCfgData->systemUcastStormThresholdUnit;
   return L7_SUCCESS;
 }
 
@@ -887,6 +947,7 @@ L7_uint32 policySystemUcastStormModeIntfGet(L7_uint32 interface)
 * @purpose  Returns an interface's Broadcast Storm threshold
 *
 * @param    *threshold  Broadcast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -895,7 +956,7 @@ L7_uint32 policySystemUcastStormModeIntfGet(L7_uint32 interface)
 *
 * @end
 *********************************************************************/
-L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                           L7_RATE_UNIT_t *rate_unit)
 {
   policyIntfCfgData_t *pCfg;
@@ -903,8 +964,9 @@ L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
-  *threshold = pCfg->bcastStormThreshold;
-  *rate_unit = pCfg->bcastStormThresholdUnit;
+  if (threshold != L7_NULLPTR)  *threshold = pCfg->bcastStormThreshold;
+  if (burstSize != L7_NULLPTR)  *burstSize = pCfg->bcastStormBurstSize;     /* PTin added: stormcontrol */
+  if (rate_unit != L7_NULLPTR)  *rate_unit = pCfg->bcastStormThresholdUnit;
 
   return L7_SUCCESS;
 }
@@ -913,6 +975,7 @@ L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
 * @purpose  Returns an interface's Multicast Storm threshold
 *
 * @param    *threshold  Multicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -921,7 +984,7 @@ L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
 *
 * @end
 *********************************************************************/
-L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                           L7_RATE_UNIT_t *rate_unit)
 {
   policyIntfCfgData_t *pCfg;
@@ -929,8 +992,9 @@ L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
-  *threshold = pCfg->mcastStormThreshold;
-  *rate_unit = pCfg->mcastStormThresholdUnit;
+  if (threshold != L7_NULLPTR)  *threshold = pCfg->mcastStormThreshold;
+  if (burstSize != L7_NULLPTR)  *burstSize = pCfg->mcastStormBurstSize;     /* PTin added: stormcontrol */
+  if (rate_unit != L7_NULLPTR)  *rate_unit = pCfg->mcastStormThresholdUnit;
 
   return L7_SUCCESS;
 }
@@ -939,6 +1003,7 @@ L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
 * @purpose  Returns an interface's Destination lookup failure Storm threshold
 *
 * @param    *threshold  Unknown Unicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -947,7 +1012,7 @@ L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
 *
 * @end
 *********************************************************************/
-L7_RC_t policySystemUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+L7_RC_t policySystemUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                           L7_RATE_UNIT_t *rate_unit)
 {
   policyIntfCfgData_t *pCfg;
@@ -955,8 +1020,9 @@ L7_RC_t policySystemUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *t
   if (policyMapIntfIsConfigurable(interface, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
-  *threshold = pCfg->ucastStormThreshold;
-  *rate_unit = pCfg->ucastStormThresholdUnit;
+  if (threshold != L7_NULLPTR)  *threshold = pCfg->ucastStormThreshold;
+  if (burstSize != L7_NULLPTR)  *burstSize = pCfg->ucastStormBurstSize;     /* PTin added: stormcontrol */
+  if (rate_unit != L7_NULLPTR)  *rate_unit = pCfg->ucastStormThresholdUnit;
 
   return L7_SUCCESS;
 }

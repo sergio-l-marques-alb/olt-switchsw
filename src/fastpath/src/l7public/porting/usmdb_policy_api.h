@@ -131,7 +131,8 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeGet(L7_uint32 UnitIndex, L7_uint32 *m
 * @purpose Get the Broadcast Storm threshold of the system. 
 *
 * @param L7_uint32 UnitIndex  @b((input))  The unit for this operation
-* @param L7_int32 *threshold  @b((output)) Threshold
+* @param L7_uint32 *threshold @b((output)) Threshold
+* @param L7_uint32 *burstSize @b((output)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t *rate_unit  @b((output)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -142,7 +143,7 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeGet(L7_uint32 UnitIndex, L7_uint32 *m
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdGet(L7_uint32 UnitIndex, L7_uint32 *threshold,
+extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdGet(L7_uint32 UnitIndex, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t *rate_unit);
 
 /*********************************************************************
@@ -167,7 +168,8 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeGet(L7_uint32 UnitIndex, L7_uint32 *m
 * @purpose Get the Multicast Storm threshold of the system. 
 *
 * @param L7_uint32 UnitIndex  @b((input))  The unit for this operation
-* @param L7_int32 *threshold  @b((output)) Threshold
+* @param L7_uint32 *threshold @b((output)) Threshold
+* @param L7_uint32 *burstSize @b((output)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t *rate_unit  @b((output)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -178,7 +180,7 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeGet(L7_uint32 UnitIndex, L7_uint32 *m
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdGet(L7_uint32 UnitIndex, L7_uint32 *threshold,
+extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdGet(L7_uint32 UnitIndex, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t *rate_unit);
 
 /*********************************************************************
@@ -204,7 +206,8 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeGet(L7_uint32 UnitIndex, L7_uint32 *m
 * @purpose Get the Destination lookup failure Storm threshold of the system. 
 *
 * @param L7_uint32 UnitIndex  @b((input))  The unit for this operation
-* @param L7_int32 *threshold  @b((output)) Threshold
+* @param L7_uint32 *threshold @b((output)) Threshold
+* @param L7_uint32 *burstSize @b((output)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t *rate_unit  @b((output)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -215,7 +218,7 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeGet(L7_uint32 UnitIndex, L7_uint32 *m
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdGet(L7_uint32 UnitIndex, L7_uint32 *threshold,
+extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdGet(L7_uint32 UnitIndex, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t *rate_unit);
 
 
@@ -242,7 +245,8 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeSet(L7_uint32 UnitIndex, L7_uint32 mo
 * @purpose Set the Broadcast Storm threshold of the system.
 *
 * @param L7_uint32 UnitIndex  @b((input)) The unit for this operation
-* @param L7_int32  threshold  @b((input)) Threshold
+* @param L7_uint32 threshold  @b((input)) Threshold
+* @param L7_uint32 burstSize  @b((input)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t rate_unit  @b((input)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -253,7 +257,7 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeSet(L7_uint32 UnitIndex, L7_uint32 mo
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdSet(L7_uint32 UnitIndex, L7_uint32 threshold,
+extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdSet(L7_uint32 UnitIndex, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t rate_unit);
 
 
@@ -280,7 +284,8 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeSet(L7_uint32 UnitIndex, L7_uint32 mo
 * @purpose Set the Multicast Storm threshold of the system.
 *
 * @param L7_uint32 UnitIndex  @b((input)) The unit for this operation
-* @param L7_int32  threshold  @b((input)) Threshold
+* @param L7_uint32 threshold  @b((input)) Threshold
+* @param L7_uint32 burstSize  @b((input)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t rate_unit  @b((input)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -291,7 +296,7 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeSet(L7_uint32 UnitIndex, L7_uint32 mo
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdSet(L7_uint32 UnitIndex, L7_uint32 threshold,
+extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdSet(L7_uint32 UnitIndex, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -317,7 +322,8 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeSet(L7_uint32 UnitIndex, L7_uint32 mo
 * @purpose Set the Destination lookup failure Storm threshold of the system.
 *
 * @param L7_uint32 UnitIndex  @b((input)) The unit for this operation
-* @param L7_int32  threshold  @b((input)) Threshold
+* @param L7_uint32 threshold  @b((input)) Threshold
+* @param L7_uint32 burstSize  @b((input)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t rate_unit  @b((input)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -328,7 +334,7 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeSet(L7_uint32 UnitIndex, L7_uint32 mo
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdSet(L7_uint32 UnitIndex, L7_uint32 threshold,
+extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdSet(L7_uint32 UnitIndex, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -354,7 +360,8 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 * @purpose Set the Broadcast Storm threshold of an interface.
 *
 * @param L7_uint32 interface  @b((input)) The interface for this operation
-* @param L7_int32  threshold  @b((input)) Threshold
+* @param L7_uint32 threshold  @b((input)) Threshold
+* @param L7_uint32 burstSize  @b((input)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t rate_unit  @b((input)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -365,7 +372,7 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -391,7 +398,8 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 * @purpose Set the Multicast Storm threshold of an interface.
 *
 * @param L7_uint32 interface  @b((input)) The interface for this operation
-* @param L7_int32  threshold  @b((input)) Threshold
+* @param L7_uint32 threshold  @b((input)) Threshold
+* @param L7_uint32 burstSize  @b((input)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t rate_unit  @b((input)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -402,7 +410,7 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -428,7 +436,8 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 * @purpose Set the Destination lookup failure Storm threshold of an interface.
 *
 * @param L7_uint32 interface  @b((input)) The interface for this operation
-* @param L7_int32  threshold  @b((input)) Threshold
+* @param L7_uint32 threshold  @b((input)) Threshold
+* @param L7_uint32 burstSize  @b((input)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t rate_unit  @b((input)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -439,7 +448,7 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -465,7 +474,8 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeIntfGet(L7_uint32 interface, L7_uint3
 * @purpose Get the Broadcast Storm threshold of an interface. 
 *
 * @param L7_uint32 interface  @b((input))  The interface for this operation
-* @param L7_int32 *threshold  @b((output)) Threshold
+* @param L7_uint32 *threshold @b((output)) Threshold
+* @param L7_uint32 *burstSize @b((output)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t *rate_unit  @b((output)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -476,7 +486,7 @@ extern L7_RC_t usmDbSwDevCtrlBcastStormModeIntfGet(L7_uint32 interface, L7_uint3
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+extern L7_RC_t usmDbSwDevCtrlBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t *rate_unit);
 
 /*********************************************************************
@@ -503,6 +513,7 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeIntfGet(L7_uint32 interface, L7_uint3
 *
 * @param L7_uint32 interface  @b((input))  The interface for this operation
 * @param L7_uint32 *threshold @b((output)) Threshold
+* @param L7_uint32 *burstSize @b((output)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t *rate_unit  @b((output)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -513,7 +524,7 @@ extern L7_RC_t usmDbSwDevCtrlMcastStormModeIntfGet(L7_uint32 interface, L7_uint3
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+extern L7_RC_t usmDbSwDevCtrlMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t *rate_unit);
 
 /*********************************************************************
@@ -539,7 +550,8 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeIntfGet(L7_uint32 interface, L7_uint3
 * @purpose Get the Destination lookup failure Storm threshold of an interface. 
 *
 * @param L7_uint32 interface  @b((input))  The interface for this operation
-* @param L7_int32 *threshold  @b((output)) Threshold
+* @param L7_uint32 *threshold @b((output)) Threshold
+* @param L7_uint32 *burstSize @b((output)) Burst Size (only for Percentage/Kbps units)
 * @param L7_RATE_UNIT_t *rate_unit  @b((output)) Units of PERCENT or PPS 
 *
 * @returns L7_SUCCESS  If success
@@ -550,7 +562,7 @@ extern L7_RC_t usmDbSwDevCtrlUcastStormModeIntfGet(L7_uint32 interface, L7_uint3
 * @end
 *
 *********************************************************************/
-extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+extern L7_RC_t usmDbSwDevCtrlUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t *rate_unit);
 
 

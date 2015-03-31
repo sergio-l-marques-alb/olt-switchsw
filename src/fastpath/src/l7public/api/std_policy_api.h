@@ -157,8 +157,8 @@ extern L7_uint32 policySystemBcastStormModeSet(L7_uint32 mode);
 /*********************************************************************
 * @purpose  Sets the Unit's System Broadcast Storm Threshold  
 *
-* @param    threshold  System Broadcast Storm Threshold  
-*
+* @param    threshold  System Broadcast Storm Threshold
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps  
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -167,7 +167,7 @@ extern L7_uint32 policySystemBcastStormModeSet(L7_uint32 mode);
 *       
 * @end
 *********************************************************************/
-extern L7_uint32 policySystemBcastStormThresholdSet(L7_uint32 threshold,
+extern L7_uint32 policySystemBcastStormThresholdSet(L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t rate_unit);
 
 
@@ -189,7 +189,7 @@ extern L7_uint32 policySystemMcastStormModeSet(L7_uint32 mode);
 * @purpose  Sets the Unit's System Multicast Storm Threshold  
 *
 * @param    threshold  System Broadcast Storm Threshold  
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps  
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -198,7 +198,7 @@ extern L7_uint32 policySystemMcastStormModeSet(L7_uint32 mode);
 *       
 * @end
 *********************************************************************/
-extern L7_uint32 policySystemMcastStormThresholdSet(L7_uint32 threshold,
+extern L7_uint32 policySystemMcastStormThresholdSet(L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -219,7 +219,7 @@ extern L7_uint32 policySystemUcastStormModeSet(L7_uint32 mode);
 * @purpose  Sets the Unit's System Destination lookup failure Storm Threshold  
 *
 * @param    threshold  System Broadcast Storm Threshold  
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps  
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -228,7 +228,7 @@ extern L7_uint32 policySystemUcastStormModeSet(L7_uint32 mode);
 *       
 * @end
 *********************************************************************/
-extern L7_uint32 policySystemUcastStormThresholdSet(L7_uint32 threshold,
+extern L7_uint32 policySystemUcastStormThresholdSet(L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                     L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -250,7 +250,7 @@ extern L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 *
 * @param    interface  interface to act on
 * @param    threshold  System Broadcast Storm Threshold 
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps  
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -259,7 +259,7 @@ extern L7_uint32 policySystemBcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 *       
 * @end
 *********************************************************************/
-extern L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+extern L7_uint32 policySystemBcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -282,7 +282,7 @@ extern L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 *
 * @param    interface  interface to act on
 * @param    threshold  System Broadcast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps  
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -291,7 +291,7 @@ extern L7_uint32 policySystemMcastStormModeIntfSet(L7_uint32 interface, L7_uint3
 *       
 * @end
 *********************************************************************/
-extern L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold,
+extern L7_uint32 policySystemMcastStormThresholdIntfSet(L7_uint32 interface, L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -314,7 +314,7 @@ extern L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface,L7_uint32
 *
 * @param    interface  interface to act on
 * @param    threshold  System Broadcast Storm Threshold
-*
+* @param    burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit  Threshold rate unit it percent, pps, or kbps  
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -323,7 +323,7 @@ extern L7_uint32 policySystemUcastStormModeIntfSet(L7_uint32 interface,L7_uint32
 *       
 * @end
 *********************************************************************/
-extern L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface,L7_uint32 threshold,
+extern L7_uint32 policySystemUcastStormThresholdIntfSet(L7_uint32 interface,L7_uint32 threshold, L7_uint32 burstSize /* PTin added: stormcontrol */,
                                                         L7_RATE_UNIT_t rate_unit);
 
 
@@ -418,6 +418,7 @@ extern L7_uint32 policySystemUcastStormModeIntfGet(L7_uint32 interface);
 * @purpose  Returns the Unit's System Broadcast Storm threshold 
 *
 * @param    *threshold  System Broadcast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -426,7 +427,7 @@ extern L7_uint32 policySystemUcastStormModeIntfGet(L7_uint32 interface);
 *       
 * @end
 *********************************************************************/
-extern L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold,
+extern L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                   L7_RATE_UNIT_t *rate_unit);
 
 
@@ -434,6 +435,7 @@ extern L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold,
 * @purpose  Returns the Unit's System Multicast Storm threshold 
 *
 * @param    *threshold  System Multicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -442,7 +444,7 @@ extern L7_RC_t policySystemBcastStormThresholdGet(L7_uint32 *threshold,
 *       
 * @end
 *********************************************************************/
-extern L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold,
+extern L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                   L7_RATE_UNIT_t *rate_unit);
 
 
@@ -450,6 +452,7 @@ extern L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold,
 * @purpose  Returns the Unit's System Destination lookup failure Storm threshold 
 *
 * @param    *threshold  System Unknown Unicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -458,7 +461,7 @@ extern L7_RC_t policySystemMcastStormThresholdGet(L7_uint32 *threshold,
 *       
 * @end
 *********************************************************************/
-extern L7_RC_t policySystemUcastStormThresholdGet(L7_uint32 *threshold,
+extern L7_RC_t policySystemUcastStormThresholdGet(L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                   L7_RATE_UNIT_t *rate_unit);
 
 
@@ -467,6 +470,7 @@ extern L7_RC_t policySystemUcastStormThresholdGet(L7_uint32 *threshold,
 *
 * @param    interface   Interface to get information on
 * @param    *threshold  Broadcast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -475,7 +479,7 @@ extern L7_RC_t policySystemUcastStormThresholdGet(L7_uint32 *threshold,
 *       
 * @end
 *********************************************************************/
-extern L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+extern L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                       L7_RATE_UNIT_t *rate_unit);
 
 
@@ -484,6 +488,7 @@ extern L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_ui
 *
 * @param    interface   Interface to get information on
 * @param    *threshold  Multicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -492,7 +497,7 @@ extern L7_RC_t policySystemBcastStormThresholdIntfGet(L7_uint32 interface, L7_ui
 *       
 * @end
 *********************************************************************/
-extern L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+extern L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                       L7_RATE_UNIT_t *rate_unit);
 
 
@@ -502,6 +507,7 @@ extern L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_ui
 *
 * @param    interface   Interface to get information on
 * @param    *threshold  Unknown Unicast Storm Threshold
+* @param    *burstSize  Burst Size (only for Percentage/Kbps units)
 * @param    *rate_unit  Threshold units in PERCENT or PPS
 *
 * @returns  L7_SUCCESS or L7_FAILURE
@@ -510,7 +516,7 @@ extern L7_RC_t policySystemMcastStormThresholdIntfGet(L7_uint32 interface, L7_ui
 *       
 * @end
 *********************************************************************/
-extern L7_RC_t policySystemUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold,
+extern L7_RC_t policySystemUcastStormThresholdIntfGet(L7_uint32 interface, L7_uint32 *threshold, L7_uint32 *burstSize /* PTin added: stormcontrol */,
                                                       L7_RATE_UNIT_t *rate_unit);
 
 

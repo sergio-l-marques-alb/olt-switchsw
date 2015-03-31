@@ -5607,7 +5607,7 @@ const L7_char8 *commandShowStormControl(EwsContext ewsContext, L7_uint32 argc, c
       }
 
       cliFormat(ewsContext,pStrInfo_base_StormCntrlBcastLvl);
-         rc=usmDbSwDevCtrlBcastStormThresholdGet(unit, &val, &rate_unit);
+         rc=usmDbSwDevCtrlBcastStormThresholdGet(unit, &val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
          if (rc == L7_SUCCESS)
          {
              if (rate_unit == L7_RATE_UNIT_PERCENT) 
@@ -5635,7 +5635,7 @@ const L7_char8 *commandShowStormControl(EwsContext ewsContext, L7_uint32 argc, c
       }
 
       cliFormat(ewsContext,pStrInfo_base_StormCntrlMcastLvl);
-         rc=usmDbSwDevCtrlMcastStormThresholdGet(unit, &val, &rate_unit);
+         rc=usmDbSwDevCtrlMcastStormThresholdGet(unit, &val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
          if (rc == L7_SUCCESS)
          {
              if (rate_unit == L7_RATE_UNIT_PERCENT) 
@@ -5663,7 +5663,7 @@ const L7_char8 *commandShowStormControl(EwsContext ewsContext, L7_uint32 argc, c
       }
 
       cliFormat(ewsContext,pStrInfo_base_StormCntrlUcastLvl);
-         rc=usmDbSwDevCtrlUcastStormThresholdGet(unit, &val, &rate_unit);
+         rc=usmDbSwDevCtrlUcastStormThresholdGet(unit, &val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
          if (rc == L7_SUCCESS)
          {
              if (rate_unit == L7_RATE_UNIT_PERCENT) 
@@ -5821,7 +5821,7 @@ const L7_char8 *commandShowStormControl(EwsContext ewsContext, L7_uint32 argc, c
           ewsTelnetPrintf (ewsContext, "%-7s ",strUtilEnableDisableGet(val,pStrInfo_common_Enbl_1));
             }
 
-            rc = usmDbSwDevCtrlBcastStormThresholdIntfGet(interface, &threshold, &rate_unit);
+            rc = usmDbSwDevCtrlBcastStormThresholdIntfGet(interface, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
             if (rc == L7_SUCCESS)
             {
                if (rate_unit == L7_RATE_UNIT_PERCENT) 
@@ -5843,7 +5843,7 @@ const L7_char8 *commandShowStormControl(EwsContext ewsContext, L7_uint32 argc, c
           ewsTelnetPrintf (ewsContext, "%-7s ",strUtilEnableDisableGet(val,pStrInfo_common_Enbl_1));
             }
 
-            rc = usmDbSwDevCtrlMcastStormThresholdIntfGet(interface, &threshold, &rate_unit);
+            rc = usmDbSwDevCtrlMcastStormThresholdIntfGet(interface, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
             if (rc == L7_SUCCESS)
             {
                if (rate_unit == L7_RATE_UNIT_PERCENT) 
@@ -5865,7 +5865,7 @@ const L7_char8 *commandShowStormControl(EwsContext ewsContext, L7_uint32 argc, c
           ewsTelnetPrintf (ewsContext, "%-7s ",strUtilEnableDisableGet(val,pStrInfo_common_Enbl_1));
             }
 
-            rc = usmDbSwDevCtrlUcastStormThresholdIntfGet(interface, &threshold, &rate_unit);
+            rc = usmDbSwDevCtrlUcastStormThresholdIntfGet(interface, &threshold, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
             if (rc == L7_SUCCESS)
             {
                if (rate_unit == L7_RATE_UNIT_PERCENT) 

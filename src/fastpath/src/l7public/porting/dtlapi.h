@@ -1762,6 +1762,7 @@ EXT_API L7_RC_t dtlPolicyIntfAllFlowCtrlModeSet(L7_uint32 mode);
 *                       (@b{  L7_ENABLE or
 *                             L7_DISABLE})
 * @param    threshold   @b{(input)} Broadcast Threshold
+* @param    burstSize   @b{(input)} Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit   @b{(input)} Threshold unit of PERCENT or PPS
 *
 * @returns  L7_SUCCESS  if success
@@ -1774,6 +1775,7 @@ EXT_API L7_RC_t dtlPolicyIntfAllFlowCtrlModeSet(L7_uint32 mode);
 EXT_API L7_RC_t dtlPolicyIntfBcastCtrlModeSet(L7_uint32 intIfNum,
                                               L7_uint32 mode,
                                               L7_uint32 threshold,
+                                              L7_uint32 burstSize /* PTin added: stormcontrol */, 
                                               L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -1786,6 +1788,7 @@ EXT_API L7_RC_t dtlPolicyIntfBcastCtrlModeSet(L7_uint32 intIfNum,
 *                       (@b{  L7_ENABLE or
 *                             L7_DISABLE})
 * @param    threshold   @b{(input)} Multicast Threshold
+* @param    burstSize   @b{(input)} Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit   @b{(input)} Threshold unit of PERCENT or PPS
 *
 * @returns  L7_SUCCESS  if success
@@ -1798,6 +1801,7 @@ EXT_API L7_RC_t dtlPolicyIntfBcastCtrlModeSet(L7_uint32 intIfNum,
 EXT_API L7_RC_t dtlPolicyIntfMcastCtrlModeSet(L7_uint32 intIfNum,
                                               L7_uint32 mode,
                                               L7_uint32 threshold,
+                                              L7_uint32 burstSize /* PTin added: stormcontrol */, 
                                               L7_RATE_UNIT_t rate_unit);
 
 
@@ -1811,6 +1815,7 @@ EXT_API L7_RC_t dtlPolicyIntfMcastCtrlModeSet(L7_uint32 intIfNum,
 *                       (@b{  L7_ENABLE or
 *                             L7_DISABLE})
 * @param    threshold   @b{(input)} Unknown Unicast Threshold
+* @param    burstSize   @b{(input)} Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit   @b{(input)} Threshold unit of PERCENT or PPS
 *
 * @returns  L7_SUCCESS  if success
@@ -1823,6 +1828,7 @@ EXT_API L7_RC_t dtlPolicyIntfMcastCtrlModeSet(L7_uint32 intIfNum,
 EXT_API L7_RC_t dtlPolicyIntfUcastCtrlModeSet(L7_uint32 intIfNum,
                                               L7_uint32 mode,
                                               L7_uint32 threshold,
+                                              L7_uint32 burstSize /* PTin added: stormcontrol */, 
                                               L7_RATE_UNIT_t rate_unit);
 
 
@@ -1834,6 +1840,7 @@ EXT_API L7_RC_t dtlPolicyIntfUcastCtrlModeSet(L7_uint32 intIfNum,
 *                       (@b{  L7_ENABLE or
 *                             L7_DISABLE})
 * @param    threshold   @b{(input)} Broadcast Threshold
+* @param    burstSize   @b{(input)} Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit   @b{(input)} Threshold unit of PERCENT or PPS
 *
 * @returns  L7_SUCCESS  if success
@@ -1845,6 +1852,7 @@ EXT_API L7_RC_t dtlPolicyIntfUcastCtrlModeSet(L7_uint32 intIfNum,
 *********************************************************************/
 EXT_API L7_RC_t dtlPolicyIntfAllBcastCtrlModeSet(L7_uint32 mode,
                                                  L7_uint32 threshold,
+                                                 L7_uint32 burstSize /* PTin added: stormcontrol */, 
                                                  L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -1855,6 +1863,7 @@ EXT_API L7_RC_t dtlPolicyIntfAllBcastCtrlModeSet(L7_uint32 mode,
 *                       (@b{  L7_ENABLE or
 *                             L7_DISABLE})
 * @param    threshold   @b{(input)} Multicast Threshold
+* @param    burstSize   @b{(input)} Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit   @b{(input)} Threshold unit of PERCENT or PPS
 *
 * @returns  L7_SUCCESS  if success
@@ -1866,6 +1875,7 @@ EXT_API L7_RC_t dtlPolicyIntfAllBcastCtrlModeSet(L7_uint32 mode,
 *********************************************************************/
 EXT_API L7_RC_t dtlPolicyIntfAllMcastCtrlModeSet(L7_uint32 mode,
                                                  L7_uint32 threshold,
+                                                 L7_uint32 burstSize /* PTin added: stormcontrol */, 
                                                  L7_RATE_UNIT_t rate_unit);
 
 
@@ -1877,6 +1887,7 @@ EXT_API L7_RC_t dtlPolicyIntfAllMcastCtrlModeSet(L7_uint32 mode,
 *                       (@b{  L7_ENABLE or
 *                             L7_DISABLE})
 * @param    threshold   @b{(input)} Unknown Unicast Threshold
+* @param    burstSize   @b{(input)} Burst Size (only for Percentage/Kbps units)
 * @param    rate_unit   @b{(input)} Threshold unit of PERCENT or PPS
 *
 * @returns  L7_SUCCESS  if success
@@ -1888,6 +1899,7 @@ EXT_API L7_RC_t dtlPolicyIntfAllMcastCtrlModeSet(L7_uint32 mode,
 *********************************************************************/
 EXT_API L7_RC_t dtlPolicyIntfAllUcastCtrlModeSet(L7_uint32 mode,
                                                  L7_uint32 threshold,
+                                                 L7_uint32 burstSize /* PTin added: stormcontrol */, 
                                                  L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************

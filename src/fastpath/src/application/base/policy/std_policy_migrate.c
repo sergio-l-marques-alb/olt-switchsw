@@ -537,10 +537,13 @@ policyMigrateConfigV4V5Convert (policyCfgDataV4_t * pCfgV4, policyCfgDataV5_t * 
   pCfgV5->systemFlowControlMode = pCfgV4->systemFlowControlMode;
   pCfgV5->systemBcastStormMode = pCfgV4->systemBcastStormMode;
   pCfgV5->systemBcastStormThreshold = pCfgV4->systemBcastStormThreshold;
+  pCfgV5->systemBcastStormBurstSize = pCfgV4->systemBcastStormBurstSize;      /* PTin added: stormcontrol */
   pCfgV5->systemMcastStormMode = pCfgV4->systemMcastStormMode;
   pCfgV5->systemMcastStormThreshold = pCfgV4->systemMcastStormThreshold;
+  pCfgV5->systemMcastStormBurstSize = pCfgV4->systemMcastStormBurstSize;      /* PTin added: stormcontrol */
   pCfgV5->systemUcastStormMode = pCfgV4->systemUcastStormMode;
   pCfgV5->systemUcastStormThreshold = pCfgV4->systemUcastStormThreshold;
+  pCfgV5->systemUcastStormBurstSize = pCfgV4->systemUcastStormBurstSize;      /* PTin added: stormcontrol */
 
   intfCount = L7_POLICY_INTF_MAX_COUNT_REL_4_4;
   for (i = 0; i < intfCount; i++)
@@ -549,10 +552,13 @@ policyMigrateConfigV4V5Convert (policyCfgDataV4_t * pCfgV4, policyCfgDataV5_t * 
     pCfgV5->policyIntfCfgData[i].flowControlMode = pCfgV4->policyIntfCfgData[i].flowControlMode;
     pCfgV5->policyIntfCfgData[i].bcastStormMode = pCfgV4->policyIntfCfgData[i].bcastStormMode;
     pCfgV5->policyIntfCfgData[i].bcastStormThreshold = pCfgV4->policyIntfCfgData[i].bcastStormThreshold;
+    pCfgV5->policyIntfCfgData[i].bcastStormBurstSize = pCfgV4->policyIntfCfgData[i].bcastStormBurstSize;    /* PTin added: stormcontrol */
     pCfgV5->policyIntfCfgData[i].mcastStormMode = pCfgV4->policyIntfCfgData[i].mcastStormMode;
     pCfgV5->policyIntfCfgData[i].mcastStormThreshold = pCfgV4->policyIntfCfgData[i].mcastStormThreshold;
+    pCfgV5->policyIntfCfgData[i].mcastStormBurstSize = pCfgV4->policyIntfCfgData[i].mcastStormBurstSize;    /* PTin added: stormcontrol */
     pCfgV5->policyIntfCfgData[i].ucastStormMode = pCfgV4->policyIntfCfgData[i].ucastStormMode;
     pCfgV5->policyIntfCfgData[i].ucastStormThreshold = pCfgV4->policyIntfCfgData[i].ucastStormThreshold;
+    pCfgV5->policyIntfCfgData[i].ucastStormBurstSize = pCfgV4->policyIntfCfgData[i].ucastStormBurstSize;    /* PTin added: stormcontrol */
   }
 
   /*
@@ -662,19 +668,25 @@ policyBuildDefaultConfigDataV4 (policyCfgDataV4_t * pCfgV4)
   {
     pCfgV4->policyIntfCfgData[i].bcastStormMode = FD_POLICY_DEFAULT_BCAST_STORM_MODE;
     pCfgV4->policyIntfCfgData[i].bcastStormThreshold = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD;
+    pCfgV4->policyIntfCfgData[i].bcastStormBurstSize = FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE;   /* PTin added: stormcontrol */
     pCfgV4->policyIntfCfgData[i].mcastStormMode = FD_POLICY_DEFAULT_MCAST_STORM_MODE;
     pCfgV4->policyIntfCfgData[i].mcastStormThreshold = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD;
+    pCfgV4->policyIntfCfgData[i].mcastStormBurstSize = FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE;   /* PTin added: stormcontrol */
     pCfgV4->policyIntfCfgData[i].ucastStormMode = FD_POLICY_DEFAULT_UCAST_STORM_MODE;
     pCfgV4->policyIntfCfgData[i].ucastStormThreshold = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD;
+    pCfgV4->policyIntfCfgData[i].ucastStormBurstSize = FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE;   /* PTin added: stormcontrol */
     pCfgV4->policyIntfCfgData[i].flowControlMode = FD_POLICY_DEFAULT_FLOW_CONTROL_MODE;
   }
 
   pCfgV4->systemBcastStormMode = FD_POLICY_DEFAULT_BCAST_STORM_MODE;
   pCfgV4->systemBcastStormThreshold = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD;
+  pCfgV4->systemBcastStormBurstSize = FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE;      /* PTin added: stormcontrol */
   pCfgV4->systemMcastStormMode = FD_POLICY_DEFAULT_MCAST_STORM_MODE;
   pCfgV4->systemMcastStormThreshold = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD;
+  pCfgV4->systemMcastStormBurstSize = FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE;      /* PTin added: stormcontrol */
   pCfgV4->systemUcastStormMode = FD_POLICY_DEFAULT_UCAST_STORM_MODE;
   pCfgV4->systemUcastStormThreshold = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD;
+  pCfgV4->systemUcastStormBurstSize = FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE;      /* PTin added: stormcontrol */
   pCfgV4->systemFlowControlMode = FD_POLICY_DEFAULT_FLOW_CONTROL_MODE;
 
   /* Build header */

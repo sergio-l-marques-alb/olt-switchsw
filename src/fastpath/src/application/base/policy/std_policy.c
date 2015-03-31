@@ -68,10 +68,13 @@ void policyBuildDefaultIntfConfigData(nimConfigID_t *configId, policyIntfCfgData
   pCfg->mcastStormMode = FD_POLICY_DEFAULT_MCAST_STORM_MODE;
   pCfg->ucastStormMode = FD_POLICY_DEFAULT_UCAST_STORM_MODE;
   pCfg->bcastStormThreshold = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD;
+  pCfg->bcastStormBurstSize = FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE;          /* PTin added: stormcontrol */
   pCfg->bcastStormThresholdUnit = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT;
   pCfg->mcastStormThreshold = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD;
+  pCfg->mcastStormBurstSize = FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE;          /* PTin added: stormcontrol */
   pCfg->mcastStormThresholdUnit = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT;
   pCfg->ucastStormThreshold = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD;
+  pCfg->ucastStormBurstSize = FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE;          /* PTin added: stormcontrol */
   pCfg->ucastStormThresholdUnit = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT;
   pCfg->flowControlMode = FD_POLICY_DEFAULT_FLOW_CONTROL_MODE;
 }
@@ -113,10 +116,13 @@ void policyBuildDefaultConfigData(L7_uint32 ver)
   policyCfgData->systemFlowControlMode = FD_POLICY_DEFAULT_FLOW_CONTROL_MODE;
 
   policyCfgData->systemBcastStormThreshold = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD;
+  policyCfgData->systemBcastStormBurstSize = FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE;           /* PTin added: stormcontrol */
   policyCfgData->systemBcastStormThresholdUnit = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT;
   policyCfgData->systemMcastStormThreshold = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD;
+  policyCfgData->systemMcastStormBurstSize = FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE;           /* PTin added: stormcontrol */
   policyCfgData->systemMcastStormThresholdUnit = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT;
   policyCfgData->systemUcastStormThreshold = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD;
+  policyCfgData->systemUcastStormBurstSize = FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE;           /* PTin added: stormcontrol */
   policyCfgData->systemUcastStormThresholdUnit = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT;
 
   /* Build header */
@@ -153,16 +159,19 @@ L7_RC_t policyApplyConfigData(void)
   if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
   {
      (void)policySystemBcastStormThresholdSet(policyCfgData->systemBcastStormThreshold,
+                                              policyCfgData->systemBcastStormBurstSize /* PTin added: stormcontrol */, 
                                               policyCfgData->systemBcastStormThresholdUnit);
   }
   if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
   {
      (void)policySystemMcastStormThresholdSet(policyCfgData->systemMcastStormThreshold,
+                                              policyCfgData->systemMcastStormBurstSize /* PTin added: stormcontrol */, 
                                               policyCfgData->systemMcastStormThresholdUnit);
   }
   if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
   {
      (void)policySystemUcastStormThresholdSet(policyCfgData->systemUcastStormThreshold,
+                                              policyCfgData->systemUcastStormBurstSize /* PTin added: stormcontrol */, 
                                               policyCfgData->systemUcastStormThresholdUnit);
   }
 
@@ -219,7 +228,7 @@ L7_RC_t policyApplyConfigData(void)
 *
 * @end
 *********************************************************************/
-L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold, L7_uint32 burstSize /* PTin added: stormControl */, 
                                      L7_RATE_UNIT_t rate_unit)
 {
   policyIntfCfgData_t *pCfg;
@@ -227,7 +236,7 @@ L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
   if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
-  if (dtlPolicyIntfBcastCtrlModeSet(intIfNum, mode, threshold, rate_unit) != L7_SUCCESS)
+  if (dtlPolicyIntfBcastCtrlModeSet(intIfNum, mode, threshold, burstSize /* PTin added: stormcontrol */, rate_unit) != L7_SUCCESS)
   {
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
@@ -260,7 +269,7 @@ L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
 *
 * @end
 *********************************************************************/
-L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold, L7_uint32 burstSize /* PTin added: stormControl */, 
                                      L7_RATE_UNIT_t rate_unit)
 {
   policyIntfCfgData_t *pCfg;
@@ -268,7 +277,7 @@ L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
   if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
-  if (dtlPolicyIntfMcastCtrlModeSet(intIfNum, mode, threshold, rate_unit) != L7_SUCCESS)
+  if (dtlPolicyIntfMcastCtrlModeSet(intIfNum, mode, threshold, burstSize /* PTin added: stormcontrol */, rate_unit) != L7_SUCCESS)
   {
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
@@ -302,7 +311,7 @@ L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
 *
 * @end
 *********************************************************************/
-L7_RC_t policyIntfUcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+L7_RC_t policyIntfUcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold, L7_uint32 burstSize /* PTin added: stormControl */, 
                                      L7_RATE_UNIT_t rate_unit)
 {
   policyIntfCfgData_t *pCfg;
@@ -310,7 +319,7 @@ L7_RC_t policyIntfUcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
   if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
     return L7_FAILURE;
 
-  if (dtlPolicyIntfUcastCtrlModeSet(intIfNum, mode, threshold, rate_unit) != L7_SUCCESS)
+  if (dtlPolicyIntfUcastCtrlModeSet(intIfNum, mode, threshold, burstSize /* PTin added: stormcontrol */, rate_unit) != L7_SUCCESS)
   {
     L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
     nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
@@ -397,7 +406,11 @@ L7_RC_t policyApplyIntfConfigData(L7_uint32 intIfNum)
 
     if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
-       if (policyIntfBcastCtrlModeApply(intIfNum, pCfg->bcastStormMode, pCfg->bcastStormThreshold, pCfg->bcastStormThresholdUnit)  != L7_SUCCESS)
+       if (policyIntfBcastCtrlModeApply(intIfNum,
+                                        pCfg->bcastStormMode,
+                                        pCfg->bcastStormThreshold,
+                                        pCfg->bcastStormBurstSize /* PTin added: stgormcontrol */, 
+                                        pCfg->bcastStormThresholdUnit)  != L7_SUCCESS)
        {
          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
                  "policyApplyIntfConfigData: error returned from policyIntfBcastCtrlModeApply() setting intf=%s to mode=%d\n",
@@ -408,7 +421,11 @@ L7_RC_t policyApplyIntfConfigData(L7_uint32 intIfNum)
 
     if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
-       if (policyIntfMcastCtrlModeApply(intIfNum, pCfg->mcastStormMode, pCfg->mcastStormThreshold, pCfg->mcastStormThresholdUnit)  != L7_SUCCESS)
+       if (policyIntfMcastCtrlModeApply(intIfNum,
+                                        pCfg->mcastStormMode, 
+                                        pCfg->mcastStormThreshold, 
+                                        pCfg->mcastStormBurstSize /* PTin added: stormcontrol */, 
+                                        pCfg->mcastStormThresholdUnit)  != L7_SUCCESS)
        {
          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
                  "policyApplyIntfConfigData: error returned from policyIntfMcastCtrlModeApply() setting intf=%s to mode=%d\n",
@@ -419,7 +436,11 @@ L7_RC_t policyApplyIntfConfigData(L7_uint32 intIfNum)
 
     if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
-       if (policyIntfUcastCtrlModeApply(intIfNum, pCfg->ucastStormMode, pCfg->ucastStormThreshold, pCfg->ucastStormThresholdUnit)  != L7_SUCCESS)
+       if (policyIntfUcastCtrlModeApply(intIfNum,
+                                        pCfg->ucastStormMode, 
+                                        pCfg->ucastStormThreshold, 
+                                        pCfg->ucastStormBurstSize /* PTin added: stormcontrol */, 
+                                        pCfg->ucastStormThresholdUnit)  != L7_SUCCESS)
        {
          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
                  "policyApplyIntfConfigData: error returned from policyIntfUcastCtrlModeApply() setting intf=%s to mode=%d\n",
@@ -834,7 +855,11 @@ L7_RC_t policyIntfDetach(L7_uint32 intIfNum)
 
     if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
-       if (policyIntfBcastCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_BCAST_STORM_MODE, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
+       if (policyIntfBcastCtrlModeApply(intIfNum,
+                                        FD_POLICY_DEFAULT_BCAST_STORM_MODE,
+                                        FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD,
+                                        FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: stormcontrol */, 
+                                        FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
        {
          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
                  "policyIntfDetach: error returned from policyIntfBcastCtrlModeApply() setting intf=%s to mode=%d and threshold %d\n",
@@ -845,7 +870,11 @@ L7_RC_t policyIntfDetach(L7_uint32 intIfNum)
 
     if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
-       if (policyIntfMcastCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_MCAST_STORM_MODE, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
+       if (policyIntfMcastCtrlModeApply(intIfNum,
+                                        FD_POLICY_DEFAULT_MCAST_STORM_MODE, 
+                                        FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD, 
+                                        FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: stormcontrol */, 
+                                        FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
        {
          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
                  "policyIntfDetach: error returned from policyIntfMcastCtrlModeApply() setting intf=%s to mode=%d and threshold %d\n",
@@ -856,7 +885,11 @@ L7_RC_t policyIntfDetach(L7_uint32 intIfNum)
 
     if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
     {
-       if (policyIntfUcastCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_UCAST_STORM_MODE, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
+       if (policyIntfUcastCtrlModeApply(intIfNum,
+                                        FD_POLICY_DEFAULT_UCAST_STORM_MODE, 
+                                        FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD, 
+                                        FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: stormcontrol */, 
+                                        FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
        {
          L7_LOGF(L7_LOG_SEVERITY_INFO, L7_POLICY_COMPONENT_ID,
                  "policyIntfDetach: error returned from policyIntfUcastCtrlModeApply() setting intIfNum=%s to mode=%d and threshold %d\n",

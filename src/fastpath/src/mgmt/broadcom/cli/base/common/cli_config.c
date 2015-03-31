@@ -3857,7 +3857,7 @@ const L7_char8 *commandStormControlBcast(EwsContext ewsContext, L7_uint32 argc, 
       /*******Check if the Flag is Set for Execution*************/
       if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc = usmDbSwDevCtrlBcastStormThresholdSet(unit, threshold,rate_unit);
+        rc = usmDbSwDevCtrlBcastStormThresholdSet(unit, threshold, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
         if (rc != L7_SUCCESS)
         {
           return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, pStrErr_common_ErrCouldNot,  ewsContext, pStrErr_base_StormCntrlBcastLvl_1);
@@ -3894,7 +3894,9 @@ const L7_char8 *commandStormControlBcast(EwsContext ewsContext, L7_uint32 argc, 
       /*******Check if the Flag is Set for Execution*************/
       if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc = usmDbSwDevCtrlBcastStormThresholdSet(unit, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD,
+        rc = usmDbSwDevCtrlBcastStormThresholdSet(unit,
+                                                  FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD,
+                                                  FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                   FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT);
         if (rc != L7_SUCCESS)
         {
@@ -4064,7 +4066,7 @@ const L7_char8 *commandStormControlMcast(EwsContext ewsContext, L7_uint32 argc, 
       /*******Check if the Flag is Set for Execution*************/
       if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc = usmDbSwDevCtrlMcastStormThresholdSet(unit, threshold, rate_unit);
+        rc = usmDbSwDevCtrlMcastStormThresholdSet(unit, threshold, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
         if (rc != L7_SUCCESS)
         {
           return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, pStrErr_common_ErrCouldNot,  ewsContext, pStrErr_base_StormCntrlMcastLvl_1);
@@ -4101,6 +4103,7 @@ const L7_char8 *commandStormControlMcast(EwsContext ewsContext, L7_uint32 argc, 
       if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
         rc = usmDbSwDevCtrlMcastStormThresholdSet(unit, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD,
+                                                  FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                   FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT);
         if (rc != L7_SUCCESS)
         {
@@ -4269,7 +4272,7 @@ const L7_char8 *commandStormControlUcast(EwsContext ewsContext, L7_uint32 argc, 
       /*******Check if the Flag is Set for Execution*************/
       if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
-        rc = usmDbSwDevCtrlUcastStormThresholdSet(unit, threshold, rate_unit);
+        rc = usmDbSwDevCtrlUcastStormThresholdSet(unit, threshold, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
         if (rc != L7_SUCCESS)
         {
           return cliSyntaxReturnPromptAddBlanks (1, 1, 0, 0, pStrErr_common_ErrCouldNot,  ewsContext, pStrErr_base_StormCntrlUcastLvl_1);
@@ -4306,6 +4309,7 @@ const L7_char8 *commandStormControlUcast(EwsContext ewsContext, L7_uint32 argc, 
       if(ewsContext->scriptActionFlag==L7_EXECUTE_SCRIPT)
       {
         rc = usmDbSwDevCtrlUcastStormThresholdSet(unit, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD,
+                                                  FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                   FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT);
         if (rc != L7_SUCCESS)
         {
@@ -4507,7 +4511,7 @@ const L7_char8 *commandStormControlIntfBcast(EwsContext ewsContext, L7_uint32 ar
               continue;
             }
 
-            rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(interface, threshold, rate_unit);
+            rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(interface, threshold, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
             if (rc != L7_SUCCESS)
             {
               ewsTelnetWrite(ewsContext, cliDisplayInterfaceHelp(unit, s, p));
@@ -4572,7 +4576,9 @@ const L7_char8 *commandStormControlIntfBcast(EwsContext ewsContext, L7_uint32 ar
               continue;
             }
 
-            rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(interface, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD,
+            rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(interface, 
+                                                          FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD,
+                                                          FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                           FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT);
             if (rc != L7_SUCCESS)
             {
@@ -4771,7 +4777,7 @@ const L7_char8 *commandStormControlIntfMcast(EwsContext ewsContext, L7_uint32 ar
               continue;
             }
 
-            rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(interface, threshold, rate_unit);
+            rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(interface, threshold, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
             if (rc != L7_SUCCESS)
             {
               ewsTelnetWrite(ewsContext, cliDisplayInterfaceHelp(unit, s, p));
@@ -4838,6 +4844,7 @@ const L7_char8 *commandStormControlIntfMcast(EwsContext ewsContext, L7_uint32 ar
             }
 
             rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(interface, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD,
+                                                          FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                           FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT);
             if (rc != L7_SUCCESS)
             {
@@ -5033,7 +5040,7 @@ const L7_char8 *commandStormControlIntfUcast(EwsContext ewsContext, L7_uint32 ar
             {
               continue;
             }
-            rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(interface, threshold, rate_unit);
+            rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(interface, threshold, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
             if (rc != L7_SUCCESS)
             {
               ewsTelnetWrite(ewsContext, cliDisplayInterfaceHelp(unit, s, p));
@@ -5097,6 +5104,7 @@ const L7_char8 *commandStormControlIntfUcast(EwsContext ewsContext, L7_uint32 ar
               continue;
             }
             rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(interface, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD,
+                                                          FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                           FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT);
             if (rc != L7_SUCCESS)
             {

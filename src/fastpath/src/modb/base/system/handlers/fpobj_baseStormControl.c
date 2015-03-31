@@ -359,7 +359,7 @@ xLibRC_t fpObjGet_baseStormControl_BroadcastControlThreshold (void *wap, void *b
 
   /* get the value from application */
   owa.l7rc = usmDbSwDevCtrlBcastStormThresholdGet (L7_UNIT_CURRENT,
-                                                   &objBroadcastControlThresholdValue, &rate_unit);
+                                                   &objBroadcastControlThresholdValue, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
   if (owa.l7rc != L7_SUCCESS)
   {
     owa.rc = XLIBRC_FAILURE;    /* TODO: Change if required */
@@ -411,6 +411,7 @@ xLibRC_t fpObjSet_baseStormControl_BroadcastControlThreshold (void *wap, void *b
   /* set the value in application */
   owa.l7rc = usmDbSwDevCtrlBcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &tempBroadcastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objBroadcastControlThresholdUnitValue);
 
   if (owa.l7rc == L7_SUCCESS)
@@ -419,6 +420,7 @@ xLibRC_t fpObjSet_baseStormControl_BroadcastControlThreshold (void *wap, void *b
     {
       owa.l7rc = usmDbSwDevCtrlBcastStormThresholdSet (L7_UNIT_CURRENT,
                                                        objBroadcastControlThresholdValue,
+                                                       FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                        objBroadcastControlThresholdUnitValue);
     }
   }
@@ -454,6 +456,7 @@ xLibRC_t fpObjGet_baseStormControl_BroadcastControlThresholdUnit (void *wap, voi
   /* get the value from application */
   owa.l7rc = usmDbSwDevCtrlBcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objBroadcastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objBroadcastControlThresholdUnitValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -503,6 +506,7 @@ xLibRC_t fpObjSet_baseStormControl_BroadcastControlThresholdUnit (void *wap, voi
 
   owa.l7rc = usmDbSwDevCtrlBcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objBroadcastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &tempBroadcastControlThresholdUnitValue);
 
   if (owa.l7rc == L7_SUCCESS)
@@ -511,6 +515,7 @@ xLibRC_t fpObjSet_baseStormControl_BroadcastControlThresholdUnit (void *wap, voi
     {
       owa.l7rc = usmDbSwDevCtrlBcastStormThresholdSet (L7_UNIT_CURRENT,
                                                        objBroadcastControlThresholdValue,
+                                                       FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                        objBroadcastControlThresholdUnitValue);
     }
   }
@@ -545,6 +550,7 @@ xLibRC_t fpObjGet_baseStormControl_MulticastControlThreshold (void *wap, void *b
   /* get the value from application */
   owa.l7rc = usmDbSwDevCtrlMcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objMulticastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objMulticastControlThresholdUnitValue);
 
   if (owa.l7rc != L7_SUCCESS)
@@ -597,6 +603,7 @@ xLibRC_t fpObjSet_baseStormControl_MulticastControlThreshold (void *wap, void *b
   /* set the value in application */
   owa.l7rc = usmDbSwDevCtrlMcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &tempMulticastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objMulticastControlThresholdUnitValue);
 
   if (owa.l7rc == L7_SUCCESS)
@@ -605,6 +612,7 @@ xLibRC_t fpObjSet_baseStormControl_MulticastControlThreshold (void *wap, void *b
     {
       owa.l7rc = usmDbSwDevCtrlMcastStormThresholdSet (L7_UNIT_CURRENT,
                                                        objMulticastControlThresholdValue,
+                                                       FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                        objMulticastControlThresholdUnitValue);
     }
   }
@@ -641,6 +649,7 @@ xLibRC_t fpObjGet_baseStormControl_MulticastControlThresholdUnit (void *wap, voi
   /* get the value from application */
   owa.l7rc = usmDbSwDevCtrlMcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objMulticastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objMulticastControlThresholdUnitValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -683,6 +692,7 @@ xLibRC_t fpObjSet_baseStormControl_MulticastControlThresholdUnit (void *wap, voi
   objMulticastControlThresholdUnitValue = L7_RATE_UNIT_PPS;
   owa.l7rc = usmDbSwDevCtrlMcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objMulticastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &tempMulticastControlThresholdUnitValue);
 
   if (owa.l7rc == L7_SUCCESS)
@@ -691,6 +701,7 @@ xLibRC_t fpObjSet_baseStormControl_MulticastControlThresholdUnit (void *wap, voi
     {
       owa.l7rc = usmDbSwDevCtrlMcastStormThresholdSet (L7_UNIT_CURRENT,
                                                        objMulticastControlThresholdValue,
+                                                       FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                        objMulticastControlThresholdUnitValue);
     }
   }
@@ -726,6 +737,7 @@ xLibRC_t fpObjGet_baseStormControl_UnicastControlThreshold (void *wap, void *buf
   /* get the value from application */
   owa.l7rc = usmDbSwDevCtrlUcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objUnicastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objUnicastControlThresholdUnitValue);
 
   if (owa.l7rc != L7_SUCCESS)
@@ -778,6 +790,7 @@ xLibRC_t fpObjSet_baseStormControl_UnicastControlThreshold (void *wap, void *buf
   /* set the value in application */
   owa.l7rc = usmDbSwDevCtrlUcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &tempUnicastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objUnicastControlThresholdUnitValue);
 
   if (owa.l7rc == L7_SUCCESS)
@@ -786,6 +799,7 @@ xLibRC_t fpObjSet_baseStormControl_UnicastControlThreshold (void *wap, void *buf
     {
       owa.l7rc = usmDbSwDevCtrlUcastStormThresholdSet (L7_UNIT_CURRENT,
                                                        objUnicastControlThresholdValue,
+                                                       FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                        objUnicastControlThresholdUnitValue);
     }
   }
@@ -822,6 +836,7 @@ xLibRC_t fpObjGet_baseStormControl_UnicastControlThresholdUnit (void *wap, void 
   /* get the value from application */
   owa.l7rc = usmDbSwDevCtrlMcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objUnicastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &objUnicastControlThresholdUnitValue);
   if (owa.l7rc != L7_SUCCESS)
   {
@@ -871,6 +886,7 @@ xLibRC_t fpObjSet_baseStormControl_UnicastControlThresholdUnit (void *wap, void 
 
   owa.l7rc = usmDbSwDevCtrlUcastStormThresholdGet (L7_UNIT_CURRENT,
                                                    &objUnicastControlThresholdValue,
+                                                   L7_NULLPTR /* PTin added: stormcontrol */, 
                                                    &tempUnicastControlThresholdUnitValue);
 
   if (owa.l7rc == L7_SUCCESS)
@@ -879,6 +895,7 @@ xLibRC_t fpObjSet_baseStormControl_UnicastControlThresholdUnit (void *wap, void 
     {
       owa.l7rc = usmDbSwDevCtrlUcastStormThresholdSet (L7_UNIT_CURRENT,
                                                        objUnicastControlThresholdValue,
+                                                       FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, 
                                                        objUnicastControlThresholdUnitValue);
     }
   }

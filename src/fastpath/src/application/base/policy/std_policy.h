@@ -52,12 +52,15 @@ typedef struct
   L7_uint32      flowControlMode;
   L7_uint32      bcastStormMode;
   L7_uint32      bcastStormThreshold;
+  L7_uint32      bcastStormBurstSize;           /* PTin added: stormcontrol: burst size */
   L7_RATE_UNIT_t bcastStormThresholdUnit;
   L7_uint32      mcastStormMode;
   L7_uint32      mcastStormThreshold;
+  L7_uint32      mcastStormBurstSize;           /* PTin added: stormcontrol: burst size */
   L7_RATE_UNIT_t mcastStormThresholdUnit;
   L7_uint32      ucastStormMode;
   L7_uint32      ucastStormThreshold;
+  L7_uint32      ucastStormBurstSize;           /* PTin added: stormcontrol: burst size */
   L7_RATE_UNIT_t ucastStormThresholdUnit;
 } policyIntfCfgData_t;
 
@@ -67,12 +70,15 @@ typedef struct
   L7_uint32      systemFlowControlMode;
   L7_uint32      systemBcastStormMode;
   L7_uint32      systemBcastStormThreshold;
+  L7_uint32      systemBcastStormBurstSize;      /* PTin added: Stormcontrol */
   L7_RATE_UNIT_t systemBcastStormThresholdUnit;
   L7_uint32      systemMcastStormMode;
   L7_uint32      systemMcastStormThreshold;
+  L7_uint32      systemMcastStormBurstSize;      /* PTin added: Stormcontrol */
   L7_RATE_UNIT_t systemMcastStormThresholdUnit;
   L7_uint32      systemUcastStormMode;
   L7_uint32      systemUcastStormThreshold;
+  L7_uint32      systemUcastStormBurstSize;      /* PTin added: Stormcontrol */
   L7_RATE_UNIT_t systemUcastStormThresholdUnit;
   policyIntfCfgData_t policyIntfCfgData[L7_POLICY_INTF_MAX_COUNT];
   L7_uint32      checkSum;    /* check sum of config file NOTE: needs to be last entry */
@@ -204,7 +210,7 @@ L7_RC_t policyIntfFlowCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode);
 *
 * @end
 *********************************************************************/
-L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold, L7_uint32 burstSize /* PTin added: stormControl */, 
                                      L7_RATE_UNIT_t rate_unit);
 
 /*********************************************************************
@@ -226,7 +232,7 @@ L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
 *
 * @end
 *********************************************************************/
-L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold, L7_uint32 burstSize /* PTin added: stormControl */, 
                                      L7_RATE_UNIT_t rate_unit);
 
 
@@ -249,7 +255,7 @@ L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int3
 *
 * @end
 *********************************************************************/
-L7_RC_t policyIntfUcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+L7_RC_t policyIntfUcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold, L7_uint32 burstSize /* PTin added: stormControl */, 
                                      L7_RATE_UNIT_t rate_unit);
 
 

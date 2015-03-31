@@ -3915,7 +3915,7 @@ snmpAgentSwitchBroadcastControlThresholdGet ( L7_uint32 UnitIndex, L7_int32 *val
   L7_RC_t rc;
   L7_RATE_UNIT_t temp_val;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdGet ( UnitIndex, val, &temp_val );
+  rc = usmDbSwDevCtrlBcastStormThresholdGet ( UnitIndex, val, L7_NULLPTR /* PTin added: stormcontrol */, &temp_val );
 
   return rc;
 }
@@ -3927,7 +3927,7 @@ snmpAgentSwitchMulticastControlThresholdGet ( L7_uint32 UnitIndex, L7_int32 *val
   L7_RC_t rc;
   L7_RATE_UNIT_t temp_val;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdGet ( UnitIndex, val, &temp_val );
+  rc = usmDbSwDevCtrlMcastStormThresholdGet ( UnitIndex, val, L7_NULLPTR /* PTin added: stormcontrol */, &temp_val );
 
   return rc;
 }
@@ -3939,7 +3939,7 @@ snmpAgentSwitchUnicastControlThresholdGet ( L7_uint32 UnitIndex, L7_int32 *val )
   L7_RC_t rc;
   L7_RATE_UNIT_t temp_val;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdGet ( UnitIndex, val, &temp_val );
+  rc = usmDbSwDevCtrlUcastStormThresholdGet ( UnitIndex, val, L7_NULLPTR /* PTin added: stormcontrol */, &temp_val );
 
   return rc;
 }
@@ -3951,7 +3951,7 @@ snmpAgentSwitchBroadcastControlThresholdUnitGet ( L7_uint32 UnitIndex, L7_int32 
   L7_uint32 temp_val;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdGet ( UnitIndex, &temp_val, &rate_unit );
+  rc = usmDbSwDevCtrlBcastStormThresholdGet ( UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit );
 
   if (rc == L7_SUCCESS)
   {
@@ -3981,7 +3981,7 @@ snmpAgentSwitchMulticastControlThresholdUnitGet ( L7_uint32 UnitIndex, L7_int32 
   L7_uint32 temp_val;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdGet ( UnitIndex, &temp_val, &rate_unit );
+  rc = usmDbSwDevCtrlMcastStormThresholdGet ( UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit );
 
   if (rc == L7_SUCCESS)
   {
@@ -4011,7 +4011,7 @@ snmpAgentSwitchUnicastControlThresholdUnitGet ( L7_uint32 UnitIndex, L7_int32 *v
   L7_uint32 temp_val;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdGet ( UnitIndex, &temp_val, &rate_unit );
+  rc = usmDbSwDevCtrlUcastStormThresholdGet ( UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit );
 
   if (rc == L7_SUCCESS)
   {
@@ -4156,7 +4156,7 @@ snmpAgentSwitchBroadcastControlThresholdSet  ( L7_uint32 UnitIndex, L7_uint32 va
   L7_uint32 temp_val, rate_min, rate_max;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdGet (UnitIndex, &temp_val, &rate_unit);
+  rc = usmDbSwDevCtrlBcastStormThresholdGet (UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
 
   if (rc == L7_SUCCESS)
   {
@@ -4180,7 +4180,7 @@ snmpAgentSwitchBroadcastControlThresholdSet  ( L7_uint32 UnitIndex, L7_uint32 va
       }
   }
 
-  rc = usmDbSwDevCtrlBcastStormThresholdSet ( UnitIndex, val, rate_unit);
+  rc = usmDbSwDevCtrlBcastStormThresholdSet ( UnitIndex, val, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
 
   return rc;
 }
@@ -4192,7 +4192,7 @@ snmpAgentSwitchMulticastControlThresholdSet  ( L7_uint32 UnitIndex, L7_uint32 va
   L7_uint32 temp_val, rate_min, rate_max;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdGet (UnitIndex, &temp_val, &rate_unit);
+  rc = usmDbSwDevCtrlMcastStormThresholdGet (UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
 
   if (rc == L7_SUCCESS)
   {
@@ -4216,7 +4216,7 @@ snmpAgentSwitchMulticastControlThresholdSet  ( L7_uint32 UnitIndex, L7_uint32 va
       }
   }
 
-  rc = usmDbSwDevCtrlMcastStormThresholdSet ( UnitIndex, val, rate_unit);
+  rc = usmDbSwDevCtrlMcastStormThresholdSet ( UnitIndex, val, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
 
   return rc;
 }
@@ -4228,7 +4228,7 @@ snmpAgentSwitchUnicastControlThresholdSet  ( L7_uint32 UnitIndex, L7_uint32 val 
   L7_uint32 temp_val, rate_min, rate_max;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdGet (UnitIndex, &temp_val, &rate_unit);
+  rc = usmDbSwDevCtrlUcastStormThresholdGet (UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
 
   if (rc == L7_SUCCESS)
   {
@@ -4252,7 +4252,7 @@ snmpAgentSwitchUnicastControlThresholdSet  ( L7_uint32 UnitIndex, L7_uint32 val 
       }
   }
 
-  rc = usmDbSwDevCtrlUcastStormThresholdSet ( UnitIndex, val, rate_unit);
+  rc = usmDbSwDevCtrlUcastStormThresholdSet ( UnitIndex, val, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
 
   return rc;
 }
@@ -4267,7 +4267,7 @@ snmpAgentSwitchBroadcastControlThresholdUnitSet  ( L7_uint32 UnitIndex, L7_uint3
   L7_RATE_UNIT_t rate_unit=0;
   L7_RATE_UNIT_t unit_current;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdGet (UnitIndex, &temp_val, &unit_current);
+  rc = usmDbSwDevCtrlBcastStormThresholdGet (UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &unit_current);
 
   switch (val)
   {
@@ -4287,7 +4287,7 @@ snmpAgentSwitchBroadcastControlThresholdUnitSet  ( L7_uint32 UnitIndex, L7_uint3
 
   if (rc == L7_SUCCESS && rate_unit != unit_current)
   {
-      rc = usmDbSwDevCtrlBcastStormThresholdSet ( UnitIndex, rate, rate_unit);
+      rc = usmDbSwDevCtrlBcastStormThresholdSet ( UnitIndex, rate, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
   }
 
   return rc;
@@ -4302,7 +4302,7 @@ snmpAgentSwitchMulticastControlThresholdUnitSet  ( L7_uint32 UnitIndex, L7_uint3
   L7_RATE_UNIT_t rate_unit=0;
   L7_RATE_UNIT_t unit_current;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdGet (UnitIndex, &temp_val, &unit_current);
+  rc = usmDbSwDevCtrlMcastStormThresholdGet (UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &unit_current);
 
   switch (val)
   {
@@ -4322,7 +4322,7 @@ snmpAgentSwitchMulticastControlThresholdUnitSet  ( L7_uint32 UnitIndex, L7_uint3
 
   if (rc == L7_SUCCESS && rate_unit != unit_current)
   {
-      rc = usmDbSwDevCtrlMcastStormThresholdSet ( UnitIndex, rate, rate_unit);
+      rc = usmDbSwDevCtrlMcastStormThresholdSet ( UnitIndex, rate, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
   }
 
   return rc;
@@ -4337,7 +4337,7 @@ snmpAgentSwitchUnicastControlThresholdUnitSet  ( L7_uint32 UnitIndex, L7_uint32 
   L7_RATE_UNIT_t rate_unit=0;
   L7_RATE_UNIT_t unit_current;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdGet (UnitIndex, &temp_val, &unit_current);
+  rc = usmDbSwDevCtrlUcastStormThresholdGet (UnitIndex, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &unit_current);
 
   switch (val)
   {
@@ -4357,7 +4357,7 @@ snmpAgentSwitchUnicastControlThresholdUnitSet  ( L7_uint32 UnitIndex, L7_uint32 
 
   if (rc == L7_SUCCESS && rate_unit != unit_current)
   {
-      rc = usmDbSwDevCtrlUcastStormThresholdSet ( UnitIndex, rate, rate_unit);
+      rc = usmDbSwDevCtrlUcastStormThresholdSet ( UnitIndex, rate, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
   }
 
   return rc;
@@ -7815,7 +7815,7 @@ snmpAgentPortBroadcastControlThresholdGet ( L7_uint32 interface, L7_int32 *val )
   L7_RC_t rc;
   L7_RATE_UNIT_t temp_val;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet ( interface, val, &temp_val );
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet ( interface, val, L7_NULLPTR /* PTin added: stormcontrol */, &temp_val );
 
   return rc;
 }
@@ -7827,7 +7827,7 @@ snmpAgentPortMulticastControlThresholdGet ( L7_uint32 interface, L7_int32 *val )
   L7_RC_t rc;
   L7_RATE_UNIT_t temp_val;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet ( interface, val, &temp_val );
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet ( interface, val, L7_NULLPTR /* PTin added: stormcontrol */, &temp_val );
 
   return rc;
 }
@@ -7839,7 +7839,7 @@ snmpAgentPortUnicastControlThresholdGet ( L7_uint32 interface, L7_int32 *val )
   L7_RC_t rc;
   L7_RATE_UNIT_t temp_val;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet ( interface, val, &temp_val );
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet ( interface, val, L7_NULLPTR /* PTin added: stormcontrol */, &temp_val );
 
   return rc;
 }
@@ -7851,7 +7851,7 @@ snmpAgentPortBroadcastControlThresholdUnitGet ( L7_uint32 interface, L7_int32 *v
   L7_uint32 temp_val;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet ( interface, &temp_val, &rate_unit );
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet ( interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit );
 
   if (rc == L7_SUCCESS)
   {
@@ -7881,7 +7881,7 @@ snmpAgentPortMulticastControlThresholdUnitGet ( L7_uint32 interface, L7_int32 *v
   L7_uint32 temp_val;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet ( interface, &temp_val, &rate_unit );
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet ( interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit );
 
   if (rc == L7_SUCCESS)
   {
@@ -7911,7 +7911,7 @@ snmpAgentPortUnicastControlThresholdUnitGet ( L7_uint32 interface, L7_int32 *val
   L7_uint32 temp_val;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet ( interface, &temp_val, &rate_unit );
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet ( interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit );
 
   if (rc == L7_SUCCESS)
   {
@@ -8026,7 +8026,7 @@ snmpAgentPortBroadcastControlThresholdSet  ( L7_uint32 interface, L7_int32 val )
   L7_uint32 temp_val, rate_min, rate_max;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet (interface, &temp_val, &rate_unit);
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet (interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
 
   if (rc == L7_SUCCESS)
   {
@@ -8050,7 +8050,7 @@ snmpAgentPortBroadcastControlThresholdSet  ( L7_uint32 interface, L7_int32 val )
       }
   }
 
-  rc = usmDbSwDevCtrlBcastStormThresholdIntfSet ( interface, val, rate_unit);
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfSet ( interface, val, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
 
   return rc;
 }
@@ -8063,7 +8063,7 @@ snmpAgentPortMulticastControlThresholdSet  ( L7_uint32 interface, L7_int32 val )
   L7_uint32 temp_val, rate_min, rate_max;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet (interface, &temp_val, &rate_unit);
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet (interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
 
   if (rc == L7_SUCCESS)
   {
@@ -8087,7 +8087,7 @@ snmpAgentPortMulticastControlThresholdSet  ( L7_uint32 interface, L7_int32 val )
       }
   }
 
-  rc = usmDbSwDevCtrlMcastStormThresholdIntfSet ( interface, val, rate_unit);
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfSet ( interface, val, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
 
   return rc;
 }
@@ -8099,7 +8099,7 @@ snmpAgentPortUnicastControlThresholdSet  ( L7_uint32 interface, L7_int32 val )
   L7_uint32 temp_val, rate_min, rate_max;
   L7_RATE_UNIT_t rate_unit;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet (interface, &temp_val, &rate_unit);
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet (interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &rate_unit);
 
   if (rc == L7_SUCCESS)
   {
@@ -8123,7 +8123,7 @@ snmpAgentPortUnicastControlThresholdSet  ( L7_uint32 interface, L7_int32 val )
       }
   }
 
-  rc = usmDbSwDevCtrlUcastStormThresholdIntfSet ( interface, val, rate_unit);
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfSet ( interface, val, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
 
   return rc;
 }
@@ -8137,7 +8137,7 @@ snmpAgentPortBroadcastControlThresholdUnitSet  ( L7_uint32 interface, L7_uint32 
   L7_RATE_UNIT_t rate_unit=0;
   L7_RATE_UNIT_t unit_current;
 
-  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet (interface, &temp_val, &unit_current);
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet (interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &unit_current);
 
   switch (val)
   {
@@ -8157,7 +8157,7 @@ snmpAgentPortBroadcastControlThresholdUnitSet  ( L7_uint32 interface, L7_uint32 
 
   if (rc == L7_SUCCESS && rate_unit != unit_current)
   {
-      rc = usmDbSwDevCtrlBcastStormThresholdIntfSet ( interface, rate, rate_unit);
+      rc = usmDbSwDevCtrlBcastStormThresholdIntfSet ( interface, rate, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
   }
 
   return rc;
@@ -8172,7 +8172,7 @@ snmpAgentPortMulticastControlThresholdUnitSet  ( L7_uint32 interface, L7_uint32 
   L7_RATE_UNIT_t rate_unit=0;
   L7_RATE_UNIT_t unit_current;
 
-  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet (interface, &temp_val, &unit_current);
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet (interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &unit_current);
 
   switch (val)
   {
@@ -8192,7 +8192,7 @@ snmpAgentPortMulticastControlThresholdUnitSet  ( L7_uint32 interface, L7_uint32 
 
   if (rc == L7_SUCCESS && rate_unit != unit_current)
   {
-      rc = usmDbSwDevCtrlMcastStormThresholdIntfSet ( interface, rate, rate_unit);
+      rc = usmDbSwDevCtrlMcastStormThresholdIntfSet ( interface, rate, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
   }
 
   return rc;
@@ -8207,7 +8207,7 @@ snmpAgentPortUnicastControlThresholdUnitSet  ( L7_uint32 interface, L7_uint32 va
   L7_RATE_UNIT_t rate_unit=0;
   L7_RATE_UNIT_t unit_current;
 
-  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet (interface, &temp_val, &unit_current);
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet (interface, &temp_val, L7_NULLPTR /* PTin added: stormcontrol */, &unit_current);
 
   switch (val)
   {
@@ -8227,7 +8227,7 @@ snmpAgentPortUnicastControlThresholdUnitSet  ( L7_uint32 interface, L7_uint32 va
 
   if (rc == L7_SUCCESS && rate_unit != unit_current)
   {
-      rc = usmDbSwDevCtrlUcastStormThresholdIntfSet ( interface, rate, rate_unit);
+      rc = usmDbSwDevCtrlUcastStormThresholdIntfSet ( interface, rate, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE /* PTin added: StormControl */, rate_unit);
   }
 
   return rc;
