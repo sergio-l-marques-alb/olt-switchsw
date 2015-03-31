@@ -1189,16 +1189,14 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       {
         rateLimit.limit       = (L7_int32) rate;
         rateLimit.bucket_size = (L7_int32) bucket_size;   /* PTin added: StormControl: bucket size */
-        //rateLimit.flags       = BCM_RATE_BCAST;         /* PTin removed: StormControl */
+        rateLimit.flags       = BCM_RATE_BCAST;
       }
       else
       {
         rateLimit.limit       = 0;
-        rateLimit.bucket_size = 0;                        /* PTin added: StormControl: bucket size */
-        //rateLimit.flags = 0;                            /* PTin removed: StormControl */
+        rateLimit.bucket_size = 0;                       /* PTin added: StormControl: bucket size */
+        rateLimit.flags       = 0;
       }
-
-      rateLimit.flags = BCM_RATE_BCAST;                   /* PTin added: StormControl: flags */
 
 	  rv = usl_bcmx_rate_bcast_set(hapiPortPtr->bcmx_lport, rateLimit);
       if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -1213,16 +1211,14 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       {
         rateLimit.limit       = (L7_int32) rate;
         rateLimit.bucket_size = (L7_int32) bucket_size;   /* PTin added: StormControl: bucket size */
-        //rateLimit.flags       = BCM_RATE_MCAST;         /* PTin removed: StormControl */
+        rateLimit.flags       = BCM_RATE_MCAST;
       }
       else
       {
         rateLimit.limit       = 0;
-        rateLimit.bucket_size = 0;                        /* PTin added: StormControl: bucket size */
-        //rateLimit.flags = 0;                            /* PTin removed: StormControl */
+        rateLimit.bucket_size = 0;                       /* PTin added: StormControl: bucket size */
+        rateLimit.flags       = 0;
       }
-
-      rateLimit.flags = BCM_RATE_MCAST;                   /* PTin added: StormControl: flags */
 
 	  rv = usl_bcmx_rate_mcast_set(hapiPortPtr->bcmx_lport, rateLimit);
       if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -1237,16 +1233,14 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       {  
         rateLimit.limit       = (L7_int32) rate;
         rateLimit.bucket_size = (L7_int32) bucket_size;   /* PTin added: StormControl: bucket size */
-        //rateLimit.flags       = BCM_RATE_DLF;           /* PTin removed: StormControl */
+        rateLimit.flags       = BCM_RATE_DLF;
       }
       else
       {
         rateLimit.limit       = 0;
-        rateLimit.bucket_size = 0;                        /* PTin added: StormControl: bucket size */
-        //rateLimit.flags = 0;                            /* PTin removed: StormControl */
+        rateLimit.bucket_size = 0;                       /* PTin added: StormControl: bucket size */
+        rateLimit.flags       = 0;
       }
-
-      rateLimit.flags = BCM_RATE_DLF;                     /* PTin added: StormControl: flags */
 
 	  rv = usl_bcmx_rate_dlfbc_set(hapiPortPtr->bcmx_lport, rateLimit);
       if (L7_BCMX_OK(rv) != L7_TRUE)
