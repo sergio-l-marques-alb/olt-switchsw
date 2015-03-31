@@ -3572,13 +3572,15 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
     #if 1
     if (bcmx_l2_addr->flags & BCM_L2_MOVE)
     {
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, " Decrease learned mac ");
       ptin_hapi_maclimit_dec(bcmx_l2_addr);
     }
     else
     {
       if (ptin_hapi_maclimit_inc(bcmx_l2_addr) != L7_FAILURE)
       {
-        bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING); 
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Increase learned mac ");
+        bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
         rv = usl_bcmx_l2_addr_add(bcmx_l2_addr, L7_NULL);
       }
       else
@@ -3586,7 +3588,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
         /* This action allows rejected MACs to appear in Fdb table */
         //bcmx_l2_addr->flags &= ~((L7_uint32)BCM_L2_PENDING);
         //rv = usl_bcmx_l2_addr_delete(bcmx_l2_addr->mac, bcmx_l2_addr->vid);
-
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Warning ");
         LOG_WARNING(LOG_CTX_PTIN_HAPI, "MAC limit has been reached for VID %d, GPORT 0x%08X",
                     bcmx_l2_addr->vid, bcmx_l2_addr->lport);
       }
@@ -3620,10 +3622,20 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[4] = bcmx_l2_addr->mac[4];
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[5] = bcmx_l2_addr->mac[5];
 
+      /* PTin added: physical ports */
+      if (BCMX_LPORT_VALID(bcmx_l2_addr->lport))
+      {
+        ptin_hapi_maclimit_inc(bcmx_l2_addr);
+      } 
+      /* PTin added: LAGS ports */
+      else if((bcmx_l2_addr->tgid >= 0) && ((bcmx_l2_addr->tgid < PTIN_SYSTEM_N_LAGS)))
+      {
+        ptin_hapi_maclimit_inc(bcmx_l2_addr);
+      }
       /* PTin added: virtual ports */
       #if 1
       /* Save virtual port */
-      if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+      else if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
       {
         macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
       }

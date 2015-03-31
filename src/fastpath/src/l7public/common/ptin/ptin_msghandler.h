@@ -785,7 +785,7 @@ typedef struct {
 
   L7_uint32 mask;                       /* Mask (32 bits for alignment purposes) */
 
-  L7_uint32 number_mac_learned;           /* 0x01 Indicates the number of MAC's learned */
+  L7_uint32 number_mac_learned;          /* 0x01 Indicates the number of MAC's learned */
   L7_uint32 status;                     /* 0x02 Indicates if the specific interface is within/over the MAC's learned limit. WITHIN_LIMIT=0,OVER_LIMIT =1 */
 } __attribute__((packed)) msg_l2_maclimit_status_t;
 

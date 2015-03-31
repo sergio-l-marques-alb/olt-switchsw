@@ -109,7 +109,8 @@ void ptin_debug(void)
   printf("  ptin_evc_dump <id>                                              - prints info about eEVCs (use -1 to display all)\r\n");
   printf("  ptin_evc_map                                                    - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int>                                       - prints info about the EVC related to the given internal vlan\r\n");
-  printf("  ptin_maclimit_dump                                              - Dumps MAC limit tables (non empty)\r\n");
+  printf("  ptin_l2_maclimit_dump                                           - Dumps MAC limit tables (non empty)\r\n");
+  printf("  ptin_l2_maclimit_status                                         - Dumps MAC limit tables per interface (non empty)\r\n");
   printf("  ptin_l2_maclimit_config <sys> <ifType> <ifId> <vid> <lmt>       - Configures L2 MAC Limit on system/ per VLAN / per Port\r\n");
   printf("  ptin_debug_example <intIfNum> <oper> <param1> <param2>          - Generic DTL processor example\r\n");
   printf("  cliTelnetAdminModeSet <port>\r\n");                            
@@ -917,4 +918,30 @@ void ptin_l2_maclimit_config(L7_uint8 system, L7_uint8 intf_type, L7_uint8 intf_
 
   ptin_msg_l2_maclimit_config(&maclimit);
 }
+
+/**
+ * ptin_debug_l2_maclimit_config
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ */
+void ptin_l2_maclimit_status(L7_uint8 intf_type, L7_uint8 intf_id)
+{
+
+  msg_l2_maclimit_status_t status;
+
+  memset(&status, 0, sizeof(msg_l2_maclimit_status_t));
+
+  status.slotId =         1;
+
+  if ((intf_type != (L7_uint8)-1) && (intf_id!=(L7_uint8)-1))
+  {
+    status.intf.intf_type = intf_type;
+    status.intf.intf_id =   intf_id;
+  }
+
+  ptin_msg_l2_maclimit_status(&status);
+
+}
+
 

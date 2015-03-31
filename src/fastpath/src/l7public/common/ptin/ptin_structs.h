@@ -11,7 +11,7 @@ typedef enum
 {
   PTIN_DTL_MSG_EXAMPLE=0,
   PTIN_DTL_MSG_L2_MACLIMIT,
-  PTIN_DTL_MSG_L2_MACLIMIT_STATUS=2,
+  PTIN_DTL_MSG_L2_MACLIMIT_STATUS,
   PTIN_DTL_MSG_MAX
 } ptin_dtl_msg_enum;
 
@@ -50,7 +50,7 @@ typedef struct
   L7_uint8    intf_id;
   L7_uint16   vlanId;                  // VLAN ID
   L7_uint32   number_mac_learned;      // MAC Limit
-  L7_uint32   status;                  // Trap generated when the maximum value is reached. DISABLE=0, ENABLE =1 (Default=1)*/
+  L7_uint32   status;                  // Check if is over or within the limit. 0-Over, 1- Within*/
 
 } ptin_l2_maclimit_status_t;
 

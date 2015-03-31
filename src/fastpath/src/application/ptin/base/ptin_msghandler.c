@@ -2560,64 +2560,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_ETH_BW_PROFILE_DELETE */
     }
 
-    /* CCMSG_ETH_STORM_CONTROL_GET ***********************************************/
-    case CCMSG_ETH_STORMCONTROL2_GET:
-    {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORMCONTROL2_GET (0x%04X)", CCMSG_ETH_STORMCONTROL2_GET);
-
-      CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
-
-      msg_HwEthStormControl2_t *stormControl_in, *stormControl_out;
-      stormControl_in  = (msg_HwEthStormControl2_t *) inbuffer->info;
-      stormControl_out = (msg_HwEthStormControl2_t *) outbuffer->info;
-
-      memcpy(stormControl_out, stormControl_in, sizeof(msg_HwEthStormControl2_t));
-
-      /* Execute command */
-      if (L7_SUCCESS != ptin_msg_stormControl2_get(stormControl_out))
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while getting Storm Control profile");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
-        SetIPCNACK(outbuffer, res);
-        break;
-      }
-
-      outbuffer->infoDim = sizeof(msg_HwEthStormControl2_t);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
-
-      break;  /* CCMSG_ETH_STORM_CONTROL_GET */
-    }
-
-    /* CCMSG_ETH_STORM_CONTROL_SET ***********************************************/
-    case CCMSG_ETH_STORMCONTROL2_SET:
-    {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message received: CCMSG_ETH_STORMCONTROL2_SET (0x%04X)", CCMSG_ETH_STORMCONTROL2_SET);
-
-      CHECK_INFO_SIZE(msg_HwEthStormControl2_t);
-
-      msg_HwEthStormControl2_t *stormControl;
-      stormControl = (msg_HwEthStormControl2_t *) inbuffer->info;
-
-      /* Execute command */
-      if (L7_SUCCESS != ptin_msg_stormControl2_set(stormControl))
-      {
-        LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error while setting Storm Control profile");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
-        SetIPCNACK(outbuffer, res);
-        break;
-      }
-
-      SETIPCACKOK(outbuffer);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim);
-
-      break;  /* CCMSG_ETH_STORM_CONTROL_SET */
-    }
-
-
     /************************************************************************** 
      * inBand Config
      **************************************************************************/
@@ -5123,10 +5065,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_igmp_package_t));
 
-      ptin_timer_start(80,"CCMSG_IGMP_PACKAGES_ADD");
       /* Execute command */
       rc = ptin_msg_igmp_packages_add(msgPtr);
-      ptin_timer_stop(80);
 
       if (L7_SUCCESS != rc)
       {
@@ -5154,10 +5094,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_igmp_package_t));
 
-      ptin_timer_start(81,"CCMSG_IGMP_PACKAGES_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_packages_remove(msgPtr);
-      ptin_timer_stop(81);
 
       if (L7_SUCCESS != rc)
       {
@@ -5185,10 +5123,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
 
-      ptin_timer_start(82,"CCMSG_IGMP_PACKAGE_CHANNELS_ADD");
       /* Execute command */
       rc = ptin_msg_igmp_package_channels_add(msgPtr, noOfMessages);
-      ptin_timer_stop(82);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5217,10 +5153,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_package_channels_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_package_channels_t);
 
-      ptin_timer_start(83,"CCMSG_IGMP_PACKAGE_CHANNELS_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_package_channels_remove(msgPtr, noOfMessages);
-      ptin_timer_stop(83);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5249,10 +5183,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
 
-      ptin_timer_start(84,"CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_ADD");
       /* Execute command */      
       rc = ptin_msg_igmp_unicast_client_packages_add(msgPtr, noOfMessages);
-      ptin_timer_stop(84);
       
       if (L7_SUCCESS != rc)
       {       
@@ -5281,10 +5213,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_unicast_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_unicast_client_packages_t);
       
-      ptin_timer_start(85,"CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE");
       /* Execute command */      
       rc = ptin_msg_igmp_unicast_client_packages_remove(msgPtr, noOfMessages);
-      ptin_timer_stop(85);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5313,10 +5243,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
 
-      ptin_timer_start(86,"CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_ADD");
       /* Execute command */      
       rc = ptin_msg_igmp_macbridge_client_packages_add(msgPtr, noOfMessages);
-      ptin_timer_stop(86);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5345,10 +5273,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_igmp_macbridge_client_packages_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_igmp_macbridge_client_packages_t);
 
-      ptin_timer_start(87,"CCMSG_IGMP_MACBRIDGE_CLIENT_PACKAGES_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_macbridge_client_packages_remove(msgPtr, noOfMessages);
-       ptin_timer_stop(87);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5377,10 +5303,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_multicast_service_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
 
-      ptin_timer_start(88,"CCMSG_MULTICAST_SERVICE_ADD");
       /* Execute command */
       rc = ptin_msg_igmp_multicast_service_add(msgPtr, noOfMessages);
-      ptin_timer_stop(88);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5409,10 +5333,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgPtr = (msg_multicast_service_t *) inbuffer->info;
       L7_uint32 noOfMessages = inbuffer->infoDim / sizeof(msg_multicast_service_t);
 
-      ptin_timer_start(89,"CCMSG_MULTICAST_SERVICE_REMOVE");
       /* Execute command */
       rc = ptin_msg_igmp_multicast_service_remove(msgPtr, noOfMessages);
-      ptin_timer_stop(89);
 
       if (L7_SUCCESS != rc)
       {       
@@ -5471,9 +5393,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       CHECK_INFO_SIZE(msg_l2_maclimit_config_t);
 
       msg_l2_maclimit_config_t *ptr;
-
-      ptr = (msg_l2_maclimit_config_t *) outbuffer->info;
+    
       memcpy(outbuffer->info, inbuffer->info, sizeof(msg_l2_maclimit_config_t));
+      ptr = (msg_l2_maclimit_config_t *) outbuffer->info;
 
       /* Execute command */
       rc = ptin_msg_l2_maclimit_config(ptr);  
@@ -5492,16 +5414,20 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    /************************************************************************** 
+    * MAC Limiting Status
+    **************************************************************************/
+
     case CCMSG_L2_MACLIMIT_STATUS:
     {
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+     LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
                "Message received: CCMSG_L2_MACLIMIT_STATUS (0x%04X)", inbuffer->msgId);
-      CHECK_INFO_SIZE(msg_l2_maclimit_status_t);
+     CHECK_INFO_SIZE(msg_l2_maclimit_status_t);
 
-      msg_l2_maclimit_status_t *ptr;
+     msg_l2_maclimit_status_t *ptr;
 
-      ptr = (msg_l2_maclimit_status_t *) outbuffer->info;
-      memcpy(outbuffer->info, inbuffer->info, sizeof(msg_l2_maclimit_status_t));
+     ptr = (msg_l2_maclimit_status_t *) outbuffer->info;
+     memcpy(ptr, inbuffer->info, sizeof(msg_l2_maclimit_status_t));
 
      /* Execute command */
      rc = ptin_msg_l2_maclimit_status(ptr);  
@@ -5514,8 +5440,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
      }
 
-      outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
-      LOG_INFO(LOG_CTX_PTIN_MSGHANDLER,
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Status Response");
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," slotId       = %u",      ptr->slotId);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," interface    = %u/%u",   ptr->intf.intf_type, ptr->intf.intf_id);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," MacLearned   = %u",      ptr->number_mac_learned);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Status       = %u",      ptr->status);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim); 
     }
     break;

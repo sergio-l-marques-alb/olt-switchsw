@@ -31,11 +31,13 @@ typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 /* Add here your callback prototype */
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 /* List of callbacks */
 broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_example,
   broad_ptin_l2_maclimit,
+  broad_ptin_l2_maclimit_status
 };
 
 /**
@@ -109,7 +111,6 @@ L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uin
 L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
 {
   L7_RC_t rc = L7_SUCCESS;
-
   ptin_l2_maclimit_t *entry;
 
   entry = (ptin_l2_maclimit_t*) data;
@@ -123,7 +124,21 @@ L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7
     entry->send_trap=0;
   }
 
-  rc = ptin_hapi_maclimit_setmax(usp, entry->vlanId, entry->limit, dapi_g);
+  rc = ptin_hapi_maclimit_setmax(usp, entry->vlanId, entry->limit, entry->action, entry->send_trap, dapi_g);
+
+  return rc;
+}
+
+L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  L7_RC_t rc = L7_SUCCESS;
+  ptin_l2_maclimit_status_t *entry;
+
+  entry = (ptin_l2_maclimit_status_t*) data;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "%s: usp={%d,%d,%d} operation=%u dataSize=%u", __FUNCTION__, usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  rc = ptin_hapi_maclimit_status(usp, &entry->number_mac_learned, &entry->status, dapi_g);
 
   return rc;
 }

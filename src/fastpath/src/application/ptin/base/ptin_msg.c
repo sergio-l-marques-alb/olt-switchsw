@@ -3185,7 +3185,7 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
 /**
  * Configure L2 MAC Learn limit
  * 
- * @param maclimit: Mac limit structure
+ * @param maclimit: Mac limiting structure
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
@@ -3255,10 +3255,17 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   }
 
   dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
-  
+
   return rc;
 }
 
+/**
+ * Get L2 MAC Learn limit status
+ * 
+ * @param maclimit: Mac limiting structure
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
 L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
 {
   ptin_l2_maclimit_status_t entry;
@@ -3288,6 +3295,15 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
 
   dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT_STATUS, DAPI_CMD_GET, sizeof(ptin_l2_maclimit_status_t), &entry);
+
+  maclimit_status->number_mac_learned = entry.number_mac_learned;
+  maclimit_status->status = entry.status;
+
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Status Response");
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Status       = %u",      maclimit_status->status);
 
   return rc;
 }
