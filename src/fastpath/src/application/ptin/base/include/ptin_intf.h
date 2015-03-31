@@ -238,6 +238,21 @@ extern L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32
 extern L7_RC_t ptin_intf_ptintf2SlotPort(const ptin_intf_t *ptin_intf, L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type);
 
 /**
+ * Get slot and port location in the system, from the ptin_intf
+ * 
+ * @author mruas (3/14/2013)
+ * 
+ * @param intf_type 
+ * @param intf_id
+ * @param slot_ret (output)
+ * @param intf_ret (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_typeId2SlotPort(L7_uint8 ptin_type, L7_uint8 intf_id,
+                                         L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type);
+
+/**
  * Get the ptin_intf from the slot and port location in the 
  * system. 
  * 
@@ -317,6 +332,17 @@ extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *pt
 extern inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port);
 
 /**
+ * Converts PTin port type and id to ptin_port index
+ * 
+ * @param intf_type PTin port type (0 is physical and 1 is LAG) 
+ * @param intf_id   PTin port id
+ * @param ptin_port PTin port index
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port);
+
+/**
  * Converts FP interface# to PTin port type and id
  * 
  * @param intIfNum  FP intIfNum
@@ -337,6 +363,17 @@ extern inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum);
+
+/**
+ * Converts PTin port type and id to FP interface#
+ * 
+ * @param intf_type PTin port type (0 is physical and 1 is LAG) 
+ * @param intf_id   PTin port id
+ * @param intIfNum  FP intIfNum
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum);
 
 /**
  * Converts LAG index [1..PTIN_SYSTEM_N_LAGS] to FP intIfNum
@@ -485,6 +522,48 @@ extern L7_RC_t ptin_intf_LACPStats_get(ptin_LACPStats_t *lagStats);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats);
+
+/**
+ * Configure stormcontrol for Broadcast traffic
+ * 
+ * @param ptin_intf
+ * @param enable
+ * @param rate_value 
+ * @param rate_burst 
+ * @param rate_units 
+ * 
+ * @return L7_RC_t 
+ */
+extern
+L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units);
+
+/**
+ * Configure stormcontrol for Multicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable
+ * @param rate_value 
+ * @param rate_burst 
+ * @param rate_units 
+ * 
+ * @return L7_RC_t 
+ */
+extern
+L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units);
+
+/**
+ * Configure stormcontrol for unknown Unicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable
+ * @param rate_value 
+ * @param rate_burst 
+ * @param rate_units 
+ * 
+ * @return L7_RC_t 
+ */
+extern
+L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units);
 
 /**
  * Configures priority mapping to classes of services 

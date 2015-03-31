@@ -12,6 +12,7 @@
 #include "dot1s_api.h"
 #include "usmdb_qos_cos_api.h"
 #include "usmdb_mib_vlan_api.h"
+#include "usmdb_policy_api.h"
 
 #include "dtlapi.h"
 #include "ptin_include.h"
@@ -1696,21 +1697,40 @@ L7_RC_t ptin_intf_ptintf2SlotPort(const ptin_intf_t *ptin_intf, L7_uint16 *slot_
     return L7_FAILURE;
   }
 
+  return ptin_intf_typeId2SlotPort(ptin_intf->intf_type, ptin_intf->intf_id,
+                                   slot_ret, port_ret, board_type);
+}
+
+/**
+ * Get slot and port location in the system, from the ptin_intf
+ * 
+ * @author mruas (3/14/2013)
+ * 
+ * @param intf_type 
+ * @param intf_id
+ * @param slot_ret (output)
+ * @param intf_ret (output)
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_intf_typeId2SlotPort(L7_uint8 intf_type, L7_uint8 intf_id,
+                                  L7_uint16 *slot_ret, L7_uint16 *port_ret, L7_uint16 *board_type)
+{
   /* Do not accept non physical interfaces */
-  if (ptin_intf->intf_type!=PTIN_EVC_INTF_PHYSICAL)
+  if (intf_type!=PTIN_EVC_INTF_PHYSICAL)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface (%u/%u)", intf_type, intf_id);
     return L7_FAILURE;
   }
 
   /* Validate interface id */
-  if (ptin_intf->intf_id >= ptin_sys_number_of_ports)
+  if (intf_id >= ptin_sys_number_of_ports)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface id (%u/%u)", ptin_intf->intf_type, ptin_intf->intf_id);
+    LOG_ERR(LOG_CTX_PTIN_INTF,"Invalid interface id (%u/%u)", intf_type, intf_id);
     return L7_FAILURE;
   }
 
-  return ptin_intf_port2SlotPort(ptin_intf->intf_id, slot_ret, port_ret, board_type);
+  return ptin_intf_port2SlotPort(intf_id, slot_ret, port_ret, board_type);
 }
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
@@ -1848,8 +1868,6 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
  */
 inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *ptin_port)
 {
-  L7_uint32 p_port=0;
-
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
@@ -1857,24 +1875,40 @@ inline L7_RC_t ptin_intf_ptintf2port(const ptin_intf_t *ptin_intf, L7_uint32 *pt
     return L7_FAILURE;
   }
 
+  return ptin_intf_typeId2port(ptin_intf->intf_type, ptin_intf->intf_id, ptin_port);
+}
+
+/**
+ * Converts PTin port type and id to ptin_port index
+ * 
+ * @param port_type PTin port type (0 is physical and 1 is LAG) 
+ * @param port_id   PTin port id
+ * @param ptin_port PTin port index
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *ptin_port)
+{
+  L7_uint32 p_port=0;
+
   /* Calculate ptin_port index */
-  if (ptin_intf->intf_type == PTIN_EVC_INTF_PHYSICAL)
+  if (intf_type == PTIN_EVC_INTF_PHYSICAL)
   {
-    if (ptin_intf->intf_id >= ptin_sys_number_of_ports)
+    if (intf_id >= ptin_sys_number_of_ports)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Physical port id is out of range: %u", ptin_intf->intf_id);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Physical port id is out of range: %u", intf_id);
       return L7_FAILURE;
     }
-    p_port = ptin_intf->intf_id;
+    p_port = intf_id;
   }
-  else if (ptin_intf->intf_type == PTIN_EVC_INTF_LOGICAL)
+  else if (intf_type == PTIN_EVC_INTF_LOGICAL)
   {
-    if (ptin_intf->intf_id >= PTIN_SYSTEM_MAX_N_LAGS)
+    if (intf_id >= PTIN_SYSTEM_MAX_N_LAGS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Lag id is out of range: %u", ptin_intf->intf_id);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Lag id is out of range: %u", intf_id);
       return L7_FAILURE;
     }
-    p_port = PTIN_SYSTEM_N_PORTS + ptin_intf->intf_id;
+    p_port = PTIN_SYSTEM_N_PORTS + intf_id;
   }
   else
   {
@@ -1974,19 +2008,33 @@ inline L7_RC_t ptin_intf_intIfNum2ptintf(L7_uint32 intIfNum, ptin_intf_t *ptin_i
  */
 inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32 *intIfNum)
 {
-  L7_uint32       ptin_port=0, intIfNum0;
-  L7_RC_t         rc;
-
   /* Validate arguments */
   if (ptin_intf == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_INTF,"ptin_intf is a null pointer");
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid argument");
     return L7_FAILURE;
   }
 
-  if(ptin_intf->intf_type == PTIN_EVC_INTF_ROUTING)
+  return ptin_intf_typeId2intIfNum(ptin_intf->intf_type, ptin_intf->intf_id, intIfNum);
+}
+
+/**
+ * Converts PTin port type and id to FP interface#
+ * 
+ * @param port_type PTin port type (0 is physical and 1 is LAG) 
+ * @param port_id   PTin port id
+ * @param intIfNum  FP intIfNum
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_typeId2intIfNum(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *intIfNum)
+{
+  L7_uint32       ptin_port=0, intIfNum0;
+  L7_RC_t         rc;
+
+  if(intf_type == PTIN_EVC_INTF_ROUTING)
   {
-    if(ptin_intf->intf_id == (L7_uint8)-1)
+    if(intf_id == (L7_uint8)-1)
     {
       intIfNum0 = (L7_uint32)-1;
     }
@@ -1995,12 +2043,12 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
       L7_uint32 minimum, maximum;
 
       nimIntIfNumRangeGet(L7_LOGICAL_VLAN_INTF, &minimum, &maximum);
-      intIfNum0 = minimum + ptin_intf->intf_id;
+      intIfNum0 = minimum + intf_id;
     }
   }
-  else if(ptin_intf->intf_type == PTIN_EVC_INTF_LOOPBACK)
+  else if(intf_type == PTIN_EVC_INTF_LOOPBACK)
   {
-    if(ptin_intf->intf_id == (L7_uint8)-1)
+    if(intf_id == (L7_uint8)-1)
     {
       intIfNum0 = (L7_uint32)-1;
     }
@@ -2009,15 +2057,15 @@ inline L7_RC_t ptin_intf_ptintf2intIfNum(const ptin_intf_t *ptin_intf, L7_uint32
       L7_uint32 minimum, maximum;
 
       nimIntIfNumRangeGet(L7_LOOPBACK_INTF, &minimum, &maximum);
-      intIfNum0 = minimum + ptin_intf->intf_id;
+      intIfNum0 = minimum + intf_id;
     }
   }
   else
   {
     /* Calculate ptin_port index */
-    if (ptin_intf_ptintf2port(ptin_intf,&ptin_port)!=L7_SUCCESS)
+    if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port)!=L7_SUCCESS)
     {
-      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_intf %u/%u to ptin_port", ptin_intf->intf_type,ptin_intf->intf_id);
+      LOG_ERR(LOG_CTX_PTIN_INTF, "Error converting ptin_intf %u/%u to ptin_port", intf_type, intf_id);
       return L7_FAILURE;
     }
 
@@ -3567,6 +3615,308 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
 
   return L7_SUCCESS;
 }
+
+/**
+ * Configure stormcontrol for Broadcast traffic
+ * 
+ * @param ptin_intf
+ * @param enable
+ * @param rate_value 
+ * @param rate_burst 
+ * @param rate_units 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_bcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units)
+{
+  L7_uint32       intIfNum;
+  L7_BOOL         enable_curr;
+  L7_uint32       rate_value_curr;
+  L7_RATE_UNIT_t  rate_units_curr;
+  L7_RC_t         rc;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Broadcast stormcontrol...");
+
+  /* Read current enable status */
+  rc = usmDbSwDevCtrlBcastStormModeIntfGet(intIfNum, &enable_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+  /* Read current threshold data */
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet(intIfNum, &rate_value_curr, L7_NULLPTR, &rate_units_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+
+  if (enable)
+  {
+    if (rate_units == L7_RATE_UNIT_NONE || rate_units >= L7_RATE_UNIT_TOTAL)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", rate_units);
+      return L7_FAILURE;
+    }
+
+    /* If units change, deactivate current limiter */
+    if (rate_units != rate_units_curr)
+    {
+      enable_curr = L7_DISABLE;
+      /* Disable current stormcontrol */
+      rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, enable_curr);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Broadcast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+        return rc;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Broadcast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
+
+    /* Redefine threshold/units */
+    rc = usmDbSwDevCtrlBcastStormThresholdIntfSet(intIfNum, rate_value, FD_POLICY_DEFAULT_BCAST_STORM_BURSTSIZE, rate_units);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Broadcast threashold to %u for ptin_intf %u/%u", rate_value,
+              ptin_intf->intf_type, ptin_intf->intf_id);
+      return rc;
+    }
+  }
+  /* If enable status changed, apply it */
+  if (enable != enable_curr)
+  {
+    /* Read current enable status */
+    rc = usmDbSwDevCtrlBcastStormModeIntfSet(intIfNum, enable);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Broadcast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
+      return rc;
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying Broadcast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Configure stormcontrol for Multicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable
+ * @param rate_value 
+ * @param rate_burst 
+ * @param rate_units 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units)
+{
+  L7_uint32       intIfNum;
+  L7_BOOL         enable_curr;
+  L7_uint32       rate_value_curr;
+  L7_RATE_UNIT_t  rate_units_curr;
+  L7_RC_t         rc;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Multicast stormcontrol...");
+
+  /* Read current enable status */
+  rc = usmDbSwDevCtrlMcastStormModeIntfGet(intIfNum, &enable_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+  /* Read current threshold data */
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet(intIfNum, &rate_value_curr, L7_NULLPTR, &rate_units_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+
+  if (enable)
+  {
+    if (rate_units == L7_RATE_UNIT_NONE || rate_units >= L7_RATE_UNIT_TOTAL)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", rate_units);
+      return L7_FAILURE;
+    }
+
+    /* If units change, deactivate current limiter */
+    if (rate_units != rate_units_curr)
+    {
+      enable_curr = L7_DISABLE;
+      /* Disable current stormcontrol */
+      rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, enable_curr);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Multicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+        return rc;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Multicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
+
+    /* Redefine threshold/units */
+    rc = usmDbSwDevCtrlMcastStormThresholdIntfSet(intIfNum, rate_value, FD_POLICY_DEFAULT_MCAST_STORM_BURSTSIZE, rate_units);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Multicast threashold to %u for ptin_intf %u/%u", rate_value,
+              ptin_intf->intf_type, ptin_intf->intf_id);
+      return rc;
+    }
+  }
+  /* If enable status changed, apply it */
+  if (enable != enable_curr)
+  {
+    /* Read current enable status */
+    rc = usmDbSwDevCtrlMcastStormModeIntfSet(intIfNum, enable);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Multicast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
+      return rc;
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying Multicast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Configure stormcontrol for unknown Unicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable
+ * @param rate_value 
+ * @param rate_burst 
+ * @param rate_units 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units)
+{
+  L7_uint32       intIfNum;
+  L7_BOOL         enable_curr;
+  L7_uint32       rate_value_curr;
+  L7_RATE_UNIT_t  rate_units_curr;
+  L7_RC_t         rc;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Configuring Unicast stormcontrol...");
+
+  /* Read current enable status */
+  rc = usmDbSwDevCtrlUcastStormModeIntfGet(intIfNum, &enable_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+  /* Read current threshold data */
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet(intIfNum, &rate_value_curr, L7_NULLPTR, &rate_units_curr);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+
+  if (enable)
+  {
+    if (rate_units == L7_RATE_UNIT_NONE || rate_units >= L7_RATE_UNIT_TOTAL)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", rate_units);
+      return L7_FAILURE;
+    }
+
+    /* If units change, deactivate current limiter */
+    if (rate_units != rate_units_curr)
+    {
+      enable_curr = L7_DISABLE;
+      /* Disable current stormcontrol */
+      rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, enable_curr);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error disabling Unicast StormControl for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+        return rc;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_MSG,"Unicast StormControl disabled for ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    }
+
+    LOG_TRACE(LOG_CTX_PTIN_MSG,"Going to apply BC threshold of %u (units=%u)", rate_value, rate_units);
+
+    /* Redefine threshold/units */
+    rc = usmDbSwDevCtrlUcastStormThresholdIntfSet(intIfNum, rate_value, FD_POLICY_DEFAULT_UCAST_STORM_BURSTSIZE, rate_units);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Unicast threashold to %u for ptin_intf %u/%u", rate_value,
+              ptin_intf->intf_type, ptin_intf->intf_id);
+      return rc;
+    }
+  }
+  /* If enable status changed, apply it */
+  if (enable != enable_curr)
+  {
+    /* Read current enable status */
+    rc = usmDbSwDevCtrlUcastStormModeIntfSet(intIfNum, enable);
+    if (rc != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Error setting Unicast enable to %u for ptin_intf %u/%u", enable, ptin_intf->intf_type, ptin_intf->intf_id);
+      return rc;
+    }
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying Unicast stormcontrol to ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Configures interface properties for QoS

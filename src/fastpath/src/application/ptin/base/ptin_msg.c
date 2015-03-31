@@ -4708,6 +4708,12 @@ L7_RC_t ptin_msg_stormControl2_get(msg_HwEthStormControl2_t *msgStormControl)
  */
 L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
 {
+  ptin_intf_t     ptin_intf;
+  L7_BOOL         enable;
+  L7_uint32       rate_value;
+  L7_RATE_UNIT_t  rate_units;
+  L7_RC_t         rc, rc_global=L7_SUCCESS;
+
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
 
   /* Validate arguments */
@@ -4725,6 +4731,122 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," UnknownUC = %ld (%u)", msgStormControl->unknown_uc.rate_value, msgStormControl->unknown_uc.rate_units);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Block UC = %u", msgStormControl->block_unicast);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Block MC = %u", msgStormControl->block_multicast);
+
+  ptin_intf.intf_type = msgStormControl->intf.intf_type;
+  ptin_intf.intf_id   = msgStormControl->intf.intf_id;
+
+
+  /* -------- BROADCAST STORMCONTROL -------- */
+  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Processing Broadcast stormcontrol...");
+    do
+    {
+      /* Data units */
+      switch (msgStormControl->broadcast.rate_units)
+      {
+        case 0:   rate_units = L7_RATE_UNIT_PPS;      break;
+        case 1:   rate_units = L7_RATE_UNIT_PERCENT;  break;
+        case 2:   rate_units = L7_RATE_UNIT_KBPS;     break;
+        default:  rate_units = L7_RATE_UNIT_NONE;     break;
+      }
+      if (rate_units == L7_RATE_UNIT_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", msgStormControl->broadcast.rate_units);
+        rc_global = L7_FAILURE;
+        break;
+      }
+      enable     = (msgStormControl->broadcast.rate_value != (L7_uint32)-1);
+      rate_value =  msgStormControl->broadcast.rate_value;
+
+      /* Apply stormcontrol */
+      rc = ptin_intf_bcast_stormControl_set(&ptin_intf, enable, rate_value, 16*1024, rate_units);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Broadcast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+        rc_global = rc;
+        break;
+      }
+    } while (0);
+  }
+
+  /* -------- MULTICAST STORMCONTROL -------- */
+  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_MCAST)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Processing Multicast stormcontrol...");
+    do
+    {
+      /* Data units */
+      switch (msgStormControl->multicast.rate_units)
+      {
+        case 0:   rate_units = L7_RATE_UNIT_PPS;      break;
+        case 1:   rate_units = L7_RATE_UNIT_PERCENT;  break;
+        case 2:   rate_units = L7_RATE_UNIT_KBPS;     break;
+        default:  rate_units = L7_RATE_UNIT_NONE;     break;
+      }
+      if (rate_units == L7_RATE_UNIT_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", msgStormControl->multicast.rate_units);
+        rc_global = L7_FAILURE;
+        break;
+      }
+      enable     = (msgStormControl->multicast.rate_value != (L7_uint32)-1);
+      rate_value =  msgStormControl->multicast.rate_value;
+
+      /* Apply stormcontrol */
+      rc = ptin_intf_mcast_stormControl_set(&ptin_intf, enable, rate_value, 16*1024, rate_units);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Multicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+        rc_global = rc;
+        break;
+      }
+    } while (0);
+  }
+
+  /* -------- UNKNOWN UNICAST STORMCONTROL -------- */
+  if (msgStormControl->mask & MSG_STORMCONTROL_MASK_UCUNK)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Processing Unknown Unicast stormcontrol...");
+    do
+    {
+      /* Data units */
+      switch (msgStormControl->unknown_uc.rate_units)
+      {
+        case 0:   rate_units = L7_RATE_UNIT_PPS;      break;
+        case 1:   rate_units = L7_RATE_UNIT_PERCENT;  break;
+        case 2:   rate_units = L7_RATE_UNIT_KBPS;     break;
+        default:  rate_units = L7_RATE_UNIT_NONE;     break;
+      }
+      if (rate_units == L7_RATE_UNIT_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Unknown units (%u)", msgStormControl->unknown_uc.rate_units);
+        rc_global = L7_FAILURE;
+        break;
+      }
+      enable     = (msgStormControl->unknown_uc.rate_value != (L7_uint32)-1);
+      rate_value =  msgStormControl->unknown_uc.rate_value;
+
+      /* Apply stormcontrol */
+      rc = ptin_intf_ucast_stormControl_set(&ptin_intf, enable, rate_value, 16*1024, rate_units);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_MSG,"Error configuring Unicast stormcontrol for ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+        rc_global = rc;
+        break;
+      }
+    } while (0);
+  }
+
+  /* Final result */
+  if (rc_global == L7_SUCCESS)
+  {
+    LOG_TRACE(LOG_CTX_PTIN_MSG, "Success applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+  }
+  else
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG, "Error applying stormcontrol to ptin_intf %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
+  }
 
   return L7_SUCCESS;
 }
