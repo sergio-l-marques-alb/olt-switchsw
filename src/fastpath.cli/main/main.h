@@ -92,6 +92,8 @@ extern int canal_buga;
 #define CCMSG_ETH_STORM_CONTROL_RESET       0x9055  // struct msg_HwEthStormControl_t
 #define CCMSG_ETH_STORM_CONTROL_SET         0x9056  // struct msg_HwEthStormControl_t
 #define CCMSG_ETH_STORM_CONTROL_CLEAR       0x9057  // struct msg_HwEthStormControl_t
+#define CCMSG_ETH_STORMCONTROL2_GET         0x9058  // struct msg_HwEthStormControl2_t
+#define CCMSG_ETH_STORMCONTROL2_SET         0x9059  // struct msg_HwEthStormControl2_t
 
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
 #define CCMSG_ETH_NTW_CONNECTIVITY_SET      0x9061  // struct msg_NtwConnectivity_t
@@ -988,6 +990,33 @@ typedef struct {
   L7_uint32 mcast_rate;         /* [mask=0x0002] in bps */
   L7_uint32 ucast_unknown_rate; /* [mask=0x0004] in bps */
 } __attribute__((packed)) msg_HwEthStormControl_t;
+
+typedef struct {
+  L7_uint8 SlotId;
+  msg_HwEthInterface_t intf;            /* Interface ID */
+
+  L7_uint8  mask;                       /* Mask */
+
+  struct {
+    L7_uint8  rate_units;                  /* rate_units: 0:PPS; 1:PERCENT; 2:KBPS */
+    L7_uint32 rate_value;                  /* rate_value */
+  } __attribute__((packed)) broadcast;  /* [mask=0x01] Broadcast traffic */
+
+  struct {
+    L7_uint8  rate_units;                 /* rate_units: 0:PPS; 1:PERCENT; 2:KBPS */
+    L7_uint32 rate_value;                 /* rate_value */
+  } __attribute__((packed)) multicast;  /* [mask=0x02] Multicast traffic */
+
+  struct {
+    L7_uint8  rate_units;                 /* rate_units: 0:PPS; 1:PERCENT; 2:KBPS */
+    L7_uint32 rate_value;                 /* rate_value */
+  } __attribute__((packed)) unknown_uc; /* [mask=0x04] Unknown Unicast traffic */
+
+  // Block Traffic
+  L7_uint8    block_unicast;            // [mask=0x10] Block UnknownUC traffic:
+  L7_uint8    block_multicast;          // [mask=0x20] Block Multicast traffic:
+
+} __attribute__((packed)) msg_HwEthStormControl2_t;
 
 /***************************************************** 
  * EVC counters messages

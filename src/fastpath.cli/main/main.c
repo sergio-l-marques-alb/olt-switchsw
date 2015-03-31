@@ -149,6 +149,9 @@ void help_oltBuga(void)
         "m 1624 [bc=<bps>] [mc=<bps>] [uc=<bps>] - Storm control configuration\r\n"
         "m 1625 [bc=0] [mc=0] [uc=0]             - Storm control reset\r\n"
         "m 1626 [bc=0] [mc=0] [uc=0]             - Storm control clear\r\n"
+        "m 1627 intfType/intf# en(0/1) lim(0-?) units(0:PPS/1:%%/2:KBPS) - Broadcast stormcontrol\r\n"
+        "m 1628 intfType/intf# en(0/1) lim(0-?) units(0:PPS/1:%%/2:KBPS) - Multicast stormcontrol\r\n"
+        "m 1629 intfType/intf# en(0/1) lim(0-?) units(0:PPS/1:%%/2:KBPS) - Unknown Unicast stormcontrol\r\n"
         "m 1630 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] [channel=d.d.d.d] - Show absolute evc statistics\n\r"
         "m 1632 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] [channel=d.d.d.d] - Add evc statistics measurement\n\r"
         "m 1633 evc=<evc#> intf=<type>/<intf#> [svid=1-4095] [cvid=1-4095] [channel=d.d.d.d] - Remove evc statistics measurement\n\r"
@@ -5679,6 +5682,106 @@ int main (int argc, char *argv[])
       }
       break;
 
+    case 1627:
+    case 1628:
+    case 1629:
+      {
+        msg_HwEthStormControl2_t *ptr;
+        int type, intf;
+        L7_uint32 *rate_value;
+        L7_uint8  *rate_units;
+
+        // Validate number of arguments
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HwEthStormControl2_t *) &(comando.info[0]);
+
+        // Clear structure
+        memset(ptr,0x00,sizeof(msg_HwEthStormControl2_t));
+
+        ptr->SlotId = (uint8)-1;
+
+        /* Set correct mask */
+        switch (msg)
+        {
+        case 1627:
+          rate_value = &ptr->broadcast.rate_value;
+          rate_units = &ptr->broadcast.rate_units;
+          ptr->mask  = MSG_STORMCONTROL_MASK_BCAST;
+          break;
+        case 1628:
+          rate_value = &ptr->multicast.rate_value;
+          rate_units = &ptr->multicast.rate_units;
+          ptr->mask = MSG_STORMCONTROL_MASK_MCAST;
+          break;
+        case 1629:
+          rate_value = &ptr->unknown_uc.rate_value;
+          rate_units = &ptr->unknown_uc.rate_units;
+          ptr->mask = MSG_STORMCONTROL_MASK_UCUNK;
+          break;
+        default:
+          printf("Invalid Message id (%u)\r\n",msg);
+          exit(0);
+        }
+
+        // port
+        if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = (uint8) type;
+        ptr->intf.intf_id   = (uint8) intf;
+
+        // Enable
+        if (StrToLongLong(argv[3+1], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        /* Disabled? */
+        if (valued == 0)
+        {
+          *rate_value = (uint32) -1;
+        }
+        /* If to enable, check additional values */
+        else
+        {
+          /* Minimum value */
+          *rate_value = 1;
+
+          /* Threshold limit */
+          if (argc >= 3+3)
+          {
+            if (StrToLongLong(argv[3+2], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            *rate_value = (uint32) valued;
+          }
+          /* Threshold units */
+          if (argc >= 3+4)
+          {
+            if (StrToLongLong(argv[3+3], &valued) < 0)
+            {
+              help_oltBuga();
+              exit(0);
+            }
+            *rate_units = (uint8) valued;
+          }
+        }
+        
+        comando.msgId = CCMSG_ETH_STORMCONTROL2_SET;
+        comando.infoDim = sizeof(msg_HwEthStormControl2_t);
+      }
+      break;
+
       // EVC Counters
       case 1630:
       case 1632:
@@ -8273,6 +8376,22 @@ int main (int argc, char *argv[])
           printf(" Switch: Storm Control reseted successfully\n\r");
         else
           printf(" Switch: Storm Control not reseted - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1626:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Storm Control cleared successfully\n\r");
+        else
+          printf(" Switch: Storm Control not cleared - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1627:
+      case 1628:
+      case 1629:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Storm Control configured successfully\n\r");
+        else
+          printf(" Switch: Storm Control not configured - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
 
       case 1630:
