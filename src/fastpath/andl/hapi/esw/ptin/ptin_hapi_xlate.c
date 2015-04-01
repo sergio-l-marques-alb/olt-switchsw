@@ -1531,6 +1531,8 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
       rc = L7_FAILURE;
       continue;
     }
+    /* PTin removed: Let Fastpath to manage EFP Class ids */
+    #if 0
     if (bcmx_port_class_set(hapiPortPtr->bcmx_lport, bcmPortClassFieldEgress, (L7_uint32) portgroup ) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %d to single port {%d,%d,%d} [ECAP]",
@@ -1538,6 +1540,7 @@ L7_RC_t ptin_hapi_xlate_egress_portsGroup_set(L7_uint32 portgroup, DAPI_USP_t *u
       rc = L7_FAILURE;
       continue;
     }
+    #endif
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Class id %d successfully assigned to the given ports", portgroup);
@@ -1628,12 +1631,15 @@ static L7_RC_t ptin_hapi_xlate_egress_portsGroup_init(void)
       rc = L7_FAILURE;
       continue;
     }
+    /* PTin removed: Let Fastpath to manage EFP Class ids */
+    #if 0
     if (bcm_port_class_set(bcm_unit, bcm_port, bcmPortClassFieldEgress, port+1 ) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI, "Error setting class id %u to port %d [ECAP]", port+1, port);
       rc = L7_FAILURE;
       continue;
     }
+    #endif
   }
 
   LOG_TRACE(LOG_CTX_PTIN_HAPI, "Class ids assigned: rc=%d", rc);

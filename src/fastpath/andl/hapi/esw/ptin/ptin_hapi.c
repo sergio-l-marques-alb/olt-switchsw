@@ -4831,9 +4831,16 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
 {
   BROAD_POLICY_t      policyId;
   BROAD_POLICY_RULE_t ruleId;
+  L7_int              port;
+  bcmx_lport_t        lport;
+  bcm_port_t          bcm_port;
   L7_ushort16         vlanId, vlanMask;
   BROAD_METER_ENTRY_t meterInfo;
   L7_RC_t             rc = L7_SUCCESS;
+
+  L7_uint8  prio, prio_mask  = 0x7;
+  L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
+  L7_uint8  vlanFormat_mask  = 0xff;
 
   /* PTin added: packet trap - LACPdu's */
   /* Rate limit for LACPdu's */
@@ -4961,16 +4968,9 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
      At egressing is important to guarantee PBIT value of inner vlan is the same as the outer tag: a copy operation will be done */
 
-  L7_int    port;
-  L7_uint8  prio, prio_mask = 0x7;
-  L7_uint8  vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
-  L7_uint8  vlanFormat_mask  = 0xff;
   /* Multicast services */
   L7_uint16 vlanId_value;
   L7_uint16 vlanId_mask;
-
-  bcmx_lport_t        lport;
-  bcm_port_t          bcm_port;
 
   /** INGRESS STAGE **/
 
@@ -5004,7 +5004,7 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, prio, 0, 0);
     if (rc != L7_SUCCESS)  break;
     /* Change packet priority to 0 */
-    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
+    //rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, 0, 0, 0);
     /* Change inner tag priority to prio */
     //rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO_INNERTAG, prio, 0, 0);
 
@@ -5046,7 +5046,9 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
       }
     }
   }
+#endif
 
+  /** COS REMARKING **/
   /** EGRESS STAGE **/
 
   /* Create Policy */
@@ -5067,6 +5069,10 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
   /* Run all 8 priorities */
   for (prio = 0; prio < 8; prio++)
   {
+    /* ----- DOUBLE TAGGED PACKETS ----- */
+    vlanFormat_value = BROAD_VLAN_FORMAT_STAG | BROAD_VLAN_FORMAT_CTAG;
+    vlanFormat_mask  = 0xff;
+
     /* Priority higher than dot1p rules */
     rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
     if (rc != L7_SUCCESS)  break;
@@ -5078,8 +5084,29 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
     if (rc != L7_SUCCESS)  break;
 
+    /* Change outer tag priority to prio */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
+
     /* Change inner tag priority to prio */
     rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO_INNERTAG, prio, 0, 0);
+
+    /* ----- SINGLE TAGGED PACKETS ----- */
+    vlanFormat_value = BROAD_VLAN_FORMAT_STAG;
+    vlanFormat_mask  = 0xff;
+
+    /* Priority higher than dot1p rules */
+    rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+    if (rc != L7_SUCCESS)  break;
+
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_VLAN_FORMAT, (L7_uchar8 *) &vlanFormat_value, (L7_uchar8 *) &vlanFormat_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Priority */
+    rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uchar8 *) &prio, (L7_uchar8 *) &prio_mask);
+    if (rc != L7_SUCCESS)  break;
+
+    /* Change outer tag priority to prio */
+    rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, prio, 0, 0);
 
     if (rc != L7_SUCCESS)  break;
   }
@@ -5101,15 +5128,14 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
     return L7_FAILURE;
   }
 
-  #if 0
-  /* Add PON ports */
+  /* Add all physical ports */
   for (port = 0; port < ptin_sys_number_of_ports; port++)
   {
     if (hapi_ptin_bcmPort_get(port, &bcm_port) == L7_SUCCESS)
     {
       lport = bcmx_unit_port_to_lport(0, bcm_port);
 
-      if ((PTIN_SYSTEM_PON_PORTS_MASK >> port) & 1)
+      if ((PTIN_SYSTEM_PORTS_MASK >> port) & 1)
       {
         if (hapiBroadPolicyApplyToIface(policyId, lport) != L7_SUCCESS)
         {
@@ -5120,8 +5146,6 @@ L7_RC_t hapiBroadSystemInstallPtin(void)
       }
     }
   }
-  #endif
-#endif
 
   return L7_SUCCESS;
 }
