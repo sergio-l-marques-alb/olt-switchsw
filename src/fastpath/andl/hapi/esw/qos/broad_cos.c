@@ -399,6 +399,9 @@ static L7_RC_t hapiBroadQosCosIntfUntrusted(BROAD_PORT_t *hapiPortPtr, L7_uchar8
         /* Create policy to map packets to default traffic class. */
         hapiBroadPolicyCreate(BROAD_POLICY_TYPE_COSQ);
 
+        /* PTin added: allocate CoS rule at VCAP */
+        hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+
         /* Add a rule to mark cosq for all other non-ip frames */
         hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, defTc, 0, 0);
@@ -575,6 +578,9 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
         /* create policy with new mappings */
         hapiBroadPolicyCreate(BROAD_POLICY_TYPE_COSQ);
 
+        /* PTin added: allocate CoS rule at VCAP */
+        hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
+
         for (i = 0; i < L7_QOS_COS_MAP_NUM_IPPREC; i++)
         {
             L7_uchar8 ipPrec = BROAD_IPPREC_TO_TOS(i);  /* cast to uchar8 and convert to tos */
@@ -605,6 +611,9 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
         if (hapiBroadCosPolicyUtilLookup(defaultPolicyKey, sizeof(defaultPolicyKey), &defaultPolicyId) == FALSE)
         {
           hapiBroadPolicyCreate(BROAD_POLICY_TYPE_COSQ);
+
+          /* PTin added: allocate CoS rule at VCAP */
+          hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_LOOKUP);
 
          /* Add a rule to mark cosq for all frames - no qualifier means "match all". 
           * Mark the rule as low priority because we need to ensure that it does not
