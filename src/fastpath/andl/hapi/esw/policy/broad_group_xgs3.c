@@ -359,7 +359,7 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
     },
     /* SET_COSQ */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { bcmFieldActionPrioIntNew, PROFILE_ACTION_NONE,  PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE   },
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
@@ -1380,6 +1380,7 @@ static int _policy_super_qset_init_vfp(int unit)
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_COSQ] = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]     = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT]  = L7_TRUE;
@@ -1677,7 +1678,7 @@ void _policy_group_alloc_type(BROAD_POLICY_TYPE_t type, group_alloc_block_t *blo
         break;
     /* PTin end */
     case BROAD_POLICY_TYPE_COSQ:
-        *block = ALLOC_BLOCK_LOW;
+        *block = ALLOC_BLOCK_MEDIUM;
         *dir   = ALLOC_LOW_TO_HIGH;
         break;
     default:
@@ -2353,10 +2354,20 @@ static int _policy_group_find_group(int                             unit,
 
   debug_print_qset(&resourceReq->qsetAgg);
 
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    sysapiPrintf("_policy_group_find_group - stage=%d type=%d\n", entryPtr->policyStage, entryPtr->policyType);
+
   /* Find an existing group that can satisfy the policy requirements. */
   for (qsetWidth = sqsetWidthFirst; qsetWidth < sqsetWidthLast; qsetWidth++)
   {
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("_policy_group_find_group - qsetWidth reference %d\n", qsetWidth);
+
     rv = _policy_group_find_first(unit, entryPtr->policyStage, entryPtr->policyType, group);
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("_policy_group_find_group - First group is %d (rv=%d)\n", *group, rv);
+
     while (BCM_E_NONE == rv)
     {
       bcm_field_qset_t         qset;
@@ -2366,10 +2377,13 @@ static int _policy_group_find_group(int                             unit,
 
       if (groupPtr->flags & GROUP_USED)
       {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("_policy_group_find_group - group %d in use: groupPtr->sqset=%u sqsetWidth=%u\n", *group, groupPtr->sqset, super_qset_table[unit][groupPtr->sqset].sqsetWidth);
+
         if (super_qset_table[unit][groupPtr->sqset].sqsetWidth == qsetWidth)
         {
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-            sysapiPrintf("- examining group %d ", *group);
+            sysapiPrintf("_policy_group_find_group - examining group %d\n", *group);
 
           /* Insure the group has a suitable qset and enough free entries, counters, et al. */
           BCM_FIELD_QSET_INIT(qset);
@@ -2377,11 +2391,22 @@ static int _policy_group_find_group(int                             unit,
           _policy_set_union(super_qset_table[unit][groupPtr->sqset].qsetUdf, &qset);
 
           rv = _policy_set_subset(resourceReq->qsetAgg, resourceReq->customQset, qset, super_qset_table[unit][groupPtr->sqset].customQset);
+
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            sysapiPrintf("_policy_group_find_group - rv = %d\n", rv);
+
           if (BCM_E_NONE == rv)
           {
             rv = _policy_group_resource_check(unit, entryPtr->policyType, resourceReq, groupPtr->gid);
+
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+              sysapiPrintf("_policy_group_find_group - rv = %d\n", rv);
+
             if (rv == BCM_E_NONE)
             {
+              if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+                sysapiPrintf("_policy_group_find_group - Resources available\n");
+
               /* ensure that policies using IFP for EFP only go in groups using IFP for EFP */
               groupEfpUsingIfp  = (groupPtr->flags & GROUP_EFP_ON_IFP)                     ? L7_TRUE : L7_FALSE;
               policyEfpUsingIfp = (entryPtr->policyFlags & BROAD_POLICY_EGRESS_ON_INGRESS) ? L7_TRUE : L7_FALSE;
@@ -2390,7 +2415,7 @@ static int _policy_group_find_group(int                             unit,
               {
                 /* reuse existing group */
                 if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-                  sysapiPrintf("- reuse group %d\n", *group);
+                  sysapiPrintf("_policy_group_find_group - reuse group %d\n", *group);
 
                 return BCM_E_NONE;
               }
@@ -2400,6 +2425,9 @@ static int _policy_group_find_group(int                             unit,
       }
 
       rv = _policy_group_find_next(unit, entryPtr->policyStage, entryPtr->policyType, group);
+
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("_policy_group_find_group - Next group is %d (rv=%d)\n", *group, rv);
     }
   }
 
@@ -3839,23 +3867,22 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = lowPrioGroup - 1;
 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = lowPrioGroup;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = groups - 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = lowPrioGroup;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = lowPrioGroup + 1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = groups - 1;
 
       /* PTin added: policer */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = lowPrioGroup + 1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = groups - 1;
 
       /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = lowPrioGroup + 1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = groups - 1;
 
       /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = lowPrioGroup + 1;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = groups - 1;
-
       /* PTin end */
       break;
 
