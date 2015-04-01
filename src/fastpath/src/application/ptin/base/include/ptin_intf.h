@@ -321,6 +321,16 @@ extern inline L7_RC_t ptin_intf_intIfNum2port(L7_uint32 intIfNum, L7_uint32 *pti
 extern inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf);
 
 /**
+ * Converts ptin_port index to LAG index
+ * 
+ * @param ptin_port PTin port index
+ * @param lag_idx   LAG index
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx);
+
+/**
  * Converts PTin port type and id to ptin_port index
  * 
  * @param port_type PTin port type (0 is physical and 1 is LAG) 
@@ -522,6 +532,48 @@ extern L7_RC_t ptin_intf_LACPStats_get(ptin_LACPStats_t *lagStats);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats);
+
+/**
+ * Read stormcontrol data for Broadcast traffic
+ * 
+ * @param ptin_intf
+ * @param enable      (output)
+ * @param rate_value  (output)
+ * @param rate_burst  (output)
+ * @param rate_units  (output)
+ * 
+ * @return L7_RC_t 
+ */
+extern
+L7_RC_t ptin_intf_bcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *enable, L7_uint32 *rate_limit, L7_uint32 *burst_size, L7_uint8 *rate_units);
+
+/**
+ * Read stormcontrol data for Multicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable      (output)
+ * @param rate_value  (output)
+ * @param burst_size  (output)
+ * @param rate_units  (output)
+ * 
+ * @return L7_RC_t 
+ */
+extern 
+L7_RC_t ptin_intf_mcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *enable, L7_uint32 *rate_limit, L7_uint32 *burst_size, L7_uint8 *rate_units);
+
+/**
+ * Read stormcontrol data for Multicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable      (output)
+ * @param rate_value  (output)
+ * @param burst_size  (output)
+ * @param rate_units  (output)
+ * 
+ * @return L7_RC_t 
+ */
+extern 
+L7_RC_t ptin_intf_mcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *enable, L7_uint32 *rate_limit, L7_uint32 *burst_size, L7_uint8 *rate_units);
 
 /**
  * Configure stormcontrol for Broadcast traffic

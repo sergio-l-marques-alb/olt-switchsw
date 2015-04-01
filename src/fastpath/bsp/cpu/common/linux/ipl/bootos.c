@@ -946,6 +946,8 @@ int main(int argc, char *argv[], char *envp[])
   log_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
   log_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
 
+  fflush(stdout);
+
   LOG_NOTICE(LOG_CTX_STARTUP,"---------------------------------------");
   LOG_NOTICE(LOG_CTX_STARTUP,"OLTSWITCH IS USING BROADCOM SDK %u.%u.%u.%u", SDK_MAJOR_VERSION, SDK_MINOR_VERSION, SDK_REVISION_ID, SDK_PATCH_ID);
 

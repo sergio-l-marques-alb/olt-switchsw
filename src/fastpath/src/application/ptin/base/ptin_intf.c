@@ -1858,6 +1858,51 @@ inline L7_RC_t ptin_intf_port2ptintf(L7_uint32 ptin_port, ptin_intf_t *ptin_intf
 }
 
 /**
+ * Converts ptin_port index to LAG index
+ * 
+ * @param ptin_port PTin port index
+ * @param lag_idx   LAG index
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+inline L7_RC_t ptin_intf_port2lag(L7_uint32 ptin_port, L7_uint32 *lag_idx)
+{
+  L7_uint32 p_lag;
+
+  /* Validate ptin_port */
+  if (ptin_port >= PTIN_SYSTEM_N_INTERF ||
+      (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS))
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "PTin port is out of range: %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Is this a potential LAG? */
+  if (ptin_port < PTIN_SYSTEM_N_PORTS)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Check if this LAG exists */
+  p_lag = ptin_port - PTIN_SYSTEM_N_PORTS;
+
+  /* Validate LAG id */
+  if (p_lag >= PTIN_SYSTEM_N_LAGS)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Check if LAG is not created */
+  if (lagConf_data[p_lag].lagId == MAP_EMTPY_ENTRY)
+    return L7_FAILURE;
+
+  /* Retrieve lag index */
+  if (lag_idx != L7_NULLPTR)  *lag_idx = p_lag;
+
+  return L7_SUCCESS;
+}
+
+/**
  * Converts PTin port type and id to ptin_port index
  * 
  * @param port_type PTin port type (0 is physical and 1 is LAG) 
@@ -3612,6 +3657,183 @@ L7_RC_t ptin_intf_LACPStats_clear(ptin_LACPStats_t *lagStats)
     LOG_ERR(LOG_CTX_PTIN_INTF, "Port# %u: error clearing LACP stats", port_idx);
     return L7_FAILURE;
   }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read stormcontrol data for Broadcast traffic
+ * 
+ * @param ptin_intf
+ * @param enable      (output)
+ * @param rate_value  (output)
+ * @param burst_size  (output)
+ * @param rate_units  (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_bcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *enable, L7_uint32 *rate_limit, L7_uint32 *burst_size, L7_uint8 *rate_units)
+{
+  L7_uint32       intIfNum;
+  L7_BOOL         enable_status;
+  L7_uint32       rate_limit_status, burst_size_status;
+  L7_RATE_UNIT_t  rate_units_status;
+  L7_RC_t         rc;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Reading Broadcast stormcontrol data...");
+
+  /* Read current enable status */
+  rc = usmDbSwDevCtrlBcastStormModeIntfGet(intIfNum, &enable_status);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+  /* Read current threshold data */
+  rc = usmDbSwDevCtrlBcastStormThresholdIntfGet(intIfNum, &rate_limit_status, &burst_size_status, &rate_units_status);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Broadcast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+
+  /* Return data */
+  if (enable     != L7_NULLPTR)  *enable     = enable_status;
+  if (rate_limit != L7_NULLPTR)  *rate_limit = rate_limit_status;
+  if (burst_size != L7_NULLPTR)  *burst_size = burst_size_status;
+  if (rate_units != L7_NULLPTR)  *rate_units = rate_units_status;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read stormcontrol data for Multicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable      (output)
+ * @param rate_value  (output)
+ * @param burst_size  (output)
+ * @param rate_units  (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_mcast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *enable, L7_uint32 *rate_limit, L7_uint32 *burst_size, L7_uint8 *rate_units)
+{
+  L7_uint32       intIfNum;
+  L7_BOOL         enable_status;
+  L7_uint32       rate_limit_status, burst_size_status;
+  L7_RATE_UNIT_t  rate_units_status;
+  L7_RC_t         rc;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Reading Multicast stormcontrol data...");
+
+  /* Read current enable status */
+  rc = usmDbSwDevCtrlMcastStormModeIntfGet(intIfNum, &enable_status);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+  /* Read current threshold data */
+  rc = usmDbSwDevCtrlMcastStormThresholdIntfGet(intIfNum, &rate_limit_status, &burst_size_status, &rate_units_status);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Multicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+
+  /* Return data */
+  if (enable     != L7_NULLPTR)  *enable     = enable_status;
+  if (rate_limit != L7_NULLPTR)  *rate_limit = rate_limit_status;
+  if (burst_size != L7_NULLPTR)  *burst_size = burst_size_status;
+  if (rate_units != L7_NULLPTR)  *rate_units = rate_units_status;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Read stormcontrol data for unknown Unicast traffic
+ * 
+ * @param ptin_intf
+ * @param enable      (output)
+ * @param rate_value  (output)
+ * @param burst_size  (output)
+ * @param rate_units  (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_ucast_stormControl_get(const ptin_intf_t *ptin_intf, L7_BOOL *enable, L7_uint32 *rate_limit, L7_uint32 *burst_size, L7_uint8 *rate_units)
+{
+  L7_uint32       intIfNum;
+  L7_BOOL         enable_status;
+  L7_uint32       rate_limit_status, burst_size_status;
+  L7_RATE_UNIT_t  rate_units_status;
+  L7_RC_t         rc;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Null pointer");
+    return L7_FAILURE;
+  }
+
+  /* Validate interface */
+  if (ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Invalid ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+
+  LOG_TRACE(LOG_CTX_PTIN_MSG, "Reading Unicast stormcontrol data...");
+
+  /* Read current enable status */
+  rc = usmDbSwDevCtrlUcastStormModeIntfGet(intIfNum, &enable_status);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast enable status from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+  /* Read current threshold data */
+  rc = usmDbSwDevCtrlUcastStormThresholdIntfGet(intIfNum, &rate_limit_status, &burst_size_status, &rate_units_status);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_MSG,"Error reading Unicast threshold data from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return rc;
+  }
+
+  /* Return data */
+  if (enable     != L7_NULLPTR)  *enable     = enable_status;
+  if (rate_limit != L7_NULLPTR)  *rate_limit = rate_limit_status;
+  if (burst_size != L7_NULLPTR)  *burst_size = burst_size_status;
+  if (rate_units != L7_NULLPTR)  *rate_units = rate_units_status;
 
   return L7_SUCCESS;
 }
@@ -6950,3 +7172,66 @@ void ptinIntfNumrangeGet(L7_INTF_TYPES_t intf_type)
   fflush(stdout);
   return;
 }
+
+void ptin_intf_stormcontrol_dump(void)
+{
+  L7_uint32   ptin_port, lag_idx;
+  ptin_intf_t ptin_intf;
+  L7_BOOL     enable;
+  L7_uint32   rate_limit, burst_size;
+  L7_uint8    rate_units;
+  L7_uchar8   rate_units_str[5][8]={"NONE","PERCENT","KBPS","PPS","???"};
+
+  printf("Dumping storm control configurations...\r\n");
+
+  for (ptin_port = 0; ptin_port < PTIN_SYSTEM_N_INTERF; ptin_port++)
+  {
+    /* Skip non existent ports */
+    if (ptin_port >= ptin_sys_number_of_ports && ptin_port < PTIN_SYSTEM_N_PORTS)
+      continue;
+
+    /* Skip non existent LAGs */
+    if (PTIN_PORT_IS_LAG(ptin_port) && ptin_intf_port2lag(ptin_port, &lag_idx) != L7_SUCCESS)
+      continue;
+
+    /* ptin_intf format */
+    if (ptin_intf_port2ptintf(ptin_port, &ptin_intf) != L7_SUCCESS)
+    {
+      printf("   Error converting ptin_port %u to ptin_intf format!\r\n", ptin_port);
+      continue;
+    }
+
+    printf("port#%-2u - %u/%-2u:\r\n", ptin_port, ptin_intf.intf_type, ptin_intf.intf_id);
+
+    /* Broadcast storm control data */
+    if (ptin_intf_bcast_stormControl_get(&ptin_intf, &enable, &rate_limit, &burst_size, &rate_units) != L7_SUCCESS)
+    {
+      printf("   Error reading Broadcast stormcontrol data for ptin_port %u (ptin_intf=%u/%u)\r\n", ptin_port, ptin_intf.intf_type, ptin_intf.intf_id);
+    }
+    else
+    {
+      printf("   Broadcast:    enable=%u    rate_limit=%8u (%8s)    rate_burst=%6u bytes\r\n", enable, rate_limit, rate_units_str[rate_units], burst_size);
+    }
+
+    /* Multicast storm control data */
+    if (ptin_intf_mcast_stormControl_get(&ptin_intf, &enable, &rate_limit, &burst_size, &rate_units) != L7_SUCCESS)
+    {
+      printf("   Error reading Multicast stormcontrol data for ptin_port %u (ptin_intf=%u/%u)\r\n", ptin_port, ptin_intf.intf_type, ptin_intf.intf_id);
+    }
+    else
+    {
+      printf("   Multicast:    enable=%u    rate_limit=%8u (%8s)    rate_burst=%6u bytes\r\n", enable, rate_limit, rate_units_str[rate_units], burst_size);
+    }
+
+    /* Unicast storm control data */
+    if (ptin_intf_ucast_stormControl_get(&ptin_intf, &enable, &rate_limit, &burst_size, &rate_units) != L7_SUCCESS)
+    {
+      printf("   Error reading Unicast stormcontrol data for ptin_port %u (ptin_intf=%u/%u)\r\n", ptin_port, ptin_intf.intf_type, ptin_intf.intf_id);
+    }
+    else
+    {
+      printf("   Unicast  :    enable=%u    rate_limit=%8u (%8s)    rate_burst=%6u bytes\r\n", enable, rate_limit, rate_units_str[rate_units], burst_size);
+    }
+  }
+}
+

@@ -145,7 +145,7 @@ extern int ptin_sys_number_of_ports;
 /* Global Macros */
 #define PTIN_PORT_IS_VALID(p)         (p < PTIN_SYSTEM_N_INTERF)
 #define PTIN_PORT_IS_PON(p)           (p < PTIN_SYSTEM_PON_PORTS)
-#define PTIN_PORT_IS_PHYSICAL(p)      (p < PTIN_SYSTEM_N_PORTS)
+#define PTIN_PORT_IS_PHYSICAL(p)      (p < PTIN_SYSTEM_N_PORTS && p < ptin_sys_number_of_ports)
 #define PTIN_PORT_IS_LAG(p)           (p >= PTIN_SYSTEM_N_PORTS && p < PTIN_SYSTEM_N_INTERF)
 
 # define PTIN_VLAN_IS_ELAN(vlanId)        ((vlanId)>=PTIN_SYSTEM_EVC_ELAN_VLAN_MIN && (vlanId)<=PTIN_SYSTEM_EVC_ELAN_VLAN_MAX)
