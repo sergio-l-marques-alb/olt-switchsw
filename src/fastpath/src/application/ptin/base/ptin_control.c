@@ -102,6 +102,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
   LOG_NOTICE(LOG_CTX_PTIN_CONTROL, "PTin task will now start!");
 
+  /* System StormControl no more supported */
+#if 0
   /* Initialize storm control */
   rc = ptin_stormControl_init();
   if (rc != L7_SUCCESS)
@@ -110,6 +112,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
   LOG_INFO(LOG_CTX_PTIN_CNFGR, "Storm Control is active with default values.");
+#endif
 
   /* Initialize PTin Interface module data structures
    * Note: ptin_intf_data_init() needs to be invoked ONLY after nim

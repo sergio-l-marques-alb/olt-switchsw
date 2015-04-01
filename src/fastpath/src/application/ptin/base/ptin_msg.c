@@ -4860,8 +4860,8 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
  */
 L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
 {
-  ptin_stormControl_t stormControl;
-  L7_RC_t   rc = L7_SUCCESS;
+  //ptin_stormControl_t stormControl;
+  //L7_RC_t   rc = L7_SUCCESS;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
 
@@ -4877,6 +4877,11 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," flags  = 0x%04x", msgStormControl->flags);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," mask   = 0x%04x", msgStormControl->mask);
 
+  LOG_WARNING(LOG_CTX_PTIN_MSG, "Obsolete Feature: not supported anymore!");
+
+  return L7_NOT_SUPPORTED;
+
+#if 0
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
   /* Traffic Type */
@@ -4933,6 +4938,7 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished! (rc=%d)", rc);
   return rc;
+#endif
 }
 
 /**
@@ -4944,8 +4950,8 @@ L7_RC_t ptin_msg_stormControl_get(msg_HwEthStormControl_t *msgStormControl)
  */
 L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
 {
-  ptin_stormControl_t stormControl;
-  L7_RC_t   rc = L7_SUCCESS;
+  //ptin_stormControl_t stormControl;
+  //L7_RC_t   rc = L7_SUCCESS;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Starting message processing...");
 
@@ -4964,6 +4970,11 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," mcast_rate = %u bps", msgStormControl->mcast_rate);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," ucunk_rate = %u bps", msgStormControl->ucast_unknown_rate);
 
+  LOG_WARNING(LOG_CTX_PTIN_MSG, "Obsolete Feature: not supported anymore!");
+
+  return L7_SUCCESS;
+
+#if 0
   /* Input data */
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
   /* Traffic type */
@@ -4997,6 +5008,7 @@ L7_RC_t ptin_msg_stormControl_set(msg_HwEthStormControl_t *msgStormControl)
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG,"Message processing finished!  (rc=%d)", rc);
   return rc;
+#endif
 }
 
 /**
