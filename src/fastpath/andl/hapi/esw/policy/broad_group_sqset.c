@@ -339,6 +339,7 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyDstIp,         /* PTin added: FP */
   bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
+  bcmFieldQualifyIntPriority,   /* PTin added: FP */
 
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyTunnelType,

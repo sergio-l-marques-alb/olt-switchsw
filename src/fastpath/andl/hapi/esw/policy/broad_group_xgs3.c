@@ -2446,6 +2446,7 @@ static int _policy_group_alloc_group(int                             unit,
   int                    gid = 0;
   sqsetWidth_t           qsetWidth;
   super_qset_entry_t     sqsetInfo;
+  //bcm_field_group_mode_t group_mode;
 
   /* make sure that only one group can do EFP on IFP */
   if (entryPtr->policyFlags & BROAD_POLICY_EGRESS_ON_INGRESS)
@@ -2490,8 +2491,33 @@ static int _policy_group_alloc_group(int                             unit,
       /* Enforce physical boundary conditions. */
       if (*group % sqsetInfo.status.slice_width_physical == 0)
       {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("Creating group %u (width=%u)\n", *group, sqsetInfo.status.slice_width_physical);
+
         if (!(group_table[unit][entryPtr->policyStage][*group].flags & GROUP_USED))
         {
+          #if 0
+          /* PTin added: group mode */
+          switch (sqsetInfo.status.slice_width_physical)
+          {
+          case 1:
+            group_mode = bcmFieldGroupModeSingle;
+            break;
+          case 2:
+            group_mode = bcmFieldGroupModeDouble;
+            break;
+          case 3:
+            group_mode = bcmFieldGroupModeTriple;
+            break;
+          case 4:
+            group_mode = bcmFieldGroupModeQuad;
+            break;
+          default:
+            group_mode = bcmFieldGroupModeAuto;
+            break;
+          }
+          #endif
+
           rv = bcm_field_group_create_mode(unit, sqsetInfo.qsetAgg, *group, bcmFieldGroupModeAuto, &gid);
 
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
@@ -3486,9 +3512,9 @@ static int _policy_group_add_policer(int unit, BROAD_POLICY_STAGE_t stage, bcm_f
   #endif
     policer_cfg.mode  = bcmPolicerModeTrTcm;  /* RFC 2698 */
     policer_cfg.ckbits_sec    = meterPtr->cir;
-    policer_cfg.ckbits_burst  = meterPtr->cbs * 8;
+    policer_cfg.ckbits_burst  = meterPtr->cbs;
     policer_cfg.pkbits_sec    = meterPtr->pir;
-    policer_cfg.pkbits_burst  = meterPtr->pbs * 8;
+    policer_cfg.pkbits_burst  = meterPtr->pbs;
     policer_cfg.action_id     = bcmPolicerActionRpDrop;
     policer_cfg.sharing_mode  = 0;
 
@@ -3643,12 +3669,12 @@ static int _policy_group_add_meter(int unit, BROAD_POLICY_STAGE_t stage, bcm_fie
 
         /* all meters have cir/cbs and pir/pbs, so we always use trTCM */
         rv = bcm_field_meter_set(unit, eid, BCM_FIELD_METER_COMMITTED,
-                                 meterPtr->cir, meterPtr->cbs * 8);
+                                 meterPtr->cir, meterPtr->cbs);
         if (BCM_E_NONE != rv)
             return rv;
 
         rv = bcm_field_meter_set(unit, eid, BCM_FIELD_METER_PEAK,
-                                 meterPtr->pir, meterPtr->pbs * 8);
+                                 meterPtr->pir, meterPtr->pbs);
         if (BCM_E_NONE != rv)
             return rv;
     }
