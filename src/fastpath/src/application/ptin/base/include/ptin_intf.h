@@ -618,6 +618,33 @@ extern
 L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units);
 
 /**
+ * Apply a policer for interface/CoS
+ * 
+ * @author mruas (4/2/2015)
+ * 
+ * @param ptin_intf 
+ * @param cos 
+ * @param meter 
+ * 
+ * @return L7_RC_t 
+ */
+extern 
+L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_bw_meter_t *meter);
+
+/**
+ * Remove a policer for interface/CoS
+ * 
+ * @author mruas (4/2/2015)
+ * 
+ * @param ptin_intf 
+ * @param cos 
+ * 
+ * @return L7_RC_t 
+ */
+extern 
+L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 cos);
+
+/**
  * Configures priority mapping to classes of services 
  * 
  * @param intf : interface

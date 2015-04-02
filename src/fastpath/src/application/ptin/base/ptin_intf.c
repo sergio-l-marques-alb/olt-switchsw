@@ -26,7 +26,7 @@
 #include "ptin_pppoe.h"
 #include "fw_shm.h"
 #include "ptin_igmp.h" //Added for Admission Control Support
-
+#include "ptin_fieldproc.h"
 #include "ptin_fpga_api.h"
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
@@ -4139,6 +4139,102 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
   return L7_SUCCESS;
 }
 
+/**
+ * Apply a policer for interface/CoS
+ * 
+ * @author mruas (4/2/2015)
+ * 
+ * @param ptin_intf 
+ * @param cos 
+ * @param meter 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos, ptin_bw_meter_t *meter)
+{
+  L7_uint32         ptin_port;
+  ptin_bw_profile_t profile;
+  L7_RC_t           rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Null pointer");
+    return L7_FAILURE;
+  }
+  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid ptin_intf=%u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  if (cos >= L7_COS_INTF_QUEUE_MAX_COUNT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid COS %u", cos);
+    return L7_FAILURE;
+  }
+
+  memset(&profile, 0x00, sizeof(profile));
+
+  profile.ptin_port = ptin_port;
+  profile.cos       = cos;
+
+  /* Apply policer */
+  if ((rc = ptin_bwPolicer_set(&profile, meter, -1)) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error applying policer");
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Remove a policer for interface/CoS
+ * 
+ * @author mruas (4/2/2015)
+ * 
+ * @param ptin_intf 
+ * @param cos 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 cos)
+{
+  L7_uint32         ptin_port;
+  ptin_bw_profile_t profile;
+  L7_RC_t           rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if (ptin_intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Null pointer");
+    return L7_FAILURE;
+  }
+  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid ptin_intf=%u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  if (cos >= L7_COS_INTF_QUEUE_MAX_COUNT)
+  {
+    LOG_ERR(LOG_CTX_PTIN_INTF, "Invalid COS %u", cos);
+    return L7_FAILURE;
+  }
+
+  memset(&profile, 0x00, sizeof(profile));
+
+  profile.ptin_port = ptin_port;
+  profile.cos       = cos;
+
+  /* Apply policer */
+  if ((rc = ptin_bwPolicer_delete(&profile)) != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_EVC,"Error applying policer");
+    return rc;
+  }
+
+  return L7_SUCCESS;
+}
 
 /**
  * Configures interface properties for QoS
@@ -7172,6 +7268,45 @@ void ptinIntfNumrangeGet(L7_INTF_TYPES_t intf_type)
   fflush(stdout);
   return;
 }
+
+
+void ptin_debug_intf_cos_policer_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint8 cos, L7_uint32 cir, L7_uint32 eir, L7_uint32 cbs, L7_uint32 ebs)
+{
+  ptin_intf_t     ptin_intf;
+  ptin_bw_meter_t meter;
+  L7_RC_t         rc;
+
+  printf("Configuring policer for interface %u/%u + COS %u...", intf_type, intf_id, cos);
+
+  ptin_intf.intf_type = intf_type;
+  ptin_intf.intf_id   = intf_id;
+
+  memset(&meter, 0x00, sizeof(meter));
+  meter.cir = cir;
+  meter.eir = eir;
+  meter.cbs = cbs;
+  meter.ebs = ebs;
+
+  rc = ptin_QoS_intf_cos_policer_set(&ptin_intf, cos, &meter);
+
+  printf("Result of operation: rc=%d", rc);
+}
+
+void ptin_debug_intf_cos_policer_clear(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint8 cos)
+{
+  ptin_intf_t     ptin_intf;
+  L7_RC_t         rc;
+
+  printf("Removing policer from interface %u/%u + COS %u...", intf_type, intf_id, cos);
+
+  ptin_intf.intf_type = intf_type;
+  ptin_intf.intf_id   = intf_id;
+
+  rc = ptin_QoS_intf_cos_policer_clear(&ptin_intf, cos);
+
+  printf("Result of operation: rc=%d", rc);
+}
+
 
 void ptin_intf_stormcontrol_dump(void)
 {
