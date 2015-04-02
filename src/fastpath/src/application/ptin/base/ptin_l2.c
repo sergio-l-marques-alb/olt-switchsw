@@ -89,7 +89,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   memset(&profile, 0x00, sizeof(profile));
   memset(&meter, 0x00, sizeof(meter));
   profile.ptin_port           = -1;
-  profile.outer_vlan_internal = vlanId;
+  profile.outer_vlan_ingress  = vlanId;
   profile.cos                 = (L7_uint8) -1;
   memcpy(profile.macAddr, macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 

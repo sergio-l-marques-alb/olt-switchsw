@@ -4614,7 +4614,7 @@ static int intf_vp_policer(intf_vp_entry_t *intf_vp, ptin_bw_meter_t *meter)
 
     /* Apply policer to current MAC address */
     profile.ptin_port           = -1;
-    profile.outer_vlan_internal = vlanId;
+    profile.outer_vlan_ingress  = vlanId;
     profile.cos                 = (L7_uint8) -1;
     memcpy(profile.macAddr, &fdbEntry.dot1dTpFdbAddress[L7_FDB_IVL_ID_LEN], sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
 
@@ -6666,7 +6666,7 @@ L7_RC_t ptin_evc_bwProfile_set(L7_uint32 evc_ext_id, ptin_bw_profile_t *profile,
     L7_uint32 vport_id;
 
     /* Calculate vport */
-    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_in);
+    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_lookup);
 
     if (vport_id == 0 || vport_id == (L7_uint32)-1)
     {
@@ -6737,7 +6737,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
     L7_uint32 vport_id;
 
     /* Calculate vport */
-    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_in);
+    vport_id = intf_vp_calc(profile->ptin_port, profile->outer_vlan_lookup);
 
     if (vport_id == 0 || vport_id == (L7_uint32)-1)
     {
@@ -6745,7 +6745,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
       return L7_FAILURE;
     }
 
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"pon_port=%u, gem_id=%u: vport_id=0x%x", profile->ptin_port, profile->outer_vlan_in, vport_id);
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"pon_port=%u, gem_id=%u: vport_id=0x%x", profile->ptin_port, profile->outer_vlan_lookup, vport_id);
 
     /* Apply policer */
     if (ptin_evc_vp_policer(vport_id, L7_NULLPTR) != L7_SUCCESS)
@@ -6755,7 +6755,7 @@ L7_RC_t ptin_evc_bwProfile_delete(L7_uint32 evc_ext_id, ptin_bw_profile_t *profi
     }
 
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Success applying meter for pon_port=%u, gem_id=%u (vport_id=0x%x)",
-              profile->ptin_port, profile->outer_vlan_in, vport_id);
+              profile->ptin_port, profile->outer_vlan_lookup, vport_id);
 
     return L7_SUCCESS;
   }
@@ -7470,18 +7470,18 @@ L7_RC_t ptin_evc_intf_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_i
     ptin_evcStats_profile_t stat_profile;
 
     memset(&stat_profile, 0x00, sizeof(ptin_evcStats_profile_t));
-    stat_profile.ptin_port           = intf_idx;
-    stat_profile.outer_vlan_in       = evcs[evc_id].intf[intf_idx].out_vlan;
-    stat_profile.outer_vlan_out      = evcs[evc_id].intf[intf_idx].out_vlan;
-    stat_profile.outer_vlan_internal = evcs[evc_id].intf[intf_idx].int_vlan;
+    stat_profile.ptin_port          = intf_idx;
+    stat_profile.outer_vlan_lookup  = evcs[evc_id].intf[intf_idx].out_vlan;
+    stat_profile.outer_vlan_egress  = evcs[evc_id].intf[intf_idx].out_vlan;
+    stat_profile.outer_vlan_ingress = evcs[evc_id].intf[intf_idx].int_vlan;
 
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Counters to be deleted:");
     LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %u",stat_profile.ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",stat_profile.outer_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",stat_profile.outer_vlan_internal);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",stat_profile.outer_vlan_out);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",stat_profile.inner_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",stat_profile.inner_vlan_out);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",stat_profile.outer_vlan_lookup);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",stat_profile.outer_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",stat_profile.outer_vlan_egress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",stat_profile.inner_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",stat_profile.inner_vlan_egress);
     LOG_TRACE(LOG_CTX_PTIN_EVC," DIP       = 0x%08x",stat_profile.dst_ip);
 
     /* Remove all related counters */
@@ -7508,17 +7508,17 @@ L7_RC_t ptin_evc_intf_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf_i
     ptin_bw_profile_t       bw_profile;
 
     memset(&bw_profile, 0x00, sizeof(ptin_bw_profile_t));
-    bw_profile.ptin_port            = intf_idx;
-    bw_profile.outer_vlan_internal  = evcs[evc_id].intf[intf_idx].int_vlan;
-    bw_profile.cos                  = (L7_uint8)-1;
+    bw_profile.ptin_port          = intf_idx;
+    bw_profile.outer_vlan_ingress = evcs[evc_id].intf[intf_idx].int_vlan;
+    bw_profile.cos                = (L7_uint8)-1;
 
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Policers to be deleted:");
     LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %u",bw_profile.ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",bw_profile.outer_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",bw_profile.outer_vlan_internal);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",bw_profile.outer_vlan_out);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",bw_profile.inner_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",bw_profile.inner_vlan_out);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",bw_profile.outer_vlan_lookup);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",bw_profile.outer_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",bw_profile.outer_vlan_egress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",bw_profile.inner_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",bw_profile.inner_vlan_egress);
     LOG_TRACE(LOG_CTX_PTIN_EVC," COS       = %u",bw_profile.cos);
     LOG_TRACE(LOG_CTX_PTIN_EVC," MAC       = %02x:%02x:%02x:%02x:%02x:%02x",bw_profile.macAddr[0],bw_profile.macAddr[1],bw_profile.macAddr[2],bw_profile.macAddr[3],bw_profile.macAddr[4],bw_profile.macAddr[5]);
 
@@ -8024,20 +8024,20 @@ static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, L7_uint ptin_port, st
     ptin_evcStats_profile_t stat_profile;
 
     memset(&stat_profile, 0x00, sizeof(ptin_evcStats_profile_t));
-    stat_profile.ptin_port           = ptin_port;
-    stat_profile.outer_vlan_in       = pclientFlow->uni_ovid;
-    stat_profile.outer_vlan_out      = pclientFlow->uni_ovid;
-    stat_profile.outer_vlan_internal = pclientFlow->int_ovid;
-    stat_profile.inner_vlan_in       = pclientFlow->int_ivid;
-    stat_profile.inner_vlan_out      = pclientFlow->uni_ivid;
+    stat_profile.ptin_port          = ptin_port;
+    stat_profile.outer_vlan_lookup  = pclientFlow->uni_ovid;
+    stat_profile.outer_vlan_egress  = pclientFlow->uni_ovid;
+    stat_profile.outer_vlan_ingress = pclientFlow->int_ovid;
+    stat_profile.inner_vlan_ingress = pclientFlow->int_ivid;
+    stat_profile.inner_vlan_egress  = pclientFlow->uni_ivid;
 
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Counters to be deleted:");
     LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %u",stat_profile.ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",stat_profile.outer_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",stat_profile.outer_vlan_internal);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",stat_profile.outer_vlan_out);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",stat_profile.inner_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",stat_profile.inner_vlan_out);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",stat_profile.outer_vlan_lookup);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",stat_profile.outer_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",stat_profile.outer_vlan_egress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",stat_profile.inner_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",stat_profile.inner_vlan_egress);
     LOG_TRACE(LOG_CTX_PTIN_EVC," DIP       = 0x%08x",stat_profile.dst_ip);
 
     /* Remove all related counters */
@@ -8064,23 +8064,40 @@ static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, L7_uint ptin_port, st
     ptin_bw_profile_t       bw_profile;
 
     memset(&bw_profile, 0x00, sizeof(ptin_bw_profile_t));
-    bw_profile.ptin_port            = -1;
-    bw_profile.outer_vlan_internal  = evcs[evc_id].intf[ptin_port].int_vlan;
-    bw_profile.inner_vlan_in        = pclientFlow->int_ivid;
-    bw_profile.inner_vlan_out       = pclientFlow->int_ivid;
-    bw_profile.cos                  = (L7_uint8)-1;
+    bw_profile.ptin_port          = -1;
+    bw_profile.outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
+    bw_profile.inner_vlan_ingress = pclientFlow->int_ivid;
+    bw_profile.cos                = (L7_uint8)-1;
 
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Policers to be deleted:");
     LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %u",bw_profile.ptin_port);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",bw_profile.outer_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",bw_profile.outer_vlan_internal);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",bw_profile.outer_vlan_out);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",bw_profile.inner_vlan_in);
-    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",bw_profile.inner_vlan_out);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",bw_profile.outer_vlan_lookup);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",bw_profile.outer_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",bw_profile.outer_vlan_egress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",bw_profile.inner_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",bw_profile.inner_vlan_egress);
     LOG_TRACE(LOG_CTX_PTIN_EVC," COS       = %u",bw_profile.cos);
     LOG_TRACE(LOG_CTX_PTIN_EVC," MAC       = %02x:%02x:%02x:%02x:%02x:%02x",bw_profile.macAddr[0],bw_profile.macAddr[1],bw_profile.macAddr[2],bw_profile.macAddr[3],bw_profile.macAddr[4],bw_profile.macAddr[5]);
 
-    /* Remove all related policers */
+    /* Remove all related ingress policers */
+    ptin_bwPolicer_deleteAll(&bw_profile);
+
+    memset(&bw_profile, 0x00, sizeof(ptin_bw_profile_t));
+    bw_profile.ptin_port          = ptin_port;
+    bw_profile.outer_vlan_egress  = pclientFlow->uni_ovid;
+    bw_profile.cos                = (L7_uint8)-1;
+
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Policers to be deleted:");
+    LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %u",bw_profile.ptin_port);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",bw_profile.outer_vlan_lookup);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",bw_profile.outer_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",bw_profile.outer_vlan_egress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",bw_profile.inner_vlan_ingress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",bw_profile.inner_vlan_egress);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," COS       = %u",bw_profile.cos);
+    LOG_TRACE(LOG_CTX_PTIN_EVC," MAC       = %02x:%02x:%02x:%02x:%02x:%02x",bw_profile.macAddr[0],bw_profile.macAddr[1],bw_profile.macAddr[2],bw_profile.macAddr[3],bw_profile.macAddr[4],bw_profile.macAddr[5]);
+
+    /* Remove all related egress policers */
     ptin_bwPolicer_deleteAll(&bw_profile);
 
     #else
@@ -11533,11 +11550,11 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Initial bw profile data:");
   LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port   = %d",profile->ptin_port);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int    = %u",profile->outer_vlan_internal);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_lookup);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int    = %u",profile->outer_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_egress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_egress);
   LOG_TRACE(LOG_CTX_PTIN_EVC," COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_EVC," MAC         = %02x:%02x:%02x:%02x:%02x:%02x",profile->macAddr[0],profile->macAddr[1],profile->macAddr[2],profile->macAddr[3],profile->macAddr[4],profile->macAddr[5]);
 
@@ -11571,44 +11588,44 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Source interface is present in EVC");
 
     /* Verify Svlan*/
-    if (profile->outer_vlan_in>0 &&
+    if (profile->outer_vlan_lookup>0 &&
         evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
     {
-      if (profile->outer_vlan_in!=evcs[evc_id].intf[ptin_port].out_vlan)
+      if (profile->outer_vlan_lookup!=evcs[evc_id].intf[ptin_port].out_vlan)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_id].intf[ptin_port].out_vlan);
+        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_lookup,evcs[evc_id].intf[ptin_port].out_vlan);
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_in);
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
     }
 
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
     /* For MAC-Bridge flows */
     if (IS_EVC_QUATTRO(evc_id) && IS_EVC_INTF_LEAF(evc_id, ptin_port) &&
-        profile->outer_vlan_out != 0)
+        profile->outer_vlan_egress != 0)
     {
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"Outer vlan id = %u", profile->outer_vlan_out);
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Outer vlan id = %u", profile->outer_vlan_egress);
 
       /* profile->outer_vlan_out is the GEM id related to the flow */
-      ptin_evc_find_flow(profile->outer_vlan_out, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **)&pclientFlow);
+      ptin_evc_find_flow(profile->outer_vlan_egress, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **)&pclientFlow);
 
       /* Client not found */
       if (pclientFlow==L7_NULLPTR)
       {
-        LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
+        LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
         return L7_NOT_EXIST;
       }
       /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
       /* For QUATTRO services: these VLANs should be initialized */
-      profile->outer_vlan_out = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
-      profile->inner_vlan_out = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+      profile->outer_vlan_egress = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
+      profile->inner_vlan_egress = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
 
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"Outer vlan id = %u (uni_ovid=%u)", profile->outer_vlan_out, pclientFlow->uni_ovid);
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Outer vlan id = %u (uni_ovid=%u)", profile->outer_vlan_egress, pclientFlow->uni_ovid);
     }
     else
     #endif
     /* Find the specified client, and provide the policer location */
-    if (profile->inner_vlan_in != 0)
+    if (profile->inner_vlan_ingress != 0)
     {
       /* Find the specified cvlan in all EVC clients */
       for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
@@ -11616,28 +11633,28 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
         if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
             (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
         {
-          ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
+          ptin_evc_find_client(profile->inner_vlan_ingress, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
         }
       }
       /* Client not found */
       if (pclientFlow==L7_NULLPTR)
       {
-        LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
+        LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
         return L7_NOT_EXIST;
       }
       /* If interface is a leaf... */
       if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
       {
         /* Compare its outer vlan with the given one */
-        if (profile->outer_vlan_in>0 &&
+        if (profile->outer_vlan_lookup>0 &&
             pclientFlow->uni_ovid>0 && pclientFlow->uni_ovid<4096)
         {
-          if (profile->outer_vlan_in!=pclientFlow->uni_ovid)
+          if (profile->outer_vlan_lookup!=pclientFlow->uni_ovid)
           {
-            LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_in, pclientFlow->uni_ovid);
+            LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_lookup, pclientFlow->uni_ovid);
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
+          LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
         }
         /* Removed: for non QUATTRO services, these vlans should be null */
         //profile->outer_vlan_out = pclientFlow->uni_ovid;
@@ -11645,20 +11662,20 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
       }
 
       /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
-      profile->outer_vlan_out = 0;
-      profile->inner_vlan_out = 0;
+      profile->outer_vlan_egress = 0;
+      profile->inner_vlan_egress = 0;
     }
     else
     {
       /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
-      profile->outer_vlan_out = 0;
-      profile->inner_vlan_out = 0;
+      profile->outer_vlan_egress = 0;
+      profile->inner_vlan_egress = 0;
     }
 
     /* If svlan is provided, it was already validated... Rewrite it with the internal value */
-    profile->outer_vlan_in = 0;
-    profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_internal);
+    profile->outer_vlan_lookup  = 0;
+    profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_ingress);
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
   /* If destination interface is provided, validate it */
   #if 0
@@ -11782,11 +11799,11 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Final bw profile data:");
   LOG_TRACE(LOG_CTX_PTIN_EVC," evcId       = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port   = %u",profile->ptin_port);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int    = %u",profile->outer_vlan_internal);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_out);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in     = %u",profile->outer_vlan_lookup);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int    = %u",profile->outer_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out    = %u",profile->outer_vlan_egress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in     = %u",profile->inner_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out    = %u",profile->inner_vlan_egress);
   LOG_TRACE(LOG_CTX_PTIN_EVC," COS         = %u",profile->cos);
   LOG_TRACE(LOG_CTX_PTIN_EVC," MAC         = %02x:%02x:%02x:%02x:%02x:%02x",profile->macAddr[0],profile->macAddr[1],profile->macAddr[2],profile->macAddr[3],profile->macAddr[4],profile->macAddr[5]);
 
@@ -11818,11 +11835,11 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Initial evcStats profile data:");
   LOG_TRACE(LOG_CTX_PTIN_EVC," evcId     = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %d",profile->ptin_port);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",profile->outer_vlan_internal);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_out);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_lookup);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",profile->outer_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_egress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_egress);
   LOG_TRACE(LOG_CTX_PTIN_EVC," Dest_IP   = %u",profile->dst_ip);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
@@ -11855,15 +11872,15 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
     LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
     /* Verify Svlan*/
-    if (profile->outer_vlan_in>0 &&
+    if (profile->outer_vlan_lookup>0 &&
         evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
     {
-      if (profile->outer_vlan_in!=evcs[evc_id].intf[ptin_port].out_vlan)
+      if (profile->outer_vlan_lookup!=evcs[evc_id].intf[ptin_port].out_vlan)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_in,evcs[evc_id].intf[ptin_port].out_vlan);
+        LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_lookup,evcs[evc_id].intf[ptin_port].out_vlan);
         return L7_FAILURE;
       }
-      LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_in);
+      LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
     }
 
     /* Default outer and inner vlan at egress:
@@ -11871,17 +11888,17 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
        - the inner vlan is the same as the internal inner vlan
        If interface is leaf and EVC is stacked, the outer and inner vlans at egress should not be considered */
     #if ( !PTIN_BOARD_IS_MATRIX )
-    profile->outer_vlan_out = 0;
-    profile->inner_vlan_out = 0;
+    profile->outer_vlan_egress = 0;
+    profile->inner_vlan_egress = 0;
     if (IS_EVC_INTF_ROOT(evc_id,ptin_port) || IS_EVC_STD_P2MP(evc_id))
     #endif
     {
-      profile->outer_vlan_out = evcs[evc_id].intf[ptin_port].out_vlan;
-      profile->inner_vlan_out = profile->inner_vlan_in;
+      profile->outer_vlan_egress = evcs[evc_id].intf[ptin_port].out_vlan;
+      profile->inner_vlan_egress = profile->inner_vlan_ingress;
     }
 
     /* If valid, find the specified client, and provide the policer location */
-    if (profile->inner_vlan_in != 0)
+    if (profile->inner_vlan_ingress != 0)
     {
       /* Find the specified cvlan in all EVC clients */
       for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
@@ -11889,37 +11906,37 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
         if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
             (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
         {
-          ptin_evc_find_client(profile->inner_vlan_in, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
+          ptin_evc_find_client(profile->inner_vlan_ingress, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
         }
       }
       if (pclientFlow==L7_NULLPTR)
       {
-        LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_in,evc_id);
+        LOG_WARNING(LOG_CTX_PTIN_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
         return L7_NOT_EXIST;
       }
       /* If interface is a leaf... */
       if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
       {
         /* Compare its outer vlan with the given one */
-        if (profile->outer_vlan_in>0 &&
+        if (profile->outer_vlan_lookup>0 &&
             pclientFlow->uni_ovid>0 && pclientFlow->uni_ovid<4096)
         {
-          if (profile->outer_vlan_in!=pclientFlow->uni_ovid)
+          if (profile->outer_vlan_lookup!=pclientFlow->uni_ovid)
           {
-            LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_in,pclientFlow->uni_ovid);
+            LOG_ERR(LOG_CTX_PTIN_EVC,"OVid_in %u does not match to the one in EVC client (%u)",profile->outer_vlan_lookup,pclientFlow->uni_ovid);
             return L7_FAILURE;
           }
-          LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_in,profile->inner_vlan_in);
+          LOG_TRACE(LOG_CTX_PTIN_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
         }
-        profile->outer_vlan_out = pclientFlow->uni_ovid;
-        profile->inner_vlan_out = 0;                /* No need to consider inner vlan at the egress */
+        profile->outer_vlan_egress = pclientFlow->uni_ovid;
+        profile->inner_vlan_egress = 0;                /* No need to consider inner vlan at the egress */
       }
     } /* else (profile->inner_vlan_in==0) */
 
     /* If svlan is provided, it was already validated... Use internal value, instead of original one */
-    profile->outer_vlan_in = 0;
-    profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
-    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in=%u, OVid_int=%u",ptin_port,profile->outer_vlan_in,profile->outer_vlan_internal);
+    profile->outer_vlan_lookup  = 0;
+    profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
+    LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface (ptin_port=%u): OVid_in=%u, OVid_int=%u",ptin_port,profile->outer_vlan_lookup,profile->outer_vlan_ingress);
 
   } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
   /* If interface is not provided... */
@@ -11932,11 +11949,11 @@ static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t 
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Final evcStats profile data:");
   LOG_TRACE(LOG_CTX_PTIN_EVC," evcId     = %u",evc_id);
   LOG_TRACE(LOG_CTX_PTIN_EVC," ptin_port = %d",profile->ptin_port);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",profile->outer_vlan_internal);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_out);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_in);
-  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_out);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_in   = %u",profile->outer_vlan_lookup);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_int  = %u",profile->outer_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," OVID_out  = %u",profile->outer_vlan_egress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_in   = %u",profile->inner_vlan_ingress);
+  LOG_TRACE(LOG_CTX_PTIN_EVC," IVID_out  = %u",profile->inner_vlan_egress);
   LOG_TRACE(LOG_CTX_PTIN_EVC," Dst_IP    = %u",profile->dst_ip);
 
   return L7_SUCCESS;
@@ -12006,8 +12023,8 @@ static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profi
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
   /* Use internal VLAN */
-  profile->outer_vlan_in = 0;
-  profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+  profile->outer_vlan_lookup  = 0;
+  profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
 
   /* Read policy information */
   if ((rc = ptin_evcStats_get(stats, profile))!=L7_SUCCESS)
@@ -12099,8 +12116,8 @@ static L7_RC_t ptin_evc_probe_add(L7_uint evc_id, ptin_evcStats_profile_t *profi
   }
 
   /* Use internal VLAN */
-  profile->outer_vlan_in = 0;
-  profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+  profile->outer_vlan_lookup  = 0;
+  profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
 
   /* Apply policy */
   if ((rc = ptin_evcStats_set(profile))!=L7_SUCCESS)
@@ -12176,8 +12193,8 @@ static L7_RC_t ptin_evc_probe_delete(L7_uint evc_id, ptin_evcStats_profile_t *pr
   LOG_TRACE(LOG_CTX_PTIN_EVC,"Interface is present in EVC");
 
   /* Use internal VLAN */
-  profile->outer_vlan_in = 0;
-  profile->outer_vlan_internal = evcs[evc_id].intf[ptin_port].int_vlan;
+  profile->outer_vlan_lookup  = 0;
+  profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
 
   /* Apply policy */
   rc = ptin_evcStats_delete(profile);

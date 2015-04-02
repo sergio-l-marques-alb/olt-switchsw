@@ -729,11 +729,11 @@ typedef struct {
 typedef struct {
   L7_uint8   inUse;                     // This entry is in use (TRUE to be in use)
   DAPI_USP_t ddUsp_src;                 // Source interface (have precedence over port_bmp_src)
-  L7_uint16  outer_vlan_in;             // SVlan (0 value means no appliance)
-  L7_uint16  outer_vlan_internal;       // SVlan (0 value means no appliance)
-  L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
-  L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)
-  L7_uint16  inner_vlan_out;            // CVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
+  L7_uint16  inner_vlan_ingress;        // CVlan (0 value means no appliance)
+  L7_uint16  inner_vlan_egress;         // CVlan (0 value means no appliance)
   L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
   L7_uint8   macAddr[L7_MAC_ADDR_LEN];  // MAC Address to apply policer
   ptin_bw_meter_t meter;                // Meter data
@@ -743,11 +743,11 @@ typedef struct {
 
 typedef struct {
   L7_int     ptin_port;                 // Interface
-  L7_uint16  outer_vlan_in;             // SVlan (0 value means no appliance)               
-  L7_uint16  outer_vlan_internal;       // SVlan (0 value means no appliance)
-  L7_uint16  outer_vlan_out;            // SVlan (0 value means no appliance)
-  L7_uint16  inner_vlan_in;             // CVlan (0 value means no appliance)               
-  L7_uint16  inner_vlan_out;            // CVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
+  L7_uint16  inner_vlan_ingress;        // CVlan (0 value means no appliance)               
+  L7_uint16  inner_vlan_egress;         // CVlan (0 value means no appliance)
   L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
   L7_uint8   macAddr[L7_MAC_ADDR_LEN];  // MAC Address to apply policer
 } ptin_bw_profile_t;
@@ -778,11 +778,11 @@ typedef struct {
   L7_uint8   inUse;                     // is in use?
   DAPI_USP_t ddUsp_src;                 // Interface
   DAPI_USP_t ddUsp_dst;                 // Interface
-  L7_uint16  outer_vlan_in;             // Outer vlan
-  L7_uint16  outer_vlan_internal;       // Outer vlan
-  L7_uint16  outer_vlan_out;            // Outer vlan
-  L7_uint16  inner_vlan_in;             // Inner vlan
-  L7_uint16  inner_vlan_out;            // Inner vlan
+  L7_uint16  outer_vlan_lookup;         // Outer vlan
+  L7_uint16  outer_vlan_ingress;        // Outer vlan
+  L7_uint16  outer_vlan_egress;         // Outer vlan
+  L7_uint16  inner_vlan_ingress;        // Inner vlan
+  L7_uint16  inner_vlan_egress;         // Inner vlan
   L7_uint32  dip;                       // Destination IP (v4)
   L7_int     policy_id[PTIN_POLICY_STAGE_COUNT];                       // Policer rule id (must be a positive value)
   L7_int     rule_id[PTIN_POLICY_STAGE_COUNT][PTIN_PACKETS_TYPE_MAX];  // Rule ids for each packet type
@@ -791,11 +791,11 @@ typedef struct {
 // Policy data
 typedef struct {
   L7_int     ptin_port;                 // Interface
-  L7_uint16  outer_vlan_in;             // Outer vlan
-  L7_uint16  outer_vlan_internal;       // Internal VLAN
-  L7_uint16  outer_vlan_out;            // Outer vlan
-  L7_uint16  inner_vlan_in;             // Inner vlan
-  L7_uint16  inner_vlan_out;            // Inner vlan
+  L7_uint16  outer_vlan_lookup;         // Outer vlan
+  L7_uint16  outer_vlan_ingress;        // Internal VLAN
+  L7_uint16  outer_vlan_egress;         // Outer vlan
+  L7_uint16  inner_vlan_ingress;        // Inner vlan
+  L7_uint16  inner_vlan_egress;         // Inner vlan
   L7_uint32  dst_ip;                    // Destination IP (v4)
 } ptin_evcStats_profile_t;
 
