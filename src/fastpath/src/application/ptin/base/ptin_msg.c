@@ -8962,9 +8962,9 @@ static L7_RC_t ptin_msg_ptinPort_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_in
 static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *cmd)
 {
   L7_RC_t   rc = L7_SUCCESS;
-  L7_char8 *prevtty = ttyname(1);
+  //L7_char8 *prevtty = ttyname(1);
 
-  ptin_PitHandler(tty);
+  //ptin_PitHandler(tty);
 
   if (strcmp(type, "driv") == 0)
   {
@@ -8976,7 +8976,7 @@ static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *c
       rc = L7_FAILURE;
   }
 
-  ptin_PitHandler(prevtty);
+  //ptin_PitHandler(prevtty);
 
   return rc;
 }
