@@ -143,6 +143,7 @@ elif [ $mode = "boot" ]; then
         $cli ping 10 12 > /dev/null
         if [ "$?" -ne "0" ]; then
             echo "Transferring LOGs to Matrix board..."
+            echo "Fastpath watchdog fired after 10x12 seconds of inactivity!" > /var/log/system_error_info.log
             # Compress log files
             /bin/sh /usr/local/ptin/scripts/transfer_logs.sh
             echo "Going to reboot"
