@@ -234,7 +234,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
          
       if ((macLearn_info_lag[tgid].trap_sent == L7_FALSE && macLearn_info_lag[tgid].send_trap == L7_TRUE) && (macLearn_info_lag[tgid].mac_limit!=0))
       {
-        send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_lag[tgid].uni_ovid);
+        send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
         macLearn_info_lag[tgid].trap_sent = L7_TRUE;
       }
       return L7_FAILURE;
@@ -269,7 +269,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     hapi_ptin_port_get(bcm_port, &physical_port);
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Is a Physical port");
    
-    /*Physical port ID is valid? */
+    /* Physical port ID is valid? */
     if (physical_port > L7_MAX_PORT_COUNT)
     {
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Physical is out of range! (physical_id=%u max=%u)", physical_port, L7_MAX_PORT_COUNT);
@@ -297,7 +297,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
          
         if ((macLearn_info_physical[physical_port].trap_sent == L7_FALSE && macLearn_info_physical[physical_port].send_trap == L7_TRUE) && (macLearn_info_physical[physical_port].mac_limit!=0))
         {
-          send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_physical[physical_port].uni_ovid);
+          send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
           macLearn_info_physical[physical_port].trap_sent = L7_TRUE;
         }
         
@@ -306,7 +306,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       }
       #endif
 
-      LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x accepted (flags 0x%x)\r\n",
+      LOG_TRACE(LOG_CTX_PTIN_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on Physical port %d and GPORT 0x%x accepted (flags 0x%x)\r\n",
                 __FUNCTION__, 
                 bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
                 physical_port, bcmx_l2_addr->lport, bcmx_l2_addr->flags);
@@ -319,7 +319,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       { 
         if (macLearn_info_physical[physical_port].trap_sent == L7_FALSE && macLearn_info_physical[physical_port].send_trap == L7_TRUE && (macLearn_info_physical[physical_port].mac_limit!=0))
         {
-          send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_physical[physical_port].uni_ovid);
+          send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
           macLearn_info_physical[physical_port].trap_sent = L7_TRUE;
         }
       }
@@ -358,7 +358,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       if (macLearn_info_vlan[vlan_id].trap_sent == L7_FALSE && macLearn_info_vlan[vlan_id].send_trap == L7_TRUE)
       {
-        send_trap_switch_event(macLearn_info_vlan[vlan_id].ptin_intf.intf_type, macLearn_info_vlan[vlan_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_vlan[vlan_id].uni_ovid);
+        send_trap_switch_event(macLearn_info_vlan[vlan_id].ptin_intf.intf_type, macLearn_info_vlan[vlan_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
         macLearn_info_vlan[vlan_id].trap_sent = L7_TRUE;
       }
 
@@ -499,7 +499,7 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
     {
       if (macLearn_info_lag[tgid].trap_sent == L7_TRUE)
       {
-        send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_lag[tgid].uni_ovid);
+        send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_END, 0);
         macLearn_info_lag[tgid].trap_sent = L7_FALSE;
       }
     }
@@ -559,13 +559,13 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
      {
        if (macLearn_info_physical[physical_port].trap_sent == L7_TRUE )
        {
-         send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_physical[physical_port].uni_ovid);
+         send_trap_switch_event(macLearn_info_physical[physical_port].ptin_intf.intf_type, macLearn_info_physical[physical_port].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_END, 0);
          macLearn_info_physical[physical_port].trap_sent = L7_FALSE;
        }
      }
    }
   /* Check if is a VLAN port level */
-  else
+  else if (bcmx_l2_addr->vid !=0)
   {
    vlan_id = bcmx_l2_addr->vid;
    /* VLAN ID is valid? */
@@ -624,7 +624,7 @@ L7_RC_t ptin_hapi_vport_maclimit_reset(bcm_gport_t gport)
     /* Close the alarm */
     if (macLearn_info_flow[vport_id].trap_sent == L7_TRUE)
     {
-      send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, macLearn_info_flow[vport_id].uni_ovid);
+      send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_END, 0);
       macLearn_info_flow[vport_id].trap_sent = L7_FALSE;
     }
   }
@@ -1146,7 +1146,6 @@ L7_RC_t ptin_hapi_vlan_maclimit_alarmconfig(bcm_vlan_t vlan_id, int bcm_port, L7
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "VLAN is out of range! (VLAN ID=%u max=%u)", vlan_id, MAX_VLANS);
     return L7_FAILURE;
   }
-
   return L7_SUCCESS;
 }
 

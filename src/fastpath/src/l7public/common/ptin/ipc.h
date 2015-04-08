@@ -34,6 +34,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 //#define TRAP_ALARM_PORT_DISABLED                0x9006
 //#define TRAP_ALARM_MAC_DUPLICATED               0x9010
 #define TRAP_ALARM_MAC_LIMIT                    0x9011
+#define TRAP_ALARM_MAC_LIMIT_INTERFACE          0x9012
 #define TRAP_LINECARD_TRAFFIC_RX                0x900F
 
 #define TRAP_LC_TYPE_INTERFACE    4   // For alarmtype
