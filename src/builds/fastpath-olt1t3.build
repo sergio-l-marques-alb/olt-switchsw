@@ -9,13 +9,13 @@ export APPLICATION=fp
 #svn update
 
 echo "Compiling fastpath for OLT1T3..."
-make -C ../fastpath -f olt640.make all
+make -C ../fastpath -f olt1t3.make all
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;
 fi
 echo "Copying binaries to apps..."
-make -C ../fastpath -f olt640.make install
+make -C ../fastpath -f olt1t3.make install
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;
