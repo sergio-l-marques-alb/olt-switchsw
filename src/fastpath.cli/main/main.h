@@ -1507,9 +1507,9 @@ typedef enum
 typedef struct {
   L7_uint8      slotId;
   L7_uint8      aclType;        /* ACL_TYPE_t */
-  L7_uint16     aclId;
   L7_uint8      name[32];
-  L7_uint8      aclRuleId;      /* This Rule Number */
+  L7_uint32     aclId;
+  L7_uint32     aclRuleId;      /* This Rule Number */
   L7_uint8      action;         /* ACL_ACTION_t */
 
   /* Type ARP ACL */
