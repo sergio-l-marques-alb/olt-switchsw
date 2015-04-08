@@ -73,7 +73,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIp6FlowLabel,   /* IPv6 Flow Label */
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
-    //bcmFieldQualifyLookupClass0,    /* Class ID from VFP, to be used in IFP */
+    //bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifySrcClassL2,

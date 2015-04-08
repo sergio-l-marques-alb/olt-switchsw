@@ -333,13 +333,23 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
 #endif
   bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
+  #if 0
   bcmFieldQualifyDrop,          /* PTin added: FP */
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
+  #endif
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
+  #if 0
   bcmFieldQualifyDstIp,         /* PTin added: FP */
   bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
+  #endif
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
+     PTIN_BOARD == PTIN_BOARD_TA48GE ||  \
+     PTIN_BOARD == PTIN_BOARD_OLT1T0)
   bcmFieldQualifyIntPriority,   /* PTin added: FP */
+#endif
+  bcmFieldQualifySrcClassField,
+  bcmFieldQualifyDstClassField,
 
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyTunnelType,
@@ -348,6 +358,28 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyStageIngress
 };
 #define systemQsetTriumph2Size (sizeof(systemQsetTriumph2) / sizeof(bcm_field_qualify_t))
+
+/* PTin added: ICAP */
+#if 1
+bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
+{
+  bcmFieldQualifyInPorts,
+  bcmFieldQualifySrcMac,
+  bcmFieldQualifyDstMac,
+  bcmFieldQualifyOuterVlan,
+  bcmFieldQualifyInnerVlan,     /* PTin added: FP */
+  bcmFieldQualifyL2StationMove,
+  bcmFieldQualifyEtherType,
+  bcmFieldQualifyIpType,
+  bcmFieldQualifyDrop,          /* PTin added: FP */
+  bcmFieldQualifySrcTrunk,      /* PTin added: FP */
+  bcmFieldQualifyVlanFormat,    /* PTin added: FP */
+  bcmFieldQualifyDstIp,         /* PTin added: FP */
+
+  bcmFieldQualifyStageIngress
+};
+#define systemQsetPTinSize (sizeof(systemQsetPTin) / sizeof(bcm_field_qualify_t))
+#endif
 
 custom_field_qualify_t systemCustomQset[] =  /* System requirement */
 {
@@ -746,6 +778,11 @@ super_qset_definition_t systemQsetDef            = {systemQset,            syste
 super_qset_definition_t systemQsetTriumph2Def    = {systemQsetTriumph2,    systemQsetTriumph2Size,    0, 0};
 super_qset_definition_t ipv6NdQsetDef            = {ipv6NdQset,            ipv6NdQsetSize,            0, 0};
 super_qset_definition_t ipv6NdQsetScorpionDef    = {ipv6NdQsetScorpion,    ipv6NdQsetScorpionSize,    0, 0};
+
+/* PTin added: ICAP */
+#if 1
+super_qset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
+#endif
 
 /* Sqsets for other policies. */
 /* Singlewide */

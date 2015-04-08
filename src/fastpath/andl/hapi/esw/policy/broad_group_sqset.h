@@ -71,6 +71,7 @@ extern super_qset_definition_t vlanl3QsetDef;
 extern super_qset_definition_t systemQsetDoubleDef;
 extern super_qset_definition_t systemQsetDef;
 extern super_qset_definition_t systemQsetTriumph2Def;
+extern super_qset_definition_t systemQsetPTinDef;     /* PTin added: ICAP */
 extern super_qset_definition_t iscsiQsetDef;
 extern super_qset_definition_t ipv6NdQsetScorpionDef;
 extern super_qset_definition_t ipv6NdQsetDef;

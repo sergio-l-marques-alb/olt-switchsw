@@ -71,7 +71,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIp6FlowLabel,   /* IPv6 Flow Label */
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
-    //bcmFieldQualifyLookupClass0,    /* Class ID from VFP, to be used in IFP */
+    //bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifySrcClassL2,
@@ -721,12 +721,16 @@ int _policy_super_qset_find_match(int                  unit,
       if ((super_qset_table[unit][i].applicablePolicyTypes & (1 << type)) == 0)
       {
         /* If this sqset isn't applicable for this type of policy, continue. */
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) i=%d: Continuing...\n", __FUNCTION__, __LINE__, i);
         continue;
       }
 
       if (super_qset_table[unit][i].sqsetWidth != qsetWidth)
       {
         /* If this sqset doesn't have the proper width for this policy, continue. */
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) i=%d: Continuing...\n", __FUNCTION__, __LINE__, i);
         continue;
       }
 
@@ -746,10 +750,16 @@ int _policy_super_qset_find_match(int                  unit,
       if (BCM_E_NONE == rv)
       {
         *idx = i;
+        /* If this sqset doesn't have the proper width for this policy, continue. */
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) Selected table entry: i=%d\n", __FUNCTION__, __LINE__, i);
         return BCM_E_NONE;
       }
     }
   }
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    sysapiPrintf("%s(%d) failed!\n", __FUNCTION__, __LINE__);
 
   return BCM_E_FAIL;
 }
@@ -1327,12 +1337,16 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_create_mode(unit, qsetPtr->qsetAgg, 0, bcmFieldGroupModeAuto, &gid);
       if (rv != BCM_E_NONE)
       {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) bcm_field_group_create_mode: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         break;
       }
 
       rv = bcm_field_group_status_get(unit, gid, &qsetPtr->status);
       if (rv != BCM_E_NONE)
       {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) bcm_field_group_status_get: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         break;
       }
 
@@ -1347,6 +1361,9 @@ static int _policy_super_qset_add(int                      unit,
       /* If there were any errors, clean up the sqset table entry. */
       memset(qsetPtr, 0, sizeof(*qsetPtr));
     }
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("%s(%d) qset_add: rv=%d\n", __FUNCTION__, __LINE__, rv);
 
     return rv;
 }
@@ -1466,9 +1483,12 @@ static int _policy_super_qset_init_ifp(int unit)
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_COSQ]        = L7_TRUE;
+  /* PTin removed: ICAP */
+  #if 0
   applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;   /* PTin added: policer */
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
+  #endif
 
   /* PTin added: new switch 56843 (Trident) */
   /* PTin added: new switch 5664x (Triumph3) */
@@ -1478,8 +1498,25 @@ static int _policy_super_qset_init_ifp(int unit)
     if (SOC_IS_TRIDENT(unit))
       LOG_WARNING(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
+
     /* Doublewide mode. */
     _policy_super_qset_add(unit, &systemQsetTriumph2Def, applicable_policy_types);
+
+    /* PTin added: ICAP */
+    #if 1
+    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
+    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
+    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      sysapiPrintf("Adding qset systemQsetPTin\r\n");
+
+    /* Doublewide mode. */
+    _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+    #endif
   }
   else if (SOC_IS_SCORPION(unit))
   {
@@ -2446,7 +2483,9 @@ static int _policy_group_alloc_group(int                             unit,
   int                    gid = 0;
   sqsetWidth_t           qsetWidth;
   super_qset_entry_t     sqsetInfo;
-  //bcm_field_group_mode_t group_mode;
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    sysapiPrintf("%s(%d) Going to allocate group...\n", __FUNCTION__, __LINE__);
 
   /* make sure that only one group can do EFP on IFP */
   if (entryPtr->policyFlags & BROAD_POLICY_EGRESS_ON_INGRESS)
@@ -2455,6 +2494,8 @@ static int _policy_group_alloc_group(int                             unit,
     {
       if ((group_table[unit][entryPtr->policyStage][i].flags & (GROUP_USED | GROUP_EFP_ON_IFP)) == (GROUP_USED | GROUP_EFP_ON_IFP))
       {
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          sysapiPrintf("%s(%d) Failure\n", __FUNCTION__, __LINE__);
         return BCM_E_FAIL;
       }
     }
@@ -2473,6 +2514,8 @@ static int _policy_group_alloc_group(int                             unit,
                                        &sqset);
     if (BCM_E_NONE != rv)
     {
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        sysapiPrintf("%s(%d) Match not found for qsetWidth=%d: rv=%d\n", __FUNCTION__, __LINE__, qsetWidth, rv);
       continue;
     }
   
@@ -2496,28 +2539,6 @@ static int _policy_group_alloc_group(int                             unit,
 
         if (!(group_table[unit][entryPtr->policyStage][*group].flags & GROUP_USED))
         {
-          #if 0
-          /* PTin added: group mode */
-          switch (sqsetInfo.status.slice_width_physical)
-          {
-          case 1:
-            group_mode = bcmFieldGroupModeSingle;
-            break;
-          case 2:
-            group_mode = bcmFieldGroupModeDouble;
-            break;
-          case 3:
-            group_mode = bcmFieldGroupModeTriple;
-            break;
-          case 4:
-            group_mode = bcmFieldGroupModeQuad;
-            break;
-          default:
-            group_mode = bcmFieldGroupModeAuto;
-            break;
-          }
-          #endif
-
           rv = bcm_field_group_create_mode(unit, sqsetInfo.qsetAgg, *group, bcmFieldGroupModeAuto, &gid);
 
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
@@ -4341,7 +4362,7 @@ int policy_group_create(int                             unit,
     if (BCM_E_NONE != rv)
     {
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-        sysapiPrintf("- allocate new group FAILED\n");
+        sysapiPrintf("- allocate new group FAILED (group=%d, rv=%d)\n", group, rv);
 
       reworkQset = L7_FALSE;
       if ((resourceReq->requiresEtype == 0)  && 

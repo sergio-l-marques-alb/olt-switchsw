@@ -571,7 +571,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
     return result;
 #endif
 
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+#if (0 /*PTIN_BOARD != PTIN_BOARD_OLT1T0*/)
   /* Install dot1x violation policy next, as it needs to have higher priority than other system policies. For
      example, we need to ensure that DHCP packets received on an unauthorized port get trapped to the CPU, rather
      than have their priority elevated. */
@@ -579,7 +579,7 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   if (L7_SUCCESS != result)
     return result;
 #else
-  LOG_WARNING(LOG_CTX_STARTUP,"dot1x violation policy not installed on OLT1T0");
+  LOG_WARNING(LOG_CTX_STARTUP,"dot1x violation policy not installed!");
 #endif
 
   /* DHCP packets on ports must go to the CPU and be rate limited to 64 kbps */
