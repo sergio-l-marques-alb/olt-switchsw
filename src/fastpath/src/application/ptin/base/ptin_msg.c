@@ -3700,8 +3700,10 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
 
     LOG_DEBUG(LOG_CTX_PTIN_MSG,"Stats index %u:", i);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," SlotId       = %u", item->slotId);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," service_type = %u", item->service.id_type);
-    LOG_DEBUG(LOG_CTX_PTIN_MSG," service_id   = %u", item->service.id_val.evc_id);
+//  LOG_DEBUG(LOG_CTX_PTIN_MSG," service_type = %u", item->service.id_type);
+//  LOG_DEBUG(LOG_CTX_PTIN_MSG," service_id   = %u", item->service.id_val.evc_id);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," EVC id       = %u", item->evc_idx);
+    LOG_DEBUG(LOG_CTX_PTIN_MSG," VLAN id      = %u", item->vlan_id);
     LOG_DEBUG(LOG_CTX_PTIN_MSG," Intf         = %u", item->intf.intf_type, item->intf.intf_id);
 
     /* Clear list of VLANs */
@@ -3709,55 +3711,56 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
     dai_maxVlans = 0;
 
     /* If EVC id is provided, get related VLAN */
-    if (item->service.id_type == MSG_ID_DEF_TYPE || item->service.id_type == MSG_ID_EVC_TYPE)
+    //if (item->service.id_type == MSG_ID_DEF_TYPE || item->service.id_type == MSG_ID_EVC_TYPE)
+    if (item->evc_idx != (L7_uint32) -1)
     {
       /* Check range */
-      if (item->service.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS) 
+      if (item->evc_idx /*item->service.id_val.evc_id*/ >= PTIN_SYSTEM_N_EXTENDED_EVCS) 
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", item->service.id_val.evc_id);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is out of range!", item->evc_idx /*item->service.id_val.evc_id*/);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC is active? */
-      if (!ptin_evc_is_in_use(item->service.id_val.evc_id))
+      if (!ptin_evc_is_in_use(item->evc_idx /*item->service.id_val.evc_id*/))
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", item->service.id_val.evc_id);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "eEVC#%u is not in use!", item->evc_idx /*item->service.id_val.evc_id*/);
         rc_global = L7_NOT_EXIST;
         continue;
       }
       /* Get internal VLAN from eEVC# */
       dai_maxVlans = 1;
-      if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &dai_intVid_list[0]) != L7_SUCCESS)
+      if (ptin_evc_intRootVlan_get(item->evc_idx /*item->service.id_val.evc_id*/, &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "Cannot get intVlan from eEVC#%u!", item->evc_idx /*item->service.id_val.evc_id*/);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
     }
     /* Use given VLANs range */
-    else if (item->service.id_type == MSG_ID_NNIVID_TYPE)
+    else /*if (item->service.id_type == MSG_ID_NNIVID_TYPE)*/
     {
-      if (item->service.id_val.nni_vid < PTIN_VLAN_MIN || item->service.id_val.nni_vid > PTIN_VLAN_MAX)
+      if (item->vlan_id /*item->service.id_val.nni_vid*/ < PTIN_VLAN_MIN || item->vlan_id /*item->service.id_val.nni_vid*/ > PTIN_VLAN_MAX)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is out of valid range!", item->service.id_val.nni_vid);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "VLAN %u is out of valid range!", item->vlan_id /*item->service.id_val.nni_vid*/);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* Get eEVC id from NNI VLAN */
       dai_maxVlans = 4096;
-      if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
+      if (ptin_evc_get_intVlan_fromNNIvlan(item->vlan_id /*item->service.id_val.nni_vid*/, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->service.id_val.nni_vid);
+        LOG_ERR(LOG_CTX_PTIN_MSG, "NNI VLAN %u is invalid, or don't belong to any EVC!", item->vlan_id /*item->service.id_val.nni_vid*/);
         rc_global = L7_NOT_EXIST;
         continue;
       }
     }
-    else
-    {
-      LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid service type %u", item->service.id_type);
-      rc_global = L7_NOT_SUPPORTED;
-      continue;
-    }
+    //else
+    //{
+    //  LOG_ERR(LOG_CTX_PTIN_MSG, "Invalid service type %u", item->service.id_type);
+    //  rc_global = L7_NOT_SUPPORTED;
+    //  continue;
+    //}
 
     LOG_TRACE(LOG_CTX_PTIN_MSG, "Going to process %u VLANs", dai_maxVlans);
 

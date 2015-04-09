@@ -2214,8 +2214,9 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->service.id_type = MSG_ID_EVC_TYPE;
-        ptr->service.id_val.evc_id = (uint32) valued;
+        //ptr->service.id_type = MSG_ID_EVC_TYPE;
+        //ptr->service.id_val.evc_id = (uint32) valued;
+        ptr->evc_idx = (uint32) valued;
 
         // port
         if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -7350,7 +7351,8 @@ int main (int argc, char *argv[])
 
           ptr = (msg_dai_statistics_t *) &resposta.info[0];
 
-          printf("DAI statistics for EVC#%lu (type=%u), intf=%u/%u:\r\n", ptr->service.id_val.evc_id, ptr->service.id_type, ptr->intf.intf_type, ptr->intf.intf_id);
+          //printf("DAI statistics for EVC#%lu (type=%u), intf=%u/%u:\r\n", ptr->service.id_val.evc_id, ptr->service.id_type, ptr->intf.intf_type, ptr->intf.intf_id);
+          printf("DAI statistics for EVC#%lu / VLAN=%u, intf=%u/%u:\r\n", ptr->evc_idx, ptr->vlan_id, ptr->intf.intf_type, ptr->intf.intf_id);
           printf(" forwarded       = %lu\r\n", ptr->stats.forwarded       );
           printf(" dropped         = %lu\r\n", ptr->stats.dropped         );
           printf(" dhcpDrops       = %lu\r\n", ptr->stats.dhcpDrops       );

@@ -1596,7 +1596,10 @@ typedef struct
 typedef struct
 {
   L7_uint8  slotId;
-  msg_id_t  service;          /* EVC or VLAN id */
+  //msg_id_t  service;          /* EVC or VLAN id */
+  L7_uint32 evc_idx;            /* EVC id (-1 to not be used) */
+  L7_uint16 vlan_id;            /* VLAN id (to be used when EVC id is -1) */
+
   msg_HwEthInterface_t intf;  /* Interface (type/id) */
 
   msg_dai_statCounters_t  stats;          /* Statistics structure */
