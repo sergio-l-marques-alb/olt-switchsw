@@ -5445,6 +5445,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," interface    = %u/%u",   ptr->intf.intf_type, ptr->intf.intf_id);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," MacLearned   = %u",      ptr->number_mac_learned);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Status       = %u",      ptr->status);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Mask       = %u",        ptr->mask);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
                "Message processed: response with %d bytes", outbuffer->infoDim); 
     }

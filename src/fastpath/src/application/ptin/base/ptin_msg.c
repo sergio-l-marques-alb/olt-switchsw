@@ -3298,12 +3298,14 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
 
   maclimit_status->number_mac_learned = entry.number_mac_learned;
   maclimit_status->status = entry.status;
+  maclimit_status->mask = 0x03;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Status Response");
   LOG_DEBUG(LOG_CTX_PTIN_MSG," slotId       = %u",      maclimit_status->slotId);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Status       = %u",      maclimit_status->status);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask         = %u",        maclimit_status->mask);
 
   return rc;
 }
