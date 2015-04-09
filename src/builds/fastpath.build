@@ -86,7 +86,7 @@ echo -en $colorReset
 
 for plat in $PLATFORMS; do
   cp ./$APPLICATION.ver $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin
-  echo "OLTSWITCH md5sum: "`md5sum $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$APPLICATION.ver
+  echo "echo OLTSWITCH md5sum: "`md5sum $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$APPLICATION.ver
 done
 
 echo -en $colorNotice
