@@ -14,6 +14,10 @@ scripts/dtc/dtc -O dtb ${NAME}.dts -o ${NAME}.dtb
 #cp ${NAME}.dtb /tftpboot
 #sudo cp ${NAME}.dtb /tftpboot
 
+elif [ "$1" = "clean" ];then
+
+ARCH=powerpc make clean
+
 elif [ "$1" = "distclean" ];then
 
 ARCH=powerpc make clean distclean mrproper
