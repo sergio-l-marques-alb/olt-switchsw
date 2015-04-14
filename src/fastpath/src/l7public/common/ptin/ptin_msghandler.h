@@ -953,9 +953,7 @@ typedef struct {
 // Messages CCMSG_ETH_EVC_FLOW_ADD and CCMSG_ETH_EVC_FLOW_REMOVE
 #define PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS         0x01
 #define PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH        0x02
-#define PTIN_MSG_EVC_FLOW_MASK_PACKAGE_BMP_LIST             0x04
-#define PTIN_MSG_EVC_FLOW_MASK_NUMBER_OF_PACKAGES           0x08
-#define PTIN_MSG_EVC_FLOW_MASK_VALID                        0x0F
+#define PTIN_MSG_EVC_FLOW_MASK_VALID                        PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_CHANNELS | PTIN_MSG_EVC_FLOW_MASK_MAX_ALLOWED_BANDWIDTH
 
 typedef struct {
   L7_uint8             SlotId;
@@ -971,10 +969,6 @@ typedef struct {
   L7_uint8             mask;         //Mask of fields to be considered [0x00 0x0F]                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
-#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
-  L7_uint32            packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*[mask=0x04]  package bitmap list */
-  L7_uint8             noOfPackages;  /*[mask=0x08]  Number Of Bits Set */
-#endif
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /* EVC port add/remove */
@@ -1456,9 +1450,7 @@ typedef struct {
 // Messages CCMSG_ETH_IGMP_CLIENT_ADD, CCMSG_ETH_IGMP_CLIENT_REMOVE
 #define PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS         0x01
 #define PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH        0x02
-#define PTIN_MSG_IGMP_CLIENT_MASK_PACKAGE_BMP_LIST             0x04
-#define PTIN_MSG_IGMP_CLIENT_MASK_NUMBER_OF_PACKAGES           0x08
-#define PTIN_MSG_IGMP_CLIENT_MASK_VALID                        0x0F
+#define PTIN_MSG_IGMP_CLIENT_MASK_VALID                        PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS | PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH
 
 typedef struct {
   L7_uint8             SlotId;
@@ -1468,10 +1460,6 @@ typedef struct {
   L7_uint8             mask;         //Mask of fields to be considered [0x0 - 0xF]                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
-#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
-  L7_uint32            packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];  /*[mask=0x04]  package bitmap list */
-  L7_uint8             noOfPackages;  /*[mask=0x08]  Number Bits Set */
-#endif
 } __attribute__((packed)) msg_IgmpClient_t;
 
 // Messages CCMSG_ETH_IGMP_ADMISSION_CONTROL

@@ -4291,34 +4291,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxChannels = %u", ptinEvcFlow.maxChannels);
     LOG_DEBUG(LOG_CTX_PTIN_MSG, " maxBandwidth= %llu bit/s", ptinEvcFlow.maxBandwidth);
 #endif
-
-#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
-    if (( msgEvcFlow->mask & PTIN_MSG_EVC_FLOW_MASK_NUMBER_OF_PACKAGES ) == PTIN_MSG_EVC_FLOW_MASK_NUMBER_OF_PACKAGES)
-    {
-      ptinEvcFlow.noOfPackages = msgEvcFlow->noOfPackages;
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);
-    }
-
-    if ( (ptinEvcFlow.mask & PTIN_MSG_EVC_FLOW_MASK_PACKAGE_BMP_LIST) == PTIN_MSG_EVC_FLOW_MASK_PACKAGE_BMP_LIST)
-    {
-      L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
-      L7_char8 *charPtr = packageBmpStr;
-      L7_int32  packageId;
-
-      /*Copy Multicast Package Bitmap*/
-      memcpy(ptinEvcFlow.packageBmpList, msgEvcFlow->packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
-
-#if 0      
-      for (packageId =(PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint32)*8)-1); packageId>=0; --packageId)
-      {
-        osapiSnprintf(charPtr, sizeof(*charPtr),
-                    "%08X", ptinEvcFlow.packageBmpList[packageId]);
-        charPtr++;
-      }
-      LOG_DEBUG(LOG_CTX_PTIN_MSG, "PackageBmpList:%s", packageBmpStr);
-#endif
-    }
-#endif    
+  
   }
 
   if ((rc=ptin_evc_flow_add(&ptinEvcFlow)) != L7_SUCCESS)
@@ -6727,11 +6700,17 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
     igmpAdmissionControl.maxAllowedChannels   = msgAdmissionControl->maxChannels;
     igmpAdmissionControl.maxAllowedBandwidth  = msgAdmissionControl->maxBandwidth;
 
+    if (ptin_igmp_multicast_service_add(igmpAdmissionControl.ptin_port, igmpAdmissionControl.onuId, igmpAdmissionControl.serviceId) != L7_SUCCESS)
+    {
+      LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to add multicast service");
+      return L7_FAILURE;
+    }
+
     if (ptin_igmp_admission_control_multicast_service_set(&igmpAdmissionControl) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_MSG,"Failed to set multicast admission control parameters");
       return L7_FAILURE;
-    }      
+    }     
   }
   else
   {
@@ -7050,30 +7029,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
       LOG_DEBUG(LOG_CTX_PTIN_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
-
-#if PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT
-      if ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_NUMBER_OF_PACKAGES) == PTIN_MSG_IGMP_CLIENT_MASK_NUMBER_OF_PACKAGES )
-      {
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "   noOfPackages = %u ", McastClient[i].noOfPackages);
-      }
-
-      if ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_PACKAGE_BMP_LIST) == PTIN_MSG_IGMP_CLIENT_MASK_PACKAGE_BMP_LIST)
-      {
-        L7_char8  packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
-        L7_char8 *charPtr = packageBmpStr;
-        L7_int32  packageId;
-#if 0
-        for (packageId=(PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint32)*8)-1); packageId>=0; --packageId)
-        {
-          osapiSnprintf(charPtr, sizeof(*charPtr),
-                      "%08X", McastClient[i].packageBmpList[packageId]);
-          charPtr++;
-        }
-        LOG_DEBUG(LOG_CTX_PTIN_MSG, "PackageBmpList:%s", packageBmpStr);
-#endif
-      }
-#endif    
-
+ 
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
     {
@@ -12662,7 +12618,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
     if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, msg[messageIterator].onuId, msg[messageIterator].evcId) ) )
     {
       return rc;
-    }    
+    }   
   }
   return rc;  
 #else

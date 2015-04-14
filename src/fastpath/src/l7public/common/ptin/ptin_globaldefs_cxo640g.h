@@ -146,8 +146,8 @@
 # define PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE        (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF/(sizeof(L7_uint32)*8)+1)  /* Maximum number of clientes per source */
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE           1     /* Maximum number of entries in Query queue */
 # define PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT 0     /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
-# define PTIN_SYSTEM_IGMP_PACKAGES_SUPPORT          0     /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
 # define PTIN_SYSTEM_IGMP_MAXPACKAGES               256   /*Max Multicast Packages Per Card*/    
+# define PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD      1
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES               1     /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES              1     /* Maximum nr of PPPoE instances */
