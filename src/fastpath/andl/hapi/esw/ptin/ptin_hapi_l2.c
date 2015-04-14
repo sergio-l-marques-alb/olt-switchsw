@@ -206,6 +206,12 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       /* Enable the use of Pending Mechanism but disable FWD */
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (GPORT=0x%x)", bcmx_l2_addr->lport);
       bcm_port_learn_set(0, bcmx_l2_addr->lport, /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+
+       if (macLearn_info_flow[vport_id].trap_sent == L7_FALSE)
+      {
+        send_trap_switch_event(macLearn_info_flow[vport_id].ptin_intf.intf_type, macLearn_info_flow[vport_id].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT, TRAP_ALARM_STATUS_START, macLearn_info_flow[vport_id].uni_ovid);
+        macLearn_info_flow[vport_id].trap_sent = L7_TRUE;
+      }
     }
   }
   /* Check if is a LAG port level */
@@ -249,7 +255,13 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
     LOG_TRACE(LOG_CTX_PTIN_HAPI, "Increase MAC Learned in LAG %d", tgid);
     macLearn_info_lag[tgid].mac_counter++;
     macLearn_info_lag[tgid].mac_total++;
-    
+
+    if ((macLearn_info_lag[tgid].trap_sent == L7_FALSE && macLearn_info_lag[tgid].send_trap == L7_TRUE) && (macLearn_info_lag[tgid].mac_limit!=0))
+    {
+      send_trap_switch_event(macLearn_info_lag[tgid].ptin_intf.intf_type, macLearn_info_lag[tgid].ptin_intf.intf_id, TRAP_ALARM_MAC_LIMIT_INTERFACE, TRAP_ALARM_STATUS_START, 0);
+      macLearn_info_lag[tgid].trap_sent = L7_TRUE;
+    }
+
     #if (PTIN_BOARD == PTIN_BOARD_CXO640G)     
     /* Check if maximum was reached */
     if (macLearn_info_lag[tgid].mac_counter >= macLearn_info_lag[tgid].mac_limit)
@@ -257,6 +269,7 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       /* Enable the use of Pending Mechanism but disable FWD */
       LOG_NOTICE(LOG_CTX_PTIN_HAPI, "Disabling FWD (Physical Port=0x%x)", bcmx_l2_addr->lport);
                  bcm_port_learn_set(0, bcmx_l2_addr->lport, BCM_PORT_LEARN_FWD | /*BCM_PORT_LEARN_CPU |*/ BCM_PORT_LEARN_PENDING | BCM_PORT_LEARN_ARL );
+      return L7_FAILURE;
     }
     #endif
 
@@ -874,7 +887,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     {
       limit.flags = BCM_L2_LEARN_LIMIT_TRUNK | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
     }
-    else /* no action, only limits */
+    else if (action == 0) /* no action, only limits */
     {
       limit.flags = BCM_L2_LEARN_LIMIT_TRUNK;
     }
@@ -884,7 +897,11 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
 
     /* Update structure */
     macLearn_info_lag[trunk_id].mac_limit = mac_limit;
-    macLearn_info_lag[trunk_id].send_trap = send_trap;
+
+    if(send_trap == 1 || send_trap == 0)
+    {
+      macLearn_info_lag[trunk_id].send_trap = send_trap;
+    }
     macLearn_info_lag[trunk_id].enable = L7_TRUE;
   }
   /* Extract Physical port */
@@ -897,7 +914,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     {
       limit.flags = BCM_L2_LEARN_LIMIT_PORT | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
     }
-    else /* no action, only limits */
+    else if (action == 0) /* no action, only limits */
     {
       limit.flags = BCM_L2_LEARN_LIMIT_PORT;
     }
@@ -908,7 +925,11 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     /* Update structure */
     hapi_ptin_port_get(limit.port, &physical_port);
     macLearn_info_physical[physical_port].mac_limit = mac_limit;
-    macLearn_info_physical[physical_port].send_trap = send_trap; 
+
+    if(send_trap == 1 || send_trap == 0)
+    {
+      macLearn_info_physical[physical_port].send_trap = send_trap; 
+    }
     macLearn_info_physical[physical_port].enable = L7_TRUE;  
   }
   /* VLAN type if VLAN ID is valid? */
@@ -920,7 +941,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     {
       limit.flags = BCM_L2_LEARN_LIMIT_VLAN | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
     }
-    else /* no action, only limits */
+    else if(action == 0)/* no action, only limits */
     {
       limit.flags = BCM_L2_LEARN_LIMIT_VLAN;
     }
@@ -937,7 +958,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
     {
      limit.flags = BCM_L2_LEARN_LIMIT_SYSTEM | BCM_L2_LEARN_LIMIT_ACTION_DROP; // BCM_L2_LEARN_LIMIT_ACTION_CPU
     }
-    else /* no action, only limits */
+    else if(action == 0)/* no action, only limits */
     {
       limit.flags = BCM_L2_LEARN_LIMIT_SYSTEM;
     }
@@ -951,6 +972,7 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, int mac_
   LOG_NOTICE(LOG_CTX_PTIN_HAPI, "limit  %u", limit.limit);
 
   #if(PTIN_BOARD != PTIN_BOARD_CXO640G) /*Not supported in Trident(Plus). */
+
   if ((rv=bcm_l2_learn_limit_set(0, &limit))!=BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error (%d) setting L2 learn limit to %u", rv, mac_limit);

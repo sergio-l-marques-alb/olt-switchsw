@@ -40,6 +40,7 @@ typedef struct
   L7_uint32   limit;            // MAC Limit
   L7_uint8    action;           // Action trigged when the limit is reached. NONE=0, LIMIT=1 (Default = 1)*/
   L7_uint8    send_trap;        // Trap generated when the maximum value is reached. DISABLE=0, ENABLE =1 (Default=1)*/
+  L7_uint32   mask;
 
 } ptin_l2_maclimit_t;
 

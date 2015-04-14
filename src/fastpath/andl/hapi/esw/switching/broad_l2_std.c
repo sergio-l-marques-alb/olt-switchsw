@@ -3635,9 +3635,10 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       /* PTin added: virtual ports */
       #if 1
       /* Save virtual port */
-      else if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+      if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
       {
         macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
+        ptin_hapi_maclimit_inc(bcmx_l2_addr);
       }
       else
       {

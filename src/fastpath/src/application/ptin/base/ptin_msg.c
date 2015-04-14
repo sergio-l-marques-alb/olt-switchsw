@@ -3173,7 +3173,7 @@ L7_RC_t ptin_msg_l2_macTable_add(msg_switch_mac_table_t *mac_table)
       rc = L7_FAILURE;
     }
     else
-    {
+    { 
       LOG_DEBUG(LOG_CTX_PTIN_MSG,"Success adding index entry %u",i);
     }
   }
@@ -3223,11 +3223,10 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   }
   else
   {
-
     /* Get intIfNum */
     ptin_intf.intf_type = maclimit->intf.intf_type;
     ptin_intf.intf_id = maclimit->intf.intf_id;
-      
+ 
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC,"Invalid ptin_intf");
@@ -3238,9 +3237,17 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
     {
       entry.action = maclimit->action;
     }
+    else
+    {
+      entry.action = -1;
+    }
     if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
     {
       entry.send_trap = maclimit->send_trap;
+    }
+    else
+    {
+      entry.send_trap = -1;
     }
     if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
     {
