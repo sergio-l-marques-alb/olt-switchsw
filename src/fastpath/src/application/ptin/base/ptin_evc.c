@@ -6476,7 +6476,7 @@ L7_RC_t ptin_stormControl_init(void)
   memset(&stormControl, 0x00, sizeof(ptin_stormControl_t));
 
   /* Initialize storm control for all EVCs, and all traffic types */
-  stormControl.flags =  PTIN_STORMCONTROL_MASK_BCAST | PTIN_STORMCONTROL_MASK_MCAST | PTIN_STORMCONTROL_MASK_UCUNK | PTIN_STORMCONTROL_MASK_CPU;
+  stormControl.flags =  /*PTIN_STORMCONTROL_MASK_BCAST | PTIN_STORMCONTROL_MASK_MCAST | PTIN_STORMCONTROL_MASK_UCUNK |*/ PTIN_STORMCONTROL_MASK_CPU;
 
   return ptin_evc_stormControl_reset(&stormControl);
 }
@@ -12426,24 +12426,21 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
         /* SEM CLIENTS UP */
         osapiSemaTake(ptin_evc_clients_sem, L7_WAIT_FOREVER);
 
+        pclientFlow = L7_NULLPTR;
         dl_queue_get_head(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t **) &pclientFlow);
 
-        for (j=0; j<evcs[evc_id].intf[i].clients.n_elems; j++) {
+        for (j=0; j < evcs[evc_id].intf[i].clients.n_elems && pclientFlow != L7_NULLPTR; j++) {
           #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           if (IS_EVC_QUATTRO(evc_id))
           {
-            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x) (Count {%s,%s}; BWProf {%s,%s})\r\n",
+            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x)\r\n",
                    j, pclientFlow->flags & 0xffff,
-                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff,
-                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
-                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff);
           }
           else
           #endif
           {
-            printf("      Client# %2u: VID=%4u+%-4u  (Counter {%s,%s}; BWProf {%s,%s})\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid,
-                   pclientFlow->counter[PTIN_EVC_INTF_ROOT]   != NULL ? "Root ON ":"Root OFF", pclientFlow->counter[PTIN_EVC_INTF_LEAF]   != NULL ? "Leaf ON ":"Leaf OFF",
-                   pclientFlow->bwprofile[PTIN_EVC_INTF_ROOT][0] != NULL ? "Root ON ":"Root OFF", pclientFlow->bwprofile[PTIN_EVC_INTF_LEAF] != NULL ? "Leaf ON ":"Leaf OFF");
+            printf("      Client# %2u: VID=%4u+%-4u\r\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid);
           }
 
           pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t *) pclientFlow);
@@ -12473,6 +12470,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       printf("   #Flows  = %u", evcs[evc_id].n_clientflows_pppoe);
     #endif
     printf("\r\n\n");
+    fflush(stdout);
   }
   while ( evc_ext_id == (L7_uint32)-1 &&
          (extEvcIdInfoData = (ptinExtEvcIdInfoData_t *) avlSearchLVL7(&(extEvcId_avlTree.extEvcIdAvlTree), (void *)&extEvcIdDataKey, AVL_NEXT)));
