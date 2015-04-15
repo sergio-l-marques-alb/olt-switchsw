@@ -187,7 +187,6 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_CCM      512
 #define RATE_LIMIT_IPDTL0   512
 #define RATE_LIMIT_QUATTRO  4096
-#define RATE_LIMIT_IPDTL0   512
 #define RATE_LIMIT_INBAND   2048
 
 /* PTin module states */

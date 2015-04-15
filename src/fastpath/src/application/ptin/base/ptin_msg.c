@@ -142,8 +142,6 @@ L7_RC_t ptin_msg_ShellCommand_run(L7_char8 *str)
 
   rc = ptin_shell_command_run(tty,type,cmd);
 
-  fflush(stdout);
-
   return rc;
 }
 
@@ -8943,6 +8941,8 @@ static L7_RC_t ptin_shell_command_run(L7_char8 *tty, L7_char8 *type, L7_char8 *c
     if (osapiDevShellExec(cmd) != 0)
       rc = L7_FAILURE;
   }
+
+  fflush(stdout);
 
   //ptin_PitHandler(prevtty);
 
