@@ -68,8 +68,10 @@ L7_RC_t mcastMapMcastAdminModeEnable(L7_uchar8 family)
   if ((mcastGblVariables_g.mcastMapInfo.mcastV4Initialized != L7_TRUE) &&
       (mcastGblVariables_g.mcastMapInfo.mcastV6Initialized != L7_TRUE))
   {
-        /* set the unknown packets send to cpu bit in NPU */
+    #if 0//Ptin Removed - To use IPMC Table
+    /* set the unknown packets send to cpu bit in NPU */
     dtlRouterMulticastForwardModeSet(L7_ENABLE, L7_AF_INET);
+    #endif
   }
 
   /*
@@ -149,7 +151,9 @@ L7_RC_t mcastMapMcastAdminModeDisable(L7_uchar8 family)
       (mcastGblVariables_g.mcastMapInfo.mcastV6Initialized != L7_TRUE))
   {
     /* reset the unknown packets send to cpu bit in NPU */
+    #if 0//Ptin Removed - To use IPMC Table
     dtlRouterMulticastForwardModeSet(L7_DISABLE, L7_AF_INET);
+    #endif
   }
   return L7_SUCCESS;
 }
