@@ -755,7 +755,7 @@ extern L7_RC_t ptin_igmp_static_channel_add(PTIN_MGMD_CTRL_STATICGROUP_t* channe
 extern L7_RC_t ptin_igmp_static_channel_remove(PTIN_MGMD_CTRL_STATICGROUP_t* channel);
 
 
-#define PTIN_IGMP_CHANNELS_MAX    16384
+#define PTIN_IGMP_CHANNELS_MAX    PTIN_SYSTEM_IGMP_GROUP_LIST_MAX_ENTRIES
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 

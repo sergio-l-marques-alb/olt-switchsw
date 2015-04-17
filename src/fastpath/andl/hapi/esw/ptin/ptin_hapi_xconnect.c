@@ -792,18 +792,20 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
 /**
  * Add port to egress multicast group
  * 
- * @param mcast_group : MC group id (-1 to create)
+ * @param mcast_group : MC group id (-1 to create) 
+ * @param multicast_flag: Multicast Flags 
+ * @param virtual_gport      : VLAN Identifier 
  * @param dapiPort    : Port to be added 
  *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, ptin_dapi_port_t *dapiPort)
+L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multicast_flag, L7_uint32 virtual_gport, ptin_dapi_port_t *dapiPort)
 {
   bcm_multicast_t mc_group;
-  DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr;
+  DAPI_PORT_t    *dapiPortPtr;
+  BROAD_PORT_t   *hapiPortPtr;
   bcm_multicast_t encap_id;
-  bcm_error_t error;
+  bcm_error_t     error;
 
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group == L7_NULLPTR )
@@ -839,7 +841,7 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, ptin_dapi_port_
   /* Create a multicast group, if given multicast group is not valid */
   if ( mc_group <= 0 )
   {
-    if ((error=bcm_multicast_create(0, BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
+    if ((error=bcm_multicast_create(0, multicast_flag, &mc_group)) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0, %d, &mcast_group): error=%d (\"%s\")",
               BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
@@ -848,12 +850,30 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, ptin_dapi_port_
     *mcast_group = mc_group;
   }
 
-  /* add network port to multicast group as L2 member */
-  if ((error=bcm_multicast_l2_encap_get(0, mc_group, hapiPortPtr->bcmx_lport, -1, &encap_id))!=BCM_E_NONE)
+  switch (multicast_flag)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
-    return L7_FAILURE;
-  }
+  case BCM_MULTICAST_TYPE_L2:  
+    /* get the encapsulation id */
+    if ((error=bcm_multicast_l2_encap_get(0, mc_group, hapiPortPtr->bcmx_lport, -1, &encap_id))!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }    
+    break;      
+  case BCM_MULTICAST_TYPE_L3:
+    /* get the encapsulation id */   
+    if ((error=bcm_multicast_l3_encap_get(0, mc_group, hapiPortPtr->bcmx_lport, virtual_gport, &encap_id))!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }    
+    break;    
+  default:
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Multicast Flag Not Supported :0x%08X", multicast_flag);
+    return L7_NOT_SUPPORTED;
+  }  
+
+  /* add network port to multicast group */
   if ((error=bcm_multicast_egress_add(0, mc_group, hapiPortPtr->bcmx_lport, encap_id))!=BCM_E_NONE)
   {
     LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_egress_add: error=%d (\"%s\")",error, bcm_errmsg(error));
@@ -869,16 +889,18 @@ L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, ptin_dapi_port_
  * Remove port from egress multicast group
  * 
  * @param mcast_group : MC group id (must be valid) 
+ * @param multicast_flag: Multicast Flags   
+ * @param virtual_gport      : VLAN Identifier  
  * @param dapiPort    : Port to be removed
  *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, ptin_dapi_port_t *dapiPort)
+L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 multicast_flag, L7_uint32 virtual_gport, ptin_dapi_port_t *dapiPort)
 {
-  DAPI_PORT_t  *dapiPortPtr;
-  BROAD_PORT_t *hapiPortPtr;
+  DAPI_PORT_t    *dapiPortPtr;
+  BROAD_PORT_t   *hapiPortPtr;
   bcm_multicast_t encap_id;
-  bcm_error_t error;
+  bcm_error_t     error;
 
   /* Forwarding vlan, for MAC learning purposes (only if fwdvlan is valid) */
   if ( mcast_group <= 0 )
@@ -908,13 +930,30 @@ L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, ptin_dapi_por
     return L7_FAILURE;
   }
 
-  /* add network port to multicast group as L2 member */
-  error = bcm_multicast_l2_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id);
-  if (error != BCM_E_NONE)
+  switch (multicast_flag)
   {
-    LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
-    return L7_FAILURE;
+  case BCM_MULTICAST_TYPE_L2:  
+    /* get the encapsulation id */   
+    error = bcm_multicast_l2_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, -1, &encap_id);
+    if (error != BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l2_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    break;  
+  case BCM_MULTICAST_TYPE_L3:
+    /* get the encapsulation id */   
+    if ((error=bcm_multicast_l3_encap_get(0, mcast_group, hapiPortPtr->bcmx_lport, virtual_gport, &encap_id))!=BCM_E_NONE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_multicast_l3_encap_get: error=%d (\"%s\")",error, bcm_errmsg(error));
+      return L7_FAILURE;
+    }
+    break;
+  default:
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Multicast Flag Not Supported :0x%08X", multicast_flag);
+    return L7_NOT_SUPPORTED;
   }
+  
   error = bcm_multicast_egress_delete(0, mcast_group, hapiPortPtr->bcmx_lport, encap_id);
   if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
   {
@@ -976,12 +1015,14 @@ L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcg
 /**
  * Define MC group for a specific vlan for bridging 
  * 
- * @param vlanId      : vlan to be configured
- * @param mcast_group : MC group id (-1 to create)
+ * @param vlanId :    vlan to be configured
+ * @param mcast_group : MC group id (if invalid, create a new 
+ *                    one, and return it)
+ * @param multicast_flags: Multicast Flags 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group)
+L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group, L7_uint32 multicast_flag)
 {
   int error;
   bcm_multicast_t mc_group;
@@ -1000,10 +1041,10 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
   /* Create a multicast group, if given multicast group is not valid */
   if ( mc_group <= 0 )
   {
-    if ((error=bcm_multicast_create(0, BCM_MULTICAST_TYPE_VLAN, &mc_group)) != BCM_E_NONE)
+    if ((error=bcm_multicast_create(0, multicast_flag, &mc_group)) != BCM_E_NONE)
     {
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with bcm_multicast_create(0,0x%x, &mcast_group): error=%d (\"%s\")",
-              BCM_MULTICAST_TYPE_VLAN, error, bcm_errmsg(error));
+              multicast_flag, error, bcm_errmsg(error));
       return L7_FAILURE;
     }
     *mcast_group = mc_group;
@@ -1011,27 +1052,30 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
     LOG_NOTICE(LOG_CTX_PTIN_HAPI, "mc_group=%d created!", mc_group);
   }
 
-  /* Only for valid vlans */
-  if (vlanId>0 && vlanId<4095)
+  if (multicast_flag & BCM_MULTICAST_TYPE_VLAN)
   {
-    /* Get current control definitions for this vlan */
-    bcm_vlan_control_vlan_t_init(&control);
-    if ((error = bcm_vlan_control_vlan_get(0, vlanId, &control))!=BCM_E_NONE)
+    /* Only for valid vlans */
+    if (vlanId>0 && vlanId<4095)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
-      return L7_FAILURE;
-    }
-    
-    /* Associate a MC group */
-    control.broadcast_group = mc_group;
-    control.unknown_multicast_group = mc_group;
-    control.unknown_unicast_group = mc_group;
+      /* Get current control definitions for this vlan */
+      bcm_vlan_control_vlan_t_init(&control);
+      if ((error = bcm_vlan_control_vlan_get(0, vlanId, &control))!=BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+        return L7_FAILURE;
+      }
+      
+      /* Associate a MC group */
+      control.broadcast_group = mc_group;
+      control.unknown_multicast_group = mc_group;
+      control.unknown_unicast_group = mc_group;
 
-    /* Apply new control definitions to this vlan */
-    if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
-      return L7_FAILURE;
+      /* Apply new control definitions to this vlan */
+      if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+        return L7_FAILURE;
+      }
     }
   }
 
@@ -1041,15 +1085,16 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group
 }
 
 /**
- * Rempove MC group for a specific vlan for bridging 
+ * Remove MC group for a specific vlan for bridging 
  * 
- * @param vlanId          : vlan to be configured
- * @param mcast_group     : MC group id 
- * @param destroy_mcgroup : Destroy MC group
+ * @param vlanId :    vlan to be configured
+ * @param mcast_group : MC group id (if invalid, create a new 
+ *                    one, and return it)
+ * @param multicast_flags: Multicast Flags 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_BOOL destroy_mcgroup)
+L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_uint32 multicast_flag, L7_BOOL destroy_mcgroup)
 {
   int error;
   bcm_vlan_control_vlan_t control;
@@ -1061,27 +1106,30 @@ L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_grou
     return L7_FAILURE;
   }
 
-  /* Only for valid vlans */
-  if (vlanId>0 && vlanId<4095)
+  if (multicast_flag & BCM_MULTICAST_TYPE_VLAN)
   {
-    /* Get current control definitions for this vlan */
-    bcm_vlan_control_vlan_t_init(&control);
-    if ((error = bcm_vlan_control_vlan_get(0, vlanId, &control))!=BCM_E_NONE)
+    /* Only for valid vlans */
+    if (vlanId>0 && vlanId<4095)
     {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
-      return L7_FAILURE;
-    }
-    
-    /* Associate a MC group */
-    control.broadcast_group         = -1;
-    control.unknown_multicast_group = -1;
-    control.unknown_unicast_group   = -1;
+      /* Get current control definitions for this vlan */
+      bcm_vlan_control_vlan_t_init(&control);
+      if ((error = bcm_vlan_control_vlan_get(0, vlanId, &control))!=BCM_E_NONE)
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error getting vlan control structure! error=%d (%s)", error, bcm_errmsg(error));
+        return L7_FAILURE;
+      }
+      
+      /* Associate a MC group */
+      control.broadcast_group         = -1;
+      control.unknown_multicast_group = -1;
+      control.unknown_unicast_group   = -1;
 
-    /* Apply new control definitions to this vlan */
-    if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
-    {
-      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
-      //return L7_FAILURE;
+      /* Apply new control definitions to this vlan */
+      if ( (error = bcm_vlan_control_vlan_set(0, vlanId, control)) != BCM_E_NONE )
+      {
+        LOG_ERR(LOG_CTX_PTIN_HAPI, "Error with bcm_vlan_control_vlan_set: error=%d (%s)", error, bcm_errmsg(error));
+        //return L7_FAILURE;
+      }
     }
   }
 

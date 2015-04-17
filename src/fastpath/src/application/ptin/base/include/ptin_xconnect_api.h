@@ -54,13 +54,22 @@ extern L7_RC_t ptin_vlan_port_removeFlush(L7_uint32 ptin_port, L7_uint16 vlanId)
 extern L7_RC_t ptin_vlan_port_switch(L7_uint32 ptin_port_old, L7_uint32 ptin_port_new, L7_uint16 vlanId);
 
 /**
- * Create a multicast group
+ * Create a L3 multicast group
  * 
- * @param mcast_group : Multicast group id to be returned.
+ * @param mcast_group   : Multicast group id to be returned. 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_group_create(L7_int *mcast_group);
+extern L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group);
+
+/**
+ * Create a VLAN multicast group
+ * 
+ * @param mcast_group   : Multicast group id to be returned. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+extern L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group);
 
 /**
  * Destroy a multicast group
@@ -95,21 +104,25 @@ extern L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_gr
  * Add ports to Multicast egress
  * 
  * @param intIfNum    : interface to be added
- * @param mcast_group : Multicast group id.
+ * @param mcast_group : Multicast group id. 
+ * @param multicast_flag: Multicast flags 
+ * @param virtual_gport     : Virtual Port Identifier
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group);
+extern L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport);
 
 /**
- * Add port from Multicast egress
+ * Remove port from Multicast egress
  * 
  * @param intIfNum    : interface to be removed
- * @param mcast_group : Multicast group id.
+ * @param mcast_group : Multicast group id. 
+ * @param multicast_flag: Multicast flags 
+ * @param virtual_gport     : Virtual Port Identifier 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group);
+extern L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport);
 
 /**
  * Clean Multicast egress entries

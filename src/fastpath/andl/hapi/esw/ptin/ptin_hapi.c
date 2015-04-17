@@ -190,6 +190,13 @@ L7_RC_t ptin_hapi_switch_init(void)
     rc = L7_FAILURE;
   }
 
+  /*Enable Forwarding L3 Multicast on the Same VLAN*/
+  if (bcm_switch_control_set(0, bcmSwitchIpmcSameVlanL3Route, 0x01) != BCM_E_NONE)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI,"Error setting bcmSwitchIpmcSameVlanL3Route switch_control to 0x01");
+    rc = L7_FAILURE;
+  }
+
 #if (PTIN_BOARD_IS_GPON)
   /* For Vports usage */
   if (bcm_switch_control_set(0, bcmSwitchL3EgressMode, 1) != BCM_E_NONE)

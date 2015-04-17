@@ -15,6 +15,16 @@
  * INTERNAL FUNCTION PROTOTYPES
  *****************************************************************/
 
+ /**
+ * Create a multicast group
+ * 
+ * @param mcast_group   : Multicast group id to be returned. 
+ * @param multicast_flag: Multicast flags  
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multicast_flag);
+
 /***************************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  *****************************************************************/
@@ -194,6 +204,7 @@ L7_RC_t ptin_vlanBridge_multicast_set(L7_uint16 vlanId, L7_int mcast_group)
   mode.vlanId           = vlanId;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
+  mode.multicast_flag   = BCM_MULTICAST_TYPE_VLAN;
 
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
@@ -230,6 +241,7 @@ L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
   mode.vlanId           = vlanId;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
+  mode.multicast_flag   = BCM_MULTICAST_TYPE_VLAN;
 
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
@@ -239,14 +251,88 @@ L7_RC_t ptin_vlanBridge_multicast_clear(L7_uint16 vlanId, L7_int mcast_group)
   return rc;
 }
 
+L7_int ptin_debug_multicast_group_l3_create(void)
+{
+  L7_int  mcastGroup = -1;
+  ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L3);
+  return mcastGroup;
+}
+
 /**
- * Create a multicast group
+ * Create a L3 multicast group
  * 
- * @param mcast_group : Multicast group id to be returned.
+ * @param mcast_group   : Multicast group id to be returned. 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_group_create(L7_int *mcast_group)
+L7_RC_t ptin_multicast_group_l3_create(L7_int *mcast_group)
+{
+  L7_int  mcastGroup = -1;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if ( mcast_group == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_L3);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Failed to Create Multicast Group: rc=%d", rc);
+    return rc;
+  }
+
+  *mcast_group = mcastGroup;
+  
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mcastGroup);
+
+  return rc;
+}
+
+/**
+ * Create a VLAN multicast group
+ * 
+ * @param mcast_group   : Multicast group id to be returned. 
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+L7_RC_t ptin_multicast_group_vlan_create(L7_int *mcast_group)
+{
+  L7_int  mcastGroup = -1;
+  L7_RC_t rc = L7_SUCCESS;
+
+  /* Validate arguments */
+  if ( mcast_group == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  rc = ptin_multicast_group_create(&mcastGroup, BCM_MULTICAST_TYPE_VLAN);
+  if (rc != L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_PTIN_API, "Failed to Create Multicast Group: rc=%d", rc);
+    return rc;
+  }
+
+  *mcast_group = mcastGroup;
+  
+  LOG_TRACE(LOG_CTX_PTIN_API, "Finished: rc=%d (new MC group=%d)", rc, mcastGroup);
+
+  return rc;
+}
+
+/**
+ * Create a multicast group
+ * 
+ * @param mcast_group   : Multicast group id to be returned. 
+ * @param multicast_flag: Multicast flags  
+ * 
+ * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
+ */
+static L7_RC_t ptin_multicast_group_create(L7_int *mcast_group, L7_uint32 multicast_flag)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -263,6 +349,7 @@ L7_RC_t ptin_multicast_group_create(L7_int *mcast_group)
   mode.vlanId           = -1;
   mode.multicast_group  = *mcast_group;
   mode.destroy_on_clear = L7_FALSE;
+  mode.multicast_flag   = multicast_flag;
 
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
@@ -302,6 +389,7 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
   mode.vlanId           = -1;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_TRUE;
+  mode.multicast_flag   = (BCM_MULTICAST_TYPE_VLAN | BCM_MULTICAST_TYPE_L3);
 
   /* DTL call */
   rc = dtlPtinVlanBridgeMulticast(&mode);
@@ -315,11 +403,13 @@ L7_RC_t ptin_multicast_group_destroy(L7_int mcast_group)
  * Add ports to Multicast egress
  * 
  * @param intIfNum    : interface to be added
- * @param mcast_group : Multicast group id.
+ * @param mcast_group : Multicast group id. 
+ * @param multicast_flag: Multicast flags 
+ * @param virtual_gport     : Virtual Port
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group)
+L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -334,9 +424,10 @@ L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group)
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_SET;
-  mode.vlanId           = -1;
+  mode.virtual_gport    = virtual_gport;  
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
+  mode.multicast_flag   = multicast_flag;
 
   /* DTL call */
   rc = dtlPtinMulticastEgressPort(intIfNum, &mode);
@@ -350,11 +441,13 @@ L7_RC_t ptin_multicast_egress_port_add(L7_uint32 intIfNum, L7_int mcast_group)
  * Add port from Multicast egress
  * 
  * @param intIfNum    : interface to be removed
- * @param mcast_group : Multicast group id.
+ * @param mcast_group : Multicast group id. 
+ * @param multicast_flag: Multicast flags 
+ * @param virtual_gport     : Virtual Port Identifier 
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group)
+L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group, L7_uint32 multicast_flag, L7_int virtual_gport)
 {
   ptin_bridge_vlan_multicast_t mode;
   L7_RC_t rc = L7_SUCCESS;
@@ -369,9 +462,10 @@ L7_RC_t ptin_multicast_egress_port_remove(L7_uint32 intIfNum, L7_int mcast_group
 
   /* Fill structure */
   mode.oper             = DAPI_CMD_CLEAR;
-  mode.vlanId           = -1;
+  mode.virtual_gport    = virtual_gport;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
+  mode.multicast_flag   = multicast_flag;
 
   /* DTL call */
   rc = dtlPtinMulticastEgressPort(intIfNum, &mode);
@@ -407,6 +501,7 @@ L7_RC_t ptin_multicast_egress_clean(L7_int mcast_group)
   mode.vlanId           = -1;
   mode.multicast_group  = mcast_group;
   mode.destroy_on_clear = L7_FALSE;
+  mode.multicast_flag   = (BCM_MULTICAST_TYPE_L3 | BCM_MULTICAST_TYPE_L2);
 
   /* DTL call */
   rc = dtlPtinMulticastEgressPort(L7_ALL_INTERFACES, &mode);

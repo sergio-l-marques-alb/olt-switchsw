@@ -51,10 +51,23 @@ extern L7_RC_t ptin_hapi_bridge_vlan_mode_fwdVlan_set(L7_uint16 vlanId, L7_uint1
  * @param vlanId :    vlan to be configured
  * @param mcast_group : MC group id (if invalid, create a new 
  *                    one, and return it)
+ * @param multicast_flag: Multicast Flags 
  * 
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group);
+extern L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group, L7_uint32 multicast_flag);
+
+/**
+ * Remove MC group for a specific vlan for bridging 
+ * 
+ * @param vlanId :    vlan to be configured
+ * @param mcast_group : MC group id (if invalid, create a new 
+ *                    one, and return it)
+ * @param multicast_flags: Multicast Flags 
+ * 
+ * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_uint32 multicast_flag, L7_BOOL destroy_mcgroup);
 
 /**
  * Define the outer tpid of a specific vlan, for bridging 
@@ -153,22 +166,26 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
 /**
  * Add port to egress multicast group
  * 
- * @param mcast_group : MC group id (-1 to create)
+ * @param mcast_group : MC group id (-1 to create) 
+ * @param multicast_flag: Multicast Flags 
+ * @param vlan_id      : VLAN Identifier 
  * @param dapiPort    : Port to be added 
  *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, ptin_dapi_port_t *dapiPort);
+extern L7_RC_t ptin_hapi_multicast_egress_port_add(L7_int *mcast_group, L7_uint32 multicast_flag, L7_uint32 vlan_id, ptin_dapi_port_t *dapiPort);
 
 /**
  * Remove port from egress multicast group
  * 
  * @param mcast_group : MC group id (must be valid) 
+ * @param multicast_flag: Multicast Flags   
+ * @param vlan_id      : VLAN Identifier  
  * @param dapiPort    : Port to be removed
  *  
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, ptin_dapi_port_t *dapiPort);
+extern L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, L7_uint32 multicast_flag, L7_uint32 vlan_id, ptin_dapi_port_t *dapiPort);
 
 /**
  * Remove all entries associated to a MC group
@@ -179,26 +196,5 @@ extern L7_RC_t ptin_hapi_multicast_egress_port_remove(L7_int mcast_group, ptin_d
  * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_hapi_multicast_egress_clean(L7_int mcast_group, L7_BOOL destroy_mcgroup);
-
-/**
- * Define MC group for a specific vlan for bridging 
- * 
- * @param vlanId      : vlan to be configured
- * @param mcast_group : MC group id (-1 to create)
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_hapi_bridgeVlan_multicast_set(L7_uint16 vlanId, L7_int *mcast_group);
-
-/**
- * Rempove MC group for a specific vlan for bridging 
- * 
- * @param vlanId          : vlan to be configured
- * @param mcast_group     : MC group id 
- * @param destroy_mcgroup : Destroy MC group
- * 
- * @return L7_RC_t: L7_SUCCESS/L7_FAILURE
- */
-extern L7_RC_t ptin_hapi_bridgeVlan_multicast_reset(L7_uint16 vlanId, L7_int mcast_group, L7_BOOL destroy_mcgroup);
 
 #endif /* _PTIN_HAPI_BRIDGE__H */

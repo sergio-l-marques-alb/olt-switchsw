@@ -1558,6 +1558,11 @@ static L7_RC_t ipMapIntfDisable(L7_uint32 intIfNum)
   return rc;
 }
 
+L7_RC_t ptin_ipMapRoutingIntfCreate(intIfNum)
+{
+  return ipMapRoutingIntfCreate(intIfNum);
+}
+
 /*********************************************************************
 * @purpose  Check the state of an interface and determine whether the
 *           state needs to be updated in response to configuration changes,

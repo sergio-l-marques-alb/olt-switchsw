@@ -27,6 +27,7 @@
 #include "ptin_cnfgr.h"
 #include "ptin_fpga_api.h"
 #include "ptin_debug.h"
+#include "dtl_l3_mcast_api.h"
 
 #define IGMP_INVALID_ENTRY    0xFF
 
@@ -1765,16 +1766,39 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
   if (igmpProxy->mask & PTIN_IGMP_PROXY_MASK_ADMIN
       && igmpProxyCfg.admin != igmpProxy->admin)
   {
-    igmpProxyCfg.admin = igmpProxy->admin;
-
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    if (igmpProxyCfg.admin == L7_DISABLE)
+    if (igmpProxy->admin == L7_DISABLE)
     {
       LOG_TRACE(LOG_CTX_PTIN_IGMP, "Resetting Admission Control Allocation Parameters");
       //Reset Allocation Values of Admisssion Control Parameters
       ptin_igmp_admission_control_reset_allocation();    
     }
 #endif
+
+#if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
+    if ( igmpProxy->admin == L7_ENABLE )
+    {
+      /*Enable L3 IPMC Table*/
+      if (dtlRouterMulticastForwardModeSet(L7_ENABLE, L7_AF_INET)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to enable L3 IPMC Table!");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Enabled L3 IPMC Table");
+    }
+    else
+    {
+      /*Disable L3 IPMC Table*/
+      if (dtlRouterMulticastForwardModeSet(L7_DISABLE, L7_AF_INET)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_IGMP, "Failed to disable L3 IPMC Table!");
+        return L7_FAILURE;
+      }
+      LOG_TRACE(LOG_CTX_PTIN_IGMP, "Disabled L3 IPMC Table");
+    }
+#endif
+
+    igmpProxyCfg.admin = igmpProxy->admin;
   }
 
   osapiSemaGive(igmp_sem);
@@ -5956,9 +5980,10 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BO
   st_IgmpInstCfg_t *igmpInst;
 
   /*Input Parameters Validation*/  
-  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastRootVlan == L7_NULLPTR)
+  if ( intIfNum == 0 || intIfNum >= L7_MAX_INTERFACE_COUNT || (isLeafPort == L7_TRUE && clientId >= PTIN_IGMP_CLIENTIDX_MAX) || (isLeafPort == L7_FALSE && (intVlan <= PTIN_VLAN_MIN || intVlan>=PTIN_VLAN_MAX))
+       ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || mcastRootVlan == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p McastRootVlan:%p]", intIfNum, clientId, groupAddr, sourceAddr, mcastRootVlan);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [isLeafPort:%u intVlan:%u intIfNum:%u client_idx:%u groupAddr:%p sourceAddr:%p McastRootVlan:%p]", isLeafPort, intVlan, intIfNum, clientId, groupAddr, sourceAddr, mcastRootVlan);    
     return L7_FAILURE;
   }
 
@@ -17838,7 +17863,7 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
   /* Input Argument validation */
   if ( ptinPort >= PTIN_SYSTEM_N_UPLINK_INTERF || deviceClientId >= PTIN_IGMP_CLIENTIDX_MAX ||  groupAddr == L7_NULLPTR || sourceAddr == L7_NULLPTR || serviceId == L7_NULLPTR)
   {
-    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptinPort:%u clientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId);    
+    LOG_ERR(LOG_CTX_PTIN_IGMP, "Invalid arguments [ptinPort:%u clientId:%u groupAddr:%p sourceAddr:%p serviceId:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId);    
     return L7_FAILURE;
   }
 

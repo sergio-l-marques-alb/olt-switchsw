@@ -55,5 +55,71 @@ extern L7_RC_t ptin_hapi_l3_route_add(ptin_dapi_port_t *dapiPort, st_ptin_l3 *da
  */
 extern L7_RC_t ptin_hapi_l3_route_remove(ptin_dapi_port_t *dapiPort, st_ptin_l3 *data);
 
+/*********************************************************************
+* @purpose  Add a IP Mcast entry
+*
+* @param    ptin_ipmc     @{(input)} The address and info to add to IP Mcast Table
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc);
+
+/*********************************************************************
+* @purpose  Remove a IP Mcast entry
+*
+* @param    ptin_ipmc     @{(input)} The address and info to add to IP Mcast Table
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_hapi_l3_ipmc_remove(ptin_dtl_ipmc_addr_t *ptin_ipmc);
+
+/*********************************************************************
+* @purpose  Get a IP Mcast entry
+*
+* @param    ptin_ipmc     @{(input)} The address and info to add to IP Mcast Table
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_hapi_l3_ipmc_get(ptin_dtl_ipmc_addr_t *ptin_ipmc);
+
+/*********************************************************************
+* @purpose  Create an L3 Interface
+*
+* @param    intf          @{(input)} Interface attributes
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf);
+
+/*********************************************************************
+* @purpose  Delete an L3 Interface
+*
+* @param    intf          @{(input)} Interface attributes
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_hapi_l3_intf_delete (ptin_dtl_l3_intf_t *intf);
+
+/*********************************************************************
+* @purpose  Get an L3 Interface
+*
+* @param    intf          @{(input)} Interface attributes
+*
+* @returns  Defined by the Broadcom driver
+*
+* @end
+*********************************************************************/
+extern L7_RC_t ptin_hapi_l3_intf_get (ptin_dtl_l3_intf_t *intf);
+
 #endif /* _PTIN_HAPI_L3__H */
 

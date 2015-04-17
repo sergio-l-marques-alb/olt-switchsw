@@ -32,12 +32,16 @@ typedef L7_RC_t (*broad_ptin_generic_f)(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
 L7_RC_t broad_ptin_example(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 /* List of callbacks */
-broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
+broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {  
   broad_ptin_example,
   broad_ptin_l2_maclimit,
-  broad_ptin_l2_maclimit_status
+  broad_ptin_l2_maclimit_status,
+  broad_ptin_l3_intf, 
+  broad_ptin_l3_ipmc
 };
 
 /**
@@ -143,6 +147,117 @@ L7_RC_t broad_ptin_l2_maclimit_status(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operat
   return rc;
 }
 
+/**
+ * Handle L3 Interfaces
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_l3_intf(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  ptin_dtl_l3_intf_t *intf = (ptin_dtl_l3_intf_t *) data;
+  L7_RC_t             rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  /* Validate data pointer */
+  if (intf == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=%p", intf);
+    return L7_FAILURE;
+  }
+
+  /* Validate data size */
+  if (dataSize != sizeof(ptin_dtl_l3_intf_t))
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_l3_intf_t));
+    return L7_FAILURE;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d mac_address:%02x:%02x:%02x:%02x:%02x:%02x l3_intf_id:%d mtu:%d]", intf->flags, intf->vid, 
+           intf->mac_addr[0], intf->mac_addr[1], intf->mac_addr[2], intf->mac_addr[3], intf->mac_addr[4], intf->mac_addr[5], intf->l3_intf_id, intf->mtu);
+  
+  switch (operation)
+  {
+    case DAPI_CMD_GET:      
+      rc = ptin_hapi_l3_intf_get(intf);
+      break;
+
+    case DAPI_CMD_SET:      
+      rc = ptin_hapi_l3_intf_create(intf);
+      break;
+
+    case DAPI_CMD_CLEAR:      
+      rc = ptin_hapi_l3_intf_delete(intf);      
+      break;
+
+    default:
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      return L7_FAILURE;
+  }
+  return rc;  
+}
+
+/**
+ * Handle L3 IP Multicast Entries
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_l3_ipmc(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  ptin_dtl_ipmc_addr_t *ipmc = (ptin_dtl_ipmc_addr_t *) data;
+  L7_RC_t               rc = L7_SUCCESS;
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "usp={%d,%d,%d} operation=%u dataSize=%u", usp->unit, usp->slot, usp->port, operation, dataSize);
+
+  /* Validate data pointer */
+  if (ipmc == L7_NULLPTR)
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid Arguments: intf=%p", ipmc);
+    return L7_FAILURE;
+  }
+
+  /* Validate data size */
+  if (dataSize != sizeof(ptin_dtl_ipmc_addr_t))
+  {
+    LOG_ERR(LOG_CTX_PTIN_HAPI, "Invalid data size (%u VS %u)", dataSize, sizeof(ptin_dtl_ipmc_addr_t));
+    return L7_FAILURE;
+  }
+
+  LOG_INFO(LOG_CTX_PTIN_HAPI, "Input Parameters [flags:0x08%X vid:%d group_index:0x%x sourceAddr:0x%08x groupAddr:0x%08x]", ipmc->flags, ipmc->vid, ipmc->group_index, 
+           ipmc->s_ip_addr.addr.ipv4.s_addr, ipmc->mc_ip_addr.addr.ipv4.s_addr);
+  
+  switch (operation)
+  {
+    case DAPI_CMD_GET:      
+      rc = ptin_hapi_l3_ipmc_get(ipmc);
+      break;
+
+    case DAPI_CMD_SET:      
+      rc = ptin_hapi_l3_ipmc_add(ipmc);
+      break;
+
+    case DAPI_CMD_CLEAR:      
+      rc = ptin_hapi_l3_ipmc_remove(ipmc);      
+      break;
+
+    default:
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Not recognized operation (%u)!", operation);
+      return L7_FAILURE;
+  }
+  return rc;  
+}
 
 /**
  * Generic processor of DTL operations
@@ -880,8 +995,8 @@ L7_RC_t hapiBroadPtinBridgeVlanModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *da
 
   /* Multicast configuration */
   if (mode->mask & PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP)
-  {
-    if (ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group)!=L7_SUCCESS)
+  {    
+    if (ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group, mode->multicast_flag)!=L7_SUCCESS)
       rc = L7_FAILURE;
   }
 
@@ -1179,13 +1294,13 @@ L7_RC_t hapiBroadPtinBridgeVlanMulticastSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
   switch (mode->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group);
+    rc = ptin_hapi_bridgeVlan_multicast_set(mode->vlanId, &mode->multicast_group, mode->multicast_flag);
     break;
   case DAPI_CMD_CLEAR:
-    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->destroy_on_clear);
+    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->multicast_flag, mode->destroy_on_clear);
     break;
   case DAPI_CMD_CLEAR_ALL:
-    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->destroy_on_clear);
+    rc = ptin_hapi_bridgeVlan_multicast_reset(mode->vlanId, mode->multicast_group, mode->multicast_flag, mode->destroy_on_clear);
     break;
   default:
     rc = L7_FAILURE;
@@ -1216,10 +1331,10 @@ L7_RC_t hapiBroadPtinMulticastEgressPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, voi
   switch (mode->oper)
   {
   case DAPI_CMD_SET:
-    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, &dapiPort);
+    rc = ptin_hapi_multicast_egress_port_add(&mode->multicast_group, mode->multicast_flag, mode->virtual_gport, &dapiPort);
     break;
   case DAPI_CMD_CLEAR:
-    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, &dapiPort);
+    rc = ptin_hapi_multicast_egress_port_remove(mode->multicast_group, mode->multicast_flag, mode->virtual_gport, &dapiPort);
     break;
   case DAPI_CMD_CLEAR_ALL:
     rc = ptin_hapi_multicast_egress_clean(mode->multicast_group, mode->destroy_on_clear);

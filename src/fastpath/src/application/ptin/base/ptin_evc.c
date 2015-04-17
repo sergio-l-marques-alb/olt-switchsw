@@ -29,6 +29,8 @@
 #include "ptin_packet.h"
 #include "ptin_hal_erps.h"
 
+#include "dtlinclude.h"
+
 #include <vlan_port.h>
 
 #define PTIN_FLOOD_VLANS_MAX  8
@@ -102,6 +104,8 @@ struct ptin_evc_intf_s {
   L7_uint16  int_vlan;      /* Internal VLAN:
                              *  point-to-point - NOT APPLICABLE
                              *  point-to-multipoint - one internal VLAN per interface */
+
+  L7_int32   l3_intf_id;     /* L3 Interface ID. */ 
 
   /* GEM flows */
   #if 0
@@ -2572,10 +2576,11 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     /* Virtual ports: Create Multicast group */
     multicast_group = -1;
 
+    
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    if (is_quattro)
+    if (is_quattro)          
     {
-      if (ptin_multicast_group_create(&multicast_group)!=L7_SUCCESS)
+      if (ptin_multicast_group_vlan_create(&multicast_group)!=L7_SUCCESS)
       {
         LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
         error = L7_TRUE;
@@ -2598,8 +2603,23 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
           LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u associated to vlan %u", evc_id, multicast_group, root_vlan);
         }
       }
-    }
+    }    
+    else
     #endif
+    {
+      if (iptv_enabled)
+      {
+        if (ptin_multicast_group_l3_create(&multicast_group)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error creating multicast group", evc_id);
+          error = L7_TRUE;
+        }
+        else
+        {
+          LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Multicast group %u created", evc_id, multicast_group);
+        }
+      }
+    }
 
     /* If no error, proceed to configure each interface */
     if (!error)
@@ -2973,17 +2993,24 @@ _ptin_evc_create1:
     }
     #endif
 
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    /* Virtual ports: Destroy multicast group */
-    if (is_quattro && evcs[evc_id].multicast_group > 0)
+    if ( ((iptv_enabled) 
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+          || (is_quattro))
+          #endif
+         && evcs[evc_id].multicast_group > 0)
     {
-      /* Virtual ports: Configure multicast group for the vlan */
-      if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+      if (is_quattro)
       {
-        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
-        //return L7_FAILURE;
+        /* Virtual ports: Configure multicast group for the vlan */
+        if (ptin_vlanBridge_multicast_clear(root_vlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error configuring Multicast replication for VLAN %u (mcgroup=%u)", evc_id, root_vlan, evcs[evc_id].multicast_group);
+          //return L7_FAILURE;
+        }
+        LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
       }
-      LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, root_vlan, evcs[evc_id].multicast_group);
+      #endif
 
       if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
       {
@@ -2991,8 +3018,7 @@ _ptin_evc_create1:
         //return L7_FAILURE;
       }
       evcs[evc_id].multicast_group = -1;
-    }
-    #endif
+    } 
 
     if (evc_ext_id == PTIN_EVC_INBAND)
     {
@@ -3610,25 +3636,32 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
   }
   #endif
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  /* Virtual ports: Destroy Multicast group */
-  if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
-  {
-    /* Virtual ports: Configure multicast group for the vlan */
-    if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+  if ( ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
+                    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
+                    || (IS_EVC_QUATTRO(evc_id)) 
+                    #endif
+     ) && evcs[evc_id].multicast_group > 0)
+  { 
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED      
+    if (IS_EVC_QUATTRO(evc_id))      
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-      return L7_FAILURE;
+      /* Virtual ports: Configure multicast group for the vlan */
+      if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        return L7_FAILURE;
+      }
     }
     LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-
+    #endif
+    /*  Destroy Multicast group */
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
       return L7_FAILURE;
-    }
+    }    
   }
-  #endif
+  
   evcs[evc_id].multicast_group = -1;
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -3847,25 +3880,32 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
   }
   #endif
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  /* Virtual ports: Destroy Multicast group */
-  if (IS_EVC_QUATTRO(evc_id) && evcs[evc_id].multicast_group > 0)
+  if ( ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
+        #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
+        || (IS_EVC_QUATTRO(evc_id)) 
+        #endif
+       ) &&  evcs[evc_id].multicast_group > 0)
   {
-    /* Virtual ports: Configure multicast group for the vlan */
-    if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    if (IS_EVC_QUATTRO(evc_id))
     {
-      LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-      return L7_FAILURE;      
+      /* Virtual ports: Configure multicast group for the vlan */
+      if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mcgroup=%u)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+        return L7_FAILURE;      
+      }
+      LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
     }
-    LOG_INFO(LOG_CTX_PTIN_EVC, "EVC# %u: Removed multicast replication for vlan %u / group %d", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+    #endif
 
+    /* Destroy Multicast group */
     if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
     {
       LOG_ERR(LOG_CTX_PTIN_EVC, "EVC# %u: Error destroying multicast group %d", evc_id, evcs[evc_id].multicast_group);
       return L7_FAILURE;
     }
-  }
-  #endif
+  }  
   evcs[evc_id].multicast_group = -1;
 
   #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -8493,16 +8533,17 @@ static void ptin_evc_entry_init(L7_uint evc_id)
  */
 static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMef10Intf_t *intf_cfg)
 {
-  L7_BOOL   is_p2p, is_quattro, is_stacked;
-  L7_BOOL   is_root;
-  L7_BOOL   mac_learning;
-  L7_BOOL   cpu_trap;
-  L7_BOOL   iptv_flag;
-  L7_uint16 int_vlan;
-  L7_uint16 root_vlan;
-  ptin_intf_t intf;
-  L7_uint32 intIfNum;
-  L7_RC_t rc = L7_SUCCESS;
+  L7_BOOL            is_p2p, is_quattro, is_stacked;
+  L7_BOOL            is_root;
+  L7_BOOL            mac_learning;
+  L7_BOOL            cpu_trap;
+  L7_BOOL            iptv_flag;
+  L7_uint16          int_vlan;
+  L7_uint16          root_vlan;
+  ptin_intf_t        intf;
+  L7_uint32          intIfNum;
+  ptin_dtl_l3_intf_t l3_intf;
+  L7_RC_t            rc = L7_SUCCESS;
 
   /* Correct params */
   if (intf_cfg->vid_inner >= 4096)
@@ -8623,6 +8664,45 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
         return L7_FAILURE;
       }
     }
+    
+    if (iptv_flag)
+    {
+      memset(&l3_intf, 0x00, sizeof(l3_intf));
+
+      l3_intf.vid = int_vlan;
+
+      /* Apply configuration */
+      if (nimGetIntfAddress(intIfNum, L7_NULL, l3_intf.mac_addr)!=L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error getting MAC address of ptin port %u", ptin_port);
+        return L7_FAILURE;
+      }
+      /*Set the Flag of MAC ADDRESS*/
+      l3_intf.flags |= PTIN_BCM_L3_ADD_TO_ARL;
+
+      l3_intf.l3_intf_id = PTIN_HAPI_BROAD_INVALID_L3_INTF_ID;
+
+      /*Add L3 Leaf Interface*/
+      rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_SET, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
+
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding L3 leaf interface [ptin_port:%u rc:%d]",ptin_port, rc);
+        return L7_FAILURE;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
+
+      rc = ptin_multicast_egress_port_add(intIfNum, evcs[evc_id].multicast_group, BCM_MULTICAST_TYPE_L3, l3_intf.l3_intf_id);
+
+      if (rc != L7_SUCCESS)
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding Egress Port to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
+        return L7_FAILURE;
+      }
+
+      LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);      
+    }
   }
 
   /* Vlan mode configuration: Only for E-TREEs configuration */
@@ -8643,6 +8723,10 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
   evcs[evc_id].intf[ptin_port].in_use   = L7_TRUE;
   evcs[evc_id].intf[ptin_port].type     = intf_cfg->mef_type;
   evcs[evc_id].intf[ptin_port].int_vlan = int_vlan;
+
+  if (iptv_flag)
+    evcs[evc_id].intf[ptin_port].l3_intf_id = l3_intf.l3_intf_id;
+
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
@@ -8735,12 +8819,14 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, L7_uint ptin_port, ptin_HwEthMe
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
   L7_BOOL is_p2p, is_quattro, is_stacked, iptv_flag;
-  L7_BOOL is_root;
-  L7_uint16 out_vlan;
-  L7_uint16 inn_vlan;
-  L7_uint16 int_vlan;
-  ptin_intf_t intf;
-  L7_uint32 intIfNum;
+  L7_BOOL            is_root;
+  L7_uint16          out_vlan;
+  L7_uint16          inn_vlan;
+  L7_uint16          int_vlan;
+  ptin_intf_t        intf;
+  L7_uint32          intIfNum;
+  ptin_dtl_l3_intf_t l3_intf;
+  L7_RC_t            rc;
 
   is_p2p     = (evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == PTIN_EVC_MASK_P2P;
   is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
@@ -8825,6 +8911,47 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       #else
       ptin_evc_matrix_vlan_free(int_vlan);
       #endif
+    }
+
+    if (iptv_flag)
+    {
+      if (evcs[evc_id].intf[ptin_port].l3_intf_id  != PTIN_HAPI_BROAD_INVALID_L3_INTF_ID)
+      {
+        /*Initialize Struct*/
+        memset(&l3_intf, 0x00, sizeof(l3_intf));
+
+        /*Set the Flag of L3 Id*/
+        l3_intf.flags |= PTIN_BCM_L3_WITH_ID;
+        /*Copy L3 Intf Id*/
+        l3_intf.l3_intf_id = evcs[evc_id].intf[ptin_port].l3_intf_id;
+
+        /*Remove L3 Leaf Interface*/
+        rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L3_INTF, DAPI_CMD_CLEAR, sizeof(ptin_dtl_l3_intf_t), &l3_intf);
+
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding L3 leaf interface [ptin_port:%u rc:%d]",ptin_port, rc);
+          return L7_FAILURE;
+        }
+
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "Added L3 Leaf Interface [ptin_port:%u l3_intf_id:%d]", ptin_port, l3_intf.l3_intf_id);      
+
+        rc = ptin_multicast_egress_port_remove(intIfNum, evcs[evc_id].multicast_group, BCM_MULTICAST_TYPE_L3, l3_intf.l3_intf_id);
+
+        if (rc != L7_SUCCESS)
+        {
+          LOG_ERR(LOG_CTX_PTIN_EVC, "Error adding Egress Port to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x rc:%d]",ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group, rc);
+          return L7_FAILURE;
+        }
+
+        LOG_TRACE(LOG_CTX_PTIN_EVC, "Egress Port Added to Multicast Group [ptin_port:%u l3_intf_id:%d multicast_group:0x%x]", ptin_port, l3_intf.l3_intf_id, evcs[evc_id].multicast_group);    
+
+      }
+      else
+      {
+        LOG_ERR(LOG_CTX_PTIN_EVC, "Invalid L3 Intf Id:%u", l3_intf.l3_intf_id);
+      }
+      evcs[evc_id].intf[ptin_port].l3_intf_id = PTIN_HAPI_BROAD_INVALID_L3_INTF_ID;
     }
   }
 
@@ -12391,7 +12518,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
 
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
-    printf("  MC Group  = %u\n",   evcs[evc_id].multicast_group);
+    printf("  MC Group  = 0x%x\n",   evcs[evc_id].multicast_group);
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
@@ -12408,6 +12535,8 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
         printf("  LAG# %02u\n", i - PTIN_SYSTEM_N_PORTS);
 
       printf("    MEF Type      = %s          ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
+      if (IS_EVC_IPTV(evc_id) && evcs[evc_id].intf[i].type == PTIN_EVC_INTF_LEAF)
+        printf(" l3IntfId = %u  ", evcs[evc_id].intf[i].l3_intf_id);
       #if 0
       printf("#Flows=%u", evcs[evc_id].intf[i].n_flows);
       #endif
@@ -12517,7 +12646,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
       printf("ALL2ONE  ");
 
     if ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO)
-      printf("QUATTRO-");
+      printf("QUATTRO-"); 
     if ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P) == PTIN_EVC_MASK_P2P)
       printf("P2P     ");
     else
@@ -12549,7 +12678,7 @@ void ptin_evc_dump2(L7_int evc_id_ref)
 
     printf("  Root port1= %-2u\n", evcs[evc_id].root_info.port);
     printf("  Root VLAN = %-4u      NNI VLAN = %u+%u\n", evcs[evc_id].rvlan, evcs[evc_id].root_info.nni_ovid, evcs[evc_id].root_info.nni_ivid);
-    printf("  MC Group  = %u\n",   evcs[evc_id].multicast_group);
+    printf("  MC Group  = 0x%x\n",   evcs[evc_id].multicast_group);
 
     /* Only stacked services have clients */
     if (IS_EVC_STACKED(evc_id))
@@ -12566,6 +12695,8 @@ void ptin_evc_dump2(L7_int evc_id_ref)
         printf("  LAG# %02u\n", i - PTIN_SYSTEM_N_PORTS);
 
       printf("    MEF Type      = %s          ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
+      if (IS_EVC_IPTV(evc_id) && evcs[evc_id].intf[i].type == PTIN_EVC_INTF_LEAF)
+        printf(" l3IntfId = %u  ", evcs[evc_id].intf[i].l3_intf_id);
       #if 0
       printf("#Flows=%u", evcs[evc_id].intf[i].n_flows);
       #endif
