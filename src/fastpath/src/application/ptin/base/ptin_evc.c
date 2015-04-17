@@ -2995,9 +2995,9 @@ _ptin_evc_create1:
 
     if ( ((iptv_enabled) 
           #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-          || (is_quattro))
+          || (is_quattro)
           #endif
-         && evcs[evc_id].multicast_group > 0)
+          ) && evcs[evc_id].multicast_group > 0)
     {
       #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
       if (is_quattro)
