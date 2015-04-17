@@ -141,7 +141,9 @@
 # define PTIN_SYSTEM_QUERY_QUEUE_MAX_SIZE           1     /* Maximum number of entries in Query queue */
 # define PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT 1     /*This feature should be only enabled when this condition is verified !PTIN_BOARD_IS_MATRIX*/
 # define PTIN_SYSTEM_IGMP_MAXPACKAGES               256   /*Max Multicast Packages Per Card*/    
-# define PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD      1
+# define PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD      1     /*Support L3 Multicast Forwarding*/
+# define PTIN_SYSTEM_IGMP_L3_MULTICAST_MAX_ENTRIES  4096  /*Max Number of L3 Multicast Entries*/
+# define PTIN_SYSTEM_IGMP_GROUP_LIST_MAX_ENTRIES    16384 /*Max Number of Group List Entries*/
 
 # define PTIN_SYSTEM_N_DHCP_INSTANCES               32    /* Maximum nr of DHCP instances */
 # define PTIN_SYSTEM_N_PPPOE_INSTANCES              32    /* Maximum nr of PPPoE instances */

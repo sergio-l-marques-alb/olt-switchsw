@@ -1609,6 +1609,15 @@ L7_RC_t dot1qVlanIntfNextVlanIntfGetNext(L7_uint32 vlanId, L7_uint32 *nextVlanId
 
 }
 
+L7_uint32 ptin_dot1qVlanIntfIdGet(L7_uint32 vlanId)
+{
+  L7_uint32 intfId = (L7_uint32) -1;
+
+  dot1qVlanIntfIndexGet(vlanId,&intfId);
+
+  return intfId;
+}
+
 /*********************************************************************
 * @purpose  Get the interface ID for a given VLAN
 *

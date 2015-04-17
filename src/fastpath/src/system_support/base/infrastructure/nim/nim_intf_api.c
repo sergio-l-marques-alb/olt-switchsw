@@ -1818,6 +1818,10 @@ L7_INTF_STATES_t nimGetIntfState(L7_uint32 intIfNum)
     return nimUtilIntfStateGet(intIfNum);
 }
 
+L7_uint32 ptin_nimGetIntfMtuSize(L7_uint32 intIfNum)
+{
+  return nimCtlBlk_g->nimPorts[intIfNum].configPort.cfgInfo.ipMtu;
+}
 /*********************************************************************
 *
 * @purpose  Gets the max payload length of an L2 frame on a given interface.

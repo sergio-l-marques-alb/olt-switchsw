@@ -12,6 +12,8 @@ typedef enum
   PTIN_DTL_MSG_EXAMPLE=0,
   PTIN_DTL_MSG_L2_MACLIMIT,
   PTIN_DTL_MSG_L2_MACLIMIT_STATUS,
+  PTIN_DTL_MSG_L3_INTF,
+  PTIN_DTL_MSG_L3_IPMC,
   PTIN_DTL_MSG_MAX
 } ptin_dtl_msg_enum;
 
@@ -54,6 +56,69 @@ typedef struct
   L7_uint32   status;                  // Check if is over or within the limit. 0-Over, 1- Within*/
 
 } ptin_l2_maclimit_status_t;
+
+/* L3 module defines*/
+#define PTIN_HAPI_BROAD_INVALID_L3_INTF_ID  0xFFFFFFFF
+
+/* L3 module flags. */
+#define PTIN_BCM_L3_ADD_TO_ARL        (1 << 5)   /* Add interface address MAC to  ARL. */
+#define PTIN_BCM_L3_WITH_ID           (1 << 6)   /* ID is provided. */
+#define PTIN_BCM_L3_REPLACE           (1 << 8)   /* Replace existing entry. */
+
+
+/* 
+ * L3 Interface Structure.
+ * 
+ * Contains information required for manipulating L3 interfaces.
+ */
+typedef struct {
+    L7_uint32  flags;                    /* See BCM_L3_XXX flag definitions. */
+//  bcm_vrf_t l3a_vrf;                   /* Virtual router instance. */
+    L7_int32   l3_intf_id;               /* L3 Interface ID. */
+    L7_uchar8  mac_addr[L7_MAC_ADDR_LEN];/* MAC address. */
+    L7_int16   vid;                      /* VLAN ID. */
+//  bcm_vlan_t l3a_inner_vlan;           /* Inner vlan for double tagged packets. */
+//  int        l3a_tunnel_idx;           /* Tunnel (initiator) index. */
+    L7_int32   ttl;                      /* TTL threshold. */
+    L7_int32   mtu;                      /* MTU. */
+//  L7_int32   group;                    /* Interface group number. */
+//  bcm_l3_intf_qos_t vlan_qos;          /* Outer-Vlan QoS Setting. */
+//  bcm_l3_intf_qos_t inner_vlan_qos;    /* Inner-Vlan QoS Setting. */
+//  bcm_l3_intf_qos_t dscp_qos;          /* DSCP QoS Setting. */
+//  int l3a_intf_class;                  /* L3 interface class ID */
+//  int l3a_ip4_options_profile_id;      /* IP4 Options handling Profile ID */
+//  int l3a_nat_realm_id;                /* Realm id of the interface for NAT */
+//  uint16 outer_tpid;                   /* TPID value */
+//  uint32 l3a_intf_flags;               /* See BCM_L3_INTF_XXX flag definitions. */
+//  uint8 native_routing_vlan_tags;      /* Set number of VLAN tags expected when
+//                                         interface is used for native routing */
+} ptin_dtl_l3_intf_t;
+
+/* IPMC address flags. */
+#define PTIN_BCM_IPMC_DISABLED                   0x00000008 /* Add entry in disabled  state. */
+#define PTIN_BCM_IPMC_REPLACE                    0x00000010 /* Replace an existing  entry. */
+#define PTIN_BCM_IPMC_SOURCE_PORT_NOCHECK        0x80000000 /* Do not source port check this entry */
+#define PTIN_BCM_IPMC_IP6                        0x00000020 /* IPv6 support. */
+
+typedef struct 
+{
+  L7_inet_addr_t   s_ip_addr;         /* This will hold both ipv4 and ipv6 addresses*/
+  L7_inet_addr_t   mc_ip_addr;        /* This will hold both ipv4 and ipv6 addresses*/
+  L7_int16         vid;               /* VLAN ID. */
+//bcm_vrf_t        vrf;               /* Virtual Router Instance. */
+  L7_int32         cos;               /* COS based on dst IP multicast addr. */  
+  L7_int32         ts;                /* Source port or TGID bit. */
+  L7_int32         port_tgid;         /* Source port or TGID. */
+//L7_int32 v;                         /* Valid bit. */
+//int mod_id;                         /* Module ID. */
+  L7_int32         group_index;                /* Use this index to program IPMC table
+                                           for XGS chips based on flags value.
+                                         For SBX chips it is the Multicast
+                                           Group index */
+  L7_uint32 flags;                    /* See BCM_IPMC_XXX flag definitions. */
+//int lookup_class;                   /* Classification lookup class ID. */
+//bcm_fabric_distribution_t distribution_class; /* Fabric Distribution Class. */
+} ptin_dtl_ipmc_addr_t;
 
 /* Used for packet processing timing measure */
 typedef struct
@@ -433,15 +498,23 @@ typedef struct
   L7_BOOL   cross_connects_enable;  // Enable cross-connections for this vlan (only applicable to mask=0x10)
     #define PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP       0x20
   L7_int    multicast_group;        // Associate a multicast group
+  L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/
 } ptin_bridge_vlan_mode_t;
+
+/*The below values have been copied from bcm sdk*/  
+#define BCM_MULTICAST_TYPE_L2               0x00010000 
+#define BCM_MULTICAST_TYPE_L3               0x00020000 
+#define BCM_MULTICAST_TYPE_VLAN             0x00400000 
 
 /* Multicast management with vlans and ports */
 typedef struct
 {
   DAPI_CMD_GET_SET_t oper;    /* Operation */
-  L7_int  vlanId;             /* Vlan Id (-1 to be applied on egress ports) */
-  L7_int  multicast_group;    /* Multicast group id (-1 to be created) */
-  L7_BOOL destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
+  L7_int    vlanId;             /* Vlan Id (-1 to be applied on egress ports) */
+  L7_int    multicast_group;    /* Multicast group id (-1 to be created) */
+  L7_BOOL   destroy_on_clear;   /* Destroy MC group, if oper is CLEAR */
+  L7_int    virtual_gport; 
+  L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/    
 } ptin_bridge_vlan_multicast_t;
 
 /* Virtual ports commands */

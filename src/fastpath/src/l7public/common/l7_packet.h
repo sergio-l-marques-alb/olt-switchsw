@@ -832,8 +832,10 @@ typedef struct L7_ip6IcmpHeader_s
 #define L7_ICMPV6_TIME_EXCEED         3
 #define L7_ICMPV6_ECHO_REQUEST        128
 #define L7_ICMPV6_ECHO_REPLY          129
-#define L7_ICMPV6_ROUTER_ADVERT       134
 #define L7_ICMPV6_ROUTER_SOLICIT      133
+#define L7_ICMPV6_ROUTER_ADVERT       134
+#define L7_ICMPV6_NEIGHBOR_SOLICIT    135
+#define L7_ICMPV6_NEIGHBOR_ADVERT     136
 
 /* code field */
 /* Destination unreachable codes */
