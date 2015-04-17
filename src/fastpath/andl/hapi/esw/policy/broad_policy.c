@@ -221,7 +221,17 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       break;
 
     case BROAD_ACTION_SET_COSQ:
-      actionPtr->u.ifp_parms.set_cosq[action_scope] = param0;
+      /* PTin added: FP */
+      #if 1
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.set_cosq = param0;
+      }
+      else
+      #endif
+      {
+        actionPtr->u.ifp_parms.set_cosq[action_scope] = param0;
+      }
       break;
 
     case BROAD_ACTION_SET_TOS:
