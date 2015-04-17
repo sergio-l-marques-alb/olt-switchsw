@@ -1462,7 +1462,7 @@ static int _policy_super_qset_init_vfp(int unit)
 
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;
+    //applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;    /* PTin removed: IPSG */
     applicable_policy_types[BROAD_POLICY_TYPE_COSQ] = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]     = L7_TRUE;
@@ -1474,7 +1474,8 @@ static int _policy_super_qset_init_vfp(int unit)
     /* The following qsets use intra-slice doublewide mode, so the number of rules is cut in half. */
     _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
 
-    _policy_super_qset_add(unit, &ipv6L3L4QsetLookupDef, applicable_policy_types);
+    /* PTin removed: IPSG */
+    //_policy_super_qset_add(unit, &ipv6L3L4QsetLookupDef, applicable_policy_types);
 
     memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
     applicable_policy_types[BROAD_POLICY_TYPE_DOT1AD] = L7_TRUE;
@@ -1687,6 +1688,7 @@ static int _policy_super_qset_init_efp(int unit)
 static int _policy_super_qset_init(int unit)
 {
   int  i, j;
+  char str[301], val[21];
 
   for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
   {
@@ -1699,12 +1701,13 @@ static int _policy_super_qset_init(int unit)
 
   for (i = 0; i < SUPER_QSET_TABLE_SIZE; i++)
   {
-    printf("super_qset_table %-2u (width=%u, flags=0x%08x): ",i,super_qset_table[unit][i].sqsetWidth,super_qset_table[unit][i].flags);
+    sprintf(str,"super_qset_table %-2u (width=%u, flags=0x%08x): ",i,super_qset_table[unit][i].sqsetWidth,super_qset_table[unit][i].flags);
     for (j = 0; j < _SHR_BITDCLSIZE(BCM_FIELD_QUALIFY_MAX); j++)
     {
-      printf("%08X ",super_qset_table[unit][i].qsetAgg.w[j]);
+      sprintf(val,"%08X ",super_qset_table[unit][i].qsetAgg.w[j]);
+      strcat(str, val);
     }
-    printf("\r\n");
+    LOG_TRACE(LOG_CTX_STARTUP, "%s", str);
   }
 
   return BCM_E_NONE;

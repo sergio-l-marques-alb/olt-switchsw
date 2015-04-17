@@ -965,8 +965,8 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
 
         hapiBroadPolicyFieldFlagsSet(&rulePtr->fieldInfo, BROAD_FIELD_IVID, BROAD_FIELD_SPECIFIED);   /* update field qualification for this rule */
         break;
-    case BROAD_FIELD_MACDA:
-    case BROAD_FIELD_MACSA:
+    //case BROAD_FIELD_MACDA:
+    //case BROAD_FIELD_MACSA:
     case BROAD_FIELD_SIP:
     case BROAD_FIELD_DIP:
     case BROAD_FIELD_DSCP:
@@ -999,8 +999,8 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
         /* This is because these fields share the same memory space in BROAD_FIELD_ENTRY_t. This
            restriction can be removed if BROAD_FIELD_ENTRY_t is reorganized such that these
            fields do not share memory space. */
-        if ((hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_MACDA) == BROAD_FIELD_SPECIFIED) ||
-            (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_MACSA) == BROAD_FIELD_SPECIFIED) ||
+        if (/*(hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_MACDA) == BROAD_FIELD_SPECIFIED) ||
+            (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_MACSA) == BROAD_FIELD_SPECIFIED) ||*/
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_SIP)   == BROAD_FIELD_SPECIFIED) ||
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_DIP)   == BROAD_FIELD_SPECIFIED) ||
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_DSCP)  == BROAD_FIELD_SPECIFIED))
