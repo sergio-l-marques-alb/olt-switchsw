@@ -61,7 +61,12 @@ void help_oltBuga(void)
         "m 1018 intfType/intf# macAddr(xx:xx:xx:xx:xx:xx) - Set MAC address for the provided interface\r\n"
         "m 1020 port(0-MAX) - Show switch RFC2819 statistics\n\r"
         "m 1021 port(0-MAX) - Clear switch RFC2819 statistics\n\r"
-        "m 1022 MAC Limiting per interface - [slot] [system] [intf] [limit] [action] [send_trap]\n\r"
+        "m 1022 port(0-MAX) enable(0/1) - RFC2819 probe configuration\n\r"
+        "m 1023 bufferType(0-15min, 1-24hours) - Clear RFC2819 Monitoring buffer\n\r"
+        "m 1024 bufferType(0-15min, 1-24hours) startId(0-MAX, -1: Read from first buffer (most recent)) - Read RFC2819 buffers (inverted mode)\n\r"
+        "m 1025 port(0-MAX) - Read RFC2819 probe configuration\n\r"
+        "m 1026 bufferType(0-15min, 1-24hours) - RFC2819 buffers status\n\r"
+        "m 1027 MAC Limiting per interface - [slot] [system] [intf] [limit] [action] [send_trap]\n\r"
         "--- QOS and L2 commands --------------------------------------------------------------------------------------------------------------\n\r"
         "m 1030 intfType/intf# - Get QoS configuration\r\n"
         "m 1031 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
@@ -1268,8 +1273,188 @@ int main (int argc, char *argv[])
         }
         break;
 
-        //MAC Limiting per interface
+      //RFC2819 probe config
       case 1022:
+        {
+          msg_rfc2819_admin_t *ptr;
+
+          // Validate number of arguments
+          if (argc!=3+2)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (msg_rfc2819_admin_t *)comando.info;
+
+          // Slot id
+          ptr->SlotId = (uint8)-1;
+
+          // port
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->Port = (uint8) valued;
+
+          // Enable
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->Admin = (uint8) valued;
+
+          comando.msgId = CHMSG_RFC2819_MONITORING_CONFIG;
+          comando.infoDim = sizeof(msg_rfc2819_admin_t);
+        }
+        break;
+
+      //Clear RFC2819 Monitoring buffer
+      case 1023:
+        {
+          L7_uint32 *ptr;
+
+          // Validate number of arguments
+          if (argc<3+1)  {
+            help_oltBuga();
+            exit(0);
+          }
+
+          // Pointer to data array
+          ptr = (L7_uint32 *)comando.info;
+
+          // BufferType
+          if (StrToLongLong(argv[3+0],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          *ptr = (uint8) valued;
+
+          if (*ptr == RFC2819_BUFFER_15MIN) {
+            *ptr = 0;
+          }
+          else 
+          if (*ptr == RFC2819_BUFFER_24HOURS) {
+            *ptr = 0x80000000;
+          }
+          else {
+            help_oltBuga();
+            exit(0);
+          }
+
+          comando.msgId = CHMSG_RFC2819_MONITORING_CLEAR;
+          comando.infoDim = sizeof(L7_uint32);
+        }
+        break;
+
+      //Read RFC2819 buffers
+      case 1024:
+      {
+        L7_uint32 aux;
+        L7_uint32 *ptr;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to parameter
+        ptr = (L7_uint32 *)comando.info;
+
+        // BufferType
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        aux = (L7_uint32) valued;
+
+        if (aux == RFC2819_BUFFER_15MIN) {
+          *ptr = 0x00000000;
+        }
+        else 
+        if (aux == RFC2819_BUFFER_24HOURS) {
+          *ptr = 0x80000000;
+        }
+        else {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // BufferIndex
+        if (StrToLongLong(argv[3+1],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        aux = (L7_uint32) valued;
+
+        *ptr = *ptr | (aux & 0xFFFF);
+
+        comando.msgId = CHMSG_RFC2819_MONITORING_GET;
+        comando.infoDim = sizeof(L7_uint32);
+      }
+      break;
+
+      //Read RFC2819 probe configuration
+      case 1025:
+      {
+        L7_uint32 *Port;
+
+        // Validate number of arguments
+        if (argc!=3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        Port = (L7_uint32 *)comando.info;
+
+        // port
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        *Port = (L7_uint32)valued;
+
+        comando.msgId = CHMSG_RFC2819_MONITORING_SHOW_CONF;
+        comando.infoDim = sizeof(L7_uint32);
+      }
+      break;
+
+
+      //Read RFC2819 buffers status
+      case 1026:
+      {
+        L7_uint32 *BufferType;
+
+        // Validate number of arguments
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to parameter
+        BufferType = (L7_uint32 *)comando.info;
+
+        // BufferType
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        *BufferType = (L7_uint32)valued;
+
+        if ((*BufferType != RFC2819_BUFFER_15MIN) && (*BufferType != RFC2819_BUFFER_24HOURS)) {
+          help_oltBuga();
+          exit(0);
+        }
+
+        comando.msgId = CHMSG_RFC2819_MONITORING_BUFF_STATUS;
+        comando.infoDim = sizeof(L7_uint32);
+      }
+      break;
+
+        //MAC Limiting per interface
+      case 1027:
         {
           msg_l2_maclimit_config_t *ptr;
 
@@ -6862,6 +7047,98 @@ int main (int argc, char *argv[])
         break;
 
       case 1022:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch port configuration executed successfully\n\r");
+        else
+          printf(" Switch port configuration not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1023:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: RFCC2819 buffer cleared successfully\n\r");
+        else
+          printf(" Switch: Error clearing RFCC2819 buffer - error %08x\n\r", *(unsigned int*)resposta.info);
+        break;
+
+      case 1024:
+        {
+          uint8 index, n_index;
+
+          msg_rfc2819_buffer_t *ptr=(msg_rfc2819_buffer_t *)resposta.info;
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+            printf("Switch: RFC2819 buffer read successfully\n\r");
+            n_index = resposta.infoDim / sizeof(msg_rfc2819_buffer_t);
+            if ( n_index>RFC2819_MAX_BUFFER_GET_NEXT )  n_index=RFC2819_MAX_BUFFER_GET_NEXT;
+            printf("Idx  |    path   | timestamp |period |   Octets   |  Packets   | Broadcast  | Multicast  | CRCAlError | Undersize  | Oversize   | Fragments  |  Jabbers   | Collisions |Utilization | Pkts64     |Pkts65to127 |Pkts128to255|Pkts256to511|Pkts512t1023| Pkts1024t15180\n\r");
+            printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\r");
+            for ( index=0; index<n_index; index++ ) {
+              printf("%4ld |0x%.8lx | %8ld | %5ld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld | %10lld\n\r",
+                        ptr[index].index             ,
+                        ptr[index].path              ,
+                        ptr[index].time              ,
+                        ptr[index].cTempo            ,  
+                        ptr[index].Octets            ,  
+                        ptr[index].Pkts              ,  
+                        ptr[index].Broadcast         ,  
+                        ptr[index].Multicast         ,  
+                        ptr[index].CRCAlignErrors    ,  
+                        ptr[index].UndersizePkts     ,  
+                        ptr[index].OversizePkts      ,  
+                        ptr[index].Fragments         ,  
+                        ptr[index].Jabbers           ,  
+                        ptr[index].Collisions        ,  
+                        ptr[index].Utilization       ,  
+                        ptr[index].Pkts64Octets      ,  
+                        ptr[index].Pkts65to127Octets ,  
+                        ptr[index].Pkts128to255Octets,  
+                        ptr[index].Pkts256to511Octets,  
+                        ptr[index].Pkts512to1023Octets, 
+                        ptr[index].Pkts1024to1518Octets);
+            }
+            printf("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n\r");
+            printf("DONE!!!\n\r");
+          }
+          else
+            printf(" Switch: Error reading RFC2819 buffers\n\r");
+        }
+        break;
+
+      case 1025:
+        {
+          L7_uint32 *ptr=(L7_uint32 *)resposta.info;
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+            if ((*ptr & 0x80000000)==0) {
+              printf("Switch: RFC2819 Probe (Port=%ld) disabled\n\r",*ptr & 0xFFFF);
+            }
+            else {
+              printf("Switch: RFC2819 Probe (Port=%ld) enabled\n\r",*ptr & 0xFFFF);
+            }
+          }
+          else
+            printf(" Switch: Error reading RFC2819 Probe Configuration\n\r");
+        }
+        break;
+
+
+      case 1026:
+        {
+          msg_rfc2819_buffer_status_t *ptr=(msg_rfc2819_buffer_status_t *)resposta.info;
+
+          if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
+
+            printf(" Index  wrptr  Flflag MAXReg \n\r");
+            printf("+++++++++++++++++++++++++++++\n\r");
+            printf("%4d     %4d      %d   %4d\n\r",ptr->BufferType, ptr->wrptr, ptr->bufferfull, ptr->max_entrys);
+            printf("+++++++++++++++++++++++++++++\n\r");
+          }
+          else
+            printf(" Switch: Error reading RFC2819 buffers status\n\r");
+        }
+        break;
+
+      case 1027:
 
        /*msg_l2_maclimit_config_t *ptr;
         ptr = &(((msg_l2_maclimit_config_t *) resposta.info)[0]);
@@ -6878,7 +7155,6 @@ int main (int argc, char *argv[])
         else
           printf(" Switch: Error appling MAC learning limiting - error %08x\n\r", *(unsigned int*)resposta.info);
         break;
-
 
       case 1030:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
