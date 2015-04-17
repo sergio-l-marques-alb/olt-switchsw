@@ -970,10 +970,12 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
     case BROAD_FIELD_SIP:
     case BROAD_FIELD_DIP:
     case BROAD_FIELD_DSCP:
+        #if 0//Removed this Limitaion
         /* Disallow adding this field if either IP6_SRC or IP6_DST are already included */
         /* This is because these fields share the same memory space in BROAD_FIELD_ENTRY_t. This
            restriction can be removed if BROAD_FIELD_ENTRY_t is reorganized such that these
            fields do not share memory space. */
+        #endif
         if ((hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_IP6_SRC) == BROAD_FIELD_SPECIFIED) ||
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_IP6_DST) == BROAD_FIELD_SPECIFIED))
         {
@@ -995,10 +997,12 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
 
     case BROAD_FIELD_IP6_SRC:
     case BROAD_FIELD_IP6_DST:
+        #if 0//Removed this Limitaion
         /* Disallow adding this field if MACDA, MACSA, SIP, or DIP are already included */
         /* This is because these fields share the same memory space in BROAD_FIELD_ENTRY_t. This
            restriction can be removed if BROAD_FIELD_ENTRY_t is reorganized such that these
            fields do not share memory space. */
+        #endif
         if (/*(hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_MACDA) == BROAD_FIELD_SPECIFIED) ||
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_MACSA) == BROAD_FIELD_SPECIFIED) ||*/
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_SIP)   == BROAD_FIELD_SPECIFIED) ||

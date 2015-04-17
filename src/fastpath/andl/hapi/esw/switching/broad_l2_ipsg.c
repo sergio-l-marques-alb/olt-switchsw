@@ -175,6 +175,9 @@ L7_RC_t hapiBroadIpsgDefaultPolicyInstall(DAPI_t *dapi_g)
   L7_ushort16         ip_ethtype = L7_ETYPE_IP;
 #if HAPI_BROAD_IPSG_IPV6_SUPPORTED
   L7_ushort16         ipV6_ethtype = L7_ETYPE_IPV6;
+  L7_uchar8          ip_icmpV6     = IP_PROT_ICMPV6;
+//L7_uchar8          icmpV6_RS     = L7_ICMPV6_ROUTER_SOLICIT; /* Router Solicitation */
+//L7_uchar8          icmpV6_NA     = L7_ICMPV6_NEIGHBOR_ADVERT; /* Neighbor Advertisement */
 #endif
   L7_uchar8           exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE};
 #if (L7_FEAT_IPSG_ON_IFP == 0)
@@ -224,7 +227,21 @@ L7_RC_t hapiBroadIpsgDefaultPolicyInstall(DAPI_t *dapi_g)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8*)&ip_ethtype, exact_match);
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
 
-#if HAPI_BROAD_IPSG_IPV6_SUPPORTED
+#if HAPI_BROAD_IPSG_IPV6_SUPPORTED          
+    /*We are not able to fine tune this rules to only allow Clients to Send Neighbor Advertisement in Response 
+      to a Neighbor Solicitation from the DHCPv6 Server. Instead we allow all types of ICMPv6 Messages*/
+
+    hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+    hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER, (L7_uchar8 *)&ip_icmpV6, exact_match);    
+//  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ICMP_MSG_TYPE, (L7_uchar8 *)&icmpV6_NA, exact_match);
+
+    /*Router Solicitation*/
+//  hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
+//  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);
+//  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_NEXTHEADER, (L7_uchar8 *)&ip_icmpV6, exact_match);
+//  hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ICMP_MSG_TYPE, (L7_uchar8 *)&icmpV6_RS, exact_match);
+
     /* When we support IPv6 IPSG, we'll need to include a default rule to drop IPv6 traffic. */
     hapiBroadPolicyPriorityRuleAdd(&ruleId, priority);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipV6_ethtype, exact_match);

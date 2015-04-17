@@ -264,10 +264,14 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
     ptr = fieldInfo->fieldLookupStatus.value;
     break;
   case BROAD_FIELD_IP6_SRC:
-    ptr = fieldInfo->u.Ipv6.fieldIp6Src.value;
+    //Modified by MMELO@16-04-15
+//  ptr = fieldInfo->u.Ipv6.fieldIp6Src.value;
+    ptr = fieldInfo->u.l2Ipv4.fieldIp6Src.value;
     break;
   case BROAD_FIELD_IP6_DST:
-    ptr = fieldInfo->u.Ipv6.fieldIp6Dst.value;
+    //Modified by MMELO@16-04-15
+//  ptr = fieldInfo->u.Ipv6.fieldIp6Dst.value;
+    ptr = fieldInfo->u.l2Ipv4.fieldIp6Dst.value;
     break;
   case BROAD_FIELD_IP6_FLOWLABEL:
     ptr = fieldInfo->fieldIp6Flowlabel.value;
@@ -391,10 +395,14 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     ptr = fieldInfo->fieldLookupStatus.mask;
     break;
   case BROAD_FIELD_IP6_SRC:
-    ptr = fieldInfo->u.Ipv6.fieldIp6Src.mask;
+    //Modified by MMELO@16-04-15
+//  ptr = fieldInfo->u.Ipv6.fieldIp6Src.mask;
+    ptr = fieldInfo->u.l2Ipv4.fieldIp6Src.mask;    
     break;
   case BROAD_FIELD_IP6_DST:
-    ptr = fieldInfo->u.Ipv6.fieldIp6Dst.mask;
+  //Modified by MMELO@16-04-15
+//  ptr = fieldInfo->u.Ipv6.fieldIp6Dst.mask;
+    ptr = fieldInfo->u.l2Ipv4.fieldIp6Dst.mask;
     break;
   case BROAD_FIELD_IP6_FLOWLABEL:
     ptr = fieldInfo->fieldIp6Flowlabel.mask;

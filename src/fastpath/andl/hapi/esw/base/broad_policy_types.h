@@ -403,11 +403,13 @@ typedef struct
   {
     struct
     {
+      #if 0 //Removed Limitation
       /* MAC SA and MAC DA are included in the union here because currently
          none of the chips can include these qualifiers along w/ IPv6 
          qualifiers. Including them here consumes less memory. If future chips
          allow MAC SA and MAC DA w/ IPv6 qualifiers, then these should be
          moved outside of the union. */
+      #endif
       struct 
       {
         L7_uchar8  value[BROAD_FIELD_MACDA_SIZE];
@@ -438,8 +440,21 @@ typedef struct
         L7_uchar8  mask[BROAD_FIELD_DSCP_SIZE];
       } fieldDscp;
 
-    } l2Ipv4;
+      #if 1//Added to support IPV6 and MAC Address Qualifiers
+      struct 
+      {
+        L7_uchar8  value[BROAD_FIELD_IP6_SRC_SIZE];
+        L7_uchar8  mask[BROAD_FIELD_IP6_SRC_SIZE];
+      } fieldIp6Src;
 
+      struct 
+      {
+        L7_uchar8  value[BROAD_FIELD_IP6_DST_SIZE];
+        L7_uchar8  mask[BROAD_FIELD_IP6_DST_SIZE];
+      } fieldIp6Dst;
+      #endif
+
+    } l2Ipv4;    
     struct
     {
       struct 
