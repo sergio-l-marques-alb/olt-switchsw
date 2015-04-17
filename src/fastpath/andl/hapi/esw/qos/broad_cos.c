@@ -676,7 +676,7 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpDscp(BROAD_PORT_t *hapiPortPtr, L7_ucha
       for (dscp = 0; dscp < L7_QOS_COS_MAP_NUM_IPDSCP; dscp++)
       {
         /* Change global mapping table */
-        rv = bcmx_port_dscp_map_set(BCMX_LPORT_ETHER_ALL,
+        rv = bcmx_port_dscp_map_set(hapiPortPtr->bcmx_lport /*BCMX_LPORT_ETHER_ALL*/,
                                     dscp, dscp, dscpMap[dscp]);
 
         if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -1146,13 +1146,22 @@ static L7_RC_t hapiBroadQosCosApplyPolicy(BROAD_PORT_t *dstPortPtr, BROAD_PORT_t
     case DAPI_QOS_COS_INTF_MODE_TRUST_IPDSCP:
         hapiBroadQosCosRemoveIpPrec(dstPortPtr);
         
+        /* PTin modified: CoS */
+        #if 1
+        result = hapiBroadQosCosIntfTrustIpDscp(dstPortPtr,
+                                                qosPortPtr->cos.dscpMap,
+                                                qosPortPtr->cos.defaultCos,
+                                                qosPortPtr->cos.dscpMapDirty);
+        #else
         result = hapiBroadQosCosIntfTrustIpDscp(dstPortPtr,
                                                 qos->dscpMap,
                                                 qosPortPtr->cos.defaultCos,
                                                 qos->dscpMapDirty);
+        #endif
 
         if (result == L7_SUCCESS)
            qos->dscpMapDirty = L7_FALSE;
+           qosPortPtr->cos.dscpMapDirty = L7_FALSE;   /* PTin added: CoS */
         break;
 
 #if defined(FEAT_METRO_CPE_V1_0)
@@ -1354,11 +1363,26 @@ L7_RC_t hapiBroadQosCosIpDscpToTcMap(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data
     qos->dscpMap[dscp] = tc;
     qos->dscpMapDirty = L7_TRUE;
 
+    /* PTin added: CoS */
+    #if 1
+    qosPortPtr->cos.dscpMap[dscp] = tc;
+    qosPortPtr->cos.dscpMapDirty = L7_TRUE;
+    #endif
+
     /* set dscp map table for L3 frames */
+    #if 1
+    rv = bcmx_port_dscp_map_set(hapiPortPtr->bcmx_lport /*BCMX_LPORT_ETHER_ALL*/,
+                                dscp, dscp, qosPortPtr->cos.dscpMap[dscp]);
+
+    #else
     rv = bcmx_port_dscp_map_set(BCMX_LPORT_ETHER_ALL,
                                 dscp, dscp, qos->dscpMap[dscp]);
+    #endif
     if (L7_BCMX_OK(rv) != L7_TRUE)
+    {
+      LOG_ERR(LOG_CTX_PTIN_HAPI, "Error applying bcmx_port_dscp_map_set: rv=%d", rv);
       result = L7_FAILURE;
+    }
 
     hapiBroadQosSemGive(dapi_g);
 
@@ -1454,9 +1478,13 @@ L7_RC_t hapiBroadQosCosIntfTrustModeConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void
         if(memcmp(pMapTable->ip_dscp_traffic_class, qos->dscpMap, sizeof(qos->dscpMap)))
         {
             for (i = 0; i < L7_QOS_COS_MAP_NUM_IPDSCP; i++)
+            {
                 qos->dscpMap[i] = pMapTable->ip_dscp_traffic_class[i];
+                qosPortPtr->cos.dscpMap[i] = pMapTable->ip_dscp_traffic_class[i];   /* PTin added: CoS */
+            }
 
             qos->dscpMapDirty = L7_TRUE;
+            qosPortPtr->cos.dscpMapDirty = L7_TRUE;   /* PTin added: CoS */
         }
         break;
 #if defined(FEAT_METRO_CPE_V1_0)
