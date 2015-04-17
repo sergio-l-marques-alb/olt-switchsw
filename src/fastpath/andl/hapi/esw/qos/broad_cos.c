@@ -405,6 +405,8 @@ static L7_RC_t hapiBroadQosCosIntfUntrusted(BROAD_PORT_t *hapiPortPtr, L7_uchar8
         /* Add a rule to mark cosq for all other non-ip frames */
         hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, defTc, 0, 0);
+        /* PTin added: FP */
+        hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, defTc, 0, 0);
 
         if (L7_TRUE == l2Only) 
         { 
@@ -589,6 +591,8 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
             hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv4, exactMask);
             hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DSCP, &ipPrec, precMask);
             hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, precMap[i], 0, 0);
+            /* PTin added: FP */
+            hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, precMap[i], 0, 0);
         }
 
         result = hapiBroadPolicyCommit(&precId);
@@ -620,6 +624,8 @@ static L7_RC_t hapiBroadQosCosIntfTrustIpPrec(BROAD_PORT_t *hapiPortPtr, L7_ucha
           * override mappings added at a later time */
           hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
           hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, defTc, 0, 0);
+          /* PTin added: FP */
+          hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, defTc, 0, 0);
 
           result = hapiBroadPolicyCommit(&defaultPolicyId);
 

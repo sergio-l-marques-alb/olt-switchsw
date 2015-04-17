@@ -2116,6 +2116,8 @@ L7_RC_t hapiBroadCosCommitDot1pParams(BROAD_PORT_t *hapiPortPtr, L7_uchar8 *dot1
         hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOWEST);
         hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OCOS, &dot1p, exactMask);
         hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, dot1pMap[i], 0, 0);
+        /* PTin added: FP */
+        hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_CLASS_ID, dot1pMap[i], 0, 0);
         /* PTin removed: Do not execute remark here! */
         //hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, dot1pMap[i], 0, 0);
       }

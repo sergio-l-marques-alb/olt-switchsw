@@ -267,7 +267,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   BROAD_POLICY_RULE_t  ruleId  = BROAD_POLICY_RULE_INVALID/*, pcp_ruleId[8]*/;
   BROAD_METER_ENTRY_t  meterInfo;
   BROAD_POLICY_TYPE_t  policyType = BROAD_POLICY_TYPE_PTIN;
-  L7_uint8             cos, drop = 0;
+  L7_uint8             drop = 0;
   L7_uint8             mask[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
                                     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
   L7_uint64            profile_macAddr;
@@ -650,14 +650,16 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   #if 1
   if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT)
   {
-    cos = profile->cos;
-    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INT_PRIO, (L7_uint8 *)&cos, (L7_uint8 *) mask))!=L7_SUCCESS)
+    L7_uint32 class_id;
+
+    class_id = profile->cos;
+    if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_CLASS_ID, (L7_uint8 *)&class_id, (L7_uint8 *) mask))!=L7_SUCCESS)
     {
       hapiBroadPolicyCreateCancel();
       LOG_ERR(LOG_CTX_PTIN_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(INT_PRIO)");
       return result;
     }
-    LOG_TRACE(LOG_CTX_PTIN_HAPI,"OCOS (cos=%u) qualifier added", cos);
+    LOG_TRACE(LOG_CTX_PTIN_HAPI,"OCOS (class_id=%u) qualifier added", class_id);
   }
   #else
   if (profile->cos < L7_COS_INTF_QUEUE_MAX_COUNT &&
