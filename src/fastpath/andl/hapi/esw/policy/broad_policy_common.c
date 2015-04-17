@@ -484,7 +484,7 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     #if 1
     if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
     {
-      *param0 = actionPtr->u.vfp_parms.set_cosq;
+      *param0 = actionPtr->u.vfp_parms.set_cosq[action_scope];
     }
     else
     #endif

@@ -244,9 +244,9 @@ typedef struct
         L7_ushort16 set_ivid;
         L7_ushort16 add_ovid;
         L7_ushort16 add_ivid;
-        L7_uint32   set_class_id;       /* PTin modified: FP */
-        L7_uint32   set_src_class_id;   /* PTin added: FP */
-        L7_uchar8   set_cosq;           /* PTin added: COS */
+        L7_uint32   set_class_id;                         /* PTin modified: FP */
+        L7_uint32   set_src_class_id;                     /* PTin added: FP */
+        L7_uchar8   set_cosq[BROAD_POLICY_ACTION_LAST];   /* PTin added: COS */
         L7_uchar8   cpu_cosq;
       } vfp_parms;
 
