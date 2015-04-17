@@ -71,7 +71,14 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIp6FlowLabel,   /* IPv6 Flow Label */
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
-    //bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
+/* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyDstClassField,  /* Class ID from VFP, to be used in IFP - PTin added: FP */
+    bcmFieldQualifySrcClassField,  /* Class ID from VFP, to be used in IFP - PTin added: FP */
+#else
+    bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
+	bcmFieldQualifyLookupClass0,   /* PTin added: FP */
+#endif
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifySrcClassL2,
@@ -293,6 +300,13 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
     /* SET_REASON_CODE */
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -424,12 +438,37 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+/* PTin added: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    /* PTin added: FP */
+    /* SET_CLASS_ID */
+    {
+        { bcmFieldActionClassDestSet, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
+    {
+        { bcmFieldActionClassSourceSet, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#else
     /* SET_CLASS_ID */
     {
         { bcmFieldActionClassSet, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
+    {
+        { bcmFieldActionClassSet, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+#endif
     /* SET_REASON_CODE*/
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID , PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -568,6 +607,13 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
     /* SET_REASON_CODE*/
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -668,17 +714,36 @@ int _policy_set_subset(bcm_field_qset_t q1, custom_field_qset_t custom_q1,
 {
     int  i;
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    {
+      sysapiPrintf("%s(%d) - Qset1:\r\n", __FUNCTION__,__LINE__);
+      debug_print_qset(&q1);
+      sysapiPrintf("%s(%d) - Qset2:\r\n", __FUNCTION__,__LINE__);
+      debug_print_qset(&q2);
+    }
+
     for (i = 0; i < bcmFieldQualifyCount; i++)
     {
         if (BCM_FIELD_QSET_TEST(q1,i) && !BCM_FIELD_QSET_TEST(q2,i))
-            return BCM_E_FAIL;
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("%s(%d) - Qualifier %u failed\r\n", __FUNCTION__,__LINE__, i);
+          return BCM_E_FAIL;
+        }
     }
 
     for (i = customFieldQualifyFirst; i < customFieldQualifyLast; i++)
     {
         if (CUSTOM_FIELD_QSET_TEST(custom_q1,i) && !CUSTOM_FIELD_QSET_TEST(custom_q2,i))
-            return BCM_E_FAIL;
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("%s(%d) - Qualifier %u failed\r\n", __FUNCTION__,__LINE__, i);
+          return BCM_E_FAIL;
+        }
     }
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("%s(%d) - Qsets match\r\n", __FUNCTION__,__LINE__);
 
     return BCM_E_NONE;
 }
@@ -722,7 +787,7 @@ int _policy_super_qset_find_match(int                  unit,
       {
         /* If this sqset isn't applicable for this type of policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("%s(%d) i=%d: Continuing...\n", __FUNCTION__, __LINE__, i);
+          sysapiPrintf("%s(%d) qualifier i=%d not selected: Continuing...\n", __FUNCTION__, __LINE__, i);
         continue;
       }
 
@@ -730,7 +795,8 @@ int _policy_super_qset_find_match(int                  unit,
       {
         /* If this sqset doesn't have the proper width for this policy, continue. */
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("%s(%d) i=%d: Continuing...\n", __FUNCTION__, __LINE__, i);
+          sysapiPrintf("%s(%d) Different width for i=%d (sqsetwidth=%u VS qsetwidth=%u): Continuing...\n", __FUNCTION__, __LINE__, i,
+                       super_qset_table[unit][i].sqsetWidth, qsetWidth);
         continue;
       }
 
@@ -751,14 +817,14 @@ int _policy_super_qset_find_match(int                  unit,
       {
         *idx = i;
         /* If this sqset doesn't have the proper width for this policy, continue. */
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) Selected table entry: i=%d\n", __FUNCTION__, __LINE__, i);
         return BCM_E_NONE;
       }
     }
   }
 
-  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     sysapiPrintf("%s(%d) failed!\n", __FUNCTION__, __LINE__);
 
   return BCM_E_FAIL;
@@ -1337,7 +1403,7 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_create_mode(unit, qsetPtr->qsetAgg, 0, bcmFieldGroupModeAuto, &gid);
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) bcm_field_group_create_mode: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         break;
       }
@@ -1345,7 +1411,7 @@ static int _policy_super_qset_add(int                      unit,
       rv = bcm_field_group_status_get(unit, gid, &qsetPtr->status);
       if (rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) bcm_field_group_status_get: gid=%d, rv=%d\n", __FUNCTION__, __LINE__, gid, rv);
         break;
       }
@@ -1362,7 +1428,7 @@ static int _policy_super_qset_add(int                      unit,
       memset(qsetPtr, 0, sizeof(*qsetPtr));
     }
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("%s(%d) qset_add: rv=%d\n", __FUNCTION__, __LINE__, rv);
 
     return rv;
@@ -1401,6 +1467,9 @@ static int _policy_super_qset_init_vfp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]     = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT]  = L7_TRUE;
+
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("Adding qset l2l3l4QsetLookup\r\n");
 
     /* The following qsets use intra-slice doublewide mode, so the number of rules is cut in half. */
     _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
@@ -1498,7 +1567,7 @@ static int _policy_super_qset_init_ifp(int unit)
     if (SOC_IS_TRIDENT(unit))
       LOG_WARNING(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("Adding qset systemQsetTriumph2\r\n");
 
     /* Doublewide mode. */
@@ -1511,7 +1580,7 @@ static int _policy_super_qset_init_ifp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("Adding qset systemQsetPTin\r\n");
 
     /* Doublewide mode. */
@@ -1748,15 +1817,21 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
           (group2_type != BROAD_POLICY_TYPE_COSQ))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
       else if ((group2_type == BROAD_POLICY_TYPE_COSQ) && SOC_IS_HELIX1(unit))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
 #ifndef L7_IPV6_PACKAGE
       else if ((group2_type == BROAD_POLICY_TYPE_COSQ) && SOC_IS_SCORPION(unit))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
 #endif
     }
@@ -1771,15 +1846,21 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
           (group2_type != BROAD_POLICY_TYPE_STAT_CLIENT)) /* PTin modified: stats */
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
       else if ((group2_type == BROAD_POLICY_TYPE_COSQ) && SOC_IS_HELIX1(unit))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
 #ifndef L7_IPV6_PACKAGE
       else if ((group2_type == BROAD_POLICY_TYPE_COSQ) && SOC_IS_SCORPION(unit))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
 #endif
     }
@@ -1793,11 +1874,15 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
           SOC_IS_HELIX1(unit))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
 #ifndef L7_IPV6_PACKAGE
       else if (SOC_IS_SCORPION(unit))
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
 #endif
     }
@@ -1806,6 +1891,8 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
       if (group2_type != BROAD_POLICY_TYPE_LLPF)
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
     }
     else if (group1_type == BROAD_POLICY_TYPE_LLPF)
@@ -1813,13 +1900,20 @@ L7_BOOL _policy_group_types_compatible(int unit, BROAD_POLICY_TYPE_t group1_type
       if (group2_type != BROAD_POLICY_TYPE_IPSG)
       {
         groupTypesCompatible = L7_FALSE;
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
       }
     }
     else
     {
       groupTypesCompatible = L7_FALSE;
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        sysapiPrintf("%s(%d) Incompatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
     }
   }
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) Compatible group types (type1=%u VS type2=%u)\r\n", __FUNCTION__,__LINE__, group1_type, group2_type);
 
   return groupTypesCompatible;
 }
@@ -1857,7 +1951,7 @@ static int _policy_group_find_first(int                  unit,
        the block requested */
     if (_policy_group_types_compatible(unit, type, groupPtr->type) == L7_FALSE)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- Incompatible group types (%u VS %u)\n", type, groupPtr->type);
       return BCM_E_FAIL;
     }
@@ -1867,7 +1961,7 @@ static int _policy_group_find_first(int                  unit,
     _policy_group_alloc_type(groupPtr->type, &used_block, &used_dir);
     if (block != used_block)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- Different blocks (%u VS %u)\n", block, used_block);
       return BCM_E_FAIL;
     }
@@ -2227,7 +2321,7 @@ int _policy_group_calc_qset(int                             unit,
                 rv = _policy_field_to_bcm_field(f, entryPtr->policyStage, (char*)value, (char*)mask, &bcm_field, resourceReq->requiresEtype);
                 if (BCM_E_NONE != rv)
                 {
-                  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+                  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
                       sysapiPrintf("- _policy_field_to_bcm_field failed rv %d; field f %d; policyStage %d\n", rv, f, entryPtr->policyStage);
 
                   return rv;
@@ -2391,18 +2485,18 @@ static int _policy_group_find_group(int                             unit,
 
   debug_print_qset(&resourceReq->qsetAgg);
 
-  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     sysapiPrintf("_policy_group_find_group - stage=%d type=%d\n", entryPtr->policyStage, entryPtr->policyType);
 
   /* Find an existing group that can satisfy the policy requirements. */
   for (qsetWidth = sqsetWidthFirst; qsetWidth < sqsetWidthLast; qsetWidth++)
   {
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("_policy_group_find_group - qsetWidth reference %d\n", qsetWidth);
 
     rv = _policy_group_find_first(unit, entryPtr->policyStage, entryPtr->policyType, group);
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("_policy_group_find_group - First group is %d (rv=%d)\n", *group, rv);
 
     while (BCM_E_NONE == rv)
@@ -2451,7 +2545,7 @@ static int _policy_group_find_group(int                             unit,
               if (groupEfpUsingIfp == policyEfpUsingIfp)
               {
                 /* reuse existing group */
-                if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+                if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
                   sysapiPrintf("_policy_group_find_group - reuse group %d\n", *group);
 
                 return BCM_E_NONE;
@@ -2463,7 +2557,7 @@ static int _policy_group_find_group(int                             unit,
 
       rv = _policy_group_find_next(unit, entryPtr->policyStage, entryPtr->policyType, group);
 
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("_policy_group_find_group - Next group is %d (rv=%d)\n", *group, rv);
     }
   }
@@ -2484,7 +2578,7 @@ static int _policy_group_alloc_group(int                             unit,
   sqsetWidth_t           qsetWidth;
   super_qset_entry_t     sqsetInfo;
 
-  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     sysapiPrintf("%s(%d) Going to allocate group...\n", __FUNCTION__, __LINE__);
 
   /* make sure that only one group can do EFP on IFP */
@@ -2494,7 +2588,7 @@ static int _policy_group_alloc_group(int                             unit,
     {
       if ((group_table[unit][entryPtr->policyStage][i].flags & (GROUP_USED | GROUP_EFP_ON_IFP)) == (GROUP_USED | GROUP_EFP_ON_IFP))
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) Failure\n", __FUNCTION__, __LINE__);
         return BCM_E_FAIL;
       }
@@ -2514,19 +2608,19 @@ static int _policy_group_alloc_group(int                             unit,
                                        &sqset);
     if (BCM_E_NONE != rv)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("%s(%d) Match not found for qsetWidth=%d: rv=%d\n", __FUNCTION__, __LINE__, qsetWidth, rv);
       continue;
     }
   
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- using super qset %d\n", sqset);
 
     _policy_sqset_get(unit, sqset, &sqsetInfo);
 
     /* Try to find a group priority that we can use to create this group. */
     rv = _policy_group_find_first(unit, entryPtr->policyStage, entryPtr->policyType, group);
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("First Group=%u - rv %d\n", *group, rv);
 
     while (BCM_E_NONE == rv)
@@ -2534,15 +2628,12 @@ static int _policy_group_alloc_group(int                             unit,
       /* Enforce physical boundary conditions. */
       if (*group % sqsetInfo.status.slice_width_physical == 0)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-          sysapiPrintf("Creating group %u (width=%u)\n", *group, sqsetInfo.status.slice_width_physical);
-
         if (!(group_table[unit][entryPtr->policyStage][*group].flags & GROUP_USED))
         {
           rv = bcm_field_group_create_mode(unit, sqsetInfo.qsetAgg, *group, bcmFieldGroupModeAuto, &gid);
 
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
-            sysapiPrintf("bcm_field_group_create() returned %d\n", rv);
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("bcm_field_group_create() (group=%u width=%u) returned %d\n", *group, sqsetInfo.status.slice_width_physical, rv);
     
           if (rv == BCM_E_NONE)
           {
@@ -2552,7 +2643,7 @@ static int _policy_group_alloc_group(int                             unit,
       }
   
       rv = _policy_group_find_next(unit, entryPtr->policyStage, entryPtr->policyType, group);
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("Next Group=%u - rv %d\n", *group, rv);
     }
   
@@ -2576,7 +2667,7 @@ static int _policy_group_alloc_group(int                             unit,
           /* PTin added: FFP */
           #if 1
           groupPtr->count_rules = 0;
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("Resetted count_rules to 0 (gid=%u)\n",groupPtr->gid);
           #endif
         }
@@ -2585,7 +2676,7 @@ static int _policy_group_alloc_group(int                             unit,
       }
       else
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("_policy_group_resource_check() returned %d\n", rv);
   
         /* This policy won't fit in the new group, so destroy the group. */
@@ -2903,9 +2994,21 @@ static int _policy_group_add_std_field(int                   unit,
           rv = bcm_field_qualify_Ip6TrafficClass(unit, eid, *((uint8*)value), *((uint8*)mask));
         }
         break;
-//  case BROAD_FIELD_CLASS_ID:
-//      rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
-//      break;
+/* PTin added: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    /* PTin added: FP */
+    case BROAD_FIELD_CLASS_ID:
+        rv = bcm_field_qualify_DstClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        break;
+    case BROAD_FIELD_SRC_CLASS_ID:
+        rv = bcm_field_qualify_SrcClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        break;
+#else
+    case BROAD_FIELD_CLASS_ID:
+    case BROAD_FIELD_SRC_CLASS_ID:
+        rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
+        break;
+#endif
     case BROAD_FIELD_L2_CLASS_ID:
         /* PTin modified: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -3391,7 +3494,7 @@ static int _policy_group_add_actions(int                   unit,
         {
           if (BCMX_LPORT_INVALID == actPtr->u.ifp_parms.modid)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) Skipped action %u\n",__FUNCTION__,__LINE__,action);
             /* Skip this action for now. 
                This policy will be updated later when a member is added to the LAG. */
@@ -3426,7 +3529,7 @@ static int _policy_group_add_actions(int                   unit,
 
         if (PROFILE_ACTION_INVALID == bcm_action)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("%s(%d) bcm_action=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, rv);
           return BCM_E_CONFIG;
         }
@@ -3436,7 +3539,7 @@ static int _policy_group_add_actions(int                   unit,
           rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param0], 0);
           if (BCM_E_NONE != rv)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param0], rv);
           }
         }
@@ -3446,7 +3549,7 @@ static int _policy_group_add_actions(int                   unit,
           rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param1], 0);
           if (BCM_E_NONE != rv)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param1], rv);
           }
         }
@@ -3456,7 +3559,7 @@ static int _policy_group_add_actions(int                   unit,
           rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param2], 0);
           if (BCM_E_NONE != rv)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param2], rv);
           }
         }
@@ -3466,14 +3569,14 @@ static int _policy_group_add_actions(int                   unit,
           rv = bcm_field_action_add(unit, eid, bcm_action, param0, param1);
           if (BCM_E_NONE != rv)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) bcm_action=%d param0=%d param1=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
 
             return rv;
           }
         }
 
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) Added bcm_action=%d (param0=%d param1=%d): rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
 
         /* For a redirect action, add an implicit lookup status qualifier to 
@@ -3489,7 +3592,7 @@ static int _policy_group_add_actions(int                   unit,
                                            (char *)&val, (char *)&mask);
           if (BCM_E_NONE != rv)
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
               sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
             /* If error is BCM_E_NOT_FOUND, it means that the sqset for the group does not contain
@@ -3502,7 +3605,7 @@ static int _policy_group_add_actions(int                   unit,
               rv = BCM_E_NONE;
             }
             /* Otherwise log the error */
-            else if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+            else if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             {
               sysapiPrintf("Add lookup status to redirect/mirror action FAILED with ret val = %d\n", rv);
             }
@@ -4310,7 +4413,7 @@ int policy_group_create(int                             unit,
   L7_BOOL              reworkQset;
   bcm_field_qualify_t  reworkQualifier = bcmFieldQualifyIpType;
 
-  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
     sysapiPrintf("- create policy\n");
 
   rv = _policy_group_find_group(unit, policyData, resourceReq, group);
@@ -4354,14 +4457,14 @@ int policy_group_create(int                             unit,
 
   if (BCM_E_NONE != rv)
   {
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- allocate new group\n");
 
     rv = _policy_group_alloc_group(unit, policyData, resourceReq, group);
 
     if (BCM_E_NONE != rv)
     {
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- allocate new group FAILED (group=%d, rv=%d)\n", group, rv);
 
       reworkQset = L7_FALSE;
@@ -4395,7 +4498,7 @@ int policy_group_create(int                             unit,
         BCM_FIELD_QSET_REMOVE(resourceReq->qsetAgg, reworkQualifier);
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyEtherType);
 
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("- allocate new group\n");
 
         rv = _policy_group_alloc_group(unit, policyData, resourceReq, group);
@@ -4405,7 +4508,7 @@ int policy_group_create(int                             unit,
           BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, reworkQualifier);
           BCM_FIELD_QSET_REMOVE(resourceReq->qsetAgg, bcmFieldQualifyEtherType);
 
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("- allocate new group FAILED\n");
         }
       }
@@ -4414,7 +4517,7 @@ int policy_group_create(int                             unit,
 
   if (rv == BCM_E_NONE)
   {
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- using group %d\n", *group);
   }
 
@@ -4451,7 +4554,7 @@ int policy_group_add_rule(int                        unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_create rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -4459,7 +4562,7 @@ int policy_group_add_rule(int                        unit,
     {
       /* PTin removed: FFP */
       #if 0
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("- bcm_field_entry_create rv = %d\n", rv);
       #endif
       return rv;
@@ -4468,7 +4571,7 @@ int policy_group_add_rule(int                        unit,
     /* PTin added: FFP */
     #if 1
     groupPtr->count_rules++;
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("Incremented count_rules to %u (unit=%d, policyStage=%d, group=%d)\n",groupPtr->count_rules,unit,policyStage,group);
     #endif
 
@@ -4489,7 +4592,7 @@ int policy_group_add_rule(int                        unit,
                                        (char*)hapiBroadPolicyFieldMaskPtr(&rulePtr->fieldInfo, f));
           if (BCM_E_NONE != rv)     
           {
-             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+             if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
                sysapiPrintf("- _policy_group_add_field f=%d rv = %d\n", f, rv);
              return rv;
           }
@@ -4504,7 +4607,7 @@ int policy_group_add_rule(int                        unit,
 
       if (BCM_E_NONE != rv)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
         return rv;
       }
@@ -4512,7 +4615,7 @@ int policy_group_add_rule(int                        unit,
       /* add meters or counters, if any, but not both */
       if (rulePtr->ruleFlags & BROAD_METER_SPECIFIED)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("- adding a meter\n");
   
         /* PTin modified: SDK 6.3.0 */
@@ -4523,7 +4626,7 @@ int policy_group_add_rule(int                        unit,
         #endif
         if (BCM_E_NONE != rv)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
           return rv;
         }
@@ -4557,7 +4660,7 @@ int policy_group_add_rule(int                        unit,
       #endif
       if (rulePtr->ruleFlags & BROAD_COUNTER_SPECIFIED)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("- adding a counter\n");
 
         /* PTin modified: SDK 6.3.0 */
@@ -4568,7 +4671,7 @@ int policy_group_add_rule(int                        unit,
         #endif
         if (BCM_E_NONE != rv)
         {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
             sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
           return rv;
         }
@@ -4591,7 +4694,7 @@ int policy_group_add_rule(int                        unit,
       #if 1
       if ( rv != BCM_E_NONE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
         LOG_ERR(LOG_CTX_PTIN_HAPI, "Error commiting rule: unit=%d stage=%d gid=%d eid=%d (maxgroups=%d)",
@@ -4606,12 +4709,12 @@ int policy_group_add_rule(int                        unit,
 
       /* PTin added: FFP */
       #if 1
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
           sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
       #endif
     }
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
 
     return rv;
@@ -4647,7 +4750,7 @@ int policy_group_set_pbm(int                  unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -4663,13 +4766,13 @@ int policy_group_set_pbm(int                  unit,
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
         return rv;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- Applied new pbm: 0x%08x %08x %08x / 0x%08x %08x %08x (entry=%d)\n",
                    pbm.pbits[2], pbm.pbits[1], pbm.pbits[0], maskPbm.pbits[2], maskPbm.pbits[1], maskPbm.pbits[0], eid);
 
@@ -4708,7 +4811,7 @@ int policy_group_set_portclass(int                  unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -4779,7 +4882,7 @@ int policy_group_set_portclass(int                  unit,
       rv = bcm_field_entry_install(unit, eid);
 
       /* PTin added: FFP */
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
       if (BCM_E_NONE != rv)
@@ -4867,7 +4970,7 @@ int policy_group_set_outervlan(int                  unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -4893,7 +4996,7 @@ int policy_group_set_outervlan(int                  unit,
       rv = bcm_field_entry_install(unit, eid);
 
       /* PTin added: FFP */
-      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
       if (BCM_E_NONE != rv)
@@ -5002,7 +5105,7 @@ int policy_group_delete_rule(int                  unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -5053,7 +5156,7 @@ int policy_group_delete_rule(int                  unit,
     rv = bcm_field_entry_destroy(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_destroy rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -5062,7 +5165,7 @@ int policy_group_delete_rule(int                  unit,
     /* PTin added: FFP */
     #if 1
     if (groupPtr->count_rules>0)  groupPtr->count_rules--;
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("Decremented count_rules to %u (unit=%d, policyStage=%d, group=%d)\n",groupPtr->count_rules,unit,policyStage,group);
     #endif
 
@@ -5081,7 +5184,7 @@ int policy_group_destroy(int unit, BROAD_POLICY_STAGE_t policyStage, BROAD_GROUP
     if (!(groupPtr->flags & GROUP_USED))
         return BCM_E_NOT_FOUND;
 
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- destroy group %d, gid %d\n", group, groupPtr->gid);
 
     rv = bcm_field_group_destroy(unit, groupPtr->gid);
@@ -5239,7 +5342,7 @@ void policy_group_dataplane_cleanup(int                  unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_remove rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -5272,7 +5375,7 @@ void policy_group_dataplane_cleanup(int                  unit,
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -5374,7 +5477,7 @@ int policy_group_create_default_rule(int unit,
 
     /* PTin added: FFP */
     #if 1
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- bcm_field_entry_create rv = %d (entry=%d)\n", rv, eid);
     #endif
 
@@ -5384,7 +5487,7 @@ int policy_group_create_default_rule(int unit,
     /* PTin added: FFP */
     #if 1
     groupPtr->count_rules++;
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("Incremented count_rules to %u (unit=%d, policyStage=%d, group=%d)\n",groupPtr->count_rules,unit,BROAD_POLICY_STAGE_INGRESS,group);
     #endif
 
@@ -5414,7 +5517,7 @@ int policy_group_create_default_rule(int unit,
     rv = bcm_field_entry_install(unit, eid);
 
     /* PTin added: FFP */
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
       sysapiPrintf("- bcm_field_entry_install rv = %d (entry=%d)\n", rv, eid);
 
     if (BCM_E_NONE != rv)
@@ -5510,7 +5613,7 @@ void debug_print_qset(bcm_field_qset_t *qset)
   char *qual_text[bcmFieldQualifyCount] = BCM_FIELD_QUALIFY_STRINGS;
   int   i;
 
-  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_MED)
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
   {
     sysapiPrintf("- policy being created needs qset ");
     for (i = 0; i < bcmFieldQualifyCount; i++)

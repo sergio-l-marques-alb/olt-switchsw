@@ -343,13 +343,6 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
   #endif
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
-     PTIN_BOARD == PTIN_BOARD_TA48GE ||  \
-     PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  bcmFieldQualifyIntPriority,   /* PTin added: FP */
-#endif
-  bcmFieldQualifySrcClassField,
-  bcmFieldQualifyDstClassField,
 
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyTunnelType,
@@ -375,6 +368,19 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
   bcmFieldQualifySrcTrunk,      /* PTin added: FP */
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
   bcmFieldQualifyDstIp,         /* PTin added: FP */
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
+     PTIN_BOARD == PTIN_BOARD_TA48GE ||  \
+     PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  bcmFieldQualifyIntPriority,   /* PTin added: FP */
+#endif
+/* PTin added: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+  bcmFieldQualifyDstClassField, /* PTin added: FP */
+  bcmFieldQualifySrcClassField, /* PTin added: FP */
+#else
+  bcmFieldQualifyLookupClass0,
+#endif
 
   bcmFieldQualifyStageIngress
 };

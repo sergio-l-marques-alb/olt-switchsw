@@ -340,6 +340,22 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       }
       break;
 
+    /* PTin added: FP */
+    case BROAD_ACTION_SET_SRC_CLASS_ID:
+      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
+      {
+        LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
+      }
+      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+      {
+        actionPtr->u.vfp_parms.set_src_class_id = param0;
+      }
+      else
+      {
+        actionPtr->u.ifp_parms.set_src_class_id = param0;
+      }
+      break;
+
     case BROAD_ACTION_SET_REASON_CODE:
       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
       {
@@ -922,6 +938,9 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
       return L7_ERROR;
     }
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("%s(%d) Adding qualifier %u!\n", __FUNCTION__, __LINE__, field);
+
     switch (field)
     {
     case BROAD_FIELD_OVID:
@@ -948,6 +967,9 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
         if ((hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_IP6_SRC) == BROAD_FIELD_SPECIFIED) ||
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_IP6_DST) == BROAD_FIELD_SPECIFIED))
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("%s(%d) Error: field %u!\n", __FUNCTION__, __LINE__, field);
+
           return L7_FAILURE;
         }
 
@@ -973,6 +995,9 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_DIP)   == BROAD_FIELD_SPECIFIED) ||
             (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_DSCP)  == BROAD_FIELD_SPECIFIED))
         {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("%s(%d) Error: field %u!\n", __FUNCTION__, __LINE__, field);
+
           return L7_FAILURE;
         }
         /* fall through */
@@ -988,9 +1013,15 @@ L7_RC_t hapiBroadPolicyRuleQualifierAdd(BROAD_POLICY_RULE_t  rule,
             }
 
             hapiBroadPolicyFieldFlagsSet(&rulePtr->fieldInfo, field, BROAD_FIELD_SPECIFIED);   /* update field qualification for this rule */
+
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+              sysapiPrintf("%s(%d) Added qualifier %u!\n", __FUNCTION__, __LINE__, field);
         }
         else
         {
+            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+              sysapiPrintf("%s(%d) Error: field %u!\n", __FUNCTION__, __LINE__, field);
+
             /* special bit field not handled properly */
             return L7_FAILURE;
         }
@@ -2439,6 +2470,7 @@ void hapiBroadPolicyDebugAction(BROAD_ACTION_ENTRY_t       *actionPtr,
   case BROAD_ACTION_ADD_OUTER_VID:
   case BROAD_ACTION_ADD_INNER_VID:
   case BROAD_ACTION_SET_CLASS_ID:
+  case BROAD_ACTION_SET_SRC_CLASS_ID:       /* PTin added: FP */
   case BROAD_ACTION_SET_REASON_CODE:
     sysapiPrintf("{%02x}\n", param0);
     break;

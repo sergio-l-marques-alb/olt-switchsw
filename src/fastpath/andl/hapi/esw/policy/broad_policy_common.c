@@ -44,7 +44,8 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_IP6_FLOWLABEL_SIZE,
   BROAD_FIELD_IP6_TRAFFIC_CLASS_SIZE,
   BROAD_FIELD_ICMP_MSG_TYPE_SIZE,
-  //BROAD_FIELD_CLASS_ID_SIZE,
+  BROAD_FIELD_CLASS_ID_SIZE,
+  BROAD_FIELD_SRC_CLASS_ID_SIZE,    /* PTin added: FP */
   BROAD_FIELD_L2_CLASS_ID_SIZE,
   BROAD_FIELD_ISCSI_OPCODE_SIZE,
   BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS_SIZE,
@@ -84,7 +85,8 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "IP6_FLOWLABEL",
     "IP6_TRAFFIC_CLASS",
     "ICMP_MSG_TYPE",
-    //"CLASS_ID",
+    "CLASS_ID",
+    "SRC_CLASS_ID",     /* PTin added: FP */
     "L2_CLASS_ID",
     "ISCSI_OPCODE",
     "ISCSI_OPCODE_TCP_OPTIONS",
@@ -125,6 +127,7 @@ static char *broadActionNameTable[BROAD_ACTION_LAST] =
     "ADDIVID ",
     "NOLEARN ",
     "SETCLASS",
+    "SETSRCCLASS",    /* PTin added: FP */
     "SETREASON",
     "COPYUSERPFROMINNERTAG",
 };
@@ -275,9 +278,13 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_ICMP_MSG_TYPE:
     ptr = fieldInfo->fieldIcmpMsgType.value;
     break;
-//case BROAD_FIELD_CLASS_ID:
-//  ptr = fieldInfo->fieldClassId.value;
-//  break;
+  case BROAD_FIELD_CLASS_ID:
+    ptr = fieldInfo->fieldClassId.value;
+    break;
+  /* PTin added: FP */
+  case BROAD_FIELD_SRC_CLASS_ID:
+    ptr = fieldInfo->fieldSrcClassId.value;
+    break;
   case BROAD_FIELD_L2_CLASS_ID:
     ptr = fieldInfo->fieldL2ClassId.value;
     break;
@@ -422,6 +429,14 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     ptr = fieldInfo->fieldPortClass.mask;
     break;
   // PTin end
+  /* PTin added: FP */
+  case BROAD_FIELD_CLASS_ID:
+    ptr = fieldInfo->fieldClassId.mask;
+    break;
+  /* PTin added: FP */
+  case BROAD_FIELD_SRC_CLASS_ID:
+    ptr = fieldInfo->fieldSrcClassId.mask;
+    break;
   /* The following fields don't support masks */
   case BROAD_FIELD_VLAN_FORMAT:
   case BROAD_FIELD_L2_FORMAT:
@@ -465,7 +480,17 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     break;
 
   case BROAD_ACTION_SET_COSQ:
-    *param0 = actionPtr->u.ifp_parms.set_cosq[action_scope];
+    /* PTin added: FP */
+    #if 1
+    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      *param0 = actionPtr->u.vfp_parms.set_cosq;
+    }
+    else
+    #endif
+    {
+      *param0 = actionPtr->u.ifp_parms.set_cosq[action_scope];
+    }
     break;
 
   case BROAD_ACTION_COPY_TO_CPU:
@@ -564,6 +589,18 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     else
     {
       *param0 = actionPtr->u.ifp_parms.set_class_id;
+    }
+    break;
+
+  /* PTin added: FP */
+  case BROAD_ACTION_SET_SRC_CLASS_ID:
+    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
+    {
+      *param0 = actionPtr->u.vfp_parms.set_src_class_id;
+    }
+    else
+    {
+      *param0 = actionPtr->u.ifp_parms.set_src_class_id;
     }
     break;
 

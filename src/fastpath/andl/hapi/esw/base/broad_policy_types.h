@@ -137,8 +137,9 @@ typedef enum
     BROAD_FIELD_IP6_FLOWLABEL,
     BROAD_FIELD_IP6_TRAFFIC_CLASS,
     BROAD_FIELD_ICMP_MSG_TYPE,
-    //BROAD_FIELD_CLASS_ID,     /* For use in the IFP, determined by VFP results */
-    BROAD_FIELD_L2_CLASS_ID,  /* For use in the IFP, determined by L2X results */
+    BROAD_FIELD_CLASS_ID,       /* For use in the IFP, determined by VFP results */
+    BROAD_FIELD_SRC_CLASS_ID,   /* PTin added: FP */
+    BROAD_FIELD_L2_CLASS_ID,    /* For use in the IFP, determined by L2X results */
     BROAD_FIELD_ISCSI_OPCODE,
     BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS, /* Use this field for iSCSI clients that default to 12 bytes of TCP options (e.g. Linux). */
     BROAD_FIELD_TCP_CONTROL,
@@ -200,6 +201,7 @@ typedef enum
     BROAD_ACTION_ADD_INNER_VID,           /* vid       n/a     n/a      add a new inner VLAN ID (LOOKUP only)    */
     BROAD_ACTION_DO_NOT_LEARN,            /* n/a       n/a     n/a      do not learn the MAC SA (LOOKUP only)    */
     BROAD_ACTION_SET_CLASS_ID,            /* class id  n/a     n/a      set a class ID to be used by IFP (LOOKUP only) */
+    BROAD_ACTION_SET_SRC_CLASS_ID,        /* class id  n/a     n/a      set a class ID to be used by IFP (LOOKUP only) - PTin added: FP */
     BROAD_ACTION_SET_REASON_CODE,         /* reason    n/a     n/a      set a reason for RX */
     BROAD_ACTION_SET_USERPRIO_AS_COS2,    /* n/a n/a n/a Copy inner TAG priority as dot1p priority in outgoing L2 frame */
  /* etc... */
@@ -242,7 +244,9 @@ typedef struct
         L7_ushort16 set_ivid;
         L7_ushort16 add_ovid;
         L7_ushort16 add_ivid;
-        L7_uchar8   set_class_id;
+        L7_uint32   set_class_id;       /* PTin modified: FP */
+        L7_uint32   set_src_class_id;   /* PTin added: FP */
+        L7_uchar8   set_cosq;           /* PTin added: COS */
         L7_uchar8   cpu_cosq;
       } vfp_parms;
 
@@ -265,7 +269,8 @@ typedef struct
           L7_uchar8 nonconforming;
         } set_dropprec;
 
-        L7_uchar8   set_class_id;
+        L7_uint32   set_class_id;       /* Ptin modified: FP */
+        L7_uint32   set_src_class_id;   /* PTin added: FP */
         L7_uchar8   set_reason;
       } ifp_parms;
 
@@ -371,7 +376,8 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_IP6_FLOWLABEL_SIZE             4
 #define BROAD_FIELD_IP6_TRAFFIC_CLASS_SIZE         1
 #define BROAD_FIELD_ICMP_MSG_TYPE_SIZE             1
-//#define BROAD_FIELD_CLASS_ID_SIZE                  1
+#define BROAD_FIELD_CLASS_ID_SIZE                  sizeof(uint32)       /* PTin modified: FP */
+#define BROAD_FIELD_SRC_CLASS_ID_SIZE              sizeof(uint32)       /* PTin modified: FP */
 #define BROAD_FIELD_TCP_CONTROL_SIZE               1
 #define BROAD_FIELD_L2_CLASS_ID_SIZE               1
 #define BROAD_FIELD_ISCSI_OPCODE_SIZE              1
@@ -384,10 +390,10 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_OUTPORT_SIZE                   sizeof(bcm_port_t)   /* PTin added: FP */
 #define BROAD_FIELD_SRCTRUNK_SIZE                  sizeof(bcm_trunk_t)  /* PTin added: FP */
 #define BROAD_FIELD_PORTCLASS_SIZE                 sizeof(uint32)       /* PTin added: FP */
-#define BROAD_FIELD_DROP_SIZE                      1    /* PTin added: FP */
-#define BROAD_FIELD_L2_SRCHIT_SIZE                 1    /* PTin added: FP */
-#define BROAD_FIELD_L2_DSTHIT_SIZE                 1    /* PTin added: FP */
-#define BROAD_FIELD_INT_PRIO_SIZE                  1    /* PTin added: FP */
+#define BROAD_FIELD_DROP_SIZE                      1                    /* PTin added: FP */
+#define BROAD_FIELD_L2_SRCHIT_SIZE                 1                    /* PTin added: FP */
+#define BROAD_FIELD_L2_DSTHIT_SIZE                 1                    /* PTin added: FP */
+#define BROAD_FIELD_INT_PRIO_SIZE                  1                    /* PTin added: FP */
 
 typedef struct 
 {
@@ -521,11 +527,20 @@ typedef struct
     L7_uchar8  mask[BROAD_FIELD_ICMP_MSG_TYPE_SIZE];
   } fieldIcmpMsgType;
 
-//struct
-//{
-//  L7_uchar8  value[BROAD_FIELD_CLASS_ID_SIZE];
-//} fieldClassId;
+  /* PTin modified: FP */
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_CLASS_ID_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_CLASS_ID_SIZE];     /* PTin added: FP */
+  } fieldClassId;
   
+  /* PTin added: FP */
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_SRC_CLASS_ID_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_SRC_CLASS_ID_SIZE];
+  } fieldSrcClassId;
+
   struct 
   {
     L7_uchar8  value[BROAD_FIELD_TCP_CONTROL_SIZE];

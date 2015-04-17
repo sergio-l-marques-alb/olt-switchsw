@@ -73,7 +73,14 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyIp6FlowLabel,   /* IPv6 Flow Label */
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
     customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
-    //bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
+/* PTin modified: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    bcmFieldQualifyDstClassField,  /* Class ID from VFP, to be used in IFP - PTin added: FP */
+    bcmFieldQualifySrcClassField,  /* Class ID from VFP, to be used in IFP - PTin added: FP */
+#else
+    bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
+    bcmFieldQualifyLookupClass0,   /* PTin added: FP */
+#endif
 /* PTin modified: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifySrcClassL2,
@@ -253,6 +260,13 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
     /* SET_REASON */
     {
         { bcmFieldActionNewReasonCode, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -385,6 +399,13 @@ static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
     /* SET_REASON*/
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -511,6 +532,13 @@ static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_CLASS_ID */
+    {
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
+        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+    },
+    /* PTin added: FP */
+    /* SET_SRC_CLASS_ID */
     {
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
@@ -1683,9 +1711,21 @@ static int _policy_group_add_std_field(int                   unit,
           rv = bcm_field_qualify_Ip6TrafficClass(unit, eid, *((uint8*)value), *((uint8*)mask));
         }
         break;
-//  case BROAD_FIELD_CLASS_ID:
-//      rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
-//      break;
+/* PTin added: SDK 6.3.0 */
+#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    /* PTin added: FP */
+    case BROAD_FIELD_CLASS_ID:
+        rv = bcm_field_qualify_DstClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        break;
+    case BROAD_FIELD_SRC_CLASS_ID:
+        rv = bcm_field_qualify_SrcClassField(unit, eid, *((uint8*)value), *((uint8*)mask));
+        break;
+#else
+    case BROAD_FIELD_CLASS_ID:
+    case BROAD_FIELD_SRC_CLASS_ID:
+        rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
+        break;
+#endif
     case BROAD_FIELD_L2_CLASS_ID:
         /* PTin modified: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
