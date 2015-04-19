@@ -1047,19 +1047,6 @@ L7_RC_t ipsgEntryRemove (ipsgEntryType_t entryType,
   ipsgEntryTreeNode_t *pNode = NULL, *freeNode=NULL, ipsgEntry;
   dhcpSnoopBinding_t dsNode;
 
-
-  {
-    L7_uchar8 macStr[DS_MAC_STR_LEN];
-    L7_uchar8 ipAddrStr[IPV6_DISP_ADDR_LEN];
-    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
-
-
-    dsMacToString(macAddr->addr, macStr);    
-    inetAddrPrint(ipAddr, ipAddrStr);
-    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
-  }
-
-
   /* If IPSG enabled, remove binding from HW */
   if (ipsgEntryTreeSearch(intIfNum,
                           vlanId,
