@@ -4155,6 +4155,48 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
   /* Check if this key already exists */
   if ((avl_infoData=avlSearchLVL7( &(avl_tree->igmpClientsAvlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
   {
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    /*We do not support addding new group clients when handling multicast packages!*/
+    if (noOfPackages != 0)
+    {
+      LOG_ERR(LOG_CTX_PTIN_IGMP,"Cannot find key for this package{"
+#if (MC_CLIENT_INTERF_SUPPORTED)
+              "port=%u,"
+#endif
+#if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              "svlan=%u,"
+#endif
+#if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              "cvlan=%u,"
+#endif
+#if (MC_CLIENT_IPADDR_SUPPORTED)
+              "ipAddr=%u.%u.%u.%u,"
+#endif
+#if (MC_CLIENT_MACADDR_SUPPORTED)
+              "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
+#endif
+              "}"
+#if (MC_CLIENT_INTERF_SUPPORTED)
+              ,avl_key.ptin_port
+#endif
+#if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+              ,avl_key.outerVlan
+#endif
+#if (MC_CLIENT_INNERVLAN_SUPPORTED)
+              ,avl_key.innerVlan
+#endif
+#if (MC_CLIENT_IPADDR_SUPPORTED)
+              ,(avl_key.ipv4_addr>>24) & 0xff, (avl_key.ipv4_addr>>16) & 0xff, (avl_key.ipv4_addr>>8) & 0xff, avl_key.ipv4_addr & 0xff
+#endif
+#if (MC_CLIENT_MACADDR_SUPPORTED)
+              ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
+#endif
+             );
+      osapiSemaGive(ptin_igmp_clients_sem);
+      return L7_FAILURE;
+    }
+#endif
+
     /*Allocate Group Client Identifier*/
     if ( (group_client_id = ptin_igmp_group_client_identifier_pop(ptin_port)) >= PTIN_IGMP_CLIENTIDX_MAX )
     {
