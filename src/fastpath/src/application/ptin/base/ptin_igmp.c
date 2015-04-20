@@ -7389,7 +7389,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
                                 L7_inet_addr_t *channel_source, L7_uint16 channel_srcMask,
                                 L7_BOOL is_static, L7_uint64 channelBandwidth)
 {
-  L7_uint                    igmpInst_idx;
   L7_inet_addr_t             group, 
   source, 
   sourceAux;
@@ -7459,18 +7458,6 @@ L7_RC_t igmp_assoc_channel_add( L7_uint32 evc_uc, L7_uint32 evc_mc,
   if ( evc_mc >= PTIN_SYSTEM_N_EXTENDED_EVCS )
   {
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC evc (%u)", evc_mc);
-    return L7_FAILURE;
-  }
-  /* Check if MC EVC is active */
-  if ( !ptin_evc_is_in_use(evc_mc) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u is not in use!", evc_mc);
-    return L7_DEPENDENCY_NOT_MET;
-  }
-  /* MC EVC should be part of an IGMP instance */
-  if (ptin_igmp_instance_find_fromMcastEvcId( evc_mc, &igmpInst_idx ) != L7_SUCCESS)
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC evc %u does not belong to any IGMP instance!", evc_mc);
     return L7_FAILURE;
   }
 
@@ -7820,13 +7807,7 @@ L7_RC_t igmp_assoc_channel_clear( L7_uint32 evc_uc, L7_uint32 evc_mc )
     LOG_ERR(LOG_CTX_PTIN_IGMP,"Invalid MC eEVC (%u)", evc_mc);
     return L7_FAILURE;
   }
-  /* Check if MC EVC is active */
-  if ( !ptin_evc_is_in_use(evc_mc) )
-  {
-    LOG_ERR(LOG_CTX_PTIN_IGMP,"MC eEVC %u is not in use!", evc_mc);
-    return L7_FAILURE;
-  }
-
+  
   /* Clear entries */
   if (ptin_igmp_channel_remove_multicast_service(evc_uc, evc_mc)!=L7_SUCCESS)
   {
