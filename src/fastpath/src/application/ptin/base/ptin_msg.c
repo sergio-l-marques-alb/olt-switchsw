@@ -10454,7 +10454,7 @@ L7_RC_t ptin_msg_acl_rule_config(void *msgAcl, L7_uint msgId, L7_uint msgDim)
       rc = ptin_msg_ipv6_acl_rule_config((msg_ipv6_acl_t*) msg, operation);
       msg += sizeof(msg_ipv6_acl_t);
     }
-    if (msg[1] == ACL_TYPE_ARP)
+    else if (msg[1] == ACL_TYPE_ARP)
     {
       rc = ptin_msg_arp_acl_rule_config((msg_arp_acl_t*) msg, operation);
       msg += sizeof(msg_arp_acl_t);
