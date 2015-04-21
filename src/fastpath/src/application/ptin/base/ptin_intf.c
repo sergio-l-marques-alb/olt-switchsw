@@ -13,6 +13,7 @@
 #include "usmdb_qos_cos_api.h"
 #include "usmdb_mib_vlan_api.h"
 #include "usmdb_policy_api.h"
+#include "usmdb_dai_api.h"
 
 #include "dtlapi.h"
 #include "ptin_include.h"
@@ -226,6 +227,20 @@ L7_RC_t ptin_intf_init(void)
         return L7_FAILURE;
       }
     }
+
+    /* For internal ports (linecards only) */
+  #if (PTIN_BOARD_IS_LINECARD)
+    /* Internal interfaces of linecards, should always be trusted */
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
+    {
+      rc = usmDbDaiIntfTrustSet(map_port2intIfNum[i], L7_TRUE);
+      if (rc != L7_SUCCESS)
+      {
+        LOG_CRITICAL(LOG_CTX_PTIN_INTF, "Failed to set DAI-trust mode for port# %u", i);
+        return L7_FAILURE;
+      }
+    }
+  #endif
 
     rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
     if (rc != L7_SUCCESS)
@@ -2729,11 +2744,15 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     if (lag_idx == 0)
     #endif
     {
-      #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+     #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
       ptin_dhcp_intfTrusted_set(lag_intf, L7_TRUE); 
       ptin_pppoe_intfTrusted_set(lag_intf, L7_TRUE);
-      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+      /* Internal interfaces of linecards, should always be trusted */
+      #if (PTIN_BOARD_IS_LINECARD)
+      usmDbDaiIntfTrustSet(lag_intf, L7_TRUE);
       #endif
+      LOG_TRACE(LOG_CTX_PTIN_INTF, "LAG# %u is trusted", lag_idx);
+     #endif
     }
     #endif
   }
