@@ -390,7 +390,8 @@ L7_RC_t daiAclNameStringCheck(L7_uchar8 *aclName)
 
   for (i=0; i<strlen(aclName); i++)
   {
-    if (!isalnum((L7_int32)aclName[i]))
+    /* PTin modified: DAI */
+    if (!isalnum((L7_int32)aclName[i]) && aclName[i]!='-' && aclName[i]!='_')
       return L7_FAILURE;
   }
 
