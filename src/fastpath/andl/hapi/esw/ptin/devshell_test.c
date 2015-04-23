@@ -616,6 +616,17 @@ void ptin_port_selective_set(bcm_port_t bcm_port, int linkscan_mode)
   printf("%s(%d) ptin_port_selective_set executed!\r\n",__FUNCTION__,__LINE__);
 }
 
+bcm_error_t ptin_phyctrl_link_get(bcm_port_t bcm_port)
+{
+  int status;
+  bcm_error_t rv;
+    
+  rv = soc_phyctrl_link_get(0, bcm_port, &status);
+
+  printf("status=%d   (rv=%d -> \"%s\")\r\n", status, rv, bcm_errmsg(rv));
+
+  return rv;
+}
 
 // Ingress Translations (single tagged packets)
 
