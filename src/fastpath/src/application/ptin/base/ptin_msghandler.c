@@ -5484,11 +5484,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
      msg_l2_maclimit_status_t *ptr;
 
      ptr = (msg_l2_maclimit_status_t *) outbuffer->info;
-     memcpy(ptr, inbuffer->info, sizeof(msg_l2_maclimit_status_t));
+     memcpy(&outbuffer->info, &inbuffer->info, sizeof(msg_l2_maclimit_status_t));
 
      /* Execute command */
      rc = ptin_msg_l2_maclimit_status(ptr);  
-    
+
      if (L7_SUCCESS != rc)
      {
         LOG_ERR(LOG_CTX_PTIN_MSGHANDLER, "Error sending data");
@@ -5497,14 +5497,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
      }
 
+      outbuffer->infoDim = sizeof(msg_l2_maclimit_status_t);
+
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Status Response");
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," slotId       = %u",      ptr->slotId);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," interface    = %u/%u",   ptr->intf.intf_type, ptr->intf.intf_id);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," MacLearned   = %u",      ptr->number_mac_learned);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Status       = %u",      ptr->status);
-      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Mask       = %u",        ptr->mask);
+      LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER," Mask         = %u",      ptr->mask);
       LOG_TRACE(LOG_CTX_PTIN_MSGHANDLER,
-               "Message processed: response with %d bytes", outbuffer->infoDim); 
+               "Message processed: response with %d bytes", outbuffer->infoDim);
     }
     break;
 
