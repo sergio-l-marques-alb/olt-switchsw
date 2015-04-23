@@ -1221,12 +1221,12 @@ static L7_RC_t ptin_dhcp_circuitid_set_instance(L7_uint16 dhcp_idx, L7_char8 *te
  * Get DHCP flags of a particular EVC
  *
  * @param evc_idx : evc index 
- * @param mask    : flags mask 
- * @param flags   : DHCP flags
+ * @param dhcp_mask  : flags mask 
+ * @param dhcp_flags : DHCP flags 
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *mask, L7_char8 *flags)
+L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *dhcp_mask, L7_char8 *dhcp_flags)
 {
   L7_uint dhcp_idx;
 
@@ -1238,7 +1238,7 @@ L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *mask, L7_char8 *fl
   }
 
   /* Validate dhcp instance */
-  if (ptin_dhcp_flags_get_instance(dhcp_idx, mask, flags) != L7_SUCCESS)
+  if (ptin_dhcp_flags_get_instance(dhcp_idx, dhcp_mask, dhcp_flags) != L7_SUCCESS)
   {
     LOG_ERR(LOG_CTX_PTIN_DHCP, "Error getting DHCP flags for eEVC %u / dhcp_idx=%u", evc_idx, dhcp_idx);
     return L7_FAILURE;
@@ -3365,13 +3365,14 @@ L7_RC_t ptin_dhcp_clientData_get(L7_uint16 intVlan,
 /**
  * Get DHCP client data (circuit and remote ids)
  * 
- * @param intIfNum : FP interface
- * @param intVlan  : internal vlan
- * @param flags    : DHCP flags (output)
+ * @param intIfNum   : FP interface
+ * @param intVlan    : internal vlan
+ * @param dhcp_flags : DHCP flags (output) 
+ * @param evc_flags  : EVC flags (output) 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *flags)
+L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *evc_flags)
 {
   L7_uint dhcp_idx;
 
@@ -3392,11 +3393,25 @@ L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *flags)
   }
 
   /* Get flags */
-  if (ptin_dhcp_flags_get_instance(dhcp_idx, L7_NULLPTR, flags) != L7_SUCCESS)
+  if (dhcp_flags != L7_NULLPTR)
   {
-    if (ptin_debug_dhcp_snooping)
-      LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring flags for internal vlan %u / dhcp_idx=%u", intVlan, dhcp_idx);
-    return L7_FAILURE;
+    if (ptin_dhcp_flags_get_instance(dhcp_idx, L7_NULLPTR, dhcp_flags) != L7_SUCCESS) 
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring DHCP flags for internal vlan %u / dhcp_idx=%u", intVlan, dhcp_idx);
+      return L7_FAILURE;
+    }
+  }
+
+  /* Get EVC flags */
+  if (evc_flags != L7_NULLPTR)
+  {
+    if (ptin_evc_flags_get_fromIntVlan(intVlan, evc_flags, L7_NULLPTR) != L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp_snooping)
+        LOG_ERR(LOG_CTX_PTIN_DHCP,"Error acquiring EVC flags for internal vlan %u", intVlan);
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;

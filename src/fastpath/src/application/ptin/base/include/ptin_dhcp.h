@@ -286,11 +286,12 @@ extern L7_RC_t ptin_dhcp_circuitid_set_nniVid(L7_uint16 nni_outerVid, L7_char8 *
  * Get DHCP flags of a particular EVC
  *
  * @param evc_idx : evc index 
- * @param flags   : DHCP flags
+ * @param dhcp_mask  : flags mask  
+ * @param dhcp_flags : DHCP flags 
  *
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *mask, L7_char8 *flags);
+extern L7_RC_t ptin_dhcp_evc_flags_get(L7_uint32 evc_idx, L7_uchar8 *dhcp_mask, L7_char8 *dhcp_flags);
 
 /**
  * Set DHCP flags for a particular EVC id
@@ -560,12 +561,13 @@ L7_BOOL ptin_dhcp_intfTrusted_getList(L7_uint16 intVlanId, NIM_INTF_MASK_t *intf
 /**
  * Get DHCP flags
  * 
- * @param intVlan  : internal vlan
- * @param flags    : DHCP flags (output)
+ * @param intVlan    : internal vlan
+ * @param dhcp_flags : DHCP flags (output) 
+ * @param evc_flags  : EVC flags (output)
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *flags);
+extern L7_RC_t ptin_dhcp_flags_get(L7_uint16 intVlan, L7_uint8 *dhcp_flags, L7_uint32 *evc_flags);
 
 /**
  * Get DHCP client data (circuit and remote ids)
