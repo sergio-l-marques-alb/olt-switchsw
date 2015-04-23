@@ -127,4 +127,6 @@ extern L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_p
  */
 extern L7_RC_t ptin_hapi_maclimit_alarmconfig(bcm_vlan_t vlan_id, int bcm_port, L7_uint16 outer_vid);
 
+extern L7_RC_t ptin_hapi_maclimit_trap(L7_uint16 int_f, L7_uint16 physical_port);
+
 #endif //_PTIN_HAPI_L2__H

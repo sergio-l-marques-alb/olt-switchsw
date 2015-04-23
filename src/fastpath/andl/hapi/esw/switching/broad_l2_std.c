@@ -3622,6 +3622,21 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[4] = bcmx_l2_addr->mac[4];
       macAddressInfo.cmdData.unsolLearnedAddress.macAddr.addr[5] = bcmx_l2_addr->mac[5];
 
+      /* PTin added: virtual ports */
+      #if 1
+      /* Save virtual port */
+      if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
+      {
+        LOG_TRACE(LOG_CTX_PTIN_HAPI, " Warning ");
+        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
+        ptin_hapi_maclimit_inc(bcmx_l2_addr);
+      }
+      else
+      {
+        macAddressInfo.virtual_port = 0;
+      }
+      #endif
+
       /* PTin added: physical ports */
       if (BCMX_LPORT_VALID(bcmx_l2_addr->lport))
       {
@@ -3632,19 +3647,7 @@ void hapiBroadAddrMacUpdateLearn(bcmx_l2_addr_t *bcmx_l2_addr, DAPI_t *dapi_g)
       {
         ptin_hapi_maclimit_inc(bcmx_l2_addr);
       }
-      /* PTin added: virtual ports */
-      #if 1
-      /* Save virtual port */
-      if (BCM_GPORT_IS_VLAN_PORT(bcmx_l2_addr->lport))
-      {
-        macAddressInfo.virtual_port = _SHR_GPORT_VLAN_PORT_ID_GET(bcmx_l2_addr->lport);
-        ptin_hapi_maclimit_inc(bcmx_l2_addr);
-      }
-      else
-      {
-        macAddressInfo.virtual_port = 0;
-      }
-      #endif
+      
 
       /* increment the learn counter regardless of failure */
       hapiMacStats.learn++;

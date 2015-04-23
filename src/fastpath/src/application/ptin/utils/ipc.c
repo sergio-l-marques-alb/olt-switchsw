@@ -263,11 +263,28 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   ipc_msg	comando;
   int ret = 0;
   st_EthSwitchEvent *alarm;
+  L7_uint16 slot_to_send;
+  ptin_intf_t ptin_intf;
 
 //if (!global_var_system_ready)  return S_OK;
 
   if(g_iInterfaceSW==-1) 
       return(-1);
+
+  /* Which slot to send? */
+  ptin_intf.intf_type = intfType;
+  ptin_intf.intf_id   = interface;
+
+  LOG_TRACE(LOG_CTX_IPC,"%d",intfType);
+  LOG_TRACE(LOG_CTX_IPC,"%d",interface);
+
+  if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR, L7_NULLPTR)!=L7_SUCCESS)
+  {
+    LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", interface);
+    return -1;
+  }
+
+  LOG_TRACE(LOG_CTX_IPC,"%d",slot_to_send);
 
   comando.protocolId= SIR_IPCPROTOCOL_ID;
   comando.flags		= IPCLIB_FLAGS_CMD;
@@ -277,14 +294,23 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   alarm             = (st_EthSwitchEvent *) &comando.info[0];
 
   memset(alarm,0x00,sizeof(st_EthSwitchEvent));
-  alarm->slotId      = ptin_fgpa_board_slot();
+
+  if(PTIN_BOARD == PTIN_BOARD_TYPE_TU40G)
+  {
+    alarm->slotId      = slot_to_send;
+  }
+  else
+  {
+    alarm->slotId      = ptin_fgpa_board_slot();
+  }
+
   alarm->code        = code;
   alarm->alarmstatus = status;
   alarm->intf_type   = intfType;
   alarm->intf_id     = interface;
   alarm->outer_vid   = param;
 
-  LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret);
+  LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret, alarm->slotId);
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)

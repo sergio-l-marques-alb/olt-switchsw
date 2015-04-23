@@ -1826,6 +1826,14 @@ typedef enum
 
 } L2_MACLIMIT_MASK_t;
 
+typedef enum
+{
+  L2_MACLIMIT_STATUS_MASK_NONE            = 0x0000,
+  L2_MACLIMIT_STATUS_MASK_MAC_LEARNED     = 0x0001,
+  L2_MACLIMIT_STATUS_MASK_STATUS          = 0x0002
+
+}L2_MACLIMIT_STATUS_t;
+
 typedef struct
 {
 

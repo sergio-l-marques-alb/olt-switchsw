@@ -761,6 +761,14 @@ typedef enum
 
 } L2_MACLIMIT_MASK_t;
 
+typedef enum
+{
+  L2_MACLIMIT_STATUS_MASK_NONE            = 0x0000,
+  L2_MACLIMIT_STATUS_MASK_MAC_LEARNED     = 0x0001,
+  L2_MACLIMIT_STATUS_MASK_STATUS          = 0x0002
+
+}L2_MACLIMIT_STATUS_t;
+
 typedef struct
 {
 
@@ -785,7 +793,7 @@ typedef struct {
 
   L7_uint32 mask;                       /* Mask (32 bits for alignment purposes) */
 
-  L7_uint32 number_mac_learned;          /* 0x01 Indicates the number of MAC's learned */
+  L7_uint32 number_mac_learned;         /* 0x01 Indicates the number of MAC's learned */
   L7_uint32 status;                     /* 0x02 Indicates if the specific interface is within/over the MAC's learned limit. WITHIN_LIMIT=0,OVER_LIMIT =1 */
 } __attribute__((packed)) msg_l2_maclimit_status_t;
 

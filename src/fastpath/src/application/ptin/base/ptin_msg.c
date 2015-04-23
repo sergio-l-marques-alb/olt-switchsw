@@ -3257,6 +3257,10 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
          entry.action = 0;
       }
     }
+    else
+    {
+      entry.limit = 0;
+    }
   }
 
   dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
@@ -3303,6 +3307,7 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
 
   maclimit_status->number_mac_learned = entry.number_mac_learned;
   maclimit_status->status = entry.status;
+
   maclimit_status->mask = 0x03;
 
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Status Response");
@@ -3310,7 +3315,7 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   LOG_DEBUG(LOG_CTX_PTIN_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," MacLearned   = %u",      maclimit_status->number_mac_learned);
   LOG_DEBUG(LOG_CTX_PTIN_MSG," Status       = %u",      maclimit_status->status);
-  LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask         = %u",        maclimit_status->mask);
+  LOG_DEBUG(LOG_CTX_PTIN_MSG," Mask         = %u",      maclimit_status->mask);
 
   return rc;
 }
@@ -9239,11 +9244,13 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (valid_mep_index(pi[i].index)) {
       p = &oam.db[pi[i].index].mep;
-      if (EMPTY_T_MEP(*p)) ;//changing_trap=0;
+      if (EMPTY_T_MEP(*p)) LOG_DEBUG(LOG_CTX_PTIN_MSG, "MEP EMPTY");//changing_trap=0;
+
       else {
           //old_prt=p->prt;       old_vid=p->vid;     old_level=p->level;
           //changing_trap=1;  //if (old_prt!=porta || old_vid!=pi[i].bd.vid || old_level!=pi[i].bd.level) changing_trap=1;    else changing_trap=0;
           ptin_msg_del_MEP(inbuff, outbuff, i);
+          LOG_DEBUG(LOG_CTX_PTIN_MSG, "MEP DEL");
       }
   }
   //else changing_trap=0;
@@ -9263,12 +9270,19 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      hm.imep=   pi[i].index;
      hm.m=      &pi[i].bd;
 
-     if (L7_SUCCESS!=ptin_intf_port2intIfNum(porta, &intIfNum));
+     if (L7_SUCCESS!=ptin_intf_port2intIfNum(porta, &intIfNum))
+       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess port2intfNum");
      else
-     if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) ;
+     if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
+       LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess ingress get");
      else {
          pi[i].bd.vid=vidInternal;
-         if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));
+         LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sucess ingress get");
+         if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm))
+           LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess MEP CONTROL");
+         else {
+           LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sucess MEP CONTROL");
+         }
      }
     }
 #endif
@@ -9283,10 +9297,12 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (r==S_OK)
   {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Sucess");
     return L7_SUCCESS;
   }
   else
   {
+    LOG_DEBUG(LOG_CTX_PTIN_MSG, "Insucess");
     return L7_FAILURE;
   }
 
