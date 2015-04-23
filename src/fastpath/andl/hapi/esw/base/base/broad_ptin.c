@@ -2313,25 +2313,29 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   //else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr_prev) == L7_TRUE)
 
 
-
+  LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r");
 
   //Check if MAID's already in use...
   for (i=0, empty=-1, alrdy=0; i<N_MEPs; i++) {    //nMEGsMAIDs<=MEPs
       r=bcm_oam_group_get(0, i, &ginfo);
       if (BCM_E_NOT_FOUND==r) {
           if (empty>=N_MEPs) empty=i;
+          LOG_TRACE(LOG_CTX_PTIN_API, "1 %d\n\r", r);
       }
       else
       if (BCM_E_EXISTS==r) {
           if (!memcmp(ginfo.name, &p->meg_id, sizeof(ginfo.name))) {
               ginfo.id=i;
               alrdy=1;
+              LOG_TRACE(LOG_CTX_PTIN_API, "2\n\r", r);
               break;
           }
       }
   }//for
   //... otherwise allocate it
+  LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r", r);
   if (!alrdy) {
+      LOG_TRACE(LOG_CTX_PTIN_API, "r = %d empty %d %d\n\r", r, empty);
       if (empty>=N_MEPs) return L7_TABLE_IS_FULL;
 
       bcm_oam_group_info_t_init(&ginfo);
@@ -2339,10 +2343,12 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       memcpy(ginfo.name, &p->meg_id, sizeof(ginfo.name));   //memset(ginfo.name, 0, sizeof(ginfo.name));    //sprintf(ginfo.name, "");
       ginfo.flags= BCM_OAM_GROUP_WITH_ID; //| BCM_OAM_GROUP_REMOTE_DEFECT_TX;
       r=bcm_oam_group_create(0, &ginfo);
+      LOG_TRACE(LOG_CTX_PTIN_API, "r = %d \n\r", r);
       if (BCM_E_NONE!=r) {
           LOG_ERR(LOG_CTX_PTIN_API, "bcm_oam_group_create()=%d\n\r", r);
           return L7_DEPENDENCY_NOT_MET;
       }
+      LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r", r);
   }
 
 
@@ -2391,6 +2397,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   mep.vlan=         p->vid; //50;
   mep.inner_vlan=   0;  //...or set to 0 for one-tag
   mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
+  LOG_TRACE(LOG_CTX_PTIN_API, "Success\n\r", r);
   //mep.trunk_index= //The trunk port index for this
   //mep.intf_id=
   //mep.mpls_label=
@@ -2417,6 +2424,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
              goto _hapiBroadPtinMEPCreate_nokend;
          }//memcpy(mep.src_mac_address, &s, 6);
    }
+   LOG_TRACE(LOG_CTX_PTIN_API, "Success\n\r", r);
   }
   //mep.pkt_pri=
   //mep.inner_pkt_pri=
@@ -2471,8 +2479,10 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 _hapiBroadPtinMEPCreate_nokend:
   if (!alrdy) {
       bcm_oam_group_destroy(0, ginfo.id);
+      LOG_TRACE(LOG_CTX_PTIN_API, "ERROR\n\r", r);
   }
 
+  LOG_TRACE(LOG_CTX_PTIN_API, "Success %d \n\r", r);
   return r;
 }//hapiBroadPtinMEPCreate
 
